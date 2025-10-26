@@ -1,0 +1,31 @@
+{
+  "name": "photo-signal",
+  "version": "1.0.0",
+  "description": "A quiet, camera-based gallery that plays music when you point at a printed photo.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.16",
+    "@types/howler": "^2.2.12",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12"
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}

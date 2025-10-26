@@ -1,99 +1,73 @@
-# 📸 Photo Signal
+# React + TypeScript + Vite
 
-> A quiet, camera-based gallery that plays music when you point at a printed photo.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
----
+Currently, two official plugins are available:
 
-## 🌄 Concept
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-**Photo Signal** is an experiment in memory, music, and perception.  
-Visitors use their phone’s camera to look at printed photographs — the site recognizes each image, displays its details, and plays a song tied to that moment.
+## React Compiler
 
-It’s a small-scale, in-home installation: no QR codes, no visible markers.  
-Just light, sound, and the act of looking.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-Inspired by [campmiles.com](https://www.campmiles.com), this project explores how technology can quietly deepen our connection to physical media without disrupting its stillness.
+## Expanding the ESLint configuration
 
----
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## 🧠 Core Experience
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-1. User visits the site (mobile-first).
-2. Grants access to the camera and speakers.
-3. Aligns a printed photo within the on-screen frame.
-4. The app recognizes the image and overlays band, venue, and date.
-5. The corresponding song begins playing.
-6. Moving away fades out both the music and the overlay.
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
----
-
-## 🧩 Architecture (MVP)
-
-| Layer | Role | Tech |
-|-------|------|------|
-| **Frontend** | Camera view, hash recognition, playback | React (Vite or Next.js), Howler.js, image-phash |
-| **Storage** | Photos, MP3s, metadata | Supabase or S3 |
-| **Hosting** | Static site | Vercel |
-| **Recognition** | Local perceptual hashing | Client-side only |
-
-Everything runs in the browser. No backend needed.
-
----
-
-## 🚀 Setup
-
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/macamp0328/photo-signal.git
-   cd photo-signal
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Run locally**
-   ```bash
-   npm run dev
-   ```
-
-4. **Visit**  
-   Open [http://localhost:5173](http://localhost:5173) (or your Vite dev URL) on your phone and allow camera access.
-
----
-
-## 🗂️ Project Structure
-
-```
-photo-signal/
-├── public/
-│   ├── audio/
-│   ├── images/
-│   └── data.json
-├── src/
-│   ├── components/
-│   │   ├── CameraFeed.tsx
-│   │   ├── Overlay.tsx
-│   │   └── Player.tsx
-│   ├── utils/
-│   │   ├── hash.ts
-│   │   └── matcher.ts
-│   └── App.tsx
-└── README.md
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+]);
 ```
 
----
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## 🔮 Future Ideas
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x';
+import reactDom from 'eslint-plugin-react-dom';
 
-- External playback via ESP32 or Google Home.
-- Audio-reactive visual overlays.
-- Offline PWA experience.
-- “Story mode” — written reflections fade in after the song ends.
-
----
-
-## ⚖️ License
-
-MIT © Miles Camp
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+]);
+```

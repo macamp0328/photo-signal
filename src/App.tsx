@@ -31,18 +31,10 @@ function App() {
   }, [concerts, currentConcert]);
 
   const handleMotionDetected = useCallback((isMoving: boolean) => {
-    if (currentConcert && isMoving) {
-      // Fade out when motion detected
-      setVolume(0);
-      setInfoOpacity(0);
-      
-      // Reset after motion stops (simplified logic)
-      setTimeout(() => {
-        if (!isMoving) {
-          setVolume(1);
-          setInfoOpacity(1);
-        }
-      }, 1000);
+    if (currentConcert) {
+      // Fade out when motion detected, fade in when stable
+      setVolume(isMoving ? 0 : 1);
+      setInfoOpacity(isMoving ? 0 : 1);
     }
   }, [currentConcert]);
 

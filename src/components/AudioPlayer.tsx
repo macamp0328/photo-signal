@@ -30,7 +30,8 @@ const AudioPlayer = ({ audioFile, shouldPlay, onFadeComplete }: AudioPlayerProps
         onloaderror: (_id, error) => {
           console.error('Audio load error:', error);
           console.warn('Audio file not found. Please add an MP3 file at public/audio/sample.mp3');
-          // Still mark as playing to allow fade out logic
+          // Mark as playing to allow fade-out/state management logic to work
+          // even when audio file is missing (for development/testing)
           setIsPlaying(true);
         },
         onplayerror: (_id, error) => {

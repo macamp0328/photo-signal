@@ -152,7 +152,7 @@ photo-signal/
 │   ├── App.css               # App styles
 │   ├── main.tsx              # Entry point
 │   └── index.css             # Global styles
-├── .eslintrc.json            # ESLint configuration
+├── eslint.config.js          # ESLint configuration (flat config format)
 ├── .prettierrc.json          # Prettier configuration
 ├── .prettierignore           # Files to ignore in formatting
 ├── index.html                # HTML template

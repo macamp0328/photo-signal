@@ -1,3 +1,9 @@
-dist
 node_modules
+dist
+dist-ssr
+*.local
+coverage
+.vscode
+.idea
+*.log
 package-lock.json

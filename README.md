@@ -29,12 +29,12 @@ Inspired by [campmiles.com](https://www.campmiles.com), this project explores ho
 
 ## 🧩 Architecture (MVP)
 
-| Layer | Role | Tech |
-|-------|------|------|
-| **Frontend** | Camera view, hash recognition, playback | React (Vite), Howler.js, TypeScript |
-| **Storage** | Photos, MP3s, metadata | Local JSON (expandable to Supabase or S3) |
-| **Hosting** | Static site | Vercel |
-| **Recognition** | Placeholder logic (3s delay) | Client-side only |
+| Layer           | Role                                    | Tech                                      |
+| --------------- | --------------------------------------- | ----------------------------------------- |
+| **Frontend**    | Camera view, hash recognition, playback | React (Vite), Howler.js, TypeScript       |
+| **Storage**     | Photos, MP3s, metadata                  | Local JSON (expandable to Supabase or S3) |
+| **Hosting**     | Static site                             | Vercel                                    |
+| **Recognition** | Placeholder logic (3s delay)            | Client-side only                          |
 
 Everything runs in the browser. No backend needed.
 
@@ -68,12 +68,14 @@ Everything runs in the browser. No backend needed.
 ### Installation
 
 1. **Clone the repo**
+
    ```bash
    git clone https://github.com/macamp0328/photo-signal.git
    cd photo-signal
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```

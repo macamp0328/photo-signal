@@ -35,17 +35,11 @@ function App() {
 
   return (
     <div className="w-full h-full">
-      <Camera 
-        onPhotoRecognized={handlePhotoRecognized}
-        onMovement={handleMovement}
-      />
-      
-      <InfoDisplay 
-        concert={recognizedConcert}
-        isVisible={showInfo}
-      />
-      
-      <AudioPlayer 
+      <Camera onPhotoRecognized={handlePhotoRecognized} onMovement={handleMovement} />
+
+      <InfoDisplay concert={recognizedConcert} isVisible={showInfo} />
+
+      <AudioPlayer
         audioFile={recognizedConcert?.audioFile || null}
         shouldPlay={playAudio}
         onFadeComplete={handleFadeComplete}

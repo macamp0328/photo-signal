@@ -54,7 +54,7 @@ const AudioPlayer = ({ audioFile, shouldPlay, onFadeComplete }: AudioPlayerProps
   useEffect(() => {
     if (!shouldPlay && soundRef.current && isPlaying) {
       soundRef.current.fade(soundRef.current.volume(), 0, 1000);
-      
+
       setTimeout(() => {
         if (soundRef.current) {
           soundRef.current.stop();

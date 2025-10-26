@@ -8,6 +8,7 @@ interface CameraProps {
 
 const Camera = ({ onPhotoRecognized, onMovement }: CameraProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string>('');
   const previousFrameData = useRef<ImageData | null>(null);
@@ -25,6 +26,7 @@ const Camera = ({ onPhotoRecognized, onMovement }: CameraProps) => {
           audio: false,
         });
 
+        streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           setHasPermission(true);
@@ -39,9 +41,8 @@ const Camera = ({ onPhotoRecognized, onMovement }: CameraProps) => {
     startCamera();
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -69,8 +70,12 @@ const Camera = ({ onPhotoRecognized, onMovement }: CameraProps) => {
 
       for (let i = 0; i < currentFrameData.data.length; i += 4) {
         const rDiff = Math.abs(currentFrameData.data[i] - previousFrameData.current.data[i]);
-        const gDiff = Math.abs(currentFrameData.data[i + 1] - previousFrameData.current.data[i + 1]);
-        const bDiff = Math.abs(currentFrameData.data[i + 2] - previousFrameData.current.data[i + 2]);
+        const gDiff = Math.abs(
+          currentFrameData.data[i + 1] - previousFrameData.current.data[i + 1]
+        );
+        const bDiff = Math.abs(
+          currentFrameData.data[i + 2] - previousFrameData.current.data[i + 2]
+        );
 
         if (rDiff > threshold || gDiff > threshold || bDiff > threshold) {
           diff++;
@@ -98,14 +103,14 @@ const Camera = ({ onPhotoRecognized, onMovement }: CameraProps) => {
       recognitionTimeout.current = window.setTimeout(() => {
         // Load data and randomly select a concert (placeholder logic)
         fetch('/data.json')
-          .then(res => res.json())
-          .then(data => {
+          .then((res) => res.json())
+          .then((data) => {
             if (data.concerts && data.concerts.length > 0) {
               const randomConcert = data.concerts[Math.floor(Math.random() * data.concerts.length)];
               onPhotoRecognized(randomConcert);
             }
           })
-          .catch(err => console.error('Failed to load concert data:', err));
+          .catch((err) => console.error('Failed to load concert data:', err));
       }, 3000);
 
       return () => {
@@ -144,7 +149,7 @@ const Camera = ({ onPhotoRecognized, onMovement }: CameraProps) => {
         muted
         className="absolute top-0 left-0 w-full h-full object-cover"
       />
-      
+
       {/* 3:2 Aspect Ratio Overlay */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="relative" style={{ width: '90%', maxWidth: '600px' }}>

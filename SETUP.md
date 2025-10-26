@@ -39,7 +39,7 @@ This project is now fully configured with a modern development workflow includin
    Place your MP3 file at `public/audio/sample.mp3` or update the `audioFile` paths in `public/data.json`
 
 3. **Start development server:**
-2. **Start development server:**
+4. **Start development server:**
 
    ```bash
    npm run dev
@@ -47,43 +47,43 @@ This project is now fully configured with a modern development workflow includin
 
    Visit http://localhost:3000 (or another port if 3000 is in use)
 
-4. **Run linting:**
+5. **Run linting:**
    Visit http://localhost:5173
 
-3. **Run linting:**
+6. **Run linting:**
 
    ```bash
    npm run lint
    npm run lint:fix  # Auto-fix issues
    ```
 
-5. **Check formatting:**
-4. **Check formatting:**
+7. **Check formatting:**
+8. **Check formatting:**
 
    ```bash
    npm run format:check
    npm run format  # Auto-format all files
    ```
 
-6. **Type-check:**
-5. **Type-check:**
+9. **Type-check:**
+10. **Type-check:**
 
-   ```bash
-   npm run type-check
-   ```
+    ```bash
+    npm run type-check
+    ```
 
-7. **Build for production:**
-6. **Build for production:**
+11. **Build for production:**
+12. **Build for production:**
 
-   ```bash
-   npm run build
-   ```
+    ```bash
+    npm run build
+    ```
 
-8. **Preview production build:**
-7. **Preview production build:**
-   ```bash
-   npm run preview
-   ```
+13. **Preview production build:**
+14. **Preview production build:**
+    ```bash
+    npm run preview
+    ```
 
 ## GitHub Actions CI
 
@@ -282,14 +282,14 @@ photo-signal/
    - Test in browser
    - Build to verify
    - Commit and push
-2. **PR Guidelines:**
+3. **PR Guidelines:**
    - All CI checks must pass
    - Code must be formatted with Prettier
    - No linting errors
    - No type errors
    - Build must succeed
 
-3. **Development Workflow:**
+4. **Development Workflow:**
    - Create feature branch
    - Make changes
    - Run linting and formatting
@@ -354,6 +354,7 @@ The current implementation uses placeholder logic that triggers after 3 seconds.
 - Dependencies are regularly audited
 - All dependencies are locked in `package-lock.json`
 - Camera and audio permissions handled securely
+
 ### CI Failing
 
 1. Run all checks locally first

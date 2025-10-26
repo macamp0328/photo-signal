@@ -31,10 +31,10 @@ Inspired by [campmiles.com](https://www.campmiles.com), this project explores ho
 
 | Layer | Role | Tech |
 |-------|------|------|
-| **Frontend** | Camera view, hash recognition, playback | React (Vite or Next.js), Howler.js, image-phash |
-| **Storage** | Photos, MP3s, metadata | Supabase or S3 |
-| **Hosting** | Static site | Vercel |
-| **Recognition** | Local perceptual hashing | Client-side only |
+| **Frontend** | Camera view, motion detection, playback | React (Vite), TypeScript, Tailwind CSS, Howler.js |
+| **Storage** | Photos, MP3s, metadata | Local (public folder) |
+| **Hosting** | Static site | Vercel or similar |
+| **Recognition** | Placeholder (3-sec timer) | Client-side only |
 
 Everything runs in the browser. No backend needed.
 
@@ -68,20 +68,50 @@ Everything runs in the browser. No backend needed.
 ```
 photo-signal/
 ├── public/
-│   ├── audio/
-│   ├── images/
-│   └── data.json
+│   ├── audio/              # MP3 files (add your own)
+│   └── data.json           # Concert metadata
 ├── src/
 │   ├── components/
-│   │   ├── CameraFeed.tsx
-│   │   ├── Overlay.tsx
-│   │   └── Player.tsx
-│   ├── utils/
-│   │   ├── hash.ts
-│   │   └── matcher.ts
-│   └── App.tsx
-└── README.md
+│   │   ├── Camera.tsx      # Camera feed with motion detection
+│   │   ├── AudioPlayer.tsx # Howler.js audio player
+│   │   └── InfoDisplay.tsx # Concert info overlay
+│   ├── App.tsx             # Main app component
+│   ├── main.tsx            # Entry point
+│   ├── types.ts            # TypeScript types
+│   └── index.css           # Global styles with Tailwind
+├── index.html              # HTML entry point
+├── vite.config.ts          # Vite configuration
+├── tsconfig.json           # TypeScript configuration
+└── package.json            # Dependencies and scripts
 ```
+
+## 📝 Configuration
+
+### Concert Data
+
+Edit `public/data.json` to add your own concert data:
+
+```json
+{
+  "concerts": [
+    {
+      "id": 1,
+      "band": "Band Name",
+      "venue": "Venue Name",
+      "date": "2023-08-15",
+      "audioFile": "/audio/sample.mp3"
+    }
+  ]
+}
+```
+
+### Adding Audio
+
+Place your MP3 files in the `public/audio/` directory and reference them in `data.json`.
+
+### Photo Recognition
+
+The current implementation uses placeholder logic that triggers after 3 seconds. To implement real photo recognition, modify the `Camera.tsx` component to integrate with your preferred image recognition service.
 
 ---
 

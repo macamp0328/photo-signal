@@ -1,7 +1,9 @@
 # Project Setup Documentation
 
 ## Overview
+
 This project is now fully configured with a modern development workflow including:
+
 - **Vite** - Fast build tool and dev server
 - **React 19** - UI library
 - **TypeScript** - Type safety
@@ -14,40 +16,48 @@ This project is now fully configured with a modern development workflow includin
 ## Local Development
 
 ### Prerequisites
+
 - Node.js 20+
 - npm
 
 ### Getting Started
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Start development server:**
+
    ```bash
    npm run dev
    ```
+
    Visit http://localhost:5173
 
 3. **Run linting:**
+
    ```bash
    npm run lint
    npm run lint:fix  # Auto-fix issues
    ```
 
 4. **Check formatting:**
+
    ```bash
    npm run format:check
    npm run format  # Auto-format all files
    ```
 
 5. **Type-check:**
+
    ```bash
    npm run type-check
    ```
 
 6. **Build for production:**
+
    ```bash
    npm run build
    ```
@@ -60,10 +70,12 @@ This project is now fully configured with a modern development workflow includin
 ## GitHub Actions CI
 
 The CI workflow runs automatically on:
+
 - Push to `main` branch
 - Pull requests targeting `main`
 
 ### CI Steps:
+
 1. **Checkout code** - Get repository code
 2. **Setup Node.js** - Install Node 20 with npm caching
 3. **Install dependencies** - Run `npm ci` for clean install
@@ -74,6 +86,7 @@ The CI workflow runs automatically on:
 8. **Upload artifacts** - Save build output for review (7 days)
 
 ### Performance Optimizations:
+
 - **npm caching** - Dependencies cached between runs for faster installs
 - **Minimal permissions** - Job runs with `contents: read` only
 - **Single job** - All checks run sequentially to minimize overhead
@@ -81,6 +94,7 @@ The CI workflow runs automatically on:
 ## DevContainer
 
 Open this project in VS Code with the Dev Containers extension to get:
+
 - Pre-configured Node 20 environment
 - All recommended extensions installed:
   - ESLint
@@ -91,6 +105,7 @@ Open this project in VS Code with the Dev Containers extension to get:
 - Port 5173 forwarded for dev server
 
 ### Using DevContainer:
+
 1. Install Docker Desktop
 2. Install "Dev Containers" VS Code extension
 3. Open project in VS Code
@@ -100,16 +115,19 @@ Open this project in VS Code with the Dev Containers extension to get:
 ## Vercel Deployment
 
 ### Auto-Deploy:
+
 - Pushes to `main` branch automatically deploy to production
 - Pull requests get preview deployments
 
 ### Vercel Configuration (vercel.json):
+
 - **Build Command:** `npm run build`
 - **Output Directory:** `dist`
 - **Dev Command:** `npm run dev`
 - **Framework:** Vite
 
 ### First-Time Vercel Setup:
+
 1. Visit [vercel.com](https://vercel.com)
 2. Import the GitHub repository
 3. Vercel will auto-detect the settings from `vercel.json`
@@ -149,12 +167,14 @@ photo-signal/
 ## Code Quality Standards
 
 ### ESLint Rules:
+
 - Recommended JavaScript rules
 - TypeScript strict rules
 - React Hooks rules
 - React Refresh for HMR
 
 ### Prettier Configuration:
+
 - 2 space indentation
 - Single quotes
 - Semicolons required
@@ -163,6 +183,7 @@ photo-signal/
 - LF line endings
 
 ### TypeScript:
+
 - Strict mode enabled
 - No implicit any
 - Strict null checks
@@ -171,6 +192,7 @@ photo-signal/
 ## Best Practices
 
 1. **Before Committing:**
+
    ```bash
    npm run lint:fix
    npm run format
@@ -198,20 +220,24 @@ photo-signal/
 ## Troubleshooting
 
 ### Port Already in Use
+
 If port 5173 is in use, Vite will automatically use the next available port.
 
 ### Build Fails
+
 1. Clear cache: `rm -rf node_modules dist`
 2. Reinstall: `npm install`
 3. Try building again: `npm run build`
 
 ### CI Failing
+
 1. Run all checks locally first
 2. Ensure all files are formatted: `npm run format`
 3. Fix any linting errors: `npm run lint:fix`
 4. Check types: `npm run type-check`
 
 ### DevContainer Issues
+
 1. Rebuild container: Cmd+Shift+P > "Dev Containers: Rebuild Container"
 2. Check Docker is running
 3. Ensure you have enough disk space

@@ -1,5 +1,44 @@
-# photo-signal
-A quiet, camera-based gallery that plays music when you point at a printed photo.
+# 📸 Photo Signal
+
+> A quiet, camera-based gallery that plays music when you point at a printed photo.
+
+---
+
+## 🌄 Concept
+
+**Photo Signal** is an experiment in memory, music, and perception.  
+Visitors use their phone's camera to look at printed photographs — the site recognizes each image, displays its details, and plays a song tied to that moment.
+
+It's a small-scale, in-home installation: no QR codes, no visible markers.  
+Just light, sound, and the act of looking.
+
+Inspired by [campmiles.com](https://www.campmiles.com), this project explores how technology can quietly deepen our connection to physical media without disrupting its stillness.
+
+---
+
+## 🧠 Core Experience
+
+1. User visits the site (mobile-first).
+2. Grants access to the camera and speakers.
+3. Aligns a printed photo within the on-screen frame.
+4. The app recognizes the image and overlays band, venue, and date.
+5. The corresponding song begins playing.
+6. Moving away fades out both the music and the overlay.
+
+---
+
+## 🧩 Architecture (MVP)
+
+| Layer | Role | Tech |
+|-------|------|------|
+| **Frontend** | Camera view, hash recognition, playback | React (Vite), Howler.js, TypeScript |
+| **Storage** | Photos, MP3s, metadata | Local JSON (expandable to Supabase or S3) |
+| **Hosting** | Static site | Vercel |
+| **Recognition** | Placeholder logic (3s delay) | Client-side only |
+
+Everything runs in the browser. No backend needed.
+
+---
 
 ## Features
 
@@ -18,7 +57,9 @@ A quiet, camera-based gallery that plays music when you point at a printed photo
 - **Tailwind CSS** - Utility-first CSS framework
 - **Howler.js** - Audio playback library
 
-## Setup
+---
+
+## 🚀 Setup
 
 ### Prerequisites
 
@@ -26,18 +67,18 @@ A quiet, camera-based gallery that plays music when you point at a printed photo
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repo**
    ```bash
    git clone https://github.com/macamp0328/photo-signal.git
    cd photo-signal
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Add an MP3 file:
+3. **Add an MP3 file**
    - Place your MP3 file at `public/audio/sample.mp3`
    - Or update the `audioFile` paths in `public/data.json`
 
@@ -49,7 +90,7 @@ Start the development server:
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000` (or another port if 3000 is in use).
+Visit [http://localhost:3000](http://localhost:3000) (or another port if 3000 is in use) on your phone and allow camera access.
 
 ### Build
 
@@ -65,6 +106,8 @@ Preview the production build:
 npm run preview
 ```
 
+---
+
 ## Usage
 
 1. Open the app on a mobile device or desktop with camera access
@@ -73,6 +116,8 @@ npm run preview
 4. After ~3 seconds, the app will "recognize" the photo (placeholder logic)
 5. Concert information will appear and music will start playing
 6. Move the camera to fade out the music
+
+---
 
 ## Configuration
 
@@ -96,14 +141,17 @@ Edit `public/data.json` to add your own concert data:
 
 ### Photo Recognition
 
-The current implementation uses placeholder logic that triggers after 3 seconds. To implement real photo recognition, modify the `Camera.tsx` component to integrate with your preferred image recognition service.
+The current implementation uses placeholder logic that triggers after 3 seconds. To implement real photo recognition, modify the `Camera.tsx` component to integrate with your preferred image recognition service (e.g., image-phash or ML-based matching).
 
-## Project Structure
+---
+
+## 🗂️ Project Structure
 
 ```
 photo-signal/
 ├── public/
 │   ├── audio/           # MP3 files
+│   ├── images/          # Photo storage (future)
 │   ├── data.json        # Concert data
 │   └── vite.svg         # Favicon
 ├── src/
@@ -122,7 +170,18 @@ photo-signal/
 └── package.json         # Dependencies and scripts
 ```
 
-## License
+---
 
-ISC
+## 🔮 Future Ideas
 
+- External playback via ESP32 or Google Home.
+- Audio-reactive visual overlays.
+- Offline PWA experience.
+- "Story mode" — written reflections fade in after the song ends.
+- Real photo recognition using perceptual hashing (image-phash).
+
+---
+
+## ⚖️ License
+
+MIT © Miles Camp

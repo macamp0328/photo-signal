@@ -10,6 +10,7 @@
 
 - **[README.md](./README.md)** - Main project documentation, features, setup instructions, and usage
 - **[SETUP.md](./SETUP.md)** - Detailed development environment setup, CI/CD, DevContainer, and Vercel deployment
+- **[DOCKER.md](./DOCKER.md)** - Docker and Docker Compose setup, containerized development guide
 
 ### Architecture & Design
 
@@ -45,6 +46,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[package.json](./package.json)** - Dependencies, scripts, and project metadata
 - **[vite.config.ts](./vite.config.ts)** - Vite build configuration
+- **[vitest.config.ts](./vitest.config.ts)** - Vitest test configuration
 - **[tsconfig.json](./tsconfig.json)** - TypeScript root configuration
 - **[tsconfig.app.json](./tsconfig.app.json)** - TypeScript app-specific configuration
 - **[tsconfig.node.json](./tsconfig.node.json)** - TypeScript Node.js configuration
@@ -86,6 +88,22 @@ Each module has its own README defining its API contract, usage, and examples.
 ### DevContainer
 
 - **[.devcontainer/devcontainer.json](./.devcontainer/devcontainer.json)** - DevContainer configuration for consistent development environment
+
+### Docker
+
+- **[Dockerfile](./Dockerfile)** - Development Docker image configuration
+- **[Dockerfile.prod](./Dockerfile.prod)** - Production Docker image with NGINX
+- **[docker-compose.yml](./docker-compose.yml)** - Docker Compose orchestration for dev and prod
+- **[nginx.conf](./nginx.conf)** - NGINX configuration for production container
+
+### Helper Scripts
+
+- **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)
+- **[scripts/build.sh](./scripts/build.sh)** - Build for production (local or Docker)
+- **[scripts/test.sh](./scripts/test.sh)** - Run tests (local or Docker)
+- **[scripts/lint.sh](./scripts/lint.sh)** - Run linting (local or Docker)
+- **[scripts/format.sh](./scripts/format.sh)** - Format code (local or Docker)
+- **[scripts/create-sample-audio.sh](./scripts/create-sample-audio.sh)** - Generate sample audio file
 
 ---
 
@@ -150,13 +168,15 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (6 files)
+- ✅ Root documentation (7 files)
 - ✅ Module READMEs (7 files)
-- ✅ Configuration files (14 files)
+- ✅ Configuration files (15 files)
 - ✅ GitHub Actions & templates (3 files)
 - ✅ Development environment configs (3 files)
+- ✅ Docker configuration (4 files)
+- ✅ Helper scripts (6 files)
 - ✅ Data and asset documentation (2 files)
 
-**Total**: 35 documented files
+**Total**: 47 documented files
 
 Last updated: 2025-11-09

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5173:5173'
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      # Use named volume for node_modules to avoid conflicts
+      - node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host
+    stdin_open: true
+    tty: true
+
+  prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - '8080:80'
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  node_modules:

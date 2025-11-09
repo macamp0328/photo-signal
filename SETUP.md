@@ -13,11 +13,22 @@ This project is now fully configured with a modern development workflow includin
 - **Howler.js** - Audio playback library
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
+- **Vitest** - Testing framework
+- **Docker & Docker Compose** - Containerized development
 - **GitHub Actions CI** - Automated testing and building
 - **DevContainer** - Consistent development environment
 - **Vercel** - Auto-deployment
 
-## Local Development
+## Development Approaches
+
+You can develop Photo Signal using either:
+
+1. **Docker (Recommended for Mac)** - Fully containerized, consistent across all platforms
+2. **Local npm** - Direct Node.js installation
+
+See [DOCKER.md](./DOCKER.md) for complete Docker documentation.
+
+## Local Development (npm)
 
 ### Prerequisites
 
@@ -37,16 +48,20 @@ This project is now fully configured with a modern development workflow includin
    Place your MP3 file at `public/audio/sample.mp3` or update the `audioFile` paths in `public/data.json`
 
 3. **Start development server:**
-4. **Start development server:**
 
    ```bash
    npm run dev
    ```
 
-   Visit http://localhost:3000 (or another port if 3000 is in use)
+   Visit http://localhost:5173
+
+4. **Run tests:**
+
+   ```bash
+   npm test
+   ```
 
 5. **Run linting:**
-   Visit http://localhost:5173
 
 6. **Run linting:**
 
@@ -56,32 +71,120 @@ This project is now fully configured with a modern development workflow includin
    ```
 
 7. **Check formatting:**
-8. **Check formatting:**
 
    ```bash
    npm run format:check
    npm run format  # Auto-format all files
    ```
 
-9. **Type-check:**
-10. **Type-check:**
+8. **Type-check:**
 
-    ```bash
-    npm run type-check
-    ```
+   ```bash
+   npm run type-check
+   ```
 
-11. **Build for production:**
-12. **Build for production:**
+9. **Build for production:**
 
-    ```bash
-    npm run build
-    ```
+   ```bash
+   npm run build
+   ```
 
-13. **Preview production build:**
-14. **Preview production build:**
+10. **Preview production build:**
+
     ```bash
     npm run preview
     ```
+
+## Docker Development
+
+### Prerequisites
+
+- Docker Desktop (Mac/Windows) or Docker Engine (Linux)
+- Docker Compose (included with Docker Desktop)
+
+### Using Helper Scripts (Easiest)
+
+The project includes helper scripts that work with both local npm and Docker:
+
+```bash
+# Development server
+USE_DOCKER=true ./scripts/dev.sh
+
+# Run tests
+USE_DOCKER=true ./scripts/test.sh
+
+# Build for production
+USE_DOCKER=true ./scripts/build.sh
+
+# Lint code
+USE_DOCKER=true ./scripts/lint.sh
+USE_DOCKER=true ./scripts/lint.sh --fix
+
+# Format code
+USE_DOCKER=true ./scripts/format.sh
+USE_DOCKER=true ./scripts/format.sh --check
+```
+
+### Using Docker Compose Directly
+
+```bash
+# Start development server
+docker-compose up dev
+
+# Run tests
+docker-compose run --rm dev npm test -- --run
+
+# Build production image
+docker-compose build prod
+
+# Run production server
+docker-compose up prod
+```
+
+See [DOCKER.md](./DOCKER.md) for detailed Docker documentation.
+
+## VS Code Dev Container
+
+### Setup
+
+1. Install [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
+2. Open project in VS Code
+3. Click "Reopen in Container" when prompted
+4. Wait for container to build
+
+### Features
+
+- Pre-configured Node.js 20 environment
+- All extensions installed (ESLint, Prettier, TypeScript)
+- Auto-format on save
+- Auto-fix ESLint issues on save
+- Port 5173 forwarded
+- Dependencies automatically installed
+
+All npm commands work normally in the integrated terminal.
+
+## Testing
+
+The project now includes Vitest for testing:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm test
+
+# Run tests once (CI mode)
+npm test -- --run
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+Current test coverage includes basic smoke tests. See [TESTING.md](./TESTING.md) for the testing strategy.
 
 ## GitHub Actions CI
 

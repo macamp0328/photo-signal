@@ -63,9 +63,27 @@ Everything runs in the browser. No backend needed.
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- **Option 1 (Recommended)**: Docker Desktop (for fully containerized development)
+- **Option 2**: Node.js 20+ and npm
 
-### Installation
+### Quick Start with Docker 🐳
+
+The easiest way to get started, especially on Mac:
+
+```bash
+# Clone the repo
+git clone https://github.com/macamp0328/photo-signal.git
+cd photo-signal
+
+# Start development server with Docker
+USE_DOCKER=true ./scripts/dev.sh
+```
+
+Visit [http://localhost:5173](http://localhost:5173) on your phone and allow camera access.
+
+**See [DOCKER.md](./DOCKER.md) for complete Docker documentation.**
+
+### Installation (Local Development)
 
 1. **Clone the repo**
 
@@ -92,7 +110,7 @@ Start the development server:
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) (or another port if 3000 is in use) on your phone and allow camera access.
+Visit [http://localhost:5173](http://localhost:5173) on your phone and allow camera access.
 
 ### Build
 
@@ -100,6 +118,26 @@ Build for production:
 
 ```bash
 npm run build
+```
+
+Or with Docker:
+
+```bash
+USE_DOCKER=true ./scripts/build.sh
+```
+
+### Testing
+
+Run tests:
+
+```bash
+npm test
+```
+
+Or with Docker:
+
+```bash
+USE_DOCKER=true ./scripts/test.sh
 ```
 
 Preview the production build:

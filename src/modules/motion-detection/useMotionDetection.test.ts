@@ -139,9 +139,7 @@ describe('useMotionDetection', () => {
     });
 
     it('should accept custom sensitivity via options', () => {
-      const { result } = renderHook(() =>
-        useMotionDetection(null, { sensitivity: 75 })
-      );
+      const { result } = renderHook(() => useMotionDetection(null, { sensitivity: 75 }));
 
       expect(result.current.sensitivity).toBe(75);
     });
@@ -158,14 +156,9 @@ describe('useMotionDetection', () => {
       const mockStream = createMockMediaStream();
 
       // Generate two identical frames (same color)
-      frameDataSequence = [
-        generateMockFrameData(80, 60, 128),
-        generateMockFrameData(80, 60, 128),
-      ];
+      frameDataSequence = [generateMockFrameData(80, 60, 128), generateMockFrameData(80, 60, 128)];
 
-      const { result } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { result } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       // Advance time to trigger motion detection twice
       await act(async () => {
@@ -182,14 +175,9 @@ describe('useMotionDetection', () => {
       const mockStream = createMockMediaStream();
 
       // Generate two very different frames (black vs white)
-      frameDataSequence = [
-        generateMockFrameData(80, 60, 0),
-        generateMockFrameData(80, 60, 255),
-      ];
+      frameDataSequence = [generateMockFrameData(80, 60, 0), generateMockFrameData(80, 60, 255)];
 
-      const { result } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { result } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       // First check captures initial frame
       await act(async () => {
@@ -208,14 +196,9 @@ describe('useMotionDetection', () => {
       const mockStream = createMockMediaStream();
 
       // Generate frames with minor differences (128 vs 130)
-      frameDataSequence = [
-        generateMockFrameData(80, 60, 128),
-        generateMockFrameData(80, 60, 130),
-      ];
+      frameDataSequence = [generateMockFrameData(80, 60, 128), generateMockFrameData(80, 60, 130)];
 
-      const { result } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { result } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(100);
@@ -245,10 +228,7 @@ describe('useMotionDetection', () => {
       const mockStream = createMockMediaStream();
 
       // Frames with moderate difference (more pixels changing)
-      frameDataSequence = [
-        generateMockFrameData(80, 60, 80),
-        generateMockFrameData(80, 60, 200),
-      ];
+      frameDataSequence = [generateMockFrameData(80, 60, 80), generateMockFrameData(80, 60, 200)];
 
       const { result } = renderHook(() =>
         useMotionDetection(mockStream, { sensitivity: 80, checkInterval: 100 })
@@ -270,10 +250,7 @@ describe('useMotionDetection', () => {
       const mockStream = createMockMediaStream();
 
       // Frames with small difference (won't trigger at low sensitivity)
-      frameDataSequence = [
-        generateMockFrameData(80, 60, 100),
-        generateMockFrameData(80, 60, 120),
-      ];
+      frameDataSequence = [generateMockFrameData(80, 60, 100), generateMockFrameData(80, 60, 120)];
 
       const { result } = renderHook(() =>
         useMotionDetection(mockStream, { sensitivity: 10, checkInterval: 100 })
@@ -344,9 +321,7 @@ describe('useMotionDetection', () => {
         generateMockFrameData(80, 60, 255), // Same - no motion
       ];
 
-      const { result } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { result } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       // Initial frame
       await act(async () => {
@@ -376,14 +351,9 @@ describe('useMotionDetection', () => {
     it('should respect custom check interval', async () => {
       const mockStream = createMockMediaStream();
 
-      frameDataSequence = [
-        generateMockFrameData(80, 60, 0),
-        generateMockFrameData(80, 60, 255),
-      ];
+      frameDataSequence = [generateMockFrameData(80, 60, 0), generateMockFrameData(80, 60, 255)];
 
-      renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 1000 })
-      );
+      renderHook(() => useMotionDetection(mockStream, { checkInterval: 1000 }));
 
       // Before interval - no check should have happened
       await act(async () => {
@@ -432,9 +402,7 @@ describe('useMotionDetection', () => {
     });
 
     it('should keep isMoving as false when stream is null', async () => {
-      const { result } = renderHook(() =>
-        useMotionDetection(null, { checkInterval: 100 })
-      );
+      const { result } = renderHook(() => useMotionDetection(null, { checkInterval: 100 }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(500);
@@ -521,9 +489,7 @@ describe('useMotionDetection', () => {
         return originalCreateElement.call(document, tagName);
       }) as typeof document.createElement;
 
-      const { result } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { result } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(200);
@@ -534,14 +500,10 @@ describe('useMotionDetection', () => {
     });
 
     it('should handle extreme sensitivity values', () => {
-      const { result: result1 } = renderHook(() =>
-        useMotionDetection(null, { sensitivity: 0 })
-      );
+      const { result: result1 } = renderHook(() => useMotionDetection(null, { sensitivity: 0 }));
       expect(result1.current.sensitivity).toBe(0);
 
-      const { result: result2 } = renderHook(() =>
-        useMotionDetection(null, { sensitivity: 100 })
-      );
+      const { result: result2 } = renderHook(() => useMotionDetection(null, { sensitivity: 100 }));
       expect(result2.current.sensitivity).toBe(100);
     });
 
@@ -565,16 +527,14 @@ describe('useMotionDetection', () => {
     it('should clean up resources on unmount', async () => {
       const mockStream = createMockMediaStream();
 
-      const { unmount } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { unmount } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       // Let it run for a bit
       await act(async () => {
         await vi.advanceTimersByTimeAsync(300);
       });
-      const getImageData = mockCanvasContext.getImageData as ReturnType<typeof vi.fn>;
-      const callCountBeforeUnmount = getImageData.mock.calls.length;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const callCountBeforeUnmount = (mockCanvasContext.getImageData as any).mock.calls.length;
 
       unmount();
 
@@ -595,9 +555,7 @@ describe('useMotionDetection', () => {
     it('should stop interval on unmount', async () => {
       const mockStream = createMockMediaStream();
 
-      const { unmount } = renderHook(() =>
-        useMotionDetection(mockStream, { checkInterval: 100 })
-      );
+      const { unmount } = renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(100);
@@ -605,8 +563,8 @@ describe('useMotionDetection', () => {
 
       unmount();
 
-      const getImageData = mockCanvasContext.getImageData as ReturnType<typeof vi.fn>;
-      const initialCalls = getImageData.mock.calls.length;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const initialCalls = (mockCanvasContext.getImageData as any).mock.calls.length;
 
       // Time passes but no new checks
       await act(async () => {
@@ -635,7 +593,7 @@ describe('useMotionDetection', () => {
         0,
         0,
         80, // width / 4
-        60  // height / 4
+        60 // height / 4
       );
     });
 

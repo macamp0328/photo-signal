@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 3: Enhanced Audio Experience
 
 ## Objective
+
 Add smooth crossfade transitions when switching between audio tracks for a seamless listening experience.
 
 ## Tasks
@@ -63,22 +65,27 @@ Add smooth crossfade transitions when switching between audio tracks for a seaml
 - [ ] No breaking changes to existing API
 
 ## Dependencies
+
 None - Can be done independently
 
 ## Estimated Effort
+
 6-8 hours
 
 ## Files to Modify/Create
+
 - `src/modules/audio-playback/useAudioPlayback.ts`
 - `src/modules/audio-playback/types.ts`
 - `src/modules/audio-playback/README.md`
 - `src/modules/audio-playback/useAudioPlayback.test.ts`
 
 ## Testing Checklist
+
 - [ ] Test on desktop browser
 - [ ] Test on mobile browser
 - [ ] Test rapid track changes
 - [ ] Verify no memory leaks from old Howl instances
 
 ## References
+
 - [Howler.js fade documentation](https://github.com/goldfire/howler.js#fadefrom-to-duration-id)

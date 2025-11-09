@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 4: User Experience Enhancements
 
 ## Objective
+
 Create a settings panel where users can configure motion detection sensitivity, audio volume, and other preferences.
 
 ## Tasks
@@ -23,10 +25,11 @@ Create a settings panel where users can configure motion detection sensitivity, 
   - Create `README.md` with module contract
 
 - [ ] Design Settings interface
+
   ```typescript
   interface UserSettings {
-    motionSensitivity: number;     // 0-100
-    audioVolume: number;            // 0-100
+    motionSensitivity: number; // 0-100
+    audioVolume: number; // 0-100
     autoPlay: boolean;
     showOverlay: boolean;
     theme: 'light' | 'dark' | 'auto';
@@ -83,12 +86,15 @@ Create a settings panel where users can configure motion detection sensitivity, 
 - [ ] No breaking changes to existing functionality
 
 ## Dependencies
+
 None - Can be done independently
 
 ## Estimated Effort
+
 10-12 hours
 
 ## Files to Create
+
 - `src/modules/settings/Settings.tsx`
 - `src/modules/settings/useSettings.ts`
 - `src/modules/settings/types.ts`
@@ -99,11 +105,13 @@ None - Can be done independently
 - `src/services/storage-service/README.md` (if needed)
 
 ## Design Considerations
+
 - Use Tailwind CSS for styling
 - Add smooth transitions and animations
 - Consider dark mode support
 - Ensure WCAG accessibility compliance
 
 ## References
+
 - [localStorage API](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)
 - [Tailwind CSS Forms](https://tailwindcss.com/docs/plugins#forms)

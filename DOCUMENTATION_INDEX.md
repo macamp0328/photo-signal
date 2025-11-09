@@ -79,12 +79,13 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Templates & Instructions
 
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - GitHub Copilot agent instructions
-- **[.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
+- **[.github/ISSUE_TEMPLATE/\_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 
 ### Issue Templates (Milestone-based)
 
 **Milestone 1: Testing Infrastructure**
+
 - **[milestone-1-setup-testing-framework.md](./.github/ISSUE_TEMPLATE/milestone-1-setup-testing-framework.md)** - M1.1: Setup Vitest and React Testing Library
 - **[milestone-1-test-camera-access.md](./.github/ISSUE_TEMPLATE/milestone-1-test-camera-access.md)** - M1.2: Test camera access module
 - **[milestone-1-test-motion-detection.md](./.github/ISSUE_TEMPLATE/milestone-1-test-motion-detection.md)** - M1.3: Test motion detection module
@@ -95,13 +96,16 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[milestone-1-test-data-service.md](./.github/ISSUE_TEMPLATE/milestone-1-test-data-service.md)** - M1.8: Test data service
 
 **Milestone 2: Photo Recognition**
+
 - **[milestone-2-research-photo-recognition.md](./.github/ISSUE_TEMPLATE/milestone-2-research-photo-recognition.md)** - M2.1: Research photo recognition approaches
 - **[milestone-2-implement-hashing.md](./.github/ISSUE_TEMPLATE/milestone-2-implement-hashing.md)** - M2.2: Implement perceptual hashing
 
 **Milestone 3: Audio Enhancements**
+
 - **[milestone-3-audio-crossfade.md](./.github/ISSUE_TEMPLATE/milestone-3-audio-crossfade.md)** - M3.1: Implement audio crossfade
 
 **Milestone 4: UX Enhancements**
+
 - **[milestone-4-settings-panel.md](./.github/ISSUE_TEMPLATE/milestone-4-settings-panel.md)** - M4.1: Create user settings panel
 - **[milestone-4-favorites-system.md](./.github/ISSUE_TEMPLATE/milestone-4-favorites-system.md)** - M4.2: Implement favorites system (parallel development example)
 

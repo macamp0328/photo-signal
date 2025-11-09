@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 2: Real Photo Recognition
 
 ## Objective
+
 Research and evaluate different approaches for implementing real photo recognition, documenting pros/cons and making a technical recommendation.
 
 ## Tasks
@@ -67,15 +69,19 @@ Research and evaluate different approaches for implementing real photo recogniti
 - [ ] Privacy and offline considerations documented
 
 ## Dependencies
+
 None - This is a research task
 
 ## Estimated Effort
+
 8-12 hours
 
 ## Files to Create
+
 - `docs/photo-recognition-research.md`
 
 ## References
+
 - [Image Hashing](https://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html)
 - [TensorFlow.js](https://www.tensorflow.org/js)
 - [ONNX Runtime Web](https://onnxruntime.ai/docs/tutorials/web/)

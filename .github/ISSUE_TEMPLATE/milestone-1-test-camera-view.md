@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 1: Testing Infrastructure & Quality Assurance
 
 ## Objective
+
 Create comprehensive unit tests for the camera-view component to validate UI rendering for different permission states.
 
 ## Tasks
@@ -61,14 +63,18 @@ Create comprehensive unit tests for the camera-view component to validate UI ren
 - [ ] No breaking changes to component implementation
 
 ## Dependencies
+
 Requires: M1.1 - Setup Testing Framework
 
 ## Estimated Effort
+
 4-5 hours
 
 ## Files to Create
+
 - `src/modules/camera-view/CameraView.test.tsx`
 
 ## References
+
 - [camera-view module README](../../src/modules/camera-view/README.md)
 - [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)

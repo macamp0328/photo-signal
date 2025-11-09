@@ -7,14 +7,17 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 1: Testing Infrastructure & Quality Assurance
 
 ## Objective
+
 Set up comprehensive testing framework with Vitest and React Testing Library to enable module testing.
 
 ## Tasks
 
 - [ ] Install Vitest and dependencies
+
   ```bash
   npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom @vitest/ui
   ```
@@ -61,12 +64,15 @@ Set up comprehensive testing framework with Vitest and React Testing Library to 
 - [ ] No breaking changes to existing code
 
 ## Dependencies
+
 None - This is the foundation for all other testing issues
 
 ## Estimated Effort
+
 4-6 hours
 
 ## Files to Modify/Create
+
 - `package.json`
 - `vitest.config.ts` (new)
 - `src/test/setup.ts` (new)
@@ -75,6 +81,7 @@ None - This is the foundation for all other testing issues
 - `TESTING.md`
 
 ## References
+
 - [Vitest Documentation](https://vitest.dev/)
 - [React Testing Library](https://testing-library.com/react)
 - [Testing Module Contracts](./TESTING.md)

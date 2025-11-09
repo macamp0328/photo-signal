@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 2: Real Photo Recognition
 
 ## Objective
+
 Replace placeholder photo recognition with perceptual hashing algorithm to enable real photo matching.
 
 ## Tasks
@@ -65,12 +67,15 @@ Replace placeholder photo recognition with perceptual hashing algorithm to enabl
 - [ ] No breaking changes to public API
 
 ## Dependencies
+
 Requires: M2.1 - Research Photo Recognition Approaches (for recommendation)
 
 ## Estimated Effort
+
 12-16 hours
 
 ## Files to Modify/Create
+
 - `src/modules/photo-recognition/hashingService.ts` (new)
 - `src/modules/photo-recognition/usePhotoRecognition.ts`
 - `src/modules/photo-recognition/README.md`
@@ -78,11 +83,13 @@ Requires: M2.1 - Research Photo Recognition Approaches (for recommendation)
 - `package.json`
 
 ## Testing
+
 - [ ] Test hash generation with sample images
 - [ ] Test hash comparison accuracy
 - [ ] Test performance on mobile device
 - [ ] Test with different lighting conditions
 
 ## References
+
 - [Perceptual Hashing](https://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html)
 - Research document from M2.1

@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 1: Testing Infrastructure & Quality Assurance
 
 ## Objective
+
 Create comprehensive unit tests for the data service to validate concert data loading, caching, and search functionality.
 
 ## Tasks
@@ -69,14 +71,18 @@ Create comprehensive unit tests for the data service to validate concert data lo
 - [ ] No breaking changes to service implementation
 
 ## Dependencies
+
 Requires: M1.1 - Setup Testing Framework
 
 ## Estimated Effort
+
 4-5 hours
 
 ## Files to Create
+
 - `src/services/data-service/DataService.test.ts`
 
 ## References
+
 - [data-service README](../../src/services/data-service/README.md)
 - [Mocking Fetch](https://vitest.dev/guide/mocking.html)

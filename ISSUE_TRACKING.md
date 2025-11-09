@@ -1,6 +1,7 @@
 # Photo Signal - Issue Tracking Guide
 
-📚 **See also**: 
+📚 **See also**:
+
 - [ROADMAP.md](./ROADMAP.md) - Complete project roadmap
 - [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md) - Central documentation index
 
@@ -28,8 +29,9 @@ We've created issue templates in `.github/ISSUE_TEMPLATE/` for all major tasks i
 Use consistent labels for easy tracking:
 
 **Milestone Labels:**
+
 - `milestone-1` - Testing Infrastructure
-- `milestone-2` - Photo Recognition  
+- `milestone-2` - Photo Recognition
 - `milestone-3` - Audio Enhancements
 - `milestone-4` - UX Enhancements
 - `milestone-5` - Backend & Data
@@ -37,6 +39,7 @@ Use consistent labels for easy tracking:
 - `milestone-7` - Production Readiness
 
 **Type Labels:**
+
 - `testing` - Test-related work
 - `feature` - New feature implementation
 - `bug` - Bug fix
@@ -47,11 +50,13 @@ Use consistent labels for easy tracking:
 - `ux` - User experience work
 
 **Priority Labels:**
+
 - `priority-high` - Must complete soon
 - `priority-medium` - Important but not urgent
 - `priority-low` - Nice to have
 
 **Status Labels (optional):**
+
 - `in-progress` - Currently being worked on
 - `blocked` - Waiting on dependencies
 - `ready-for-review` - Awaiting code review
@@ -164,40 +169,50 @@ Additional templates can be created as needed following the same pattern.
 For issues without templates, use this format:
 
 ### Issue Title Format
+
 ```
 [Milestone #]: Brief Description
 ```
+
 Example: `[M5.1]: Design Database Schema`
 
 ### Issue Body Template
 
 ```markdown
 ## Milestone
+
 Milestone X: Name
 
 ## Objective
+
 Clear objective statement
 
 ## Tasks
+
 - [ ] Task 1
 - [ ] Task 2
 - [ ] Task 3
 
 ## Acceptance Criteria
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 
 ## Dependencies
+
 List any dependent issues
 
 ## Estimated Effort
+
 X-Y hours
 
 ## Files to Modify/Create
+
 - Path/to/file1
 - Path/to/file2
 
 ## References
+
 - Link to docs
 ```
 
@@ -245,6 +260,7 @@ X-Y hours
 ### Tracking Progress
 
 Create a project view with filters:
+
 - **By Milestone**: Group by milestone labels
 - **By Priority**: Sort by priority labels
 - **By Assignee**: See who's working on what
@@ -255,10 +271,12 @@ Create a project view with filters:
 ## Dependencies and Order
 
 ### Must Complete First (Blocking):
+
 1. **M1.1** blocks all other M1.x issues
 2. **M2.1** should complete before M2.2
 
 ### Recommended Order:
+
 1. **Milestone 1** (Testing) - Provides safety net for all future work
 2. **Milestone 2** (Photo Recognition) - Core functionality
 3. **Milestone 3** & **Milestone 4** - Can run in parallel
@@ -267,6 +285,7 @@ Create a project view with filters:
 6. **Milestone 7** (Production) - Final polish
 
 ### Can Run Completely in Parallel:
+
 - M3 (Audio) and M4 (UX) ✅
 - M1.2 through M1.8 (after M1.1) ✅
 - M4.2 sub-tasks (Favorites logic, UI, Storage) ✅
@@ -278,6 +297,7 @@ Create a project view with filters:
 ### For First-Time Setup:
 
 **Week 1: Testing Foundation**
+
 1. Create issue from template `M1.1: Setup Testing Framework`
 2. Assign to AI agent or yourself
 3. Complete and merge
@@ -285,11 +305,13 @@ Create a project view with filters:
 5. Assign 2-3 agents to work in parallel
 
 **Week 2-3: Core Testing**
+
 1. Complete M1.2-M1.8 in parallel
 2. Create M1.9 for integration tests
 3. Review test coverage
 
 **Week 4+: Feature Development**
+
 1. Start M2.1 (Photo Recognition Research)
 2. Start M3.1 (Audio Crossfade) in parallel
 3. Start M4.1 or M4.2 in parallel
@@ -318,6 +340,7 @@ Create a project view with filters:
 ## Tips for Success
 
 ### For Issue Creators:
+
 - ✅ Use templates when available
 - ✅ Be specific in task descriptions
 - ✅ Include acceptance criteria
@@ -325,6 +348,7 @@ Create a project view with filters:
 - ✅ Estimate effort realistically
 
 ### For AI Agents:
+
 - ✅ Read the module README first
 - ✅ Follow the architecture principles
 - ✅ Update documentation when changing contracts
@@ -332,6 +356,7 @@ Create a project view with filters:
 - ✅ Keep changes minimal and focused
 
 ### For Code Reviewers:
+
 - ✅ Check tests are included
 - ✅ Verify documentation is updated
 - ✅ Ensure no breaking changes

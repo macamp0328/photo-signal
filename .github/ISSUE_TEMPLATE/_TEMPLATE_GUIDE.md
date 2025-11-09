@@ -7,11 +7,13 @@
 ## File Naming Convention
 
 Place in `.github/ISSUE_TEMPLATE/` with naming pattern:
+
 ```
 milestone-{number}-{brief-description}.md
 ```
 
 Examples:
+
 - `milestone-5-database-schema.md`
 - `milestone-6-external-speaker-integration.md`
 - `milestone-7-performance-optimization.md`
@@ -30,9 +32,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone #: Milestone Name
 
 ## Objective
+
 Clear, concise statement of what you're trying to achieve. Should be 1-2 sentences.
 
 ## Tasks
@@ -56,14 +60,18 @@ Clear, concise statement of what you're trying to achieve. Should be 1-2 sentenc
 - [ ] Build succeeds
 
 ## Dependencies
+
 List any issues that must be completed before this one can start.
+
 - Requires: M#.#: Issue Title (if applicable)
 - None (if no dependencies)
 
 ## Estimated Effort
+
 X-Y hours
 
 Be realistic. Consider:
+
 - Research time
 - Implementation time
 - Testing time
@@ -71,11 +79,13 @@ Be realistic. Consider:
 - Review iterations
 
 ## Files to Modify/Create
+
 - `path/to/file1` (modify)
 - `path/to/file2` (new)
 - `path/to/file3` (modify)
 
 ## Testing Checklist (if applicable)
+
 - [ ] Unit tests added
 - [ ] Integration tests added
 - [ ] Tested on desktop browser
@@ -83,11 +93,13 @@ Be realistic. Consider:
 - [ ] Tested edge cases
 
 ## Design Considerations (if applicable)
+
 - Note any design decisions
 - Document tradeoffs
 - Mention alternatives considered
 
 ## References
+
 - Link to relevant documentation
 - Link to module README
 - Link to external resources
@@ -99,9 +111,11 @@ Be realistic. Consider:
 ## Label Guidelines
 
 ### Milestone Labels (required)
+
 - `milestone-1` through `milestone-7`
 
 ### Type Labels (choose one or more)
+
 - `testing` - Test-related work
 - `feature` - New feature implementation
 - `bug` - Bug fix
@@ -117,6 +131,7 @@ Be realistic. Consider:
 - `accessibility` - Accessibility improvements
 
 ### Priority Labels (optional but recommended)
+
 - `priority-high` - Must complete soon
 - `priority-medium` - Important but not urgent
 - `priority-low` - Nice to have
@@ -126,6 +141,7 @@ Be realistic. Consider:
 ## Examples of Good Issues
 
 See existing templates for reference:
+
 - `milestone-1-setup-testing-framework.md` - Good infrastructure issue
 - `milestone-2-research-photo-recognition.md` - Good research issue
 - `milestone-3-audio-crossfade.md` - Good feature issue
@@ -136,6 +152,7 @@ See existing templates for reference:
 ## Tips for Writing Good Issues
 
 ### ✅ DO:
+
 - Be specific about what needs to be done
 - Include clear acceptance criteria
 - Estimate effort realistically
@@ -146,6 +163,7 @@ See existing templates for reference:
 - Consider edge cases
 
 ### ❌ DON'T:
+
 - Make issues too broad ("Improve the app")
 - Forget acceptance criteria
 - Omit file paths
@@ -159,7 +177,9 @@ See existing templates for reference:
 ## Creating Issues for Milestones 5-7
 
 ### Milestone 5: Backend & Data
+
 Issues to create:
+
 - M5.1: Design Database Schema
 - M5.2: Setup PostgreSQL Database
 - M5.3: Create API Layer
@@ -168,7 +188,9 @@ Issues to create:
 - M5.6: Photo Upload API
 
 ### Milestone 6: Advanced Features
+
 Issues to create:
+
 - M6.1: External Speaker Integration
 - M6.2: Multi-language Support
 - M6.3: Social Sharing
@@ -177,7 +199,9 @@ Issues to create:
 - M6.6: Concert Recommendations
 
 ### Milestone 7: Production Readiness
+
 Issues to create:
+
 - M7.1: Performance Optimization
 - M7.2: Security Audit
 - M7.3: Accessibility Audit

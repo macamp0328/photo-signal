@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## Milestone
+
 Milestone 1: Testing Infrastructure & Quality Assurance
 
 ## Objective
+
 Create comprehensive unit tests for the motion-detection module to validate pixel difference calculation and motion state changes.
 
 ## Tasks
@@ -58,14 +60,18 @@ Create comprehensive unit tests for the motion-detection module to validate pixe
 - [ ] No breaking changes to module implementation
 
 ## Dependencies
+
 Requires: M1.1 - Setup Testing Framework
 
 ## Estimated Effort
+
 4-5 hours
 
 ## Files to Create
+
 - `src/modules/motion-detection/useMotionDetection.test.ts`
 
 ## References
+
 - [motion-detection module README](../../src/modules/motion-detection/README.md)
 - [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)

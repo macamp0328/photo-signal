@@ -19,6 +19,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 2-3 sprints
 
 ### Objectives
+
 - Establish comprehensive testing framework
 - Add tests for all modules and services
 - Ensure CI/CD pipeline runs tests
@@ -27,6 +28,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 1.1 Setup Testing Framework
+
 - Install Vitest and React Testing Library
 - Configure vitest.config.ts
 - Create test setup file with global mocks
@@ -36,6 +38,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `vitest.config.ts`, `package.json`, `.github/workflows/ci.yml`, `src/test/setup.ts`
 
 #### 1.2 Test Camera Access Module
+
 - Mock `navigator.mediaDevices.getUserMedia()`
 - Test permission states (granted, denied, loading)
 - Test stream cleanup on unmount
@@ -44,6 +47,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/camera-access/useCameraAccess.test.ts`
 
 #### 1.3 Test Motion Detection Module
+
 - Mock video element and canvas context
 - Test pixel difference calculation
 - Test sensitivity adjustments
@@ -52,6 +56,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/motion-detection/useMotionDetection.test.ts`
 
 #### 1.4 Test Photo Recognition Module
+
 - Mock data service
 - Test recognition delay timing
 - Test reset functionality
@@ -60,6 +65,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/photo-recognition/usePhotoRecognition.test.ts`
 
 #### 1.5 Test Audio Playback Module
+
 - Mock Howler.js
 - Test play/pause/stop controls
 - Test fade out functionality
@@ -68,6 +74,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/audio-playback/useAudioPlayback.test.ts`
 
 #### 1.6 Test Camera View Component
+
 - Test error state display
 - Test loading state display
 - Test active camera state with overlay
@@ -76,6 +83,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/camera-view/CameraView.test.tsx`
 
 #### 1.7 Test Concert Info Component
+
 - Test conditional rendering (visible/hidden)
 - Test concert data display
 - Test date formatting
@@ -84,6 +92,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/concert-info/InfoDisplay.test.tsx`
 
 #### 1.8 Test Data Service
+
 - Mock fetch API
 - Test cache behavior
 - Test error handling
@@ -93,6 +102,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/services/data-service/DataService.test.ts`
 
 #### 1.9 Integration Tests
+
 - Test App.tsx orchestration
 - Test module integration flow
 - Test complete user journey (camera → recognition → audio)
@@ -100,6 +110,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/App.test.tsx`
 
 #### 1.10 E2E Tests (Optional)
+
 - Setup Playwright or Cypress
 - Test camera permission flow
 - Test audio playback in browser
@@ -117,6 +128,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 3-4 sprints
 
 ### Objectives
+
 - Replace placeholder recognition with real photo matching
 - Implement perceptual hashing or ML-based recognition
 - Add photo upload/management UI
@@ -125,6 +137,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 2.1 Research Photo Recognition Approaches
+
 - Evaluate perceptual hashing (image-phash, blockhash)
 - Evaluate ML models (TensorFlow.js, ONNX Runtime)
 - Document pros/cons and recommendation
@@ -133,6 +146,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `docs/photo-recognition-research.md`
 
 #### 2.2 Implement Perceptual Hashing
+
 - Add image hashing library (blockhash-js or similar)
 - Create hash generation utility
 - Store hashes in concert data
@@ -141,6 +155,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/photo-recognition/hashingService.ts`, `src/modules/photo-recognition/usePhotoRecognition.ts`
 
 #### 2.3 Add Photo Hash Database
+
 - Update Concert type with photoHash field
 - Create script to generate hashes for existing photos
 - Update data.json with photo hashes
@@ -148,6 +163,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/types/index.ts`, `public/data.json`, `scripts/generate-hashes.ts`
 
 #### 2.4 Photo Upload UI (Admin Tool)
+
 - Create admin page for uploading photos
 - Generate hash on upload
 - Store photo reference in data
@@ -155,6 +171,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/pages/admin/PhotoUpload.tsx`
 
 #### 2.5 Optimize Recognition Performance
+
 - Implement debouncing for recognition checks
 - Add recognition confidence threshold
 - Cache recent recognition results
@@ -163,6 +180,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/photo-recognition/usePhotoRecognition.ts`
 
 #### 2.6 Recognition Accuracy Testing
+
 - Create test dataset of photos
 - Measure recognition accuracy
 - Test different lighting conditions
@@ -180,6 +198,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 2 sprints
 
 ### Objectives
+
 - Improve audio transitions and effects
 - Add user controls for audio
 - Implement audio preloading
@@ -188,6 +207,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 3.1 Audio Crossfade
+
 - Implement smooth crossfade between tracks
 - Add configurable crossfade duration
 - Test crossfade with multiple transitions
@@ -195,6 +215,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/audio-playback/useAudioPlayback.ts`
 
 #### 3.2 Audio Preloading
+
 - Preload audio when photo is recognized
 - Implement preload queue
 - Add loading state UI
@@ -202,6 +223,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/audio-playback/useAudioPlayback.ts`, `src/modules/concert-info/InfoDisplay.tsx`
 
 #### 3.3 Audio Controls UI
+
 - Add play/pause button
 - Add volume slider
 - Add track progress indicator
@@ -210,6 +232,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/components/AudioControls.tsx`
 
 #### 3.4 Playlist Mode
+
 - Auto-advance to next concert after song ends
 - Add shuffle mode
 - Add repeat mode
@@ -217,6 +240,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/playlist/usePlaylist.ts`
 
 #### 3.5 Audio Visualizer (Optional)
+
 - Add audio-reactive visual effects
 - Implement frequency analyzer
 - Create visualizer component
@@ -233,6 +257,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 2-3 sprints
 
 ### Objectives
+
 - Improve UI/UX based on user feedback
 - Add user preferences and settings
 - Implement PWA features
@@ -241,6 +266,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 4.1 User Settings Panel
+
 - Create settings UI component
 - Add motion detection sensitivity slider
 - Add audio volume preference
@@ -249,6 +275,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/settings/Settings.tsx`, `src/services/storage-service/`
 
 #### 4.2 Favorites System
+
 - Add ability to favorite concerts
 - Display favorites list
 - Persist favorites to localStorage
@@ -257,6 +284,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/favorites/useFavorites.ts`, `src/modules/favorites-ui/FavoriteButton.tsx`, `src/services/storage-service/`
 
 #### 4.3 PWA Implementation
+
 - Add service worker
 - Enable offline support
 - Add app manifest
@@ -265,6 +293,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `public/manifest.json`, `src/sw.ts`, `vite.config.ts`
 
 #### 4.4 Mobile Optimizations
+
 - Optimize touch interactions
 - Test on multiple devices
 - Improve performance on low-end devices
@@ -273,6 +302,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: Multiple UI components
 
 #### 4.5 Loading States & Animations
+
 - Add skeleton loaders
 - Improve transition animations
 - Add loading indicators
@@ -281,6 +311,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: Multiple UI components
 
 #### 4.6 Onboarding Flow
+
 - Create first-time user tutorial
 - Add camera permission instructions
 - Show feature highlights
@@ -289,6 +320,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/components/Onboarding.tsx`
 
 #### 4.7 Story Mode Feature
+
 - Add text reflections/stories to concerts
 - Display after song plays
 - Add story editor for admin
@@ -305,6 +337,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 2-3 sprints
 
 ### Objectives
+
 - Migrate from static JSON to database
 - Add API layer
 - Implement user accounts (optional)
@@ -313,6 +346,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 5.1 Database Schema Design
+
 - Design PostgreSQL schema for concerts
 - Add photos table
 - Add users table (if needed)
@@ -321,6 +355,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `docs/database-schema.md`, `migrations/`
 
 #### 5.2 API Layer Setup
+
 - Create Vercel serverless functions
 - Add /api/concerts endpoint
 - Add /api/photos endpoint
@@ -329,6 +364,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `api/concerts.ts`, `api/photos.ts`
 
 #### 5.3 Database Integration
+
 - Set up Supabase or Neon PostgreSQL
 - Implement database connection
 - Add connection pooling
@@ -337,6 +373,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `api/db.ts`, `.env.example`
 
 #### 5.4 Migrate Data Service to API
+
 - Update DataService to call API
 - Remove static JSON dependency
 - Add API error handling
@@ -345,6 +382,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/services/data-service/DataService.ts`
 
 #### 5.5 User Authentication (Optional)
+
 - Add authentication provider (Supabase Auth, Auth0)
 - Create login/signup UI
 - Add protected routes
@@ -353,6 +391,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/auth/`, `api/auth.ts`
 
 #### 5.6 Photo Upload API
+
 - Create photo upload endpoint
 - Add image optimization
 - Store photos in cloud storage (S3, Cloudinary)
@@ -370,6 +409,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 3-4 sprints
 
 ### Objectives
+
 - Add advanced features requested in README
 - External hardware integration
 - Social features
@@ -378,6 +418,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 6.1 External Speaker Integration
+
 - Research ESP32/Google Home integration
 - Create communication protocol
 - Build hardware prototype
@@ -386,6 +427,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `docs/hardware-integration.md`, `api/speaker.ts`
 
 #### 6.2 Multi-language Support
+
 - Add i18n library (react-i18next)
 - Create translation files
 - Translate all UI text
@@ -394,6 +436,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/i18n/`, `src/locales/`
 
 #### 6.3 Social Sharing
+
 - Add share button for concerts
 - Generate social preview images
 - Add share to social media
@@ -401,6 +444,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/social/ShareButton.tsx`
 
 #### 6.4 Analytics Integration
+
 - Add privacy-friendly analytics (Plausible, Umami)
 - Track recognition success rate
 - Track user engagement
@@ -409,6 +453,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/services/analytics/`
 
 #### 6.5 Search & Discovery
+
 - Add concert search feature
 - Add filtering by venue, date, band
 - Add sorting options
@@ -417,6 +462,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/modules/search/`, `src/pages/Browse.tsx`
 
 #### 6.6 Concert Recommendations
+
 - Implement recommendation algorithm
 - Show similar concerts
 - Personalized suggestions based on favorites
@@ -433,6 +479,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 **Estimated Effort**: 1-2 sprints
 
 ### Objectives
+
 - Finalize documentation
 - Performance optimization
 - Security audit
@@ -441,6 +488,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 ### Issues
 
 #### 7.1 Performance Optimization
+
 - Analyze bundle size
 - Implement code splitting
 - Optimize image loading
@@ -450,6 +498,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: Multiple
 
 #### 7.2 Security Audit
+
 - Run security scan
 - Fix vulnerabilities
 - Add security headers
@@ -459,6 +508,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `vercel.json`, API files
 
 #### 7.3 Accessibility Audit
+
 - Run a11y tests
 - Fix WCAG violations
 - Add ARIA labels
@@ -468,6 +518,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: Multiple UI components
 
 #### 7.4 User Documentation
+
 - Write user guide
 - Create FAQ
 - Add troubleshooting section
@@ -476,6 +527,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `docs/user-guide.md`, `docs/faq.md`
 
 #### 7.5 Developer Documentation
+
 - Update all module READMEs
 - Document API endpoints
 - Create contribution guide
@@ -484,6 +536,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: Module READMEs, `CONTRIBUTING.md`, `docs/api.md`
 
 #### 7.6 Error Monitoring
+
 - Add error tracking (Sentry)
 - Set up error alerting
 - Create error dashboard
@@ -491,6 +544,7 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 - **Files**: `src/services/error-tracking/`
 
 #### 7.7 Launch Checklist
+
 - Create pre-launch checklist
 - Test all features
 - Verify all documentation
@@ -506,21 +560,25 @@ This roadmap outlines the path to complete the Photo Signal project, structured 
 Thanks to the modular architecture, multiple milestones can progress simultaneously:
 
 ### Phase 1 (Weeks 1-4): Foundation
+
 - **Team A**: Milestone 1 - Testing Infrastructure (1.1-1.10)
 - **Team B**: Milestone 2 - Photo Recognition (2.1-2.3)
 - **Team C**: Milestone 3 - Audio Enhancements (3.1-3.2)
 
 ### Phase 2 (Weeks 5-8): Features
+
 - **Team A**: Milestone 2 - Photo Recognition (2.4-2.6)
 - **Team B**: Milestone 3 - Audio Features (3.3-3.5)
 - **Team C**: Milestone 4 - UX Enhancements (4.1-4.3)
 
 ### Phase 3 (Weeks 9-12): Advanced
+
 - **Team A**: Milestone 4 - UX Features (4.4-4.7)
 - **Team B**: Milestone 5 - Backend (5.1-5.4)
 - **Team C**: Milestone 6 - Advanced Features (6.1-6.3)
 
 ### Phase 4 (Weeks 13-14): Launch
+
 - **All Teams**: Milestone 7 - Production Readiness (7.1-7.7)
 
 ---
@@ -528,6 +586,7 @@ Thanks to the modular architecture, multiple milestones can progress simultaneou
 ## Issue Tracking
 
 All issues will be created in GitHub Issues with:
+
 - **Labels**: milestone-1, milestone-2, etc., plus type labels (testing, feature, documentation, etc.)
 - **Projects**: GitHub Projects board for tracking
 - **Assignments**: Can be assigned to AI agents (GitHub Copilot) one at a time

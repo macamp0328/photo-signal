@@ -1,8 +1,9 @@
 # Project Setup Documentation
 
+📚 **See also**: [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md) for a complete list of all project documentation.
+
 ## Overview
 
-This project is configured with a modern development workflow including:
 This project is now fully configured with a modern development workflow including:
 
 - **Vite** - Fast build tool and dev server
@@ -10,8 +11,6 @@ This project is now fully configured with a modern development workflow includin
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Utility-first CSS framework
 - **Howler.js** - Audio playback library
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
 - **GitHub Actions CI** - Automated testing and building
@@ -22,7 +21,6 @@ This project is now fully configured with a modern development workflow includin
 
 ### Prerequisites
 
-- Node.js 18+
 - Node.js 20+
 - npm
 

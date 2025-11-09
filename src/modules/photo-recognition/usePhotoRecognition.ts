@@ -5,10 +5,10 @@ import type { PhotoRecognitionHook, PhotoRecognitionOptions } from './types';
 
 /**
  * Custom hook for photo recognition
- * 
+ *
  * Current implementation: Placeholder that triggers after delay
  * Future: Replace with ML-based image recognition
- * 
+ *
  * @param stream - Camera video stream
  * @param options - Configuration options
  * @returns Recognition state and controls
@@ -17,10 +17,7 @@ export function usePhotoRecognition(
   stream: MediaStream | null,
   options: PhotoRecognitionOptions = {}
 ): PhotoRecognitionHook {
-  const {
-    recognitionDelay = 3000,
-    enabled = true,
-  } = options;
+  const { recognitionDelay = 3000, enabled = true } = options;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -50,10 +47,10 @@ export function usePhotoRecognition(
       try {
         // Load concert data
         await dataService.getConcerts();
-        
+
         // Get random concert (placeholder for real matching)
         const concert = dataService.getRandomConcert();
-        
+
         if (concert) {
           setRecognizedConcert(concert);
         }

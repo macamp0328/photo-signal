@@ -1,6 +1,6 @@
 /**
  * Camera Access Module
- * 
+ *
  * Provides camera stream acquisition and permission management.
  */
 

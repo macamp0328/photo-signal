@@ -1,15 +1,19 @@
 # Audio Playback Module
 
 ## Purpose
+
 Control music playback with smooth fades.
 
 ## Responsibility
+
 **ONLY** handles:
+
 - Loading and playing audio files
 - Volume control and fading
 - Playback state management
 
 **Does NOT** handle:
+
 - Determining what to play (see App orchestrator)
 - Concert data (see `data-service`)
 - UI controls (handled by App)
@@ -21,6 +25,7 @@ Control music playback with smooth fades.
 ### Hook: `useAudioPlayback(options?)`
 
 **Input**:
+
 ```typescript
 options?: {
   volume?: number;        // Initial volume 0-1, default 0.8
@@ -29,6 +34,7 @@ options?: {
 ```
 
 **Output**:
+
 ```typescript
 {
   play: (url: string) => void;         // Play audio from URL
@@ -42,6 +48,7 @@ options?: {
 ```
 
 **Side Effects**:
+
 - Loads and plays audio files
 - Modifies audio volume
 - May use Howler.js or native Audio API
@@ -51,22 +58,28 @@ options?: {
 ## Implementation Options
 
 ### Option 1: Native Audio API (Recommended)
-**Pros**: 
+
+**Pros**:
+
 - Zero dependencies
 - Smallest bundle size
 - Maximum performance
 
 **Cons**:
+
 - Manual fade implementation
 - Less cross-browser audio format handling
 
 ### Option 2: Howler.js
+
 **Pros**:
+
 - Built-in fade methods
 - Excellent browser compatibility
 - Robust error handling
 
 **Cons**:
+
 - +15KB bundle size
 - Extra dependency
 

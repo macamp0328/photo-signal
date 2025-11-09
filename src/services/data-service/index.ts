@@ -1,6 +1,6 @@
 /**
  * Data Service
- * 
+ *
  * Centralized concert data management.
  */
 

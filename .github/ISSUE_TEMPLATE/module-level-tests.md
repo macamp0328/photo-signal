@@ -4,7 +4,6 @@ about: Add unit tests for each module to enable independent testing and validati
 title: 'Add module-level tests'
 labels: testing, enhancement
 assignees: ''
-
 ---
 
 ## Objective
@@ -72,11 +71,13 @@ Each module should have its own test file that validates its contract and functi
 ## Setup Steps
 
 1. Install test dependencies:
+
    ```bash
    npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
    ```
 
 2. Add test script to `package.json`:
+
    ```json
    "scripts": {
      "test": "vitest",
@@ -86,10 +87,11 @@ Each module should have its own test file that validates its contract and functi
    ```
 
 3. Create `vitest.config.ts`:
+
    ```typescript
    import { defineConfig } from 'vitest/config';
    import react from '@vitejs/plugin-react';
-   
+
    export default defineConfig({
      plugins: [react()],
      test: {
@@ -135,20 +137,20 @@ describe('useCameraAccess', () => {
   it('should request camera permissions on mount', async () => {
     const mockStream = {} as MediaStream;
     mockGetUserMedia.mockResolvedValue(mockStream);
-    
+
     const { result } = renderHook(() => useCameraAccess());
-    
+
     await waitFor(() => {
       expect(result.current.stream).toBe(mockStream);
       expect(result.current.hasPermission).toBe(true);
     });
   });
-  
+
   it('should handle permission denied', async () => {
     mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
-    
+
     const { result } = renderHook(() => useCameraAccess());
-    
+
     await waitFor(() => {
       expect(result.current.hasPermission).toBe(false);
       expect(result.current.error).toBeTruthy();

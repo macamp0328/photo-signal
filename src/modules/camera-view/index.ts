@@ -1,6 +1,6 @@
 /**
  * Camera View Module
- * 
+ *
  * UI component for camera feed display with overlay.
  */
 

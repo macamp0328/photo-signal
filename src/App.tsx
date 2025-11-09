@@ -1,9 +1,9 @@
 /**
  * Photo Signal App - Modular Architecture
- * 
+ *
  * This is the orchestrator that wires together independent modules.
  * Each module has a single responsibility and clear contract.
- * 
+ *
  * Modules can be developed in parallel by different AI agents
  * without conflicts or coupling.
  */
@@ -52,7 +52,7 @@ function App() {
     if (isMoving && isPlaying) {
       console.log('Movement detected, fading out');
       fadeOut();
-      
+
       // Reset recognition after fade completes
       setTimeout(() => {
         resetRecognition();
@@ -63,12 +63,7 @@ function App() {
   return (
     <div className="w-full h-full">
       {/* Camera View with Overlay */}
-      <CameraView
-        stream={stream}
-        error={error}
-        hasPermission={hasPermission}
-        onRetry={retry}
-      />
+      <CameraView stream={stream} error={error} hasPermission={hasPermission} onRetry={retry} />
 
       {/* Concert Info Display */}
       <InfoDisplay

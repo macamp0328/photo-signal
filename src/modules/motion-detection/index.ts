@@ -1,6 +1,6 @@
 /**
  * Motion Detection Module
- * 
+ *
  * Detects camera movement by analyzing video frame differences.
  */
 

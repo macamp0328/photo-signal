@@ -1,15 +1,19 @@
 # Data Service
 
 ## Purpose
+
 Load and manage concert data.
 
 ## Responsibility
+
 **ONLY** handles:
+
 - Loading concert data from JSON or API
 - Caching data in memory
 - Providing query methods
 
 **Does NOT** handle:
+
 - Photo recognition logic (see `photo-recognition` module)
 - UI display (see `concert-info` module)
 - Audio playback (see `audio-playback` module)
@@ -26,16 +30,17 @@ Load and manage concert data.
 class DataService {
   // Load all concerts (cached after first call)
   getConcerts(): Promise<Concert[]>;
-  
+
   // Get specific concert by ID
   getConcertById(id: number): Concert | null;
-  
+
   // Search concerts (placeholder for future image hash matching)
   search(query: string): Concert[];
 }
 ```
 
 **Side Effects**:
+
 - Fetches from `/data.json` on first call
 - Caches results in memory
 - Future: Will query PostgreSQL API

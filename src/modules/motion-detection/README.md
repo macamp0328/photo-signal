@@ -1,15 +1,19 @@
 # Motion Detection Module
 
 ## Purpose
+
 Detect camera movement to trigger audio fade-out.
 
 ## Responsibility
+
 **ONLY** handles:
+
 - Analyzing video frames for pixel differences
 - Determining if camera is moving based on threshold
 - Providing movement state to other components
 
 **Does NOT** handle:
+
 - Camera access (see `camera-access` module)
 - Audio control (see `audio-playback` module)
 - UI feedback (handled by App orchestrator)
@@ -21,6 +25,7 @@ Detect camera movement to trigger audio fade-out.
 ### Hook: `useMotionDetection(stream, options?)`
 
 **Input**:
+
 ```typescript
 stream: MediaStream | null       // Camera video stream
 options?: {
@@ -30,6 +35,7 @@ options?: {
 ```
 
 **Output**:
+
 ```typescript
 {
   isMoving: boolean;             // True if motion detected
@@ -39,6 +45,7 @@ options?: {
 ```
 
 **Side Effects**:
+
 - Analyzes frames at specified interval
 - Uses Canvas API for pixel comparison
 - Minimal performance impact (low-res sampling)

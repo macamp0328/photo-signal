@@ -31,6 +31,9 @@ src/modules/{module-name}/
 
 ## Key Documentation Files
 
+⚠️ **IMPORTANT**: When adding, removing, or moving any documentation, configuration files, modules, or services, you **MUST** update **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** to keep the documentation phonebook current.
+
+- **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** - Central phonebook of ALL project documentation (UPDATE THIS!)
 - **ARCHITECTURE.md** - Module structure, data flow, AI collaboration guide
 - **AI_AGENT_GUIDE.md** - Examples of parallel AI agent development
 - **TESTING.md** - Testing strategy (tests not yet implemented)
@@ -121,6 +124,7 @@ npm run build
 4. Implement logic: `Service.ts` or `Component.tsx`
 5. Export public API: `index.ts`
 6. Update ARCHITECTURE.md
+7. **Update DOCUMENTATION_INDEX.md** with link to new module's README
 
 ### When Modifying a Module
 
@@ -129,6 +133,7 @@ npm run build
 3. Ensure exported interface stays compatible
 4. Other modules should remain untouched
 5. Update module's README if contract changes
+6. **Update DOCUMENTATION_INDEX.md if you added/removed/renamed files**
 
 ## Testing
 

@@ -1,6 +1,6 @@
 /**
  * Concert Info Display Module
- * 
+ *
  * Pure UI component for displaying concert metadata.
  */
 

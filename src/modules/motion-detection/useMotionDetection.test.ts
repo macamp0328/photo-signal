@@ -533,8 +533,8 @@ describe('useMotionDetection', () => {
       await act(async () => {
         await vi.advanceTimersByTimeAsync(300);
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const callCountBeforeUnmount = (mockCanvasContext.getImageData as any).mock.calls.length;
+      const callCountBeforeUnmount = (mockCanvasContext.getImageData as ReturnType<typeof vi.fn>)
+        .mock.calls.length;
 
       unmount();
 
@@ -563,8 +563,8 @@ describe('useMotionDetection', () => {
 
       unmount();
 
-      
-      const initialCalls = (mockCanvasContext.getImageData as ReturnType<typeof vi.fn>).mock.calls.length;
+      const initialCalls = (mockCanvasContext.getImageData as ReturnType<typeof vi.fn>).mock.calls
+        .length;
 
       // Time passes but no new checks
       await act(async () => {

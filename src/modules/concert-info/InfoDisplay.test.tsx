@@ -14,9 +14,7 @@ describe('InfoDisplay', () => {
 
   describe('Visibility', () => {
     it('should be hidden when isVisible is false', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={false} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={false} />);
 
       // Component returns null when not visible
       expect(container.firstChild).toBeNull();
@@ -30,9 +28,7 @@ describe('InfoDisplay', () => {
     });
 
     it('should apply opacity-100 class when visible', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const displayDiv = container.querySelector('div');
       expect(displayDiv).toHaveClass('opacity-100');
@@ -131,9 +127,7 @@ describe('InfoDisplay', () => {
 
   describe('Position Prop Variations', () => {
     it('should position at bottom by default', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const displayDiv = container.querySelector('div');
       expect(displayDiv).toHaveClass('bottom-0');
@@ -142,7 +136,7 @@ describe('InfoDisplay', () => {
 
     it('should position at bottom when position="bottom"', () => {
       const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} position="bottom" />,
+        <InfoDisplay concert={mockConcert} isVisible={true} position="bottom" />
       );
 
       const displayDiv = container.querySelector('div');
@@ -152,7 +146,7 @@ describe('InfoDisplay', () => {
 
     it('should position at top when position="top"', () => {
       const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} position="top" />,
+        <InfoDisplay concert={mockConcert} isVisible={true} position="top" />
       );
 
       const displayDiv = container.querySelector('div');
@@ -162,7 +156,7 @@ describe('InfoDisplay', () => {
 
     it('should apply correct gradient for top position', () => {
       const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} position="top" />,
+        <InfoDisplay concert={mockConcert} isVisible={true} position="top" />
       );
 
       const displayDiv = container.querySelector('div');
@@ -173,7 +167,7 @@ describe('InfoDisplay', () => {
 
     it('should apply correct gradient for bottom position', () => {
       const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} position="bottom" />,
+        <InfoDisplay concert={mockConcert} isVisible={true} position="bottom" />
       );
 
       const displayDiv = container.querySelector('div');
@@ -185,9 +179,7 @@ describe('InfoDisplay', () => {
 
   describe('CSS Classes and Transitions', () => {
     it('should apply fixed positioning classes', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const displayDiv = container.querySelector('div');
       expect(displayDiv).toHaveClass('fixed');
@@ -196,9 +188,7 @@ describe('InfoDisplay', () => {
     });
 
     it('should apply transition classes for fade animation', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const displayDiv = container.querySelector('div');
       expect(displayDiv).toHaveClass('transition-opacity');
@@ -207,11 +197,7 @@ describe('InfoDisplay', () => {
 
     it('should apply custom className prop', () => {
       const { container } = render(
-        <InfoDisplay
-          concert={mockConcert}
-          isVisible={true}
-          className="custom-class"
-        />,
+        <InfoDisplay concert={mockConcert} isVisible={true} className="custom-class" />
       );
 
       const displayDiv = container.querySelector('div');
@@ -219,9 +205,7 @@ describe('InfoDisplay', () => {
     });
 
     it('should apply padding classes', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const displayDiv = container.querySelector('div');
       expect(displayDiv).toHaveClass('p-6');
@@ -229,9 +213,7 @@ describe('InfoDisplay', () => {
     });
 
     it('should apply text color classes', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} />,
-      );
+      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const innerDiv = container.querySelector('.text-white');
       expect(innerDiv).toBeInTheDocument();
@@ -287,7 +269,7 @@ describe('InfoDisplay', () => {
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
       expect(
-        screen.getByText('A Very Long Band Name That Might Overflow The Container Width'),
+        screen.getByText('A Very Long Band Name That Might Overflow The Container Width')
       ).toBeInTheDocument();
     });
 
@@ -300,14 +282,12 @@ describe('InfoDisplay', () => {
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
       expect(
-        screen.getByText('A Very Long Venue Name That Might Overflow The Container Width'),
+        screen.getByText('A Very Long Venue Name That Might Overflow The Container Width')
       ).toBeInTheDocument();
     });
 
     it('should handle both isVisible false and null concert', () => {
-      const { container } = render(
-        <InfoDisplay concert={null} isVisible={false} />,
-      );
+      const { container } = render(<InfoDisplay concert={null} isVisible={false} />);
 
       expect(container.firstChild).toBeNull();
     });

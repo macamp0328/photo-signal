@@ -98,6 +98,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Helper Scripts
 
+- **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts
 - **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)
 - **[scripts/build.sh](./scripts/build.sh)** - Build for production (local or Docker)
 - **[scripts/test.sh](./scripts/test.sh)** - Run tests (local or Docker)
@@ -174,9 +175,9 @@ This index covers:
 - ✅ GitHub Actions & templates (3 files)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
-- ✅ Helper scripts (6 files)
+- ✅ Helper scripts (7 files including README)
 - ✅ Data and asset documentation (2 files)
 
-**Total**: 47 documented files
+**Total**: 48 documented files
 
 Last updated: 2025-11-09

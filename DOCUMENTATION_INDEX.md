@@ -57,6 +57,11 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[tsconfig.node.json](./tsconfig.node.json)** - TypeScript Node.js configuration
 - **[vercel.json](./vercel.json)** - Vercel deployment settings
 
+### Testing
+
+- **[src/test/setup.ts](./src/test/setup.ts)** - Vitest setup file with global test configuration
+- **[src/test/mocks.ts](./src/test/mocks.ts)** - Global mocks for native browser APIs (MediaDevices, Canvas, Fetch, etc.)
+
 ### Code Quality
 
 - **[eslint.config.js](./eslint.config.js)** - ESLint linting rules (flat config format)
@@ -204,19 +209,15 @@ This index covers:
 
 - ✅ Root documentation (8 files)
 - ✅ Module READMEs (7 files)
-- ✅ Configuration files (14 files)
+- ✅ Configuration files (16 files)
 - ✅ GitHub Actions & workflows (2 files)
 - ✅ Issue templates (16 files - includes template guide)
-- ✅ Root documentation (7 files)
-- ✅ Module READMEs (7 files)
-- ✅ Configuration files (15 files)
-- ✅ GitHub Actions & templates (3 files)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (7 files including README)
 - ✅ Data and asset documentation (2 files)
+- ✅ Test infrastructure (2 files)
 
-**Total**: 52 documented files
-**Total**: 48 documented files
+**Total**: 50 documented files
 
 Last updated: 2025-11-09

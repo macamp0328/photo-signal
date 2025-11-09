@@ -209,7 +209,7 @@ This index covers:
 
 - ✅ Root documentation (8 files)
 - ✅ Module READMEs (7 files)
-- ✅ Configuration files (16 files)
+- ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
 - ✅ Issue templates (16 files - includes template guide)
 - ✅ Development environment configs (3 files)

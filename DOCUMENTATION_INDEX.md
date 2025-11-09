@@ -24,6 +24,10 @@
 - **[ROADMAP.md](./ROADMAP.md)** - Complete project roadmap with 7 milestones and 60+ issues organized for AI agent development
 - **[ISSUE_TRACKING.md](./ISSUE_TRACKING.md)** - Guide for creating, tracking, and managing GitHub Issues with templates and workflow recommendations
 
+### Research & Technical Specifications
+
+- **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
+
 ---
 
 ## 🧩 Module Documentation
@@ -208,6 +212,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (8 files)
+- ✅ Research & technical specifications (1 file)
 - ✅ Module READMEs (7 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
@@ -218,6 +223,6 @@ This index covers:
 - ✅ Data and asset documentation (2 files)
 - ✅ Test infrastructure (2 files)
 
-**Total**: 67 documented files
+**Total**: 68 documented files
 
 Last updated: 2025-11-09

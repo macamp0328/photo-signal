@@ -56,7 +56,8 @@ export class Howl {
     return this;
   });
 
-  public fade = vi.fn((_from: number, to: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fade = vi.fn((_from: number, to: number, _duration: number) => {
     // Simulate fade by immediately setting the final volume
     this._volume = to;
     return this;

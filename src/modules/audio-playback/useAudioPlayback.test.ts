@@ -12,8 +12,86 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAudioPlayback } from './useAudioPlayback';
 
-// Mock Howler.js using external mock implementation
-vi.mock('howler');
+// Mock Howler.js with inline factory
+vi.mock('howler', () => {
+  // Create mock Howl class inside factory to avoid hoisting issues
+  class MockHowl {
+    private _volume: number;
+    private _playing: boolean = false;
+
+    public play: ReturnType<typeof vi.fn>;
+    public pause: ReturnType<typeof vi.fn>;
+    public stop: ReturnType<typeof vi.fn>;
+    public fade: ReturnType<typeof vi.fn>;
+    public volume: ReturnType<typeof vi.fn>;
+    public unload: ReturnType<typeof vi.fn>;
+    public playing: ReturnType<typeof vi.fn>;
+
+    constructor(options: {
+      src: string[];
+      html5?: boolean;
+      volume?: number;
+      onplay?: () => void;
+      onend?: () => void;
+      onstop?: () => void;
+      onpause?: () => void;
+      onloaderror?: (id: number, error: unknown) => void;
+      onplayerror?: (id: number, error: unknown) => void;
+    }) {
+      this._volume = options.volume ?? 1.0;
+
+      // Initialize methods
+      this.play = vi.fn(() => {
+        this._playing = true;
+        if (options.onplay) {
+          options.onplay();
+        }
+        return 1;
+      });
+
+      this.pause = vi.fn(() => {
+        this._playing = false;
+        if (options.onpause) {
+          options.onpause();
+        }
+        return this;
+      });
+
+      this.stop = vi.fn(() => {
+        this._playing = false;
+        if (options.onstop) {
+          options.onstop();
+        }
+        return this;
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      this.fade = vi.fn((_from: number, to: number, _duration: number) => {
+        this._volume = to;
+        return this;
+      });
+
+      this.volume = vi.fn((vol?: number) => {
+        if (vol !== undefined) {
+          this._volume = vol;
+          return this;
+        }
+        return this._volume;
+      });
+
+      this.unload = vi.fn(() => {
+        this._playing = false;
+        return this;
+      });
+
+      this.playing = vi.fn(() => {
+        return this._playing;
+      });
+    }
+  }
+
+  return { Howl: MockHowl };
+});
 describe('useAudioPlayback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,7 +125,7 @@ describe('useAudioPlayback', () => {
   });
 
   describe('Play Functionality', () => {
-    it('should create Howl instance and call play', async () => {
+    it('should create Howl instance and call play', () => {
       const { result } = renderHook(() => useAudioPlayback());
       const testUrl = '/audio/test.mp3';
 
@@ -59,7 +137,7 @@ describe('useAudioPlayback', () => {
       expect(result.current.isPlaying).toBe(true);
     });
 
-    it('should use correct volume when playing', async () => {
+    it('should use correct volume when playing', () => {
       const { result } = renderHook(() => useAudioPlayback({ volume: 0.6 }));
       const testUrl = '/audio/test.mp3';
 
@@ -72,7 +150,7 @@ describe('useAudioPlayback', () => {
       expect(result.current.volume).toBe(0.6);
     });
 
-    it('should stop previous audio when playing new audio', async () => {
+    it('should stop previous audio when playing new audio', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       // Play first audio
@@ -93,7 +171,7 @@ describe('useAudioPlayback', () => {
   });
 
   describe('Pause Functionality', () => {
-    it('should pause playing audio', async () => {
+    it('should pause playing audio', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       // Start playing
@@ -126,7 +204,7 @@ describe('useAudioPlayback', () => {
   });
 
   describe('Stop Functionality', () => {
-    it('should stop playing audio', async () => {
+    it('should stop playing audio', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       // Start playing
@@ -159,7 +237,7 @@ describe('useAudioPlayback', () => {
   });
 
   describe('Fade Out Functionality', () => {
-    it('should fade out audio with default duration', async () => {
+    it('should fade out audio with default duration', () => {
       const { result } = renderHook(() => useAudioPlayback({ fadeTime: 1000 }));
 
       // Start playing
@@ -183,7 +261,7 @@ describe('useAudioPlayback', () => {
       expect(result.current.isPlaying).toBe(false);
     });
 
-    it('should fade out audio with custom duration', async () => {
+    it('should fade out audio with custom duration', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       // Start playing
@@ -252,7 +330,7 @@ describe('useAudioPlayback', () => {
       expect(result.current.volume).toBe(1);
     });
 
-    it('should update Howl volume when audio is playing', async () => {
+    it('should update Howl volume when audio is playing', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       // Start playing
@@ -272,7 +350,7 @@ describe('useAudioPlayback', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle load errors gracefully', async () => {
+    it('should handle load errors gracefully', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -290,7 +368,7 @@ describe('useAudioPlayback', () => {
       warnSpy.mockRestore();
     });
 
-    it('should handle play errors gracefully', async () => {
+    it('should handle play errors gracefully', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { result } = renderHook(() => useAudioPlayback());

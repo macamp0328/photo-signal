@@ -1386,7 +1386,7 @@ function toGrayscale(imageData: ImageData): number[] {
 function binaryToHex(binary: string): string {
   let hex = '';
   for (let i = 0; i < binary.length; i += 4) {
-    const chunk = binary.substr(i, 4);
+    const chunk = binary.slice(i, i + 4);
     hex += parseInt(chunk, 2).toString(16);
   }
   return hex;

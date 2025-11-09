@@ -563,8 +563,8 @@ describe('useMotionDetection', () => {
 
       unmount();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const initialCalls = (mockCanvasContext.getImageData as any).mock.calls.length;
+      
+      const initialCalls = (mockCanvasContext.getImageData as ReturnType<typeof vi.fn>).mock.calls.length;
 
       // Time passes but no new checks
       await act(async () => {

@@ -3,15 +3,10 @@ import type { CameraViewProps } from './types';
 
 /**
  * Camera View Component
- * 
+ *
  * Pure UI component for displaying camera feed with overlay.
  */
-export function CameraView({
-  stream,
-  error,
-  hasPermission,
-  onRetry,
-}: CameraViewProps) {
+export function CameraView({ stream, error, hasPermission, onRetry }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Update video element when stream changes

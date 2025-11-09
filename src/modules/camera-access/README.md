@@ -1,16 +1,20 @@
 # Camera Access Module
 
 ## Purpose
+
 Manage camera permissions and provide MediaStream access.
 
 ## Responsibility
+
 **ONLY** handles:
+
 - Requesting camera permissions
 - Opening rear camera with 3:2 aspect ratio
 - Providing stream to other modules
 - Managing stream lifecycle (cleanup)
 
 **Does NOT** handle:
+
 - Motion detection (see `motion-detection` module)
 - Photo recognition (see `photo-recognition` module)
 - UI overlays (see `concert-info` module)
@@ -24,6 +28,7 @@ Manage camera permissions and provide MediaStream access.
 **Input**: None (auto-requests on mount)
 
 **Output**:
+
 ```typescript
 {
   stream: MediaStream | null;      // Camera video stream
@@ -34,6 +39,7 @@ Manage camera permissions and provide MediaStream access.
 ```
 
 **Side Effects**:
+
 - Requests camera permissions on mount
 - Stops all tracks on unmount
 - Attempts to use rear camera (`facingMode: 'environment'`)

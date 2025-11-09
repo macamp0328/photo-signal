@@ -1,39 +1,15 @@
-name: CI
-
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main]
-
-jobs:
-  build:
-    name: Build & checks
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npm run type-check
-
-      - name: Lint (fail on warnings)
-        run: npm run lint -- --max-warnings 0
-
-      - name: Build
-        run: npm run build
+# CI Workflow for Photo Signal
+#
+# 📚 IMPORTANT FOR AI AGENTS:
+# When adding/removing/modifying any of the following, update DOCUMENTATION_INDEX.md:
+#   - New documentation files (*.md)
+#   - New configuration files (*.json, *.js, *.ts config files)
+#   - New modules or services (with their README.md files)
+#   - New GitHub workflows or templates
+#   - New development environment configs
+#
+# See DOCUMENTATION_INDEX.md for the complete documentation structure.
+#
 name: CI
 
 on:

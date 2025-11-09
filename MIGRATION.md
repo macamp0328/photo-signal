@@ -1,5 +1,7 @@
 # Migration Notes: Old → New Architecture
 
+📚 **See also**: [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md) for a complete list of all project documentation.
+
 ## Summary
 
 The old monolithic components have been replaced with a modular architecture. This document explains the migration and what can be safely removed.
@@ -49,11 +51,11 @@ src/components/              # OLD: Can be deleted
 
 **Migration mapping:**
 
-| Old Component | New Module(s) | Notes |
-|--------------|---------------|-------|
-| `Camera.tsx` (179 lines) | `camera-access/` (65 lines)<br>`camera-view/` (88 lines)<br>`motion-detection/` (105 lines)<br>`photo-recognition/` (75 lines) | Split into 4 focused modules |
-| `AudioPlayer.tsx` (73 lines) | `audio-playback/` (113 lines) | Enhanced with better controls |
-| `InfoDisplay.tsx` (36 lines) | `concert-info/` (54 lines) | Slightly expanded with more options |
+| Old Component                | New Module(s)                                                                                                                  | Notes                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `Camera.tsx` (179 lines)     | `camera-access/` (65 lines)<br>`camera-view/` (88 lines)<br>`motion-detection/` (105 lines)<br>`photo-recognition/` (75 lines) | Split into 4 focused modules        |
+| `AudioPlayer.tsx` (73 lines) | `audio-playback/` (113 lines)                                                                                                  | Enhanced with better controls       |
+| `InfoDisplay.tsx` (36 lines) | `concert-info/` (54 lines)                                                                                                     | Slightly expanded with more options |
 
 ---
 
@@ -117,15 +119,15 @@ npm run dev      # Should still work!
 
 The new modular architecture has **100% feature parity** with the old:
 
-| Feature | Old Implementation | New Implementation | Status |
-|---------|-------------------|-------------------|--------|
-| Camera access | `Camera.tsx` | `camera-access/` | ✅ Same |
-| Motion detection | `Camera.tsx` | `motion-detection/` | ✅ Same |
-| Photo recognition | `Camera.tsx` | `photo-recognition/` | ✅ Same |
-| Audio playback | `AudioPlayer.tsx` | `audio-playback/` | ✅ Enhanced |
-| Info display | `InfoDisplay.tsx` | `concert-info/` | ✅ Same |
-| 3:2 overlay | `Camera.tsx` | `camera-view/` | ✅ Same |
-| Permissions | `Camera.tsx` | `camera-access/` | ✅ Same |
+| Feature           | Old Implementation | New Implementation   | Status      |
+| ----------------- | ------------------ | -------------------- | ----------- |
+| Camera access     | `Camera.tsx`       | `camera-access/`     | ✅ Same     |
+| Motion detection  | `Camera.tsx`       | `motion-detection/`  | ✅ Same     |
+| Photo recognition | `Camera.tsx`       | `photo-recognition/` | ✅ Same     |
+| Audio playback    | `AudioPlayer.tsx`  | `audio-playback/`    | ✅ Enhanced |
+| Info display      | `InfoDisplay.tsx`  | `concert-info/`      | ✅ Same     |
+| 3:2 overlay       | `Camera.tsx`       | `camera-view/`       | ✅ Same     |
+| Permissions       | `Camera.tsx`       | `camera-access/`     | ✅ Same     |
 
 ---
 
@@ -144,6 +146,7 @@ Camera.tsx (179 lines)
 ```
 
 **Problems:**
+
 - One file does too much
 - Hard to test individual features
 - Multiple developers would conflict
@@ -160,6 +163,7 @@ modules/
 ```
 
 **Benefits:**
+
 - Each module has ONE responsibility
 - Easy to test in isolation
 - Multiple developers work in parallel
@@ -204,6 +208,7 @@ But you shouldn't need this - the new architecture is tested and working! ✅
 ## Questions?
 
 See:
+
 - `ARCHITECTURE.md` - Complete system design
 - `AI_AGENT_GUIDE.md` - How to work with modules
 - Module READMEs - Individual component docs

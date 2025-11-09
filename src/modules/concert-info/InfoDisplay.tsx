@@ -2,7 +2,7 @@ import type { InfoDisplayProps } from './types';
 
 /**
  * Concert Info Display Component
- * 
+ *
  * Pure UI component for displaying concert metadata.
  * No side effects, no business logic.
  */
@@ -23,9 +23,10 @@ export function InfoDisplay({
     });
   };
 
-  const positionClasses = position === 'top' 
-    ? 'top-0 bg-gradient-to-b from-black via-black/90 to-transparent'
-    : 'bottom-0 bg-gradient-to-t from-black via-black/90 to-transparent';
+  const positionClasses =
+    position === 'top'
+      ? 'top-0 bg-gradient-to-b from-black via-black/90 to-transparent'
+      : 'bottom-0 bg-gradient-to-t from-black via-black/90 to-transparent';
 
   return (
     <div
@@ -39,15 +40,9 @@ export function InfoDisplay({
       `}
     >
       <div className="max-w-lg mx-auto text-white">
-        <h1 className="text-3xl font-bold mb-2 animate-fade-in">
-          {concert.band}
-        </h1>
-        <p className="text-xl text-gray-300 mb-1">
-          {concert.venue}
-        </p>
-        <p className="text-sm text-gray-400">
-          {formatDate(concert.date)}
-        </p>
+        <h1 className="text-3xl font-bold mb-2 animate-fade-in">{concert.band}</h1>
+        <p className="text-xl text-gray-300 mb-1">{concert.venue}</p>
+        <p className="text-sm text-gray-400">{formatDate(concert.date)}</p>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 /**
  * Photo Recognition Module
- * 
+ *
  * Identifies photos from camera stream and matches to concert data.
  * Current: Placeholder implementation
  * Future: ML-based image recognition

@@ -3,10 +3,10 @@ import type { MotionDetectionHook, MotionDetectionOptions } from './types';
 
 /**
  * Custom hook for motion detection
- * 
+ *
  * Analyzes video stream frames to detect camera movement.
  * Uses efficient pixel difference algorithm with configurable sensitivity.
- * 
+ *
  * @param stream - Camera video stream from camera-access module
  * @param options - Configuration options
  * @returns Motion detection state and controls
@@ -15,15 +15,12 @@ export function useMotionDetection(
   stream: MediaStream | null,
   options: MotionDetectionOptions = {}
 ): MotionDetectionHook {
-  const {
-    sensitivity: initialSensitivity = 50,
-    checkInterval = 500,
-  } = options;
+  const { sensitivity: initialSensitivity = 50, checkInterval = 500 } = options;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const previousFrameData = useRef<ImageData | null>(null);
-  
+
   const [isMoving, setIsMoving] = useState(false);
   const [sensitivity, setSensitivity] = useState(initialSensitivity);
 
@@ -52,7 +49,7 @@ export function useMotionDetection(
   const detectMovement = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
+
     if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
       return;
     }
@@ -63,7 +60,7 @@ export function useMotionDetection(
     // Use low resolution for performance (4x downscale)
     const width = Math.floor(video.videoWidth / 4) || 80;
     const height = Math.floor(video.videoHeight / 4) || 60;
-    
+
     canvas.width = width;
     canvas.height = height;
 
@@ -73,16 +70,14 @@ export function useMotionDetection(
 
     if (previousFrameData.current) {
       let diffCount = 0;
-      
+
       // Calculate threshold based on sensitivity (inverse: higher sensitivity = lower threshold)
       const pixelThreshold = 30 + (100 - sensitivity) * 0.5;
       const minDiffPixels = 500 + (100 - sensitivity) * 10;
 
       // Compare pixels
       for (let i = 0; i < currentFrameData.data.length; i += 4) {
-        const rDiff = Math.abs(
-          currentFrameData.data[i] - previousFrameData.current.data[i]
-        );
+        const rDiff = Math.abs(currentFrameData.data[i] - previousFrameData.current.data[i]);
         const gDiff = Math.abs(
           currentFrameData.data[i + 1] - previousFrameData.current.data[i + 1]
         );

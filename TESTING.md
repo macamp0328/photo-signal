@@ -1,5 +1,7 @@
 # Testing Guide
 
+📚 **See also**: [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md) for a complete list of all project documentation.
+
 This document outlines the testing strategy for the Photo Signal modular architecture.
 
 ## Current Status
@@ -63,7 +65,7 @@ describe('useModuleName', () => {
   it('should satisfy contract from README.md', () => {
     // Test that validates the documented API contract
   });
-  
+
   it('should handle edge cases', () => {
     // Test error conditions, null inputs, etc.
   });
@@ -73,6 +75,7 @@ describe('useModuleName', () => {
 ## Mocking Strategy
 
 ### Native APIs
+
 ```typescript
 // Mock MediaDevices
 const mockGetUserMedia = vi.fn();
@@ -82,6 +85,7 @@ Object.defineProperty(navigator, 'mediaDevices', {
 ```
 
 ### External Libraries
+
 ```typescript
 // Mock Howler.js
 vi.mock('howler', () => ({
@@ -105,7 +109,7 @@ vi.mock('howler', () => ({
 ✅ **Confident Refactoring** - Change internals without breaking contracts  
 ✅ **Living Documentation** - Tests show real usage examples  
 ✅ **Fast Feedback** - Isolated tests run quickly  
-✅ **Regression Prevention** - Catch bugs before deployment  
+✅ **Regression Prevention** - Catch bugs before deployment
 
 ## CI/CD Integration
 

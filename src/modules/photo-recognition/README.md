@@ -1,15 +1,19 @@
 # Photo Recognition Module
 
 ## Purpose
+
 Identify photos from camera stream and match to concert data.
 
 ## Responsibility
+
 **ONLY** handles:
+
 - Analyzing video frames for photo detection
 - Matching photos to concert data
 - Providing recognition results
 
 **Does NOT** handle:
+
 - Camera access (see `camera-access` module)
 - Data loading (see `data-service`)
 - UI display (see `concert-info` module)
@@ -22,6 +26,7 @@ Identify photos from camera stream and match to concert data.
 ### Hook: `usePhotoRecognition(stream, options?)`
 
 **Input**:
+
 ```typescript
 stream: MediaStream | null       // Camera video stream
 options?: {
@@ -31,6 +36,7 @@ options?: {
 ```
 
 **Output**:
+
 ```typescript
 {
   recognizedConcert: Concert | null;    // Matched concert or null
@@ -40,6 +46,7 @@ options?: {
 ```
 
 **Side Effects**:
+
 - Fetches concert data from `data-service`
 - Analyzes video frames periodically
 - Triggers recognition after stability period
@@ -54,6 +61,7 @@ This is intentionally simple for MVP. The modular design allows easy replacement
 with real ML-based recognition without touching other modules.
 
 **Why placeholder?**
+
 - Allows full app development/testing
 - Real ML integration requires training data
 - Can be upgraded by separate AI agent later
@@ -68,7 +76,6 @@ When ready for real recognition:
    - Generate hash of camera frame
    - Compare with pre-computed photo hashes
    - Fast, works offline
-   
 2. **ML Model** (TensorFlow.js)
    - Train on concert photo dataset
    - Run inference in browser
@@ -116,10 +123,12 @@ function App() {
 ## Performance
 
 **Current (Placeholder)**:
+
 - Near-zero CPU usage
 - Simple timeout-based
 
 **Future (ML)**:
+
 - ~10-50ms inference per frame
 - GPU acceleration via WebGL
 - Efficient frame sampling (not every frame)

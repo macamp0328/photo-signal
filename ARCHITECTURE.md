@@ -2,6 +2,8 @@
 
 > **Design Goal**: Modular, performant, AI-agent-friendly architecture optimized for parallel development and rapid iteration.
 
+📚 **See also**: [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md) for a complete list of all project documentation.
+
 ## Core Principles
 
 1. **Performance First** - Native APIs, minimal dependencies, optimized bundle
@@ -58,11 +60,13 @@ src/modules/{module-name}/
 ## Core Modules
 
 ### 1. Camera Access Module
+
 **Location**: `src/modules/camera-access/`
 
 **Purpose**: Acquire and manage camera stream
 
 **Contract**:
+
 ```typescript
 // Input: None (auto-request permissions)
 // Output: MediaStream | null
@@ -81,11 +85,13 @@ interface CameraAccessHook {
 ---
 
 ### 2. Motion Detection Module
+
 **Location**: `src/modules/motion-detection/`
 
 **Purpose**: Detect camera movement to trigger audio fade
 
 **Contract**:
+
 ```typescript
 // Input: MediaStream
 // Output: boolean (isMoving)
@@ -105,11 +111,13 @@ interface MotionDetectionHook {
 ---
 
 ### 3. Photo Recognition Module
+
 **Location**: `src/modules/photo-recognition/`
 
 **Purpose**: Identify photos and match to concert data
 
 **Contract**:
+
 ```typescript
 // Input: MediaStream
 // Output: Concert | null
@@ -129,11 +137,13 @@ interface PhotoRecognitionService {
 ---
 
 ### 4. Audio Playback Module
+
 **Location**: `src/modules/audio-playback/`
 
 **Purpose**: Play and control music with smooth fades
 
 **Contract**:
+
 ```typescript
 // Input: audioUrl: string, shouldPlay: boolean
 // Output: PlaybackState
@@ -155,11 +165,13 @@ interface AudioPlaybackHook {
 ---
 
 ### 5. Concert Info Display Module
+
 **Location**: `src/modules/concert-info/`
 
 **Purpose**: Display concert metadata overlay
 
 **Contract**:
+
 ```typescript
 // Input: Concert | null, isVisible: boolean
 // Output: React Component
@@ -179,11 +191,13 @@ interface InfoDisplayProps {
 ## Service Layer
 
 ### Data Service
+
 **Location**: `src/services/data-service/`
 
 **Purpose**: Load and cache concert data
 
 **Contract**:
+
 ```typescript
 interface DataService {
   getConcerts(): Promise<Concert[]>;
@@ -224,6 +238,7 @@ interface DataService {
 **Example Scenario**: Improve photo recognition AND enhance audio
 
 **Agent 1** works on:
+
 ```
 src/modules/photo-recognition/
   - Reads contract from README.md
@@ -233,6 +248,7 @@ src/modules/photo-recognition/
 ```
 
 **Agent 2** works on:
+
 ```
 src/modules/audio-playback/
   - Reads contract from README.md
@@ -255,14 +271,16 @@ src/modules/audio-playback/
 ## Performance Optimizations
 
 ### Bundle Size
+
 - **Target**: < 100KB initial bundle (gzipped)
-- **Strategy**: 
+- **Strategy**:
   - Lazy load modules (code splitting)
   - Tree-shake unused code
   - Native APIs over libraries
   - Minimal dependencies
 
 ### Runtime Performance
+
 - **Target**: 60 FPS camera feed, instant audio response
 - **Strategy**:
   - Efficient motion detection (low-res sampling)
@@ -271,6 +289,7 @@ src/modules/audio-playback/
   - Canvas optimizations
 
 ### Cost Optimization
+
 - **Target**: $0/month hosting
 - **Strategy**:
   - Static site deployment (Vercel/Netlify)
@@ -281,16 +300,16 @@ src/modules/audio-playback/
 
 ## Technology Choices
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Language | TypeScript | Type safety, AI-friendly contracts |
-| Framework | React (minimal) | Component reusability, could migrate to vanilla if needed |
-| Build Tool | Vite | Fastest builds, instant HMR |
-| Styling | Tailwind CSS | AI-friendly, utility-first, minimal CSS knowledge required |
-| Camera | Native MediaDevices API | Zero dependencies, maximum performance |
-| Audio | Native Audio API / Howler.js | Lightweight, robust playback |
-| Data | JSON → PostgreSQL | Start simple, scale later |
-| Hosting | Vercel | Free tier, edge network, perfect for static sites |
+| Layer      | Technology                   | Why                                                        |
+| ---------- | ---------------------------- | ---------------------------------------------------------- |
+| Language   | TypeScript                   | Type safety, AI-friendly contracts                         |
+| Framework  | React (minimal)              | Component reusability, could migrate to vanilla if needed  |
+| Build Tool | Vite                         | Fastest builds, instant HMR                                |
+| Styling    | Tailwind CSS                 | AI-friendly, utility-first, minimal CSS knowledge required |
+| Camera     | Native MediaDevices API      | Zero dependencies, maximum performance                     |
+| Audio      | Native Audio API / Howler.js | Lightweight, robust playback                               |
+| Data       | JSON → PostgreSQL            | Start simple, scale later                                  |
+| Hosting    | Vercel                       | Free tier, edge network, perfect for static sites          |
 
 ---
 
@@ -307,7 +326,7 @@ When scaling beyond static JSON:
 // Before
 const concerts = await fetch('/data.json');
 
-// After  
+// After
 const concerts = await fetch('/api/concerts');
 ```
 
@@ -323,6 +342,7 @@ const concerts = await fetch('/api/concerts');
 4. Implement logic: `Service.ts` or `Component.tsx`
 5. Export public API: `index.ts`
 6. Update this ARCHITECTURE.md
+7. **Update DOCUMENTATION_INDEX.md** with link to the new module's README
 
 ### Modifying Existing Module
 
@@ -331,6 +351,7 @@ const concerts = await fetch('/api/concerts');
 3. Ensure exported interface stays compatible
 4. Update module's README if contract changes
 5. Other modules remain untouched
+6. **Update DOCUMENTATION_INDEX.md if files are added/removed/renamed**
 
 ---
 
@@ -407,7 +428,7 @@ import { useMotionDetection } from '@/modules/motion-detection';
 test('detects movement when pixels change significantly', () => {
   const mockStream = createMockVideoStream();
   const { isMoving } = useMotionDetection(mockStream);
-  
+
   simulateMovement(mockStream);
   expect(isMoving).toBe(true);
 });

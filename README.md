@@ -147,6 +147,21 @@ The current implementation uses placeholder logic that triggers after 3 seconds.
 
 ---
 
+## 📚 Documentation
+
+For complete documentation including architecture, setup, testing, and all module READMEs, see:
+
+**[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - Central index of all project documentation
+
+Key docs:
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Module structure and design principles
+- **[SETUP.md](./SETUP.md)** - Development environment and CI/CD setup
+- **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Guide for parallel AI development
+- **[TESTING.md](./TESTING.md)** - Testing strategy
+
+---
+
 ## 🗂️ Project Structure
 
 ```

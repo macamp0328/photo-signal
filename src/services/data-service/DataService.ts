@@ -2,7 +2,7 @@ import type { Concert } from '../../types';
 
 /**
  * Data Service
- * 
+ *
  * Manages concert data loading and caching.
  * Currently loads from static JSON, designed for easy PostgreSQL migration.
  */
@@ -44,7 +44,7 @@ class DataService {
    */
   search(query: string): Concert[] {
     if (!this.cache) return [];
-    
+
     const lowerQuery = query.toLowerCase();
     return this.cache.filter(
       (concert) =>

@@ -1,15 +1,19 @@
 # Concert Info Display Module
 
 ## Purpose
+
 Display concert metadata overlay.
 
 ## Responsibility
+
 **ONLY** handles:
+
 - Rendering concert information (band, venue, date)
 - Fade in/out animations
 - Responsive layout
 
 **Does NOT** handle:
+
 - Loading concert data (see `data-service`)
 - Determining what to display (see App orchestrator)
 - Audio playback (see `audio-playback` module)
@@ -21,6 +25,7 @@ Display concert metadata overlay.
 ### Component: `InfoDisplay`
 
 **Input**:
+
 ```typescript
 {
   concert: Concert | null;       // Concert to display, null to hide
@@ -37,6 +42,7 @@ Display concert metadata overlay.
 ## Styling
 
 Uses Tailwind CSS for:
+
 - Responsive layout
 - Smooth transitions
 - Gradient backgrounds
@@ -57,8 +63,8 @@ function App() {
 
   return (
     <>
-      <InfoDisplay 
-        concert={concert} 
+      <InfoDisplay
+        concert={concert}
         isVisible={visible}
         position="bottom"
       />

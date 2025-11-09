@@ -3,11 +3,11 @@ import type { CameraAccessHook } from './types';
 
 /**
  * Custom hook for camera access
- * 
+ *
  * Manages camera permissions and provides MediaStream.
  * Automatically requests rear camera with 3:2 aspect ratio.
  * Cleans up stream on unmount.
- * 
+ *
  * @returns Camera access state and controls
  */
 export function useCameraAccess(): CameraAccessHook {

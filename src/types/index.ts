@@ -1,6 +1,6 @@
 /**
  * Shared TypeScript types for Photo Signal
- * 
+ *
  * These types are used across all modules to ensure type safety
  * and clear contracts between components.
  */

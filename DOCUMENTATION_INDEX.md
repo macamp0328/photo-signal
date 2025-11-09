@@ -212,8 +212,8 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (8 files)
-- ✅ Module READMEs (7 files)
 - ✅ Research & technical specifications (1 file)
+- ✅ Module READMEs (7 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
 - ✅ Issue templates (16 files - includes template guide)

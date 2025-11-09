@@ -47,6 +47,9 @@ jobs:
       - name: Type-check with TypeScript
         run: npm run type-check
 
+      - name: Run tests
+        run: npm test -- --run
+
       - name: Build project
         run: npm run build
 

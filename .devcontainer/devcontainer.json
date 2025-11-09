@@ -1,14 +1,8 @@
 {
   "name": "Photo Signal Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bullseye",
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "20",
-      "nodeGypDependencies": true,
-      "nvmVersion": "latest"
-    },
-    "ghcr.io/devcontainers/features/git:1": {}
-  },
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/app",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -27,6 +21,5 @@
     }
   },
   "forwardPorts": [5173],
-  "postCreateCommand": "npm install",
-  "remoteUser": "node"
+  "postCreateCommand": "npm install"
 }

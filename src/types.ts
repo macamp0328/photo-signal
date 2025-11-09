@@ -1,11 +1,6 @@
-export interface Concert {
-  id: number;
-  band: string;
-  venue: string;
-  date: string;
-  audioFile: string;
-}
+/**
+ * Legacy types file - Re-exports from new types module
+ * Kept for backward compatibility with old components
+ */
 
-export interface ConcertData {
-  concerts: Concert[];
-}
+export type { Concert, ConcertData } from './types/';

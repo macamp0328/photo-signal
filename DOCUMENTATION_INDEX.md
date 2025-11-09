@@ -18,6 +18,11 @@
 - **[MIGRATION.md](./MIGRATION.md)** - Migration notes from old monolithic to new modular architecture
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 
+### Project Planning & Roadmap
+
+- **[ROADMAP.md](./ROADMAP.md)** - Complete project roadmap with 7 milestones and 60+ issues organized for AI agent development
+- **[ISSUE_TRACKING.md](./ISSUE_TRACKING.md)** - Guide for creating, tracking, and managing GitHub Issues with templates and workflow recommendations
+
 ---
 
 ## 🧩 Module Documentation
@@ -72,7 +77,30 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Templates & Instructions
 
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - GitHub Copilot agent instructions
-- **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests
+- **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
+
+### Issue Templates (Milestone-based)
+
+**Milestone 1: Testing Infrastructure**
+- **[milestone-1-setup-testing-framework.md](./.github/ISSUE_TEMPLATE/milestone-1-setup-testing-framework.md)** - M1.1: Setup Vitest and React Testing Library
+- **[milestone-1-test-camera-access.md](./.github/ISSUE_TEMPLATE/milestone-1-test-camera-access.md)** - M1.2: Test camera access module
+- **[milestone-1-test-motion-detection.md](./.github/ISSUE_TEMPLATE/milestone-1-test-motion-detection.md)** - M1.3: Test motion detection module
+- **[milestone-1-test-photo-recognition.md](./.github/ISSUE_TEMPLATE/milestone-1-test-photo-recognition.md)** - M1.4: Test photo recognition module
+- **[milestone-1-test-audio-playback.md](./.github/ISSUE_TEMPLATE/milestone-1-test-audio-playback.md)** - M1.5: Test audio playback module
+- **[milestone-1-test-camera-view.md](./.github/ISSUE_TEMPLATE/milestone-1-test-camera-view.md)** - M1.6: Test camera view component
+- **[milestone-1-test-concert-info.md](./.github/ISSUE_TEMPLATE/milestone-1-test-concert-info.md)** - M1.7: Test concert info component
+- **[milestone-1-test-data-service.md](./.github/ISSUE_TEMPLATE/milestone-1-test-data-service.md)** - M1.8: Test data service
+
+**Milestone 2: Photo Recognition**
+- **[milestone-2-research-photo-recognition.md](./.github/ISSUE_TEMPLATE/milestone-2-research-photo-recognition.md)** - M2.1: Research photo recognition approaches
+- **[milestone-2-implement-hashing.md](./.github/ISSUE_TEMPLATE/milestone-2-implement-hashing.md)** - M2.2: Implement perceptual hashing
+
+**Milestone 3: Audio Enhancements**
+- **[milestone-3-audio-crossfade.md](./.github/ISSUE_TEMPLATE/milestone-3-audio-crossfade.md)** - M3.1: Implement audio crossfade
+
+**Milestone 4: UX Enhancements**
+- **[milestone-4-settings-panel.md](./.github/ISSUE_TEMPLATE/milestone-4-settings-panel.md)** - M4.1: Create user settings panel
+- **[milestone-4-favorites-system.md](./.github/ISSUE_TEMPLATE/milestone-4-favorites-system.md)** - M4.2: Implement favorites system (parallel development example)
 
 ---
 
@@ -150,13 +178,14 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (6 files)
+- ✅ Root documentation (8 files)
 - ✅ Module READMEs (7 files)
 - ✅ Configuration files (14 files)
-- ✅ GitHub Actions & templates (3 files)
+- ✅ GitHub Actions & workflows (2 files)
+- ✅ Issue templates (15 files)
 - ✅ Development environment configs (3 files)
 - ✅ Data and asset documentation (2 files)
 
-**Total**: 35 documented files
+**Total**: 51 documented files
 
-Last updated: 2025-11-09
+Last updated: 2025-01-09

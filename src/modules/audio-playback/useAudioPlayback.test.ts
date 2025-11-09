@@ -307,7 +307,7 @@ describe('useAudioPlayback', () => {
   });
 
   describe('Cleanup', () => {
-    it('should unload sound on unmount', async () => {
+    it('should unload sound on unmount', () => {
       const { result, unmount } = renderHook(() => useAudioPlayback());
 
       // Play audio

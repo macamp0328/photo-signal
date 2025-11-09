@@ -60,6 +60,14 @@ describe('useMotionDetection', () => {
   let frameDataSequence: ImageData[];
   let frameDataIndex: number;
 
+  // Helper function to set video ready state
+  function setVideoReadyState(value: number) {
+    Object.defineProperty(mockVideoElement, 'readyState', {
+      value,
+      writable: true,
+    });
+  }
+
   beforeEach(() => {
     vi.useFakeTimers();
     frameDataSequence = [];
@@ -75,11 +83,8 @@ describe('useMotionDetection', () => {
       videoHeight: 240,
       HAVE_ENOUGH_DATA: 4,
     };
-    // Use Object.defineProperty to make readyState writable
-    Object.defineProperty(mockVideoElement, 'readyState', {
-      value: 4,
-      writable: true,
-    });
+    // Set default ready state to HAVE_ENOUGH_DATA
+    setVideoReadyState(4);
 
     // Mock canvas context that returns our test frame data
     mockCanvasContext = {
@@ -484,10 +489,7 @@ describe('useMotionDetection', () => {
       const mockStream = createMockMediaStream();
 
       // Set video to not ready state
-      Object.defineProperty(mockVideoElement, 'readyState', {
-        value: 0,
-        writable: true,
-      });
+      setVideoReadyState(0);
 
       renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
 

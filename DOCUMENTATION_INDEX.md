@@ -66,6 +66,10 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/test/setup.ts](./src/test/setup.ts)** - Vitest setup file with global test configuration
 - **[src/test/mocks.ts](./src/test/mocks.ts)** - Global mocks for native browser APIs (MediaDevices, Canvas, Fetch, etc.)
 
+#### Module Tests
+
+- **[src/modules/camera-view/CameraView.test.tsx](./src/modules/camera-view/CameraView.test.tsx)** - Unit tests for camera-view component (100% coverage)
+
 ### Code Quality
 
 - **[eslint.config.js](./eslint.config.js)** - ESLint linting rules (flat config format)
@@ -222,6 +226,7 @@ This index covers:
 - ✅ Helper scripts (7 files including README)
 - ✅ Data and asset documentation (2 files)
 - ✅ Test infrastructure (2 files)
+- ✅ Module tests (1 file)
 
 **Total**: 68 documented files
 

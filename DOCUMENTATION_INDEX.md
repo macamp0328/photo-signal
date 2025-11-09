@@ -77,6 +77,7 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Templates & Instructions
 
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - GitHub Copilot agent instructions
+- **[.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 
 ### Issue Templates (Milestone-based)
@@ -182,10 +183,10 @@ This index covers:
 - ✅ Module READMEs (7 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
-- ✅ Issue templates (15 files)
+- ✅ Issue templates (16 files - includes template guide)
 - ✅ Development environment configs (3 files)
 - ✅ Data and asset documentation (2 files)
 
-**Total**: 51 documented files
+**Total**: 52 documented files
 
 Last updated: 2025-01-09

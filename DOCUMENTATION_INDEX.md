@@ -218,6 +218,6 @@ This index covers:
 - ✅ Data and asset documentation (2 files)
 - ✅ Test infrastructure (2 files)
 
-**Total**: 50 documented files
+**Total**: 67 documented files
 
 Last updated: 2025-11-09

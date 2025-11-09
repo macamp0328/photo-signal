@@ -215,10 +215,7 @@ describe('usePhotoRecognition', () => {
 
       expect(result.current.isRecognizing).toBe(false);
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Photo recognition error:',
-        expect.any(Error)
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Photo recognition error:', expect.any(Error));
 
       consoleErrorSpy.mockRestore();
     });
@@ -357,8 +354,7 @@ describe('usePhotoRecognition', () => {
 
     it('should resume recognition when enabled changes from false to true', async () => {
       const { result, rerender } = renderHook(
-        ({ enabled }) =>
-          usePhotoRecognition(mockStream, { enabled, recognitionDelay: 3000 }),
+        ({ enabled }) => usePhotoRecognition(mockStream, { enabled, recognitionDelay: 3000 }),
         { initialProps: { enabled: false } }
       );
 
@@ -390,9 +386,7 @@ describe('usePhotoRecognition', () => {
 
   describe('No Stream Handling', () => {
     it('should not recognize when stream is null', async () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(null, { recognitionDelay: 3000 })
-      );
+      const { result } = renderHook(() => usePhotoRecognition(null, { recognitionDelay: 3000 }));
 
       expect(result.current.isRecognizing).toBe(false);
 
@@ -450,12 +444,12 @@ describe('usePhotoRecognition', () => {
       // The implementation clears the timeout but doesn't reset isRecognizing
       // This is current behavior - isRecognizing stays true until timeout fires
       // or reset() is called
-      
+
       // Advancing timers should not trigger recognition because timeout was cleared
       await act(async () => {
         await vi.advanceTimersByTimeAsync(3000);
       });
-      
+
       // No concert should be recognized
       expect(result.current.recognizedConcert).toBeNull();
       // dataService should not have been called

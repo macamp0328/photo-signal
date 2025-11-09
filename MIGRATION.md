@@ -30,7 +30,6 @@ src/
 ### Updated Files
 
 - ✅ `src/App.tsx` - Now orchestrates modules instead of managing state
-- ✅ `src/types.ts` - Now re-exports from `src/types/` for backward compatibility
 
 ---
 
@@ -177,9 +176,6 @@ git checkout <commit-before-refactor> -- src/App.tsx
 
 # Remove new modules
 rm -rf src/modules/ src/services/ src/types/
-
-# Restore old types
-git checkout <commit-before-refactor> -- src/types.ts
 
 # Rebuild
 npm run build

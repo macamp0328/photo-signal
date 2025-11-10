@@ -228,7 +228,7 @@ export function usePhotoRecognition(
         videoRef.current.srcObject = null;
       }
     };
-  }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval, recognizedConcert]);
+  }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval]);
 
   return {
     recognizedConcert,

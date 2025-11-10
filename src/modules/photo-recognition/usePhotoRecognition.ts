@@ -219,10 +219,6 @@ export function usePhotoRecognition(
         clearInterval(intervalRef.current);
         intervalRef.current = undefined;
       }
-      if (recognitionTimeoutRef.current) {
-        clearTimeout(recognitionTimeoutRef.current);
-        recognitionTimeoutRef.current = undefined;
-      }
       if (videoRef.current) {
         videoRef.current.pause();
         videoRef.current.srcObject = null;

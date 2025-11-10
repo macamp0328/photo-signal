@@ -43,6 +43,11 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
 
   // Start camera on mount if autoStart is true
   useEffect(() => {
+    // Only auto-start if autoStart option is true
+    if (!autoStart) {
+      return;
+    }
+
     let cancelled = false;
 
     const initCamera = async () => {
@@ -85,7 +90,7 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
         streamRef.current = null;
       }
     };
-  }, []);
+  }, [autoStart]);
 
   const retry = useCallback(() => {
     startCamera();

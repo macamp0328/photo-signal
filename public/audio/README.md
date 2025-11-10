@@ -26,6 +26,7 @@ To use your own MP3 files:
 2. Update the `audioFile` paths in `public/data.json` to reference your files
 
 Example:
+
 ```json
 {
   "id": 1,

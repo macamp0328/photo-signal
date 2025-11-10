@@ -13,6 +13,7 @@ All test assets are released under the **Creative Commons Zero (CC0) Public Doma
 [![CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
 
 This means:
+
 - The assets are dedicated to the public domain
 - You can copy, modify, distribute and perform the work, even for commercial purposes
 - No attribution is required (though appreciated)
@@ -22,12 +23,12 @@ This means:
 
 ### Test Images (`assets/test-images/`)
 
-| File | Description | Generation Method | License |
-|------|-------------|-------------------|---------|
-| `concert-1.jpg` | Blue gradient test image | Generated with ImageMagick | CC0 |
-| `concert-2.jpg` | Red gradient test image | Generated with ImageMagick | CC0 |
-| `concert-3.jpg` | Green gradient test image | Generated with ImageMagick | CC0 |
-| `concert-4.jpg` | Purple gradient test image | Generated with ImageMagick | CC0 |
+| File            | Description                | Generation Method          | License |
+| --------------- | -------------------------- | -------------------------- | ------- |
+| `concert-1.jpg` | Blue gradient test image   | Generated with ImageMagick | CC0     |
+| `concert-2.jpg` | Red gradient test image    | Generated with ImageMagick | CC0     |
+| `concert-3.jpg` | Green gradient test image  | Generated with ImageMagick | CC0     |
+| `concert-4.jpg` | Purple gradient test image | Generated with ImageMagick | CC0     |
 
 **Creation Command**: `convert -size 640x480 gradient:color1-color2 [filename].jpg`
 
@@ -35,18 +36,19 @@ These images are simple color gradients with text overlays, created programmatic
 
 ### Test Audio Files (`assets/test-audio/`)
 
-| File | Description | Generation Method | License |
-|------|-------------|-------------------|---------|
-| `concert-1.mp3` | 220Hz sine wave (5s) | Generated with FFmpeg | CC0 |
-| `concert-2.mp3` | 440Hz sine wave (5s) | Generated with FFmpeg | CC0 |
-| `concert-3.mp3` | 880Hz sine wave (5s) | Generated with FFmpeg | CC0 |
-| `concert-4.mp3` | C-E-G chord (5s) | Generated with FFmpeg | CC0 |
-| `concert-song-1.mp3` | Layered composition (2 min) | Generated with FFmpeg | CC0 |
-| `concert-song-2.mp3` | Chord progression (2 min) | Generated with FFmpeg | CC0 |
+| File                 | Description                 | Generation Method     | License |
+| -------------------- | --------------------------- | --------------------- | ------- |
+| `concert-1.mp3`      | 220Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
+| `concert-2.mp3`      | 440Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
+| `concert-3.mp3`      | 880Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
+| `concert-4.mp3`      | C-E-G chord (5s)            | Generated with FFmpeg | CC0     |
+| `concert-song-1.mp3` | Layered composition (2 min) | Generated with FFmpeg | CC0     |
+| `concert-song-2.mp3` | Chord progression (2 min)   | Generated with FFmpeg | CC0     |
 
 **Short Files Creation Command**: `ffmpeg -f lavfi -i "sine=frequency=XXX:duration=5" -b:a 64k [filename].mp3`
 
 **Full-Length Files Creation Commands**:
+
 ```bash
 # Song 1: Layered bass and melody (2 minutes)
 ffmpeg -f lavfi -i "sine=frequency=220:duration=120" \
@@ -68,10 +70,10 @@ These audio files are simple sine wave tones, chords, and layered compositions g
 
 ### Test Data Files (`assets/test-data/`)
 
-| File | Description | License |
-|------|-------------|---------|
-| `concerts.json` | Sample concert data in JSON format | CC0 |
-| `concerts.csv` | Sample concert data in CSV format | CC0 |
+| File            | Description                        | License |
+| --------------- | ---------------------------------- | ------- |
+| `concerts.json` | Sample concert data in JSON format | CC0     |
+| `concerts.csv`  | Sample concert data in CSV format  | CC0     |
 
 These are simple structured data files containing fictional concert information (band names, venues, dates) created for testing purposes only. All data is fictional and does not represent real events.
 
@@ -89,6 +91,7 @@ We chose CC0 (Public Domain) licensing for test assets because:
 All test assets can be regenerated using the following commands:
 
 ### Images
+
 ```bash
 cd assets/test-images
 convert -size 640x480 gradient:blue-cyan concert-1.jpg
@@ -99,6 +102,7 @@ convert concert-1.jpg -pointsize 40 -fill white -gravity center -annotate +0+0 "
 ### Audio
 
 #### Short Test Files (5 seconds)
+
 ```bash
 cd assets/test-audio
 ffmpeg -f lavfi -i "sine=frequency=220:duration=5" -b:a 64k concert-1.mp3 -y
@@ -106,6 +110,7 @@ ffmpeg -f lavfi -i "sine=frequency=220:duration=5" -b:a 64k concert-1.mp3 -y
 ```
 
 #### Full-Length Song Files (2 minutes)
+
 ```bash
 cd assets/test-audio
 # Song 1: Layered composition
@@ -125,6 +130,7 @@ ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
 ```
 
 ### Data
+
 Data files are simple JSON/CSV files that can be created with any text editor.
 
 ## Verification
@@ -147,6 +153,7 @@ During development, the following CC0/public domain sources were considered but 
 - **Openverse**: CC0 media search engine (could not access during development due to network restrictions)
 
 We ultimately chose to generate all assets programmatically to:
+
 - Ensure consistent quality and size
 - Avoid external dependencies
 - Maintain complete control over content

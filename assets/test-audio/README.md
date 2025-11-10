@@ -51,13 +51,17 @@ These audio files are used for:
 ## Notes
 
 ### Short Files
+
 Each short audio file uses a different frequency to make them distinguishable during testing:
+
 - Concert 1: Low bass tone (220Hz - A3)
 - Concert 2: Mid-range tone (440Hz - A4)
 - Concert 3: High tone (880Hz - A5)
 - Concert 4: Musical chord (C-E-G major triad)
 
 ### Full-Length Files
+
 The full-length files simulate real song files for performance testing:
+
 - Song 1: Layered bass and melody pattern (multi-frequency mix)
 - Song 2: Chord progression simulation (4-note harmonic blend)

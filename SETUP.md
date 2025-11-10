@@ -196,13 +196,24 @@ The CI workflow runs automatically on:
 ### CI Steps:
 
 1. **Checkout code** - Get repository code
-2. **Setup Node.js** - Install Node 20 with npm caching
-3. **Install dependencies** - Run `npm ci` for clean install
-4. **Run ESLint** - Check code quality and patterns
-5. **Check formatting** - Ensure code follows Prettier rules
-6. **Type-check** - Validate TypeScript types
-7. **Build** - Create production bundle
-8. **Upload artifacts** - Save build output for review (7 days)
+2. **Setup Copilot documentation cache** - Pre-fetch GitHub documentation from `gh.io` domain before firewall restrictions apply
+3. **Setup Node.js** - Install Node 20 with npm caching
+4. **Install dependencies** - Run `npm ci` for clean install
+5. **Run ESLint** - Check code quality and patterns
+6. **Check formatting** - Ensure code follows Prettier rules
+7. **Type-check** - Validate TypeScript types
+8. **Run tests** - Execute Vitest test suite
+9. **Build** - Create production bundle
+10. **Upload artifacts** - Save build output for review (7 days)
+
+### Copilot Documentation Caching:
+
+The CI workflow includes a custom action (`.github/actions/setup-copilot`) that pre-fetches GitHub Copilot documentation before firewall restrictions are applied. This ensures the Copilot coding agent has access to:
+
+- GitHub Copilot coding agent best practices
+- GitHub Actions setup documentation
+
+Documentation is cached in `/tmp/gh-docs/` for reference throughout the CI job. See [.github/actions/setup-copilot/README.md](.github/actions/setup-copilot/README.md) for details.
 
 ### Performance Optimizations:
 

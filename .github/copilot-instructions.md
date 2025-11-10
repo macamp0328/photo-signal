@@ -1,5 +1,17 @@
 # GitHub Copilot Instructions for Photo Signal
 
+> **Purpose**: This file provides guidance for GitHub Copilot and AI agents working on this project. It defines coding standards, architecture patterns, and development workflows to ensure consistency and quality.
+
+## How to Use These Instructions
+
+When working on this project:
+
+1. **Read First**: Review relevant sections before making changes
+2. **Follow Patterns**: Use established patterns from existing code
+3. **Ask Questions**: If unclear, ask for clarification rather than guessing
+4. **Update Documentation**: Keep these instructions current as the project evolves
+5. **Quality First**: Always run lint, type-check, and build before committing
+
 ## Project Overview
 
 Photo Signal is a camera-based gallery app that plays music when you point at a printed photo. It's designed as a quiet, in-home installation that uses computer vision to recognize photos and trigger corresponding audio playback.
@@ -286,6 +298,99 @@ npm audit
 - Camera/audio permissions handled securely
 - Dependencies audited regularly
 - Minimal GitHub Actions permissions
+- Use HTTPS for all external resources
+- Sanitize user inputs (if any are added in future)
+- Follow OWASP best practices for web applications
+
+## Error Handling
+
+### Error Handling Patterns
+
+- **Camera Access**: Handle permission denials gracefully with user-friendly messages
+- **Audio Playback**: Catch and log audio loading/playback errors
+- **Network Requests**: Implement retry logic for transient failures
+- **Type Safety**: Use TypeScript's strict mode to catch errors at compile time
+
+### Error Reporting
+
+```typescript
+try {
+  // Operation that might fail
+} catch (error) {
+  console.error('Descriptive error message:', error);
+  // Show user-friendly error message
+  // Don't expose sensitive error details to users
+}
+```
+
+### Validation
+
+- Validate all external data (API responses, user inputs)
+- Use TypeScript types for compile-time validation
+- Add runtime validation for critical data paths
+- Fail fast with clear error messages
+
+## Accessibility
+
+### WCAG 2.1 Level AA Compliance
+
+- **Keyboard Navigation**: All interactive elements must be keyboard accessible
+- **Screen Readers**: Use semantic HTML and ARIA labels where needed
+- **Color Contrast**: Ensure 4.5:1 contrast ratio for normal text, 3:1 for large text
+- **Focus Indicators**: Visible focus states for all interactive elements
+- **Alt Text**: Provide meaningful alt text for images (when added)
+
+### Accessibility Patterns
+
+```typescript
+// Example: Accessible button
+<button
+  onClick={handleClick}
+  aria-label="Start camera"
+  className="focus:ring-2 focus:ring-blue-500"
+>
+  Start Camera
+</button>
+```
+
+### Testing
+
+- Test with keyboard only (no mouse)
+- Test with screen reader (VoiceOver, NVDA, JAWS)
+- Use browser DevTools accessibility audit
+- Follow semantic HTML patterns
+
+## Documentation Standards
+
+### Code Documentation
+
+- **Functions**: Document complex logic with clear comments
+- **Interfaces**: Add JSDoc comments for public APIs
+- **Modules**: Keep README.md up-to-date with contract changes
+- **Examples**: Include usage examples in module READMEs
+
+### Comment Style
+
+```typescript
+/**
+ * Detects motion in the camera feed by comparing frames.
+ *
+ * @param currentFrame - The current video frame as ImageData
+ * @param threshold - Motion sensitivity (0-100, default: 10)
+ * @returns true if motion detected, false otherwise
+ */
+export function detectMotion(currentFrame: ImageData, threshold: number = 10): boolean {
+  // Implementation
+}
+```
+
+### When to Comment
+
+- **Do**: Explain why, not what (code should be self-documenting)
+- **Do**: Document complex algorithms or business logic
+- **Do**: Add TODO/FIXME with ticket numbers for future work
+- **Don't**: Comment obvious code
+- **Don't**: Leave commented-out code (use git history instead)
 
 ## Getting Help
 
@@ -293,6 +398,7 @@ npm audit
 2. Review ARCHITECTURE.md for system design
 3. See AI_AGENT_GUIDE.md for collaboration patterns
 4. Read SETUP.md for development environment details
+5. Check DOCUMENTATION_INDEX.md for all documentation links
 
 ## Quick Reference
 
@@ -305,6 +411,189 @@ npm audit
 | `npm run format`     | Format code              |
 | `npm run type-check` | Validate TypeScript      |
 | `npm run preview`    | Preview production build |
+
+## Troubleshooting
+
+### Common Issues
+
+**Camera not working**
+
+- Check browser permissions in DevTools Console
+- Ensure HTTPS or localhost (required for camera access)
+- Try different browsers (Chrome, Firefox, Safari)
+
+**Build failures**
+
+- Clear `node_modules` and reinstall: `rm -rf node_modules package-lock.json && npm install`
+- Check Node.js version (requires Node 18+)
+- Run `npm run type-check` to identify TypeScript errors
+
+**Linting errors**
+
+- Run `npm run lint:fix` to auto-fix issues
+- Run `npm run format` to fix formatting
+- Check ESLint config if new rules needed
+
+**Audio not playing**
+
+- Check browser console for loading errors
+- Verify audio file exists in `public/audio/`
+- Check audio file format (MP3 supported)
+- Ensure user has interacted with page (browser autoplay policy)
+
+## Best Practices
+
+### What TO Do
+
+- ✅ Write self-documenting code with clear variable names
+- ✅ Use TypeScript types for all function parameters and returns
+- ✅ Keep functions small and focused (single responsibility)
+- ✅ Write tests for new features (when test infrastructure exists)
+- ✅ Run all quality checks before committing
+- ✅ Update documentation when changing contracts
+- ✅ Use semantic HTML elements
+- ✅ Handle errors gracefully with user feedback
+- ✅ Follow existing patterns in the codebase
+- ✅ Ask for clarification if requirements are unclear
+
+### What NOT To Do
+
+- ❌ Don't use `any` type (use `unknown` if type is truly unknown)
+- ❌ Don't ignore TypeScript errors (fix them, don't suppress)
+- ❌ Don't skip linting/formatting before committing
+- ❌ Don't add dependencies without checking bundle size impact
+- ❌ Don't modify module contracts without updating README
+- ❌ Don't couple modules together (maintain independence)
+- ❌ Don't commit commented-out code (delete it, it's in git history)
+- ❌ Don't hard-code values that should be configurable
+- ❌ Don't ignore accessibility (keyboard nav, screen readers)
+- ❌ Don't commit `.env` files or secrets
+
+## Git Workflow
+
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:**
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, no logic change)
+- `refactor`: Code refactoring (no feature change)
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks (deps, config, etc.)
+
+**Examples:**
+
+```
+feat(audio): add crossfade transitions
+fix(camera): handle permission denial gracefully
+docs(readme): update setup instructions
+test(motion): add motion detection tests
+chore(deps): update vite to 7.2.2
+```
+
+### Pull Request Guidelines
+
+**PR Title**: Use same format as commit messages
+
+```
+feat(module-name): Brief description of changes
+```
+
+**PR Description Template**:
+
+```markdown
+## What
+
+Brief description of what changed.
+
+## Why
+
+Why this change is needed.
+
+## How
+
+How the change was implemented.
+
+## Testing
+
+- [ ] Linted: `npm run lint`
+- [ ] Type-checked: `npm run type-check`
+- [ ] Built successfully: `npm run build`
+- [ ] Tested manually: [describe testing]
+- [ ] Tests pass: `npm test` (when available)
+
+## Screenshots
+
+[Add screenshots for UI changes]
+
+## Documentation
+
+- [ ] Updated module README if contract changed
+- [ ] Updated DOCUMENTATION_INDEX.md if files added/removed
+- [ ] Updated ARCHITECTURE.md if structure changed
+```
+
+### Branch Naming
+
+- `feat/short-description` - New features
+- `fix/short-description` - Bug fixes
+- `docs/short-description` - Documentation
+- `test/short-description` - Tests
+- `chore/short-description` - Maintenance
+
+## Dependency Management
+
+### Adding Dependencies
+
+1. **Check necessity**: Can you achieve this with existing dependencies or native APIs?
+2. **Check bundle size**: Use [Bundlephobia](https://bundlephobia.com/) to check impact
+3. **Check maintenance**: Is the package actively maintained? Recent commits?
+4. **Check security**: Run `npm audit` after installing
+5. **Check license**: Ensure compatible with project license
+
+### Allowed Dependency Types
+
+- **Production deps** (`dependencies`): Only what's needed in the browser
+- **Dev deps** (`devDependencies`): Build tools, linters, testing frameworks
+- **Peer deps**: Avoid if possible (complexity)
+
+### Updating Dependencies
+
+```bash
+# Check for outdated packages
+npm outdated
+
+# Update specific package
+npm update package-name
+
+# Update all packages (be careful)
+npm update
+
+# Always audit after updates
+npm audit
+npm audit fix  # Auto-fix vulnerabilities if possible
+```
+
+### Preferred Libraries
+
+- **State Management**: React hooks (useState, useContext) - no Redux needed for MVP
+- **HTTP Client**: Native `fetch` API
+- **Animations**: CSS transitions/animations or Tailwind
+- **Testing**: Vitest + React Testing Library (when implemented)
+- **Audio**: Howler.js (already included)
+- **Styling**: Tailwind CSS (already configured)
 
 ---
 

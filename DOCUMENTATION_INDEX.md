@@ -91,7 +91,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Templates & Instructions
 
-- **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - GitHub Copilot agent instructions
+- **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Comprehensive GitHub Copilot agent instructions including code standards, error handling, accessibility, documentation standards, troubleshooting, git workflow, and dependency management
 - **[.github/ISSUE_TEMPLATE/\_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 
@@ -230,4 +230,4 @@ This index covers:
 
 **Total**: 68 documented files
 
-Last updated: 2025-11-09
+Last updated: 2025-11-10

@@ -44,6 +44,7 @@ CodeQL is GitHub's semantic code analysis engine that treats code as data, allow
 **IMPORTANT:** CodeQL requires GitHub Advanced Security to be enabled for private repositories.
 
 #### For Public Repositories
+
 CodeQL works automatically - no setup needed!
 
 #### For Private Repositories
@@ -67,6 +68,7 @@ This repository is private, so you need to enable code scanning:
    - The next workflow run will succeed
 
 **Note:** GitHub Advanced Security may require a paid GitHub plan for private repositories. If you don't have access:
+
 - The workflow will fail with error: "Code scanning is not enabled for this repository"
 - CodeQL can still be used locally with the CodeQL CLI (free)
 - Consider making the repository public to use free GitHub CodeQL scanning

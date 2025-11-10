@@ -39,6 +39,7 @@
 4. Click **"Setup repo"** or the toggle switch next to the repository name
 
 **Note**: If you don't see your repository:
+
 - Click **"Refresh repositories"** button
 - Ensure you have admin access to the repository on GitHub
 - Check that the Codecov GitHub App has access to the repository
@@ -56,6 +57,7 @@ Once the repository is added:
    - Keep this token secure - it's like a password!
 
 **Alternative path** if you're already past the setup page:
+
 1. Go to your Codecov dashboard at [https://app.codecov.io](https://app.codecov.io)
 2. Select the `photo-signal` repository
 3. Click **"Settings"** in the left sidebar
@@ -63,6 +65,7 @@ Once the repository is added:
 5. Click to reveal the token, then copy it
 
 **Screenshot showing token location:**
+
 ```
 Settings → General → Repository Upload Token
 [●●●●●●●●-●●●●-●●●●-●●●●-●●●●●●●●●●●●] [Copy]
@@ -91,6 +94,7 @@ Now that you have the token, add it to your GitHub repository:
    - Click **"Add secret"**
 
 **Visual guide:**
+
 ```
 Settings → Secrets and variables → Actions → New repository secret
 
@@ -136,6 +140,7 @@ Once the token is working:
 3. On future PRs, you'll get automated comments showing coverage changes
 
 **Example PR comment from Codecov:**
+
 ```
 codecov[bot] commented 2 minutes ago
 
@@ -160,6 +165,7 @@ Coverage increased by 1.9%
 **Cause**: Token may be incorrect or repository not configured
 
 **Fix**:
+
 1. Double-check the token in GitHub Secrets matches the one in Codecov
 2. Ensure the secret name is exactly `CODECOV_TOKEN` (case-sensitive)
 3. Re-copy the token from Codecov and update the GitHub secret
@@ -169,6 +175,7 @@ Coverage increased by 1.9%
 **Cause**: Codecov doesn't have access to the repository
 
 **Fix**:
+
 1. Go to [https://github.com/apps/codecov](https://github.com/apps/codecov)
 2. Click **"Configure"**
 3. Select your account (`macamp0328`)
@@ -180,6 +187,7 @@ Coverage increased by 1.9%
 **Cause**: CI workflow hasn't run yet, or token not configured
 
 **Fix**:
+
 1. Verify the token is added to GitHub Secrets (Step 4)
 2. Push a new commit to trigger the workflow
 3. Check the workflow logs for errors in the Codecov upload step
@@ -189,6 +197,7 @@ Coverage increased by 1.9%
 **Cause**: Token is optional for public repos, but you have a private repo
 
 **Fix**:
+
 1. This warning is expected if the token isn't set
 2. Follow Steps 3-4 to add the token
 3. The warning will disappear on the next workflow run
@@ -231,13 +240,13 @@ After setup is complete:
 
 ## Quick Reference
 
-| What | Where |
-|------|-------|
-| **Codecov Dashboard** | https://app.codecov.io/gh/macamp0328/photo-signal |
-| **Get Token** | Codecov → Settings → General → Repository Upload Token |
-| **Add Secret** | GitHub → Settings → Secrets and variables → Actions → New repository secret |
-| **Secret Name** | `CODECOV_TOKEN` (exactly, case-sensitive) |
-| **Verify Setup** | Check next PR or workflow run in Actions tab |
+| What                  | Where                                                                       |
+| --------------------- | --------------------------------------------------------------------------- |
+| **Codecov Dashboard** | https://app.codecov.io/gh/macamp0328/photo-signal                           |
+| **Get Token**         | Codecov → Settings → General → Repository Upload Token                      |
+| **Add Secret**        | GitHub → Settings → Secrets and variables → Actions → New repository secret |
+| **Secret Name**       | `CODECOV_TOKEN` (exactly, case-sensitive)                                   |
+| **Verify Setup**      | Check next PR or workflow run in Actions tab                                |
 
 ---
 

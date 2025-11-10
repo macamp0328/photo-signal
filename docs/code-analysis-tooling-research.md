@@ -20,16 +20,16 @@ This document evaluates tooling options for:
 
 ### Recommended Tooling Stack
 
-| Category            | Tool                                    | Justification                                                                  | Cost                |
-| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------ | ------------------- |
-| Security Scanning   | **CodeQL**                              | GitHub native, excellent JavaScript/TypeScript support, free for private repos | Free                |
-| Coverage Reporting  | **Codecov**                             | Industry standard, free tier for open source, excellent GitHub integration     | Free tier available |
-| Dependency Scanning | **npm audit + Dependabot**              | Built-in, GitHub native, automatic PR creation                                 | Free                |
-| Bundle Analysis     | **bundlesize** or **size-limit**        | Lightweight, fail CI on size regression                                        | Free                |
-| Linting             | **ESLint** (existing)                   | Already configured, industry standard                                          | Free                |
-| Type Checking       | **TypeScript** (existing)               | Already configured                                                             | Free                |
-| Testing             | **Vitest** (existing)                   | Already configured with coverage                                               | Free                |
-| Logging             | **Structured console + GitHub Actions** | Built-in, lightweight                                                          | Free                |
+| Category            | Tool                                    | Justification                                                                                                 | Cost                 |
+| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Security Scanning   | **CodeQL** (optional)                   | GitHub native, excellent JavaScript/TypeScript support - **Disabled by default** (requires Advanced Security) | Free (paid plan req) |
+| Coverage Reporting  | **Codecov**                             | Industry standard, free tier for open source, excellent GitHub integration                                    | Free tier available  |
+| Dependency Scanning | **npm audit + Dependabot**              | Built-in, GitHub native, automatic PR creation                                                                | Free                 |
+| Bundle Analysis     | **Custom script**                       | Lightweight bash script, fail CI on size regression                                                           | Free                 |
+| Linting             | **ESLint** (existing)                   | Already configured, industry standard                                                                         | Free                 |
+| Type Checking       | **TypeScript** (existing)               | Already configured                                                                                            | Free                 |
+| Testing             | **Vitest** (existing)                   | Already configured with coverage                                                                              | Free                 |
+| Logging             | **Structured console + GitHub Actions** | Built-in, lightweight                                                                                         | Free                 |
 
 ---
 
@@ -69,20 +69,19 @@ This document evaluates tooling options for:
 ### ❌ Not Implemented (Gap Analysis)
 
 1. **Security Scanning**
-   - No code scanning (CodeQL, Snyk, etc.)
+   - CodeQL workflow created but disabled (requires GitHub Advanced Security for private repos)
    - No secret scanning beyond GitHub's default
-   - Gap: Need comprehensive security analysis
+   - Gap: Advanced security scanning requires paid GitHub plan or making repo public
+   - Note: CodeQL setup guide provided for future enablement
 
 2. **Coverage Tracking**
    - Coverage reports generated locally
-   - Not tracked over time
-   - Not visible in PRs
-   - Gap: Need coverage trends and PR comments
+   - Codecov integration added (requires CODECOV_TOKEN secret)
+   - ✅ **RESOLVED**: Coverage tracking ready when token is configured
 
 3. **Dependency Vulnerability Scanning**
-   - npm audit available but not in CI
-   - No automated dependency updates
-   - Gap: Need automated scanning and updates
+   - ✅ **RESOLVED**: npm audit now runs in CI
+   - ✅ **RESOLVED**: Dependabot configured for automated updates
 
 4. **Bundle Size Monitoring**
    - No tracking of bundle size changes

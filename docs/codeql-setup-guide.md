@@ -12,7 +12,7 @@
 If you see this error in your GitHub Actions:
 
 ```
-Code scanning is not enabled for this repository. 
+Code scanning is not enabled for this repository.
 Please enable code scanning in the repository settings.
 ```
 
@@ -26,6 +26,7 @@ This means CodeQL cannot upload results because **code scanning is not enabled**
 - **Private repositories**: Requires **GitHub Advanced Security** (may require paid plan)
 
 GitHub Advanced Security includes:
+
 - Code scanning (CodeQL)
 - Secret scanning
 - Dependency review
@@ -92,10 +93,12 @@ If you don't have GitHub Advanced Security access:
 5. Confirm the change
 
 **Benefits:**
+
 - CodeQL works automatically (free)
 - All GitHub security features enabled
 
 **Considerations:**
+
 - Code becomes publicly visible
 - Anyone can see your repository
 
@@ -149,11 +152,13 @@ codeql sarif analyze results.sarif --verbose
 #### Interpret Results
 
 Results are saved in `results.sarif` (SARIF format):
+
 - Open in VS Code with SARIF viewer extension
 - Or view in GitHub Security tab (if you upload manually)
 - Or parse JSON to see alerts
 
 **Limitations:**
+
 - Manual process (not automated)
 - No GitHub UI integration
 - You manage updates yourself
@@ -175,6 +180,7 @@ rm .github/workflows/codeql.yml
 ```
 
 **Why this is not recommended:**
+
 - Loses security scanning benefits
 - Less protection against vulnerabilities
 - Doesn't align with the original goal of comprehensive code analysis
@@ -207,7 +213,8 @@ rm .github/workflows/codeql.yml
 
 **Cause**: GitHub Advanced Security not available on your plan
 
-**Solution**: 
+**Solution**:
+
 - Make repository public (Option 2)
 - Or use local CodeQL (Option 3)
 - Or upgrade GitHub plan
@@ -217,6 +224,7 @@ rm .github/workflows/codeql.yml
 **Cause**: Insufficient permissions
 
 **Solution**:
+
 - You need admin access to the repository
 - Contact repository owner to enable it
 
@@ -225,6 +233,7 @@ rm .github/workflows/codeql.yml
 **Cause**: May need to re-trigger workflow
 
 **Solution**:
+
 1. Go to Actions tab
 2. Find the failed workflow run
 3. Click "Re-run jobs"
@@ -240,18 +249,18 @@ Once code scanning is enabled:
 ✅ Security alerts appear in Security tab  
 ✅ PR checks show CodeQL status  
 ✅ Automated scanning on schedule (weekly)  
-✅ Vulnerability detection before merge  
+✅ Vulnerability detection before merge
 
 ---
 
 ## Cost Comparison
 
-| Option | Monthly Cost | Automation | UI Integration |
-|--------|--------------|------------|----------------|
-| Public repo | **$0** | ✅ Full | ✅ Full |
-| GitHub Pro + Advanced Security | ~$4/user | ✅ Full | ✅ Full |
-| Local CodeQL | **$0** | ❌ Manual | ❌ Limited |
-| Disable CodeQL | **$0** | ❌ None | ❌ None |
+| Option                         | Monthly Cost | Automation | UI Integration |
+| ------------------------------ | ------------ | ---------- | -------------- |
+| Public repo                    | **$0**       | ✅ Full    | ✅ Full        |
+| GitHub Pro + Advanced Security | ~$4/user     | ✅ Full    | ✅ Full        |
+| Local CodeQL                   | **$0**       | ❌ Manual  | ❌ Limited     |
+| Disable CodeQL                 | **$0**       | ❌ None    | ❌ None        |
 
 ---
 

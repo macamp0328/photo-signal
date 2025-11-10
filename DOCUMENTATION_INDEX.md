@@ -99,7 +99,6 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Workflows
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
-- **[.github/workflows/codeql.yml](./.github/workflows/codeql.yml)** - CodeQL security analysis workflow (runs on PR, push, and weekly schedule)
 
 ### Actions
 
@@ -249,7 +248,7 @@ This index covers:
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
-- ✅ GitHub Actions & workflows (4 files - including CodeQL workflow and Dependabot config)
+- ✅ GitHub Actions & workflows (3 files - CI workflow and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)
@@ -259,6 +258,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 81 documented files
+**Total**: 80 documented files
 
 Last updated: 2025-11-10

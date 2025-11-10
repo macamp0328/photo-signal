@@ -68,7 +68,7 @@ jobs:
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.result }};
-            const isAiAgent = ${{ steps.check_ai.outputs.result }};
+            const isAiAgent = ${{ steps.check_ai.outputs.result || false }};
             const runId = context.payload.workflow_run.id;
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
 

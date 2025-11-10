@@ -365,7 +365,7 @@ After setup, test the deployment workflow:
    git commit -m "test: verify Vercel deployment"
    git push origin main
    ```
-3. Monitor deployment:
+3. Monitor deploymentt:
    - Watch GitHub commit status check
    - Check Vercel dashboard for new deployment
    - Visit production URL to verify change appears

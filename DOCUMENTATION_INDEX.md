@@ -39,7 +39,10 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[camera-access/README.md](./src/modules/camera-access/README.md)** - Camera permission and MediaStream management
 - **[camera-view/README.md](./src/modules/camera-view/README.md)** - Video display UI component with 3:2 overlay
 - **[motion-detection/README.md](./src/modules/motion-detection/README.md)** - Camera movement detection algorithm
-- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching service (placeholder)
+- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing
+  - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation
+  - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
+  - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 
@@ -69,6 +72,9 @@ Each module has its own README defining its API contract, usage, and examples.
 #### Module Tests
 
 - **[src/modules/camera-view/CameraView.test.tsx](./src/modules/camera-view/CameraView.test.tsx)** - Unit tests for camera-view component (100% coverage)
+- **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
 
 ### Code Quality
 
@@ -233,6 +239,7 @@ This index covers:
 - ✅ Root documentation (9 files - added ASSET_LICENSES.md)
 - ✅ Research & technical specifications (1 file)
 - ✅ Module READMEs (7 files)
+- ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
 - ✅ GitHub Actions - custom actions (2 files)
@@ -242,8 +249,8 @@ This index covers:
 - ✅ Helper scripts (7 files including README)
 - ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
-- ✅ Module tests (1 file)
+- ✅ Module tests (4 files)
 
-**Total**: 73 documented files
+**Total**: 74 documented files
 
 Last updated: 2025-11-10

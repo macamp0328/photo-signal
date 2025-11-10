@@ -19,6 +19,8 @@ export interface Concert {
   date: string;
   /** Path to audio file (MP3) */
   audioFile: string;
+  /** Perceptual hash of reference photo (optional, for photo recognition) */
+  photoHash?: string;
 }
 
 /**

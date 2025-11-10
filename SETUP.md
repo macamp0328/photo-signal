@@ -269,7 +269,7 @@ Open this project in VS Code with the Dev Containers extension to get:
 - **Output Directory:** `dist`
 - **Dev Command:** `npm run dev`
 - **Framework:** Vite
-- **Deployment Strategy:** Main branch only (via `ignoreCommand`)
+- **Deployment Strategy:** Main branch only (via `git.deploymentEnabled`)
 - **Regions:** `iad1` (AWS US East - North Virginia)
 
 ### Why Main Branch Only?

@@ -236,6 +236,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 75 documented files
+**Total**: 74 documented files
 
 Last updated: 2025-11-10

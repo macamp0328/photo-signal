@@ -170,7 +170,7 @@ jobs:
                 '- **Build failures**: Check for syntax errors or missing dependencies',
                 '- **Test failures**: Update tests or fix the code to pass tests',
                 '',
-                'See [CONTRIBUTING.md](../CONTRIBUTING.md) for complete guidelines.',
+                'See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.',
                 '',
                 '---',
                 '',

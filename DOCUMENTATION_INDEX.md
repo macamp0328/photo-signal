@@ -248,7 +248,7 @@ This index covers:
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
-- ✅ GitHub Actions & workflows (3 files - CI workflow and Dependabot config)
+- ✅ GitHub Actions & workflows (2 files - CI workflow and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)

@@ -127,7 +127,7 @@ jobs:
                 '',
                 '### ⏱️ Timeline',
                 '',
-                'Please fix these issues **within 24 hours** or the PR may be closed.',
+                'Please fix these issues **within 7 days** or the PR may be closed.',
                 '',
                 '### 📚 Resources',
                 '',

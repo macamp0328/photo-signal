@@ -230,8 +230,10 @@ export function usePhotoRecognition(
         videoRef.current.srcObject = null;
       }
     };
-    // Note: recognizedConcert is intentionally omitted from deps to prevent effect re-runs
-    // when a concert is recognized. The checkFrame function already handles this state.
+    // recognizedConcert is intentionally omitted from the dependency array because it is checked
+    // inside the checkFrame closure. Including it would cause this effect to re-run and recreate
+    // the interval when a concert is recognized, which is unnecessary since checkFrame already
+    // stops processing when recognition completes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval]);
 

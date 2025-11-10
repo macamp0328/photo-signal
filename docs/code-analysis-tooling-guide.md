@@ -88,7 +88,7 @@ codeql database create codeql-db --language=javascript
 codeql database analyze codeql-db \
   --format=sarif-latest \
   --output=results.sarif \
-  -- javascript-security-extended.qls
+  javascript-security-extended.qls
 
 # View results
 codeql sarif analyze results.sarif

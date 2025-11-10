@@ -73,7 +73,7 @@ This module uses a lightweight, client-side perceptual hashing algorithm to reco
 
 **Why dHash?**
 
-Based on research in `docs/photo-recognition-research.md`:
+Based on research and testing:
 
 - ✅ Fast: ~6-8ms per frame on mobile
 - ✅ Accurate: 85-90% under varying conditions

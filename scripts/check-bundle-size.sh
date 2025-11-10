@@ -18,8 +18,8 @@ if [ ! -d "dist" ]; then
 fi
 
 # Find JS and CSS files
-JS_FILE=$(find $DIST_DIR -name "index-*.js" | head -1)
-CSS_FILE=$(find $DIST_DIR -name "index-*.css" | head -1)
+JS_FILE=$(find "$DIST_DIR" -name "index-*.js" | head -1)
+CSS_FILE=$(find "$DIST_DIR" -name "index-*.css" | head -1)
 
 if [ -z "$JS_FILE" ]; then
   echo "❌ Error: No JavaScript bundle found in $DIST_DIR"

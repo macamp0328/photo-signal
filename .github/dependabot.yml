@@ -1,0 +1,63 @@
+# Dependabot Configuration
+#
+# Automatically checks for dependency updates and creates PRs
+# See docs/code-analysis-tooling-research.md for rationale
+#
+# Documentation: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # Monitor npm dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+    # Limit open PRs to avoid noise
+    open-pull-requests-limit: 5
+    # Group minor and patch updates together
+    groups:
+      dev-dependencies:
+        patterns:
+          - '@types/*'
+          - '@vitejs/*'
+          - '@vitest/*'
+          - 'eslint*'
+          - 'prettier'
+          - 'typescript*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      production-dependencies:
+        patterns:
+          - 'react*'
+          - 'howler'
+        update-types:
+          - 'minor'
+          - 'patch'
+    # Add labels for easier filtering
+    labels:
+      - 'dependencies'
+      - 'automated'
+    # Set reviewers (optional - update with your GitHub username)
+    # reviewers:
+    #   - "macamp0328"
+    commit-message:
+      prefix: 'chore(deps)'
+      include: 'scope'
+
+  # Monitor GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+    open-pull-requests-limit: 3
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+      - 'automated'
+    commit-message:
+      prefix: 'chore(ci)'

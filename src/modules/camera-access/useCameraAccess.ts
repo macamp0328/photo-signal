@@ -43,18 +43,49 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
 
   // Start camera on mount if autoStart is true
   useEffect(() => {
-    if (autoStart) {
-      startCamera();
-    }
+    let cancelled = false;
+
+    const initCamera = async () => {
+      try {
+        setError(null);
+        setHasPermission(null);
+
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment', // Rear camera
+            aspectRatio: 3 / 2,
+          },
+          audio: false,
+        });
+
+        if (!cancelled) {
+          streamRef.current = mediaStream;
+          setStream(mediaStream);
+          setHasPermission(true);
+        } else {
+          // Clean up if effect was cancelled
+          mediaStream.getTracks().forEach((track) => track.stop());
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Camera access error:', err);
+          setError('Unable to access camera. Please grant camera permissions.');
+          setHasPermission(false);
+        }
+      }
+    };
+
+    void initCamera();
 
     // Cleanup on unmount
     return () => {
+      cancelled = true;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
     };
-  }, [autoStart, startCamera]);
+  }, []);
 
   const retry = useCallback(() => {
     startCamera();

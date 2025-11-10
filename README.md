@@ -193,10 +193,12 @@ For complete documentation including architecture, setup, testing, and all modul
 
 Key docs:
 
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines and AI agent PR policy
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Module structure and design principles
 - **[SETUP.md](./SETUP.md)** - Development environment and CI/CD setup
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Guide for parallel AI development
 - **[TESTING.md](./TESTING.md)** - Testing strategy
+- **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Code analysis tools (CodeQL, Codecov, npm audit, etc.)
 
 ---
 

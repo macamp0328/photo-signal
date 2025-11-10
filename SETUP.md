@@ -199,12 +199,26 @@ The CI workflow runs automatically on:
 2. **Setup Copilot documentation cache** - Pre-fetch GitHub documentation from `gh.io` domain before firewall restrictions apply
 3. **Setup Node.js** - Install Node 20 with npm caching
 4. **Install dependencies** - Run `npm ci` for clean install
-5. **Run ESLint** - Check code quality and patterns
-6. **Check formatting** - Ensure code follows Prettier rules
-7. **Type-check** - Validate TypeScript types
-8. **Run tests** - Execute Vitest test suite
-9. **Build** - Create production bundle
-10. **Upload artifacts** - Save build output for review (7 days)
+5. **Audit dependencies** - Scan for known vulnerabilities with `npm audit`
+6. **Run ESLint** - Check code quality and patterns
+7. **Check formatting** - Ensure code follows Prettier rules
+8. **Type-check** - Validate TypeScript types
+9. **Run tests with coverage** - Execute Vitest test suite and generate coverage reports
+10. **Upload coverage to Codecov** - Track coverage trends over time
+11. **Build** - Create production bundle
+12. **Check bundle size** - Ensure bundle stays within size limits
+13. **Upload artifacts** - Save build and coverage artifacts (7 days)
+
+### Security & Code Analysis:
+
+In addition to the main CI workflow, the repository uses:
+
+- **CodeQL Security Analysis** - Runs on every PR, push, and weekly to detect security vulnerabilities
+- **Dependabot** - Automatically creates PRs for dependency updates (weekly on Mondays)
+- **Codecov** - Tracks test coverage and shows coverage changes in PRs
+- **Bundle Size Monitoring** - Fails CI if JavaScript or CSS bundles exceed limits
+
+See **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** for complete documentation on all analysis tools.
 
 ### Copilot Documentation Caching:
 
@@ -246,7 +260,8 @@ Open this project in VS Code with the Dev Containers extension to get:
 
 ### Auto-Deploy:
 
-- Pushes to `main` branch automatically deploy to production
+- **Production deployments**: Only pushes to `main` branch automatically deploy to production
+- **Preview deployments**: Disabled for all other branches and pull requests (optimized for free tier usage)
 
 ### Vercel Configuration (vercel.json):
 
@@ -254,6 +269,16 @@ Open this project in VS Code with the Dev Containers extension to get:
 - **Output Directory:** `dist`
 - **Dev Command:** `npm run dev`
 - **Framework:** Vite
+- **Deployment Strategy:** Main branch only (via `git.deploymentEnabled`)
+- **Regions:** `iad1` (AWS US East - North Virginia)
+
+### Why Main Branch Only?
+
+This project is configured to **only deploy from the `main` branch** to optimize for Vercel's free tier limits:
+
+- ✅ **Reduces build minutes**: No builds wasted on PRs or feature branches
+- ✅ **Stays within free tier**: Avoids exceeding monthly build limits
+- ✅ **Simplifies workflow**: Production deployment only after PR merge
 
 ### First-Time Vercel Setup:
 
@@ -261,6 +286,21 @@ Open this project in VS Code with the Dev Containers extension to get:
 2. Import the GitHub repository
 3. Vercel will auto-detect the settings from `vercel.json`
 4. Deploy!
+
+### Testing Changes Before Merge:
+
+Since preview deployments are disabled, test changes locally before merging to `main`:
+
+```bash
+# Run the full pre-commit workflow
+npm run lint:fix
+npm run format
+npm run type-check
+npm run build
+npm run preview  # Test production build locally
+```
+
+The GitHub Actions CI workflow still runs on all PRs to catch issues before merge.
 
 ## Project Structure
 

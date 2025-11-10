@@ -23,9 +23,17 @@ Manage camera permissions and provide MediaStream access.
 
 ## API Contract
 
-### Hook: `useCameraAccess()`
+### Hook: `useCameraAccess(options?)`
 
-**Input**: None (auto-requests on mount)
+**Input**:
+
+```typescript
+{
+  autoStart?: boolean;  // Whether to automatically start camera on mount (default: true)
+}
+```
+
+When `autoStart` is `false`, the camera will not request permissions or initialize on mount. This allows for delayed camera activation (e.g., after a landing page interaction).
 
 **Output**:
 
@@ -63,6 +71,19 @@ function CameraView() {
   }
 
   return <video srcObject={stream} autoPlay />;
+}
+
+// Example with delayed activation
+function DelayedCameraView() {
+  const { stream, error, hasPermission, retry } = useCameraAccess({ autoStart: false });
+
+  // Camera won't start until you call retry()
+  return (
+    <div>
+      <button onClick={retry}>Start Camera</button>
+      {stream && <video srcObject={stream} autoPlay />}
+    </div>
+  );
 }
 ```
 

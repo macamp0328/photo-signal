@@ -31,6 +31,7 @@ export function GalleryLayout({
           </p>
           <button
             onClick={onActivate}
+            aria-label="Activate camera and begin experience"
             className="px-8 py-4 bg-main-text text-white text-lg font-medium rounded-lg
                      hover:bg-sub-text transition-colors duration-300
                      shadow-lg hover:shadow-xl transform hover:-translate-y-0.5

@@ -84,8 +84,8 @@ This document evaluates tooling options for:
    - ✅ **RESOLVED**: Dependabot configured for automated updates
 
 4. **Bundle Size Monitoring**
-   - No tracking of bundle size changes
-   - Gap: Need regression detection
+   - ✅ Bundle size monitoring implemented via custom script (`scripts/check-bundle-size.sh`)
+   - ✅ Regression detection and CI checks active
 
 5. **Performance Tracing**
    - No runtime performance monitoring

@@ -33,6 +33,7 @@
 - **[docs/code-analysis-examples.md](./docs/code-analysis-examples.md)** - Real-world examples showing what each automated tool looks like when it runs
 - **[docs/codecov-setup-guide.md](./docs/codecov-setup-guide.md)** - Step-by-step guide for setting up Codecov coverage tracking with screenshots and troubleshooting
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
+- **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
 
 ---
 
@@ -248,7 +249,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
-- ✅ Research & technical specifications (6 files - including CodeQL and Codecov setup guides)
+- ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
@@ -263,6 +264,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 83 documented files
+**Total**: 84 documented files
 
 Last updated: 2025-11-10

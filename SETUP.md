@@ -258,6 +258,8 @@ Open this project in VS Code with the Dev Containers extension to get:
 
 ## Vercel Deployment
 
+> **📚 For complete setup instructions, troubleshooting, and deployment verification, see [docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)**
+
 ### Auto-Deploy:
 
 - **Production deployments**: Only pushes to `main` branch automatically deploy to production
@@ -286,6 +288,18 @@ This project is configured to **only deploy from the `main` branch** to optimize
 2. Import the GitHub repository
 3. Vercel will auto-detect the settings from `vercel.json`
 4. Deploy!
+
+**Need help?** See the [Vercel Setup Guide](./docs/vercel-setup-guide.md) for detailed instructions and troubleshooting.
+
+### Verifying Deployments:
+
+After pushing to `main`, verify deployment succeeded:
+
+1. **Vercel Dashboard**: Check deployment status at [vercel.com/dashboard](https://vercel.com/dashboard)
+2. **GitHub Commits**: Look for Vercel status check (✅ or ❌) next to commit
+3. **Production URL**: Visit your production URL to confirm changes are live
+
+**Troubleshooting**: If deployments aren't triggering, see [Troubleshooting Section](./docs/vercel-setup-guide.md#troubleshooting) in the setup guide.
 
 ### Testing Changes Before Merge:
 

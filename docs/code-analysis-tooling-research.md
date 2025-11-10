@@ -69,7 +69,7 @@ This document evaluates tooling options for:
 ### ❌ Not Implemented (Gap Analysis)
 
 1. **Security Scanning**
-   - CodeQL workflow created but disabled (requires GitHub Advanced Security for private repos)
+   - CodeQL workflow planned/documented but not yet created (requires GitHub Advanced Security for private repos)
    - No secret scanning beyond GitHub's default
    - Gap: Advanced security scanning requires paid GitHub plan or making repo public
    - Note: CodeQL setup guide provided for future enablement

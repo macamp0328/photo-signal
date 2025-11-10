@@ -204,6 +204,10 @@ Key docs:
 
 ```
 photo-signal/
+├── assets/              # Test assets (CC0 licensed)
+│   ├── test-images/     # Sample JPEG images for testing
+│   ├── test-audio/      # Sample MP3 files for testing
+│   └── test-data/       # Sample JSON/CSV data files
 ├── public/
 │   ├── audio/           # MP3 files
 │   ├── images/          # Photo storage (future)
@@ -222,8 +226,36 @@ photo-signal/
 ├── vite.config.ts       # Vite configuration
 ├── tailwind.config.js   # Tailwind configuration
 ├── tsconfig.json        # TypeScript configuration
-└── package.json         # Dependencies and scripts
+├── package.json         # Dependencies and scripts
+└── ASSET_LICENSES.md    # Licensing info for test assets
 ```
+
+---
+
+## 🧪 Test Data
+
+The repository includes sample test assets to facilitate development and testing without requiring production data:
+
+### Test Assets Location
+
+- **Images**: `assets/test-images/` - 4 sample JPEG images (~30KB each)
+- **Audio**: `assets/test-audio/` - 4 sample MP3 files (~40KB each, 5 seconds)
+- **Data**: `assets/test-data/` - Sample JSON and CSV data files
+
+### License
+
+All test assets are CC0 (Public Domain) licensed. See [ASSET_LICENSES.md](./ASSET_LICENSES.md) for complete details.
+
+### Usage
+
+Test assets are suitable for:
+
+- Module and service-level testing
+- Development without production data
+- Verifying photo recognition, audio playback, and data loading features
+- CI/CD pipeline testing
+
+Each asset directory contains a README with detailed specifications and usage examples.
 
 ---
 

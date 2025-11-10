@@ -286,7 +286,7 @@ feat(audio): add crossfade between tracks
 fix(camera): handle permission denial gracefully
 docs(contributing): add AI agent PR policy
 test(motion): add motion detection tests
-chore(deps): update vite to 5.0.0
+chore(deps): update vite to 7.2.0
 ```
 
 ---

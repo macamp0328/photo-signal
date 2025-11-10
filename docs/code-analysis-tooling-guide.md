@@ -102,7 +102,7 @@ codeql sarif analyze results.sarif
 
 ### Workflow File
 
-`.github/workflows/codeql.yml`
+> **Note:** You must create the workflow file at `.github/workflows/codeql.yml` (see below for an example configuration) if it does not already exist in your repository.
 
 ### Interpreting Results
 

@@ -27,6 +27,8 @@
 ### Research & Technical Specifications
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
+- **[docs/code-analysis-tooling-research.md](./docs/code-analysis-tooling-research.md)** - Research and evaluation of tracing, logging, and code analysis tools for AI agent development
+- **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Comprehensive guide to using and interpreting automated code analysis tools (CodeQL, Codecov, npm audit, etc.)
 
 ---
 
@@ -93,7 +95,8 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Workflows
 
-- **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, type-check, build)
+- **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
+- **[.github/workflows/codeql.yml](./.github/workflows/codeql.yml)** - CodeQL security analysis workflow (runs on PR, push, and weekly schedule)
 
 ### Actions
 
@@ -103,6 +106,7 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Templates & Instructions
 
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Comprehensive GitHub Copilot agent instructions including code standards, error handling, accessibility, documentation standards, troubleshooting, git workflow, and dependency management
+- **[.github/dependabot.yml](./.github/dependabot.yml)** - Dependabot configuration for automated dependency updates (npm and GitHub Actions)
 - **[.github/ISSUE_TEMPLATE/\_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 - **[.github/ISSUE_TEMPLATE/firewall-gh-io-access.md](./.github/ISSUE_TEMPLATE/firewall-gh-io-access.md)** - Template for firewall configuration issue to allow Copilot agent access to gh.io domain
@@ -163,6 +167,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/lint.sh](./scripts/lint.sh)** - Run linting (local or Docker)
 - **[scripts/format.sh](./scripts/format.sh)** - Format code (local or Docker)
 - **[scripts/create-sample-audio.sh](./scripts/create-sample-audio.sh)** - Generate sample audio file
+- **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
 
 ---
 
@@ -237,20 +242,20 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (9 files - added ASSET_LICENSES.md)
-- ✅ Research & technical specifications (1 file)
+- ✅ Research & technical specifications (3 files)
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
-- ✅ GitHub Actions & workflows (2 files)
+- ✅ GitHub Actions & workflows (4 files - including CodeQL workflow and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
-- ✅ Helper scripts (7 files including README)
+- ✅ Helper scripts (8 files including README and bundle size checker)
 - ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 74 documented files
+**Total**: 78 documented files
 
 Last updated: 2025-11-10

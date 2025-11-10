@@ -199,12 +199,26 @@ The CI workflow runs automatically on:
 2. **Setup Copilot documentation cache** - Pre-fetch GitHub documentation from `gh.io` domain before firewall restrictions apply
 3. **Setup Node.js** - Install Node 20 with npm caching
 4. **Install dependencies** - Run `npm ci` for clean install
-5. **Run ESLint** - Check code quality and patterns
-6. **Check formatting** - Ensure code follows Prettier rules
-7. **Type-check** - Validate TypeScript types
-8. **Run tests** - Execute Vitest test suite
-9. **Build** - Create production bundle
-10. **Upload artifacts** - Save build output for review (7 days)
+5. **Audit dependencies** - Scan for known vulnerabilities with `npm audit`
+6. **Run ESLint** - Check code quality and patterns
+7. **Check formatting** - Ensure code follows Prettier rules
+8. **Type-check** - Validate TypeScript types
+9. **Run tests with coverage** - Execute Vitest test suite and generate coverage reports
+10. **Upload coverage to Codecov** - Track coverage trends over time
+11. **Build** - Create production bundle
+12. **Check bundle size** - Ensure bundle stays within size limits
+13. **Upload artifacts** - Save build and coverage artifacts (7 days)
+
+### Security & Code Analysis:
+
+In addition to the main CI workflow, the repository uses:
+
+- **CodeQL Security Analysis** - Runs on every PR, push, and weekly to detect security vulnerabilities
+- **Dependabot** - Automatically creates PRs for dependency updates (weekly on Mondays)
+- **Codecov** - Tracks test coverage and shows coverage changes in PRs
+- **Bundle Size Monitoring** - Fails CI if JavaScript or CSS bundles exceed limits
+
+See **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** for complete documentation on all analysis tools.
 
 ### Copilot Documentation Caching:
 

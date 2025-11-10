@@ -5,28 +5,32 @@
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/audio/concert-1.mp3"
+      "audioFile": "/assets/test-audio/concert-1.mp3",
+      "imageFile": "/assets/test-images/concert-1.jpg"
     },
     {
       "id": 2,
       "band": "Electric Dreams",
       "venue": "Red Rocks Amphitheatre",
       "date": "2023-09-22",
-      "audioFile": "/audio/concert-2.mp3"
+      "audioFile": "/assets/test-audio/concert-2.mp3",
+      "imageFile": "/assets/test-images/concert-2.jpg"
     },
     {
       "id": 3,
       "band": "Velvet Revolution",
       "venue": "Madison Square Garden",
       "date": "2023-10-10",
-      "audioFile": "/audio/concert-3.mp3"
+      "audioFile": "/assets/test-audio/concert-3.mp3",
+      "imageFile": "/assets/test-images/concert-3.jpg"
     },
     {
       "id": 4,
       "band": "Sunset Boulevard",
       "venue": "Hollywood Bowl",
       "date": "2023-11-05",
-      "audioFile": "/audio/concert-4.mp3"
+      "audioFile": "/assets/test-audio/concert-4.mp3",
+      "imageFile": "/assets/test-images/concert-4.jpg"
     }
   ]
 }

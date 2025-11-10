@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import { usePhotoRecognition } from './modules/photo-recognition';
@@ -16,11 +16,23 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
+import { SecretMenu, useTripleTap } from './modules/secret-menu';
 import './index.css';
 
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
+
+  // State for secret menu
+  const [isSecretMenuOpen, setIsSecretMenuOpen] = useState(false);
+  const appContainerRef = useRef<HTMLDivElement>(null);
+
+  // Module: Secret Menu (triple tap detection)
+  const { isTripleTap, reset: resetTripleTap } = useTripleTap(appContainerRef, {
+    maxDelay: 500,
+    targetArea: 'center',
+    centerThreshold: 0.3,
+  });
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({
@@ -45,6 +57,12 @@ function App() {
   });
 
   // Orchestration Logic
+  // Open secret menu when triple tap is detected
+  if (isTripleTap && !isSecretMenuOpen) {
+    setIsSecretMenuOpen(true);
+    resetTripleTap();
+  }
+
   // Play audio when photo is recognized
   useEffect(() => {
     if (recognizedConcert) {
@@ -82,12 +100,17 @@ function App() {
   );
 
   return (
-    <GalleryLayout
-      isActive={isActive}
-      cameraView={cameraView}
-      infoDisplay={infoDisplay}
-      onActivate={handleActivate}
-    />
+    <div ref={appContainerRef} className="h-screen">
+      <GalleryLayout
+        isActive={isActive}
+        cameraView={cameraView}
+        infoDisplay={infoDisplay}
+        onActivate={handleActivate}
+      />
+
+      {/* Secret Menu */}
+      <SecretMenu isOpen={isSecretMenuOpen} onClose={() => setIsSecretMenuOpen(false)} />
+    </div>
   );
 }
 

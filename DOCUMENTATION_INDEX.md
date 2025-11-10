@@ -53,6 +53,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
+- **[secret-menu/README.md](./src/modules/secret-menu/README.md)** - Hidden developer settings menu with triple-tap activation (feature flags and custom settings scaffolding)
 
 ### Services (`src/services/`)
 
@@ -80,6 +81,8 @@ Each module has its own README defining its API contract, usage, and examples.
 #### Module Tests
 
 - **[src/modules/camera-view/CameraView.test.tsx](./src/modules/camera-view/CameraView.test.tsx)** - Unit tests for camera-view component (100% coverage)
+- **[src/modules/secret-menu/SecretMenu.test.tsx](./src/modules/secret-menu/SecretMenu.test.tsx)** - Unit tests for secret menu component (18 tests)
+- **[src/modules/secret-menu/useTripleTap.test.ts](./src/modules/secret-menu/useTripleTap.test.ts)** - Unit tests for triple tap detection hook (10 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
@@ -250,7 +253,7 @@ This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
 - ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
-- ✅ Module READMEs (7 files)
+- ✅ Module READMEs (8 files - added secret-menu module)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (3 files - CI workflow, PR checks monitor, and Dependabot config)
@@ -262,8 +265,8 @@ This index covers:
 - ✅ Helper scripts (8 files including README and bundle size checker)
 - ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
-- ✅ Module tests (4 files)
+- ✅ Module tests (6 files - added secret menu tests)
 
-**Total**: 84 documented files
+**Total**: 87 documented files
 
 Last updated: 2025-11-10

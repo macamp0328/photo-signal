@@ -95,6 +95,11 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, type-check, build)
 
+### Actions
+
+- **[.github/actions/setup-copilot/README.md](./.github/actions/setup-copilot/README.md)** - Composite action to pre-fetch GitHub Copilot documentation before firewall restrictions
+- **[.github/actions/setup-copilot/action.yml](./.github/actions/setup-copilot/action.yml)** - Setup Copilot documentation cache action definition
+
 ### Templates & Instructions
 
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Comprehensive GitHub Copilot agent instructions including code standards, error handling, accessibility, documentation standards, troubleshooting, git workflow, and dependency management
@@ -228,6 +233,7 @@ This index covers:
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
+- ✅ GitHub Actions - custom actions (2 files)
 - ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)

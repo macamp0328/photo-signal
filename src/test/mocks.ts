@@ -107,19 +107,54 @@ export function mockHTMLMediaElement() {
 }
 
 /**
+ * Mock ImageData constructor
+ *
+ * Used by: photo-recognition module
+ */
+export function mockImageData() {
+  // Create a polyfill for ImageData if it doesn't exist
+  if (typeof ImageData === 'undefined') {
+    (global as any).ImageData = class ImageData {
+      data: Uint8ClampedArray;
+      width: number;
+      height: number;
+      colorSpace: PredefinedColorSpace;
+
+      constructor(
+        dataOrWidth: Uint8ClampedArray | number,
+        widthOrHeight: number,
+        height?: number,
+        settings?: ImageDataSettings
+      ) {
+        if (dataOrWidth instanceof Uint8ClampedArray) {
+          // Constructor: new ImageData(data, width, height)
+          this.data = dataOrWidth;
+          this.width = widthOrHeight;
+          this.height = height || dataOrWidth.length / (widthOrHeight * 4);
+        } else {
+          // Constructor: new ImageData(width, height)
+          this.width = dataOrWidth;
+          this.height = widthOrHeight;
+          this.data = new Uint8ClampedArray(this.width * this.height * 4);
+        }
+        this.colorSpace = settings?.colorSpace || 'srgb';
+      }
+    };
+  }
+}
+
+/**
  * Mock CanvasRenderingContext2D
  *
- * Used by: motion-detection module
+ * Used by: motion-detection, photo-recognition modules
  */
 export function mockCanvasRenderingContext2D() {
   const mockContext = {
+    canvas: document.createElement('canvas'),
     drawImage: vi.fn(),
-    getImageData: vi.fn(() => ({
-      data: new Uint8ClampedArray(4),
-      width: 1,
-      height: 1,
-      colorSpace: 'srgb',
-    })),
+    getImageData: vi.fn((x: number, y: number, w: number, h: number) => {
+      return new ImageData(w, h);
+    }),
     putImageData: vi.fn(),
     clearRect: vi.fn(),
     fillRect: vi.fn(),
@@ -218,6 +253,7 @@ export function mockRequestAnimationFrame() {
  * Call this function in your test setup file to enable all mocks
  */
 export function setupGlobalMocks() {
+  mockImageData();
   mockMediaDevices();
   mockHTMLMediaElement();
   mockCanvasRenderingContext2D();

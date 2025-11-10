@@ -172,6 +172,40 @@ Creates a silent MP3 file for testing.
 - 5 seconds of silence
 - MP3 format for compatibility
 
+---
+
+### `check-bundle-size.sh` - Check Bundle Size
+
+Monitors production bundle sizes and enforces size limits (used in CI).
+
+**Requirements:** Build must be completed first (`npm run build`)
+
+**Usage:**
+
+```bash
+./scripts/check-bundle-size.sh
+```
+
+**What it does:**
+
+- Analyzes files in `dist/assets/`
+- Checks JavaScript bundle (limit: 80 KB gzipped)
+- Checks CSS bundle (limit: 3 KB gzipped)
+- Exits with error code if limits exceeded
+- Provides optimization suggestions on failure
+
+**Example Output:**
+
+```
+📦 Bundle Size Analysis
+JavaScript Bundle: 72 KB (gzipped) - ✅ PASS
+CSS Bundle: 1 KB (gzipped) - ✅ PASS
+Total Bundle: 73 KB
+✅ All bundle size checks passed!
+```
+
+**Used by:** GitHub Actions CI workflow
+
 ## Script Features
 
 ### ✅ Cross-Platform

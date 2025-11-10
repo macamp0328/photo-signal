@@ -132,7 +132,7 @@ jobs:
                 '### 📚 Resources',
                 '',
                 '- [CONTRIBUTING.md](../CONTRIBUTING.md) - Complete contribution guidelines',
-                '- [SETUP.md](../SETUP.md) - Development environment setup',
+                '- [SETUP.md](SETUP.md) - Development environment setup',
                 `- [CI Logs](${runUrl}) - Detailed failure information`,
                 '',
                 '---',

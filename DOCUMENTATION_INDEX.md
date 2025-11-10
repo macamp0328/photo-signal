@@ -168,8 +168,17 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ## 📦 Data & Assets
 
+### Production Data
+
 - **[public/data.json](./public/data.json)** - Concert metadata (band, venue, date, audio file)
 - **[public/audio/README.md](./public/audio/README.md)** - Audio files directory and instructions
+
+### Test Assets (CC0 Licensed)
+
+- **[ASSET_LICENSES.md](./ASSET_LICENSES.md)** - Licensing information and attribution for all test assets
+- **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG images for testing (4 files, ~30KB each)
+- **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Sample MP3 audio files for testing (4 files, ~40KB each, 5 seconds)
+- **[assets/test-data/README.md](./assets/test-data/README.md)** - Sample structured data files (JSON, CSV formats)
 
 ---
 
@@ -227,7 +236,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (8 files)
+- ✅ Root documentation (9 files - added ASSET_LICENSES.md)
 - ✅ Research & technical specifications (1 file)
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
@@ -238,7 +247,7 @@ This index covers:
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (7 files including README)
-- ✅ Data and asset documentation (2 files)
+- ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 

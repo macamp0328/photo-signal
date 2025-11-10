@@ -311,8 +311,7 @@ npm audit
 
 - **GitHub Actions**: Runs on push to main and PRs
 - **Checks**: ESLint, Prettier, Type-check, Build
-- **Vercel**: Auto-deploy from main branch
-- **Preview Deployments**: Created for all PRs
+- **Vercel**: Auto-deploy from main branch only (preview deployments disabled for free tier optimization)
 
 ## Security
 

@@ -260,8 +260,8 @@ Open this project in VS Code with the Dev Containers extension to get:
 
 ### Auto-Deploy:
 
-- Pushes to `main` branch automatically deploy to production
-- Pull requests get preview deployments
+- **Production deployments**: Only pushes to `main` branch automatically deploy to production
+- **Preview deployments**: Disabled for all other branches and pull requests (optimized for free tier usage)
 
 ### Vercel Configuration (vercel.json):
 
@@ -269,6 +269,16 @@ Open this project in VS Code with the Dev Containers extension to get:
 - **Output Directory:** `dist`
 - **Dev Command:** `npm run dev`
 - **Framework:** Vite
+- **Deployment Strategy:** Main branch only (via `git.deploymentEnabled`)
+- **Regions:** `iad1` (AWS US East - North Virginia)
+
+### Why Main Branch Only?
+
+This project is configured to **only deploy from the `main` branch** to optimize for Vercel's free tier limits:
+
+- ✅ **Reduces build minutes**: No builds wasted on PRs or feature branches
+- ✅ **Stays within free tier**: Avoids exceeding monthly build limits
+- ✅ **Simplifies workflow**: Production deployment only after PR merge
 
 ### First-Time Vercel Setup:
 
@@ -276,6 +286,21 @@ Open this project in VS Code with the Dev Containers extension to get:
 2. Import the GitHub repository
 3. Vercel will auto-detect the settings from `vercel.json`
 4. Deploy!
+
+### Testing Changes Before Merge:
+
+Since preview deployments are disabled, test changes locally before merging to `main`:
+
+```bash
+# Run the full pre-commit workflow
+npm run lint:fix
+npm run format
+npm run type-check
+npm run build
+npm run preview  # Test production build locally
+```
+
+The GitHub Actions CI workflow still runs on all PRs to catch issues before merge.
 
 ## Project Structure
 

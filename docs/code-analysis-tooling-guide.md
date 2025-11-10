@@ -155,14 +155,23 @@ coverage: {
 
 ### Setup Requirements
 
-**One-time setup**:
+**One-time setup** (optional, but recommended for full functionality):
+
+See **[docs/codecov-setup-guide.md](./codecov-setup-guide.md)** for detailed step-by-step instructions with screenshots.
+
+**Quick setup:**
 
 1. Sign up at [codecov.io](https://codecov.io)
 2. Connect GitHub repository
-3. Add `CODECOV_TOKEN` to repository secrets
-   - Go to: Settings → Secrets and variables → Actions
-   - Name: `CODECOV_TOKEN`
-   - Value: From Codecov dashboard
+3. Get the upload token from Codecov dashboard
+4. Add `CODECOV_TOKEN` to repository secrets:
+   - Go to: GitHub Repository → Settings → Secrets and variables → Actions
+   - Click: "New repository secret"
+   - Name: `CODECOV_TOKEN` (exactly, case-sensitive)
+   - Value: Paste the token from Codecov dashboard
+   - Click: "Add secret"
+
+**That's it!** The next CI run will upload coverage reports automatically.
 
 ---
 

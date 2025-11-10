@@ -247,7 +247,6 @@ Open this project in VS Code with the Dev Containers extension to get:
 ### Auto-Deploy:
 
 - Pushes to `main` branch automatically deploy to production
-- Pull requests get preview deployments
 
 ### Vercel Configuration (vercel.json):
 

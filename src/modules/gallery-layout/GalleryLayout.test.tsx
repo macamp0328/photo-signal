@@ -21,7 +21,9 @@ describe('GalleryLayout', () => {
     // Check for landing page elements
     expect(screen.getByText('Photo Signal')).toBeTruthy();
     expect(screen.getByText(/Point your camera at a photograph/i)).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Begin' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+    ).toBeTruthy();
 
     // Camera and info should not be visible
     expect(screen.queryByTestId('camera-view')).toBeNull();
@@ -39,7 +41,9 @@ describe('GalleryLayout', () => {
       />
     );
 
-    const beginButton = screen.getByRole('button', { name: 'Begin' });
+    const beginButton = screen.getByRole('button', {
+      name: 'Activate camera and begin experience',
+    });
     await user.click(beginButton);
 
     expect(mockOnActivate).toHaveBeenCalledTimes(1);

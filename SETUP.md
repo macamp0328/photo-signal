@@ -258,10 +258,14 @@ Open this project in VS Code with the Dev Containers extension to get:
 
 ## Vercel Deployment
 
-### Auto-Deploy:
+### Auto-Deploy Strategy:
 
-- Pushes to `main` branch automatically deploy to production
-- Pull requests get preview deployments
+**To optimize for Vercel's free tier**, this project is configured to:
+
+- ✅ **Build and deploy** when pushing to the `main` branch
+- ⏭️ **Skip builds** for pull requests and other branches
+
+This prevents unnecessary preview deployments and helps stay within free tier limits.
 
 ### Vercel Configuration (vercel.json):
 
@@ -269,6 +273,17 @@ Open this project in VS Code with the Dev Containers extension to get:
 - **Output Directory:** `dist`
 - **Dev Command:** `npm run dev`
 - **Framework:** Vite
+- **Region:** `iad1` (US East - Washington, D.C.)
+- **Ignore Command:** `bash scripts/vercel-ignore-build.sh` (controls which branches trigger builds)
+
+### How It Works:
+
+The `ignoreCommand` in `vercel.json` runs `scripts/vercel-ignore-build.sh` before each potential build. This script:
+
+- Returns exit code `0` (proceed with build) for the `main` branch
+- Returns exit code `1` (skip build) for all other branches (PRs, feature branches, etc.)
+
+This ensures only production deployments consume build minutes, not preview deployments.
 
 ### First-Time Vercel Setup:
 
@@ -276,6 +291,21 @@ Open this project in VS Code with the Dev Containers extension to get:
 2. Import the GitHub repository
 3. Vercel will auto-detect the settings from `vercel.json`
 4. Deploy!
+
+### Testing Changes Before Merging:
+
+Since PRs don't get preview deployments, test changes locally:
+
+```bash
+npm run build    # Build production bundle
+npm run preview  # Preview production build locally
+```
+
+Or use Docker for production testing:
+
+```bash
+docker-compose up prod
+```
 
 ## Project Structure
 

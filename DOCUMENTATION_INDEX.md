@@ -170,6 +170,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/format.sh](./scripts/format.sh)** - Format code (local or Docker)
 - **[scripts/create-sample-audio.sh](./scripts/create-sample-audio.sh)** - Generate sample audio file
 - **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
+- **[scripts/vercel-ignore-build.sh](./scripts/vercel-ignore-build.sh)** - Control Vercel deployments (only build main branch, used in vercel.json)
 
 ---
 

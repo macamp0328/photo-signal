@@ -206,6 +206,38 @@ Total Bundle: 73 KB
 
 **Used by:** GitHub Actions CI workflow
 
+---
+
+### `vercel-ignore-build.sh` - Vercel Deployment Control
+
+Controls which branches trigger Vercel builds and deployments.
+
+**Usage:**
+
+This script is automatically called by Vercel via the `ignoreCommand` in `vercel.json`. You don't need to run it manually.
+
+**What it does:**
+
+- Checks the `VERCEL_GIT_COMMIT_REF` environment variable
+- Returns exit code `0` (proceed with build) for the `main` branch
+- Returns exit code `1` (skip build) for all other branches
+
+**Purpose:**
+
+Optimizes for Vercel's free tier by preventing preview deployments for PRs and feature branches. Only the `main` branch triggers production deployments.
+
+**Example Output:**
+
+```bash
+# When pushing to main branch
+✅ Building main branch
+
+# When pushing to feature branch or PR
+⏭️  Skipping build for branch: feature/new-feature (only main branch triggers builds)
+```
+
+**Used by:** Vercel deployment system (configured in `vercel.json`)
+
 ## Script Features
 
 ### ✅ Cross-Platform

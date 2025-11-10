@@ -352,7 +352,7 @@ This document evaluates tooling options for:
 
 | Tool                | Category     | Free for Private? | Setup Complexity | AI Agent Value | Priority    |
 | ------------------- | ------------ | ----------------- | ---------------- | -------------- | ----------- |
-| **CodeQL**          | Security     | ✅ Yes            | Low              | High           | 🔴 Critical |
+| **CodeQL**          | Security     | ⚠️ Yes (with restrictions) | Low              | High           | 🔴 Critical |
 | **Codecov**         | Coverage     | ✅ Yes (limited)  | Low              | High           | 🟡 High     |
 | **npm audit**       | Dependencies | ✅ Yes            | Very Low         | Medium         | 🟡 High     |
 | **Dependabot**      | Dependencies | ✅ Yes            | Very Low         | High           | 🟡 High     |

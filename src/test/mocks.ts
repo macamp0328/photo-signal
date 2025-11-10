@@ -114,7 +114,7 @@ export function mockHTMLMediaElement() {
 export function mockImageData() {
   // Create a polyfill for ImageData if it doesn't exist
   if (typeof ImageData === 'undefined') {
-    (global as any).ImageData = class ImageData {
+    (global as Record<string, unknown>).ImageData = class ImageData {
       data: Uint8ClampedArray;
       width: number;
       height: number;
@@ -152,7 +152,7 @@ export function mockCanvasRenderingContext2D() {
   const mockContext = {
     canvas: document.createElement('canvas'),
     drawImage: vi.fn(),
-    getImageData: vi.fn((x: number, y: number, w: number, h: number) => {
+    getImageData: vi.fn((_x: number, _y: number, w: number, h: number) => {
       return new ImageData(w, h);
     }),
     putImageData: vi.fn(),

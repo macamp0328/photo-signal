@@ -18,4 +18,8 @@ export interface PhotoRecognitionOptions {
   recognitionDelay?: number;
   /** Enable/disable recognition, default true */
   enabled?: boolean;
+  /** Hamming distance threshold for matching (0-64), default 10 */
+  similarityThreshold?: number;
+  /** Interval for checking frames (ms), default 1000 */
+  checkInterval?: number;
 }

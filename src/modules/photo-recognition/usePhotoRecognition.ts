@@ -67,7 +67,7 @@ export function usePhotoRecognition(
 
     // Create video element to capture stream
     const video = document.createElement('video');
-    
+
     // Try to set srcObject, catch if it fails in test environment
     try {
       video.srcObject = stream;
@@ -80,7 +80,7 @@ export function usePhotoRecognition(
       // In production, propagate the error
       throw error;
     }
-    
+
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;

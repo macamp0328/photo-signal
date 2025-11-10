@@ -72,9 +72,9 @@ Each module has its own README defining its API contract, usage, and examples.
 #### Module Tests
 
 - **[src/modules/camera-view/CameraView.test.tsx](./src/modules/camera-view/CameraView.test.tsx)** - Unit tests for camera-view component (100% coverage)
-- **[src/modules/photo-recognition/algorithms/__tests__/dhash.test.ts](./src/modules/photo-recognition/algorithms/__tests__/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
-- **[src/modules/photo-recognition/algorithms/__tests__/hamming.test.ts](./src/modules/photo-recognition/algorithms/__tests__/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
-- **[src/modules/photo-recognition/algorithms/__tests__/utils.test.ts](./src/modules/photo-recognition/algorithms/__tests__/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
 
 ### Code Quality
 

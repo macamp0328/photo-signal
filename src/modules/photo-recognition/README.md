@@ -177,9 +177,9 @@ function App() {
 
 ```typescript
 const { recognizedConcert } = usePhotoRecognition(stream, {
-  similarityThreshold: 8,  // Stricter matching
-  checkInterval: 500,      // Check more frequently
-  recognitionDelay: 2000,  // Wait longer before confirming
+  similarityThreshold: 8, // Stricter matching
+  checkInterval: 500, // Check more frequently
+  recognitionDelay: 2000, // Wait longer before confirming
 });
 ```
 
@@ -244,8 +244,8 @@ For the recognition to work, each concert in `data.json` must have a `photoHash`
 
 ```typescript
 usePhotoRecognition(stream, {
-  similarityThreshold: 5,   // Stricter
-  recognitionDelay: 2000,   // Longer confirmation
+  similarityThreshold: 5, // Stricter
+  recognitionDelay: 2000, // Longer confirmation
 });
 ```
 
@@ -253,9 +253,9 @@ usePhotoRecognition(stream, {
 
 ```typescript
 usePhotoRecognition(stream, {
-  checkInterval: 500,       // Check more often
-  recognitionDelay: 500,    // Quicker confirmation
-  similarityThreshold: 12,  // Slightly lenient
+  checkInterval: 500, // Check more often
+  recognitionDelay: 500, // Quicker confirmation
+  similarityThreshold: 12, // Slightly lenient
 });
 ```
 
@@ -263,7 +263,7 @@ usePhotoRecognition(stream, {
 
 ```typescript
 usePhotoRecognition(stream, {
-  checkInterval: 2000,      // Check less often
+  checkInterval: 2000, // Check less often
   recognitionDelay: 1000,
 });
 ```

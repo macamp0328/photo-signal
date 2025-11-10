@@ -167,9 +167,7 @@ describe('usePhotoRecognition', () => {
 
   describe('Enabled/Disabled State', () => {
     it('should not start recognition when enabled is false', async () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, { enabled: false })
-      );
+      const { result } = renderHook(() => usePhotoRecognition(mockStream, { enabled: false }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(5000);
@@ -210,10 +208,9 @@ describe('usePhotoRecognition', () => {
     });
 
     it('should start processing when stream changes from null to valid stream', async () => {
-      const { result, rerender } = renderHook(
-        ({ stream }) => usePhotoRecognition(stream),
-        { initialProps: { stream: null as MediaStream | null } }
-      );
+      const { result, rerender } = renderHook(({ stream }) => usePhotoRecognition(stream), {
+        initialProps: { stream: null as MediaStream | null },
+      });
 
       // Initially no stream
       expect(result.current.isRecognizing).toBe(false);
@@ -234,9 +231,7 @@ describe('usePhotoRecognition', () => {
 
   describe('Cleanup', () => {
     it('should clean up on unmount', async () => {
-      const { unmount } = renderHook(() =>
-        usePhotoRecognition(mockStream, { checkInterval: 100 })
-      );
+      const { unmount } = renderHook(() => usePhotoRecognition(mockStream, { checkInterval: 100 }));
 
       // Start processing
       await act(async () => {
@@ -265,9 +260,7 @@ describe('usePhotoRecognition', () => {
     });
 
     it('should use custom checkInterval', async () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, { checkInterval: 500 })
-      );
+      const { result } = renderHook(() => usePhotoRecognition(mockStream, { checkInterval: 500 }));
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(100);
@@ -325,9 +318,7 @@ describe('usePhotoRecognition', () => {
     });
 
     it('should not process frames until concerts are loaded', async () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, { checkInterval: 50 })
-      );
+      const { result } = renderHook(() => usePhotoRecognition(mockStream, { checkInterval: 50 }));
 
       // Before concerts load, should not be processing
       expect(result.current.isRecognizing).toBe(false);

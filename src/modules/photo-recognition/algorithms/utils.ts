@@ -12,11 +12,7 @@
  * @param height - Target height
  * @returns Resized ImageData
  */
-export function resizeImageData(
-  imageData: ImageData,
-  width: number,
-  height: number
-): ImageData {
+export function resizeImageData(imageData: ImageData, width: number, height: number): ImageData {
   // Skip resizing if already the correct size (optimization + test compatibility)
   if (imageData.width === width && imageData.height === height) {
     return imageData;

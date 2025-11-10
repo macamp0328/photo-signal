@@ -12,10 +12,22 @@ describe('Image Processing Utilities', () => {
     beforeEach(() => {
       // Create a simple 2x2 test image (RGBA format)
       const data = new Uint8ClampedArray([
-        255, 0, 0, 255, // Red pixel
-        0, 255, 0, 255, // Green pixel
-        0, 0, 255, 255, // Blue pixel
-        255, 255, 255, 255, // White pixel
+        255,
+        0,
+        0,
+        255, // Red pixel
+        0,
+        255,
+        0,
+        255, // Green pixel
+        0,
+        0,
+        255,
+        255, // Blue pixel
+        255,
+        255,
+        255,
+        255, // White pixel
       ]);
       imageData = new ImageData(data, 2, 2);
     });
@@ -53,7 +65,10 @@ describe('Image Processing Utilities', () => {
   describe('toGrayscale', () => {
     it('should convert pure red to grayscale', () => {
       const data = new Uint8ClampedArray([
-        255, 0, 0, 255, // Pure red
+        255,
+        0,
+        0,
+        255, // Pure red
       ]);
       const imageData = new ImageData(data, 1, 1);
 
@@ -66,7 +81,10 @@ describe('Image Processing Utilities', () => {
 
     it('should convert pure green to grayscale', () => {
       const data = new Uint8ClampedArray([
-        0, 255, 0, 255, // Pure green
+        0,
+        255,
+        0,
+        255, // Pure green
       ]);
       const imageData = new ImageData(data, 1, 1);
 
@@ -79,7 +97,10 @@ describe('Image Processing Utilities', () => {
 
     it('should convert pure blue to grayscale', () => {
       const data = new Uint8ClampedArray([
-        0, 0, 255, 255, // Pure blue
+        0,
+        0,
+        255,
+        255, // Pure blue
       ]);
       const imageData = new ImageData(data, 1, 1);
 
@@ -92,7 +113,10 @@ describe('Image Processing Utilities', () => {
 
     it('should convert white to grayscale 255', () => {
       const data = new Uint8ClampedArray([
-        255, 255, 255, 255, // White
+        255,
+        255,
+        255,
+        255, // White
       ]);
       const imageData = new ImageData(data, 1, 1);
 
@@ -104,7 +128,10 @@ describe('Image Processing Utilities', () => {
 
     it('should convert black to grayscale 0', () => {
       const data = new Uint8ClampedArray([
-        0, 0, 0, 255, // Black
+        0,
+        0,
+        0,
+        255, // Black
       ]);
       const imageData = new ImageData(data, 1, 1);
 
@@ -116,9 +143,18 @@ describe('Image Processing Utilities', () => {
 
     it('should convert multiple pixels correctly', () => {
       const data = new Uint8ClampedArray([
-        255, 255, 255, 255, // White
-        0, 0, 0, 255, // Black
-        128, 128, 128, 255, // Gray
+        255,
+        255,
+        255,
+        255, // White
+        0,
+        0,
+        0,
+        255, // Black
+        128,
+        128,
+        128,
+        255, // Gray
       ]);
       const imageData = new ImageData(data, 3, 1);
 
@@ -133,8 +169,14 @@ describe('Image Processing Utilities', () => {
 
     it('should ignore alpha channel', () => {
       const data = new Uint8ClampedArray([
-        255, 255, 255, 0, // White with 0 alpha
-        255, 255, 255, 255, // White with full alpha
+        255,
+        255,
+        255,
+        0, // White with 0 alpha
+        255,
+        255,
+        255,
+        255, // White with full alpha
       ]);
       const imageData = new ImageData(data, 2, 1);
 

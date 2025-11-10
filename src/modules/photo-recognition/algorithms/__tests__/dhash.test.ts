@@ -9,7 +9,11 @@ describe('dHash Algorithm', () => {
   /**
    * Helper function to create a simple test ImageData
    */
-  function createTestImage(width: number, height: number, pattern: 'solid' | 'gradient' | 'checkerboard' = 'solid'): ImageData {
+  function createTestImage(
+    width: number,
+    height: number,
+    pattern: 'solid' | 'gradient' | 'checkerboard' = 'solid'
+  ): ImageData {
     const data = new Uint8ClampedArray(width * height * 4);
 
     for (let y = 0; y < height; y++) {
@@ -134,15 +138,15 @@ describe('dHash Algorithm', () => {
 
   describe('Pattern Differentiation', () => {
     it('should produce different hashes for different patterns', () => {
-      // Create images at the exact size dHash needs (9x8) 
+      // Create images at the exact size dHash needs (9x8)
       // to avoid relying on canvas resize in test environment
       const width = 9;
       const height = 8;
-      
+
       // Create solid image (all same brightness)
       const solidData = new Uint8ClampedArray(width * height * 4);
       for (let i = 0; i < solidData.length; i += 4) {
-        solidData[i] = 128;     // R
+        solidData[i] = 128; // R
         solidData[i + 1] = 128; // G
         solidData[i + 2] = 128; // B
         solidData[i + 3] = 255; // A
@@ -210,7 +214,7 @@ describe('dHash Algorithm', () => {
       const width = 9;
       const height = 8;
       const data = new Uint8ClampedArray(width * height * 4);
-      
+
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
           const i = (y * width + x) * 4;
@@ -222,7 +226,7 @@ describe('dHash Algorithm', () => {
           data[i + 3] = 255;
         }
       }
-      
+
       const imageData = new ImageData(data, width, height);
       const hash = computeDHash(imageData);
 

@@ -9,8 +9,6 @@ export interface InfoDisplayProps {
   concert: Concert | null;
   /** Control visibility independently of concert data */
   isVisible: boolean;
-  /** Vertical position of overlay */
-  position?: 'top' | 'bottom';
   /** Additional CSS classes */
   className?: string;
 }

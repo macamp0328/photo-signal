@@ -8,18 +8,24 @@
  * without conflicts or coupling.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import { usePhotoRecognition } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
+import { GalleryLayout } from './modules/gallery-layout';
 import './index.css';
 
 function App() {
-  // Module: Camera Access
-  const { stream, error, hasPermission, retry } = useCameraAccess();
+  // State for landing view vs. active camera view
+  const [isActive, setIsActive] = useState(false);
+
+  // Module: Camera Access (only initialize when active)
+  const { stream, error, hasPermission, retry } = useCameraAccess({
+    autoStart: isActive,
+  });
 
   // Module: Motion Detection
   const { isMoving } = useMotionDetection(stream, {
@@ -60,18 +66,28 @@ function App() {
     }
   }, [isMoving, isPlaying, fadeOut, resetRecognition]);
 
-  return (
-    <div className="w-full h-full">
-      {/* Camera View with Overlay */}
-      <CameraView stream={stream} error={error} hasPermission={hasPermission} onRetry={retry} />
+  // Handle activation from landing view
+  const handleActivate = () => {
+    setIsActive(true);
+  };
 
-      {/* Concert Info Display */}
-      <InfoDisplay
-        concert={recognizedConcert}
-        isVisible={!!recognizedConcert && isPlaying}
-        position="bottom"
-      />
-    </div>
+  // Render camera view
+  const cameraView = (
+    <CameraView stream={stream} error={error} hasPermission={hasPermission} onRetry={retry} />
+  );
+
+  // Render info display
+  const infoDisplay = (
+    <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
+  );
+
+  return (
+    <GalleryLayout
+      isActive={isActive}
+      cameraView={cameraView}
+      infoDisplay={infoDisplay}
+      onActivate={handleActivate}
+    />
   );
 }
 

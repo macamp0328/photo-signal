@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import App from './App';
 
 // Mock browser APIs
@@ -24,9 +24,13 @@ describe('App', () => {
     expect(container.querySelector('div')).toBeTruthy();
   });
 
-  it('has a root div with proper styling', () => {
-    const { container } = render(<App />);
-    const rootDiv = container.querySelector('div');
-    expect(rootDiv).toHaveClass('w-full', 'h-full');
+  it('shows landing page initially', () => {
+    render(<App />);
+    // Check for landing page elements
+    expect(screen.getByText('Photo Signal')).toBeTruthy();
+    expect(screen.getByText(/Point your camera at a photograph/i)).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+    ).toBeTruthy();
   });
 });

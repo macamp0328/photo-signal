@@ -13,6 +13,11 @@ export interface CameraAccessHook {
   retry: () => void;
 }
 
+export interface CameraAccessOptions {
+  /** Whether to automatically start camera on mount (default: true) */
+  autoStart?: boolean;
+}
+
 export interface CameraConstraints {
   video: {
     facingMode: 'user' | 'environment';

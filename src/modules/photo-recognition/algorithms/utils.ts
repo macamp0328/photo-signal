@@ -47,6 +47,12 @@ export function resizeImageData(imageData: ImageData, width: number, height: num
   return targetCtx.getImageData(0, 0, width, height);
 }
 
+// ITU-R BT.601 luma coefficients for converting RGB to grayscale
+// These weights represent human perception of color brightness
+const LUMA_RED = 0.299;
+const LUMA_GREEN = 0.587;
+const LUMA_BLUE = 0.114;
+
 /**
  * Convert ImageData to grayscale array using luminance formula
  *
@@ -66,7 +72,7 @@ export function toGrayscale(imageData: ImageData): number[] {
     const b = data[i + 2];
 
     // ITU-R BT.601 luma calculation for perceptual brightness
-    const luma = Math.floor(0.299 * r + 0.587 * g + 0.114 * b);
+    const luma = Math.floor(LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b);
     grayscale.push(luma);
   }
 

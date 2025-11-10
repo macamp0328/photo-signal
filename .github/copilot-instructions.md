@@ -46,11 +46,33 @@ src/modules/{module-name}/
 ⚠️ **IMPORTANT**: When adding, removing, or moving any documentation, configuration files, modules, or services, you **MUST** update **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** to keep the documentation phonebook current.
 
 - **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** - Central phonebook of ALL project documentation (UPDATE THIS!)
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines, quality gates, and **AI agent PR policy** (MUST READ!)
 - **ARCHITECTURE.md** - Module structure, data flow, AI collaboration guide
 - **AI_AGENT_GUIDE.md** - Examples of parallel AI agent development
 - **TESTING.md** - Testing strategy (tests not yet implemented)
 - **SETUP.md** - Development workflow, CI/CD, deployment
 - **README.md** - User-facing documentation
+
+## AI Agent PR Policy ⚠️
+
+**CRITICAL**: All AI agents MUST follow the PR policy defined in [CONTRIBUTING.md](../CONTRIBUTING.md#ai-agent-pr-policy).
+
+**Key Requirements:**
+
+1. **All GitHub Actions checks MUST pass** before requesting review
+2. **Proactively monitor your PRs** for CI failures
+3. **Fix failures immediately** without waiting for maintainer notification
+4. **Use the PR template** and complete all checklist items
+5. **Update documentation** when adding/removing/moving files
+
+**Automated Enforcement:**
+
+- PRs with failing checks receive automated reminder comments
+- Failing PRs are labeled "ci-failing" and "needs-fixes"
+- PRs not fixed within 7 days may be closed
+- No review will occur until all checks pass
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for complete guidelines.
 
 ## Development Workflow
 

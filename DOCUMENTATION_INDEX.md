@@ -11,6 +11,7 @@
 - **[README.md](./README.md)** - Main project documentation, features, setup instructions, and usage
 - **[SETUP.md](./SETUP.md)** - Detailed development environment setup, CI/CD, DevContainer, and Vercel deployment
 - **[DOCKER.md](./DOCKER.md)** - Docker and Docker Compose setup, containerized development guide
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines, quality gates, AI agent PR policy, code style, testing requirements, and security guidelines
 
 ### Architecture & Design
 
@@ -99,6 +100,7 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Workflows
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
+- **[.github/workflows/pr-checks-monitor.yml](./.github/workflows/pr-checks-monitor.yml)** - Automated PR monitoring workflow that comments on PRs with failing checks and enforces AI agent compliance
 
 ### Actions
 
@@ -107,6 +109,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Templates & Instructions
 
+- **[.github/pull_request_template.md](./.github/pull_request_template.md)** - Pull request template with quality gate checklist, AI agent responsibilities, and pre-merge requirements
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Comprehensive GitHub Copilot agent instructions including code standards, error handling, accessibility, documentation standards, troubleshooting, git workflow, and dependency management
 - **[.github/dependabot.yml](./.github/dependabot.yml)** - Dependabot configuration for automated dependency updates (npm and GitHub Actions)
 - **[.github/ISSUE_TEMPLATE/\_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
@@ -243,13 +246,14 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (9 files - added ASSET_LICENSES.md)
+- ✅ Root documentation (10 files - added CONTRIBUTING.md)
 - ✅ Research & technical specifications (6 files - including CodeQL and Codecov setup guides)
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
-- ✅ GitHub Actions & workflows (2 files - CI workflow and Dependabot config)
+- ✅ GitHub Actions & workflows (3 files - CI workflow, PR checks monitor, and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
+- ✅ GitHub templates (1 file - PR template)
 - ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
@@ -258,6 +262,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 80 documented files
+**Total**: 83 documented files
 
 Last updated: 2025-11-10

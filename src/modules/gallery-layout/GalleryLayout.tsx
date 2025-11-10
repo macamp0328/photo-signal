@@ -46,7 +46,7 @@ export function GalleryLayout({
 
   // Active Gallery View with Camera
   return (
-    <div className="flex flex-col h-full p-4 md:p-8 gap-6">
+    <div className="flex flex-col h-screen p-4 md:p-8 gap-6">
       {/* Header */}
       <div className="flex-shrink-0">
         <h1 className="text-2xl md:text-3xl font-bold text-main-text">Photo Signal</h1>

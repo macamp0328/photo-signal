@@ -94,6 +94,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Comprehensive GitHub Copilot agent instructions including code standards, error handling, accessibility, documentation standards, troubleshooting, git workflow, and dependency management
 - **[.github/ISSUE_TEMPLATE/\_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
+- **[.github/ISSUE_TEMPLATE/firewall-gh-io-access.md](./.github/ISSUE_TEMPLATE/firewall-gh-io-access.md)** - Template for firewall configuration issue to allow Copilot agent access to gh.io domain
 
 ### Issue Templates (Milestone-based)
 
@@ -220,7 +221,7 @@ This index covers:
 - ✅ Module READMEs (7 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (2 files)
-- ✅ Issue templates (16 files - includes template guide)
+- ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (7 files including README)
@@ -228,6 +229,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (1 file)
 
-**Total**: 68 documented files
+**Total**: 69 documented files
 
 Last updated: 2025-11-10

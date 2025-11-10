@@ -70,7 +70,7 @@ GitHub Advanced Security includes:
 
 7. If you choose "Advanced":
    - GitHub will guide you through workflow configuration
-   - You can use the existing `.github/workflows/codeql.yml` file
+   - You can create a `.github/workflows/codeql.yml` file (GitHub will guide you)
 
 #### Step 3: Verify It Works
 

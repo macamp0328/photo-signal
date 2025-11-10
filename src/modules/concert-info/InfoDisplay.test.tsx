@@ -13,26 +13,24 @@ describe('InfoDisplay', () => {
   };
 
   describe('Visibility', () => {
-    it('should be hidden when isVisible is false', () => {
+    it('should return null when isVisible is false', () => {
       const { container } = render(<InfoDisplay concert={mockConcert} isVisible={false} />);
 
-      // Component should render but be hidden with opacity-0
-      const displayDiv = container.querySelector('div');
-      expect(displayDiv).toHaveClass('opacity-0');
+      // Component should return null for better performance
+      expect(container.firstChild).toBeNull();
     });
 
     it('should be shown when isVisible is true', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      // Verify component is in the document by checking for band name
+      // Verify component is rendered by checking for band name
       expect(screen.getByText('The Beatles')).toBeInTheDocument();
     });
 
-    it('should apply opacity-100 class when visible', () => {
-      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
+    it('should return null when concert is null even if isVisible is true', () => {
+      const { container } = render(<InfoDisplay concert={null} isVisible={true} />);
 
-      const displayDiv = container.querySelector('div');
-      expect(displayDiv).toHaveClass('opacity-100');
+      expect(container.firstChild).toBeNull();
     });
   });
 
@@ -142,14 +140,6 @@ describe('InfoDisplay', () => {
       expect(displayDiv).toHaveClass('border-main-text');
       expect(displayDiv).toHaveClass('rounded-lg');
       expect(displayDiv).toHaveClass('shadow-lg');
-    });
-
-    it('should apply transition classes for smooth animation', () => {
-      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
-
-      const displayDiv = container.querySelector('div');
-      expect(displayDiv).toHaveClass('transition-all');
-      expect(displayDiv).toHaveClass('duration-500');
     });
 
     it('should apply custom className prop', () => {

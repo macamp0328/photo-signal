@@ -7,7 +7,8 @@ import type { InfoDisplayProps } from './types';
  * Styled as a distinct content block with zine-like aesthetic.
  */
 export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayProps) {
-  if (!concert) return null;
+  // Return null when not visible or no concert for better performance
+  if (!concert || !isVisible) return null;
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -23,8 +24,7 @@ export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayP
     <div
       className={`
         bg-white border-2 border-main-text rounded-lg shadow-lg
-        p-6 transition-all duration-500
-        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
+        p-6
         ${className}
       `}
     >

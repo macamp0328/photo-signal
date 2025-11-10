@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { CameraAccessHook } from './types';
+import type { CameraAccessHook, CameraAccessOptions } from './types';
 
 /**
  * Custom hook for camera access
@@ -8,9 +8,11 @@ import type { CameraAccessHook } from './types';
  * Automatically requests rear camera with 3:2 aspect ratio.
  * Cleans up stream on unmount.
  *
+ * @param options - Configuration options
  * @returns Camera access state and controls
  */
-export function useCameraAccess(): CameraAccessHook {
+export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccessHook {
+  const { autoStart = true } = options;
   const streamRef = useRef<MediaStream | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -39,9 +41,11 @@ export function useCameraAccess(): CameraAccessHook {
     }
   }, []);
 
-  // Start camera on mount
+  // Start camera on mount if autoStart is true
   useEffect(() => {
-    startCamera();
+    if (autoStart) {
+      startCamera();
+    }
 
     // Cleanup on unmount
     return () => {
@@ -50,7 +54,7 @@ export function useCameraAccess(): CameraAccessHook {
         streamRef.current = null;
       }
     };
-  }, [startCamera]);
+  }, [autoStart, startCamera]);
 
   const retry = useCallback(() => {
     startCamera();

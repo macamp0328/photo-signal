@@ -46,7 +46,7 @@ JS_GZIP_KB=$((JS_GZIP_SIZE / 1024))
 CSS_GZIP_KB=$((CSS_GZIP_SIZE / 1024))
 
 echo "JavaScript Bundle:"
-echo "  File: $(basename $JS_FILE)"
+echo "  File: $(basename "$JS_FILE")"
 echo "  Raw:     ${JS_RAW_KB} KB (${JS_RAW_SIZE} bytes)"
 echo "  Gzipped: ${JS_GZIP_KB} KB (${JS_GZIP_SIZE} bytes)"
 echo "  Limit:   ${MAX_JS_SIZE_KB} KB"
@@ -61,7 +61,7 @@ fi
 
 echo ""
 echo "CSS Bundle:"
-echo "  File: $(basename $CSS_FILE)"
+echo "  File: $(basename "$CSS_FILE")"
 echo "  Raw:     ${CSS_RAW_KB} KB (${CSS_RAW_SIZE} bytes)"
 echo "  Gzipped: ${CSS_GZIP_KB} KB (${CSS_GZIP_SIZE} bytes)"
 echo "  Limit:   ${MAX_CSS_SIZE_KB} KB"

@@ -237,24 +237,27 @@ This document evaluates tooling options for:
 
 **Provider**: Open source (AI/size-limit)  
 **Cost**: Free  
-**Language**: JavaScript/TypeScript
+**Language**: Bash (invoked from npm scripts/CI)
 
 **Pros**:
 
-- Lightweight
-- Fail CI on size regression
-- Simple configuration
-- Works with Vite
-- No external service
+- Zero dependencies (no npm install required)
+- Fully customizable for Vite output
+- Fails CI on size regression
+- Simple to maintain and audit
+- No external service or config files
 
 **Cons**:
 
-- Manual configuration needed
 - No historical tracking (just pass/fail)
+- Manual updates needed if output paths change
+- No per-file reporting (just total bundle size)
 
-**Implementation**: Add size-limit config and CI step
+**Implementation**: Custom script at `scripts/check-bundle-size.sh` is run in CI after build. It checks the total gzipped bundle size and fails if above threshold (see script for details). No "size-limit" dependency is used.
 
-**Verdict**: ✅ **RECOMMENDED** - Simple and effective
+**Note**: The original plan was to use "size-limit", but a custom script was chosen for simplicity, zero dependencies, and better fit with Vite's output structure.
+
+**Verdict**: ✅ **RECOMMENDED** - Simple, dependency-free, and effective for project needs
 
 ---
 
@@ -350,15 +353,15 @@ This document evaluates tooling options for:
 
 ## Comparison Matrix
 
-| Tool                | Category     | Free for Private? | Setup Complexity | AI Agent Value | Priority    |
-| ------------------- | ------------ | ----------------- | ---------------- | -------------- | ----------- |
+| Tool                | Category     | Free for Private?          | Setup Complexity | AI Agent Value | Priority    |
+| ------------------- | ------------ | -------------------------- | ---------------- | -------------- | ----------- |
 | **CodeQL**          | Security     | ⚠️ Yes (with restrictions) | Low              | High           | 🔴 Critical |
-| **Codecov**         | Coverage     | ✅ Yes (limited)  | Low              | High           | 🟡 High     |
-| **npm audit**       | Dependencies | ✅ Yes            | Very Low         | Medium         | 🟡 High     |
-| **Dependabot**      | Dependencies | ✅ Yes            | Very Low         | High           | 🟡 High     |
-| **size-limit**      | Bundle       | ✅ Yes            | Low              | Medium         | 🟢 Medium   |
-| **Structured Logs** | Logging      | ✅ Yes            | Very Low         | Low            | 🟢 Medium   |
-| **Lighthouse CI**   | Performance  | ✅ Yes            | Medium           | Low            | ⚪ Optional |
+| **Codecov**         | Coverage     | ✅ Yes (limited)           | Low              | High           | 🟡 High     |
+| **npm audit**       | Dependencies | ✅ Yes                     | Very Low         | Medium         | 🟡 High     |
+| **Dependabot**      | Dependencies | ✅ Yes                     | Very Low         | High           | 🟡 High     |
+| **size-limit**      | Bundle       | ✅ Yes                     | Low              | Medium         | 🟢 Medium   |
+| **Structured Logs** | Logging      | ✅ Yes                     | Very Low         | Low            | 🟢 Medium   |
+| **Lighthouse CI**   | Performance  | ✅ Yes                     | Medium           | Low            | ⚪ Optional |
 
 ---
 
@@ -378,7 +381,7 @@ This document evaluates tooling options for:
 
 ### Phase 3: Performance (Week 2)
 
-7. ✅ size-limit configuration
+7. ✅ Custom bundle size script (replaces size-limit)
 8. ✅ Bundle size regression checks
 9. ✅ Structured logging in tests
 
@@ -428,9 +431,9 @@ The recommended stack prioritizes:
 4. **Simple setup** (hours, not days)
 5. **AI agent friendly** (automated checks, clear failures)
 
-### Total Cost: $0/month
+### Total Cost: $0/month (with caveats)
 
-All recommended tools are completely free for private repositories, with Codecov's free tier supporting up to 5 private repos.
+All recommended tools are free for public repositories. For private repositories, CodeQL requires GitHub Advanced Security, which is a paid feature on GitHub. Codecov's free tier supports up to 5 private repos. If you already have GitHub Advanced Security, or if your repository is public, the total cost remains $0/month.
 
 ### Next Steps:
 

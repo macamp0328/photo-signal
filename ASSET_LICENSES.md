@@ -41,10 +41,30 @@ These images are simple color gradients with text overlays, created programmatic
 | `concert-2.mp3` | 440Hz sine wave (5s) | Generated with FFmpeg | CC0 |
 | `concert-3.mp3` | 880Hz sine wave (5s) | Generated with FFmpeg | CC0 |
 | `concert-4.mp3` | C-E-G chord (5s) | Generated with FFmpeg | CC0 |
+| `concert-song-1.mp3` | Layered composition (2 min) | Generated with FFmpeg | CC0 |
+| `concert-song-2.mp3` | Chord progression (2 min) | Generated with FFmpeg | CC0 |
 
-**Creation Command**: `ffmpeg -f lavfi -i "sine=frequency=XXX:duration=5" -b:a 64k [filename].mp3`
+**Short Files Creation Command**: `ffmpeg -f lavfi -i "sine=frequency=XXX:duration=5" -b:a 64k [filename].mp3`
 
-These audio files are simple sine wave tones and chords generated programmatically using FFmpeg's audio synthesis capabilities. They contain no copyrighted music or samples.
+**Full-Length Files Creation Commands**:
+```bash
+# Song 1: Layered bass and melody (2 minutes)
+ffmpeg -f lavfi -i "sine=frequency=220:duration=120" \
+       -f lavfi -i "sine=frequency=330:duration=120" \
+       -f lavfi -i "sine=frequency=440:duration=120" \
+       -filter_complex "[0:a]volume=0.3[a0];[1:a]volume=0.2[a1];[2:a]volume=0.5[a2];[a0][a1][a2]amix=inputs=3:duration=first:dropout_transition=2" \
+       -b:a 128k concert-song-1.mp3
+
+# Song 2: Chord progression (2 minutes)
+ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
+       -f lavfi -i "sine=frequency=330:duration=120" \
+       -f lavfi -i "sine=frequency=392:duration=120" \
+       -f lavfi -i "sine=frequency=523:duration=120" \
+       -filter_complex "[0:a]volume=0.25[a0];[1:a]volume=0.25[a1];[2:a]volume=0.25[a2];[3:a]volume=0.25[a3];[a0][a1][a2][a3]amix=inputs=4:duration=first" \
+       -b:a 128k concert-song-2.mp3
+```
+
+These audio files are simple sine wave tones, chords, and layered compositions generated programmatically using FFmpeg's audio synthesis capabilities. They contain no copyrighted music or samples. The full-length files (2 minutes) simulate realistic song file sizes for performance testing.
 
 ### Test Data Files (`assets/test-data/`)
 
@@ -77,10 +97,31 @@ convert concert-1.jpg -pointsize 40 -fill white -gravity center -annotate +0+0 "
 ```
 
 ### Audio
+
+#### Short Test Files (5 seconds)
 ```bash
 cd assets/test-audio
 ffmpeg -f lavfi -i "sine=frequency=220:duration=5" -b:a 64k concert-1.mp3 -y
 # Repeat for other concerts with different frequencies
+```
+
+#### Full-Length Song Files (2 minutes)
+```bash
+cd assets/test-audio
+# Song 1: Layered composition
+ffmpeg -f lavfi -i "sine=frequency=220:duration=120" \
+       -f lavfi -i "sine=frequency=330:duration=120" \
+       -f lavfi -i "sine=frequency=440:duration=120" \
+       -filter_complex "[0:a]volume=0.3[a0];[1:a]volume=0.2[a1];[2:a]volume=0.5[a2];[a0][a1][a2]amix=inputs=3:duration=first:dropout_transition=2" \
+       -b:a 128k concert-song-1.mp3 -y
+
+# Song 2: Chord progression
+ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
+       -f lavfi -i "sine=frequency=330:duration=120" \
+       -f lavfi -i "sine=frequency=392:duration=120" \
+       -f lavfi -i "sine=frequency=523:duration=120" \
+       -filter_complex "[0:a]volume=0.25[a0];[1:a]volume=0.25[a1];[2:a]volume=0.25[a2];[3:a]volume=0.25[a3];[a0][a1][a2][a3]amix=inputs=4:duration=first" \
+       -b:a 128k concert-song-2.mp3 -y
 ```
 
 ### Data
@@ -118,5 +159,5 @@ If you have any questions about the licensing of these test assets, please open 
 ---
 
 **Last Updated**: 2025-11-10
-**Asset Count**: 4 images, 4 audio files, 2 data files
-**Total Size**: ~290KB
+**Asset Count**: 4 images, 6 audio files (4 short + 2 full-length), 2 data files
+**Total Size**: ~4.1MB

@@ -33,7 +33,8 @@ export function usePhotoRecognition(
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const intervalRef = useRef<number | undefined>(undefined);
-  const recognitionTimeoutRef = useRef<number | undefined>(undefined);
+  const lastMatchedConcertRef = useRef<Concert | null>(null);
+  const matchStartTimeRef = useRef<number | null>(null);
 
   // Load concert data
   useEffect(() => {
@@ -50,9 +51,11 @@ export function usePhotoRecognition(
   const reset = useCallback(() => {
     setRecognizedConcert(null);
     setIsRecognizing(false);
-    if (recognitionTimeoutRef.current) {
-      clearTimeout(recognitionTimeoutRef.current);
-      recognitionTimeoutRef.current = undefined;
+    lastMatchedConcertRef.current = null;
+    matchStartTimeRef.current = null;
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = undefined;
     }
   }, []);
 
@@ -70,8 +73,12 @@ export function usePhotoRecognition(
       video.srcObject = stream;
     } catch (error) {
       // In test environment, this might fail if stream is not a true MediaStream
-      console.warn('Failed to set video srcObject:', error);
-      return;
+      if (import.meta.env.MODE === 'test') {
+        console.warn('Failed to set video srcObject in test environment:', error);
+        return;
+      }
+      // In production, propagate the error
+      throw error;
     }
     
     video.autoplay = true;
@@ -80,18 +87,16 @@ export function usePhotoRecognition(
     videoRef.current = video;
 
     // Wait for video to be ready
-    video.addEventListener('loadedmetadata', () => {
+    const handleLoadedMetadata = () => {
       video.play().catch((error) => {
         console.error('Failed to play video:', error);
       });
-    });
+    };
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
     // Create canvas for frame extraction
     const canvas = document.createElement('canvas');
     canvasRef.current = canvas;
-
-    let lastMatchedConcert: Concert | null = null;
-    let matchStartTime: number | null = null;
 
     /**
      * Check current video frame for photo match
@@ -157,10 +162,10 @@ export function usePhotoRecognition(
         // Check if best match meets threshold
         if (bestMatch && bestDistance <= similarityThreshold) {
           // Same concert as before?
-          if (lastMatchedConcert?.id === bestMatch.id) {
+          if (lastMatchedConcertRef.current?.id === bestMatch.id) {
             // Continue timing
-            if (matchStartTime) {
-              const elapsed = Date.now() - matchStartTime;
+            if (matchStartTimeRef.current) {
+              const elapsed = Date.now() - matchStartTimeRef.current;
 
               if (elapsed >= recognitionDelay) {
                 // Stable match confirmed!
@@ -177,16 +182,16 @@ export function usePhotoRecognition(
                   intervalRef.current = undefined;
                 }
 
-                lastMatchedConcert = null;
-                matchStartTime = null;
+                lastMatchedConcertRef.current = null;
+                matchStartTimeRef.current = null;
               } else {
                 setIsRecognizing(true);
               }
             }
           } else {
             // New match, start timing
-            lastMatchedConcert = bestMatch;
-            matchStartTime = Date.now();
+            lastMatchedConcertRef.current = bestMatch;
+            matchStartTimeRef.current = Date.now();
             setIsRecognizing(true);
 
             if (import.meta.env.DEV) {
@@ -195,9 +200,9 @@ export function usePhotoRecognition(
           }
         } else {
           // No match, reset
-          if (lastMatchedConcert) {
-            lastMatchedConcert = null;
-            matchStartTime = null;
+          if (lastMatchedConcertRef.current) {
+            lastMatchedConcertRef.current = null;
+            matchStartTimeRef.current = null;
             setIsRecognizing(false);
 
             if (import.meta.env.DEV) {
@@ -220,10 +225,14 @@ export function usePhotoRecognition(
         intervalRef.current = undefined;
       }
       if (videoRef.current) {
+        videoRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
         videoRef.current.pause();
         videoRef.current.srcObject = null;
       }
     };
+    // Note: recognizedConcert is intentionally omitted from deps to prevent effect re-runs
+    // when a concert is recognized. The checkFrame function already handles this state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval]);
 
   return {

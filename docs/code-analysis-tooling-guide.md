@@ -39,6 +39,59 @@ CodeQL is GitHub's semantic code analysis engine that treats code as data, allow
 - On every pull request
 - Every Monday at 6 AM UTC (scheduled scan)
 
+### Prerequisites & Setup
+
+**IMPORTANT:** CodeQL requires GitHub Advanced Security to be enabled for private repositories.
+
+#### For Public Repositories
+CodeQL works automatically - no setup needed!
+
+#### For Private Repositories
+
+This repository is private, so you need to enable code scanning:
+
+1. **Go to repository Settings**
+   - Navigate to: https://github.com/macamp0328/photo-signal/settings
+
+2. **Navigate to Security settings**
+   - In the left sidebar, click: **Security** → **Code security and analysis**
+
+3. **Enable Code scanning**
+   - Find the "Code scanning" section
+   - Click **"Set up"** → **"Default"** (or **"Advanced"** if available)
+   - This will enable CodeQL for the repository
+
+4. **Verify activation**
+   - Go to the **Security** tab
+   - You should see "Code scanning" available
+   - The next workflow run will succeed
+
+**Note:** GitHub Advanced Security may require a paid GitHub plan for private repositories. If you don't have access:
+- The workflow will fail with error: "Code scanning is not enabled for this repository"
+- CodeQL can still be used locally with the CodeQL CLI (free)
+- Consider making the repository public to use free GitHub CodeQL scanning
+
+### Alternative: Local CodeQL Analysis
+
+If you cannot enable GitHub Advanced Security, you can run CodeQL locally:
+
+```bash
+# Install CodeQL CLI
+# Download from: https://github.com/github/codeql-cli-binaries/releases
+
+# Create database
+codeql database create codeql-db --language=javascript
+
+# Analyze
+codeql database analyze codeql-db \
+  --format=sarif-latest \
+  --output=results.sarif \
+  -- javascript-security-extended.qls
+
+# View results
+codeql sarif analyze results.sarif
+```
+
 ### What It Checks
 
 - **Security vulnerabilities**: SQL injection, XSS, command injection, etc.

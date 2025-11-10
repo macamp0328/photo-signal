@@ -4,6 +4,14 @@
 # This workflow performs security analysis using CodeQL to detect vulnerabilities
 # in JavaScript/TypeScript code. It runs on all PRs and pushes to main.
 #
+# ⚠️ PREREQUISITE: GitHub Advanced Security must be enabled for private repos.
+# For public repos, this works automatically. For private repos, you need to:
+# 1. Go to repository Settings → Security → Code security and analysis
+# 2. Enable "Code scanning" (requires GitHub Advanced Security)
+#
+# If you see "Code scanning is not enabled" error, follow setup instructions in:
+# docs/code-analysis-tooling-guide.md#codeql-security-scanning
+#
 # See docs/code-analysis-tooling-research.md for tooling rationale.
 #
 name: 'CodeQL Security Analysis'

@@ -98,7 +98,7 @@ This document evaluates tooling options for:
 ### CodeQL (Recommended ✅)
 
 **Provider**: GitHub  
-**Cost**: Free for public and private repositories  
+**Cost**: Free for public repositories. Private repositories require GitHub Advanced Security (paid plan).  
 **Language Support**: JavaScript, TypeScript, Python, Java, C++, C#, Go, Ruby
 
 **Pros**:

@@ -4,6 +4,12 @@
 # See docs/code-analysis-tooling-research.md for rationale
 #
 # Documentation: https://docs.github.com/en/code-security/dependabot
+#
+# STRATEGY:
+# - Group minor/patch updates to reduce PR noise
+# - Separate major version updates for careful review
+# - Conservative GitHub Actions updates (patch only by default)
+# - Monthly schedule to avoid update fatigue
 
 version: 2
 updates:
@@ -11,13 +17,16 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly' # Changed from weekly to reduce noise
       day: 'monday'
       time: '06:00'
     # Limit open PRs to avoid noise
-    open-pull-requests-limit: 5
-    # Group minor and patch updates together
+    open-pull-requests-limit: 3 # Reduced from 5
+    # Increase version automatically only for patch updates
+    versioning-strategy: increase-if-necessary
+    # Group updates by type and severity
     groups:
+      # Group all dev dependencies (minor and patch only)
       dev-dependencies:
         patterns:
           - '@types/*'
@@ -26,12 +35,20 @@ updates:
           - 'eslint*'
           - 'prettier'
           - 'typescript*'
+          - 'tailwindcss'
+          - 'postcss'
+          - 'autoprefixer'
+          - 'vite'
+          - 'vitest'
+          - 'happy-dom'
         update-types:
           - 'minor'
           - 'patch'
+      # Group production dependencies (minor and patch only)
       production-dependencies:
         patterns:
-          - 'react*'
+          - 'react'
+          - 'react-dom'
           - 'howler'
         update-types:
           - 'minor'
@@ -40,24 +57,58 @@ updates:
     labels:
       - 'dependencies'
       - 'automated'
-    # Set reviewers (optional - update with your GitHub username)
-    # reviewers:
-    #   - "macamp0328"
+      - 'npm'
+    # Ignore major versions of critical packages that need manual review
+    ignore:
+      # React major versions need careful testing
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major']
+      # TypeScript major versions can have breaking changes
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      # ESLint ecosystem major versions need config changes
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'eslint-plugin-react-hooks'
+        update-types: ['version-update:semver-major']
     commit-message:
       prefix: 'chore(deps)'
       include: 'scope'
 
-  # Monitor GitHub Actions
+  # Monitor GitHub Actions (conservative approach)
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'monthly' # Changed from weekly
       day: 'monday'
       time: '06:00'
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2 # Reduced from 3
+    # Group all GitHub Actions updates together
+    groups:
+      github-actions:
+        patterns:
+          - 'actions/*'
+          - 'codecov/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+    # Only allow patch updates by default for critical actions
+    ignore:
+      # Major versions of checkout can have breaking changes
+      - dependency-name: 'actions/checkout'
+        update-types: ['version-update:semver-major']
+      # setup-node v6 caused issues - block major updates
+      - dependency-name: 'actions/setup-node'
+        update-types: ['version-update:semver-major']
+      # Codecov major versions may need config changes
+      - dependency-name: 'codecov/codecov-action'
+        update-types: ['version-update:semver-major']
     labels:
       - 'dependencies'
       - 'github-actions'
       - 'automated'
+      - 'ci'
     commit-message:
       prefix: 'chore(ci)'

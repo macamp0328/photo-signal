@@ -30,8 +30,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup Copilot documentation cache
-        uses: ./.github/actions/setup-copilot
+      # Temporarily disabled to debug GitHub agent timeouts (Nov 11, 2025)
+      # - name: Setup Copilot documentation cache
+      #   uses: ./.github/actions/setup-copilot
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

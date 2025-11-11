@@ -9,7 +9,7 @@ export default [
   { ignores: ['dist'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  reactHooks.configs['recommended-latest'],
+  reactHooks.configs.recommended,
   reactRefresh.configs.vite,
   prettier,
   {

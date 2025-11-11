@@ -71,8 +71,9 @@ updates:
       # ESLint ecosystem major versions need config changes
       - dependency-name: 'eslint'
         update-types: ['version-update:semver-major']
+      # eslint-plugin-react-hooks v7 caused issues - block v6 and above only
       - dependency-name: 'eslint-plugin-react-hooks'
-        update-types: ['version-update:semver-major']
+        versions: ['>=7.0.0']
     commit-message:
       prefix: 'chore(deps)'
       include: 'scope'
@@ -99,9 +100,9 @@ updates:
       # Major versions of checkout can have breaking changes
       - dependency-name: 'actions/checkout'
         update-types: ['version-update:semver-major']
-      # setup-node v6 caused issues - block major updates
+      # setup-node v6 caused issues - block v6 and above only
       - dependency-name: 'actions/setup-node'
-        update-types: ['version-update:semver-major']
+        versions: ['>=6.0.0']
       # Codecov major versions may need config changes
       - dependency-name: 'codecov/codecov-action'
         update-types: ['version-update:semver-major']

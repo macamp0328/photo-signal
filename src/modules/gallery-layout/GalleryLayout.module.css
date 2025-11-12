@@ -91,11 +91,15 @@
   flex-direction: column;
   gap: 1.5rem;
   min-height: 0;
+  min-width: 0;
 }
 
 .cameraSection {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .infoSection {

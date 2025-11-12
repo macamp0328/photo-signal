@@ -21,9 +21,7 @@ export function GalleryLayout({
     return (
       <div className={styles.landing}>
         <div className={styles.landingContent}>
-          <h1 className={styles.landingTitle}>
-            Photo Signal
-          </h1>
+          <h1 className={styles.landingTitle}>Photo Signal</h1>
           <p className={styles.landingSubtitle}>
             Point your camera at a photograph to hear its story
           </p>

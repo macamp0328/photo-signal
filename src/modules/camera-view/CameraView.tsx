@@ -47,13 +47,7 @@ export function CameraView({ stream, error, hasPermission, onRetry }: CameraView
   return (
     <div className={styles.container}>
       {/* Video feed */}
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className={styles.video}
-      />
+      <video ref={videoRef} autoPlay playsInline muted className={styles.video} />
 
       {/* 3:2 Aspect Ratio Overlay */}
       <div className={styles.overlay}>
@@ -72,9 +66,7 @@ export function CameraView({ stream, error, hasPermission, onRetry }: CameraView
 
       {/* Instructions */}
       <div className={styles.instructions}>
-        <p className={styles.instructionsText}>
-          Point camera at a photo to play music
-        </p>
+        <p className={styles.instructionsText}>Point camera at a photo to play music</p>
       </div>
     </div>
   );

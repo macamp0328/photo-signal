@@ -22,11 +22,11 @@ body {
   --color-sub-text: #44403c; /* stone-700 */
   --color-bonus-text: #3f3f46; /* zinc-700 */
   --color-sub-background: #cbd5e1; /* slate-300 */
-  
+
   /* Additional colors used in components */
   --color-gray-200: #e5e7eb;
   --color-gray-400: #9ca3af;
-  
+
   /* Texture settings */
   --texture-opacity: 0.3;
   --texture-blend-mode: multiply;

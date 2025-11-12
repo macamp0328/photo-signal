@@ -300,16 +300,16 @@ src/modules/audio-playback/
 
 ## Technology Choices
 
-| Layer      | Technology                   | Why                                                        |
-| ---------- | ---------------------------- | ---------------------------------------------------------- |
-| Language   | TypeScript                   | Type safety, AI-friendly contracts                         |
-| Framework  | React (minimal)              | Component reusability, could migrate to vanilla if needed  |
-| Build Tool | Vite                         | Fastest builds, instant HMR                                |
-| Styling    | CSS Modules                  | Scoped styles, type-safe, zero runtime overhead            |
-| Camera     | Native MediaDevices API      | Zero dependencies, maximum performance                     |
-| Audio      | Native Audio API / Howler.js | Lightweight, robust playback                               |
-| Data       | JSON → PostgreSQL            | Start simple, scale later                                  |
-| Hosting    | Vercel                       | Free tier, edge network, perfect for static sites          |
+| Layer      | Technology                   | Why                                                       |
+| ---------- | ---------------------------- | --------------------------------------------------------- |
+| Language   | TypeScript                   | Type safety, AI-friendly contracts                        |
+| Framework  | React (minimal)              | Component reusability, could migrate to vanilla if needed |
+| Build Tool | Vite                         | Fastest builds, instant HMR                               |
+| Styling    | CSS Modules                  | Scoped styles, type-safe, zero runtime overhead           |
+| Camera     | Native MediaDevices API      | Zero dependencies, maximum performance                    |
+| Audio      | Native Audio API / Howler.js | Lightweight, robust playback                              |
+| Data       | JSON → PostgreSQL            | Start simple, scale later                                 |
+| Hosting    | Vercel                       | Free tier, edge network, perfect for static sites         |
 
 ---
 

@@ -1,0 +1,155 @@
+/* Permission Denied State */
+.permissionDenied {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+}
+
+.permissionTitle {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.permissionError {
+  font-size: 0.875rem;
+  color: var(--color-gray-400);
+  margin-bottom: 1rem;
+}
+
+.retryButton {
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  color: #000;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+  background-color: var(--color-gray-200);
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+}
+
+/* Camera Active State */
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 3:2 Aspect Ratio Overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.overlayWrapper {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+}
+
+.overlayAspectRatio {
+  position: relative;
+  padding-bottom: 66.67%; /* 3:2 aspect ratio */
+}
+
+.overlayFrame {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Corner Markers */
+.cornerTopLeft {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2rem;
+  height: 2rem;
+  border-top: 4px solid #fff;
+  border-left: 4px solid #fff;
+}
+
+.cornerTopRight {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2rem;
+  height: 2rem;
+  border-top: 4px solid #fff;
+  border-right: 4px solid #fff;
+}
+
+.cornerBottomLeft {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 2rem;
+  height: 2rem;
+  border-bottom: 4px solid #fff;
+  border-left: 4px solid #fff;
+}
+
+.cornerBottomRight {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 2rem;
+  height: 2rem;
+  border-bottom: 4px solid #fff;
+  border-right: 4px solid #fff;
+}
+
+/* Instructions */
+.instructions {
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 0.875rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  pointer-events: none;
+}
+
+.instructionsText {
+  background-color: rgba(0, 0, 0, 0.5);
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+}

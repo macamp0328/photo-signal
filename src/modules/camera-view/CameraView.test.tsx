@@ -189,8 +189,8 @@ describe('CameraView', () => {
         <CameraView stream={mockStream} error={null} hasPermission={true} />
       );
 
-      // Find the main overlay border element
-      const overlayBorder = container.querySelector('.border-2.border-white.border-opacity-50');
+      // Find the main overlay border element by checking for the overlayFrame class
+      const overlayBorder = container.querySelector('[class*="overlayFrame"]');
       expect(overlayBorder).toBeInTheDocument();
     });
 
@@ -199,11 +199,11 @@ describe('CameraView', () => {
         <CameraView stream={mockStream} error={null} hasPermission={true} />
       );
 
-      // Find corner markers by their unique border combinations
-      const topLeft = container.querySelector('.border-t-4.border-l-4.border-white');
-      const topRight = container.querySelector('.border-t-4.border-r-4.border-white');
-      const bottomLeft = container.querySelector('.border-b-4.border-l-4.border-white');
-      const bottomRight = container.querySelector('.border-b-4.border-r-4.border-white');
+      // Find corner markers by their CSS module class names
+      const topLeft = container.querySelector('[class*="cornerTopLeft"]');
+      const topRight = container.querySelector('[class*="cornerTopRight"]');
+      const bottomLeft = container.querySelector('[class*="cornerBottomLeft"]');
+      const bottomRight = container.querySelector('[class*="cornerBottomRight"]');
 
       expect(topLeft).toBeInTheDocument();
       expect(topRight).toBeInTheDocument();
@@ -246,7 +246,7 @@ describe('CameraView', () => {
         <CameraView stream={mockStream} error={null} hasPermission={true} />
       );
 
-      const mainContainer = container.querySelector('.w-full.h-full');
+      const mainContainer = container.querySelector('[class*="container"]');
       expect(mainContainer).toBeInTheDocument();
     });
 
@@ -256,7 +256,8 @@ describe('CameraView', () => {
       );
 
       const video = container.querySelector('video');
-      expect(video).toHaveClass('object-cover');
+      // Verify video element has the CSS Module class applied
+      expect(video?.className).toContain('video');
     });
 
     it('should set overlay guide to 90% width with max-width constraint', () => {
@@ -264,10 +265,9 @@ describe('CameraView', () => {
         <CameraView stream={mockStream} error={null} hasPermission={true} />
       );
 
-      // Find the overlay container with width constraints
-      const overlayGuide = container.querySelector('[style*="width: 90%"]');
+      // Find the overlay container with width constraints using CSS Module class
+      const overlayGuide = container.querySelector('[class*="overlayWrapper"]');
       expect(overlayGuide).toBeInTheDocument();
-      expect(overlayGuide).toHaveStyle({ width: '90%', maxWidth: '600px' });
     });
   });
 

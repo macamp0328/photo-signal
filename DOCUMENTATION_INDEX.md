@@ -274,4 +274,4 @@ This index covers:
 
 **Total**: 88 documented files
 
-Last updated: 2025-11-10
+Last updated: 2025-11-12

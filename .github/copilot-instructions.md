@@ -16,7 +16,7 @@ When working on this project:
 
 Photo Signal is a camera-based gallery app that plays music when you point at a printed photo. It's designed as a quiet, in-home installation that uses computer vision to recognize photos and trigger corresponding audio playback.
 
-**Tech Stack**: React 19, TypeScript, Vite, Tailwind CSS, Howler.js
+**Tech Stack**: React 19, TypeScript, Vite, CSS Modules, Howler.js
 
 ## Architecture Principles
 
@@ -123,9 +123,12 @@ npm run build
 
 ### Styling
 
-- Use Tailwind CSS utility classes
-- Keep inline styles to minimum
+- Use CSS Modules for component-specific styles
+- Import styles: `import styles from './Component.module.css'`
+- Apply classes: `className={styles.className}`
+- Keep inline styles for dynamic/calculated values only
 - Mobile-first responsive design
+- Use CSS custom properties (variables) for theming
 
 ### Prettier Configuration
 
@@ -611,10 +614,10 @@ npm audit fix  # Auto-fix vulnerabilities if possible
 
 - **State Management**: React hooks (useState, useContext) - no Redux needed for MVP
 - **HTTP Client**: Native `fetch` API
-- **Animations**: CSS transitions/animations or Tailwind
+- **Animations**: CSS transitions/animations (CSS Modules)
 - **Testing**: Vitest + React Testing Library (when implemented)
 - **Audio**: Howler.js (already included)
-- **Styling**: Tailwind CSS (already configured)
+- **Styling**: CSS Modules (scoped, modular CSS)
 
 ---
 

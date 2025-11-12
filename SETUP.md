@@ -9,7 +9,7 @@ This project is now fully configured with a modern development workflow includin
 - **Vite** - Fast build tool and dev server
 - **React 19** - UI library
 - **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first CSS framework
+- **CSS Modules** - Scoped, modular CSS
 - **Howler.js** - Audio playback library
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
@@ -332,7 +332,7 @@ photo-signal/
 │   ├── App.tsx          # Main app component
 │   ├── main.tsx         # Entry point
 │   ├── types.ts         # TypeScript types
-│   └── index.css        # Global styles with Tailwind
+│   └── index.css        # Global styles and CSS reset
 ├── scripts/
 │   └── create-sample-audio.sh # Helper to create sample audio
 ├── eslint.config.js     # ESLint configuration (flat config format)
@@ -343,8 +343,6 @@ photo-signal/
 ├── tsconfig.json        # TypeScript configuration
 ├── tsconfig.app.json    # App TypeScript config
 ├── tsconfig.node.json   # Node TypeScript config
-├── postcss.config.js    # PostCSS configuration
-├── tailwind.config.js   # Tailwind CSS configuration
 └── vite.config.ts       # Vite configuration
 ├── .devcontainer/
 │   └── devcontainer.json       # DevContainer configuration

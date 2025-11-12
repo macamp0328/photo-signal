@@ -54,7 +54,7 @@ Everything runs in the browser. No backend needed.
 - **Vite** - Fast build tool and dev server
 - **React** - UI library
 - **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first CSS framework
+- **CSS Modules** - Scoped, modular CSS
 - **Howler.js** - Audio playback library
 
 ---
@@ -224,10 +224,9 @@ photo-signal/
 │   ├── App.tsx          # Main app component
 │   ├── main.tsx         # Entry point
 │   ├── types.ts         # TypeScript types
-│   └── index.css        # Global styles with Tailwind
+│   └── index.css        # Global styles and CSS reset
 ├── index.html           # HTML entry point
 ├── vite.config.ts       # Vite configuration
-├── tailwind.config.js   # Tailwind configuration
 ├── tsconfig.json        # TypeScript configuration
 ├── package.json         # Dependencies and scripts
 └── ASSET_LICENSES.md    # Licensing info for test assets

@@ -1,0 +1,138 @@
+/* Landing/Initial View */
+.landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.landingContent {
+  max-width: 42rem;
+}
+
+.landingTitle {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-main-text);
+  margin-bottom: 1.5rem;
+  line-height: 1.25;
+}
+
+.landingSubtitle {
+  font-size: 1.25rem;
+  color: var(--color-sub-text);
+  margin-bottom: 2rem;
+  line-height: 1.625;
+}
+
+.landingDescription {
+  font-size: 1rem;
+  color: var(--color-bonus-text);
+  margin-bottom: 3rem;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.beginButton {
+  padding: 1rem 2rem;
+  background-color: var(--color-main-text);
+  color: #fff;
+  font-size: 1.125rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.beginButton:hover {
+  background-color: var(--color-sub-text);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+/* Active Gallery View with Camera */
+.active {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1rem;
+  gap: 1.5rem;
+}
+
+.header {
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-main-text);
+}
+
+.headerSubtitle {
+  font-size: 0.875rem;
+  color: var(--color-sub-text);
+  margin-top: 0.25rem;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 0;
+}
+
+.cameraSection {
+  flex: 1;
+  min-height: 0;
+}
+
+.infoSection {
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .landingTitle {
+    font-size: 3.75rem;
+  }
+
+  .landingSubtitle {
+    font-size: 1.5rem;
+  }
+
+  .landingDescription {
+    font-size: 1.125rem;
+  }
+
+  .active {
+    padding: 2rem;
+  }
+
+  .headerTitle {
+    font-size: 1.875rem;
+  }
+
+  .headerSubtitle {
+    font-size: 1rem;
+  }
+
+  .content {
+    flex-direction: row;
+  }
+
+  .infoSection {
+    width: 20rem;
+  }
+}

@@ -92,8 +92,10 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Styling
 
-- **[tailwind.config.js](./tailwind.config.js)** - Tailwind CSS configuration
-- **[postcss.config.js](./postcss.config.js)** - PostCSS configuration
+- **[src/index.css](./src/index.css)** - Global styles and CSS reset with custom color variables
+- **[src/modules/camera-view/CameraView.module.css](./src/modules/camera-view/CameraView.module.css)** - CSS Module for CameraView component
+- **[src/modules/gallery-layout/GalleryLayout.module.css](./src/modules/gallery-layout/GalleryLayout.module.css)** - CSS Module for GalleryLayout component
+- **[src/modules/concert-info/InfoDisplay.module.css](./src/modules/concert-info/InfoDisplay.module.css)** - CSS Module for InfoDisplay component
 
 ---
 

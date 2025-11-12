@@ -83,4 +83,4 @@ function App() {
 ## Dependencies
 
 - `camera-access` types
-- Tailwind CSS
+- CSS Modules (`CameraView.module.css`)

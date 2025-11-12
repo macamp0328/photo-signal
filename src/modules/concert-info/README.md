@@ -41,12 +41,12 @@ Display concert metadata overlay.
 
 ## Styling
 
-Uses Tailwind CSS for:
+Uses CSS Modules for:
 
 - Responsive layout
 - Smooth transitions
-- Gradient backgrounds
-- Dark overlay for readability
+- Card-style design with borders
+- Custom color palette via CSS variables
 
 **Performance**: CSS transitions (GPU-accelerated)
 
@@ -103,5 +103,6 @@ function App() {
 
 ## Dependencies
 
-- Tailwind CSS
+- CSS Modules (`InfoDisplay.module.css`)
+- Custom CSS variables in `src/index.css` for color palette
 - `types` module (Concert interface)

@@ -118,6 +118,12 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 - **[.github/ISSUE_TEMPLATE/firewall-gh-io-access.md](./.github/ISSUE_TEMPLATE/firewall-gh-io-access.md)** - Template for firewall configuration issue to allow Copilot agent access to gh.io domain
 
+### Custom Agents
+
+- **[.github/agents/implementation-planner.md](./.github/agents/implementation-planner.md)** - Technical planning specialist that creates detailed implementation plans and technical specifications
+- **[.github/agents/bug-fix-teammate.md](./.github/agents/bug-fix-teammate.md)** - Bug-fixing specialist that identifies critical bugs and implements targeted fixes
+- **[.github/agents/cleanup-specialist.md](./.github/agents/cleanup-specialist.md)** - Code cleanup specialist that improves code quality, removes duplication, and enhances maintainability
+
 ### Issue Templates (Milestone-based)
 
 **Milestone 1: Testing Infrastructure**
@@ -256,6 +262,7 @@ This index covers:
 - ✅ GitHub Actions & workflows (3 files - CI workflow, PR checks monitor, and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
+- ✅ GitHub Copilot custom agents (3 files - implementation planner, bug fix teammate, cleanup specialist)
 - ✅ Issue templates (17 files - includes template guide and firewall access template)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
@@ -264,6 +271,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 84 documented files
+**Total**: 87 documented files
 
 Last updated: 2025-11-10

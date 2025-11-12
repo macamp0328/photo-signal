@@ -417,6 +417,10 @@ vercel --prod
 2. **Architecture**: Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
 3. **Setup Issues**: See [SETUP.md](./SETUP.md) troubleshooting section
 4. **Module Contracts**: Read module READMEs for API details
+5. **Custom Agents**: Use GitHub Copilot custom agents for specialized tasks:
+   - **[implementation-planner](./.github/agents/implementation-planner.md)** - Creates detailed implementation plans and technical specifications
+   - **[bug-fix-teammate](./.github/agents/bug-fix-teammate.md)** - Identifies and fixes critical bugs with targeted code changes
+   - **[cleanup-specialist](./.github/agents/cleanup-specialist.md)** - Improves code quality and maintainability through cleanup and refactoring
 
 ### Asking Questions
 

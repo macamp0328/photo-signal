@@ -105,6 +105,8 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
 - **[.github/workflows/pr-checks-monitor.yml](./.github/workflows/pr-checks-monitor.yml)** - Automated PR monitoring workflow that comments on PRs with failing checks and enforces AI agent compliance
+- **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels (ci-failing, needs-fixes)
+- **[.github/workflows/close-stale-failing-prs.yml](./.github/workflows/close-stale-failing-prs.yml)** - Automated workflow to close PRs with failing checks after 7 days (enforces AI agent policy)
 
 ### Actions
 
@@ -262,7 +264,7 @@ This index covers:
 - ✅ Module READMEs (7 files)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
-- ✅ GitHub Actions & workflows (3 files - CI workflow, PR checks monitor, and Dependabot config)
+- ✅ GitHub Actions & workflows (5 files - CI workflow, PR checks monitor, label management, stale PR closure, and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
@@ -274,6 +276,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (4 files)
 
-**Total**: 88 documented files
+**Total**: 90 documented files
 
 Last updated: 2025-11-12

@@ -97,7 +97,8 @@ The modular architecture supports future AR features:
 ## Dependencies
 
 - React 19+
-- Tailwind CSS (with custom color palette)
+- CSS Modules (`GalleryLayout.module.css`)
+- Custom CSS variables in `src/index.css` for color palette
 - No external UI libraries
 
 ## Related Modules

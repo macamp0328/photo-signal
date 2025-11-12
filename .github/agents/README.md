@@ -40,9 +40,8 @@ Each agent is defined in a markdown file with YAML frontmatter:
 ---
 name: agent-name
 description: Brief description of the agent
-tools: ["read", "search", "edit"]
+tools: ['read', 'search', 'edit']
 ---
-
 Agent instructions and behavioral guidelines...
 ```
 

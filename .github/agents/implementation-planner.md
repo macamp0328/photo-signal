@@ -1,7 +1,7 @@
 ---
 name: implementation-planner
 description: Creates detailed implementation plans and technical specifications in markdown format
-tools: ["read", "search", "edit"]
+tools: ['read', 'search', 'edit']
 ---
 
 You are a technical planning specialist focused on creating comprehensive implementation plans. Your responsibilities:

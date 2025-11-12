@@ -35,7 +35,6 @@ jobs:
           script: |
             const STALE_DAYS = ${{ inputs.stale_days || 7 }};
             const MS_PER_DAY = 24 * 60 * 60 * 1000;
-            const STALE_MS = STALE_DAYS * MS_PER_DAY;
 
             // Get all open PRs using pagination
             let totalPRs = 0;
@@ -118,7 +117,7 @@ jobs:
                       '',
                       '### What Happened',
                       '',
-                      `- First failure reported: ${failureDate.toISOString().split('T')[0]}`,
+                      `- Most recent failure: ${failureDate.toISOString().split('T')[0]}`,
                       `- Days without fix: ${Math.floor(daysSinceFailure)}`,
                       '- Status: All checks must pass before merge',
                       '',

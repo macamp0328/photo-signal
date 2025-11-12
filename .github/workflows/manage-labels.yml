@@ -87,7 +87,7 @@ jobs:
                     continue;
                   }
                 } else {
-                  console.error(`❌ Error getting label ${labelData.name}:`, error);
+                  console.error(`❌ Error checking label ${labelData.name}:`, error);
                   // Continue with next label instead of crashing
                   continue;
                 }

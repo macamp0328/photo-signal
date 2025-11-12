@@ -12,7 +12,13 @@ on:
   schedule:
     # Run daily at 00:00 UTC
     - cron: '0 0 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      stale_days:
+        description: 'Number of days before closing stale failing PRs'
+        required: false
+        default: '7'
+        type: number
 
 permissions:
   pull-requests: write
@@ -27,139 +33,146 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const STALE_DAYS = 7;
+            const STALE_DAYS = ${{ inputs.stale_days || 7 }};
             const MS_PER_DAY = 24 * 60 * 60 * 1000;
             const STALE_MS = STALE_DAYS * MS_PER_DAY;
 
-            // Get all open PRs with ci-failing label
-            const { data: prs } = await github.rest.pulls.list({
+            // Get all open PRs using pagination
+            let totalPRs = 0;
+            for await (const { data: prs } of github.paginate.iterator(github.rest.pulls.list, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
               per_page: 100
-            });
+            })) {
+              totalPRs += prs.length;
+              
+              for (const pr of prs) {
+                try {
+                  // Check if PR has ci-failing label
+                  const hasFailingLabel = pr.labels.some(label => 
+                    label.name === 'ci-failing'
+                  );
 
-            console.log(`Found ${prs.length} open PRs`);
+                  if (!hasFailingLabel) {
+                    continue;
+                  }
 
-            for (const pr of prs) {
-              // Check if PR has ci-failing label
-              const hasFailingLabel = pr.labels.some(label => 
-                label.name === 'ci-failing'
-              );
+                  console.log(`\nChecking PR #${pr.number}: ${pr.title}`);
 
-              if (!hasFailingLabel) {
-                continue;
-              }
+                  // Get all PR comments using pagination
+                  const comments = await github.paginate(github.rest.issues.listComments, {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number
+                  });
 
-              console.log(`\nChecking PR #${pr.number}: ${pr.title}`);
+                  // Find all ci-failure comments
+                  const failureComments = comments.filter(comment =>
+                    comment.body.includes('ci-failure-')
+                  );
 
-              // Get PR comments to find when ci-failing was first reported
-              const { data: comments } = await github.rest.issues.listComments({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number
-              });
+                  if (failureComments.length === 0) {
+                    console.log(`  No failure comments found, skipping`);
+                    continue;
+                  }
 
-              // Find the oldest ci-failure comment
-              const failureComments = comments.filter(comment =>
-                comment.body.includes('ci-failure-')
-              );
+                  // Get the most recent failure comment date
+                  const mostRecentFailure = failureComments.sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
+                  )[0];
 
-              if (failureComments.length === 0) {
-                console.log(`  No failure comments found, skipping`);
-                continue;
-              }
+                  const failureDate = new Date(mostRecentFailure.created_at);
+                  const now = new Date();
+                  const daysSinceFailure = (now - failureDate) / MS_PER_DAY;
 
-              // Get the oldest failure comment date
-              const oldestFailure = failureComments.sort((a, b) => 
-                new Date(a.created_at) - new Date(b.created_at)
-              )[0];
+                  console.log(`  Failure most recently reported: ${failureDate.toISOString()}`);
+                  console.log(`  Days since most recent failure: ${daysSinceFailure.toFixed(1)}`);
 
-              const failureDate = new Date(oldestFailure.created_at);
-              const now = new Date();
-              const daysSinceFailure = (now - failureDate) / MS_PER_DAY;
+                  // Check if there's a success comment after the most recent failure
+                  const successComments = comments.filter(comment =>
+                    comment.body.includes('All Checks Passing') &&
+                    new Date(comment.created_at) > failureDate
+                  );
 
-              console.log(`  Failure first reported: ${failureDate.toISOString()}`);
-              console.log(`  Days since first failure: ${daysSinceFailure.toFixed(1)}`);
+                  if (successComments.length > 0) {
+                    console.log(`  PR has been fixed (found success comment after most recent failure), skipping`);
+                    continue;
+                  }
 
-              // Check if there's a success comment after the failure
-              const successComments = comments.filter(comment =>
-                comment.body.includes('All Checks Passing') &&
-                new Date(comment.created_at) > failureDate
-              );
+                  // Check if PR is stale (>7 days with failing checks)
+                  if (daysSinceFailure >= STALE_DAYS) {
+                    console.log(`  ⚠️ PR is stale (${daysSinceFailure.toFixed(1)} days), closing...`);
 
-              if (successComments.length > 0) {
-                console.log(`  PR has been fixed (found success comment), skipping`);
-                continue;
-              }
+                    // Post closing comment
+                    const closingMessage = [
+                      '## 🚫 PR Closed - Failing Checks Not Resolved',
+                      '',
+                      `This PR has had failing GitHub Actions checks for **${Math.floor(daysSinceFailure)} days** without resolution.`,
+                      '',
+                      '### Policy Enforcement',
+                      '',
+                      'As per [CONTRIBUTING.md](/CONTRIBUTING.md#ai-agent-pr-policy):',
+                      '',
+                      '> PRs with failing checks must be fixed within 7 days or the PR may be closed.',
+                      '',
+                      '### What Happened',
+                      '',
+                      `- First failure reported: ${failureDate.toISOString().split('T')[0]}`,
+                      `- Days without fix: ${Math.floor(daysSinceFailure)}`,
+                      '- Status: All checks must pass before merge',
+                      '',
+                      '### Next Steps',
+                      '',
+                      'If you still want to pursue this change:',
+                      '',
+                      '1. Fix all failing checks locally',
+                      '2. Ensure all quality gates pass:',
+                      '   ```bash',
+                      '   npm run lint:fix',
+                      '   npm run format',
+                      '   npm run type-check',
+                      '   npm run build',
+                      '   npm run test:run',
+                      '   ```',
+                      '3. Open a new PR with working code',
+                      '',
+                      '### Resources',
+                      '',
+                      '- [CONTRIBUTING.md](/CONTRIBUTING.md) - Complete contribution guidelines',
+                      '- [SETUP.md](/SETUP.md) - Development environment setup',
+                      '- [AI_AGENT_GUIDE.md](/AI_AGENT_GUIDE.md) - AI agent collaboration guide',
+                      '',
+                      '---',
+                      '',
+                      '**Note**: This is an automated action enforcing quality standards. We welcome contributions that meet our quality gates!'
+                    ].join('\n');
 
-              // Check if PR is stale (>7 days with failing checks)
-              if (daysSinceFailure >= STALE_DAYS) {
-                console.log(`  ⚠️ PR is stale (${daysSinceFailure.toFixed(1)} days), closing...`);
+                    await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: pr.number,
+                      body: closingMessage
+                    });
 
-                // Post closing comment
-                const closingMessage = [
-                  '## 🚫 PR Closed - Failing Checks Not Resolved',
-                  '',
-                  `This PR has had failing GitHub Actions checks for **${Math.floor(daysSinceFailure)} days** without resolution.`,
-                  '',
-                  '### Policy Enforcement',
-                  '',
-                  'As per [CONTRIBUTING.md](../CONTRIBUTING.md#ai-agent-pr-policy):',
-                  '',
-                  '> PRs with failing checks must be fixed within 7 days or the PR may be closed.',
-                  '',
-                  '### What Happened',
-                  '',
-                  `- First failure reported: ${failureDate.toISOString().split('T')[0]}`,
-                  `- Days without fix: ${Math.floor(daysSinceFailure)}`,
-                  '- Status: All checks must pass before merge',
-                  '',
-                  '### Next Steps',
-                  '',
-                  'If you still want to pursue this change:',
-                  '',
-                  '1. Fix all failing checks locally',
-                  '2. Ensure all quality gates pass:',
-                  '   ```bash',
-                  '   npm run lint:fix',
-                  '   npm run format',
-                  '   npm run type-check',
-                  '   npm run build',
-                  '   npm run test:run',
-                  '   ```',
-                  '3. Open a new PR with working code',
-                  '',
-                  '### Resources',
-                  '',
-                  '- [CONTRIBUTING.md](../CONTRIBUTING.md) - Complete contribution guidelines',
-                  '- [SETUP.md](../SETUP.md) - Development environment setup',
-                  '- [AI_AGENT_GUIDE.md](../AI_AGENT_GUIDE.md) - AI agent collaboration guide',
-                  '',
-                  '---',
-                  '',
-                  '**Note**: This is an automated action enforcing quality standards. We welcome contributions that meet our quality gates!'
-                ].join('\n');
+                    // Close the PR
+                    await github.rest.pulls.update({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      pull_number: pr.number,
+                      state: 'closed'
+                    });
 
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: pr.number,
-                  body: closingMessage
-                });
-
-                // Close the PR
-                await github.rest.pulls.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: pr.number,
-                  state: 'closed'
-                });
-
-                console.log(`  ✅ Closed PR #${pr.number}`);
-              } else {
-                console.log(`  Not yet stale (${daysSinceFailure.toFixed(1)} days), keeping open`);
+                    console.log(`  ✅ Closed PR #${pr.number}`);
+                  } else {
+                    console.log(`  Not yet stale (${daysSinceFailure.toFixed(1)} days), keeping open`);
+                  }
+                } catch (error) {
+                  console.error(`Error processing PR #${pr.number}:`, error);
+                  // Continue with next PR instead of crashing
+                  continue;
+                }
               }
             }
 
-            console.log('\n✅ Stale PR check complete');
+            console.log(`\n✅ Stale PR check complete. Checked ${totalPRs} total open PRs.`);

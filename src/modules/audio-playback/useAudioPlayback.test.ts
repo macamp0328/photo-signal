@@ -65,7 +65,6 @@ vi.mock('howler', () => {
         return this;
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       this.fade = vi.fn((_from: number, to: number, _duration: number) => {
         this._volume = to;
         return this;

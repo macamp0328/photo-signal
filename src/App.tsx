@@ -16,11 +16,21 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
+import { SecretMenu, useTripleTap } from './modules/secret-menu';
 import './index.css';
 
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
+
+  // State for secret menu
+  const [secretMenuOpen, setSecretMenuOpen] = useState(false);
+
+  // Module: Secret Menu (triple-tap detection)
+  const { onInteraction } = useTripleTap(() => {
+    setSecretMenuOpen(true);
+    console.log('Secret menu activated via triple-tap!');
+  });
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({
@@ -82,12 +92,17 @@ function App() {
   );
 
   return (
-    <GalleryLayout
-      isActive={isActive}
-      cameraView={cameraView}
-      infoDisplay={infoDisplay}
-      onActivate={handleActivate}
-    />
+    <div onClick={onInteraction} onTouchEnd={onInteraction}>
+      <GalleryLayout
+        isActive={isActive}
+        cameraView={cameraView}
+        infoDisplay={infoDisplay}
+        onActivate={handleActivate}
+      />
+
+      {/* Secret Menu - activated by triple-tap */}
+      <SecretMenu isOpen={secretMenuOpen} onClose={() => setSecretMenuOpen(false)} />
+    </div>
   );
 }
 

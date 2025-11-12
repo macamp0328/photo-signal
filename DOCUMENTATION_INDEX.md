@@ -53,6 +53,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
+- **[secret-menu/README.md](./src/modules/secret-menu/README.md)** - Hidden menu activated by triple-tap for feature flags and custom settings
 
 ### Services (`src/services/`)
 
@@ -250,7 +251,7 @@ This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
 - ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
-- ✅ Module READMEs (7 files)
+- ✅ Module READMEs (8 files - added secret-menu)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (3 files - CI workflow, PR checks monitor, and Dependabot config)
@@ -262,8 +263,8 @@ This index covers:
 - ✅ Helper scripts (8 files including README and bundle size checker)
 - ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
-- ✅ Module tests (4 files)
+- ✅ Module tests (6 files - added secret-menu tests)
 
-**Total**: 84 documented files
+**Total**: 88 documented files
 
-Last updated: 2025-11-10
+Last updated: 2025-11-12

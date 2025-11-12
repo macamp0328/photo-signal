@@ -216,8 +216,8 @@ describe('CameraView', () => {
         <CameraView stream={mockStream} error={null} hasPermission={true} />
       );
 
-      // The 3:2 aspect ratio is maintained via padding-bottom: 66.67% (2/3 = 0.6667)
-      const aspectRatioContainer = container.querySelector('[style*="66.67%"]');
+      // The 3:2 aspect ratio is maintained via padding-bottom: 66.67% in CSS Module
+      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio"]');
       expect(aspectRatioContainer).toBeInTheDocument();
     });
 

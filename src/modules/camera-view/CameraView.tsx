@@ -58,7 +58,7 @@ export function CameraView({ stream, error, hasPermission, onRetry }: CameraView
       {/* 3:2 Aspect Ratio Overlay */}
       <div className={styles.overlay}>
         <div className={styles.overlayWrapper}>
-          <div style={{ paddingBottom: '66.67%' }} className={styles.overlayAspectRatio}>
+          <div className={styles.overlayAspectRatio}>
             <div className={styles.overlayFrame}>
               {/* Corner markers */}
               <div className={styles.cornerTopLeft} />

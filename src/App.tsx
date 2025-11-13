@@ -17,6 +17,8 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import { useTripleTap, SecretSettings } from './modules/secret-settings';
+import { useFeatureFlags } from './contexts';
+import { dataService } from './services/data-service';
 import './index.css';
 
 function App() {
@@ -25,6 +27,14 @@ function App() {
 
   // State for secret settings menu
   const [showSecretSettings, setShowSecretSettings] = useState(false);
+
+  // Get feature flags
+  const { isTestMode } = useFeatureFlags();
+
+  // Sync data service with test mode state
+  useEffect(() => {
+    dataService.setTestMode(isTestMode);
+  }, [isTestMode]);
 
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({

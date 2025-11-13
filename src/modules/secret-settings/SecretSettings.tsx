@@ -1,17 +1,19 @@
 /**
  * Secret Settings Module - Settings Page Component
  *
- * A modal/page that displays placeholder sections for feature flags
- * and custom settings. This is scaffolding for future implementation.
+ * A modal/page that displays feature flags and custom settings.
+ * Includes test data mode toggle for development and testing.
  */
 
 import type { SecretSettingsProps } from './types';
+import { useFeatureFlags } from '../../contexts';
+import { dataService } from '../../services/data-service';
 import styles from './SecretSettings.module.css';
 
 /**
  * Secret Settings Page Component
  *
- * Displays a modal with placeholder sections for:
+ * Displays a modal with sections for:
  * - Feature flags (experimental features on/off)
  * - Custom settings (adjustable parameters)
  *
@@ -27,6 +29,14 @@ import styles from './SecretSettings.module.css';
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
+  const { isTestMode, setTestMode } = useFeatureFlags();
+
+  const handleTestModeToggle = () => {
+    const newMode = !isTestMode;
+    setTestMode(newMode);
+    dataService.setTestMode(newMode);
+  };
+
   if (!isVisible) {
     return null;
   }
@@ -60,20 +70,40 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
               This hidden menu is activated by triple-tapping in the center of the screen. It's
               designed to hold feature flags and custom settings for advanced users and developers.
             </p>
+            <p className={styles.intro}>
+              <span
+                className={`${styles.modeBadge} ${isTestMode ? styles.modeBadgeTest : styles.modeBadgeProduction}`}
+              >
+                {isTestMode ? '🧪 Test Mode' : '🎯 Production Mode'}
+              </span>
+            </p>
           </div>
 
           {/* Feature Flags Section */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
             <p className={styles.sectionDescription}>
-              Toggle experimental features on or off. Feature flags will be added here in future
-              updates.
+              Toggle experimental features on or off.
             </p>
-            <div className={styles.placeholder}>
-              <p className={styles.placeholderText}>No feature flags configured yet.</p>
-              <p className={styles.placeholderHint}>
-                See the module README for instructions on adding feature flags.
-              </p>
+
+            {/* Test Data Mode Toggle */}
+            <div className={styles.featureFlagItem}>
+              <div className={styles.featureFlagInfo}>
+                <h3 className={styles.featureFlagName}>Test Data Mode</h3>
+                <p className={styles.featureFlagDescription}>
+                  Use test data from <code>assets/test-*</code> directories instead of production
+                  data. Perfect for testing with mobile devices using the provided test images.
+                </p>
+              </div>
+              <label className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={isTestMode}
+                  onChange={handleTestModeToggle}
+                  aria-label="Toggle test data mode"
+                />
+                <span className={styles.slider}></span>
+              </label>
             </div>
           </section>
 

@@ -201,6 +201,71 @@ But you shouldn't need this - the new architecture is tested and working! ✅
 
 ---
 
+## Feature Flag System Consolidation (November 2025)
+
+### What Changed
+
+The duplicate feature flag systems have been consolidated into a single source of truth.
+
+**Before:**
+- ❌ Two systems: `FeatureFlagContext` (old) + `secret-settings/useFeatureFlags` (new)
+- ❌ Two storage keys: `photo-signal:feature-flags` + `photo-signal-feature-flags`
+- ❌ Complex syncing with custom events
+- ❌ Confusing for developers
+
+**After:**
+- ✅ One system: `secret-settings/useFeatureFlags`
+- ✅ One storage key: `photo-signal-feature-flags`
+- ✅ No syncing needed
+- ✅ Clear, consistent API
+
+### Migration Guide
+
+**Old API:**
+```tsx
+import { useFeatureFlags } from './contexts';
+
+const { isTestMode, isGrayscaleMode } = useFeatureFlags();
+```
+
+**New API:**
+```tsx
+import { useFeatureFlags } from './modules/secret-settings';
+
+const { isEnabled } = useFeatureFlags();
+
+// Check if flags are enabled
+if (isEnabled('test-mode')) { /* ... */ }
+if (isEnabled('grayscale-mode')) { /* ... */ }
+```
+
+**All 4 feature flags:**
+1. `test-mode` - Use test data instead of production
+2. `grayscale-mode` - Convert camera frames to B&W
+3. `psychedelic-mode` - Enable psychedelic visual effects
+4. `retro-sounds` - Play retro system sounds
+
+### Files Removed
+
+- ✅ `src/contexts/FeatureFlagContext.tsx` - Replaced by secret-settings module
+
+### Files Updated
+
+- ✅ `src/modules/photo-recognition/usePhotoRecognition.ts` - Now imports from secret-settings
+- ✅ `src/main.tsx` - Removed FeatureFlagProvider wrapper (no longer needed)
+- ✅ `src/App.test.tsx` - Removed FeatureFlagProvider wrapper
+- ✅ `src/contexts/index.ts` - Now re-exports from secret-settings
+
+### Benefits
+
+1. **Single Source of Truth** - Feature flags defined in one place
+2. **Better UI** - Secret Settings menu already exists and works great
+3. **Easier Maintenance** - Add flags in one config file
+4. **More Extensible** - Categories, descriptions, reset functionality
+5. **No Context Needed** - Direct hook usage, no provider wrapper
+
+---
+
 ## Questions?
 
 See:

@@ -17,7 +17,7 @@
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, module structure, data flow, and design principles
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
-- **[MIGRATION.md](./MIGRATION.md)** - Migration notes from old monolithic to new modular architecture
+- **[MIGRATION.md](./MIGRATION.md)** - Migration notes from old monolithic to new modular architecture, and feature flag system consolidation (November 2025)
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 
 ### Project Planning & Roadmap
@@ -70,6 +70,12 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Services (`src/services/`)
 
 - **[data-service/README.md](./src/services/data-service/README.md)** - Concert data loading and caching
+
+### Deprecated (`src/contexts/`)
+
+> **⚠️ DEPRECATED**: The contexts directory is deprecated. Use `secret-settings` module instead.
+
+- **[contexts/FeatureFlagContext.tsx](./src/contexts/FeatureFlagContext.tsx)** - ❌ Deprecated - now just re-exports from secret-settings module (see MIGRATION.md)
 
 ---
 

@@ -28,11 +28,16 @@ import styles from './SecretSettings.module.css';
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const { isTestMode, setTestMode } = useFeatureFlags();
+  const { isTestMode, setTestMode, isGrayscaleMode, setGrayscaleMode } = useFeatureFlags();
 
   const handleTestModeToggle = () => {
     const newMode = !isTestMode;
     setTestMode(newMode);
+  };
+
+  const handleGrayscaleModeToggle = () => {
+    const newMode = !isGrayscaleMode;
+    setGrayscaleMode(newMode);
   };
 
   if (!isVisible) {
@@ -97,6 +102,27 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                   checked={isTestMode}
                   onChange={handleTestModeToggle}
                   aria-label="Toggle test data mode"
+                />
+                <span className={styles.slider}></span>
+              </label>
+            </div>
+
+            {/* Grayscale Conversion Toggle */}
+            <div className={styles.featureFlagItem}>
+              <div className={styles.featureFlagInfo}>
+                <h3 className={styles.featureFlagName}>Grayscale Conversion</h3>
+                <p className={styles.featureFlagDescription}>
+                  Convert camera frames to black and white before photo recognition. May improve
+                  accuracy since printed reference photos are monochrome, and can reduce noise in
+                  low-light conditions.
+                </p>
+              </div>
+              <label className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={isGrayscaleMode}
+                  onChange={handleGrayscaleModeToggle}
+                  aria-label="Toggle grayscale conversion mode"
                 />
                 <span className={styles.slider}></span>
               </label>

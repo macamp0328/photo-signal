@@ -3,7 +3,13 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { resizeImageData, toGrayscale, binaryToHex, hexToBinary } from '../utils';
+import {
+  resizeImageData,
+  toGrayscale,
+  binaryToHex,
+  hexToBinary,
+  convertToGrayscale,
+} from '../utils';
 
 describe('Image Processing Utilities', () => {
   describe('resizeImageData', () => {
@@ -269,6 +275,113 @@ describe('Image Processing Utilities', () => {
       const hex = binaryToHex(binary);
 
       expect(hex).toBe(original);
+    });
+  });
+
+  describe('convertToGrayscale', () => {
+    it('should convert color image to grayscale in-place', () => {
+      // Create a test image with a red pixel
+      const data = new Uint8ClampedArray([
+        255,
+        0,
+        0,
+        255, // Red pixel (R=255, G=0, B=0, A=255)
+      ]);
+      const imageData = new ImageData(data, 1, 1);
+
+      // Import the function dynamically to test it
+
+      // Convert to grayscale
+      const result = convertToGrayscale(imageData);
+
+      // Should modify in-place and return same object
+      expect(result).toBe(imageData);
+
+      // Calculate expected gray value using ITU-R BT.601 formula
+      // gray = 0.299 * R + 0.587 * G + 0.114 * B
+      // gray = 0.299 * 255 + 0.587 * 0 + 0.114 * 0 = 76.245 ≈ 76
+      const expectedGray = Math.floor(0.299 * 255 + 0.587 * 0 + 0.114 * 0);
+
+      expect(imageData.data[0]).toBe(expectedGray); // R channel
+      expect(imageData.data[1]).toBe(expectedGray); // G channel
+      expect(imageData.data[2]).toBe(expectedGray); // B channel
+      expect(imageData.data[3]).toBe(255); // Alpha unchanged
+    });
+
+    it('should preserve alpha channel', () => {
+      // Create a test image with semi-transparent pixel
+      const data = new Uint8ClampedArray([
+        100,
+        150,
+        200,
+        128, // Semi-transparent blue-ish pixel
+      ]);
+      const imageData = new ImageData(data, 1, 1);
+
+      convertToGrayscale(imageData);
+
+      // Alpha should remain unchanged
+      expect(imageData.data[3]).toBe(128);
+    });
+
+    it('should handle multiple pixels correctly', () => {
+      // Create a 2x2 image with different colors
+      const data = new Uint8ClampedArray([
+        255,
+        0,
+        0,
+        255, // Red
+        0,
+        255,
+        0,
+        255, // Green
+        0,
+        0,
+        255,
+        255, // Blue
+        255,
+        255,
+        255,
+        255, // White
+      ]);
+      const imageData = new ImageData(data, 2, 2);
+
+      convertToGrayscale(imageData);
+
+      // Each pixel should have R=G=B
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        expect(imageData.data[i]).toBe(imageData.data[i + 1]); // R === G
+        expect(imageData.data[i + 1]).toBe(imageData.data[i + 2]); // G === B
+        expect(imageData.data[i + 3]).toBe(255); // Alpha preserved
+      }
+    });
+
+    it('should handle already grayscale image correctly', () => {
+      // Create an already grayscale image
+      const gray = 128;
+      const data = new Uint8ClampedArray([gray, gray, gray, 255]);
+      const imageData = new ImageData(data, 1, 1);
+
+      convertToGrayscale(imageData);
+
+      // The formula is applied: 0.299*128 + 0.587*128 + 0.114*128 = 127.872 ≈ 127
+      // So the value will be very close but may have slight rounding
+      const expectedGray = Math.floor(0.299 * gray + 0.587 * gray + 0.114 * gray);
+
+      expect(imageData.data[0]).toBe(expectedGray);
+      expect(imageData.data[1]).toBe(expectedGray);
+      expect(imageData.data[2]).toBe(expectedGray);
+      expect(imageData.data[3]).toBe(255);
+    });
+
+    it('should return the same ImageData object for chaining', () => {
+      const data = new Uint8ClampedArray([100, 100, 100, 255]);
+      const imageData = new ImageData(data, 1, 1);
+
+      const result = convertToGrayscale(imageData);
+
+      // Should return same object reference
+      expect(result).toBe(imageData);
     });
   });
 });

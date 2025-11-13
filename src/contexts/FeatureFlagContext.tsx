@@ -17,6 +17,16 @@ interface FeatureFlagContextType {
    * Toggle test data mode on/off
    */
   setTestMode: (enabled: boolean) => void;
+
+  /**
+   * Whether grayscale conversion is enabled for photo recognition
+   */
+  isGrayscaleMode: boolean;
+
+  /**
+   * Toggle grayscale conversion on/off
+   */
+  setGrayscaleMode: (enabled: boolean) => void;
 }
 
 const FeatureFlagContext = createContext<FeatureFlagContextType | undefined>(undefined);
@@ -47,18 +57,39 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
     return false;
   });
 
+  const [isGrayscaleMode, setIsGrayscaleMode] = useState<boolean>(() => {
+    // Load from localStorage on init
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const flags = JSON.parse(stored);
+        return flags.isGrayscaleMode ?? false;
+      }
+    } catch (error) {
+      console.error('Failed to load feature flags from localStorage:', error);
+    }
+    return false;
+  });
+
   // Persist to localStorage whenever it changes
   useEffect(() => {
     try {
-      const flags = { isTestMode };
+      const flags = { isTestMode, isGrayscaleMode };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(flags));
     } catch (error) {
       console.error('Failed to save feature flags to localStorage:', error);
     }
-  }, [isTestMode]);
+  }, [isTestMode, isGrayscaleMode]);
 
   return (
-    <FeatureFlagContext.Provider value={{ isTestMode, setTestMode: setIsTestMode }}>
+    <FeatureFlagContext.Provider
+      value={{
+        isTestMode,
+        setTestMode: setIsTestMode,
+        isGrayscaleMode,
+        setGrayscaleMode: setIsGrayscaleMode,
+      }}
+    >
       {children}
     </FeatureFlagContext.Provider>
   );

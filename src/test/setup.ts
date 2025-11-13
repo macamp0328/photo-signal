@@ -33,24 +33,28 @@ const EXPECTED_MESSAGES = [
   'inside a test was not wrapped in act',
 ];
 
-// Mock console.error to suppress expected messages
-console.error = vi.fn((...args: unknown[]) => {
-  const message = args.join(' ');
-  const isExpected = EXPECTED_MESSAGES.some((pattern) => message.includes(pattern));
+/**
+ * Creates a console filter function that suppresses expected messages.
+ *
+ * @param originalFn - The original console function (error or warn)
+ * @param expectedMessages - Array of message patterns to suppress
+ * @returns A function that suppresses expected messages and calls originalFn for unexpected ones
+ */
+function createConsoleFilter(
+  originalFn: (...args: unknown[]) => void,
+  expectedMessages: string[]
+): (...args: unknown[]) => void {
+  return (...args: unknown[]) => {
+    const message = args.join(' ');
+    const isExpected = expectedMessages.some((pattern) => message.includes(pattern));
+    if (!isExpected) {
+      originalFn(...args);
+    }
+  };
+}
 
-  // Only log unexpected errors
-  if (!isExpected) {
-    originalConsoleError(...args);
-  }
-});
+// Mock console.error to suppress expected messages
+console.error = vi.fn(createConsoleFilter(originalConsoleError, EXPECTED_MESSAGES));
 
 // Mock console.warn to suppress expected messages
-console.warn = vi.fn((...args: unknown[]) => {
-  const message = args.join(' ');
-  const isExpected = EXPECTED_MESSAGES.some((pattern) => message.includes(pattern));
-
-  // Only log unexpected warnings
-  if (!isExpected) {
-    originalConsoleWarn(...args);
-  }
-});
+console.warn = vi.fn(createConsoleFilter(originalConsoleWarn, EXPECTED_MESSAGES));

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
 import type { Concert } from '../../types';
-import type { PhotoRecognitionHook, PhotoRecognitionOptions } from './types';
+import type { PhotoRecognitionHook, PhotoRecognitionOptions, RecognitionDebugInfo } from './types';
 import { computeDHash } from './algorithms/dhash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale } from './algorithms/utils';
@@ -26,6 +26,7 @@ export function usePhotoRecognition(
     enabled = true,
     similarityThreshold = 10,
     checkInterval = 1000,
+    enableDebugInfo = false,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -33,12 +34,14 @@ export function usePhotoRecognition(
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
+  const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
+  const frameCountRef = useRef<number>(0);
 
   // Load concert data
   const loadConcerts = useCallback(() => {
@@ -67,8 +70,10 @@ export function usePhotoRecognition(
   const reset = useCallback(() => {
     setRecognizedConcert(null);
     setIsRecognizing(false);
+    setDebugInfo(null);
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
+    frameCountRef.current = 0;
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = undefined;
@@ -79,6 +84,30 @@ export function usePhotoRecognition(
   useEffect(() => {
     if (!stream || !enabled || concerts.length === 0) {
       return;
+    }
+
+    // Log initialization in dev mode or if Test Mode is enabled
+    const isTestMode = isEnabled('test-mode');
+    if (import.meta.env.DEV || isTestMode) {
+      console.log('━'.repeat(60));
+      console.log('[Photo Recognition] Initializing recognition system');
+      console.log(`  Concerts loaded: ${concerts.length}`);
+      console.log(`  Concerts with hashes: ${concerts.filter((c) => c.photoHash).length}`);
+      console.log(
+        `  Similarity threshold: ${similarityThreshold} (≥${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}% match)`
+      );
+      console.log(`  Recognition delay: ${recognitionDelay}ms`);
+      console.log(`  Check interval: ${checkInterval}ms`);
+      console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
+      if (concerts.length > 0 && concerts.filter((c) => c.photoHash).length > 0) {
+        console.log('\n  Available hashes:');
+        concerts.forEach((concert) => {
+          if (concert.photoHash) {
+            console.log(`    ${concert.band}: ${concert.photoHash}`);
+          }
+        });
+      }
+      console.log('━'.repeat(60) + '\n');
     }
 
     // Create video element to capture stream
@@ -129,6 +158,11 @@ export function usePhotoRecognition(
       }
 
       try {
+        frameCountRef.current += 1;
+        const currentTime = Date.now();
+        const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+        const isTestMode = isEnabled('test-mode');
+
         // Extract current frame
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
@@ -150,14 +184,26 @@ export function usePhotoRecognition(
         // Compute hash of current frame
         const currentHash = computeDHash(imageData);
 
-        // Debug logging in dev mode
-        if (import.meta.env.DEV) {
-          console.log('[Photo Recognition] Frame hash:', currentHash);
+        // Enhanced logging in dev mode or Test Mode
+        if (import.meta.env.DEV || isTestMode) {
+          console.log(`\n${'='.repeat(60)}`);
+          console.log(`[Photo Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
+          console.log(`Frame Hash: ${currentHash}`);
+          console.log(`Frame Size: ${canvas.width} × ${canvas.height} px`);
+          console.log(`Concerts Checked: ${concerts.filter((c) => c.photoHash).length}`);
+          console.log(
+            `Threshold: ${similarityThreshold} (similarity ≥ ${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}%)`
+          );
+          console.log('');
         }
 
         // Find best match among concerts with photo hashes
         let bestMatch: Concert | null = null;
         let bestDistance = Infinity;
+
+        if (import.meta.env.DEV || isTestMode) {
+          console.log('Results:');
+        }
 
         for (const concert of concerts) {
           if (!concert.photoHash) {
@@ -165,12 +211,15 @@ export function usePhotoRecognition(
           }
 
           const distance = hammingDistance(currentHash, concert.photoHash);
+          const similarity = ((64 - distance) / 64) * 100;
 
-          // Debug logging in dev mode
-          if (import.meta.env.DEV) {
-            const similarity = ((64 - distance) / 64) * 100;
+          // Enhanced logging in dev mode or Test Mode
+          if (import.meta.env.DEV || isTestMode) {
+            const isBest = distance < bestDistance;
+            const meetsThreshold = distance <= similarityThreshold;
+            const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
             console.log(
-              `[Photo Recognition] ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%`
+              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${isBest ? ' ← BEST MATCH' : ''}`
             );
           }
 
@@ -180,21 +229,54 @@ export function usePhotoRecognition(
           }
         }
 
+        // Update debug info if enabled
+        if (enableDebugInfo || isTestMode) {
+          setDebugInfo({
+            lastFrameHash: currentHash,
+            bestMatch: bestMatch
+              ? {
+                  concert: bestMatch,
+                  distance: bestDistance,
+                  similarity: ((64 - bestDistance) / 64) * 100,
+                }
+              : null,
+            lastCheckTime: currentTime,
+            concertCount: concerts.filter((c) => c.photoHash).length,
+          });
+        }
+
         // Check if best match meets threshold
         if (bestMatch && bestDistance <= similarityThreshold) {
+          const similarity = ((64 - bestDistance) / 64) * 100;
+
+          if (import.meta.env.DEV || isTestMode) {
+            console.log('');
+            console.log(`Match Decision: POTENTIAL MATCH (${bestMatch.band})`);
+            console.log(`  Distance: ${bestDistance} / ${similarityThreshold} threshold`);
+            console.log(`  Similarity: ${similarity.toFixed(1)}%`);
+          }
+
           // Same concert as before?
           if (lastMatchedConcertRef.current?.id === bestMatch.id) {
             // Continue timing
             if (matchStartTimeRef.current) {
               const elapsed = Date.now() - matchStartTimeRef.current;
 
+              if (import.meta.env.DEV || isTestMode) {
+                console.log(
+                  `  Stability Timer: ${(elapsed / 1000).toFixed(1)}s / ${(recognitionDelay / 1000).toFixed(1)}s required`
+                );
+              }
+
               if (elapsed >= recognitionDelay) {
                 // Stable match confirmed!
                 setRecognizedConcert(bestMatch);
                 setIsRecognizing(false);
 
-                if (import.meta.env.DEV) {
-                  console.log('[Photo Recognition] Recognized:', bestMatch.band);
+                if (import.meta.env.DEV || isTestMode) {
+                  console.log('');
+                  console.log('🎵 RECOGNIZED!', bestMatch.band);
+                  console.log('━'.repeat(60));
                 }
 
                 // Stop checking
@@ -215,20 +297,33 @@ export function usePhotoRecognition(
             matchStartTimeRef.current = Date.now();
             setIsRecognizing(true);
 
-            if (import.meta.env.DEV) {
-              console.log('[Photo Recognition] Potential match:', bestMatch.band);
+            if (import.meta.env.DEV || isTestMode) {
+              console.log('  Starting stability timer...');
+              console.log('━'.repeat(60));
             }
           }
         } else {
           // No match, reset
+          if (import.meta.env.DEV || isTestMode) {
+            if (bestMatch) {
+              const similarity = ((64 - bestDistance) / 64) * 100;
+              console.log('');
+              console.log(`Match Decision: NO MATCH (best was ${bestMatch.band})`);
+              console.log(`  Distance: ${bestDistance} > ${similarityThreshold} threshold`);
+              console.log(
+                `  Similarity: ${similarity.toFixed(1)}% < required ${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}%`
+              );
+            } else {
+              console.log('');
+              console.log('Match Decision: NO CANDIDATES');
+            }
+            console.log('━'.repeat(60));
+          }
+
           if (lastMatchedConcertRef.current) {
             lastMatchedConcertRef.current = null;
             matchStartTimeRef.current = null;
             setIsRecognizing(false);
-
-            if (import.meta.env.DEV) {
-              console.log('[Photo Recognition] Match lost');
-            }
           }
         }
       } catch (error) {
@@ -262,5 +357,6 @@ export function usePhotoRecognition(
     recognizedConcert,
     isRecognizing,
     reset,
+    debugInfo,
   };
 }

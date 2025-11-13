@@ -78,6 +78,7 @@ function App() {
     recognizedConcert,
     reset: resetRecognition,
     debugInfo,
+    isRecognizing,
   } = usePhotoRecognition(stream, {
     recognitionDelay: 3000,
     enableDebugInfo: isEnabled('test-mode'),
@@ -150,7 +151,7 @@ function App() {
       <DebugOverlay
         enabled={isEnabled('test-mode')}
         recognizedConcert={recognizedConcert}
-        isRecognizing={false}
+        isRecognizing={isRecognizing}
         lastFrameHash={debugInfo?.lastFrameHash ?? undefined}
         bestMatch={debugInfo?.bestMatch ?? undefined}
         threshold={10}

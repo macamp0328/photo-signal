@@ -74,20 +74,21 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
-.statusIdle .statusIndicator {
+.statusIndicator.statusIdle {
   animation: none;
 }
 
-.statusChecking {
-  /* Blue indicator - checking frame */
+/* Status color indicators */
+.statusIndicator.statusChecking {
+  color: #3182ce; /* Blue - checking frame */
 }
 
-.statusMatching {
-  /* Yellow indicator - potential match */
+.statusIndicator.statusMatching {
+  color: #ecc94b; /* Yellow - potential match */
 }
 
-.statusRecognized {
-  /* Green indicator - confirmed match */
+.statusIndicator.statusRecognized {
+  color: #38a169; /* Green - confirmed match */
 }
 
 @keyframes pulse {

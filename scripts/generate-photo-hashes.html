@@ -457,27 +457,59 @@
         // Sort by filename for consistency
         hashResults.sort((a, b) => a.filename.localeCompare(b.filename));
 
-        // Create result items
-        let html = '';
-        hashResults.forEach((result, index) => {
-          html += `
-            <div class="result-item">
-              <div class="result-header">
-                <img src="${result.dataUrl}" alt="${result.filename}" class="result-image" />
-                <div class="result-info">
-                  <div class="result-filename">${result.filename}</div>
-                  <div class="result-dimensions">${result.width} × ${result.height} px</div>
-                </div>
-              </div>
-              <div class="hash-display">
-                <span>${result.hash}</span>
-                <button class="copy-btn" onclick="copyHash('${result.hash}', ${index})">Copy</button>
-              </div>
-            </div>
-          `;
-        });
+        // Clear existing results
+        results.innerHTML = '';
 
-        results.innerHTML = html;
+        // Create result items using DOM manipulation to avoid XSS
+        hashResults.forEach((result, index) => {
+          const resultItem = document.createElement('div');
+          resultItem.className = 'result-item';
+
+          // Create header
+          const header = document.createElement('div');
+          header.className = 'result-header';
+
+          const img = document.createElement('img');
+          img.src = result.dataUrl;
+          img.alt = result.filename;
+          img.className = 'result-image';
+
+          const info = document.createElement('div');
+          info.className = 'result-info';
+
+          const filename = document.createElement('div');
+          filename.className = 'result-filename';
+          filename.textContent = result.filename;
+
+          const dimensions = document.createElement('div');
+          dimensions.className = 'result-dimensions';
+          dimensions.textContent = `${result.width} × ${result.height} px`;
+
+          info.appendChild(filename);
+          info.appendChild(dimensions);
+          header.appendChild(img);
+          header.appendChild(info);
+
+          // Create hash display
+          const hashDisplay = document.createElement('div');
+          hashDisplay.className = 'hash-display';
+
+          const hashSpan = document.createElement('span');
+          hashSpan.textContent = result.hash;
+
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'copy-btn';
+          copyBtn.textContent = 'Copy';
+          copyBtn.onclick = () => copyHash(result.hash, index);
+
+          hashDisplay.appendChild(hashSpan);
+          hashDisplay.appendChild(copyBtn);
+
+          // Assemble result item
+          resultItem.appendChild(header);
+          resultItem.appendChild(hashDisplay);
+          results.appendChild(resultItem);
+        });
 
         // Generate JSON output
         generateJsonOutput();

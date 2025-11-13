@@ -9,6 +9,9 @@ import { useEffect, useState } from 'react';
 import type { DebugOverlayProps, RecognitionStatus } from './types';
 import styles from './DebugOverlay.module.css';
 
+// Display "waiting for frame" message if no frame received in 2x the normal check interval (1s)
+const FRAME_TIMEOUT_THRESHOLD = 2;
+
 export function DebugOverlay({
   recognizedConcert,
   isRecognizing,
@@ -35,12 +38,17 @@ export function DebugOverlay({
 
   // Update time since last check
   useEffect(() => {
+    // Only run timer when overlay is enabled and frame checking is active
+    if (!enabled || (!isRecognizing && !lastFrameHash)) {
+      return;
+    }
+
     const interval = setInterval(() => {
       setTimeSinceLastCheck((prev) => prev + 0.1);
     }, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [enabled, isRecognizing, lastFrameHash]);
 
   // Reset timer when new frame is checked
   useEffect(() => {
@@ -99,7 +107,7 @@ export function DebugOverlay({
         <div className={styles.label}>Frame Hash</div>
         <div className={styles.hash}>{displayHash}</div>
         <div className={styles.hint}>
-          {timeSinceLastCheck < 2
+          {timeSinceLastCheck < FRAME_TIMEOUT_THRESHOLD
             ? `Updated ${timeSinceLastCheck.toFixed(1)}s ago`
             : 'Waiting for frame...'}
         </div>

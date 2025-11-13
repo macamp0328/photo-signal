@@ -5,7 +5,7 @@
  * Syncs test-mode flag with dataService for backwards compatibility.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { FeatureFlag } from './types';
 import { FEATURE_FLAGS } from './featureFlagConfig';
 import { dataService } from '../../services/data-service';
@@ -71,27 +71,27 @@ export function useFeatureFlags() {
    * Toggle a feature flag on/off
    * @param id - The unique identifier of the flag to toggle
    */
-  const toggleFlag = (id: string) => {
+  const toggleFlag = useCallback((id: string) => {
     setFlags((prev) =>
       prev.map((flag) => (flag.id === id ? { ...flag, enabled: !flag.enabled } : flag))
     );
-  };
+  }, []);
 
   /**
    * Check if a feature flag is enabled
    * @param id - The unique identifier of the flag to check
    * @returns true if enabled, false otherwise
    */
-  const isEnabled = (id: string): boolean => {
+  const isEnabled = useCallback((id: string): boolean => {
     return flags.find((flag) => flag.id === id)?.enabled ?? false;
-  };
+  }, [flags]);
 
   /**
    * Reset all flags to default values
    */
-  const resetFlags = () => {
+  const resetFlags = useCallback(() => {
     setFlags(FEATURE_FLAGS);
-  };
+  }, []);
 
   return {
     flags,

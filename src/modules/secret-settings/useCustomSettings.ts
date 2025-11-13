@@ -4,7 +4,7 @@
  * Provides state management for custom settings with localStorage persistence.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { CustomSetting } from './types';
 import { CUSTOM_SETTINGS } from './customSettingsConfig';
 
@@ -62,25 +62,25 @@ export function useCustomSettings() {
    * @param id - The unique identifier of the setting to update
    * @param value - The new value for the setting
    */
-  const updateSetting = (id: string, value: string | number | boolean) => {
+  const updateSetting = useCallback((id: string, value: string | number | boolean) => {
     setSettings((prev) => prev.map((s) => (s.id === id ? { ...s, value } : s)));
-  };
+  }, []);
 
   /**
    * Get a setting value by ID
    * @param id - The unique identifier of the setting to retrieve
    * @returns The setting value, or undefined if not found
    */
-  const getSetting = <T = string | number | boolean>(id: string): T | undefined => {
+  const getSetting = useCallback(<T = string | number | boolean>(id: string): T | undefined => {
     return settings.find((s) => s.id === id)?.value as T | undefined;
-  };
+  }, [settings]);
 
   /**
    * Reset all settings to default values
    */
-  const resetSettings = () => {
+  const resetSettings = useCallback(() => {
     setSettings(CUSTOM_SETTINGS);
-  };
+  }, []);
 
   return {
     settings,

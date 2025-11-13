@@ -98,13 +98,23 @@ function playModem(audioContext: AudioContext) {
   oscillator2.stop(audioContext.currentTime + 0.5);
 }
 
+// Module-level singleton for AudioContext
+let audioContext: AudioContext | null = null;
+
+function getAudioContext(): AudioContext {
+  if (!audioContext) {
+    audioContext = new AudioContext();
+  }
+  return audioContext;
+}
+
 const SOUND_FUNCTIONS = [
-  () => playBeep(new AudioContext(), 440, 0.1), // A4 note
-  () => playBeep(new AudioContext(), 880, 0.1), // A5 note
-  () => playBeep(new AudioContext(), 523.25, 0.15), // C5 note
-  () => playClick(new AudioContext()),
-  () => playWhoosh(new AudioContext()),
-  () => playModem(new AudioContext()),
+  () => playBeep(getAudioContext(), 440, 0.1), // A4 note
+  () => playBeep(getAudioContext(), 880, 0.1), // A5 note
+  () => playBeep(getAudioContext(), 523.25, 0.15), // C5 note
+  () => playClick(getAudioContext()),
+  () => playWhoosh(getAudioContext()),
+  () => playModem(getAudioContext()),
 ];
 
 /**
@@ -144,7 +154,7 @@ export function useRetroSounds(enabled: boolean) {
     } catch (error) {
       console.warn('Failed to play retro sound:', error);
     }
-  }, [enabled]);
+  }, []);
 
   return {
     playRandomSound,

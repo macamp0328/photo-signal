@@ -35,7 +35,7 @@ function App() {
 
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
-  const { getSetting } = useCustomSettings();
+  const { getSetting, settings } = useCustomSettings();
 
   // Module: Retro Sounds
   const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
@@ -59,7 +59,7 @@ function App() {
 
     // Apply UI style (modern/classic)
     document.documentElement.setAttribute('data-ui-style', uiStyle);
-  }, [getSetting]);
+  }, [getSetting, settings]);
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({

@@ -18,7 +18,10 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 1. **Psychedelic Color Cycle Mode** - Vibrant gradient overlays with liquid light show effects
 2. **Old-School Easter Egg Sounds** - Retro system sounds (beeps, clicks, whooshes, modem synthesized via Web Audio API)
 
-**Custom Settings:** 3. **Theme Mode** - Switch between light and dark visual themes 4. **UI Style** - Toggle between modern and classic retro gallery experience
+**Custom Settings:**
+
+3. **Theme Mode** - Switch between light and dark visual themes
+4. **UI Style** - Toggle between modern and classic retro gallery experience
 
 ---
 
@@ -518,7 +521,7 @@ npm test
 - **CSS Modules**: Scoped styling
 - **Web Audio API**: Sound synthesis (native browser API)
 
-**No external dependencies required.**
+**No new npm dependencies added.** Features use only React built-in hooks and native browser APIs (Web Audio API).
 
 ---
 

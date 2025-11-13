@@ -49,16 +49,17 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[camera-access/README.md](./src/modules/camera-access/README.md)** - Camera permission and MediaStream management
 - **[camera-view/README.md](./src/modules/camera-view/README.md)** - Video display UI component with 3:2 overlay
 - **[motion-detection/README.md](./src/modules/motion-detection/README.md)** - Camera movement detection algorithm
-- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing
+- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing, hash generation tools, and debug API
   - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
+- **[debug-overlay/README.md](./src/modules/debug-overlay/README.md)** - Real-time photo recognition debugging overlay (Test Mode only)
 - **[secret-settings/README.md](./src/modules/secret-settings/README.md)** - Hidden settings menu activated by triple-tap/click for feature flags and custom settings
   - **[secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** - Comprehensive guide for adding feature flags and custom settings
-  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds)
+  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds, Test Mode)
   - **[secret-settings/customSettingsConfig.ts](./src/modules/secret-settings/customSettingsConfig.ts)** - Custom settings definitions (Theme Mode, UI Style)
   - **[secret-settings/useFeatureFlags.ts](./src/modules/secret-settings/useFeatureFlags.ts)** - Feature flags state management hook
   - **[secret-settings/useCustomSettings.ts](./src/modules/secret-settings/useCustomSettings.ts)** - Custom settings state management hook
@@ -201,7 +202,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Helper Scripts
 
-- **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts
+- **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts, including hash generation tools
 - **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)
 - **[scripts/build.sh](./scripts/build.sh)** - Build for production (local or Docker)
 - **[scripts/test.sh](./scripts/test.sh)** - Run tests (local or Docker)
@@ -209,6 +210,8 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/format.sh](./scripts/format.sh)** - Format code (local or Docker)
 - **[scripts/create-sample-audio.sh](./scripts/create-sample-audio.sh)** - Generate sample audio file
 - **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
+- **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
+- **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
 
 ---
 

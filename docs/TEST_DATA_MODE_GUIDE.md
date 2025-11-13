@@ -71,20 +71,64 @@ Print the test images located in `assets/test-images/`:
 - Mode indicator badge (🎯/🧪)
 - Camera access and permission handling
 - Photo recognition using perceptual hashing (dHash algorithm)
+- **Photo hash generation tools** (browser-based HTML tool + Node.js script)
+- **Debug overlay** showing real-time recognition information
+- **Enhanced console logging** for troubleshooting
 - Audio playback with smooth crossfading
 - Motion detection for audio fade-out
 - Concert information display overlay
 - Data persistence across page reloads
 
+### Debug Overlay (Test Mode Only)
+
+When Test Mode is enabled, a debug overlay appears in the bottom-right corner showing:
+
+- **Recognition Status**: IDLE 🔵 CHECKING 🟡 MATCHING 🟢 RECOGNIZED
+- **Frame Hash**: Last computed hash from camera (e.g., `a5b3c7...0486`)
+- **Best Match**: Closest matching concert with similarity percentage
+- **Threshold**: Current matching threshold setting
+- **Recognized Concert**: Full details when a photo is successfully recognized
+
+This overlay updates in real-time as the photo recognition system processes frames, making it easy to see what's happening under the hood.
+
+### Console Logging
+
+When Test Mode is enabled, detailed logs are output to the browser console:
+
+```
+============================================================
+[Photo Recognition] FRAME 42 @ 12:34:56.789
+Frame Hash: a5b3c7d9e1f20486
+Frame Size: 640 × 480 px
+Concerts Checked: 4
+Threshold: 10 (similarity ≥ 84.4%)
+
+Results:
+  ✓ The Midnight Echoes: distance=6, similarity=90.6% ← BEST MATCH
+  ✗ Electric Dreams: distance=24, similarity=62.5%
+
+Match Decision: POTENTIAL MATCH (The Midnight Echoes)
+  Stability Timer: 1.2s / 3.0s required
+============================================================
+```
+
 ### What's Still Missing (Features to Identify)
 
 When testing, you may discover features that are **planned but not yet implemented**:
 
-❓ **Photo Hash Generation**
+~~❓ **Photo Hash Generation**~~ ✅ **IMPLEMENTED**
 
-- Currently, test data has pre-computed photo hashes
-- Real photos need a way to generate and store their hashes
-- **Impact**: Cannot add new photos without manually computing hashes
+- ✅ Browser-based HTML tool: `scripts/generate-photo-hashes.html`
+- ✅ Node.js script: `scripts/generate-photo-hashes.js`
+- ✅ NPM command: `npm run generate-hashes`
+- See scripts/README.md for usage instructions
+
+~~❓ **Photo Hash Computation Tools**~~ ✅ **IMPLEMENTED**
+
+- ✅ Built-in tools to compute dHash for new photos
+- ✅ Easy-to-use browser interface (drag-and-drop)
+- ✅ Command-line script for automation
+- **Impact**: Adding photos is now simple for anyone
 
 ❓ **Photo Upload/Management**
 
@@ -103,12 +147,6 @@ When testing, you may discover features that are **planned but not yet implement
 - No UI to add/edit/delete concert entries
 - Must manually edit `data.json` file
 - **Impact**: Non-technical users cannot manage their concert library
-
-❓ **Photo Hash Computation Tools**
-
-- No built-in tool to compute dHash for new photos
-- Requires external processing
-- **Impact**: Adding photos requires technical knowledge
 
 ❓ **Multi-Photo Support Per Concert**
 
@@ -154,11 +192,63 @@ When testing, you may discover features that are **planned but not yet implement
 
 **Solutions**:
 
-1. Verify Test Data Mode is enabled (check for 🧪 badge)
-2. Ensure good lighting on the printed photo
-3. Hold camera steady for 3+ seconds
-4. Try adjusting distance (6-12 inches usually works best)
-5. Check that the image is printed clearly (not on a screen)
+1. **Check Debug Overlay**: Look at the debug info in bottom-right corner
+   - Is the frame hash updating? (should change every ~1 second)
+   - Is a best match being shown? What's the similarity percentage?
+   - Is the similarity below the threshold? (needs ≥84%)
+2. **Check Console Logs**: Open browser DevTools (F12) and look for recognition logs
+   - Are frames being processed?
+   - What are the similarity scores for each concert?
+   - Are there any error messages?
+3. Verify Test Data Mode is enabled (check for 🧪 badge)
+4. Ensure good lighting on the printed photo
+5. Hold camera steady for 3+ seconds
+6. Try adjusting distance (6-12 inches usually works best)
+7. Check that the image is printed clearly (not on a screen)
+8. Verify the test concert has a `photoHash` field in `assets/test-data/concerts.json`
+
+**Example Debug Info for Successful Recognition**:
+
+- Frame Hash updates every second
+- Best Match shows the concert name
+- Similarity is ≥84% (e.g., "90.6%")
+- Status changes from CHECKING → MATCHING → RECOGNIZED
+- Console shows "POTENTIAL MATCH" then "🎵 RECOGNIZED!"
+
+### Adding New Test Images
+
+**Problem**: Want to add your own test images
+
+**Solutions**:
+
+1. **Using Browser Tool** (Easiest):
+   - Open `scripts/generate-photo-hashes.html` in your browser
+   - Drag and drop your image files
+   - Copy the generated hashes
+   - Add them to `assets/test-data/concerts.json`
+
+2. **Using Command Line** (For Automation):
+
+   ```bash
+   # Place images in assets/test-images/
+   npm run generate-hashes
+   # Copy the output hashes to concerts.json
+   ```
+
+3. **Hash Format**:
+   ```json
+   {
+     "id": 5,
+     "band": "New Band",
+     "venue": "New Venue",
+     "date": "2024-01-01",
+     "audioFile": "/assets/test-audio/new-audio.mp3",
+     "imageFile": "/assets/test-images/new-image.jpg",
+     "photoHash": "a5b3c7d9e1f20486"
+   }
+   ```
+
+See `scripts/README.md` for detailed hash generation instructions.
 
 ### Audio Not Playing
 

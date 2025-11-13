@@ -14,6 +14,62 @@
 
 ---
 
+## Architecture Evolution
+
+### From Monolithic to Modular (2025)
+
+Photo Signal was refactored from monolithic components to a modular architecture to enable parallel development and improve maintainability.
+
+**Old Architecture (Before 2025):**
+
+```
+Camera.tsx (179 lines)
+├── Camera access logic
+├── Motion detection logic
+├── Photo recognition logic
+├── Data fetching
+├── UI rendering
+└── Permission handling
+```
+
+**Problems:**
+
+- ❌ One file does too much (violates Single Responsibility Principle)
+- ❌ Hard to test individual features in isolation
+- ❌ Multiple developers would conflict on same file
+- ❌ Difficult to replace just one feature (e.g., photo recognition algorithm)
+
+**New Architecture (Current):**
+
+```
+modules/
+├── camera-access/      (65 lines)   ← ONE job: manage camera stream
+├── camera-view/        (88 lines)   ← ONE job: display video UI
+├── motion-detection/   (105 lines)  ← ONE job: detect movement
+└── photo-recognition/  (75 lines)   ← ONE job: match photos
+```
+
+**Benefits:**
+
+- ✅ Each module has ONE clear responsibility
+- ✅ Easy to test in isolation (unit tests per module)
+- ✅ Multiple developers/agents work in parallel without conflicts
+- ✅ Replace any module without touching others (e.g., swap recognition algorithm)
+- ✅ Clear contracts via TypeScript interfaces
+- ✅ Better code organization and discoverability
+
+**Migration Mapping:**
+
+| Old Component                | New Module(s)                                                                                                                  | Notes                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `Camera.tsx` (179 lines)     | `camera-access/` (65 lines)<br>`camera-view/` (88 lines)<br>`motion-detection/` (105 lines)<br>`photo-recognition/` (75 lines) | Split into 4 focused modules        |
+| `AudioPlayer.tsx` (73 lines) | `audio-playback/` (113 lines)                                                                                                  | Enhanced with better controls       |
+| `InfoDisplay.tsx` (36 lines) | `concert-info/` (54 lines)                                                                                                     | Slightly expanded with more options |
+
+The new modular architecture achieved **100% feature parity** while improving code quality, testability, and developer experience.
+
+---
+
 ## System Overview
 
 ```

@@ -15,15 +15,13 @@
 
 ### Architecture & Design
 
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, module structure, data flow, and design principles
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, module structure, data flow, design principles, and architecture evolution history
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
-- **[MIGRATION.md](./MIGRATION.md)** - Migration notes from old monolithic to new modular architecture, and feature flag system consolidation (November 2025)
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 
 ### Project Planning & Roadmap
 
 - **[ROADMAP.md](./ROADMAP.md)** - Complete project roadmap with 7 milestones and 60+ issues organized for AI agent development
-- **[ISSUE_TRACKING.md](./ISSUE_TRACKING.md)** - Guide for creating, tracking, and managing GitHub Issues with templates and workflow recommendations
 
 ### Research & Technical Specifications
 
@@ -284,7 +282,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (10 files - added CONTRIBUTING.md)
+- ✅ Root documentation (8 files)
 - ✅ Research & technical specifications (8 files - including camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
@@ -304,6 +302,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 109 documented files
+**Total**: 107 documented files (removed ISSUE_TRACKING.md and MIGRATION.md)
 
 Last updated: 2025-11-13

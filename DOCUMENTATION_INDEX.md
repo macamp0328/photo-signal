@@ -174,6 +174,13 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[milestone-4-settings-panel.md](./.github/ISSUE_TEMPLATE/milestone-4-settings-panel.md)** - M4.1: Create user settings panel
 - **[milestone-4-favorites-system.md](./.github/ISSUE_TEMPLATE/milestone-4-favorites-system.md)** - M4.2: Implement favorites system (parallel development example)
 
+**Feature Issues**
+
+- **[refactor-consolidate-feature-flags.md](./.github/ISSUE_TEMPLATE/refactor-consolidate-feature-flags.md)** - Refactor: Consolidate duplicate feature flag systems into single source of truth
+- **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode to enable photo recognition with test images and add debug logging
+- **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote users to experience Photo Signal by pointing camera at campmiles.com blog images
+- **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Audit and remove outdated ISSUE_TRACKING.md and MIGRATION.md files after extracting valuable content
+
 ---
 
 ## 🛠️ Development Environment
@@ -289,7 +296,7 @@ This index covers:
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
-- ✅ Issue templates (17 files - includes template guide and firewall access template)
+- ✅ Issue templates (19 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)
@@ -297,6 +304,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 107 documented files
+**Total**: 109 documented files
 
 Last updated: 2025-11-13

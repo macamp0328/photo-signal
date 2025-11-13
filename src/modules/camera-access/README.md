@@ -153,7 +153,7 @@ The camera module now attempts to optimize for low-light conditions (e.g., bathr
 - [ ] Add resolution preferences (720p, 1080p)
 - [ ] Flash/torch control for low light
 - [x] ~~Autofocus and exposure optimization~~ (implemented with advanced constraints)
-- [ ] Black and white mode (recommend implementing in photo-recognition module via canvas post-processing)
+- [x] ~~Black and white mode~~ (implemented in photo-recognition module with grayscale conversion feature flag)
 
 ---
 

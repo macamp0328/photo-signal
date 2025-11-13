@@ -43,33 +43,25 @@ interface FeatureFlagProviderProps {
  * Wraps the app to provide feature flag state and controls.
  */
 export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
-  const [isTestMode, setIsTestMode] = useState<boolean>(() => {
-    // Load from localStorage on init
+  // Load flags once from localStorage
+  const loadStoredFlags = () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const flags = JSON.parse(stored);
-        return flags.isTestMode ?? false;
+        return JSON.parse(stored);
       }
     } catch (error) {
       console.error('Failed to load feature flags from localStorage:', error);
     }
-    return false;
-  });
+    return {};
+  };
 
-  const [isGrayscaleMode, setIsGrayscaleMode] = useState<boolean>(() => {
-    // Load from localStorage on init
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const flags = JSON.parse(stored);
-        return flags.isGrayscaleMode ?? false;
-      }
-    } catch (error) {
-      console.error('Failed to load feature flags from localStorage:', error);
-    }
-    return false;
-  });
+  const storedFlags = loadStoredFlags();
+
+  const [isTestMode, setIsTestMode] = useState<boolean>(storedFlags.isTestMode ?? false);
+  const [isGrayscaleMode, setIsGrayscaleMode] = useState<boolean>(
+    storedFlags.isGrayscaleMode ?? false
+  );
 
   // Persist to localStorage whenever it changes
   useEffect(() => {

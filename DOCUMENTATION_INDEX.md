@@ -35,6 +35,10 @@
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
 
+### User Guides
+
+- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, and troubleshooting
+
 ---
 
 ## 🧩 Module Documentation
@@ -274,6 +278,7 @@ This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
 - ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
+- ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Module implementation files (7 files - secret-settings feature flags, custom settings, hooks, and effects)

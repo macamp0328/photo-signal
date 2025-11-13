@@ -631,11 +631,13 @@ When adding new flags or settings:
 **Purpose**: Create instant "party vibes" with vibrant, animated gradient overlays.
 
 **Implementation**:
+
 - **Component**: `PsychedelicEffect.tsx`
 - **Styling**: `PsychedelicEffect.module.css`
 - **Feature Flag**: `psychedelic-mode` in `featureFlagConfig.ts`
 
 **How it works**:
+
 1. When enabled, renders a full-screen overlay with `z-index: 1000`
 2. Uses `mix-blend-mode: screen` to overlay colors without blocking interaction
 3. Animates HSL hue rotation (0-360°) every 50ms for smooth color transitions
@@ -643,12 +645,13 @@ When adding new flags or settings:
 5. Adds pulsing radial gradients for depth
 
 **Integration**:
+
 ```tsx
 import { useFeatureFlags, PsychedelicEffect } from './modules/secret-settings';
 
 function App() {
   const { isEnabled } = useFeatureFlags();
-  
+
   return (
     <>
       {/* Your app content */}
@@ -667,30 +670,34 @@ function App() {
 **Purpose**: Add playful retro system sounds to encourage exploration.
 
 **Implementation**:
+
 - **Hook**: `useRetroSounds.ts`
 - **Feature Flag**: `retro-sounds` in `featureFlagConfig.ts`
 - **Sound Generation**: Web Audio API (no external files)
 
 **Sound Types**:
+
 1. **Beeps**: Square wave oscillators at different frequencies (A4, A5, C5)
 2. **Click**: Short 800Hz square wave burst
 3. **Whoosh**: Sawtooth wave descending from 2000Hz to 200Hz
 4. **Modem**: Dual oscillators creating warbling dial-up modem effect
 
 **How it works**:
+
 1. Uses Web Audio API `OscillatorNode` and `GainNode` for synthesis
 2. Creates new `AudioContext` for each sound (auto-cleanup)
 3. Applies exponential gain ramps for natural sound envelopes
 4. Randomly selects from 6 different sound variations
 
 **Integration**:
+
 ```tsx
 import { useFeatureFlags, useRetroSounds } from './modules/secret-settings';
 
 function App() {
   const { isEnabled } = useFeatureFlags();
   const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
-  
+
   // Play sound on button click
   const handleClick = () => {
     playRandomSound();
@@ -700,6 +707,7 @@ function App() {
 ```
 
 **Best Practices**:
+
 - Play sounds on user-initiated actions (clicks, toggles)
 - Don't play sounds continuously or too frequently
 - Sounds are short (50-500ms) to avoid annoyance
@@ -711,17 +719,20 @@ function App() {
 **Purpose**: Enable instant visual theme switching for A/B comparison and accessibility.
 
 **Implementation**:
+
 - **Custom Setting**: `theme-mode` in `customSettingsConfig.ts`
 - **Global CSS**: Updated `index.css` with theme variables
 - **Options**: `dark` (default), `light`
 
 **How it works**:
+
 1. Sets `data-theme` attribute on `document.documentElement`
 2. CSS uses attribute selectors to apply theme-specific variables
 3. Smooth 0.3s transitions for color changes
 4. Persists to localStorage automatically
 
 **CSS Variables**:
+
 ```css
 /* Default (Dark) Theme */
 :root {
@@ -739,12 +750,13 @@ function App() {
 ```
 
 **Integration**:
+
 ```tsx
 import { useCustomSettings } from './modules/secret-settings';
 
 function App() {
   const { getSetting } = useCustomSettings();
-  
+
   useEffect(() => {
     const theme = getSetting<string>('theme-mode') ?? 'dark';
     document.documentElement.setAttribute('data-theme', theme);
@@ -761,17 +773,20 @@ function App() {
 **Purpose**: Toggle between modern design and nostalgic retro gallery experience.
 
 **Implementation**:
+
 - **Custom Setting**: `ui-style` in `customSettingsConfig.ts`
 - **Global CSS**: Updated `index.css` with UI style variables
 - **Options**: `modern` (default), `classic`
 
 **How it works**:
+
 1. Sets `data-ui-style` attribute on `document.documentElement`
 2. Changes font family, border radius, shadows globally
 3. Removes background texture in classic mode
 4. Persists to localStorage automatically
 
 **CSS Changes**:
+
 ```css
 [data-ui-style='modern'] {
   --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ...;
@@ -794,6 +809,7 @@ function App() {
 **Integration**: Same pattern as theme switching.
 
 **Design Philosophy**:
+
 - **Modern**: Rounded corners, subtle shadows, textured backgrounds
 - **Classic**: Sharp edges, monospace fonts, flat colors (Winamp-like)
 
@@ -809,10 +825,12 @@ All settings use a **localStorage-first** approach:
 4. **Error Handling**: Gracefully handle localStorage quota/disabled scenarios
 
 **Storage Keys**:
+
 - `photo-signal-feature-flags` - Feature flag states
 - `photo-signal-custom-settings` - Custom setting values
 
 **Benefits**:
+
 - Settings persist across sessions
 - No backend required (static hosting friendly)
 - Instant updates (no network latency)

@@ -37,7 +37,7 @@ export function usePhotoRecognition(
   const matchStartTimeRef = useRef<number | null>(null);
 
   // Load concert data
-  useEffect(() => {
+  const loadConcerts = useCallback(() => {
     dataService
       .getConcerts()
       .then(setConcerts)
@@ -46,6 +46,18 @@ export function usePhotoRecognition(
         setConcerts([]);
       });
   }, []);
+
+  // Load concerts on mount and when data source changes
+  useEffect(() => {
+    loadConcerts();
+
+    // Subscribe to data source changes
+    const unsubscribe = dataService.subscribe(() => {
+      loadConcerts();
+    });
+
+    return unsubscribe;
+  }, [loadConcerts]);
 
   // Reset recognition state
   const reset = useCallback(() => {

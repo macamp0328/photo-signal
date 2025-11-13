@@ -15,6 +15,7 @@ vi.mock('../../services/data-service', () => ({
   dataService: {
     getConcerts: vi.fn(),
     clearCache: vi.fn(),
+    subscribe: vi.fn(() => () => {}), // Returns unsubscribe function
   },
 }));
 

@@ -34,6 +34,7 @@ describe('SecretSettings', () => {
     it('should display feature flags from config', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
+      expect(screen.getByText(/Test Data Mode/i)).toBeInTheDocument();
       expect(screen.getByText(/Psychedelic Color Cycle Mode/i)).toBeInTheDocument();
       expect(screen.getByText(/Old-School Easter Egg Sounds/i)).toBeInTheDocument();
     });
@@ -141,6 +142,13 @@ describe('SecretSettings', () => {
 
       const selects = screen.getAllByRole('combobox');
       expect(selects.length).toBeGreaterThan(0);
+    });
+
+    it('should display mode badge', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      // Should show production mode by default (test-mode flag is off by default)
+      expect(screen.getByText(/Production Mode/i)).toBeInTheDocument();
     });
   });
 });

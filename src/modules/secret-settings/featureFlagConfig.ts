@@ -13,6 +13,14 @@ import type { FeatureFlag } from './types';
  */
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
+    id: 'test-mode',
+    name: 'Test Data Mode',
+    description:
+      'Use test data from assets/test-* directories instead of production data. Perfect for testing with mobile devices using the provided test images.',
+    enabled: false,
+    category: 'development',
+  },
+  {
     id: 'psychedelic-mode',
     name: 'Psychedelic Color Cycle Mode',
     description:

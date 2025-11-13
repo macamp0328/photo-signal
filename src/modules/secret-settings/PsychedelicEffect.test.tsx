@@ -16,7 +16,9 @@ describe('PsychedelicEffect', () => {
     it('should render overlay when enabled', () => {
       const { container } = render(<PsychedelicEffect enabled={true} />);
       expect(container.firstChild).toBeTruthy();
-      expect(container.firstChild).toHaveClass('overlay');
+      // Check for CSS Module class (will be hashed like _overlay_xyz123)
+      const className = (container.firstChild as HTMLElement).className;
+      expect(className).toContain('overlay');
     });
 
     it('should render multiple gradient layers', () => {

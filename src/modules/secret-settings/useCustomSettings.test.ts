@@ -113,8 +113,9 @@ describe('useCustomSettings', () => {
 
       const settingId = 'theme-mode';
       const otherSettingId = 'ui-style';
-      const otherOriginalValue = result.current.settings.find((s) => s.id === otherSettingId)
-        ?.value;
+      const otherOriginalValue = result.current.settings.find(
+        (s) => s.id === otherSettingId
+      )?.value;
 
       act(() => {
         result.current.updateSetting(settingId, 'light');

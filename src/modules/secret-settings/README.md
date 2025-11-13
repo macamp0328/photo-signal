@@ -14,12 +14,11 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 ### Implemented Features
 
 **Feature Flags:**
+
 1. **Psychedelic Color Cycle Mode** - Vibrant gradient overlays with liquid light show effects
 2. **Old-School Easter Egg Sounds** - Retro system sounds (beeps, clicks, whooshes, modem synthesized via Web Audio API)
 
-**Custom Settings:**
-3. **Theme Mode** - Switch between light and dark visual themes
-4. **UI Style** - Toggle between modern and classic retro gallery experience
+**Custom Settings:** 3. **Theme Mode** - Switch between light and dark visual themes 4. **UI Style** - Toggle between modern and classic retro gallery experience
 
 ---
 
@@ -340,7 +339,7 @@ function App() {
   useEffect(() => {
     const theme = getSetting<string>('theme-mode') ?? 'dark';
     const uiStyle = getSetting<string>('ui-style') ?? 'modern';
-    
+
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-ui-style', uiStyle);
   }, [getSetting]);
@@ -419,6 +418,7 @@ body {
 For detailed information on adding new feature flags and custom settings, see **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)**.
 
 The guide includes:
+
 - Step-by-step instructions for adding feature flags
 - Step-by-step instructions for adding custom settings
 - Implementation details for all four current features
@@ -437,7 +437,6 @@ The guide includes:
    - Multiple rotating gradient layers
    - Pulsing radial effects
    - Mix-blend-mode for non-intrusive overlay
-   
 2. **Old-School Easter Egg Sounds** (`retro-sounds`)
    - Synthesized retro system sounds using Web Audio API
    - No external audio files required
@@ -451,7 +450,6 @@ The guide includes:
    - Global theme switching via `data-theme` attribute
    - Smooth 0.3s transitions
    - Affects background, text, and accent colors
-   
 4. **UI Style** (`ui-style`)
    - Options: Modern (default), Classic
    - Global UI style switching via `data-ui-style` attribute
@@ -487,11 +485,12 @@ All hooks and components have comprehensive test coverage:
 
 - `useTripleTap.test.ts` - Triple-tap detection logic
 - `useFeatureFlags.test.ts` - Feature flag state management
-- `useCustomSettings.test.ts` - Custom settings state management  
+- `useCustomSettings.test.ts` - Custom settings state management
 - `SecretSettings.test.tsx` - Component rendering and interactions
 - `PsychedelicEffect.test.tsx` - Visual effect component
 
 Run tests with:
+
 ```bash
 npm test
 ```

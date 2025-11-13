@@ -2,11 +2,13 @@
  * Feature Flags State Management Hook
  *
  * Provides state management for feature flags with localStorage persistence.
+ * Syncs test-mode flag with dataService for backwards compatibility.
  */
 
 import { useState, useEffect } from 'react';
 import type { FeatureFlag } from './types';
 import { FEATURE_FLAGS } from './featureFlagConfig';
+import { dataService } from '../../services/data-service';
 
 const STORAGE_KEY = 'photo-signal-feature-flags';
 
@@ -57,6 +59,12 @@ export function useFeatureFlags() {
     } catch (error) {
       console.error('Failed to save feature flags to localStorage:', error);
     }
+  }, [flags]);
+
+  // Sync test-mode flag with dataService
+  useEffect(() => {
+    const testModeEnabled = flags.find((flag) => flag.id === 'test-mode')?.enabled ?? false;
+    dataService.setTestMode(testModeEnabled);
   }, [flags]);
 
   /**

@@ -29,7 +29,7 @@ import styles from './SecretSettings.module.css';
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const { flags, toggleFlag, resetFlags } = useFeatureFlags();
+  const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
   const { settings, updateSetting, resetSettings } = useCustomSettings();
 
   if (!isVisible) {
@@ -64,6 +64,13 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
             <p className={styles.intro}>
               This hidden menu is activated by triple-tapping in the center of the screen. It's
               designed to hold feature flags and custom settings for advanced users and developers.
+            </p>
+            <p className={styles.intro}>
+              <span
+                className={`${styles.modeBadge} ${isEnabled('test-mode') ? styles.modeBadgeTest : styles.modeBadgeProduction}`}
+              >
+                {isEnabled('test-mode') ? '🧪 Test Mode' : '🎯 Production Mode'}
+              </span>
             </p>
           </div>
 
@@ -111,9 +118,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           {/* Custom Settings Section */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
-            <p className={styles.sectionDescription}>
-              Adjust advanced parameters and preferences.
-            </p>
+            <p className={styles.sectionDescription}>Adjust advanced parameters and preferences.</p>
 
             {settings.length > 0 ? (
               <>

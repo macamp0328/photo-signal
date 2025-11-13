@@ -1,5 +1,5 @@
 /**
- * @deprecated This file has been removed. Import from `@/modules/secret-settings` instead.
+ * @deprecated This file is deprecated. Import from `@/modules/secret-settings` instead.
  *
  * Old:
  * ```tsx

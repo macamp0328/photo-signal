@@ -256,7 +256,7 @@ export function usePhotoRecognition(
     // the interval when a concert is recognized, which is unnecessary since checkFrame already
     // stops processing when recognition completes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval]);
+  }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval, isEnabled]);
 
   return {
     recognizedConcert,

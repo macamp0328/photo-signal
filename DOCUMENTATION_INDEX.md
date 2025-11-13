@@ -139,6 +139,14 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 - **[.github/ISSUE_TEMPLATE/firewall-gh-io-access.md](./.github/ISSUE_TEMPLATE/firewall-gh-io-access.md)** - Template for firewall configuration issue to allow Copilot agent access to gh.io domain
 
+### Issue Templates (Feature-based)
+
+- **[implement-functional-framing-guides.md](./.github/ISSUE_TEMPLATE/implement-functional-framing-guides.md)** - Feature: Implement functional framing guides with dual aspect ratios (3:2 and 2:3) to make framing guide crop recognition region
+- **[refactor-consolidate-feature-flags.md](./.github/ISSUE_TEMPLATE/refactor-consolidate-feature-flags.md)** - Refactor: Consolidate duplicate feature flag systems
+- **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode photo recognition
+- **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote gallery viewing
+- **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Remove outdated documentation
+
 ### Custom Agents
 
 - **[.github/agents/README.md](./.github/agents/README.md)** - Guide to using GitHub Copilot custom agents, testing approach, and customization instructions
@@ -179,6 +187,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode to enable photo recognition with test images and add debug logging
 - **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote users to experience Photo Signal by pointing camera at campmiles.com blog images
 - **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Audit and remove outdated ISSUE_TRACKING.md and MIGRATION.md files after extracting valuable content
+- **[implement-functional-framing-guides.md](./.github/ISSUE_TEMPLATE/implement-functional-framing-guides.md)** - Feature: Implement functional framing guides with dual aspect ratios (3:2 landscape and 2:3 portrait) to crop recognition to framed region
 
 ---
 
@@ -297,7 +306,7 @@ This index covers:
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
-- ✅ Issue templates (19 files - includes all issue templates)
+- ✅ Issue templates (20 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)
@@ -305,6 +314,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 107 documented files (removed ISSUE_TRACKING.md and MIGRATION.md)
+**Total**: 108 documented files
 
 Last updated: 2025-11-13

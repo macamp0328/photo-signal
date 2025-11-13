@@ -685,7 +685,7 @@ function App() {
 **How it works**:
 
 1. Uses Web Audio API `OscillatorNode` and `GainNode` for synthesis
-2. Creates new `AudioContext` for each sound (auto-cleanup)
+2. Uses a singleton `AudioContext` shared across all sounds for efficient resource usage
 3. Applies exponential gain ramps for natural sound envelopes
 4. Randomly selects from 6 different sound variations
 

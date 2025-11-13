@@ -71,12 +71,6 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[data-service/README.md](./src/services/data-service/README.md)** - Concert data loading and caching
 
-### Deprecated (`src/contexts/`)
-
-> **⚠️ DEPRECATED**: The contexts directory is deprecated. Use `secret-settings` module instead.
-
-- **[contexts/FeatureFlagContext.tsx](./src/contexts/FeatureFlagContext.tsx)** - ❌ Deprecated - now just re-exports from secret-settings module (see MIGRATION.md)
-
 ---
 
 ## ⚙️ Configuration Files

@@ -16,11 +16,22 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
+import { useTripleTap, SecretSettings } from './modules/secret-settings';
 import './index.css';
 
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
+
+  // State for secret settings menu
+  const [showSecretSettings, setShowSecretSettings] = useState(false);
+
+  // Module: Secret Settings - Triple-tap detection
+  useTripleTap({
+    onTripleTap: () => {
+      setShowSecretSettings(true);
+    },
+  });
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({
@@ -82,12 +93,15 @@ function App() {
   );
 
   return (
-    <GalleryLayout
-      isActive={isActive}
-      cameraView={cameraView}
-      infoDisplay={infoDisplay}
-      onActivate={handleActivate}
-    />
+    <>
+      <GalleryLayout
+        isActive={isActive}
+        cameraView={cameraView}
+        infoDisplay={infoDisplay}
+        onActivate={handleActivate}
+      />
+      <SecretSettings isVisible={showSecretSettings} onClose={() => setShowSecretSettings(false)} />
+    </>
   );
 }
 

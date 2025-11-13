@@ -53,6 +53,8 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
+- **[secret-settings/README.md](./src/modules/secret-settings/README.md)** - Hidden settings menu activated by triple-tap/click for feature flags and custom settings
+  - **[secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** - Comprehensive guide for adding feature flags and custom settings
 
 ### Services (`src/services/`)
 
@@ -96,6 +98,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/modules/camera-view/CameraView.module.css](./src/modules/camera-view/CameraView.module.css)** - CSS Module for CameraView component
 - **[src/modules/gallery-layout/GalleryLayout.module.css](./src/modules/gallery-layout/GalleryLayout.module.css)** - CSS Module for GalleryLayout component
 - **[src/modules/concert-info/InfoDisplay.module.css](./src/modules/concert-info/InfoDisplay.module.css)** - CSS Module for InfoDisplay component
+- **[src/modules/secret-settings/SecretSettings.module.css](./src/modules/secret-settings/SecretSettings.module.css)** - CSS Module for SecretSettings component
 
 ---
 
@@ -261,7 +264,8 @@ This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
 - ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
-- ✅ Module READMEs (7 files)
+- ✅ Module READMEs (8 files - including secret-settings)
+- ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (5 files - CI workflow, PR checks monitor, label management, stale PR closure, and Dependabot config)
@@ -274,8 +278,8 @@ This index covers:
 - ✅ Helper scripts (8 files including README and bundle size checker)
 - ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
-- ✅ Module tests (4 files)
+- ✅ Module tests (6 files - including secret-settings tests)
 
-**Total**: 90 documented files
+**Total**: 97 documented files
 
 Last updated: 2025-11-12

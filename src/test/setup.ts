@@ -29,7 +29,6 @@ const EXPECTED_MESSAGES = [
   'Failed to load feature flags from localStorage:',
   'Failed to load custom settings from localStorage:',
   // React act() warnings - these are known issues with React 19 and testing-library
-  'An update to',
   'inside a test was not wrapped in act',
 ];
 

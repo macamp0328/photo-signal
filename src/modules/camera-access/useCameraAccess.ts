@@ -27,6 +27,17 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
         video: {
           facingMode: 'environment', // Rear camera
           aspectRatio: 3 / 2,
+          // Advanced constraints for low-light bathroom use case
+          // Using 'ideal' to allow graceful fallback if unsupported
+          // Some constraints may not be in TS types but are valid per W3C spec
+          ...({
+            focusMode: { ideal: 'continuous' },
+            pointsOfInterest: { ideal: [{ x: 0.5, y: 0.5 }] }, // Center focus
+            exposureMode: { ideal: 'continuous' },
+            whiteBalanceMode: { ideal: 'continuous' },
+            brightness: { ideal: 1.2 }, // Slight boost for low light
+            contrast: { ideal: 1.2 }, // Improve visibility
+          } as unknown as MediaTrackConstraints),
         },
         audio: false,
       });
@@ -34,6 +45,13 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
       streamRef.current = mediaStream;
       setStream(mediaStream);
       setHasPermission(true);
+
+      // Log applied settings for debugging (helps understand browser support)
+      if (process.env.NODE_ENV === 'development') {
+        const track = mediaStream.getVideoTracks()[0];
+        const settings = track?.getSettings();
+        console.log('Camera settings applied:', settings);
+      }
     } catch (err) {
       console.error('Camera access error:', err);
       setError('Unable to access camera. Please grant camera permissions.');
@@ -59,6 +77,17 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
           video: {
             facingMode: 'environment', // Rear camera
             aspectRatio: 3 / 2,
+            // Advanced constraints for low-light bathroom use case
+            // Using 'ideal' to allow graceful fallback if unsupported
+            // Some constraints may not be in TS types but are valid per W3C spec
+            ...({
+              focusMode: { ideal: 'continuous' },
+              pointsOfInterest: { ideal: [{ x: 0.5, y: 0.5 }] }, // Center focus
+              exposureMode: { ideal: 'continuous' },
+              whiteBalanceMode: { ideal: 'continuous' },
+              brightness: { ideal: 1.2 }, // Slight boost for low light
+              contrast: { ideal: 1.2 }, // Improve visibility
+            } as unknown as MediaTrackConstraints),
           },
           audio: false,
         });
@@ -67,6 +96,13 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
           streamRef.current = mediaStream;
           setStream(mediaStream);
           setHasPermission(true);
+
+          // Log applied settings for debugging (helps understand browser support)
+          if (process.env.NODE_ENV === 'development') {
+            const track = mediaStream.getVideoTracks()[0];
+            const settings = track?.getSettings();
+            console.log('Camera settings applied:', settings);
+          }
         } else {
           // Clean up if effect was cancelled
           mediaStream.getTracks().forEach((track) => track.stop());

@@ -245,9 +245,9 @@ if (isEnabled('grayscale-mode')) { /* ... */ }
 3. `psychedelic-mode` - Enable psychedelic visual effects
 4. `retro-sounds` - Play retro system sounds
 
-### Files Removed
+### Files Deprecated
 
-- ✅ `src/contexts/FeatureFlagContext.tsx` - Replaced by secret-settings module
+- ✅ `src/contexts/FeatureFlagContext.tsx` - Reduced to deprecation notice and re-export (149 → 22 lines)
 
 ### Files Updated
 

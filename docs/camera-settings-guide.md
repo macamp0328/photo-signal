@@ -187,7 +187,7 @@ ctx.putImageData(imageData, 0, 0);
 - Predictable behavior
 - Better control over conversion algorithm
 
-**Recommendation**: Implement grayscale conversion in the photo-recognition module as a separate enhancement.
+**Status**: Grayscale conversion has been implemented as a toggleable feature flag in the photo-recognition module (see Secret Settings menu).
 
 ---
 

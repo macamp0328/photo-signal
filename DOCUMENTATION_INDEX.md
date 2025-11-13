@@ -28,6 +28,7 @@
 ### Research & Technical Specifications
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
+- **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
 - **[docs/code-analysis-tooling-research.md](./docs/code-analysis-tooling-research.md)** - Research and evaluation of tracing, logging, and code analysis tools for AI agent development
 - **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Comprehensive guide to using and interpreting automated code analysis tools (CodeQL, Codecov, npm audit, etc.)
 - **[docs/code-analysis-examples.md](./docs/code-analysis-examples.md)** - Real-world examples showing what each automated tool looks like when it runs
@@ -59,6 +60,12 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
 - **[secret-settings/README.md](./src/modules/secret-settings/README.md)** - Hidden settings menu activated by triple-tap/click for feature flags and custom settings
   - **[secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** - Comprehensive guide for adding feature flags and custom settings
+  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds)
+  - **[secret-settings/customSettingsConfig.ts](./src/modules/secret-settings/customSettingsConfig.ts)** - Custom settings definitions (Theme Mode, UI Style)
+  - **[secret-settings/useFeatureFlags.ts](./src/modules/secret-settings/useFeatureFlags.ts)** - Feature flags state management hook
+  - **[secret-settings/useCustomSettings.ts](./src/modules/secret-settings/useCustomSettings.ts)** - Custom settings state management hook
+  - **[secret-settings/useRetroSounds.ts](./src/modules/secret-settings/useRetroSounds.ts)** - Retro sound effects hook using Web Audio API
+  - **[secret-settings/PsychedelicEffect.tsx](./src/modules/secret-settings/PsychedelicEffect.tsx)** - Psychedelic visual effect component
 
 ### Services (`src/services/`)
 
@@ -86,6 +93,10 @@ Each module has its own README defining its API contract, usage, and examples.
 #### Module Tests
 
 - **[src/modules/camera-view/CameraView.test.tsx](./src/modules/camera-view/CameraView.test.tsx)** - Unit tests for camera-view component (100% coverage)
+- **[src/modules/secret-settings/useTripleTap.test.ts](./src/modules/secret-settings/useTripleTap.test.ts)** - Unit tests for triple-tap detection hook
+- **[src/modules/secret-settings/SecretSettings.test.tsx](./src/modules/secret-settings/SecretSettings.test.tsx)** - Unit tests for secret settings component
+- **[src/modules/secret-settings/useFeatureFlags.test.ts](./src/modules/secret-settings/useFeatureFlags.test.ts)** - Unit tests for feature flags hook
+- **[src/modules/secret-settings/useCustomSettings.test.ts](./src/modules/secret-settings/useCustomSettings.test.ts)** - Unit tests for custom settings hook
 - **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
@@ -267,10 +278,11 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
-- ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
+- ✅ Research & technical specifications (8 files - including camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
+- ✅ Module implementation files (7 files - secret-settings feature flags, custom settings, hooks, and effects)
 - ✅ Photo recognition algorithms (3 files)
 - ✅ Configuration files (14 files)
 - ✅ GitHub Actions & workflows (5 files - CI workflow, PR checks monitor, label management, stale PR closure, and Dependabot config)
@@ -283,8 +295,8 @@ This index covers:
 - ✅ Helper scripts (8 files including README and bundle size checker)
 - ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
 - ✅ Test infrastructure (2 files)
-- ✅ Module tests (6 files - including secret-settings tests)
+- ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 98 documented files
+**Total**: 107 documented files
 
 Last updated: 2025-11-13

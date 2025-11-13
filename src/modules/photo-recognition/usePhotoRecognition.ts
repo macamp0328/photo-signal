@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { dataService } from '../../services/data-service';
+import { useFeatureFlags } from '../../contexts';
 import type { Concert } from '../../types';
 import type { PhotoRecognitionHook, PhotoRecognitionOptions } from './types';
 import { computeDHash } from './algorithms/dhash';
 import { hammingDistance } from './algorithms/hamming';
+import { convertToGrayscale } from './algorithms/utils';
 
 /**
  * Custom hook for photo recognition using perceptual hashing (dHash)
@@ -25,6 +27,8 @@ export function usePhotoRecognition(
     similarityThreshold = 10,
     checkInterval = 1000,
   } = options;
+
+  const { isGrayscaleMode } = useFeatureFlags();
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -137,6 +141,11 @@ export function usePhotoRecognition(
         ctx.drawImage(video, 0, 0);
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        // Apply grayscale conversion if enabled
+        if (isGrayscaleMode) {
+          convertToGrayscale(imageData);
+        }
 
         // Compute hash of current frame
         const currentHash = computeDHash(imageData);

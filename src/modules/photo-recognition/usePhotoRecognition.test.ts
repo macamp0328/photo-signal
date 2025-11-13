@@ -10,6 +10,16 @@ import { usePhotoRecognition } from './usePhotoRecognition';
 import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 
+// Mock the contexts
+vi.mock('../../contexts', () => ({
+  useFeatureFlags: vi.fn(() => ({
+    isTestMode: false,
+    setTestMode: vi.fn(),
+    isGrayscaleMode: false,
+    setGrayscaleMode: vi.fn(),
+  })),
+}));
+
 // Mock the data service
 vi.mock('../../services/data-service', () => ({
   dataService: {

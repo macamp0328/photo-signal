@@ -66,7 +66,7 @@ export interface FeatureFlag {
   /**
    * Optional category for organization
    */
-  category?: 'experimental' | 'debugging' | 'ui' | 'audio' | 'camera';
+  category?: 'experimental' | 'debugging' | 'ui' | 'audio' | 'camera' | 'development';
 }
 
 /**

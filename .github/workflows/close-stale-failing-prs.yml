@@ -107,7 +107,7 @@ jobs:
                     const closingMessage = [
                       '## 🚫 PR Closed - Failing Checks Not Resolved',
                       '',
-                      `This PR has had failing GitHub Actions checks for **${Math.floor(daysSinceFailure)} days** without resolution.`,
+                      `@copilot This PR has had failing GitHub Actions checks for **${Math.floor(daysSinceFailure)} days** without resolution.`,
                       '',
                       '### Policy Enforcement',
                       '',

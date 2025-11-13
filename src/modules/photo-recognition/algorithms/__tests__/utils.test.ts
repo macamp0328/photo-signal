@@ -289,8 +289,6 @@ describe('Image Processing Utilities', () => {
       ]);
       const imageData = new ImageData(data, 1, 1);
 
-      // Import the function dynamically to test it
-
       // Convert to grayscale
       const result = convertToGrayscale(imageData);
 

@@ -2,12 +2,20 @@
  * Tests for SecretSettings component
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SecretSettings } from './SecretSettings';
 import userEvent from '@testing-library/user-event';
 
 describe('SecretSettings', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   describe('Rendering', () => {
     it('should render when isVisible is true', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
@@ -23,16 +31,18 @@ describe('SecretSettings', () => {
       expect(screen.queryByText(/Secret Settings/i)).not.toBeInTheDocument();
     });
 
-    it('should display placeholder text for feature flags', () => {
+    it('should display feature flags from config', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByText(/No feature flags configured yet/i)).toBeInTheDocument();
+      expect(screen.getByText(/Psychedelic Color Cycle Mode/i)).toBeInTheDocument();
+      expect(screen.getByText(/Old-School Easter Egg Sounds/i)).toBeInTheDocument();
     });
 
-    it('should display placeholder text for custom settings', () => {
+    it('should display custom settings from config', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByText(/No custom settings configured yet/i)).toBeInTheDocument();
+      expect(screen.getByText(/Theme Mode/i)).toBeInTheDocument();
+      expect(screen.getByText(/UI Style/i)).toBeInTheDocument();
     });
 
     it('should display developer information', () => {
@@ -112,11 +122,25 @@ describe('SecretSettings', () => {
       ).toBeInTheDocument();
     });
 
-    it('should display hint text for adding features', () => {
+    it('should display reset buttons', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      const hints = screen.getAllByText(/See the module README for instructions/i);
-      expect(hints.length).toBeGreaterThan(0);
+      const resetButtons = screen.getAllByText(/Reset All/i);
+      expect(resetButtons.length).toBeGreaterThan(0);
+    });
+
+    it('should display feature flag checkboxes', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes.length).toBeGreaterThan(0);
+    });
+
+    it('should display custom setting selects', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const selects = screen.getAllByRole('combobox');
+      expect(selects.length).toBeGreaterThan(0);
     });
   });
 });

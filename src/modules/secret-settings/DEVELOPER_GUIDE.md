@@ -638,7 +638,7 @@ When adding new flags or settings:
 
 **How it works**:
 
-1. When enabled, renders a full-screen overlay with `z-index: 1000`
+1. When enabled, renders a full-screen overlay with `z-index: 200`
 2. Uses `mix-blend-mode: screen` to overlay colors without blocking interaction
 3. Animates HSL hue rotation (0-360°) every 50ms for smooth color transitions
 4. Creates multiple gradient layers rotating at different speeds

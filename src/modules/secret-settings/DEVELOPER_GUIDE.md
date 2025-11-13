@@ -9,33 +9,73 @@
 1. [Quick Start](#quick-start)
 2. [Adding Feature Flags](#adding-feature-flags)
 3. [Adding Custom Settings](#adding-custom-settings)
-4. [Best Practices](#best-practices)
-5. [Testing](#testing)
-6. [Examples](#examples)
+4. [Implemented Features](#implemented-features)
+5. [Best Practices](#best-practices)
+6. [Testing](#testing)
+7. [Examples](#examples)
 
 ---
 
 ## Quick Start
 
-The secret settings menu is activated by triple-tapping/clicking in the center of the screen. It's currently scaffolding with placeholder sections for:
+The secret settings menu is activated by triple-tapping/clicking in the center of the screen. It provides:
 
-- **Feature Flags**: Boolean toggles for experimental features
+- **Feature Flags**: Boolean toggles for experimental and creative features
 - **Custom Settings**: Adjustable parameters (numbers, strings, selects)
 
 ### Module Location
 
 ```
 src/modules/secret-settings/
-├── README.md                    # API contract and usage
-├── DEVELOPER_GUIDE.md          # This file
-├── types.ts                     # TypeScript interfaces
-├── useTripleTap.ts             # Triple-tap detection hook
-├── SecretSettings.tsx          # Settings UI component
-├── SecretSettings.module.css   # Component styles
-├── index.ts                     # Public API exports
-├── useTripleTap.test.ts        # Hook tests
-└── SecretSettings.test.tsx     # Component tests
+├── README.md                       # API contract and usage
+├── DEVELOPER_GUIDE.md             # This file
+├── types.ts                        # TypeScript interfaces
+├── featureFlagConfig.ts           # Feature flag definitions
+├── customSettingsConfig.ts        # Custom settings definitions
+├── useTripleTap.ts                # Triple-tap detection hook
+├── useFeatureFlags.ts             # Feature flags state management
+├── useCustomSettings.ts           # Custom settings state management
+├── useRetroSounds.ts              # Retro sound effects hook
+├── SecretSettings.tsx             # Settings UI component
+├── PsychedelicEffect.tsx          # Psychedelic visual effect
+├── SecretSettings.module.css      # Component styles
+├── PsychedelicEffect.module.css   # Effect styles
+├── index.ts                        # Public API exports
+├── useTripleTap.test.ts           # Hook tests
+└── SecretSettings.test.tsx        # Component tests
 ```
+
+---
+
+## Implemented Features
+
+### Feature Flags
+
+1. **Psychedelic Color Cycle Mode** (`psychedelic-mode`)
+   - Enables vibrant gradient overlays and liquid light show effects
+   - Creates instant "party vibes" atmosphere
+   - Toggles on/off from Feature Flags section
+   - Implementation: `PsychedelicEffect.tsx` component
+
+2. **Old-School Easter Egg Sounds** (`retro-sounds`)
+   - Plays random retro system sounds (beeps, clicks, whooshes, modem)
+   - Sounds synthesized using Web Audio API (no external files needed)
+   - Plays on menu toggle, activation, and photo recognition
+   - Implementation: `useRetroSounds.ts` hook
+
+### Custom Settings
+
+3. **Theme Mode** (`theme-mode`)
+   - Switch between light and dark visual themes
+   - Options: Dark, Light
+   - Applied globally via `data-theme` attribute
+   - Instant theme switching with smooth transitions
+
+4. **UI Style** (`ui-style`)
+   - Toggle between modern UI and classic retro gallery experience
+   - Options: Modern, Classic
+   - Classic mode uses monospace fonts and removes textures
+   - Applied globally via `data-ui-style` attribute
 
 ---
 

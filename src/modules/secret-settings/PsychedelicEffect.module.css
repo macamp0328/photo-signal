@@ -1,0 +1,88 @@
+/**
+ * Psychedelic Effect Styles
+ *
+ * Vibrant, animated gradient overlays for party mode
+ */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+  mix-blend-mode: screen;
+  opacity: 0.4;
+}
+
+.gradient1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: rotate 10s linear infinite;
+  opacity: 0.6;
+}
+
+.gradient2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: rotate 15s linear infinite reverse;
+  opacity: 0.6;
+}
+
+.pulse1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 0, 255, 0.3) 0%,
+    transparent 50%
+  );
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.pulse2 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(0, 255, 255, 0.3) 0%,
+    transparent 50%
+  );
+  animation: pulse 4s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}

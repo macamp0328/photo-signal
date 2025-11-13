@@ -1,3 +1,11 @@
+<!--
+🤖 FOR AI AGENTS: Before committing ANY changes, you MUST run:
+  npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build
+
+This is AUTOMATIC - run these checks without being asked. If any fail, fix them before committing.
+The user expects this as standard workflow, not an optional step.
+-->
+
 ## What
 
 <!-- Brief description of what changed -->

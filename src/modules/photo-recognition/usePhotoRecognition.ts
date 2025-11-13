@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { dataService } from '../../services/data-service';
-import { useFeatureFlags } from '../../contexts';
+import { useFeatureFlags } from '../secret-settings';
 import type { Concert } from '../../types';
 import type { PhotoRecognitionHook, PhotoRecognitionOptions } from './types';
 import { computeDHash } from './algorithms/dhash';
@@ -28,7 +28,7 @@ export function usePhotoRecognition(
     checkInterval = 1000,
   } = options;
 
-  const { isGrayscaleMode } = useFeatureFlags();
+  const { isEnabled } = useFeatureFlags();
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -143,7 +143,7 @@ export function usePhotoRecognition(
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         // Apply grayscale conversion if enabled
-        if (isGrayscaleMode) {
+        if (isEnabled('grayscale-mode')) {
           convertToGrayscale(imageData);
         }
 

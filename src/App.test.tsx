@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from './App';
-import { FeatureFlagProvider } from './contexts';
 
 // Mock browser APIs
 beforeEach(() => {
@@ -17,13 +16,9 @@ beforeEach(() => {
   });
 });
 
-// Helper to render with provider
+// Helper to render app
 const renderApp = () => {
-  return render(
-    <FeatureFlagProvider>
-      <App />
-    </FeatureFlagProvider>
-  );
+  return render(<App />);
 };
 
 describe('App', () => {

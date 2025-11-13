@@ -4,6 +4,29 @@ import type { Concert } from '../../types';
  * Photo Recognition Module Types
  */
 
+/**
+ * Best match information for debugging
+ */
+export interface BestMatchInfo {
+  concert: Concert;
+  distance: number;
+  similarity: number;
+}
+
+/**
+ * Debug information from photo recognition
+ */
+export interface RecognitionDebugInfo {
+  /** Last computed frame hash */
+  lastFrameHash: string | null;
+  /** Best match found in last check */
+  bestMatch: BestMatchInfo | null;
+  /** Timestamp of last frame check */
+  lastCheckTime: number;
+  /** Number of concerts being checked */
+  concertCount: number;
+}
+
 export interface PhotoRecognitionHook {
   /** Recognized concert, null if none */
   recognizedConcert: Concert | null;
@@ -11,6 +34,8 @@ export interface PhotoRecognitionHook {
   isRecognizing: boolean;
   /** Reset recognition state */
   reset: () => void;
+  /** Debug information (only populated in dev mode or test mode) */
+  debugInfo: RecognitionDebugInfo | null;
 }
 
 export interface PhotoRecognitionOptions {
@@ -22,4 +47,6 @@ export interface PhotoRecognitionOptions {
   similarityThreshold?: number;
   /** Interval for checking frames (ms), default 1000 */
   checkInterval?: number;
+  /** Enable debug information output, default false */
+  enableDebugInfo?: boolean;
 }

@@ -1,0 +1,230 @@
+/**
+ * Debug Overlay Styles
+ *
+ * Styling for the debug information overlay
+ * Positioned in bottom-right corner, semi-transparent
+ */
+
+.overlay {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 280px;
+  max-width: 320px;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
+
+.badge {
+  background: #4a5568;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.section {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Status Section */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusIndicator {
+  font-size: 20px;
+  line-height: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusIndicator.statusIdle {
+  animation: none;
+}
+
+/* Status color indicators */
+.statusIndicator.statusChecking {
+  color: #3182ce; /* Blue - checking frame */
+}
+
+.statusIndicator.statusMatching {
+  color: #ecc94b; /* Yellow - potential match */
+}
+
+.statusIndicator.statusRecognized {
+  color: #38a169; /* Green - confirmed match */
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+.statusText {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+/* Frame Hash Section */
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #a0aec0;
+  margin-bottom: 6px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.hash {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  color: #63b3ed;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hint {
+  font-size: 11px;
+  color: #718096;
+  font-style: italic;
+}
+
+/* Best Match Section */
+.matchName {
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.matchStats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 10px;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fbbf24;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Threshold Section */
+.thresholdInfo {
+  font-size: 12px;
+  color: #cbd5e0;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Recognized Concert Section */
+.recognized {
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.concertName {
+  font-weight: 700;
+  font-size: 15px;
+  color: #68d391;
+  margin-bottom: 4px;
+}
+
+.concertVenue {
+  font-size: 12px;
+  color: #e2e8f0;
+  margin-bottom: 2px;
+}
+
+.concertDate {
+  font-size: 11px;
+  color: #a0aec0;
+}
+
+/* Responsive: Hide on very small screens */
+@media (max-width: 400px) {
+  .overlay {
+    bottom: 10px;
+    right: 10px;
+    min-width: 240px;
+    max-width: 280px;
+    font-size: 12px;
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 13px;
+  }
+
+  .statusText {
+    font-size: 13px;
+  }
+
+  .hash {
+    font-size: 12px;
+  }
+}
+
+/* Accessibility: Ensure focus is visible */
+.overlay:focus-within {
+  outline: 2px solid #63b3ed;
+  outline-offset: 2px;
+}

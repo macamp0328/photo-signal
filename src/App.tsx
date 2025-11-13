@@ -16,6 +16,7 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
+import { DebugOverlay } from './modules/debug-overlay';
 import {
   useTripleTap,
   SecretSettings,
@@ -73,8 +74,14 @@ function App() {
   });
 
   // Module: Photo Recognition
-  const { recognizedConcert, reset: resetRecognition } = usePhotoRecognition(stream, {
+  const {
+    recognizedConcert,
+    reset: resetRecognition,
+    debugInfo,
+    isRecognizing,
+  } = usePhotoRecognition(stream, {
     recognitionDelay: 3000,
+    enableDebugInfo: isEnabled('test-mode'),
   });
 
   // Module: Audio Playback
@@ -141,6 +148,15 @@ function App() {
         }}
       />
       <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
+      <DebugOverlay
+        enabled={isEnabled('test-mode')}
+        recognizedConcert={recognizedConcert}
+        isRecognizing={isRecognizing}
+        lastFrameHash={debugInfo?.lastFrameHash ?? undefined}
+        bestMatch={debugInfo?.bestMatch ?? undefined}
+        threshold={40}
+        lastCheckTime={debugInfo?.lastCheckTime}
+      />
     </>
   );
 }

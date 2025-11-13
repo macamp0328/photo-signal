@@ -49,16 +49,17 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[camera-access/README.md](./src/modules/camera-access/README.md)** - Camera permission and MediaStream management
 - **[camera-view/README.md](./src/modules/camera-view/README.md)** - Video display UI component with 3:2 overlay
 - **[motion-detection/README.md](./src/modules/motion-detection/README.md)** - Camera movement detection algorithm
-- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing
+- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing, hash generation tools, and debug API
   - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
+- **[debug-overlay/README.md](./src/modules/debug-overlay/README.md)** - Real-time photo recognition debugging overlay (Test Mode only)
 - **[secret-settings/README.md](./src/modules/secret-settings/README.md)** - Hidden settings menu activated by triple-tap/click for feature flags and custom settings
   - **[secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** - Comprehensive guide for adding feature flags and custom settings
-  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds)
+  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds, Test Mode)
   - **[secret-settings/customSettingsConfig.ts](./src/modules/secret-settings/customSettingsConfig.ts)** - Custom settings definitions (Theme Mode, UI Style)
   - **[secret-settings/useFeatureFlags.ts](./src/modules/secret-settings/useFeatureFlags.ts)** - Feature flags state management hook
   - **[secret-settings/useCustomSettings.ts](./src/modules/secret-settings/useCustomSettings.ts)** - Custom settings state management hook
@@ -138,6 +139,14 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
 - **[.github/ISSUE_TEMPLATE/firewall-gh-io-access.md](./.github/ISSUE_TEMPLATE/firewall-gh-io-access.md)** - Template for firewall configuration issue to allow Copilot agent access to gh.io domain
 
+### Issue Templates (Feature-based)
+
+- **[implement-functional-framing-guides.md](./.github/ISSUE_TEMPLATE/implement-functional-framing-guides.md)** - Feature: Implement functional framing guides with dual aspect ratios (3:2 and 2:3) to make framing guide crop recognition region
+- **[refactor-consolidate-feature-flags.md](./.github/ISSUE_TEMPLATE/refactor-consolidate-feature-flags.md)** - Refactor: Consolidate duplicate feature flag systems
+- **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode photo recognition
+- **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote gallery viewing
+- **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Remove outdated documentation
+
 ### Custom Agents
 
 - **[.github/agents/README.md](./.github/agents/README.md)** - Guide to using GitHub Copilot custom agents, testing approach, and customization instructions
@@ -178,6 +187,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode to enable photo recognition with test images and add debug logging
 - **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote users to experience Photo Signal by pointing camera at campmiles.com blog images
 - **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Audit and remove outdated ISSUE_TRACKING.md and MIGRATION.md files after extracting valuable content
+- **[implement-functional-framing-guides.md](./.github/ISSUE_TEMPLATE/implement-functional-framing-guides.md)** - Feature: Implement functional framing guides with dual aspect ratios (3:2 landscape and 2:3 portrait) to crop recognition to framed region
 
 ---
 
@@ -201,7 +211,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Helper Scripts
 
-- **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts
+- **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts, including hash generation tools
 - **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)
 - **[scripts/build.sh](./scripts/build.sh)** - Build for production (local or Docker)
 - **[scripts/test.sh](./scripts/test.sh)** - Run tests (local or Docker)
@@ -209,6 +219,8 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/format.sh](./scripts/format.sh)** - Format code (local or Docker)
 - **[scripts/create-sample-audio.sh](./scripts/create-sample-audio.sh)** - Generate sample audio file
 - **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
+- **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
+- **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
 
 ---
 
@@ -225,6 +237,10 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG images for testing (4 files, ~30KB each)
 - **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Sample MP3 audio files for testing (4 files, ~40KB each, 5 seconds)
 - **[assets/test-data/README.md](./assets/test-data/README.md)** - Sample structured data files (JSON, CSV formats)
+
+### Example Real Photos
+
+- **[assets/example-real-photos/README.md](./assets/example-real-photos/README.md)** - Real concert photos for gallery testing and photo recognition validation (5 JPEG files)
 
 ---
 
@@ -294,14 +310,14 @@ This index covers:
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
-- ✅ Issue templates (19 files - includes all issue templates)
+- ✅ Issue templates (20 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)
-- ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
+- ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 107 documented files (removed ISSUE_TRACKING.md and MIGRATION.md)
+**Total**: 109 documented files
 
 Last updated: 2025-11-13

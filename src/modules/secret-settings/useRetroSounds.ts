@@ -154,7 +154,7 @@ export function useRetroSounds(enabled: boolean) {
     } catch (error) {
       console.warn('Failed to play retro sound:', error);
     }
-  }, []);
+  }, [enabled]);
 
   return {
     playRandomSound,

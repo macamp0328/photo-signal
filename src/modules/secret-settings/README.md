@@ -508,7 +508,7 @@ npm test
 - [ ] Add search/filter for settings
 - [ ] Add import/export settings functionality
 - [ ] Add settings categories/tabs
-- [ ] Respect `prefers-reduced-motion` for psychedelic effect
+- [x] Respect `prefers-reduced-motion` for psychedelic effect (✅ implemented)
 - [ ] Add more retro sound variations
 - [ ] Add motion sensitivity setting
 

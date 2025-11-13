@@ -18,7 +18,7 @@ export function DebugOverlay({
   enabled,
   lastFrameHash,
   bestMatch,
-  threshold = 10,
+  threshold = 40,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
@@ -83,7 +83,7 @@ export function DebugOverlay({
     : 'N/A';
 
   // Calculate similarity percentage
-  const similarityThreshold = ((64 - threshold) / 64) * 100;
+  const similarityThreshold = ((256 - threshold) / 256) * 100;
 
   return (
     <div className={styles.overlay}>

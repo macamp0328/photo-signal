@@ -55,7 +55,7 @@ describe('dHash Algorithm', () => {
 
       expect(hash).toBeDefined();
       expect(typeof hash).toBe('string');
-      expect(hash).toHaveLength(16); // 64-bit hash = 16 hex characters
+      expect(hash).toHaveLength(32); // 128-bit hash = 32 hex characters
     });
 
     it('should compute hash for solid black image', () => {
@@ -65,7 +65,7 @@ describe('dHash Algorithm', () => {
 
       expect(hash).toBeDefined();
       expect(typeof hash).toBe('string');
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
 
     it('should compute hash for gradient image', () => {
@@ -73,7 +73,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       expect(hash).toBeDefined();
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
 
     it('should compute hash for checkerboard pattern', () => {
@@ -81,7 +81,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       expect(hash).toBeDefined();
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
   });
 
@@ -124,7 +124,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       expect(hash).toBeDefined();
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
 
     it('should handle very large images', () => {
@@ -132,7 +132,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       expect(hash).toBeDefined();
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
   });
 
@@ -186,8 +186,8 @@ describe('dHash Algorithm', () => {
       const hash3 = computeDHash(checkerboard);
 
       // All hashes should be different
-      expect(hash1).toBe('0000000000000000'); // Solid = no gradients
-      expect(hash2).toBe('ffffffffffffffff'); // Decreasing gradient = all 1s
+      expect(hash1).toBe('00000000000000000000000000000000'); // Solid = no gradients
+      expect(hash2).toBe('ffffffffffffffffffffffffffffffff'); // Decreasing gradient = all 1s
       expect(hash3).not.toBe(hash1); // Checkerboard different from solid
       expect(hash3).not.toBe(hash2); // Checkerboard different from gradient
     });
@@ -205,7 +205,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       // Uniform image should have no gradients, so all bits should be 0
-      expect(hash).toBe('0000000000000000');
+      expect(hash).toBe('00000000000000000000000000000000');
     });
 
     it('should produce non-zero hash for gradient image', () => {
@@ -231,8 +231,8 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       // Decreasing gradient should produce all 1s hash (ffffffffffffffff)
-      expect(hash).not.toBe('0000000000000000');
-      expect(hash).toBe('ffffffffffffffff');
+      expect(hash).not.toBe('00000000000000000000000000000000');
+      expect(hash).toBe('ffffffffffffffffffffffffffffffff');
     });
   });
 
@@ -242,7 +242,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       // Should only contain hex characters (0-9, a-f)
-      expect(hash).toMatch(/^[0-9a-f]{16}$/);
+      expect(hash).toMatch(/^[0-9a-f]{32}$/);
     });
 
     it('should always return lowercase hex', () => {
@@ -260,7 +260,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       expect(hash).toBeDefined();
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
 
     it('should handle images with varied colors', () => {
@@ -284,7 +284,7 @@ describe('dHash Algorithm', () => {
       const hash = computeDHash(imageData);
 
       expect(hash).toBeDefined();
-      expect(hash).toHaveLength(16);
+      expect(hash).toHaveLength(32);
     });
   });
 
@@ -302,7 +302,7 @@ describe('dHash Algorithm', () => {
         const hash = computeDHash(imageData);
 
         expect(hash).toBeDefined();
-        expect(hash).toHaveLength(16);
+        expect(hash).toHaveLength(32);
       });
     });
   });

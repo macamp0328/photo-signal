@@ -154,7 +154,7 @@ function App() {
         isRecognizing={isRecognizing}
         lastFrameHash={debugInfo?.lastFrameHash ?? undefined}
         bestMatch={debugInfo?.bestMatch ?? undefined}
-        threshold={10}
+        threshold={40}
         lastCheckTime={debugInfo?.lastCheckTime}
       />
     </>

@@ -80,10 +80,10 @@ interface BestMatchInfo {
 This module uses a lightweight, client-side perceptual hashing algorithm to recognize photos:
 
 1. **Capture Frame**: Extract current video frame from MediaStream
-2. **Resize**: Reduce to 9x8 pixels (optimized for speed)
+2. **Resize**: Reduce to 17x8 pixels (optimized for speed)
 3. **Grayscale**: Convert to grayscale using luminance formula
 4. **Gradient Hash**: Compute horizontal pixel gradients
-5. **Generate Hash**: Create 64-bit hash from gradient differences
+5. **Generate Hash**: Create 128-bit hash from gradient differences
 6. **Compare**: Use Hamming distance to compare with stored hashes
 7. **Match**: Recognize photo when distance < threshold for stable period
 
@@ -297,17 +297,17 @@ npm run generate-hashes
 
 The hash generation uses the **dHash (Difference Hash)** algorithm:
 
-1. **Resize** image to 9×8 pixels (72 pixels total)
+1. **Resize** image to 17×8 pixels (136 pixels total)
 2. **Convert** to grayscale using ITU-R BT.601 luma coefficients
 3. **Calculate** horizontal gradient differences (left vs. right neighbor)
-4. **Generate** 64-bit binary hash based on differences
-5. **Encode** as 16-character hexadecimal string
+4. **Generate** 128-bit binary hash based on differences
+5. **Encode** as 32-character hexadecimal string
 
 **Characteristics**:
 
 - Fast: ~6-8ms on mobile devices
 - Robust: Handles brightness/contrast changes well
-- Compact: Only 16 bytes per hash
+- Compact: Only 32 bytes per hash
 - Accurate: ~85-90% recognition under varying conditions
 
 For technical details, see `algorithms/dhash.ts`.

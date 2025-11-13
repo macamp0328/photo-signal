@@ -94,7 +94,7 @@ export function usePhotoRecognition(
       console.log(`  Concerts loaded: ${concerts.length}`);
       console.log(`  Concerts with hashes: ${concerts.filter((c) => c.photoHash).length}`);
       console.log(
-        `  Similarity threshold: ${similarityThreshold} (≥${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}% match)`
+        `  Similarity threshold: ${similarityThreshold} (≥${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}% match)`
       );
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
       console.log(`  Check interval: ${checkInterval}ms`);
@@ -193,7 +193,7 @@ export function usePhotoRecognition(
           console.debug(`Frame Size: ${canvas.width} × ${canvas.height} px`);
           console.debug(`Concerts Checked: ${concerts.filter((c) => c.photoHash).length}`);
           console.debug(
-            `Threshold: ${similarityThreshold} (similarity ≥ ${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}%)`
+            `Threshold: ${similarityThreshold} (similarity ≥ ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%)`
           );
           console.debug('');
         }
@@ -212,7 +212,7 @@ export function usePhotoRecognition(
           }
 
           const distance = hammingDistance(currentHash, concert.photoHash);
-          const similarity = ((64 - distance) / 64) * 100;
+          const similarity = ((256 - distance) / 256) * 100;
 
           // Enhanced logging in dev mode or Test Mode
           if (import.meta.env.DEV || isTestMode) {
@@ -238,7 +238,7 @@ export function usePhotoRecognition(
               ? {
                   concert: bestMatch,
                   distance: bestDistance,
-                  similarity: ((64 - bestDistance) / 64) * 100,
+                  similarity: ((256 - bestDistance) / 256) * 100,
                 }
               : null,
             lastCheckTime: currentTime,
@@ -248,7 +248,7 @@ export function usePhotoRecognition(
 
         // Check if best match meets threshold
         if (bestMatch && bestDistance <= similarityThreshold) {
-          const similarity = ((64 - bestDistance) / 64) * 100;
+          const similarity = ((256 - bestDistance) / 256) * 100;
 
           if (import.meta.env.DEV || isTestMode) {
             console.debug('');
@@ -307,12 +307,12 @@ export function usePhotoRecognition(
           // No match, reset
           if (import.meta.env.DEV || isTestMode) {
             if (bestMatch) {
-              const similarity = ((64 - bestDistance) / 64) * 100;
+              const similarity = ((256 - bestDistance) / 256) * 100;
               console.debug('');
               console.debug(`Match Decision: NO MATCH (best was ${bestMatch.band})`);
               console.debug(`  Distance: ${bestDistance} > ${similarityThreshold} threshold`);
               console.debug(
-                `  Similarity: ${similarity.toFixed(1)}% < required ${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}%`
+                `  Similarity: ${similarity.toFixed(1)}% < required ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%`
               );
             } else {
               console.debug('');

@@ -333,8 +333,8 @@
        * Compute dHash (Difference Hash) of an image
        */
       function computeDHash(imageData) {
-        // Step 1: Resize to 9x8 pixels
-        const resized = resizeImageData(imageData, 9, 8);
+        // Step 1: Resize to 17x8 pixels
+        const resized = resizeImageData(imageData, 17, 8);
 
         // Step 2: Convert to grayscale
         const grayscale = toGrayscale(resized);
@@ -343,8 +343,8 @@
         let binaryHash = '';
 
         for (let row = 0; row < 8; row++) {
-          for (let col = 0; col < 8; col++) {
-            const currentIndex = row * 9 + col;
+          for (let col = 0; col < 16; col++) {
+            const currentIndex = row * 17 + col;
             const nextIndex = currentIndex + 1;
 
             const currentPixel = grayscale[currentIndex];

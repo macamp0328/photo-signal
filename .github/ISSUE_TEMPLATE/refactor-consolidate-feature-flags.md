@@ -123,7 +123,6 @@ All flags default to `enabled: false` and persist to localStorage.
   - [ ] Update ARCHITECTURE.md to document single feature flag system
   - [ ] Update secret-settings/DEVELOPER_GUIDE.md with global usage patterns
   - [ ] Update DOCUMENTATION_INDEX.md if file structure changes
-  - [ ] Add migration notes to MIGRATION.md
 
 - [ ] **Verify integration**
   - [ ] Test in browser: Triple-tap → toggle flags → verify features work
@@ -182,7 +181,6 @@ All flags default to `enabled: false` and persist to localStorage.
 - `src/App.test.tsx` (update test setup)
 - `ARCHITECTURE.md` (document single feature flag system)
 - `DOCUMENTATION_INDEX.md` (remove deleted file entry)
-- `MIGRATION.md` (add migration notes)
 
 **To Review**:
 

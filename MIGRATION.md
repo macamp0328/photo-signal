@@ -208,12 +208,14 @@ But you shouldn't need this - the new architecture is tested and working! ✅
 The duplicate feature flag systems have been consolidated into a single source of truth.
 
 **Before:**
+
 - ❌ Two systems: `FeatureFlagContext` (old) + `secret-settings/useFeatureFlags` (new)
 - ❌ Two storage keys: `photo-signal:feature-flags` + `photo-signal-feature-flags`
 - ❌ Complex syncing with custom events
 - ❌ Confusing for developers
 
 **After:**
+
 - ✅ One system: `secret-settings/useFeatureFlags`
 - ✅ One storage key: `photo-signal-feature-flags`
 - ✅ No syncing needed
@@ -222,6 +224,7 @@ The duplicate feature flag systems have been consolidated into a single source o
 ### Migration Guide
 
 **Old API:**
+
 ```tsx
 import { useFeatureFlags } from './contexts';
 
@@ -229,17 +232,23 @@ const { isTestMode, isGrayscaleMode } = useFeatureFlags();
 ```
 
 **New API:**
+
 ```tsx
 import { useFeatureFlags } from './modules/secret-settings';
 
 const { isEnabled } = useFeatureFlags();
 
 // Check if flags are enabled
-if (isEnabled('test-mode')) { /* ... */ }
-if (isEnabled('grayscale-mode')) { /* ... */ }
+if (isEnabled('test-mode')) {
+  /* ... */
+}
+if (isEnabled('grayscale-mode')) {
+  /* ... */
+}
 ```
 
 **All 4 feature flags:**
+
 1. `test-mode` - Use test data instead of production
 2. `grayscale-mode` - Convert camera frames to B&W
 3. `psychedelic-mode` - Enable psychedelic visual effects

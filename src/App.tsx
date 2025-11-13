@@ -153,7 +153,7 @@ function App() {
         recognizedConcert={recognizedConcert}
         isRecognizing={isRecognizing}
         lastFrameHash={debugInfo?.lastFrameHash ?? undefined}
-        bestMatch={debugInfo?.bestMatch ?? undefined}
+        bestMatch={debugInfo?.bestMatch}
         threshold={10}
         lastCheckTime={debugInfo?.lastCheckTime}
       />

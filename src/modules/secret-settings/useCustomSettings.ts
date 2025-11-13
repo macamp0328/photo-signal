@@ -71,9 +71,12 @@ export function useCustomSettings() {
    * @param id - The unique identifier of the setting to retrieve
    * @returns The setting value, or undefined if not found
    */
-  const getSetting = useCallback(<T = string | number | boolean>(id: string): T | undefined => {
-    return settings.find((s) => s.id === id)?.value as T | undefined;
-  }, [settings]);
+  const getSetting = useCallback(
+    <T = string | number | boolean>(id: string): T | undefined => {
+      return settings.find((s) => s.id === id)?.value as T | undefined;
+    },
+    [settings]
+  );
 
   /**
    * Reset all settings to default values

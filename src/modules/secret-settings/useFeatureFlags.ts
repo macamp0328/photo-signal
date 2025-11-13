@@ -82,9 +82,12 @@ export function useFeatureFlags() {
    * @param id - The unique identifier of the flag to check
    * @returns true if enabled, false otherwise
    */
-  const isEnabled = useCallback((id: string): boolean => {
-    return flags.find((flag) => flag.id === id)?.enabled ?? false;
-  }, [flags]);
+  const isEnabled = useCallback(
+    (id: string): boolean => {
+      return flags.find((flag) => flag.id === id)?.enabled ?? false;
+    },
+    [flags]
+  );
 
   /**
    * Reset all flags to default values

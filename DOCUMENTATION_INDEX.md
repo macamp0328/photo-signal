@@ -179,6 +179,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[refactor-consolidate-feature-flags.md](./.github/ISSUE_TEMPLATE/refactor-consolidate-feature-flags.md)** - Refactor: Consolidate duplicate feature flag systems into single source of truth
 - **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode to enable photo recognition with test images and add debug logging
 - **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote users to experience Photo Signal by pointing camera at campmiles.com blog images
+- **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Audit and remove outdated ISSUE_TRACKING.md and MIGRATION.md files after extracting valuable content
 
 ---
 
@@ -295,7 +296,7 @@ This index covers:
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
-- ✅ Issue templates (18 files - includes template guide, firewall access template, and digital-gallery-mode feature)
+- ✅ Issue templates (19 files - includes template guide, firewall access template, digital-gallery-mode feature, and cleanup-outdated-docs)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)
@@ -303,6 +304,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 108 documented files
+**Total**: 109 documented files
 
 Last updated: 2025-11-13

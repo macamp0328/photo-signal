@@ -313,6 +313,69 @@ These scripts are used by:
 - **CI/CD** - GitHub Actions uses npm commands directly
 - **Documentation** - Referenced in README.md and SETUP.md
 
+---
+
+### `generate-photo-hashes.js` - Generate Photo Hashes
+
+Generates dHash values for test images in `assets/test-images/`. These hashes are required for photo recognition to work in Test Mode.
+
+**Requirements:** Node.js and npm packages installed
+
+**Usage:**
+
+```bash
+# Using npm script (recommended)
+npm run generate-hashes
+
+# Or run directly
+node scripts/generate-photo-hashes.js
+```
+
+**What it does:**
+
+- Scans `assets/test-images/` directory for image files
+- Computes dHash (Difference Hash) for each image
+- Uses the same algorithm as the photo recognition module
+- Outputs hashes in JSON format for easy copy-paste
+
+**Example Output:**
+
+```
+📸 Photo Hash Generator
+
+Found 4 image(s):
+
+✓ concert-1.jpg
+  Hash: 000000042a000000
+  Size: 640 × 480 px
+
+✓ concert-2.jpg
+  Hash: 0000000416000000
+  Size: 640 × 480 px
+
+📋 JSON Output (for concerts.json):
+
+[
+  {
+    "file": "concert-1.jpg",
+    "photoHash": "000000042a000000"
+  },
+  ...
+]
+```
+
+**When to use:**
+
+- Adding new test images
+- Regenerating hashes after image updates
+- Verifying hash computation
+
+**Browser Alternative:**
+
+For a visual interface, open `scripts/generate-photo-hashes.html` in your browser and drag-and-drop images to generate hashes.
+
+---
+
 ## Adding New Scripts
 
 To add a new helper script:

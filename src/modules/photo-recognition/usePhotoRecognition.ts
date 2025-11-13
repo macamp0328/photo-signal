@@ -185,16 +185,17 @@ export function usePhotoRecognition(
         const currentHash = computeDHash(imageData);
 
         // Enhanced logging in dev mode or Test Mode
+        // Using console.debug() for frame-level logs (can be filtered in DevTools)
         if (import.meta.env.DEV || isTestMode) {
-          console.log(`\n${'='.repeat(60)}`);
-          console.log(`[Photo Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
-          console.log(`Frame Hash: ${currentHash}`);
-          console.log(`Frame Size: ${canvas.width} × ${canvas.height} px`);
-          console.log(`Concerts Checked: ${concerts.filter((c) => c.photoHash).length}`);
-          console.log(
+          console.debug(`\n${'='.repeat(60)}`);
+          console.debug(`[Photo Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
+          console.debug(`Frame Hash: ${currentHash}`);
+          console.debug(`Frame Size: ${canvas.width} × ${canvas.height} px`);
+          console.debug(`Concerts Checked: ${concerts.filter((c) => c.photoHash).length}`);
+          console.debug(
             `Threshold: ${similarityThreshold} (similarity ≥ ${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}%)`
           );
-          console.log('');
+          console.debug('');
         }
 
         // Find best match among concerts with photo hashes
@@ -202,7 +203,7 @@ export function usePhotoRecognition(
         let bestDistance = Infinity;
 
         if (import.meta.env.DEV || isTestMode) {
-          console.log('Results:');
+          console.debug('Results:');
         }
 
         for (const concert of concerts) {
@@ -218,7 +219,7 @@ export function usePhotoRecognition(
             const isBest = distance < bestDistance;
             const meetsThreshold = distance <= similarityThreshold;
             const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
-            console.log(
+            console.debug(
               `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${isBest ? ' ← BEST MATCH' : ''}`
             );
           }
@@ -250,10 +251,10 @@ export function usePhotoRecognition(
           const similarity = ((64 - bestDistance) / 64) * 100;
 
           if (import.meta.env.DEV || isTestMode) {
-            console.log('');
-            console.log(`Match Decision: POTENTIAL MATCH (${bestMatch.band})`);
-            console.log(`  Distance: ${bestDistance} / ${similarityThreshold} threshold`);
-            console.log(`  Similarity: ${similarity.toFixed(1)}%`);
+            console.debug('');
+            console.debug(`Match Decision: POTENTIAL MATCH (${bestMatch.band})`);
+            console.debug(`  Distance: ${bestDistance} / ${similarityThreshold} threshold`);
+            console.debug(`  Similarity: ${similarity.toFixed(1)}%`);
           }
 
           // Same concert as before?
@@ -263,7 +264,7 @@ export function usePhotoRecognition(
               const elapsed = Date.now() - matchStartTimeRef.current;
 
               if (import.meta.env.DEV || isTestMode) {
-                console.log(
+                console.debug(
                   `  Stability Timer: ${(elapsed / 1000).toFixed(1)}s / ${(recognitionDelay / 1000).toFixed(1)}s required`
                 );
               }
@@ -298,8 +299,8 @@ export function usePhotoRecognition(
             setIsRecognizing(true);
 
             if (import.meta.env.DEV || isTestMode) {
-              console.log('  Starting stability timer...');
-              console.log('━'.repeat(60));
+              console.debug('  Starting stability timer...');
+              console.debug('━'.repeat(60));
             }
           }
         } else {
@@ -307,17 +308,17 @@ export function usePhotoRecognition(
           if (import.meta.env.DEV || isTestMode) {
             if (bestMatch) {
               const similarity = ((64 - bestDistance) / 64) * 100;
-              console.log('');
-              console.log(`Match Decision: NO MATCH (best was ${bestMatch.band})`);
-              console.log(`  Distance: ${bestDistance} > ${similarityThreshold} threshold`);
-              console.log(
+              console.debug('');
+              console.debug(`Match Decision: NO MATCH (best was ${bestMatch.band})`);
+              console.debug(`  Distance: ${bestDistance} > ${similarityThreshold} threshold`);
+              console.debug(
                 `  Similarity: ${similarity.toFixed(1)}% < required ${(((64 - similarityThreshold) / 64) * 100).toFixed(1)}%`
               );
             } else {
-              console.log('');
-              console.log('Match Decision: NO CANDIDATES');
+              console.debug('');
+              console.debug('Match Decision: NO CANDIDATES');
             }
-            console.log('━'.repeat(60));
+            console.debug('━'.repeat(60));
           }
 
           if (lastMatchedConcertRef.current) {

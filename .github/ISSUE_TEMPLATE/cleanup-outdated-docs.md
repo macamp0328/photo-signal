@@ -23,11 +23,13 @@ Two documentation files at the root level are **outdated and potentially confusi
 ### Current State
 
 **ISSUE_TRACKING.md** (last updated 2025-11-09):
+
 - References milestone templates that may not exist
 - Describes workflow that may have evolved
 - Contains useful general guidance mixed with outdated specifics
 
 **MIGRATION.md**:
+
 - Documents migration from `src/components/` to modular architecture
 - The old `src/components/` directory has already been removed
 - Migration is complete, no longer relevant
@@ -221,6 +223,7 @@ Create GitHub issues for features mentioned but not yet templated:
   - [ ] Confirm all actionable issues created
 
 - [ ] **Delete ISSUE_TRACKING.md**
+
   ```bash
   git rm ISSUE_TRACKING.md
   ```
@@ -239,6 +242,7 @@ Create GitHub issues for features mentioned but not yet templated:
   - [ ] Add entries for any new docs created
 
 - [ ] **Search for broken links** in all documentation:
+
   ```bash
   grep -r "ISSUE_TRACKING.md" docs/ *.md .github/
   grep -r "MIGRATION.md" docs/ *.md .github/
@@ -262,6 +266,7 @@ Create GitHub issues for features mentioned but not yet templated:
   - [ ] DOCUMENTATION_INDEX.md is accurate
 
 - [ ] **Run quality checks**
+
   ```bash
   npm run lint:fix
   npm run format
@@ -343,18 +348,18 @@ Use this to track what content is moved where:
 
 ### From ISSUE_TRACKING.md
 
-| Content                          | Valuable? | Destination              | Status |
-| -------------------------------- | --------- | ------------------------ | ------ |
-| Issue creation guidance          | ✅        | CONTRIBUTING.md          | [ ]    |
-| Issue title format               | ✅        | CONTRIBUTING.md          | [ ]    |
-| Issue body template              | ✅        | CONTRIBUTING.md          | [ ]    |
-| Label taxonomy                   | ✅        | CONTRIBUTING.md or .github/LABELS.md | [ ] |
-| GitHub Projects setup            | ✅        | CONTRIBUTING.md or .github/GITHUB_PROJECTS.md | [ ] |
-| AI agent workflow                | Maybe     | Verify in CONTRIBUTING.md | [ ]    |
-| Parallel development tips        | Maybe     | Verify in AI_AGENT_GUIDE.md | [ ]  |
-| Milestone template references    | ❌        | Delete (outdated)        | [ ]    |
-| "14 templates created" count     | ❌        | Delete (outdated)        | [ ]    |
-| M1.9-M4.5 manual issue items     | ✅        | Create GitHub issues     | [ ]    |
+| Content                       | Valuable? | Destination                                   | Status |
+| ----------------------------- | --------- | --------------------------------------------- | ------ |
+| Issue creation guidance       | ✅        | CONTRIBUTING.md                               | [ ]    |
+| Issue title format            | ✅        | CONTRIBUTING.md                               | [ ]    |
+| Issue body template           | ✅        | CONTRIBUTING.md                               | [ ]    |
+| Label taxonomy                | ✅        | CONTRIBUTING.md or .github/LABELS.md          | [ ]    |
+| GitHub Projects setup         | ✅        | CONTRIBUTING.md or .github/GITHUB_PROJECTS.md | [ ]    |
+| AI agent workflow             | Maybe     | Verify in CONTRIBUTING.md                     | [ ]    |
+| Parallel development tips     | Maybe     | Verify in AI_AGENT_GUIDE.md                   | [ ]    |
+| Milestone template references | ❌        | Delete (outdated)                             | [ ]    |
+| "14 templates created" count  | ❌        | Delete (outdated)                             | [ ]    |
+| M1.9-M4.5 manual issue items  | ✅        | Create GitHub issues                          | [ ]    |
 
 ### From MIGRATION.md
 

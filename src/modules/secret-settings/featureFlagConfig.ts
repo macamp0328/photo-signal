@@ -21,6 +21,14 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     category: 'development',
   },
   {
+    id: 'grayscale-mode',
+    name: 'Grayscale Conversion',
+    description:
+      'Convert camera frames to black and white before photo recognition. May improve accuracy since printed reference photos are monochrome, and can reduce noise in low-light conditions.',
+    enabled: false,
+    category: 'experimental',
+  },
+  {
     id: 'psychedelic-mode',
     name: 'Psychedelic Color Cycle Mode',
     description:

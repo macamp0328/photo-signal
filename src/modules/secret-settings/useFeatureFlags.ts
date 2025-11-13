@@ -56,6 +56,8 @@ export function useFeatureFlags() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(flags));
+      // Dispatch custom event to notify other components (e.g., FeatureFlagContext)
+      window.dispatchEvent(new Event('feature-flags-updated'));
     } catch (error) {
       console.error('Failed to save feature flags to localStorage:', error);
     }

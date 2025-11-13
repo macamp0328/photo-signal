@@ -45,6 +45,7 @@ When Test Data Mode is enabled, the app uses data from these directories instead
 #### Required Materials
 
 Print the test images located in `assets/test-images/`:
+
 - `concert-1.jpg`
 - `concert-2.jpg`
 - `concert-3.jpg`
@@ -64,6 +65,7 @@ Print the test images located in `assets/test-images/`:
 ### What Should Work
 
 ✅ **Currently Implemented Features:**
+
 - Triple-tap to open Secret Settings
 - Toggle between Production and Test modes
 - Mode indicator badge (🎯/🧪)
@@ -79,46 +81,55 @@ Print the test images located in `assets/test-images/`:
 When testing, you may discover features that are **planned but not yet implemented**:
 
 ❓ **Photo Hash Generation**
+
 - Currently, test data has pre-computed photo hashes
 - Real photos need a way to generate and store their hashes
 - **Impact**: Cannot add new photos without manually computing hashes
 
 ❓ **Photo Upload/Management**
+
 - No interface to upload new concert photos
 - No way to associate photos with concert metadata
 - **Impact**: Users cannot add their own concert memories
 
 ❓ **Audio Upload/Management**
+
 - No interface to upload custom audio files
 - Audio files must be manually placed in `/public/audio/`
 - **Impact**: Users cannot upload their own concert recordings
 
 ❓ **Concert Data Management**
+
 - No UI to add/edit/delete concert entries
 - Must manually edit `data.json` file
 - **Impact**: Non-technical users cannot manage their concert library
 
 ❓ **Photo Hash Computation Tools**
+
 - No built-in tool to compute dHash for new photos
 - Requires external processing
 - **Impact**: Adding photos requires technical knowledge
 
 ❓ **Multi-Photo Support Per Concert**
+
 - Each concert currently supports only one photo
 - No gallery view for multiple photos from the same event
 - **Impact**: Limited storytelling capability
 
 ❓ **Sharing Features**
+
 - No way to share recognized concerts with others
 - No social media integration
 - **Impact**: Experiences remain private
 
 ❓ **History/Recently Played**
+
 - No record of which concerts have been recognized
 - No playback history
 - **Impact**: Cannot revisit past recognitions
 
 ❓ **Custom Settings**
+
 - Motion sensitivity adjustment UI (algorithm exists, no UI control)
 - Recognition threshold tuning (algorithm exists, no UI control)
 - Audio volume control (playback exists, no persistent volume setting)
@@ -131,6 +142,7 @@ When testing, you may discover features that are **planned but not yet implement
 **Problem**: Camera feed doesn't appear or permission is denied
 
 **Solutions**:
+
 1. Ensure you're using HTTPS or localhost (camera requires secure context)
 2. Check browser permissions in settings
 3. Try a different browser (Chrome, Firefox, Safari all supported)
@@ -141,6 +153,7 @@ When testing, you may discover features that are **planned but not yet implement
 **Problem**: Holding camera over test image doesn't trigger audio
 
 **Solutions**:
+
 1. Verify Test Data Mode is enabled (check for 🧪 badge)
 2. Ensure good lighting on the printed photo
 3. Hold camera steady for 3+ seconds
@@ -152,6 +165,7 @@ When testing, you may discover features that are **planned but not yet implement
 **Problem**: Photo is recognized but no sound plays
 
 **Solutions**:
+
 1. Check device volume
 2. Ensure you've interacted with the page (browsers block autoplay until user interaction)
 3. Check browser console for audio loading errors
@@ -162,6 +176,7 @@ When testing, you may discover features that are **planned but not yet implement
 **Problem**: Test mode resets to Production mode on page reload
 
 **Solutions**:
+
 1. Check that localStorage is enabled in your browser
 2. Ensure cookies/site data is not being cleared on close
 3. Try a different browser
@@ -179,15 +194,16 @@ When testing, you may discover features that are **planned but not yet implement
 
 ### Data Sources by Mode
 
-| Resource | Production Mode | Test Mode |
-|----------|----------------|-----------|
-| Concert Data | `/data.json` | `/assets/test-data/concerts.json` |
-| Audio Files | `/audio/*.mp3` | `/assets/test-audio/*.mp3` |
-| Photo Hashes | (stored in concert data) | (stored in test concert data) |
+| Resource     | Production Mode          | Test Mode                         |
+| ------------ | ------------------------ | --------------------------------- |
+| Concert Data | `/data.json`             | `/assets/test-data/concerts.json` |
+| Audio Files  | `/audio/*.mp3`           | `/assets/test-audio/*.mp3`        |
+| Photo Hashes | (stored in concert data) | (stored in test concert data)     |
 
 ### Test Data Contents
 
 The test dataset includes:
+
 - **4 concerts** with complete metadata (band, venue, date)
 - **4 audio samples** (concert recordings/songs)
 - **4 photo images** with pre-computed dHash values

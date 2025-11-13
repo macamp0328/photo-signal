@@ -80,9 +80,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           {/* Feature Flags Section */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
-            <p className={styles.sectionDescription}>
-              Toggle experimental features on or off.
-            </p>
+            <p className={styles.sectionDescription}>Toggle experimental features on or off.</p>
 
             {/* Test Data Mode Toggle */}
             <div className={styles.featureFlagItem}>

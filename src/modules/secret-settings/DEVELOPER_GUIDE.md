@@ -661,7 +661,7 @@ function App() {
 }
 ```
 
-**Performance**: Minimal - uses CSS animations and requestAnimationFrame for smooth 60fps.
+**Performance**: Minimal - uses pure CSS animations (hardware-accelerated) for smooth 60fps rendering.
 
 ---
 

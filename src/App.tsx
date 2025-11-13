@@ -16,9 +16,14 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
-import { useTripleTap, SecretSettings } from './modules/secret-settings';
-import { useFeatureFlags } from './contexts';
-import { dataService } from './services/data-service';
+import {
+  useTripleTap,
+  SecretSettings,
+  useFeatureFlags,
+  useCustomSettings,
+  useRetroSounds,
+  PsychedelicEffect,
+} from './modules/secret-settings';
 import './index.css';
 
 function App() {
@@ -28,20 +33,33 @@ function App() {
   // State for secret settings menu
   const [showSecretSettings, setShowSecretSettings] = useState(false);
 
-  // Get feature flags
-  const { isTestMode } = useFeatureFlags();
+  // Module: Feature Flags & Custom Settings
+  const { isEnabled } = useFeatureFlags();
+  const { getSetting, settings } = useCustomSettings();
 
-  // Sync data service with test mode state
-  useEffect(() => {
-    dataService.setTestMode(isTestMode);
-  }, [isTestMode]);
+  // Module: Retro Sounds
+  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
 
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({
     onTripleTap: () => {
       setShowSecretSettings(true);
+      // Play sound when opening secret menu
+      playRandomSound();
     },
   });
+
+  // Apply theme changes
+  useEffect(() => {
+    const themeMode = getSetting<string>('theme-mode') ?? 'dark';
+    const uiStyle = getSetting<string>('ui-style') ?? 'modern';
+
+    // Apply theme mode (light/dark)
+    document.documentElement.setAttribute('data-theme', themeMode);
+
+    // Apply UI style (modern/classic)
+    document.documentElement.setAttribute('data-ui-style', uiStyle);
+  }, [getSetting, settings]);
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({
@@ -71,8 +89,10 @@ function App() {
     if (recognizedConcert) {
       console.log('Photo recognized:', recognizedConcert.band);
       play(recognizedConcert.audioFile);
+      // Play retro sound on recognition
+      playRandomSound();
     }
-  }, [recognizedConcert, play]);
+  }, [recognizedConcert, play, playRandomSound]);
 
   // Fade out audio when movement is detected
   useEffect(() => {
@@ -90,6 +110,8 @@ function App() {
   // Handle activation from landing view
   const handleActivate = () => {
     setIsActive(true);
+    // Play sound on activation
+    playRandomSound();
   };
 
   // Render camera view
@@ -110,7 +132,15 @@ function App() {
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
       />
-      <SecretSettings isVisible={showSecretSettings} onClose={() => setShowSecretSettings(false)} />
+      <SecretSettings
+        isVisible={showSecretSettings}
+        onClose={() => {
+          setShowSecretSettings(false);
+          // Play sound when closing secret menu
+          playRandomSound();
+        }}
+      />
+      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
     </>
   );
 }

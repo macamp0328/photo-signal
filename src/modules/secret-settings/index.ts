@@ -9,4 +9,8 @@
 
 export { SecretSettings } from './SecretSettings';
 export { useTripleTap } from './useTripleTap';
+export { useFeatureFlags } from './useFeatureFlags';
+export { useCustomSettings } from './useCustomSettings';
+export { useRetroSounds } from './useRetroSounds';
+export { PsychedelicEffect } from './PsychedelicEffect';
 export type { UseTripleTapOptions, SecretSettingsProps, FeatureFlag, CustomSetting } from './types';

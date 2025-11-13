@@ -5,10 +5,58 @@ import type { Concert } from '../../types';
  *
  * Manages concert data loading and caching.
  * Currently loads from static JSON, designed for easy PostgreSQL migration.
+ * Supports switching between production and test data sources.
  */
 class DataService {
   private cache: Concert[] | null = null;
-  private readonly dataUrl = '/data.json';
+  private isTestMode = false;
+  private readonly productionDataUrl = '/data.json';
+  private readonly testDataUrl = '/assets/test-data/concerts.json';
+  private listeners: Array<() => void> = [];
+
+  /**
+   * Set test mode - switches data source between production and test data
+   * Clears cache to force reload with new data source
+   */
+  setTestMode(enabled: boolean): void {
+    if (this.isTestMode !== enabled) {
+      this.isTestMode = enabled;
+      this.clearCache();
+      this.notifyListeners();
+    }
+  }
+
+  /**
+   * Get current data mode
+   */
+  getTestMode(): boolean {
+    return this.isTestMode;
+  }
+
+  /**
+   * Subscribe to data source changes
+   * Returns an unsubscribe function
+   */
+  subscribe(listener: () => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  /**
+   * Notify all listeners of data source change
+   */
+  private notifyListeners(): void {
+    this.listeners.forEach((listener) => listener());
+  }
+
+  /**
+   * Get the current data URL based on test mode
+   */
+  private getDataUrl(): string {
+    return this.isTestMode ? this.testDataUrl : this.productionDataUrl;
+  }
 
   /**
    * Get all concerts
@@ -20,7 +68,8 @@ class DataService {
     }
 
     try {
-      const response = await fetch(this.dataUrl);
+      const dataUrl = this.getDataUrl();
+      const response = await fetch(dataUrl);
       const data = await response.json();
       this.cache = data.concerts || [];
       return this.cache as Concert[];

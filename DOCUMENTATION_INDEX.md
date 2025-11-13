@@ -238,6 +238,10 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Sample MP3 audio files for testing (4 files, ~40KB each, 5 seconds)
 - **[assets/test-data/README.md](./assets/test-data/README.md)** - Sample structured data files (JSON, CSV formats)
 
+### Example Real Photos
+
+- **[assets/example-real-photos/README.md](./assets/example-real-photos/README.md)** - Real concert photos for gallery testing and photo recognition validation (5 JPEG files)
+
 ---
 
 ## 🔍 Quick Reference
@@ -310,10 +314,10 @@ This index covers:
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)
-- ✅ Data and asset documentation (6 files - added ASSET_LICENSES.md and 3 asset READMEs)
+- ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (8 files - including secret-settings hooks tests)
 
-**Total**: 108 documented files
+**Total**: 109 documented files
 
 Last updated: 2025-11-13

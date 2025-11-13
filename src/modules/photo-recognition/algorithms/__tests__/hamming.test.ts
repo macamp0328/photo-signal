@@ -33,46 +33,46 @@ describe('Hamming Distance', () => {
     it('should calculate distance for multiple bit differences', () => {
       // 0000 vs 1111 = 4 bits different per hex digit
       const hash1 = '00000000000000000000000000000000';
-      const hash2 = 'f000000000000000000000000000000000000000000000000000000000000000';
+      const hash2 = 'f0000000000000000000000000000000';
 
       expect(hammingDistance(hash1, hash2)).toBe(4);
     });
 
     it('should calculate distance for completely different hashes', () => {
       const hash1 = '00000000000000000000000000000000'; // All zeros
-      const hash2 = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'; // All ones
+      const hash2 = 'ffffffffffffffffffffffffffffffff'; // All ones
 
-      // 64 bits total, all different
-      expect(hammingDistance(hash1, hash2)).toBe(256);
+      // 128 bits total, all different
+      expect(hammingDistance(hash1, hash2)).toBe(128);
     });
 
     it('should calculate distance for realistic hashes', () => {
       // Similar hashes with a few bits different
-      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486';
-      const hash2 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20487';
+      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486';
+      const hash2 = 'a5b3c7d9e1f20486a5b3c7d9e1f20487';
 
       // Last hex digit: 6 (0110) vs 7 (0111) = 1 bit different
       expect(hammingDistance(hash1, hash2)).toBe(1);
     });
 
     it('should handle alternating patterns', () => {
-      const hash1 = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; // 1010...
-      const hash2 = '5555555555555555555555555555555555555555555555555555555555555555'; // 0101...
+      const hash1 = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; // 1010...
+      const hash2 = '55555555555555555555555555555555'; // 0101...
 
       // Every bit is different
-      expect(hammingDistance(hash1, hash2)).toBe(256);
+      expect(hammingDistance(hash1, hash2)).toBe(128);
     });
 
     it('should throw error for different length hashes', () => {
-      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486';
+      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486';
       const hash2 = 'a5b3'; // Shorter
 
       expect(() => hammingDistance(hash1, hash2)).toThrow('Hash lengths must be equal');
     });
 
     it('should be symmetric', () => {
-      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486';
-      const hash2 = 'b5c3d7e9f1a20587b5c3d7e9f1a20587b5c3d7e9f1a20587b5c3d7e9f1a20587';
+      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486';
+      const hash2 = 'b5c3d7e9f1a20587b5c3d7e9f1a20587';
 
       expect(hammingDistance(hash1, hash2)).toBe(hammingDistance(hash2, hash1));
     });
@@ -108,19 +108,20 @@ describe('Hamming Distance', () => {
 
     it('should return 0% for completely different hashes', () => {
       const hash1 = '00000000000000000000000000000000';
-      const hash2 = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+      const hash2 = 'ffffffffffffffffffffffffffffffff';
 
-      expect(calculateSimilarity(hash1, hash2)).toBe(0);
+      const similarity = calculateSimilarity(hash1, hash2);
+      expect(similarity).toBe(0);
     });
 
-    it('should return ~98.44% for 1-bit difference', () => {
-      const hash1 = '00000000000000000000000000000000';
-      const hash2 = '00000000000000000000000000000001';
+    it('should return ~99.22% for 1-bit difference', () => {
+      const hash1 = '00000000000000000000000000000000'; // All zeros
+      const hash2 = '00000000000000000000000000000001'; // One bit set
 
       const similarity = calculateSimilarity(hash1, hash2);
 
-      // 63 out of 64 bits match = 98.4375%
-      expect(similarity).toBeCloseTo(98.44, 1);
+      // 127 out of 128 bits match = 99.21875%
+      expect(similarity).toBeCloseTo(99.22, 1);
     });
 
     it('should return ~50% for half bits different', () => {
@@ -162,14 +163,14 @@ describe('Hamming Distance', () => {
     });
 
     it('should inverse of Hamming distance as percentage', () => {
-      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486a5b3c7d9e1f20486';
-      const hash2 = 'a5b3c7d9e1f2048f';
+      const hash1 = 'a5b3c7d9e1f20486a5b3c7d9e1f20486';
+      const hash2 = 'a5b3c7d9e1f2048f0000000000000000';
 
       const distance = hammingDistance(hash1, hash2);
       const similarity = calculateSimilarity(hash1, hash2);
 
-      // Verify relationship: similarity = (64 - distance) / 64 * 100
-      const expectedSimilarity = ((64 - distance) / 64) * 100;
+      // Verify relationship: similarity = (128 - distance) / 128 * 100
+      const expectedSimilarity = ((128 - distance) / 128) * 100;
       expect(similarity).toBeCloseTo(expectedSimilarity, 2);
     });
   });

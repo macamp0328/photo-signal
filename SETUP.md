@@ -531,6 +531,26 @@ The current implementation uses placeholder logic that triggers after 3 seconds.
 2. Check Docker is running
 3. Ensure you have enough disk space
 
+### Files Appear Read-Only in VS Code (DevContainer)
+
+**Symptom**: Files show as read-only and cannot be saved, with error "File is read-only. Select 'Overwrite' to attempt to make it writeable."
+
+**Root Cause**: This is a bug in the `fakeowner` filesystem used by dev containers when mounting from macOS/Windows hosts. Files may be created with incorrect permissions (400 instead of 644).
+
+**Solution**: Recreate the affected files to fix permissions:
+
+```bash
+# For a single file
+cp path/to/readonly-file.ts /tmp/backup.ts
+cat /tmp/backup.ts > path/to/readonly-file.ts.new
+mv path/to/readonly-file.ts.new path/to/readonly-file.ts
+
+# Verify permissions are fixed (should show -rw-r--r--)
+ls -la path/to/readonly-file.ts
+```
+
+**Prevention**: This issue appears to be random. If you encounter it frequently, consider using local npm development instead of the DevContainer.
+
 ## Security
 
 - GitHub Actions workflow uses minimal permissions (`contents: read`)

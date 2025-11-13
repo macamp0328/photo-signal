@@ -296,7 +296,7 @@ This index covers:
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
-- ✅ Issue templates (19 files - includes template guide, firewall access template, digital-gallery-mode feature, and cleanup-outdated-docs)
+- ✅ Issue templates (19 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)

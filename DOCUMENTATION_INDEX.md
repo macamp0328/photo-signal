@@ -28,6 +28,7 @@
 ### Research & Technical Specifications
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
+- **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
 - **[docs/code-analysis-tooling-research.md](./docs/code-analysis-tooling-research.md)** - Research and evaluation of tracing, logging, and code analysis tools for AI agent development
 - **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Comprehensive guide to using and interpreting automated code analysis tools (CodeQL, Codecov, npm audit, etc.)
 - **[docs/code-analysis-examples.md](./docs/code-analysis-examples.md)** - Real-world examples showing what each automated tool looks like when it runs
@@ -277,7 +278,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (10 files - added CONTRIBUTING.md)
-- ✅ Research & technical specifications (7 files - including CodeQL, Codecov, and Vercel setup guides)
+- ✅ Research & technical specifications (8 files - including camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)

@@ -29,7 +29,6 @@ function App() {
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({
     onTripleTap: () => {
-      console.log('Secret settings menu activated!');
       setShowSecretSettings(true);
     },
   });

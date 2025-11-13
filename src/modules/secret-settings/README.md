@@ -106,7 +106,7 @@ interface SecretSettingsProps {
 
 - Full-screen modal overlay
 - Responsive design (mobile and desktop)
-- Keyboard accessible (ESC to close)
+- Keyboard accessible (ESC to close - future feature)
 - Placeholder sections for future features
 - Developer documentation built-in
 
@@ -438,9 +438,9 @@ export function useMotionDetection() {
 ## Accessibility
 
 - Modal is keyboard accessible
-- ESC key closes the modal (when implemented)
+- ESC key closes the modal (not yet implemented)
 - ARIA attributes for screen readers (`role="dialog"`, `aria-modal="true"`)
-- Focus management (trap focus within modal)
+- Focus management (trap focus within modal - not yet implemented)
 - Clear visual focus indicators
 
 ---

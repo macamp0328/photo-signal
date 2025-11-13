@@ -376,6 +376,49 @@ For a visual interface, open `scripts/generate-photo-hashes.html` in your browse
 
 ---
 
+### `generate-favicons.html` - Generate Favicon Images
+
+Browser-based tool to generate all required favicon PNG files from the camera icon design.
+
+**Requirements:** Modern web browser (Chrome, Firefox, Safari, Edge)
+
+**Usage:**
+
+```bash
+# Open in browser (from project root)
+open scripts/generate-favicons.html
+# or
+xdg-open scripts/generate-favicons.html  # Linux
+# or just double-click the file
+```
+
+**What it does:**
+
+- Generates PNG favicons in multiple sizes:
+  - `favicon-16x16.png` (16×16 px)
+  - `favicon-32x32.png` (32×32 px)
+  - `apple-touch-icon.png` (180×180 px)
+  - `android-chrome-192x192.png` (192×192 px)
+  - `android-chrome-512x512.png` (512×512 px)
+- Provides download buttons for each size
+- Shows live previews of all generated icons
+
+**Steps:**
+
+1. Open `scripts/generate-favicons.html` in your browser
+2. Click "Generate All Favicons"
+3. Download each PNG file using the "Download" button or right-click → Save Image As
+4. Place all downloaded files in `public/` directory
+5. Verify filenames match exactly (e.g., `favicon-16x16.png`)
+
+**When to use:**
+
+- Setting up the project for the first time
+- Updating the favicon design
+- Regenerating favicon files after design changes
+
+---
+
 ## Adding New Scripts
 
 To add a new helper script:

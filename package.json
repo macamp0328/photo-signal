@@ -17,7 +17,8 @@
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "generate-hashes": "node scripts/generate-photo-hashes.js"
+    "generate-hashes": "node scripts/generate-photo-hashes.js",
+    "pre-commit": "npm audit --audit-level=moderate && npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh"
   },
   "keywords": [],
   "author": "",

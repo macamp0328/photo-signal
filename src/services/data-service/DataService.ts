@@ -12,6 +12,7 @@ class DataService {
   private isTestMode = false;
   private readonly productionDataUrl = '/data.json';
   private readonly testDataUrl = '/assets/test-data/concerts.json';
+  private listeners: Array<() => void> = [];
 
   /**
    * Set test mode - switches data source between production and test data
@@ -21,6 +22,7 @@ class DataService {
     if (this.isTestMode !== enabled) {
       this.isTestMode = enabled;
       this.clearCache();
+      this.notifyListeners();
     }
   }
 
@@ -29,6 +31,24 @@ class DataService {
    */
   getTestMode(): boolean {
     return this.isTestMode;
+  }
+
+  /**
+   * Subscribe to data source changes
+   * Returns an unsubscribe function
+   */
+  subscribe(listener: () => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  /**
+   * Notify all listeners of data source change
+   */
+  private notifyListeners(): void {
+    this.listeners.forEach((listener) => listener());
   }
 
   /**

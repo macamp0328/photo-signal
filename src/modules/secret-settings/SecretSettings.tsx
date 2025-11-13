@@ -7,7 +7,6 @@
 
 import type { SecretSettingsProps } from './types';
 import { useFeatureFlags } from '../../contexts';
-import { dataService } from '../../services/data-service';
 import styles from './SecretSettings.module.css';
 
 /**
@@ -34,7 +33,6 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const handleTestModeToggle = () => {
     const newMode = !isTestMode;
     setTestMode(newMode);
-    dataService.setTestMode(newMode);
   };
 
   if (!isVisible) {

@@ -80,6 +80,38 @@ export function toGrayscale(imageData: ImageData): number[] {
 }
 
 /**
+ * Convert ImageData to grayscale in-place
+ *
+ * Modifies the ImageData object to convert all pixels to grayscale
+ * using ITU-R BT.601 luma coefficients for perceptually accurate conversion.
+ * This is useful for preprocessing camera frames before photo recognition.
+ *
+ * @param imageData - Image data to convert (modified in-place)
+ * @returns The same ImageData object (now grayscale) for chaining
+ */
+export function convertToGrayscale(imageData: ImageData): ImageData {
+  const { data } = imageData;
+
+  // Process RGBA pixels (4 bytes per pixel)
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    // ITU-R BT.601 luma calculation for perceptual brightness
+    const gray = Math.floor(LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b);
+
+    // Set RGB to same value (grayscale), keep alpha unchanged
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
+    // data[i + 3] is alpha, leave unchanged
+  }
+
+  return imageData;
+}
+
+/**
  * Convert binary string to hexadecimal string
  *
  * @param binary - Binary string (e.g., "1010")

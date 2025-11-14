@@ -14,12 +14,13 @@
  */
 
 import { createCanvas, loadImage } from 'canvas';
-import { readdir } from 'fs/promises';
-import { join, dirname } from 'path';
+import { readdir, stat } from 'fs/promises';
+import { join, dirname, resolve, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 // Get current directory
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const DEFAULT_IMAGE_DIR = resolve(__dirname, '../assets/test-images');
 
 // ========================================
 // dHash Algorithm Implementation
@@ -111,21 +112,73 @@ function computeDHash(imageData) {
 // Main Script
 // ========================================
 
+async function collectImageFiles(targets) {
+  const imageEntries = [];
+
+  const uniquePaths = new Set();
+
+  for (const target of targets) {
+    const resolvedTarget = resolve(process.cwd(), target);
+
+    let targetStat;
+    try {
+      targetStat = await stat(resolvedTarget);
+    } catch {
+      console.warn(`⚠️  Skipping missing path: ${target}`);
+      continue;
+    }
+
+    if (targetStat.isDirectory()) {
+      const files = await readdir(resolvedTarget);
+      for (const file of files) {
+        const entryPath = join(resolvedTarget, file);
+        if (!/\.(jpg|jpeg|png|webp)$/i.test(file)) {
+          continue;
+        }
+        if (uniquePaths.has(entryPath)) {
+          continue;
+        }
+        uniquePaths.add(entryPath);
+        imageEntries.push({
+          absolutePath: entryPath,
+          displayPath: relative(process.cwd(), entryPath) || file,
+        });
+      }
+    } else if (targetStat.isFile()) {
+      if (!/\.(jpg|jpeg|png|webp)$/i.test(resolvedTarget)) {
+        console.warn(`⚠️  Skipping non-image file: ${target}`);
+        continue;
+      }
+      if (uniquePaths.has(resolvedTarget)) {
+        continue;
+      }
+      uniquePaths.add(resolvedTarget);
+      imageEntries.push({
+        absolutePath: resolvedTarget,
+        displayPath: relative(process.cwd(), resolvedTarget) || target,
+      });
+    } else {
+      console.warn(`⚠️  Skipping unsupported path: ${target}`);
+    }
+  }
+
+  return imageEntries.sort((a, b) => a.displayPath.localeCompare(b.displayPath));
+}
+
 async function generateHashes() {
-  const testImagesDir = join(__dirname, '../assets/test-images');
+  const cliTargets = process.argv.slice(2);
+  const targets = cliTargets.length > 0 ? cliTargets : [DEFAULT_IMAGE_DIR];
 
   console.log('📸 Photo Hash Generator\n');
-  console.log(`Scanning directory: ${testImagesDir}\n`);
+  console.log('Targets:');
+  targets.forEach((target) => console.log(`  • ${target}`));
+  console.log('');
 
   try {
-    // Read all files in the test images directory
-    const files = await readdir(testImagesDir);
-
-    // Filter for image files
-    const imageFiles = files.filter((file) => /\.(jpg|jpeg|png|webp)$/i.test(file)).sort();
+    const imageFiles = await collectImageFiles(targets);
 
     if (imageFiles.length === 0) {
-      console.log('❌ No image files found in test-images directory');
+      console.log('❌ No image files found for the provided targets');
       process.exit(1);
     }
 
@@ -133,39 +186,29 @@ async function generateHashes() {
 
     const results = [];
 
-    // Process each image
-    for (const filename of imageFiles) {
-      const imagePath = join(testImagesDir, filename);
-
+    for (const { absolutePath, displayPath } of imageFiles) {
       try {
-        // Load image
-        const image = await loadImage(imagePath);
-
-        // Create canvas and get ImageData
+        const image = await loadImage(absolutePath);
         const canvas = createCanvas(image.width, image.height);
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(image, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-        // Compute hash
         const hash = computeDHash(imageData);
 
-        // Store result
         results.push({
-          file: filename,
+          file: displayPath,
           photoHash: hash,
           dimensions: `${image.width} × ${image.height} px`,
         });
 
-        console.log(`✓ ${filename}`);
+        console.log(`✓ ${displayPath}`);
         console.log(`  Hash: ${hash}`);
         console.log(`  Size: ${image.width} × ${image.height} px\n`);
       } catch (error) {
-        console.error(`❌ Failed to process ${filename}:`, error.message);
+        console.error(`❌ Failed to process ${displayPath}:`, error.message);
       }
     }
 
-    // Output results
     console.log('━'.repeat(60));
     console.log('\n📋 JSON Output (for concerts.json):\n');
 
@@ -181,7 +224,7 @@ async function generateHashes() {
     console.log('\n💡 Next steps:');
     console.log('   1. Copy the photoHash values from the JSON output above');
     console.log('   2. Add them to the corresponding concerts in assets/test-data/concerts.json');
-    console.log('   3. Match concert-1.jpg → concert id:1, concert-2.jpg → id:2, etc.\n');
+    console.log('   3. Match files to concert entries as needed.\n');
   } catch (error) {
     console.error('❌ Error:', error.message);
     process.exit(1);

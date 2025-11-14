@@ -30,9 +30,9 @@ Identify photos from camera stream using perceptual hashing (dHash algorithm) an
 ```typescript
 stream: MediaStream | null       // Camera video stream
 options?: {
-  recognitionDelay?: number;     // Delay before confirming match (ms), default 1000
+  recognitionDelay?: number;     // Delay before confirming match (ms), default 3000
   enabled?: boolean;             // Enable/disable recognition, default true
-  similarityThreshold?: number;  // Hamming distance threshold (0-64), default 10
+  similarityThreshold?: number;  // Hamming distance threshold (0-64), default 40
   checkInterval?: number;        // Interval for checking frames (ms), default 1000
   enableDebugInfo?: boolean;     // Enable debug information output, default false
   aspectRatio?: '3:2' | '2:3';   // Aspect ratio for frame cropping (default '3:2')
@@ -55,12 +55,27 @@ interface RecognitionDebugInfo {
   bestMatch: BestMatchInfo | null;    // Best matching concert
   lastCheckTime: number;              // Timestamp of last check
   concertCount: number;               // Number of concerts checked
+  frameCount: number;                 // Frames processed since start
+  checkInterval: number;              // Active frame sampling interval
+  aspectRatio: AspectRatio;           // Current framing aspect ratio
+  frameSize: { width: number; height: number } | null; // Cropped frame size
+  stability: StabilityDebugInfo | null; // Countdown info for active candidate
+  similarityThreshold: number;        // Active matching threshold (distance)
+  recognitionDelay: number;           // Required hold duration (ms)
 }
 
 interface BestMatchInfo {
   concert: Concert;      // The matched concert
   distance: number;      // Hamming distance (0-64)
   similarity: number;    // Similarity percentage (0-100)
+}
+
+interface StabilityDebugInfo {
+  concert: Concert;      // Candidate concert being confirmed
+  elapsedMs: number;     // Time spent above threshold
+  remainingMs: number;   // Time left before confirmation
+  requiredMs: number;    // Total hold time required
+  progress: number;      // 0-1 progress toward confirmation
 }
 ```
 
@@ -131,13 +146,12 @@ Based on research and testing:
 
 Controls how strict the matching is (Hamming distance):
 
-- **0**: Exact match only (very strict, may miss valid photos)
-- **5**: Very strict (90%+ similar)
-- **10**: Balanced (default, ~85% similar)
-- **15**: Lenient (allows more variation)
-- **20**: Very lenient (may allow false positives)
+- **20** (~92% similarity): Ultra strict, requires near-perfect match
+- **30** (~88% similarity): Strict, good lighting required
+- **40** (~84% similarity, **default**): Balanced for real-world lighting and phones
+- **50** (~80% similarity): Lenient, may allow more drift but risks false positives
 
-**Recommendation**: Start with 10, adjust based on accuracy testing.
+**Recommendation**: Start with 40, then tighten/loosen based on environment.
 
 ### Check Interval
 
@@ -153,11 +167,12 @@ How often to analyze frames (in milliseconds):
 
 How long a photo must be stable before confirming match:
 
-- **500ms**: Fast (may be too eager)
-- **1000ms**: Balanced (default)
-- **2000ms**: Conservative (ensures stability)
+- **1000ms**: Fast (good for rapid testing but prone to false triggers)
+- **2000ms**: Balanced
+- **3000ms**: **Default** – enough time for handheld wobble to settle
+- **4000ms+**: Very conservative (installations with lots of motion/noise)
 
-**Recommendation**: Use 1000ms to avoid false triggers while maintaining good UX.
+**Recommendation**: Use 3000ms for physical photos, then dial down if your environment is very stable. You can adjust this value from the Secret Settings menu (Custom Settings → Recognition Delay).
 
 ---
 
@@ -174,7 +189,7 @@ When running in development mode (`import.meta.env.DEV`) or when Test Mode is en
 [Photo Recognition] Initializing recognition system
   Concerts loaded: 4
   Concerts with hashes: 4
-  Similarity threshold: 10 (≥84.4% match)
+  Similarity threshold: 40 (≥84.4% match)
   Recognition delay: 3000ms
   Check interval: 1000ms
   Test Mode: ON
@@ -195,7 +210,7 @@ Frame Size: 640 × 480 px (cropped)
 Cropped Region: x=64, y=108, w=512, h=341
 Aspect Ratio: 3:2
 Concerts Checked: 4
-Threshold: 10 (similarity ≥ 84.4%)
+Threshold: 40 (similarity ≥ 84.4%)
 
 Results:
   ✓ The Midnight Echoes: distance=6, similarity=90.6% ← BEST MATCH
@@ -239,7 +254,7 @@ Use `debugInfo` with the DebugOverlay component for real-time visualization:
 import { DebugOverlay } from '@/modules/debug-overlay';
 
 function App() {
-  const { debugInfo, recognizedConcert } = usePhotoRecognition(stream, {
+  const { debugInfo, recognizedConcert, isRecognizing } = usePhotoRecognition(stream, {
     enableDebugInfo: isTestMode,
   });
 
@@ -249,9 +264,8 @@ function App() {
       <DebugOverlay
         enabled={isTestMode}
         recognizedConcert={recognizedConcert}
-        lastFrameHash={debugInfo?.lastFrameHash}
-        bestMatch={debugInfo?.bestMatch}
-        threshold={10}
+        isRecognizing={isRecognizing}
+        debugInfo={debugInfo}
       />
     </>
   );

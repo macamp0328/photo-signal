@@ -5,20 +5,12 @@
  */
 
 import type { Concert } from '../../types';
+import type { RecognitionDebugInfo } from '../photo-recognition/types';
 
 /**
  * Recognition status states
  */
 export type RecognitionStatus = 'IDLE' | 'CHECKING' | 'MATCHING' | 'RECOGNIZED';
-
-/**
- * Best match information for debugging
- */
-export interface BestMatch {
-  concert: Concert;
-  distance: number;
-  similarity: number;
-}
 
 /**
  * Props for DebugOverlay component
@@ -30,12 +22,8 @@ export interface DebugOverlayProps {
   isRecognizing: boolean;
   /** Whether debug overlay is enabled (Test Mode) */
   enabled: boolean;
-  /** Last computed frame hash */
-  lastFrameHash?: string;
-  /** Best match information */
-  bestMatch?: BestMatch;
   /** Current similarity threshold */
   threshold?: number;
-  /** Time of last frame check */
-  lastCheckTime?: number;
+  /** Aggregated debug information */
+  debugInfo?: RecognitionDebugInfo | null;
 }

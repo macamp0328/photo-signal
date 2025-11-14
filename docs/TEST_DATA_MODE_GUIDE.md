@@ -4,7 +4,7 @@
 
 The Test Data Mode feature allows you to test the complete Photo Signal workflow using pre-configured test data. This is particularly useful for:
 
-- **Testing on mobile devices** - Point your camera at the included test images to experience the full app flow
+- **Testing on mobile devices** - Point your camera at the included test images (gradients, easy targets, or real photos) to experience the full app flow
 - **Development and QA** - Validate functionality without needing production data
 - **Feature exploration** - Identify which features are working and which are still in development
 
@@ -26,9 +26,15 @@ The Test Data Mode feature allows you to test the complete Photo Signal workflow
 
 ![Test Mode Enabled](https://github.com/user-attachments/assets/59a56fe7-97a6-482c-9c01-984aa709bf80)
 
-### Step 3: Close the Menu
+### Step 3: Apply Changes and Reload
 
-Click the X button or click outside the modal to close the Secret Settings menu. Your preference is automatically saved.
+Click the **"Send It 🚀"** button at the bottom of the Secret Settings menu. This will:
+
+1. Save your settings to localStorage
+2. Reload the page
+3. Load test data instead of production data
+
+Alternatively, you can click the X button or click outside the modal to close the menu. Your preference is automatically saved, but you'll need to manually reload the page for test mode to take effect.
 
 ## Using Test Data Mode
 
@@ -38,26 +44,46 @@ When Test Data Mode is enabled, the app uses data from these directories instead
 
 - **Concert data**: `assets/test-data/concerts.json` (instead of `/data.json`)
 - **Audio files**: `assets/test-audio/*.mp3` (instead of `/audio/*.mp3`)
-- **Photo hashes**: Links to test images in `assets/test-images/*.jpg`
+- **Photo hashes**: Links to test images in `assets/test-images/*.jpg|png` and example real photos in `assets/example-real-photos/*.jpg`
 
 ### Testing the Photo Recognition Workflow
 
 #### Required Materials
 
-Print the test images located in `assets/test-images/`:
+Print whichever asset set you want to exercise:
+
+**Gradient Set (IDs 1-4)** – located in `assets/test-images/`
 
 - `concert-1.jpg`
 - `concert-2.jpg`
 - `concert-3.jpg`
 - `concert-4.jpg`
 
-**Tip**: For best results, print these images at 4x6" or larger on standard photo paper.
+**High-Contrast Set (IDs 5-7)** – generated with `npm run create-easy-images`
+
+- `easy-target-bullseye.png`
+- `easy-target-diagonals.png`
+- `easy-target-checker.png`
+
+**Example Real Photos (IDs 8-12)** – located in `assets/example-real-photos/`
+
+- `R0043343.jpg`
+- `R0055333.jpg`
+- `R0055917.jpg`
+- `R0060632.jpg`
+- `R0060861.jpg`
+
+**Tips**:
+
+- Print at 4x6" or larger for the most reliable recognition window.
+- The easy PNGs are ideal when you just need a guaranteed match while tuning settings.
+- The example real photos now ship with hashes in both production and test data, so your existing physical prints should work immediately.
 
 #### Testing Steps
 
 1. **Enable Test Data Mode** (see instructions above)
 2. **Grant camera permissions** when prompted
-3. **Point your camera at a printed test image**
+3. **Point your camera at any printed asset from the lists above**
 4. **Hold steady** for 2-3 seconds
 5. **Listen** - The corresponding audio should begin playing
 6. **Move the camera away** - Audio should fade out after detecting movement
@@ -86,14 +112,32 @@ When Test Mode is enabled, a debug overlay appears in the bottom-right corner sh
 - **Recognition Status**: IDLE 🔵 CHECKING 🟡 MATCHING 🟢 RECOGNIZED
 - **Frame Hash**: Last computed hash from camera (e.g., `a5b3c7...0486`)
 - **Best Match**: Closest matching concert with similarity percentage
-- **Threshold**: Current matching threshold setting
+- **Countdown**: Live timer + progress bar describing how long the current frame has stayed above the threshold
+- **Threshold & Delay**: Current matching threshold plus the configured recognition delay (defaults to 3 s)
+- **Metrics**: Frames processed, concerts evaluated, check interval, aspect ratio, frame size, and the last check timestamp
 - **Recognized Concert**: Full details when a photo is successfully recognized
 
 This overlay updates in real-time as the photo recognition system processes frames, making it easy to see what's happening under the hood.
 
+Need a faster or slower confirmation window? Open the Secret Settings menu, scroll to **Custom Settings → Recognition Delay**, and move the slider. The countdown panel immediately reflects the new duration after you tap “Send It 🚀”.
+
+Need something even easier to match? Run `npm run create-easy-images` to regenerate the bold bullseye / diagonal / checkerboard PNGs, then reprint them.
+
 ### Console Logging
 
-When Test Mode is enabled, detailed logs are output to the browser console:
+When Test Mode is enabled, detailed logs are output to the browser console.
+
+**Data Service Logs** (when test mode is toggled):
+
+```
+[DataService] Test mode ENABLED
+[DataService] Data will be loaded from: /assets/test-data/concerts.json
+[DataService] Loading concert data from: /assets/test-data/concerts.json
+[DataService] Successfully loaded 12 concerts
+[DataService] Concerts with photo hashes: 12
+```
+
+**Photo Recognition Logs** (frame-by-frame processing):
 
 ```
 ============================================================
@@ -101,7 +145,7 @@ When Test Mode is enabled, detailed logs are output to the browser console:
 Frame Hash: a5b3c7d9e1f20486
 Frame Size: 640 × 480 px
 Concerts Checked: 4
-Threshold: 10 (similarity ≥ 84.4%)
+Threshold: 40 (similarity ≥ 84.4%)
 
 Results:
   ✓ The Midnight Echoes: distance=6, similarity=90.6% ← BEST MATCH
@@ -111,6 +155,8 @@ Match Decision: POTENTIAL MATCH (The Midnight Echoes)
   Stability Timer: 1.2s / 3.0s required
 ============================================================
 ```
+
+**Tip**: Use the browser console's filter feature to show only `[DataService]` or `[Photo Recognition]` logs.
 
 ### What's Still Missing (Features to Identify)
 
@@ -235,6 +281,8 @@ When testing, you may discover features that are **planned but not yet implement
    # Copy the output hashes to concerts.json
    ```
 
+   Need a guaranteed-match calibration target? Run `npm run create-easy-images` to regenerate the bullseye/diagonal/checkerboard PNGs before printing.
+
 3. **Hash Format**:
    ```json
    {
@@ -273,6 +321,38 @@ See `scripts/README.md` for detailed hash generation instructions.
 
 ## Technical Details
 
+### How Test Assets Are Served
+
+Test assets (located in `assets/test-*` directories) are **automatically copied** to `public/assets/` during build and dev server startup by a Vite plugin. This makes them accessible at runtime.
+
+**Auto-Copy Process:**
+
+1. When you run `npm run dev` or `npm run build`, a Vite plugin activates
+2. The plugin copies files from source directories to public:
+   - `assets/test-data/concerts.json` → `public/assets/test-data/concerts.json`
+   - `assets/test-audio/*.mp3` → `public/assets/test-audio/*.mp3`
+   - `assets/test-images/*.jpg|png` → `public/assets/test-images/`
+   - `assets/example-real-photos/*.jpg` → `public/assets/example-real-photos/`
+3. The `public/assets/` directory is git-ignored (auto-generated, not committed)
+4. Files are accessible at runtime via URLs like `/assets/test-data/concerts.json`
+
+**Troubleshooting Auto-Copy Issues:**
+
+If you see "[DataService] Warning: No concerts have photoHash values" or test data fails to load:
+
+1. Stop the dev server
+2. Delete the `public/assets/` directory
+3. Restart the dev server: `npm run dev`
+4. The Vite plugin should automatically recreate the assets
+5. Check the console for "✓ Test assets copied to public/assets/"
+
+**Manual Copy** (if needed):
+
+```bash
+# Run this script to manually copy test assets
+./scripts/copy-test-assets.sh
+```
+
 ### How Photo Recognition Works
 
 1. **Frame Capture**: Camera feed is sampled every 1000ms
@@ -292,12 +372,12 @@ See `scripts/README.md` for detailed hash generation instructions.
 
 ### Test Data Contents
 
-The test dataset includes:
+The test dataset now includes:
 
-- **4 concerts** with complete metadata (band, venue, date)
-- **4 audio samples** (concert recordings/songs)
-- **4 photo images** with pre-computed dHash values
-- **Full recognition workflow** ready to test
+- **12 concerts** with complete metadata (4 gradients, 3 high-contrast targets, 5 real photos)
+- **6 audio samples** reused across the entries
+- **12 photo images** with pre-computed dHash values (JPEG + PNG)
+- **Full recognition workflow** ready to test, including real-world photo hashing baselines
 
 ## Providing Feedback
 

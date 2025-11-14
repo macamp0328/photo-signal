@@ -36,7 +36,7 @@
 
 ### User Guides
 
-- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, and troubleshooting
+- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, troubleshooting, and technical details on the auto-copy mechanism
 
 ---
 
@@ -225,6 +225,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
 - **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
 - **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
+- **[scripts/create-easy-test-images.js](./scripts/create-easy-test-images.js)** - Canvas-based generator for high-contrast calibration targets (`npm run create-easy-images`)
 
 ---
 
@@ -238,7 +239,7 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Test Assets (CC0 Licensed)
 
 - **[ASSET_LICENSES.md](./ASSET_LICENSES.md)** - Licensing information and attribution for all test assets
-- **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG images for testing (4 files, ~30KB each)
+- **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG + PNG images for testing (4 gradients + 3 high-contrast targets)
 - **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Sample MP3 audio files for testing (4 files, ~40KB each, 5 seconds)
 - **[assets/test-data/README.md](./assets/test-data/README.md)** - Sample structured data files (JSON, CSV formats)
 
@@ -317,11 +318,11 @@ This index covers:
 - ✅ Issue templates (22 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
-- ✅ Helper scripts (8 files including README and bundle size checker)
+- ✅ Helper scripts (9 files including README, easy image generator, and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
 
-**Total**: 112 documented files
+**Total**: 113 documented files
 
 Last updated: 2025-11-14

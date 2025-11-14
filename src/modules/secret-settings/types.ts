@@ -113,6 +113,16 @@ export interface CustomSetting {
   max?: number;
 
   /**
+   * Optional slider step for number inputs
+   */
+  step?: number;
+
+  /**
+   * Optional unit label for display (e.g., ms)
+   */
+  unit?: string;
+
+  /**
    * Optional category for organization
    */
   category?: string;

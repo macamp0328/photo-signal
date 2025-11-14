@@ -12,6 +12,8 @@ The Debug Overlay module provides real-time debugging information for the photo 
 ✅ **Frame Hash Visualization**: Displays the current frame's dHash value
 ✅ **Best Match Information**: Shows the closest matching concert and similarity score
 ✅ **Threshold Visualization**: Displays current threshold and required similarity percentage
+✅ **Stability Countdown**: Visual progress bar and timer while waiting for confirmation
+✅ **Metric Snapshot**: Frames processed, concerts evaluated, check interval, aspect ratio, frame size, last check timestamp
 ✅ **Test Mode Integration**: Only visible when Test Mode is enabled
 ✅ **Non-intrusive Design**: Positioned in bottom-right corner with semi-transparent background
 
@@ -35,9 +37,7 @@ function App() {
         enabled={isEnabled('test-mode')}
         recognizedConcert={recognizedConcert}
         isRecognizing={false}
-        lastFrameHash={debugInfo?.lastFrameHash}
-        bestMatch={debugInfo?.bestMatch}
-        threshold={10}
+        debugInfo={debugInfo}
       />
     </>
   );
@@ -59,23 +59,11 @@ interface DebugOverlayProps {
   /** Whether debug overlay is enabled (Test Mode) */
   enabled: boolean;
 
-  /** Last computed frame hash */
-  lastFrameHash?: string;
-
-  /** Best match information */
-  bestMatch?: BestMatch;
-
-  /** Current similarity threshold */
+  /** Optional override for similarity threshold */
   threshold?: number;
 
-  /** Time of last frame check */
-  lastCheckTime?: number;
-}
-
-interface BestMatch {
-  concert: Concert;
-  distance: number;
-  similarity: number;
+  /** Aggregated debug info from the recognition hook */
+  debugInfo?: RecognitionDebugInfo | null;
 }
 ```
 
@@ -93,8 +81,10 @@ interface BestMatch {
 1. **Status Section**: Current recognition state with animated indicator
 2. **Frame Hash**: Truncated hash value (e.g., `a5b3c7...0486`) with time since last check
 3. **Best Match**: Concert name with distance and similarity percentage
-4. **Threshold**: Current threshold setting with required similarity
-5. **Recognized Concert**: Full concert details when recognized (highlighted in green)
+4. **Countdown**: Stability timer showing elapsed/remaining time plus progress bar
+5. **Threshold**: Current threshold setting with required similarity
+6. **Metrics**: Frames processed, concerts compared, check interval, aspect ratio, frame size, last check timestamp
+7. **Recognized Concert**: Full concert details when recognized (highlighted in green)
 
 ## Styling
 
@@ -120,6 +110,31 @@ const { recognizedConcert, debugInfo } = usePhotoRecognition(stream, {
 // - bestMatch: Best matching concert with distance and similarity
 // - lastCheckTime: Timestamp of last frame check
 // - concertCount: Number of concerts being checked
+// - frameCount: Frames processed since start
+// - checkInterval: Active frame sampling interval (ms)
+// - aspectRatio & frameSize: Cropped viewport details
+// - stability: Countdown info when a candidate is being confirmed
+// - similarityThreshold & recognitionDelay: Active recognition tuning values
+
+interface RecognitionDebugInfo {
+  lastFrameHash: string | null;
+  bestMatch: BestMatchInfo | null;
+  lastCheckTime: number;
+  concertCount: number;
+  frameCount: number;
+  checkInterval: number;
+  aspectRatio: '3:2' | '2:3';
+  frameSize: { width: number; height: number } | null;
+  stability: {
+    concert: Concert;
+    elapsedMs: number;
+    remainingMs: number;
+    requiredMs: number;
+    progress: number;
+  } | null;
+  similarityThreshold: number;
+  recognitionDelay: number;
+}
 ```
 
 ## Example Use Cases

@@ -22,6 +22,7 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 
 3. **Theme Mode** - Switch between light and dark visual themes
 4. **UI Style** - Toggle between modern and classic retro gallery experience
+5. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
 
 ---
 

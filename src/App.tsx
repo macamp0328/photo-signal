@@ -41,6 +41,7 @@ function App() {
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
   const { getSetting, settings } = useCustomSettings();
+  const isTestModeEnabled = isEnabled('test-mode');
 
   // Module: Retro Sounds
   const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
@@ -91,7 +92,7 @@ function App() {
     isRecognizing,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
-    enableDebugInfo: isEnabled('test-mode'),
+    enableDebugInfo: isTestModeEnabled,
     aspectRatio: aspectRatio,
   });
 
@@ -111,6 +112,20 @@ function App() {
       playRandomSound();
     }
   }, [recognizedConcert, play, playRandomSound]);
+
+  useEffect(() => {
+    if (!isTestModeEnabled || !recognizedConcert) {
+      return;
+    }
+
+    const AUTO_RESET_DELAY_MS = 4000;
+    const timerId = window.setTimeout(() => {
+      fadeOut();
+      resetRecognition();
+    }, AUTO_RESET_DELAY_MS);
+
+    return () => window.clearTimeout(timerId);
+  }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
   // Fade out audio when movement is detected
   useEffect(() => {
@@ -167,10 +182,11 @@ function App() {
       />
       <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
       <DebugOverlay
-        enabled={isEnabled('test-mode')}
+        enabled={isTestModeEnabled}
         recognizedConcert={recognizedConcert}
         isRecognizing={isRecognizing}
         debugInfo={debugInfo ?? undefined}
+        onReset={resetRecognition}
       />
     </>
   );

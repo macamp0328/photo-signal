@@ -10,12 +10,14 @@ import { usePhotoRecognition } from './usePhotoRecognition';
 import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 
+const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
+
 // Mock the secret-settings module
 vi.mock('../secret-settings', () => ({
   useFeatureFlags: vi.fn(() => ({
     flags: [],
     toggleFlag: vi.fn(),
-    isEnabled: vi.fn(() => false),
+    isEnabled: mockIsEnabled,
     resetFlags: vi.fn(),
   })),
 }));
@@ -79,6 +81,7 @@ describe('usePhotoRecognition', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    mockIsEnabled.mockReturnValue(false);
 
     // Create a better MediaStream mock that happy-dom will accept
     const mockTrack = {
@@ -173,6 +176,47 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(result.current.isRecognizing).toBe(false);
+    });
+
+    it('should reinitialize recognition loop after reset', async () => {
+      mockIsEnabled.mockImplementation((flag: string) => flag === 'test-mode');
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          recognitionDelay: 100,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+        await Promise.resolve();
+      });
+
+      const logsBeforeReset = logSpy.mock.calls.filter(
+        ([message]) =>
+          typeof message === 'string' && message.includes('[Photo Recognition] Initializing')
+      ).length;
+
+      act(() => {
+        result.current.reset();
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+        await Promise.resolve();
+      });
+
+      const logsAfterReset = logSpy.mock.calls.filter(
+        ([message]) =>
+          typeof message === 'string' && message.includes('[Photo Recognition] Initializing')
+      ).length;
+
+      expect(logsAfterReset).toBeGreaterThan(logsBeforeReset);
+
+      logSpy.mockRestore();
+      mockIsEnabled.mockReturnValue(false);
     });
   });
 

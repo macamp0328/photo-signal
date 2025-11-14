@@ -18,6 +18,7 @@ export function DebugOverlay({
   enabled,
   debugInfo,
   threshold,
+  onReset,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
@@ -99,7 +100,20 @@ export function DebugOverlay({
     <div className={styles.overlay}>
       <div className={styles.header}>
         <span className={styles.title}>🐛 Debug Info</span>
-        <span className={styles.badge}>TEST MODE</span>
+        <div className={styles.headerActions}>
+          <span className={styles.badge}>TEST MODE</span>
+          {onReset && (
+            <button
+              type="button"
+              className={styles.resetButton}
+              onClick={onReset}
+              disabled={!recognizedConcert && !isRecognizing}
+              aria-label="Reset recognition"
+            >
+              Reset
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Status */}

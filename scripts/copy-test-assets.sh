@@ -30,16 +30,28 @@ mkdir -p "$PROJECT_ROOT/public/assets/test-audio"
 mkdir -p "$PROJECT_ROOT/public/assets/test-images"
 
 # Copy test data
-cp "$PROJECT_ROOT/assets/test-data/concerts.json" "$PROJECT_ROOT/public/assets/test-data/"
-echo "✓ Copied test data (concerts.json)"
+if [ -f "$PROJECT_ROOT/assets/test-data/concerts.json" ]; then
+  cp "$PROJECT_ROOT/assets/test-data/concerts.json" "$PROJECT_ROOT/public/assets/test-data/"
+  echo "✓ Copied test data (concerts.json)"
+else
+  echo "⚠ concerts.json not found in test-data directory"
+fi
 
 # Copy test audio
-cp "$PROJECT_ROOT/assets/test-audio"/*.mp3 "$PROJECT_ROOT/public/assets/test-audio/"
-echo "✓ Copied test audio files"
+if ls "$PROJECT_ROOT/assets/test-audio"/*.mp3 1> /dev/null 2>&1; then
+  cp "$PROJECT_ROOT/assets/test-audio"/*.mp3 "$PROJECT_ROOT/public/assets/test-audio/"
+  echo "✓ Copied test audio files"
+else
+  echo "⚠ No MP3 files found in test-audio directory"
+fi
 
 # Copy test images
-cp "$PROJECT_ROOT/assets/test-images"/*.jpg "$PROJECT_ROOT/public/assets/test-images/"
-echo "✓ Copied test images"
+if ls "$PROJECT_ROOT/assets/test-images"/*.jpg 1> /dev/null 2>&1; then
+  cp "$PROJECT_ROOT/assets/test-images"/*.jpg "$PROJECT_ROOT/public/assets/test-images/"
+  echo "✓ Copied test images"
+else
+  echo "⚠ No JPG files found in test-images directory"
+fi
 
 echo ""
 echo "Test assets copied successfully!"

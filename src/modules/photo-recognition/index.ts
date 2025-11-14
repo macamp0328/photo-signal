@@ -7,4 +7,4 @@
  */
 
 export { usePhotoRecognition } from './usePhotoRecognition';
-export type { PhotoRecognitionHook, PhotoRecognitionOptions } from './types';
+export type { PhotoRecognitionHook, PhotoRecognitionOptions, AspectRatio } from './types';

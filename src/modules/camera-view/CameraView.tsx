@@ -7,7 +7,14 @@ import styles from './CameraView.module.css';
  *
  * Pure UI component for displaying camera feed with overlay.
  */
-export function CameraView({ stream, error, hasPermission, onRetry }: CameraViewProps) {
+export function CameraView({
+  stream,
+  error,
+  hasPermission,
+  onRetry,
+  aspectRatio = '3:2',
+  onAspectRatioToggle,
+}: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Update video element when stream changes
@@ -49,10 +56,14 @@ export function CameraView({ stream, error, hasPermission, onRetry }: CameraView
       {/* Video feed */}
       <video ref={videoRef} autoPlay playsInline muted className={styles.video} />
 
-      {/* 3:2 Aspect Ratio Overlay */}
+      {/* Aspect Ratio Overlay */}
       <div className={styles.overlay}>
         <div className={styles.overlayWrapper}>
-          <div className={styles.overlayAspectRatio}>
+          <div
+            className={
+              aspectRatio === '3:2' ? styles.overlayAspectRatio32 : styles.overlayAspectRatio23
+            }
+          >
             <div className={styles.overlayFrame}>
               {/* Corner markers */}
               <div className={styles.cornerTopLeft} />
@@ -63,6 +74,17 @@ export function CameraView({ stream, error, hasPermission, onRetry }: CameraView
           </div>
         </div>
       </div>
+
+      {/* Aspect Ratio Toggle Button */}
+      {onAspectRatioToggle && (
+        <button
+          onClick={onAspectRatioToggle}
+          className={styles.aspectToggle}
+          aria-label={`Switch to ${aspectRatio === '3:2' ? 'portrait' : 'landscape'} mode`}
+        >
+          {aspectRatio === '3:2' ? '⤾ Portrait' : '⤿ Landscape'}
+        </button>
+      )}
 
       {/* Instructions */}
       <div className={styles.instructions}>

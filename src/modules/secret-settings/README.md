@@ -124,10 +124,15 @@ interface SecretSettingsProps {
 **Features:**
 
 - Full-screen modal overlay
+- Feature flag toggles with instant preview
+- Custom setting controls with instant preview
+- **"Send It 🚀" button** - Applies all changes and reloads page
+- Reset buttons for flags and settings
 - Responsive design (mobile and desktop)
 - Keyboard accessible (ESC to close - future feature)
 - Placeholder sections for future features
 - Developer documentation built-in
+- Retro sound integration
 
 **Example:**
 
@@ -412,7 +417,23 @@ body {
    - **Retro Sounds**: Plays beeps/clicks on interactions
    - **Theme Mode**: Switch between dark/light
    - **UI Style**: Switch between modern/classic
-5. Click the X or outside the modal to close
+5. Click **"Send It 🚀"** to apply changes and reload the page
+6. Verify all changes persist after reload
+
+**Why the "Send It" button?**
+
+Some feature flags require a full page reload to take effect properly:
+
+- Camera settings (require reinitializing MediaStream)
+- Theme changes (require re-rendering React tree)
+- Audio playback settings (require reinitializing Howler.js)
+
+The "Send It" button ensures all changes are guaranteed to work by:
+
+1. Playing a retro sound (if enabled)
+2. Closing the menu
+3. Waiting 100ms for close animation
+4. Reloading the page with all new settings active
 
 ---
 

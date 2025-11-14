@@ -16,6 +16,9 @@ dist-ssr
 # Test coverage
 coverage
 
+# Generated test assets (copied from assets/ to public/ by Vite plugin)
+public/assets
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

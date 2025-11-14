@@ -20,6 +20,10 @@ class DataService {
    */
   setTestMode(enabled: boolean): void {
     if (this.isTestMode !== enabled) {
+      console.log(`[DataService] Test mode ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      console.log(
+        `[DataService] Data will be loaded from: ${enabled ? this.testDataUrl : this.productionDataUrl}`
+      );
       this.isTestMode = enabled;
       this.clearCache();
       this.notifyListeners();
@@ -69,12 +73,40 @@ class DataService {
 
     try {
       const dataUrl = this.getDataUrl();
+      console.log(`[DataService] Loading concert data from: ${dataUrl}`);
+      console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
+      
       const response = await fetch(dataUrl);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       this.cache = data.concerts || [];
+      
+      console.log(`[DataService] Successfully loaded ${this.cache.length} concerts`);
+      console.log(
+        `[DataService] Concerts with photo hashes: ${this.cache.filter((c) => c.photoHash).length}`
+      );
+      
+      if (this.cache.length === 0) {
+        console.warn('[DataService] Warning: No concerts found in data file');
+      }
+      
+      if (this.cache.filter((c) => c.photoHash).length === 0) {
+        console.warn(
+          '[DataService] Warning: No concerts have photoHash values. Photo recognition will not work.'
+        );
+      }
+      
       return this.cache as Concert[];
     } catch (error) {
-      console.error('Failed to load concert data:', error);
+      console.error('[DataService] Failed to load concert data:', error);
+      console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
+      console.error(
+        `[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}. Try ${this.isTestMode ? 'disabling' : 'enabling'} it in Secret Settings.`
+      );
       return [];
     }
   }

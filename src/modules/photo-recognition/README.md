@@ -35,6 +35,7 @@ options?: {
   similarityThreshold?: number;  // Hamming distance threshold (0-64), default 10
   checkInterval?: number;        // Interval for checking frames (ms), default 1000
   enableDebugInfo?: boolean;     // Enable debug information output, default false
+  aspectRatio?: '3:2' | '2:3';   // Aspect ratio for frame cropping (default '3:2')
 }
 ```
 
@@ -73,26 +74,50 @@ interface BestMatchInfo {
 
 ---
 
-## Implementation: Perceptual Hashing (dHash)
+## Implementation: Functional Framing with Dual Aspect Ratios
 
-**Algorithm**: dHash (Difference Hash)
+**Algorithm**: dHash (Difference Hash) with Functional Frame Cropping
 
-This module uses a lightweight, client-side perceptual hashing algorithm to recognize photos:
+This module uses a lightweight, client-side perceptual hashing algorithm with **functional frame cropping** to recognize photos:
 
 1. **Capture Frame**: Extract current video frame from MediaStream
-2. **Resize**: Reduce to 17x8 pixels (optimized for speed)
-3. **Grayscale**: Convert to grayscale using luminance formula
-4. **Gradient Hash**: Compute horizontal pixel gradients
-5. **Generate Hash**: Create 128-bit hash from gradient differences
-6. **Compare**: Use Hamming distance to compare with stored hashes
-7. **Match**: Recognize photo when distance < threshold for stable period
+2. **Crop to Framed Region**: Extract only pixels inside the framing guide (3:2 or 2:3)
+3. **Resize**: Reduce cropped region to 17x8 pixels (optimized for speed)
+4. **Grayscale**: Convert to grayscale using luminance formula
+5. **Gradient Hash**: Compute horizontal pixel gradients
+6. **Generate Hash**: Create 128-bit hash from gradient differences
+7. **Compare**: Use Hamming distance to compare with stored hashes
+8. **Match**: Recognize photo when distance < threshold for stable period
+
+### Functional Framing
+
+The photo recognition module **only analyzes pixels within the framing guide**, not the entire camera frame. This eliminates background noise and improves accuracy.
+
+**Benefits**:
+
+- ✅ Eliminates background noise and clutter
+- ✅ Reduces false positives from unrelated objects
+- ✅ Improves recognition accuracy
+- ✅ Makes framing guide intuitive and trustworthy
+- ✅ Supports both landscape (3:2) and portrait (2:3) photos
+
+**Aspect Ratios**:
+
+- **3:2 (Landscape)**: Default, for horizontal photos
+- **2:3 (Portrait)**: For vertical photos
+
+**Cropping Behavior**:
+
+- Framed region uses ~80% of available viewport space
+- Region is centered in the camera feed
+- GPU-accelerated canvas cropping (no performance impact)
 
 **Why dHash?**
 
 Based on research and testing:
 
 - ✅ Fast: ~6-8ms per frame on mobile
-- ✅ Accurate: 85-90% under varying conditions
+- ✅ Accurate: 85-90% under varying conditions (improved with cropping)
 - ✅ Small: ~3KB code size (zero dependencies)
 - ✅ Private: 100% client-side processing
 - ✅ Offline: Works without internet
@@ -166,7 +191,9 @@ When running in development mode (`import.meta.env.DEV`) or when Test Mode is en
 ============================================================
 [Photo Recognition] FRAME 42 @ 12:34:56.789
 Frame Hash: a5b3c7d9e1f20486
-Frame Size: 640 × 480 px
+Frame Size: 640 × 480 px (cropped)
+Cropped Region: x=64, y=108, w=512, h=341
+Aspect Ratio: 3:2
 Concerts Checked: 4
 Threshold: 10 (similarity ≥ 84.4%)
 
@@ -353,7 +380,33 @@ const { recognizedConcert } = usePhotoRecognition(stream, {
   similarityThreshold: 8, // Stricter matching
   checkInterval: 500, // Check more frequently
   recognitionDelay: 2000, // Wait longer before confirming
+  aspectRatio: '2:3', // Use portrait mode for vertical photos
 });
+```
+
+### With Aspect Ratio Toggle
+
+```typescript
+import { useState } from 'react';
+import type { AspectRatio } from '@/modules/photo-recognition';
+
+function App() {
+  const { stream } = useCameraAccess();
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
+
+  const { recognizedConcert } = usePhotoRecognition(stream, {
+    aspectRatio: aspectRatio,
+  });
+
+  return (
+    <div>
+      <button onClick={() => setAspectRatio(prev => prev === '3:2' ? '2:3' : '3:2')}>
+        Toggle Aspect Ratio
+      </button>
+      {recognizedConcert && <h2>{recognizedConcert.band}</h2>}
+    </div>
+  );
+}
 ```
 
 ---

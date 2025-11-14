@@ -295,7 +295,7 @@ Manually copies test assets from `assets/` to `public/assets/`.
 **When to use:**
 
 - Manual testing without running dev server
-- Troubleshooting asset copying issues  
+- Troubleshooting asset copying issues
 - Preparing assets for deployment without Vite
 
 **What it does:**

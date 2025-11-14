@@ -41,7 +41,7 @@ const mockConcerts: Concert[] = [
 describe('DataService', () => {
   // Store original fetch to restore after tests
   let originalFetch: typeof global.fetch;
-  
+
   // Spy on console methods to avoid noise in test output
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
@@ -139,8 +139,14 @@ describe('DataService', () => {
       // Verify error handling
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to load concert data:',
+        '[DataService] Failed to load concert data:',
         expect.any(Error)
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[DataService] Attempted to load from: /data.json'
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[DataService] Test mode is DISABLED. Try enabling it in Secret Settings.'
       );
       expect(concerts).toEqual([]);
 
@@ -597,15 +603,14 @@ describe('DataService', () => {
     });
 
     it('should log when test mode changes', () => {
-      // Reset spy to check new calls
+      // Ensure starting state is disabled so subsequent toggle triggers logs
+      dataService.setTestMode(false);
       consoleLogSpy.mockClear();
 
       dataService.setTestMode(true);
 
       // Verify logging occurred
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[DataService] Test mode ENABLED'
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith('[DataService] Test mode ENABLED');
       expect(consoleLogSpy).toHaveBeenCalledWith(
         '[DataService] Data will be loaded from: /assets/test-data/concerts.json'
       );
@@ -628,6 +633,9 @@ describe('DataService', () => {
     it('should notify subscribers when test mode changes', () => {
       const listener1 = vi.fn();
       const listener2 = vi.fn();
+
+      // Ensure a known starting state
+      dataService.setTestMode(false);
 
       // Subscribe
       const unsubscribe1 = dataService.subscribe(listener1);

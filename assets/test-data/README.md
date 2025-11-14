@@ -50,6 +50,7 @@ Standard JSON format matching the application's data structure:
 ```
 
 **Key differences from production data**:
+
 - `audioFile` and `imageFile` paths point to `/assets/test-*` directories
 - `photoHash` values are included for photo recognition testing
 
@@ -79,4 +80,3 @@ import testData from '../../../assets/test-data/concerts.json';
 3. Click "Send It 🚀" to reload the app
 4. The app will now use test data with working photo hashes
 5. Point your camera at the test images in `assets/test-images/` to trigger recognition
-

@@ -29,6 +29,7 @@ The Test Data Mode feature allows you to test the complete Photo Signal workflow
 ### Step 3: Apply Changes and Reload
 
 Click the **"Send It 🚀"** button at the bottom of the Secret Settings menu. This will:
+
 1. Save your settings to localStorage
 2. Reload the page
 3. Load test data instead of production data
@@ -297,6 +298,7 @@ See `scripts/README.md` for detailed hash generation instructions.
 Test assets (located in `assets/test-*` directories) are **automatically copied** to `public/assets/` during build and dev server startup by a Vite plugin. This makes them accessible at runtime.
 
 **Auto-Copy Process:**
+
 1. When you run `npm run dev` or `npm run build`, a Vite plugin activates
 2. The plugin copies files from source directories to public:
    - `assets/test-data/concerts.json` → `public/assets/test-data/concerts.json`

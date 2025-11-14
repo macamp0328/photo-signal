@@ -68,4 +68,3 @@ To maintain fast load times:
 - Paths are relative to the domain root (e.g., `/favicon.svg`)
 - Files are not processed by Vite (served as-is)
 - Use `public/` for assets referenced in HTML or that need stable URLs
-

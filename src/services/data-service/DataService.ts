@@ -75,32 +75,33 @@ class DataService {
       const dataUrl = this.getDataUrl();
       console.log(`[DataService] Loading concert data from: ${dataUrl}`);
       console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
-      
+
       const response = await fetch(dataUrl);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      this.cache = data.concerts || [];
-      
-      console.log(`[DataService] Successfully loaded ${this.cache.length} concerts`);
-      console.log(
-        `[DataService] Concerts with photo hashes: ${this.cache.filter((c) => c.photoHash).length}`
-      );
-      
-      if (this.cache.length === 0) {
+      const concerts = Array.isArray(data.concerts) ? data.concerts : [];
+      this.cache = concerts;
+
+      const concertsWithHashes = concerts.filter((c: Concert) => c.photoHash).length;
+
+      console.log(`[DataService] Successfully loaded ${concerts.length} concerts`);
+      console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
+
+      if (concerts.length === 0) {
         console.warn('[DataService] Warning: No concerts found in data file');
       }
-      
-      if (this.cache.filter((c) => c.photoHash).length === 0) {
+
+      if (concertsWithHashes === 0) {
         console.warn(
           '[DataService] Warning: No concerts have photoHash values. Photo recognition will not work.'
         );
       }
-      
-      return this.cache as Concert[];
+
+      return concerts;
     } catch (error) {
       console.error('[DataService] Failed to load concert data:', error);
       console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);

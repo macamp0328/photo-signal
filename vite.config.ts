@@ -27,7 +27,7 @@ function copyTestAssetsPlugin() {
           try {
             const [srcStat, destStat] = await Promise.all([stat(src), stat(dest)]);
             return srcStat.size !== destStat.size || srcStat.mtimeMs !== destStat.mtimeMs;
-          } catch (err) {
+          } catch {
             // If dest doesn't exist, copy
             return true;
           }

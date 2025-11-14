@@ -26,12 +26,31 @@ body {
   --color-text: #f5f5f5;
   --color-accent: #4a90e2;
   --color-accent-light: #6ba3e8;
-  --color-accent-hover: #357abd;
-  --color-text-muted: #888;
+  --color-accent-hover: #5ca3e6; /* Improved from #357abd for better contrast (7.22:1) */
+  --color-text-muted: #a8a8a8; /* Improved from #888 for better contrast (8.33:1) */
+
+  /* Interactive element colors */
+  --color-button-bg: #f5f5f5;
+  --color-button-text: #0a0a0a;
+  --color-button-hover-bg: #e5e7eb;
+  --color-button-hover-text: #0a0a0a;
+  --color-button-disabled-bg: #3a3a3a;
+  --color-button-disabled-text: #6b6b6b;
 
   /* Additional colors used in components */
   --color-gray-200: #e5e7eb;
   --color-gray-400: #9ca3af;
+
+  /* Focus indicators - WCAG compliant */
+  --focus-ring-color: #6ba3e8;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-style: solid;
+
+  /* Overlay and modal backgrounds */
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --modal-bg: #1a1a1a;
+  --modal-border: rgba(255, 255, 255, 0.1);
 
   /* Texture settings */
   --texture-opacity: 0.3;
@@ -47,9 +66,25 @@ body {
   --color-background: #f5f5f4;
   --color-text: #0f172a;
   --color-accent: #2563eb;
-  --color-accent-light: #3b82f6;
-  --color-accent-hover: #1d4ed8;
-  --color-text-muted: #666;
+  --color-accent-light: #1d4ed8; /* Improved from #3b82f6 for better contrast (6.14:1) */
+  --color-accent-hover: #1e40af; /* Darker for better contrast (7.93:1) */
+  --color-text-muted: #595959; /* Improved from #666 for better contrast (6.42:1) */
+
+  /* Interactive element colors */
+  --color-button-bg: #0f172a;
+  --color-button-text: #f5f5f4;
+  --color-button-hover-bg: #1e293b;
+  --color-button-hover-text: #f5f5f4;
+  --color-button-disabled-bg: #cbd5e1;
+  --color-button-disabled-text: #94a3b8;
+
+  /* Focus indicators */
+  --focus-ring-color: #2563eb;
+
+  /* Overlay and modal backgrounds */
+  --overlay-bg: rgba(0, 0, 0, 0.75);
+  --modal-bg: #ffffff;
+  --modal-border: rgba(15, 23, 42, 0.1);
 }
 
 /* Classic UI Style */
@@ -133,4 +168,46 @@ body::before {
   overflow: hidden;
   position: relative;
   z-index: 1;
+}
+
+/* Global focus styles for accessibility */
+*:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 2px;
+}
+
+/* Remove default focus outline, but keep it for keyboard navigation */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button focus styles */
+button:focus-visible,
+input[type='button']:focus-visible,
+input[type='submit']:focus-visible,
+input[type='reset']:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Link focus styles */
+a:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Form element focus styles */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Checkbox and radio focus styles */
+input[type='checkbox']:focus-visible,
+input[type='radio']:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }

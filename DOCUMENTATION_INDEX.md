@@ -36,8 +36,7 @@
 
 ### User Guides
 
-- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, and troubleshooting
-- **[docs/test-mode-guide.md](./docs/test-mode-guide.md)** - Step-by-step guide for enabling and using Test Data Mode with test images for photo recognition testing
+- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, troubleshooting, and technical details on the auto-copy mechanism
 
 ---
 

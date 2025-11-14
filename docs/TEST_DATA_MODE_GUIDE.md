@@ -26,9 +26,14 @@ The Test Data Mode feature allows you to test the complete Photo Signal workflow
 
 ![Test Mode Enabled](https://github.com/user-attachments/assets/59a56fe7-97a6-482c-9c01-984aa709bf80)
 
-### Step 3: Close the Menu
+### Step 3: Apply Changes and Reload
 
-Click the X button or click outside the modal to close the Secret Settings menu. Your preference is automatically saved.
+Click the **"Send It 🚀"** button at the bottom of the Secret Settings menu. This will:
+1. Save your settings to localStorage
+2. Reload the page
+3. Load test data instead of production data
+
+Alternatively, you can click the X button or click outside the modal to close the menu. Your preference is automatically saved, but you'll need to manually reload the page for test mode to take effect.
 
 ## Using Test Data Mode
 
@@ -93,7 +98,19 @@ This overlay updates in real-time as the photo recognition system processes fram
 
 ### Console Logging
 
-When Test Mode is enabled, detailed logs are output to the browser console:
+When Test Mode is enabled, detailed logs are output to the browser console.
+
+**Data Service Logs** (when test mode is toggled):
+
+```
+[DataService] Test mode ENABLED
+[DataService] Data will be loaded from: /assets/test-data/concerts.json
+[DataService] Loading concert data from: /assets/test-data/concerts.json
+[DataService] Successfully loaded 4 concerts
+[DataService] Concerts with photo hashes: 4
+```
+
+**Photo Recognition Logs** (frame-by-frame processing):
 
 ```
 ============================================================
@@ -111,6 +128,8 @@ Match Decision: POTENTIAL MATCH (The Midnight Echoes)
   Stability Timer: 1.2s / 3.0s required
 ============================================================
 ```
+
+**Tip**: Use the browser console's filter feature to show only `[DataService]` or `[Photo Recognition]` logs.
 
 ### What's Still Missing (Features to Identify)
 
@@ -272,6 +291,36 @@ See `scripts/README.md` for detailed hash generation instructions.
 3. Try a different browser
 
 ## Technical Details
+
+### How Test Assets Are Served
+
+Test assets (located in `assets/test-*` directories) are **automatically copied** to `public/assets/` during build and dev server startup by a Vite plugin. This makes them accessible at runtime.
+
+**Auto-Copy Process:**
+1. When you run `npm run dev` or `npm run build`, a Vite plugin activates
+2. The plugin copies files from source directories to public:
+   - `assets/test-data/concerts.json` → `public/assets/test-data/concerts.json`
+   - `assets/test-audio/*.mp3` → `public/assets/test-audio/*.mp3`
+   - `assets/test-images/*.jpg` → `public/assets/test-images/*.jpg`
+3. The `public/assets/` directory is git-ignored (auto-generated, not committed)
+4. Files are accessible at runtime via URLs like `/assets/test-data/concerts.json`
+
+**Troubleshooting Auto-Copy Issues:**
+
+If you see "[DataService] Warning: No concerts have photoHash values" or test data fails to load:
+
+1. Stop the dev server
+2. Delete the `public/assets/` directory
+3. Restart the dev server: `npm run dev`
+4. The Vite plugin should automatically recreate the assets
+5. Check the console for "✓ Test assets copied to public/assets/"
+
+**Manual Copy** (if needed):
+
+```bash
+# Run this script to manually copy test assets
+./scripts/copy-test-assets.sh
+```
 
 ### How Photo Recognition Works
 

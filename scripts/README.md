@@ -190,7 +190,7 @@ node scripts/generate-photo-hashes.js
 
 **What it does:**
 
-- Reads images from `assets/test-images/`
+- Reads images from `assets/test-images/` by default (pass directories/files as arguments for other folders, e.g., `npm run generate-hashes assets/example-real-photos`)
 - Computes dHash for each image
 - Outputs photo hashes to console
 - Use these hashes in `concerts.json` photoHash field
@@ -202,6 +202,27 @@ Photo Hashes for assets/test-images/
 concert-1.jpg: 00000000000001600acc000000000000
 concert-2.jpg: 00000000000001200330000000000000
 ```
+
+---
+
+### `create-easy-test-images.js` - Generate High-Contrast Targets
+
+Creates bold, high-contrast PNG images that are easy for the recognition system to match.
+
+**Local:**
+
+```bash
+npm run create-easy-images
+```
+
+**What it does:**
+
+- Generates three 640×480 PNG files in `assets/test-images/`
+- Designs include a bullseye, diagonal stripes, and checkerboard grid
+- Ensures repeatable assets for troubleshooting recognition accuracy
+- Safe to re-run at any time (files will be overwritten)
+
+Use these assets when you need ultra-distinct patterns for calibration or debugging.
 
 ---
 

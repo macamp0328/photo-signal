@@ -5,7 +5,7 @@ This directory contains sample structured data files for testing data service fu
 ## Files
 
 - `concerts.json` - JSON format concert data matching the structure in `public/data.json`
-- `concerts.csv` - CSV format concert data for alternative data loading scenarios
+- `concerts.csv` - CSV format concert data (same dataset, including `photoHash` column)
 
 ## License
 
@@ -51,8 +51,9 @@ Standard JSON format matching the application's data structure:
 
 **Key differences from production data**:
 
-- `audioFile` and `imageFile` paths point to `/assets/test-*` directories
-- `photoHash` values are included for photo recognition testing
+- `audioFile` paths point to `/assets/test-audio/*`
+- `imageFile` paths point to `/assets/test-images/*` or `/assets/example-real-photos/*`
+- `photoHash` values are included for every concert to unblock recognition testing
 
 ### concerts.csv
 
@@ -79,4 +80,4 @@ import testData from '../../../assets/test-data/concerts.json';
 2. Enable "Test Data Mode" under Feature Flags
 3. Click "Send It 🚀" to reload the app
 4. The app will now use test data with working photo hashes
-5. Point your camera at the test images in `assets/test-images/` to trigger recognition
+5. Point your camera at whichever printed assets you prefer (gradients, high-contrast PNGs, or example real photos)

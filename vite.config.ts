@@ -18,6 +18,7 @@ function copyTestAssetsPlugin() {
         const testDataSrc = path.resolve(__dirname, 'assets/test-data');
         const testAudioSrc = path.resolve(__dirname, 'assets/test-audio');
         const testImagesSrc = path.resolve(__dirname, 'assets/test-images');
+        const examplePhotosSrc = path.resolve(__dirname, 'assets/example-real-photos');
 
         const { mkdir, copyFile, readdir, stat, access } = fs.promises;
         const startTime = Date.now();
@@ -48,6 +49,7 @@ function copyTestAssetsPlugin() {
           mkdir(path.join(publicAssetsDir, 'test-data'), { recursive: true }),
           mkdir(path.join(publicAssetsDir, 'test-audio'), { recursive: true }),
           mkdir(path.join(publicAssetsDir, 'test-images'), { recursive: true }),
+          mkdir(path.join(publicAssetsDir, 'example-real-photos'), { recursive: true }),
         ]);
 
         let copiedCount = 0;
@@ -92,7 +94,9 @@ function copyTestAssetsPlugin() {
 
         // Copy test images if directory exists
         if (await exists(testImagesSrc)) {
-          const imageFiles = (await readdir(testImagesSrc)).filter((f) => f.endsWith('.jpg'));
+          const imageFiles = (await readdir(testImagesSrc)).filter((f) =>
+            /\.(jpg|jpeg|png)$/i.test(f)
+          );
           if (imageFiles.length > 0) {
             await Promise.all(
               imageFiles.map(async (file) => {
@@ -112,6 +116,28 @@ function copyTestAssetsPlugin() {
         } else {
           console.warn('⚠ Test images directory not found, skipping');
         }
+        // Copy example real photos if directory exists
+        if (await exists(examplePhotosSrc)) {
+          const photoFiles = (await readdir(examplePhotosSrc)).filter((f) =>
+            /\.(jpg|jpeg|png)$/i.test(f)
+          );
+          if (photoFiles.length > 0) {
+            await Promise.all(
+              photoFiles.map(async (file) => {
+                const src = path.join(examplePhotosSrc, file);
+                const dest = path.join(publicAssetsDir, 'example-real-photos', file);
+                if (await needsCopy(src, dest)) {
+                  await copyFile(src, dest);
+                  copiedCount++;
+                } else {
+                  skippedCount++;
+                }
+              })
+            );
+          } else {
+            console.warn('⚠ No image files found in example-real-photos directory');
+          }
+        }
 
         const elapsed = Date.now() - startTime;
         console.log(
@@ -120,7 +146,7 @@ function copyTestAssetsPlugin() {
       } catch (error) {
         console.error('❌ Failed to copy test assets:', error);
         console.error(
-          'Ensure assets/test-data, assets/test-audio, and assets/test-images directories exist and are accessible.'
+          'Ensure assets/test-data, assets/test-audio, assets/test-images, and assets/example-real-photos directories exist and are accessible.'
         );
         throw error;
       }

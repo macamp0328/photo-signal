@@ -16,6 +16,7 @@
 # Usage: ./scripts/copy-test-assets.sh
 
 set -e
+shopt -s nullglob
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -24,10 +25,12 @@ echo "Copying test assets to public directory..."
 echo "(Note: This is normally done automatically by the Vite plugin)"
 echo ""
 
-# Create directories
+# Creates directories
 mkdir -p "$PROJECT_ROOT/public/assets/test-data"
 mkdir -p "$PROJECT_ROOT/public/assets/test-audio"
 mkdir -p "$PROJECT_ROOT/public/assets/test-images"
+# - public/assets/example-real-photos
+mkdir -p "$PROJECT_ROOT/public/assets/example-real-photos"
 
 # Copy test data
 if [ -f "$PROJECT_ROOT/assets/test-data/concerts.json" ]; then
@@ -45,12 +48,22 @@ else
   echo "⚠ No MP3 files found in test-audio directory"
 fi
 
-# Copy test images
-if ls "$PROJECT_ROOT/assets/test-images"/*.jpg 1> /dev/null 2>&1; then
-  cp "$PROJECT_ROOT/assets/test-images"/*.jpg "$PROJECT_ROOT/public/assets/test-images/"
+# Copy test images (JPG + PNG)
+test_image_sources=("$PROJECT_ROOT/assets/test-images"/*.jpg "$PROJECT_ROOT/assets/test-images"/*.png)
+if [ ${#test_image_sources[@]} -gt 0 ]; then
+  cp "${test_image_sources[@]}" "$PROJECT_ROOT/public/assets/test-images/"
   echo "✓ Copied test images"
 else
-  echo "⚠ No JPG files found in test-images directory"
+  echo "⚠ No JPG/PNG files found in test-images directory"
+fi
+
+# Copy example real photos
+example_photo_sources=("$PROJECT_ROOT/assets/example-real-photos"/*.jpg "$PROJECT_ROOT/assets/example-real-photos"/*.png)
+if [ ${#example_photo_sources[@]} -gt 0 ]; then
+  cp "${example_photo_sources[@]}" "$PROJECT_ROOT/public/assets/example-real-photos/"
+  echo "✓ Copied example real photos"
+else
+  echo "⚠ No files found in example-real-photos directory"
 fi
 
 echo ""

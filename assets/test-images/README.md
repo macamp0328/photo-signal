@@ -8,6 +8,9 @@ This directory contains sample JPEG images for testing photo recognition and dis
 - `concert-2.jpg` - Test image for "Electric Dreams" concert (31KB)
 - `concert-3.jpg` - Test image for "Velvet Revolution" concert (29KB)
 - `concert-4.jpg` - Test image for "Sunset Boulevard" concert (27KB)
+- `easy-target-bullseye.png` - High-contrast bullseye with layered rings (generated via canvas)
+- `easy-target-diagonals.png` - Bold diagonal bands with text overlay
+- `easy-target-checker.png` - Checkerboard grid with central label
 
 ## License
 
@@ -24,7 +27,8 @@ These images are used for:
 
 ## Specifications
 
-- **Format**: JPEG
+- **Formats**: JPEG + PNG
 - **Dimensions**: 640x480 pixels
 - **Size**: ~30KB average per file
 - **Color Space**: RGB
+- **Easy targets**: Generated programmatically with `npm run create-easy-images`

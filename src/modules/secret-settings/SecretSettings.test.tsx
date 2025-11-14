@@ -183,22 +183,24 @@ describe('SecretSettings', () => {
       const reloadSpy = vi.fn();
       const originalLocation = window.location;
 
-      // Mock window.location.reload
-      delete (window as { location?: unknown }).location;
-      (window as { location: unknown }).location = { ...originalLocation, reload: reloadSpy };
+      try {
+        // Mock window.location.reload
+        delete (window as { location?: unknown }).location;
+        (window as { location: unknown }).location = { ...originalLocation, reload: reloadSpy };
 
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+        render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      const button = screen.getByText(/Send It/i);
-      await user.click(button);
+        const button = screen.getByText(/Send It/i);
+        await user.click(button);
 
-      // Wait for timeout
-      await new Promise((resolve) => setTimeout(resolve, 150));
+        // Wait for timeout
+        await new Promise((resolve) => setTimeout(resolve, 150));
 
-      expect(reloadSpy).toHaveBeenCalled();
-
-      // Restore
-      (window as { location: unknown }).location = originalLocation;
+        expect(reloadSpy).toHaveBeenCalled();
+      } finally {
+        // Restore
+        (window as { location: unknown }).location = originalLocation;
+      }
     });
 
     it('should display descriptive helper text', () => {

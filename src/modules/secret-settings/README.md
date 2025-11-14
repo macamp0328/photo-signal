@@ -52,7 +52,32 @@ src/modules/secret-settings/
 
 ### `useTripleTap` Hook
 
-Detects triple-tap/click gestures in the center of the screen.
+Detects **rapid** triple-tap/click gestures in the center of the screen.
+
+**Timing Requirement:**
+
+All three taps must occur **within 500ms** (configurable) from the **first tap**.
+
+**Examples:**
+
+✅ **Valid (triggers callback):**
+
+```
+Tap 1 (t=0ms)
+Tap 2 (t=200ms)
+Tap 3 (t=400ms)
+→ Total time: 400ms ✅
+```
+
+❌ **Invalid (does NOT trigger):**
+
+```
+Tap 1 (t=0ms)
+Tap 2 (t=300ms)
+Tap 3 (t=600ms)
+→ Timeout expired at t=500ms ❌
+→ Count was reset, tap 3 is now first tap
+```
 
 **Type Signature:**
 
@@ -67,14 +92,15 @@ interface UseTripleTapOptions {
 
 **Parameters:**
 
-- `tapTimeout` (optional): Maximum time between taps in milliseconds (default: 500)
+- `tapTimeout` (optional): Maximum time window (in milliseconds) for completing all three taps, measured from the first tap (default: 500ms)
 - `onTripleTap`: Callback function triggered when triple-tap is detected
 
 **Behavior:**
 
 - Monitors both `click` (desktop) and `touchend` (mobile) events
 - Only counts taps/clicks in the center third of the screen/window
-- Resets count after timeout expires
+- Timeout starts on FIRST tap and does NOT reset on subsequent taps
+- Resets count to 0 when timeout expires
 - Cross-platform compatible (desktop, mobile, web)
 
 **Example:**

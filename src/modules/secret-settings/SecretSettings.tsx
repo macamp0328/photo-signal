@@ -9,7 +9,7 @@ import type { SecretSettingsProps } from './types';
 import { useFeatureFlags } from './useFeatureFlags';
 import { useCustomSettings } from './useCustomSettings';
 import { useRetroSounds } from './useRetroSounds';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import styles from './SecretSettings.module.css';
 
 /**
@@ -34,6 +34,16 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
   const { settings, updateSetting, resetSettings } = useCustomSettings();
   const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
+  const timeoutRef = useRef<number | null>(null);
+
+  // Clean up timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSendIt = useCallback(() => {
     // Play sound if retro sounds enabled
@@ -45,7 +55,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
     onClose();
 
     // Reload page after short delay (100ms) to show close animation
-    setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       window.location.reload();
     }, 100);
   }, [isEnabled, playRandomSound, onClose]);

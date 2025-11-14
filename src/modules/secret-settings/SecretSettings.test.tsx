@@ -161,10 +161,12 @@ describe('SecretSettings', () => {
     it('should have proper accessibility attributes', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      const button = screen.getByRole('button', { name: /Apply changes and reload page/i });
+      const button = screen.getByRole('button', {
+        name: /Send It - Apply changes and reload page/i,
+      });
       expect(button).toBeInTheDocument();
       expect(button).toHaveAttribute('type', 'button');
-      expect(button).toHaveAttribute('aria-label', 'Apply changes and reload page');
+      expect(button).toHaveAttribute('aria-label', 'Send It - Apply changes and reload page');
     });
 
     it('should call onClose when Send It is clicked', async () => {

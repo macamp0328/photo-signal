@@ -198,7 +198,7 @@ describe('useTripleTap', () => {
 
       // Tap 3
       window.dispatchEvent(clickEvent);
-      expect(mockCallback).not.toHaveBeenCalled(); // Still only 2 rapid taps
+      expect(mockCallback).not.toHaveBeenCalled(); // Count was reset after first tap, so tap 2-3 only count as 2 taps
     });
 
     it('should trigger if all three taps are within timeout window', () => {

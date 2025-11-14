@@ -92,7 +92,7 @@ interface UseTripleTapOptions {
 
 **Parameters:**
 
-- `tapTimeout` (optional): Maximum time window for all three taps from the first tap (default: 500ms)
+- `tapTimeout` (optional): Maximum time window (in milliseconds) for completing all three taps, measured from the first tap (default: 500ms)
 - `onTripleTap`: Callback function triggered when triple-tap is detected
 
 **Behavior:**

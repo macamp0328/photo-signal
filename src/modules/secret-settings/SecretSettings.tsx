@@ -212,7 +212,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
             <button
               onClick={handleSendIt}
               className={styles.sendItButton}
-              aria-label="Apply changes and reload page"
+              aria-label="Send It - Apply changes and reload page"
               type="button"
             >
               Send It 🚀

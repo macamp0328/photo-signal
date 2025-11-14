@@ -36,6 +36,18 @@ Audio files are stored in the `audio/` subdirectory. See [audio/README.md](./aud
 
 - **`data.json`** - Concert metadata (band, venue, date, audio file paths)
 
+### Test Assets (Auto-Generated)
+
+The `assets/` subdirectory is **auto-generated** and should not be committed:
+
+- **`assets/test-data/`** - Test concert data JSON (copied from `assets/test-data/`)
+- **`assets/test-audio/`** - Test audio MP3 files (copied from `assets/test-audio/`)
+- **`assets/test-images/`** - Test images (copied from `assets/test-images/`)
+
+These directories are created by a Vite plugin during build and dev server startup, making test assets accessible at runtime when Test Mode is enabled in Secret Settings.
+
+**Note**: `public/assets/` is listed in `.gitignore` and will be recreated automatically. Do not commit it.
+
 ### Other Assets
 
 - **`vite.svg`** - Original Vite logo (can be removed)
@@ -56,3 +68,4 @@ To maintain fast load times:
 - Paths are relative to the domain root (e.g., `/favicon.svg`)
 - Files are not processed by Vite (served as-is)
 - Use `public/` for assets referenced in HTML or that need stable URLs
+

@@ -16,7 +16,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     id: 'test-mode',
     name: 'Test Data Mode',
     description:
-      'Use test data from assets/test-* directories instead of production data. Perfect for testing with mobile devices using the provided test images.',
+      'Use test data with working photo hashes and sample audio/images. Test assets are automatically copied to public/assets/ during build. Enable this mode to test photo recognition with the provided test images in assets/test-images/.',
     enabled: false,
     category: 'development',
   },

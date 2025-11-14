@@ -17,6 +17,7 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import { DebugOverlay } from './modules/debug-overlay';
+import type { AspectRatio } from './types';
 import {
   useTripleTap,
   SecretSettings,
@@ -33,6 +34,9 @@ function App() {
 
   // State for secret settings menu
   const [showSecretSettings, setShowSecretSettings] = useState(false);
+
+  // State for aspect ratio
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
 
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
@@ -82,6 +86,7 @@ function App() {
   } = usePhotoRecognition(stream, {
     recognitionDelay: 3000,
     enableDebugInfo: isEnabled('test-mode'),
+    aspectRatio: aspectRatio,
   });
 
   // Module: Audio Playback
@@ -123,7 +128,14 @@ function App() {
 
   // Render camera view
   const cameraView = (
-    <CameraView stream={stream} error={error} hasPermission={hasPermission} onRetry={retry} />
+    <CameraView
+      stream={stream}
+      error={error}
+      hasPermission={hasPermission}
+      onRetry={retry}
+      aspectRatio={aspectRatio}
+      onAspectRatioToggle={() => setAspectRatio((prev) => (prev === '3:2' ? '2:3' : '3:2'))}
+    />
   );
 
   // Render info display

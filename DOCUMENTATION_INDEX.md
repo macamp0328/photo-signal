@@ -47,12 +47,13 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Core Modules (`src/modules/`)
 
 - **[camera-access/README.md](./src/modules/camera-access/README.md)** - Camera permission and MediaStream management
-- **[camera-view/README.md](./src/modules/camera-view/README.md)** - Video display UI component with 3:2 overlay
+- **[camera-view/README.md](./src/modules/camera-view/README.md)** - Video display UI component with 3:2 and 2:3 aspect ratio overlays and toggle functionality
 - **[motion-detection/README.md](./src/modules/motion-detection/README.md)** - Camera movement detection algorithm
-- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing, hash generation tools, and debug API
+- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing with functional frame cropping, hash generation tools, and debug API
   - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities
+  - **[photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
@@ -99,6 +100,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
+- **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
 
 ### Code Quality
 
@@ -316,8 +318,8 @@ This index covers:
 - ✅ Helper scripts (8 files including README and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (2 files)
-- ✅ Module tests (8 files - including secret-settings hooks tests)
+- ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
 
-**Total**: 109 documented files
+**Total**: 110 documented files
 
-Last updated: 2025-11-13
+Last updated: 2025-11-14

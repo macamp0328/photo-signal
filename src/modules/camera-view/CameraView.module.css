@@ -80,9 +80,17 @@
   max-width: 600px;
 }
 
-.overlayAspectRatio {
+/* Landscape: 3:2 aspect ratio */
+.overlayAspectRatio32 {
   position: relative;
   padding-bottom: 66.67%; /* 3:2 aspect ratio */
+}
+
+/* Portrait: 2:3 aspect ratio */
+.overlayAspectRatio23 {
+  position: relative;
+  padding-bottom: 150%; /* 2:3 aspect ratio */
+  max-height: 80vh;
 }
 
 .overlayFrame {
@@ -134,6 +142,32 @@
   height: 2rem;
   border-bottom: 4px solid #fff;
   border-right: 4px solid #fff;
+}
+
+/* Aspect Ratio Toggle Button */
+.aspectToggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.aspectToggle:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.aspectToggle:active {
+  transform: scale(0.95);
 }
 
 /* Instructions */

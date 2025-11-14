@@ -1,8 +1,10 @@
-import type { Concert } from '../../types';
+import type { Concert, AspectRatio as AspectRatioType } from '../../types';
 
 /**
  * Photo Recognition Module Types
  */
+
+export type AspectRatio = AspectRatioType;
 
 /**
  * Best match information for debugging
@@ -49,4 +51,6 @@ export interface PhotoRecognitionOptions {
   checkInterval?: number;
   /** Enable debug information output, default false */
   enableDebugInfo?: boolean;
+  /** Aspect ratio for frame cropping (default '3:2') */
+  aspectRatio?: AspectRatio;
 }

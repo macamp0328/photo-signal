@@ -2,10 +2,54 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
 import type { Concert } from '../../types';
-import type { PhotoRecognitionHook, PhotoRecognitionOptions, RecognitionDebugInfo } from './types';
+import type {
+  PhotoRecognitionHook,
+  PhotoRecognitionOptions,
+  RecognitionDebugInfo,
+  AspectRatio,
+} from './types';
 import { computeDHash } from './algorithms/dhash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale } from './algorithms/utils';
+
+/**
+ * Calculate the framed region coordinates based on aspect ratio
+ * @param videoWidth - Width of the video in pixels
+ * @param videoHeight - Height of the video in pixels
+ * @param aspectRatio - Target aspect ratio ('3:2' or '2:3')
+ * @returns Coordinates for cropping {x, y, width, height}
+ */
+export function calculateFramedRegion(
+  videoWidth: number,
+  videoHeight: number,
+  aspectRatio: AspectRatio
+): { x: number; y: number; width: number; height: number } {
+  const targetRatio = aspectRatio === '3:2' ? 3 / 2 : 2 / 3;
+  const videoRatio = videoWidth / videoHeight;
+
+  let frameWidth: number;
+  let frameHeight: number;
+
+  if (videoRatio > targetRatio) {
+    // Video is wider than target - fit height, crop width
+    frameHeight = videoHeight * 0.8; // 80% of viewport
+    frameWidth = frameHeight * targetRatio;
+  } else {
+    // Video is taller than target - fit width, crop height
+    frameWidth = videoWidth * 0.8;
+    frameHeight = frameWidth / targetRatio;
+  }
+
+  const x = (videoWidth - frameWidth) / 2;
+  const y = (videoHeight - frameHeight) / 2;
+
+  return {
+    x: Math.round(x),
+    y: Math.round(y),
+    width: Math.round(frameWidth),
+    height: Math.round(frameHeight),
+  };
+}
 
 /**
  * Custom hook for photo recognition using perceptual hashing (dHash)
@@ -27,6 +71,7 @@ export function usePhotoRecognition(
     similarityThreshold = 10,
     checkInterval = 1000,
     enableDebugInfo = false,
+    aspectRatio = '3:2',
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -98,6 +143,7 @@ export function usePhotoRecognition(
       );
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
       console.log(`  Check interval: ${checkInterval}ms`);
+      console.log(`  Aspect ratio: ${aspectRatio}`);
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
       if (concerts.length > 0 && concerts.filter((c) => c.photoHash).length > 0) {
         console.log('\n  Available hashes:');
@@ -170,9 +216,29 @@ export function usePhotoRecognition(
           return;
         }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
+        // Calculate framed region based on aspect ratio
+        const framedRegion = calculateFramedRegion(
+          video.videoWidth,
+          video.videoHeight,
+          aspectRatio
+        );
+
+        // Set canvas to cropped region size
+        canvas.width = framedRegion.width;
+        canvas.height = framedRegion.height;
+
+        // Draw only the framed region to canvas
+        ctx.drawImage(
+          video,
+          framedRegion.x,
+          framedRegion.y,
+          framedRegion.width,
+          framedRegion.height,
+          0,
+          0,
+          framedRegion.width,
+          framedRegion.height
+        );
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -190,7 +256,11 @@ export function usePhotoRecognition(
           console.debug(`\n${'='.repeat(60)}`);
           console.debug(`[Photo Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
           console.debug(`Frame Hash: ${currentHash}`);
-          console.debug(`Frame Size: ${canvas.width} × ${canvas.height} px`);
+          console.debug(`Frame Size: ${canvas.width} × ${canvas.height} px (cropped)`);
+          console.debug(
+            `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
+          );
+          console.debug(`Aspect Ratio: ${aspectRatio}`);
           console.debug(`Concerts Checked: ${concerts.filter((c) => c.photoHash).length}`);
           console.debug(
             `Threshold: ${similarityThreshold} (similarity ≥ ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%)`
@@ -352,7 +422,16 @@ export function usePhotoRecognition(
     // the interval when a concert is recognized, which is unnecessary since checkFrame already
     // stops processing when recognition completes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, enabled, concerts, recognitionDelay, similarityThreshold, checkInterval, isEnabled]);
+  }, [
+    stream,
+    enabled,
+    concerts,
+    recognitionDelay,
+    similarityThreshold,
+    checkInterval,
+    aspectRatio,
+    isEnabled,
+  ]);
 
   return {
     recognizedConcert,

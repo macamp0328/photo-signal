@@ -297,4 +297,117 @@ describe('CameraView', () => {
       expect(retryButton).not.toBeInTheDocument();
     });
   });
+
+  describe('Aspect Ratio Support', () => {
+    let mockStream: MediaStream;
+
+    beforeEach(() => {
+      mockStream = new MediaStream();
+    });
+
+    it('should render 3:2 aspect ratio overlay by default', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} />
+      );
+
+      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio32"]');
+      expect(aspectRatioContainer).toBeInTheDocument();
+    });
+
+    it('should render 3:2 aspect ratio overlay when aspectRatio is "3:2"', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} aspectRatio="3:2" />
+      );
+
+      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio32"]');
+      expect(aspectRatioContainer).toBeInTheDocument();
+    });
+
+    it('should render 2:3 aspect ratio overlay when aspectRatio is "2:3"', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} aspectRatio="2:3" />
+      );
+
+      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio23"]');
+      expect(aspectRatioContainer).toBeInTheDocument();
+    });
+
+    it('should render aspect ratio toggle button when onAspectRatioToggle is provided', () => {
+      const mockToggle = vi.fn();
+
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          onAspectRatioToggle={mockToggle}
+        />
+      );
+
+      const toggleButton = screen.getByRole('button', { name: /switch to portrait mode/i });
+      expect(toggleButton).toBeInTheDocument();
+    });
+
+    it('should not render aspect ratio toggle button when onAspectRatioToggle is not provided', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} />
+      );
+
+      const toggleButtons = container.querySelectorAll('button');
+      expect(toggleButtons).toHaveLength(0);
+    });
+
+    it('should call onAspectRatioToggle when toggle button is clicked', async () => {
+      const user = userEvent.setup();
+      const mockToggle = vi.fn();
+
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          onAspectRatioToggle={mockToggle}
+        />
+      );
+
+      const toggleButton = screen.getByRole('button', { name: /switch to portrait mode/i });
+      await user.click(toggleButton);
+
+      expect(mockToggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('should show "Portrait" label when in landscape (3:2) mode', () => {
+      const mockToggle = vi.fn();
+
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          aspectRatio="3:2"
+          onAspectRatioToggle={mockToggle}
+        />
+      );
+
+      const toggleButton = screen.getByRole('button', { name: /switch to portrait mode/i });
+      expect(toggleButton.textContent).toContain('Portrait');
+    });
+
+    it('should show "Landscape" label when in portrait (2:3) mode', () => {
+      const mockToggle = vi.fn();
+
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          aspectRatio="2:3"
+          onAspectRatioToggle={mockToggle}
+        />
+      );
+
+      const toggleButton = screen.getByRole('button', { name: /switch to landscape mode/i });
+      expect(toggleButton.textContent).toContain('Landscape');
+    });
+  });
 });

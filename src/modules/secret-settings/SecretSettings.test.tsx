@@ -151,4 +151,62 @@ describe('SecretSettings', () => {
       expect(screen.getByText(/Production Mode/i)).toBeInTheDocument();
     });
   });
+
+  describe('Send It Button', () => {
+    it('should render Send It button', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+      expect(screen.getByText(/Send It/i)).toBeInTheDocument();
+    });
+
+    it('should have proper accessibility attributes', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const button = screen.getByRole('button', { name: /Apply changes and reload page/i });
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveAttribute('type', 'button');
+      expect(button).toHaveAttribute('aria-label', 'Apply changes and reload page');
+    });
+
+    it('should call onClose when Send It is clicked', async () => {
+      const user = userEvent.setup();
+      const handleClose = vi.fn();
+      render(<SecretSettings isVisible={true} onClose={handleClose} />);
+
+      const button = screen.getByText(/Send It/i);
+      await user.click(button);
+
+      expect(handleClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should reload page after clicking Send It', async () => {
+      const user = userEvent.setup();
+      const reloadSpy = vi.fn();
+      const originalLocation = window.location;
+
+      // Mock window.location.reload
+      delete (window as { location?: unknown }).location;
+      (window as { location: unknown }).location = { ...originalLocation, reload: reloadSpy };
+
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const button = screen.getByText(/Send It/i);
+      await user.click(button);
+
+      // Wait for timeout
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      expect(reloadSpy).toHaveBeenCalled();
+
+      // Restore
+      (window as { location: unknown }).location = originalLocation;
+    });
+
+    it('should display descriptive helper text', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(
+        screen.getByText(/Apply all changes and reload the page to ensure everything takes effect/i)
+      ).toBeInTheDocument();
+    });
+  });
 });

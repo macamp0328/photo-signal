@@ -11,7 +11,7 @@ Photo Signal aims to meet **WCAG 2.1 Level AA** standards for web accessibility.
 All text and interactive elements meet the following minimum contrast ratios:
 
 - **Normal text**: 4.5:1 minimum
-- **Large text** (18pt+ or 14pt+ bold): 3:0:1 minimum
+- **Large text** (18pt+ or 14pt+ bold): 3:1 minimum
 - **Interactive elements**: 3:1 minimum (for UI components and graphical objects)
 
 ## Color Palette

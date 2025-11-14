@@ -40,7 +40,7 @@
 .beginButton {
   padding: 1rem 2rem;
   background-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-button-text);
   font-size: 1.125rem;
   font-weight: 500;
   border: none;

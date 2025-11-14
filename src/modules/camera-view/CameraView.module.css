@@ -25,7 +25,7 @@
 .retryButton {
   padding: 0.5rem 1rem;
   background-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-button-text);
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;

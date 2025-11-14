@@ -295,6 +295,38 @@ describe('useTripleTap', () => {
 
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
+
+    it('should NOT trigger if third tap occurs exactly at timeout boundary (500ms)', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
+
+      renderHook(() =>
+        useTripleTap({
+          onTripleTap: mockCallback,
+          tapTimeout: 500,
+        })
+      );
+
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        clientX: 450,
+        clientY: 300,
+      });
+
+      // Tap 1 (t=0)
+      window.dispatchEvent(clickEvent);
+
+      // Tap 2 (t=250ms)
+      vi.advanceTimersByTime(250);
+      window.dispatchEvent(clickEvent);
+
+      // Tap 3 (t=500ms - exactly at timeout boundary)
+      vi.advanceTimersByTime(250);
+      window.dispatchEvent(clickEvent);
+
+      // At exactly 500ms, timeout has expired, so this should NOT trigger
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
   });
 
   describe('Edge cases', () => {

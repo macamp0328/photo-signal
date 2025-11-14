@@ -40,10 +40,12 @@ import type { UseTripleTapOptions } from './types';
 export function useTripleTap({ tapTimeout = 500, onTripleTap }: UseTripleTapOptions): void {
   const tapCountRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const firstTapTimeRef = useRef<number | null>(null);
 
   // Reset tap count after timeout
   const resetTapCount = useCallback(() => {
     tapCountRef.current = 0;
+    firstTapTimeRef.current = null;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -84,12 +86,20 @@ export function useTripleTap({ tapTimeout = 500, onTripleTap }: UseTripleTapOpti
         return;
       }
 
+      // Check if this tap is within the timeout window (prevents race condition)
+      const now = Date.now();
+      if (firstTapTimeRef.current !== null && now - firstTapTimeRef.current >= tapTimeout) {
+        // Timeout has expired, reset and treat this as a new first tap
+        resetTapCount();
+      }
+
       // Increment tap count
       tapCountRef.current += 1;
 
-      // On FIRST tap only, start the timeout
+      // On FIRST tap only, start the timeout and record timestamp
       // (Do NOT reset timeout on subsequent taps)
       if (tapCountRef.current === 1) {
+        firstTapTimeRef.current = now;
         timeoutRef.current = setTimeout(() => {
           resetTapCount();
         }, tapTimeout);

@@ -5,4 +5,4 @@
  */
 
 export { DebugOverlay } from './DebugOverlay';
-export type { DebugOverlayProps, RecognitionStatus, BestMatch } from './types';
+export type { DebugOverlayProps, RecognitionStatus } from './types';

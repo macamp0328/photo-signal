@@ -9,19 +9,30 @@ import { useEffect, useState } from 'react';
 import type { DebugOverlayProps, RecognitionStatus } from './types';
 import styles from './DebugOverlay.module.css';
 
-// Display "waiting for frame" message if no frame received in 2x the normal check interval (1s)
+// Display "waiting for frame" message if no frame received in 2x the normal check interval (≈1s)
 const FRAME_TIMEOUT_THRESHOLD = 2;
 
 export function DebugOverlay({
   recognizedConcert,
   isRecognizing,
   enabled,
-  lastFrameHash,
-  bestMatch,
-  threshold = 40,
+  debugInfo,
+  threshold,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
+
+  const lastFrameHash = debugInfo?.lastFrameHash ?? null;
+  const bestMatch = debugInfo?.bestMatch ?? null;
+  const derivedThreshold = threshold ?? debugInfo?.similarityThreshold ?? 40;
+  const stability = debugInfo?.stability ?? null;
+  const frameSize = debugInfo?.frameSize;
+  const frameCount = debugInfo?.frameCount;
+  const concertCount = debugInfo?.concertCount;
+  const checkInterval = debugInfo?.checkInterval;
+  const aspectRatio = debugInfo?.aspectRatio;
+  const recognitionDelayMs = debugInfo?.recognitionDelay;
+  const lastCheckTime = debugInfo?.lastCheckTime;
 
   // Determine recognition status
   useEffect(() => {
@@ -36,26 +47,20 @@ export function DebugOverlay({
     }
   }, [recognizedConcert, isRecognizing, lastFrameHash]);
 
-  // Update time since last check
+  // Update time since last check using the actual timestamp from debug info
   useEffect(() => {
-    // Only run timer when overlay is enabled and frame checking is active
-    if (!enabled || (!isRecognizing && !lastFrameHash)) {
+    if (!enabled || !lastCheckTime) {
       return;
     }
 
-    const interval = setInterval(() => {
-      setTimeSinceLastCheck((prev) => prev + 0.1);
-    }, 100);
+    const updateTime = () => {
+      setTimeSinceLastCheck(Math.max((Date.now() - lastCheckTime) / 1000, 0));
+    };
 
+    updateTime();
+    const interval = setInterval(updateTime, 100);
     return () => clearInterval(interval);
-  }, [enabled, isRecognizing, lastFrameHash]);
-
-  // Reset timer when new frame is checked
-  useEffect(() => {
-    if (lastFrameHash) {
-      setTimeSinceLastCheck(0);
-    }
-  }, [lastFrameHash]);
+  }, [enabled, lastCheckTime]);
 
   if (!enabled) {
     return null;
@@ -77,13 +82,18 @@ export function DebugOverlay({
     RECOGNIZED: '🟢',
   };
 
-  // Truncate hash for display
   const displayHash = lastFrameHash
     ? `${lastFrameHash.slice(0, 6)}...${lastFrameHash.slice(-4)}`
     : 'N/A';
 
-  // Calculate similarity percentage
-  const similarityThreshold = ((256 - threshold) / 256) * 100;
+  const similarityThreshold = ((256 - derivedThreshold) / 256) * 100;
+  const countdownText = recognitionDelayMs
+    ? `${(recognitionDelayMs / 1000).toFixed(1)}s hold required`
+    : 'Hold steady to confirm match';
+  const stabilityPercent = stability ? Math.round(stability.progress * 100) : 0;
+  const lastCheckFormatted = lastCheckTime
+    ? new Date(lastCheckTime).toLocaleTimeString([], { hour12: false })
+    : '—';
 
   return (
     <div className={styles.overlay}>
@@ -131,13 +141,75 @@ export function DebugOverlay({
         </div>
       )}
 
+      {/* Countdown */}
+      <div className={styles.section}>
+        <div className={styles.label}>Countdown</div>
+        {stability ? (
+          <div className={styles.timerSection}>
+            <div className={styles.timerStats}>
+              <span>{(stability.elapsedMs / 1000).toFixed(1)}s elapsed</span>
+              <span>{(stability.remainingMs / 1000).toFixed(1)}s remaining</span>
+            </div>
+            <div className={styles.progressTrack}>
+              <div
+                className={styles.progressBar}
+                style={{ width: `${stabilityPercent}%` }}
+                aria-valuenow={stabilityPercent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+            <div className={styles.timerHint}>Hold steady for {countdownText}</div>
+          </div>
+        ) : (
+          <div className={styles.timerHint}>{countdownText}</div>
+        )}
+      </div>
+
       {/* Threshold */}
       <div className={styles.section}>
         <div className={styles.label}>Threshold</div>
         <div className={styles.thresholdInfo}>
-          Distance ≤ {threshold} (≥ {similarityThreshold.toFixed(0)}% similarity)
+          Distance ≤ {derivedThreshold} (≥ {similarityThreshold.toFixed(0)}% similarity)
         </div>
       </div>
+
+      {/* Metrics */}
+      {debugInfo && (
+        <div className={styles.section}>
+          <div className={styles.label}>Metrics</div>
+          <div className={styles.metricGrid}>
+            <div className={styles.metricItem}>
+              <span className={styles.metricLabel}>Frames</span>
+              <span className={styles.metricValue}>{frameCount ?? '—'}</span>
+            </div>
+            <div className={styles.metricItem}>
+              <span className={styles.metricLabel}>Concerts</span>
+              <span className={styles.metricValue}>{concertCount ?? '—'}</span>
+            </div>
+            <div className={styles.metricItem}>
+              <span className={styles.metricLabel}>Interval</span>
+              <span className={styles.metricValue}>
+                {checkInterval ? `${(checkInterval / 1000).toFixed(1)}s` : '—'}
+              </span>
+            </div>
+            <div className={styles.metricItem}>
+              <span className={styles.metricLabel}>Aspect</span>
+              <span className={styles.metricValue}>{aspectRatio ?? '—'}</span>
+            </div>
+            <div className={styles.metricItem}>
+              <span className={styles.metricLabel}>Frame Size</span>
+              <span className={styles.metricValue}>
+                {frameSize ? `${frameSize.width}×${frameSize.height}` : '—'}
+              </span>
+            </div>
+            <div className={styles.metricItem}>
+              <span className={styles.metricLabel}>Last Check</span>
+              <span className={styles.metricValue}>{lastCheckFormatted}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recognized Concert */}
       {recognizedConcert && (

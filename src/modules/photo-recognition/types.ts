@@ -15,6 +15,19 @@ export interface BestMatchInfo {
   similarity: number;
 }
 
+export interface StabilityDebugInfo {
+  concert: Concert;
+  elapsedMs: number;
+  remainingMs: number;
+  requiredMs: number;
+  progress: number;
+}
+
+export interface FrameSizeInfo {
+  width: number;
+  height: number;
+}
+
 /**
  * Debug information from photo recognition
  */
@@ -27,6 +40,20 @@ export interface RecognitionDebugInfo {
   lastCheckTime: number;
   /** Number of concerts being checked */
   concertCount: number;
+  /** Total frames processed since start */
+  frameCount: number;
+  /** Interval between frame checks (ms) */
+  checkInterval: number;
+  /** Aspect ratio currently in use */
+  aspectRatio: AspectRatio;
+  /** Cropped frame size */
+  frameSize: FrameSizeInfo | null;
+  /** Stability timer info for the current candidate */
+  stability: StabilityDebugInfo | null;
+  /** Active similarity threshold */
+  similarityThreshold: number;
+  /** Active recognition delay (ms) */
+  recognitionDelay: number;
 }
 
 export interface PhotoRecognitionHook {

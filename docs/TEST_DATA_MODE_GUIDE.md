@@ -92,10 +92,14 @@ When Test Mode is enabled, a debug overlay appears in the bottom-right corner sh
 - **Recognition Status**: IDLE 🔵 CHECKING 🟡 MATCHING 🟢 RECOGNIZED
 - **Frame Hash**: Last computed hash from camera (e.g., `a5b3c7...0486`)
 - **Best Match**: Closest matching concert with similarity percentage
-- **Threshold**: Current matching threshold setting
+- **Countdown**: Live timer + progress bar describing how long the current frame has stayed above the threshold
+- **Threshold & Delay**: Current matching threshold plus the configured recognition delay (defaults to 3 s)
+- **Metrics**: Frames processed, concerts evaluated, check interval, aspect ratio, frame size, and the last check timestamp
 - **Recognized Concert**: Full details when a photo is successfully recognized
 
 This overlay updates in real-time as the photo recognition system processes frames, making it easy to see what's happening under the hood.
+
+Need a faster or slower confirmation window? Open the Secret Settings menu, scroll to **Custom Settings → Recognition Delay**, and move the slider. The countdown panel immediately reflects the new duration after you tap “Send It 🚀”.
 
 ### Console Logging
 
@@ -119,7 +123,7 @@ When Test Mode is enabled, detailed logs are output to the browser console.
 Frame Hash: a5b3c7d9e1f20486
 Frame Size: 640 × 480 px
 Concerts Checked: 4
-Threshold: 10 (similarity ≥ 84.4%)
+Threshold: 40 (similarity ≥ 84.4%)
 
 Results:
   ✓ The Midnight Echoes: distance=6, similarity=90.6% ← BEST MATCH

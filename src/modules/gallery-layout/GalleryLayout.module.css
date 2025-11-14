@@ -39,7 +39,7 @@
 
 .beginButton {
   padding: 1rem 2rem;
-  background-color: var(--color-main-text);
+  background-color: var(--color-accent);
   color: #fff;
   font-size: 1.125rem;
   font-weight: 500;
@@ -53,11 +53,20 @@
 }
 
 .beginButton:hover {
-  background-color: var(--color-sub-text);
+  background-color: var(--color-accent-hover);
   box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   transform: translateY(-2px);
+}
+
+.beginButton:focus {
+  outline: var(--focus-ring-width, 2px) solid var(--color-focus, #60a5fa);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.beginButton:active {
+  transform: translateY(0);
 }
 
 /* Active Gallery View with Camera */

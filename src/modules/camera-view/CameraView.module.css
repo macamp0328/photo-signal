@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--color-background);
+  color: var(--color-text);
   padding: 1rem;
   text-align: center;
 }
@@ -13,26 +13,38 @@
 .permissionTitle {
   font-size: 1.125rem;
   margin-bottom: 0.5rem;
+  color: var(--color-main-text);
 }
 
 .permissionError {
   font-size: 0.875rem;
-  color: var(--color-gray-400);
+  color: var(--color-text-muted);
   margin-bottom: 1rem;
 }
 
 .retryButton {
   padding: 0.5rem 1rem;
-  background-color: #fff;
-  color: #000;
+  background-color: var(--color-accent);
+  color: #fff;
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-weight: 500;
 }
 
 .retryButton:hover {
-  background-color: var(--color-gray-200);
+  background-color: var(--color-accent-hover);
+}
+
+.retryButton:focus {
+  outline: var(--focus-ring-width, 2px) solid var(--color-focus, #60a5fa);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.retryButton:active {
+  background-color: var(--color-accent-hover);
+  transform: scale(0.98);
 }
 
 /* Loading State */
@@ -41,8 +53,8 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  background-color: #000;
-  color: #fff;
+  background-color: var(--color-background);
+  color: var(--color-text);
 }
 
 /* Camera Active State */
@@ -164,6 +176,11 @@
 .aspectToggle:hover {
   background-color: rgba(0, 0, 0, 0.8);
   border-color: rgba(255, 255, 255, 0.5);
+}
+
+.aspectToggle:focus {
+  outline: var(--focus-ring-width, 2px) solid var(--color-focus, #60a5fa);
+  outline-offset: var(--focus-ring-offset, 2px);
 }
 
 .aspectToggle:active {

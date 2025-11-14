@@ -17,39 +17,57 @@ body {
 
 /* CSS Variables for Custom Colors */
 :root {
-  /* Default (Dark) Theme */
-  --color-main-text: #f5f5f5;
-  --color-sub-text: #cbd5e1;
-  --color-bonus-text: #a1a1aa;
+  /* Default (Dark) Theme - WCAG AA Compliant */
+  --color-main-text: #f5f5f5; /* 18.16:1 contrast */
+  --color-sub-text: #cbd5e1; /* 13.33:1 contrast */
+  --color-bonus-text: #a1a1aa; /* 7.72:1 contrast */
   --color-sub-background: #1a1a1a;
   --color-background: #0a0a0a;
-  --color-text: #f5f5f5;
-  --color-accent: #4a90e2;
-  --color-accent-light: #6ba3e8;
-  --color-accent-hover: #357abd;
-  --color-text-muted: #888;
+  --color-text: #f5f5f5; /* 18.16:1 contrast */
+  --color-accent: #4a90e2; /* 6.01:1 contrast */
+  --color-accent-light: #5595de; /* 6.35:1 contrast, improved from #6ba3e8 */
+  --color-accent-hover: #5090db; /* 5.99:1 contrast, improved from #357abd */
+  --color-text-muted: #999999; /* 6.95:1 contrast, improved from #888 */
+
+  /* Semantic colors for states */
+  --color-error: #ef4444; /* 5.26:1 contrast */
+  --color-success: #22c55e; /* 8.69:1 contrast */
+  --color-warning: #fbbf24; /* 11.86:1 contrast */
 
   /* Additional colors used in components */
   --color-gray-200: #e5e7eb;
   --color-gray-400: #9ca3af;
+
+  /* Focus indicator */
+  --color-focus: #60a5fa; /* Visible focus ring */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
 
   /* Texture settings */
   --texture-opacity: 0.3;
   --texture-blend-mode: multiply;
 }
 
-/* Light Theme */
+/* Light Theme - WCAG AA Compliant */
 [data-theme='light'] {
-  --color-main-text: #0f172a; /* slate-900 */
-  --color-sub-text: #44403c; /* stone-700 */
-  --color-bonus-text: #3f3f46; /* zinc-700 */
+  --color-main-text: #0f172a; /* slate-900, 16.36:1 contrast */
+  --color-sub-text: #44403c; /* stone-700, 9.42:1 contrast */
+  --color-bonus-text: #3f3f46; /* zinc-700, 9.57:1 contrast */
   --color-sub-background: #cbd5e1; /* slate-300 */
   --color-background: #f5f5f4;
-  --color-text: #0f172a;
-  --color-accent: #2563eb;
-  --color-accent-light: #3b82f6;
-  --color-accent-hover: #1d4ed8;
-  --color-text-muted: #666;
+  --color-text: #0f172a; /* 16.36:1 contrast */
+  --color-accent: #2563eb; /* 4.74:1 contrast */
+  --color-accent-light: #1d4ed8; /* 6.14:1 contrast, improved from #3b82f6 */
+  --color-accent-hover: #1e40af; /* 8.00:1 contrast, improved from #1d4ed8 */
+  --color-text-muted: #555555; /* 6.83:1 contrast, improved from #666 */
+
+  /* Semantic colors for states */
+  --color-error: #b91c1c; /* 5.93:1 contrast */
+  --color-success: #15803d; /* 4.60:1 contrast */
+  --color-warning: #a16207; /* 4.51:1 contrast */
+
+  /* Focus indicator */
+  --color-focus: #1d4ed8; /* Visible focus ring */
 }
 
 /* Classic UI Style */

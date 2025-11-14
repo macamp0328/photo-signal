@@ -167,6 +167,136 @@ describe('useTripleTap', () => {
     });
   });
 
+  describe('Timing requirements - Rapid taps', () => {
+    it('should NOT trigger if taps are too slow (>500ms apart)', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
+
+      renderHook(() =>
+        useTripleTap({
+          onTripleTap: mockCallback,
+          tapTimeout: 500,
+        })
+      );
+
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        clientX: 450,
+        clientY: 300,
+      });
+
+      // Tap 1
+      window.dispatchEvent(clickEvent);
+      expect(mockCallback).not.toHaveBeenCalled();
+
+      // Wait 600ms (exceeds timeout)
+      vi.advanceTimersByTime(600);
+
+      // Tap 2 (should be treated as new first tap)
+      window.dispatchEvent(clickEvent);
+      expect(mockCallback).not.toHaveBeenCalled();
+
+      // Tap 3
+      window.dispatchEvent(clickEvent);
+      expect(mockCallback).not.toHaveBeenCalled(); // Still only 2 rapid taps
+    });
+
+    it('should trigger if all three taps are within timeout window', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
+
+      renderHook(() =>
+        useTripleTap({
+          onTripleTap: mockCallback,
+          tapTimeout: 500,
+        })
+      );
+
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        clientX: 450,
+        clientY: 300,
+      });
+
+      // Tap 1 (t=0)
+      window.dispatchEvent(clickEvent);
+
+      // Tap 2 (t=200ms)
+      vi.advanceTimersByTime(200);
+      window.dispatchEvent(clickEvent);
+
+      // Tap 3 (t=400ms total)
+      vi.advanceTimersByTime(200);
+      window.dispatchEvent(clickEvent);
+
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should reset count if timeout expires before third tap', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
+
+      renderHook(() =>
+        useTripleTap({
+          onTripleTap: mockCallback,
+          tapTimeout: 500,
+        })
+      );
+
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        clientX: 450,
+        clientY: 300,
+      });
+
+      // Tap 1
+      window.dispatchEvent(clickEvent);
+
+      // Tap 2 (within timeout)
+      vi.advanceTimersByTime(200);
+      window.dispatchEvent(clickEvent);
+
+      // Wait for timeout to expire
+      vi.advanceTimersByTime(400); // Total 600ms from first tap
+
+      // Tap 3 (after timeout expired)
+      window.dispatchEvent(clickEvent);
+
+      expect(mockCallback).not.toHaveBeenCalled();
+    });
+
+    it('should handle rapid taps at edge of timeout window', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
+
+      renderHook(() =>
+        useTripleTap({
+          onTripleTap: mockCallback,
+          tapTimeout: 500,
+        })
+      );
+
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        clientX: 450,
+        clientY: 300,
+      });
+
+      // Tap 1 (t=0)
+      window.dispatchEvent(clickEvent);
+
+      // Tap 2 (t=250ms)
+      vi.advanceTimersByTime(250);
+      window.dispatchEvent(clickEvent);
+
+      // Tap 3 (t=499ms - just before timeout)
+      vi.advanceTimersByTime(249);
+      window.dispatchEvent(clickEvent);
+
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Edge cases', () => {
     it('should not trigger on only two taps', () => {
       Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });

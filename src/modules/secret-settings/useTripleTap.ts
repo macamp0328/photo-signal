@@ -9,16 +9,25 @@ import { useEffect, useRef, useCallback } from 'react';
 import type { UseTripleTapOptions } from './types';
 
 /**
- * Hook for detecting triple-tap/click gestures
+ * Hook for detecting rapid triple-tap/click gestures
  *
  * Monitors tap/click events and triggers callback when three
  * rapid taps/clicks occur in the center region of the screen.
+ *
+ * **Timing Requirement**: All three taps must occur within the
+ * specified timeout (default 500ms) from the FIRST tap.
  *
  * @param options - Configuration options
  * @returns void
  *
  * @example
  * ```tsx
+ * // Valid sequence (within 500ms):
+ * // Tap 1 (t=0), Tap 2 (t=200ms), Tap 3 (t=400ms) ✅
+ *
+ * // Invalid sequence (exceeds 500ms):
+ * // Tap 1 (t=0), Tap 2 (t=300ms), Tap 3 (t=600ms) ❌
+ *
  * function MyComponent() {
  *   useTripleTap({
  *     tapTimeout: 500,
@@ -78,20 +87,18 @@ export function useTripleTap({ tapTimeout = 500, onTripleTap }: UseTripleTapOpti
       // Increment tap count
       tapCountRef.current += 1;
 
-      // Clear previous timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      // On FIRST tap only, start the timeout
+      // (Do NOT reset timeout on subsequent taps)
+      if (tapCountRef.current === 1) {
+        timeoutRef.current = setTimeout(() => {
+          resetTapCount();
+        }, tapTimeout);
       }
 
       // Check if triple tap detected
       if (tapCountRef.current >= 3) {
         onTripleTap();
         resetTapCount();
-      } else {
-        // Set timeout to reset count
-        timeoutRef.current = setTimeout(() => {
-          resetTapCount();
-        }, tapTimeout);
       }
     },
     [tapTimeout, onTripleTap, resetTapCount]

@@ -19,7 +19,7 @@ import { convertToGrayscale } from './algorithms/utils';
  * @param aspectRatio - Target aspect ratio ('3:2' or '2:3')
  * @returns Coordinates for cropping {x, y, width, height}
  */
-function calculateFramedRegion(
+export function calculateFramedRegion(
   videoWidth: number,
   videoHeight: number,
   aspectRatio: AspectRatio

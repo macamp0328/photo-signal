@@ -395,7 +395,7 @@ function App() {
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
 
   const { recognizedConcert } = usePhotoRecognition(stream, {
-    aspectRatio: aspectRatio,
+    aspectRatio,
   });
 
   return (

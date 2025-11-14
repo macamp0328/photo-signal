@@ -2,7 +2,9 @@
  * Camera View Module Types
  */
 
-export type AspectRatio = '3:2' | '2:3';
+import type { AspectRatio as AspectRatioType } from '../../types';
+
+export type AspectRatio = AspectRatioType;
 
 export interface CameraViewProps {
   /** Video stream to display */

@@ -53,7 +53,7 @@ Each module has its own README defining its API contract, usage, and examples.
   - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities
-  - **[photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/__tests__/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
+  - **[photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
@@ -100,7 +100,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
-- **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/__tests__/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
+- **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
 
 ### Code Quality
 

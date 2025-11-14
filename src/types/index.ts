@@ -43,3 +43,8 @@ export interface AppError {
   code?: string;
   module?: string;
 }
+
+/**
+ * Aspect ratio for framing guides and cropping
+ */
+export type AspectRatio = '3:2' | '2:3';

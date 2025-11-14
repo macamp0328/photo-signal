@@ -17,7 +17,7 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import { DebugOverlay } from './modules/debug-overlay';
-import type { AspectRatio } from './modules/camera-view';
+import type { AspectRatio } from './types';
 import {
   useTripleTap,
   SecretSettings,

@@ -1,49 +1,5 @@
 import { describe, it, expect } from 'vitest';
-
-/**
- * Re-export the function for testing
- * Since calculateFramedRegion is not exported from the module,
- * we'll test it indirectly through the hook behavior or duplicate it here for testing
- */
-
-/**
- * Calculate the framed region coordinates based on aspect ratio
- * @param videoWidth - Width of the video in pixels
- * @param videoHeight - Height of the video in pixels
- * @param aspectRatio - Target aspect ratio ('3:2' or '2:3')
- * @returns Coordinates for cropping {x, y, width, height}
- */
-function calculateFramedRegion(
-  videoWidth: number,
-  videoHeight: number,
-  aspectRatio: '3:2' | '2:3'
-): { x: number; y: number; width: number; height: number } {
-  const targetRatio = aspectRatio === '3:2' ? 3 / 2 : 2 / 3;
-  const videoRatio = videoWidth / videoHeight;
-
-  let frameWidth: number;
-  let frameHeight: number;
-
-  if (videoRatio > targetRatio) {
-    // Video is wider than target - fit height, crop width
-    frameHeight = videoHeight * 0.8; // 80% of viewport
-    frameWidth = frameHeight * targetRatio;
-  } else {
-    // Video is taller than target - fit width, crop height
-    frameWidth = videoWidth * 0.8;
-    frameHeight = frameWidth / targetRatio;
-  }
-
-  const x = (videoWidth - frameWidth) / 2;
-  const y = (videoHeight - frameHeight) / 2;
-
-  return {
-    x: Math.round(x),
-    y: Math.round(y),
-    width: Math.round(frameWidth),
-    height: Math.round(frameHeight),
-  };
-}
+import { calculateFramedRegion } from '../usePhotoRecognition';
 
 describe('calculateFramedRegion', () => {
   describe('3:2 Aspect Ratio (Landscape)', () => {

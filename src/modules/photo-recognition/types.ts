@@ -1,10 +1,10 @@
-import type { Concert } from '../../types';
+import type { Concert, AspectRatio as AspectRatioType } from '../../types';
 
 /**
  * Photo Recognition Module Types
  */
 
-export type AspectRatio = '3:2' | '2:3';
+export type AspectRatio = AspectRatioType;
 
 /**
  * Best match information for debugging

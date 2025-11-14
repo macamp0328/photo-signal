@@ -190,6 +190,8 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote users to experience Photo Signal by pointing camera at campmiles.com blog images
 - **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Audit and remove outdated ISSUE_TRACKING.md and MIGRATION.md files after extracting valuable content
 - **[implement-functional-framing-guides.md](./.github/ISSUE_TEMPLATE/implement-functional-framing-guides.md)** - Feature: Implement functional framing guides with dual aspect ratios (3:2 landscape and 2:3 portrait) to crop recognition to framed region
+- **[add-apply-button-secret-settings.md](./.github/ISSUE_TEMPLATE/add-apply-button-secret-settings.md)** - Feature: Add "Send It" confirmation button to apply changes and close secret settings menu
+- **[fix-triple-tap-timing.md](./.github/ISSUE_TEMPLATE/fix-triple-tap-timing.md)** - Bug: Fix triple-tap detection to require rapid succession instead of slow sequential taps
 
 ---
 
@@ -312,7 +314,7 @@ This index covers:
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
-- ✅ Issue templates (20 files - includes all issue templates)
+- ✅ Issue templates (22 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (8 files including README and bundle size checker)
@@ -320,6 +322,6 @@ This index covers:
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
 
-**Total**: 110 documented files
+**Total**: 112 documented files
 
 Last updated: 2025-11-14

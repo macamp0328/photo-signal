@@ -8,6 +8,8 @@
 import type { SecretSettingsProps } from './types';
 import { useFeatureFlags } from './useFeatureFlags';
 import { useCustomSettings } from './useCustomSettings';
+import { useRetroSounds } from './useRetroSounds';
+import { useCallback, useEffect, useRef } from 'react';
 import styles from './SecretSettings.module.css';
 
 /**
@@ -31,6 +33,32 @@ import styles from './SecretSettings.module.css';
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
   const { settings, updateSetting, resetSettings } = useCustomSettings();
+  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
+  const timeoutRef = useRef<number | null>(null);
+
+  // Clean up timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSendIt = useCallback(() => {
+    // Play sound if retro sounds enabled
+    if (isEnabled('retro-sounds')) {
+      playRandomSound();
+    }
+
+    // Close the menu first (provides immediate feedback)
+    onClose();
+
+    // Reload page after short delay (100ms) to show close animation
+    timeoutRef.current = window.setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }, [isEnabled, playRandomSound, onClose]);
 
   if (!isVisible) {
     return null;
@@ -187,6 +215,21 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                 <p className={styles.placeholderText}>No custom settings configured yet.</p>
               </div>
             )}
+          </section>
+
+          {/* Send It Button */}
+          <section className={styles.section}>
+            <button
+              onClick={handleSendIt}
+              className={styles.sendItButton}
+              aria-label="Send It - Apply changes and reload page"
+              type="button"
+            >
+              Send It 🚀
+            </button>
+            <p className={styles.sendItDescription}>
+              Apply all changes and reload the page to ensure everything takes effect
+            </p>
           </section>
 
           {/* Developer Info */}

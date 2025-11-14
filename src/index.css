@@ -26,6 +26,8 @@ body {
   --color-text: #f5f5f5;
   --color-accent: #4a90e2;
   --color-accent-light: #6ba3e8;
+  --color-accent-hover: #357abd;
+  --color-text-muted: #888;
 
   /* Additional colors used in components */
   --color-gray-200: #e5e7eb;
@@ -46,6 +48,8 @@ body {
   --color-text: #0f172a;
   --color-accent: #2563eb;
   --color-accent-light: #3b82f6;
+  --color-accent-hover: #1d4ed8;
+  --color-text-muted: #666;
 }
 
 /* Classic UI Style */

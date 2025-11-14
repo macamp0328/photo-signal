@@ -838,6 +838,175 @@ All settings use a **localStorage-first** approach:
 
 ---
 
+## "Send It" Button Workflow
+
+The secret settings menu includes a **"Send It 🚀"** button that applies all changes and reloads the page.
+
+### Purpose
+
+Some feature flags and settings require a full page reload to take effect properly:
+
+- **Camera Settings**: Require reinitializing MediaStream
+- **Theme Changes**: Require re-rendering entire React tree
+- **Audio Settings**: Require reinitializing Howler.js
+- **UI Style Changes**: Require reapplying global CSS variables
+
+### Implementation
+
+**Location**: `src/modules/secret-settings/SecretSettings.tsx`
+
+**Code**:
+
+```typescript
+import { useRetroSounds } from './useRetroSounds';
+import { useCallback } from 'react';
+
+export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
+  const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
+  const { settings, updateSetting, resetSettings } = useCustomSettings();
+  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
+
+  const handleSendIt = useCallback(() => {
+    // Play sound if retro sounds enabled
+    if (isEnabled('retro-sounds')) {
+      playRandomSound();
+    }
+
+    // Close the menu first (provides immediate feedback)
+    onClose();
+
+    // Reload page after short delay (100ms) to show close animation
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }, [isEnabled, playRandomSound, onClose]);
+
+  return (
+    // ... in the JSX, before Developer Info section
+    <section className={styles.section}>
+      <button
+        onClick={handleSendIt}
+        className={styles.sendItButton}
+        aria-label="Apply changes and reload page"
+        type="button"
+      >
+        Send It 🚀
+      </button>
+      <p className={styles.sendItDescription}>
+        Apply all changes and reload the page to ensure everything takes effect
+      </p>
+    </section>
+  );
+}
+```
+
+**Styling** (in `SecretSettings.module.css`):
+
+```css
+.sendItButton {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-background);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.sendItButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: var(--color-accent-hover);
+}
+
+.sendItButton:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+```
+
+### User Flow
+
+1. User opens secret settings (triple-tap)
+2. User toggles feature flags or adjusts settings
+3. Changes preview immediately (saved to localStorage)
+4. User clicks **"Send It 🚀"** button
+5. Retro sound plays (if enabled)
+6. Menu closes smoothly
+7. Page reloads after 100ms (ensures all changes take effect)
+8. All settings persist via localStorage
+
+### Why 100ms Delay?
+
+The 100ms delay between closing the menu and reloading the page:
+
+- Allows the close animation to play
+- Provides visual feedback that the action was acknowledged
+- Makes the reload feel intentional, not like a bug
+- Improves perceived performance
+
+### Testing
+
+**Manual Testing**:
+
+1. Open secret settings
+2. Toggle a feature flag (e.g., Psychedelic Mode)
+3. Click "Send It"
+4. Verify sound plays (if retro sounds enabled)
+5. Verify menu closes
+6. Verify page reloads
+7. Verify feature flag is still enabled after reload
+
+**Automated Testing** (see `SecretSettings.test.tsx`):
+
+```typescript
+it('should reload page after clicking Send It', async () => {
+  const reloadSpy = vi.fn();
+  // Mock window.location.reload
+  delete (window as { location?: unknown }).location;
+  (window as { location: unknown }).location = {
+    ...originalLocation,
+    reload: reloadSpy
+  };
+
+  render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+  const button = screen.getByText(/Send It/i);
+  await user.click(button);
+
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  expect(reloadSpy).toHaveBeenCalled();
+});
+```
+
+### Design Decisions
+
+**Why "Send It 🚀" instead of "Apply"?**
+
+- More playful and engaging (matches "secret menu" vibe)
+- Rocket emoji conveys "launch" or "activate" action
+- More memorable than standard "Apply" or "Save"
+
+**Why reload the page?**
+
+- Simplest implementation (no complex state management)
+- Guarantees all changes take effect (no edge cases)
+- Provides clear "before/after" user experience
+- Avoids partial state updates or stale references
+
+**Why make it prominent?**
+
+- Primary action on the page (deserves visual emphasis)
+- Accent color background makes it stand out
+- Larger size than secondary "Reset" buttons
+- Users should know this is how to apply changes
+
+---
+
 ## Accessibility Considerations
 
 1. **Keyboard Navigation**: All toggles and selects are keyboard accessible

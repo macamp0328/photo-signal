@@ -21,8 +21,12 @@ export interface Concert {
   audioFile: string;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
-  /** Perceptual hash of reference photo (optional, for photo recognition) */
-  photoHash?: string;
+  /**
+   * Perceptual hash(es) of reference photo (optional, for photo recognition)
+   * - string: Single hash (backward compatible)
+   * - string[]: Multi-exposure hashes [dark, normal, bright] for lighting robustness
+   */
+  photoHash?: string | string[];
 }
 
 /**

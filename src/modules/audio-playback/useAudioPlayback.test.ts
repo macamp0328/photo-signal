@@ -89,7 +89,6 @@ vi.mock('howler', () => {
         return this._playing;
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       this.seek = vi.fn((position?: number) => {
         if (position !== undefined) {
           return this;

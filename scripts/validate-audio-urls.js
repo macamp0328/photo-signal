@@ -51,9 +51,19 @@ for (const arg of args) {
   } else if (arg === '--check-fallback') {
     options.checkFallback = true;
   } else if (arg.startsWith('--source=')) {
-    options.source = arg.split('=')[1];
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --source requires a value');
+      process.exit(1);
+    }
+    options.source = value;
   } else if (arg.startsWith('--timeout=')) {
-    options.timeout = parseInt(arg.split('=')[1], 10);
+    const value = arg.split('=')[1];
+    if (!value || isNaN(parseInt(value, 10)) || parseInt(value, 10) <= 0) {
+      console.error('❌ Error: --timeout requires a positive integer value');
+      process.exit(1);
+    }
+    options.timeout = parseInt(value, 10);
   }
 }
 
@@ -164,7 +174,15 @@ async function validateAudioUrls() {
 
   console.log(`📂 Reading source file: ${sourcePath}`);
   const sourceContent = fs.readFileSync(sourcePath, 'utf8');
-  const data = JSON.parse(sourceContent);
+
+  let data;
+  try {
+    data = JSON.parse(sourceContent);
+  } catch (error) {
+    console.error(`❌ Error: Invalid JSON in ${sourcePath}`);
+    console.error(`   ${error.message}`);
+    process.exit(1);
+  }
 
   if (!data.concerts || !Array.isArray(data.concerts)) {
     console.error('❌ Error: Invalid data.json format (missing concerts array)');

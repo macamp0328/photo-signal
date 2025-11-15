@@ -51,11 +51,26 @@ for (const arg of args) {
   } else if (arg === '--dry-run') {
     options.dryRun = true;
   } else if (arg.startsWith('--source=')) {
-    options.source = arg.split('=')[1];
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --source requires a value');
+      process.exit(1);
+    }
+    options.source = value;
   } else if (arg.startsWith('--cdn=')) {
-    options.cdn = arg.split('=')[1];
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --cdn requires a value');
+      process.exit(1);
+    }
+    options.cdn = value;
   } else if (arg.startsWith('--base-url=')) {
-    options.baseUrl = arg.split('=')[1];
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --base-url requires a value');
+      process.exit(1);
+    }
+    options.baseUrl = value;
   }
 }
 
@@ -121,7 +136,15 @@ async function migrateAudioFiles() {
 
   console.log(`📂 Reading source file: ${sourcePath}`);
   const sourceContent = fs.readFileSync(sourcePath, 'utf8');
-  const data = JSON.parse(sourceContent);
+
+  let data;
+  try {
+    data = JSON.parse(sourceContent);
+  } catch (error) {
+    console.error(`❌ Error: Invalid JSON in ${sourcePath}`);
+    console.error(`   ${error.message}`);
+    process.exit(1);
+  }
 
   if (!data.concerts || !Array.isArray(data.concerts)) {
     console.error('❌ Error: Invalid data.json format (missing concerts array)');
@@ -191,7 +214,8 @@ async function migrateAudioFiles() {
     console.log('To apply these changes, run without --dry-run flag\n');
   } else {
     // Create backup
-    const backupPath = `${sourcePath}.backup`;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupPath = `${sourcePath}.backup-${timestamp}`;
     console.log(`💾 Creating backup: ${backupPath}`);
     fs.copyFileSync(sourcePath, backupPath);
 
@@ -219,8 +243,13 @@ async function migrateAudioFiles() {
     console.log('\n4. Once confirmed, remove local MP3s from git:');
     console.log('   git rm public/audio/*.mp3');
     console.log('   git commit -m "chore: remove production audio files (now on CDN)"');
-    console.log('\n5. Update .gitignore to exclude future audio files:');
-    console.log('   echo "public/audio/*.mp3" >> .gitignore');
+    console.log('\n5. Update .gitignore to exclude future production audio files:');
+    console.log(
+      '   # ⚠️ Review your .gitignore manually. Do NOT ignore all MP3s if you want to keep demo files.'
+    );
+    console.log(
+      '   # For example, you can add a pattern for production files only, or follow the existing .gitignore comments.'
+    );
     console.log();
   }
 

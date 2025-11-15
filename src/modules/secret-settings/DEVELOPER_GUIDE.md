@@ -9,33 +9,73 @@
 1. [Quick Start](#quick-start)
 2. [Adding Feature Flags](#adding-feature-flags)
 3. [Adding Custom Settings](#adding-custom-settings)
-4. [Best Practices](#best-practices)
-5. [Testing](#testing)
-6. [Examples](#examples)
+4. [Implemented Features](#implemented-features)
+5. [Best Practices](#best-practices)
+6. [Testing](#testing)
+7. [Examples](#examples)
 
 ---
 
 ## Quick Start
 
-The secret settings menu is activated by triple-tapping/clicking in the center of the screen. It's currently scaffolding with placeholder sections for:
+The secret settings menu is activated by triple-tapping/clicking in the center of the screen. It provides:
 
-- **Feature Flags**: Boolean toggles for experimental features
+- **Feature Flags**: Boolean toggles for experimental and creative features
 - **Custom Settings**: Adjustable parameters (numbers, strings, selects)
 
 ### Module Location
 
 ```
 src/modules/secret-settings/
-├── README.md                    # API contract and usage
-├── DEVELOPER_GUIDE.md          # This file
-├── types.ts                     # TypeScript interfaces
-├── useTripleTap.ts             # Triple-tap detection hook
-├── SecretSettings.tsx          # Settings UI component
-├── SecretSettings.module.css   # Component styles
-├── index.ts                     # Public API exports
-├── useTripleTap.test.ts        # Hook tests
-└── SecretSettings.test.tsx     # Component tests
+├── README.md                       # API contract and usage
+├── DEVELOPER_GUIDE.md             # This file
+├── types.ts                        # TypeScript interfaces
+├── featureFlagConfig.ts           # Feature flag definitions
+├── customSettingsConfig.ts        # Custom settings definitions
+├── useTripleTap.ts                # Triple-tap detection hook
+├── useFeatureFlags.ts             # Feature flags state management
+├── useCustomSettings.ts           # Custom settings state management
+├── useRetroSounds.ts              # Retro sound effects hook
+├── SecretSettings.tsx             # Settings UI component
+├── PsychedelicEffect.tsx          # Psychedelic visual effect
+├── SecretSettings.module.css      # Component styles
+├── PsychedelicEffect.module.css   # Effect styles
+├── index.ts                        # Public API exports
+├── useTripleTap.test.ts           # Hook tests
+└── SecretSettings.test.tsx        # Component tests
 ```
+
+---
+
+## Implemented Features
+
+### Feature Flags
+
+1. **Psychedelic Color Cycle Mode** (`psychedelic-mode`)
+   - Enables vibrant gradient overlays and liquid light show effects
+   - Creates instant "party vibes" atmosphere
+   - Toggles on/off from Feature Flags section
+   - Implementation: `PsychedelicEffect.tsx` component
+
+2. **Old-School Easter Egg Sounds** (`retro-sounds`)
+   - Plays random retro system sounds (beeps, clicks, whooshes, modem)
+   - Sounds synthesized using Web Audio API (no external files needed)
+   - Plays on menu toggle, activation, and photo recognition
+   - Implementation: `useRetroSounds.ts` hook
+
+### Custom Settings
+
+3. **Theme Mode** (`theme-mode`)
+   - Switch between light and dark visual themes
+   - Options: Dark, Light
+   - Applied globally via `data-theme` attribute
+   - Instant theme switching with smooth transitions
+
+4. **UI Style** (`ui-style`)
+   - Toggle between modern UI and classic retro gallery experience
+   - Options: Modern, Classic
+   - Classic mode uses monospace fonts and removes textures
+   - Applied globally via `data-ui-style` attribute
 
 ---
 
@@ -581,6 +621,409 @@ When adding new flags or settings:
 4. Update module README if API changes
 5. Update DOCUMENTATION_INDEX.md if new files are created
 6. Test in both desktop and mobile
+
+---
+
+## Detailed Feature Implementation Guide
+
+### Feature 1: Psychedelic Color Cycle Mode
+
+**Purpose**: Create instant "party vibes" with vibrant, animated gradient overlays.
+
+**Implementation**:
+
+- **Component**: `PsychedelicEffect.tsx`
+- **Styling**: `PsychedelicEffect.module.css`
+- **Feature Flag**: `psychedelic-mode` in `featureFlagConfig.ts`
+
+**How it works**:
+
+1. When enabled, renders a full-screen overlay with `z-index: 200`
+2. Uses `mix-blend-mode: screen` to overlay colors without blocking interaction
+3. Uses pure CSS `hue-rotate` filter animations cycling over 20-25 seconds for smooth color transitions
+4. Creates multiple gradient layers rotating at different speeds
+5. Adds pulsing radial gradients for depth
+
+**Integration**:
+
+```tsx
+import { useFeatureFlags, PsychedelicEffect } from './modules/secret-settings';
+
+function App() {
+  const { isEnabled } = useFeatureFlags();
+
+  return (
+    <>
+      {/* Your app content */}
+      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
+    </>
+  );
+}
+```
+
+**Performance**: Minimal - uses pure CSS animations (hardware-accelerated) for smooth 60fps rendering.
+
+---
+
+### Feature 2: Old-School Easter Egg Sounds
+
+**Purpose**: Add playful retro system sounds to encourage exploration.
+
+**Implementation**:
+
+- **Hook**: `useRetroSounds.ts`
+- **Feature Flag**: `retro-sounds` in `featureFlagConfig.ts`
+- **Sound Generation**: Web Audio API (no external files)
+
+**Sound Types**:
+
+1. **Beeps**: Square wave oscillators at different frequencies (A4, A5, C5)
+2. **Click**: Short 800Hz square wave burst
+3. **Whoosh**: Sawtooth wave descending from 2000Hz to 200Hz
+4. **Modem**: Dual oscillators creating warbling dial-up modem effect
+
+**How it works**:
+
+1. Uses Web Audio API `OscillatorNode` and `GainNode` for synthesis
+2. Uses a singleton `AudioContext` shared across all sounds for efficient resource usage
+3. Applies exponential gain ramps for natural sound envelopes
+4. Randomly selects from 6 different sound variations
+
+**Integration**:
+
+```tsx
+import { useFeatureFlags, useRetroSounds } from './modules/secret-settings';
+
+function App() {
+  const { isEnabled } = useFeatureFlags();
+  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
+
+  // Play sound on button click
+  const handleClick = () => {
+    playRandomSound();
+    // ... other logic
+  };
+}
+```
+
+**Best Practices**:
+
+- Play sounds on user-initiated actions (clicks, toggles)
+- Don't play sounds continuously or too frequently
+- Sounds are short (50-500ms) to avoid annoyance
+
+---
+
+### Feature 3: Light/Dark Theme Switch
+
+**Purpose**: Enable instant visual theme switching for A/B comparison and accessibility.
+
+**Implementation**:
+
+- **Custom Setting**: `theme-mode` in `customSettingsConfig.ts`
+- **Global CSS**: Updated `index.css` with theme variables
+- **Options**: `dark` (default), `light`
+
+**How it works**:
+
+1. Sets `data-theme` attribute on `document.documentElement`
+2. CSS uses attribute selectors to apply theme-specific variables
+3. Smooth 0.3s transitions for color changes
+4. Persists to localStorage automatically
+
+**CSS Variables**:
+
+```css
+/* Default (Dark) Theme */
+:root {
+  --color-background: #0a0a0a;
+  --color-text: #f5f5f5;
+  --color-accent: #4a90e2;
+}
+
+/* Light Theme */
+[data-theme='light'] {
+  --color-background: #f5f5f4;
+  --color-text: #0f172a;
+  --color-accent: #2563eb;
+}
+```
+
+**Integration**:
+
+```tsx
+import { useCustomSettings } from './modules/secret-settings';
+
+function App() {
+  const { getSetting } = useCustomSettings();
+
+  useEffect(() => {
+    const theme = getSetting<string>('theme-mode') ?? 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [getSetting]);
+}
+```
+
+**Components should use CSS variables** instead of hard-coded colors to support theming.
+
+---
+
+### Feature 4: Classic/Modern UI Switch
+
+**Purpose**: Toggle between modern design and nostalgic retro gallery experience.
+
+**Implementation**:
+
+- **Custom Setting**: `ui-style` in `customSettingsConfig.ts`
+- **Global CSS**: Updated `index.css` with UI style variables
+- **Options**: `modern` (default), `classic`
+
+**How it works**:
+
+1. Sets `data-ui-style` attribute on `document.documentElement`
+2. Changes font family, border radius, shadows globally
+3. Removes background texture in classic mode
+4. Persists to localStorage automatically
+
+**CSS Changes**:
+
+```css
+[data-ui-style='modern'] {
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ...;
+  --border-radius: 8px;
+  --shadow-size: 10px;
+}
+
+[data-ui-style='classic'] {
+  --font-family: 'Courier New', 'Monaco', monospace;
+  --border-radius: 0px;
+  --shadow-size: 4px;
+}
+
+/* Classic mode removes texture overlay */
+[data-ui-style='classic'] body::before {
+  display: none;
+}
+```
+
+**Integration**: Same pattern as theme switching.
+
+**Design Philosophy**:
+
+- **Modern**: Rounded corners, subtle shadows, textured backgrounds
+- **Classic**: Sharp edges, monospace fonts, flat colors (Winamp-like)
+
+---
+
+## State Management Architecture
+
+All settings use a **localStorage-first** approach:
+
+1. **Initial Load**: Read from localStorage, fallback to config defaults
+2. **Updates**: Immediately write to localStorage on change
+3. **Merging**: New config flags/settings merge with saved values
+4. **Error Handling**: Gracefully handle localStorage quota/disabled scenarios
+
+**Storage Keys**:
+
+- `photo-signal-feature-flags` - Feature flag states
+- `photo-signal-custom-settings` - Custom setting values
+
+**Benefits**:
+
+- Settings persist across sessions
+- No backend required (static hosting friendly)
+- Instant updates (no network latency)
+- Privacy-friendly (client-side only)
+
+---
+
+## "Send It" Button Workflow
+
+The secret settings menu includes a **"Send It 🚀"** button that applies all changes and reloads the page.
+
+### Purpose
+
+Some feature flags and settings require a full page reload to take effect properly:
+
+- **Camera Settings**: Require reinitializing MediaStream
+- **Theme Changes**: Require re-rendering entire React tree
+- **Audio Settings**: Require reinitializing Howler.js
+- **UI Style Changes**: Require reapplying global CSS variables
+
+### Implementation
+
+**Location**: `src/modules/secret-settings/SecretSettings.tsx`
+
+**Code**:
+
+```typescript
+import { useRetroSounds } from './useRetroSounds';
+import { useCallback } from 'react';
+
+export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
+  const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
+  const { settings, updateSetting, resetSettings } = useCustomSettings();
+  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
+
+  const handleSendIt = useCallback(() => {
+    // Play sound if retro sounds enabled
+    if (isEnabled('retro-sounds')) {
+      playRandomSound();
+    }
+
+    // Close the menu first (provides immediate feedback)
+    onClose();
+
+    // Reload page after short delay (100ms) to show close animation
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }, [isEnabled, playRandomSound, onClose]);
+
+  return (
+    // ... in the JSX, before Developer Info section
+    <section className={styles.section}>
+      <button
+        onClick={handleSendIt}
+        className={styles.sendItButton}
+        aria-label="Apply changes and reload page"
+        type="button"
+      >
+        Send It 🚀
+      </button>
+      <p className={styles.sendItDescription}>
+        Apply all changes and reload the page to ensure everything takes effect
+      </p>
+    </section>
+  );
+}
+```
+
+**Styling** (in `SecretSettings.module.css`):
+
+```css
+.sendItButton {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-background);
+  background: var(--color-accent);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.sendItButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background: var(--color-accent-hover);
+}
+
+.sendItButton:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+```
+
+### User Flow
+
+1. User opens secret settings (triple-tap)
+2. User toggles feature flags or adjusts settings
+3. Changes preview immediately (saved to localStorage)
+4. User clicks **"Send It 🚀"** button
+5. Retro sound plays (if enabled)
+6. Menu closes smoothly
+7. Page reloads after 100ms (ensures all changes take effect)
+8. All settings persist via localStorage
+
+### Why 100ms Delay?
+
+The 100ms delay between closing the menu and reloading the page:
+
+- Allows the close animation to play
+- Provides visual feedback that the action was acknowledged
+- Makes the reload feel intentional, not like a bug
+- Improves perceived performance
+
+### Testing
+
+**Manual Testing**:
+
+1. Open secret settings
+2. Toggle a feature flag (e.g., Psychedelic Mode)
+3. Click "Send It"
+4. Verify sound plays (if retro sounds enabled)
+5. Verify menu closes
+6. Verify page reloads
+7. Verify feature flag is still enabled after reload
+
+**Automated Testing** (see `SecretSettings.test.tsx`):
+
+```typescript
+it('should reload page after clicking Send It', async () => {
+  const reloadSpy = vi.fn();
+  // Mock window.location.reload
+  delete (window as { location?: unknown }).location;
+  (window as { location: unknown }).location = {
+    ...originalLocation,
+    reload: reloadSpy
+  };
+
+  render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+  const button = screen.getByText(/Send It/i);
+  await user.click(button);
+
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  expect(reloadSpy).toHaveBeenCalled();
+});
+```
+
+### Design Decisions
+
+**Why "Send It 🚀" instead of "Apply"?**
+
+- More playful and engaging (matches "secret menu" vibe)
+- Rocket emoji conveys "launch" or "activate" action
+- More memorable than standard "Apply" or "Save"
+
+**Why reload the page?**
+
+- Simplest implementation (no complex state management)
+- Guarantees all changes take effect (no edge cases)
+- Provides clear "before/after" user experience
+- Avoids partial state updates or stale references
+
+**Why make it prominent?**
+
+- Primary action on the page (deserves visual emphasis)
+- Accent color background makes it stand out
+- Larger size than secondary "Reset" buttons
+- Users should know this is how to apply changes
+
+---
+
+## Accessibility Considerations
+
+1. **Keyboard Navigation**: All toggles and selects are keyboard accessible
+2. **Focus Indicators**: Clear visual focus states on all controls
+3. **Screen Readers**: Semantic HTML with proper labels
+4. **Color Contrast**: Both themes meet WCAG AA standards (4.5:1)
+5. **Motion**: Psychedelic effect respects user preference (future: prefers-reduced-motion)
+
+---
+
+## Performance Optimization
+
+1. **Lazy Loading**: Effects only activate when flags are enabled
+2. **CSS Animations**: Hardware-accelerated transforms and opacity
+3. **Audio Synthesis**: Web Audio API is more efficient than loading MP3 files
+4. **State Updates**: Batched with React's state management
+5. **Bundle Size**: No external dependencies for features (~0KB added to bundle)
 
 ---
 

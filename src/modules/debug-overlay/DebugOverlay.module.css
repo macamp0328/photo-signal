@@ -1,0 +1,325 @@
+/**
+ * Debug Overlay Styles
+ *
+ * Styling for the debug information overlay
+ * Positioned in bottom-right corner, semi-transparent
+ */
+
+.overlay {
+  position: fixed;
+  bottom: 0.625rem;
+  right: 0.625rem;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(0.625rem);
+  color: #fff;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  min-width: 15rem;
+  max-width: 17.5rem;
+  font-size: 0.75rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #fff;
+}
+
+.badge {
+  background: #4a5568;
+  color: #fff;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.03125rem;
+}
+
+.resetButton {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.resetButton:hover:not(:disabled),
+.resetButton:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  outline: none;
+}
+
+.resetButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.section {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Status Section */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.statusIndicator {
+  font-size: 1.25rem;
+  line-height: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusIndicator.statusIdle {
+  animation: none;
+}
+
+/* Status color indicators */
+.statusIndicator.statusChecking {
+  color: #3182ce; /* Blue - checking frame */
+}
+
+.statusIndicator.statusMatching {
+  color: #ecc94b; /* Yellow - potential match */
+}
+
+.statusIndicator.statusRecognized {
+  color: #38a169; /* Green - confirmed match */
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+.statusText {
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03125rem;
+}
+
+/* Frame Hash Section */
+.label {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  color: #a0aec0;
+  margin-bottom: 0.375rem;
+  font-weight: 600;
+  letter-spacing: 0.03125rem;
+}
+
+.hash {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: #63b3ed;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.hint {
+  font-size: 0.6875rem;
+  color: #718096;
+  font-style: italic;
+}
+
+/* Best Match Section */
+.matchName {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.matchStats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.statLabel {
+  font-size: 0.625rem;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.03125rem;
+}
+
+.statValue {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #fbbf24;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Countdown Section */
+.timerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.timerStats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #63b3ed, #f6ad55, #68d391);
+  transition: width 0.2s ease-out;
+}
+
+.timerHint {
+  font-size: 0.6875rem;
+  color: #a0aec0;
+  font-style: italic;
+}
+
+/* Metrics Section */
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.metricLabel {
+  font-size: 0.625rem;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.03125rem;
+}
+
+.metricValue {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #edf2f7;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Threshold Section */
+.thresholdInfo {
+  font-size: 0.75rem;
+  color: #cbd5e0;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Recognized Concert Section */
+.recognized {
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.concertName {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: #68d391;
+  margin-bottom: 0.25rem;
+}
+
+.concertVenue {
+  font-size: 0.75rem;
+  color: #e2e8f0;
+  margin-bottom: 0.125rem;
+}
+
+.concertDate {
+  font-size: 0.6875rem;
+  color: #a0aec0;
+}
+
+/* Accessibility: Ensure focus is visible */
+.overlay:focus-within {
+  outline: 2px solid #63b3ed;
+  outline-offset: 2px;
+}
+
+/* Responsive: Larger screens get more space */
+@media (min-width: 400px) {
+  .overlay {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    min-width: 17.5rem;
+    max-width: 20rem;
+    font-size: 0.8125rem;
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 0.875rem;
+  }
+
+  .statusText {
+    font-size: 0.875rem;
+  }
+
+  .hash {
+    font-size: 0.875rem;
+  }
+}

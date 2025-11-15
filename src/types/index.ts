@@ -19,6 +19,8 @@ export interface Concert {
   date: string;
   /** Path to audio file (MP3) */
   audioFile: string;
+  /** Optional path to reference image (used by test mode + docs) */
+  imageFile?: string;
   /** Perceptual hash of reference photo (optional, for photo recognition) */
   photoHash?: string;
 }
@@ -43,3 +45,8 @@ export interface AppError {
   code?: string;
   module?: string;
 }
+
+/**
+ * Aspect ratio for framing guides and cropping
+ */
+export type AspectRatio = '3:2' | '2:3';

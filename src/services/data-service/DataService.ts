@@ -20,6 +20,10 @@ class DataService {
    */
   setTestMode(enabled: boolean): void {
     if (this.isTestMode !== enabled) {
+      console.log(`[DataService] Test mode ${enabled ? 'ENABLED' : 'DISABLED'}`);
+      console.log(
+        `[DataService] Data will be loaded from: ${enabled ? this.testDataUrl : this.productionDataUrl}`
+      );
       this.isTestMode = enabled;
       this.clearCache();
       this.notifyListeners();
@@ -69,12 +73,41 @@ class DataService {
 
     try {
       const dataUrl = this.getDataUrl();
+      console.log(`[DataService] Loading concert data from: ${dataUrl}`);
+      console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
+
       const response = await fetch(dataUrl);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
-      this.cache = data.concerts || [];
-      return this.cache as Concert[];
+      const concerts = Array.isArray(data.concerts) ? data.concerts : [];
+      this.cache = concerts;
+
+      const concertsWithHashes = concerts.filter((c: Concert) => c.photoHash).length;
+
+      console.log(`[DataService] Successfully loaded ${concerts.length} concerts`);
+      console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
+
+      if (concerts.length === 0) {
+        console.warn('[DataService] Warning: No concerts found in data file');
+      }
+
+      if (concertsWithHashes === 0) {
+        console.warn(
+          '[DataService] Warning: No concerts have photoHash values. Photo recognition will not work.'
+        );
+      }
+
+      return concerts;
     } catch (error) {
-      console.error('Failed to load concert data:', error);
+      console.error('[DataService] Failed to load concert data:', error);
+      console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
+      console.error(
+        `[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}. Try ${this.isTestMode ? 'disabling' : 'enabling'} it in Secret Settings.`
+      );
       return [];
     }
   }

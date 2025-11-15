@@ -99,8 +99,8 @@ jobs:
             // Build appropriate message based on contributor type
             let message = '';
 
-            // Add @copilot mention if Copilot is assigned or if it's an AI agent PR
-            const copilotMention = (isAiAgent || copilotAssigned) ? '@copilot ' : '';
+            // Always add @copilot mention for all PR failures
+            const copilotMention = '@copilot ';
 
             if (isAiAgent) {
               message = [

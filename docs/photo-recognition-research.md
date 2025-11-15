@@ -84,11 +84,11 @@ Perceptual hashing creates a fingerprint of an image that remains similar even w
 
 **Algorithm**:
 
-1. Resize image to 9x8 pixels (72 pixels total)
+1. Resize image to 17x8 pixels (136 pixels total)
 2. Convert to grayscale
 3. Calculate gradient differences between adjacent pixels
 4. Create hash: 1 if pixel[i] > pixel[i+1], 0 otherwise
-5. Result: 64-bit hash
+5. Result: 128-bit hash
 
 **Complexity**: O(n) where n = 72 pixels - Simple
 
@@ -340,8 +340,8 @@ const distance = Jimp.distance(image1, image2);
 ```typescript
 // Minimal custom implementation
 export function computeDHash(imageData: ImageData): string {
-  // Resize to 9x8, grayscale, compute gradient hash
-  return hash; // 64-bit hex string
+  // Resize to 17x8, grayscale, compute gradient hash
+  return hash; // 128-bit hex string
 }
 
 export function hammingDistance(hash1: string, hash2: string): number {
@@ -1309,11 +1309,11 @@ public/
 /**
  * Compute dHash (Difference Hash) of an image
  * @param imageData - Canvas ImageData object
- * @returns 64-bit hash as hex string
+ * @returns 128-bit hash as hex string
  */
 export function computeDHash(imageData: ImageData): string {
-  // 1. Resize to 9x8 pixels
-  const resized = resizeImage(imageData, 9, 8);
+  // 1. Resize to 17x8 pixels
+  const resized = resizeImage(imageData, 17, 8);
 
   // 2. Convert to grayscale
   const grayscale = toGrayscale(resized);
@@ -1321,9 +1321,9 @@ export function computeDHash(imageData: ImageData): string {
   // 3. Compute horizontal gradient
   let hash = '';
   for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      const left = grayscale[y * 9 + x];
-      const right = grayscale[y * 9 + x + 1];
+    for (let x = 0; x < 16; x++) {
+      const left = grayscale[y * 17 + x];
+      const right = grayscale[y * 17 + x + 1];
       hash += left > right ? '1' : '0';
     }
   }

@@ -66,7 +66,7 @@ export interface FeatureFlag {
   /**
    * Optional category for organization
    */
-  category?: 'experimental' | 'debugging' | 'ui' | 'audio' | 'camera';
+  category?: 'experimental' | 'debugging' | 'ui' | 'audio' | 'camera' | 'development';
 }
 
 /**
@@ -111,6 +111,16 @@ export interface CustomSetting {
    */
   min?: number;
   max?: number;
+
+  /**
+   * Optional slider step for number inputs
+   */
+  step?: number;
+
+  /**
+   * Optional unit label for display (e.g., ms)
+   */
+  unit?: string;
 
   /**
    * Optional category for organization

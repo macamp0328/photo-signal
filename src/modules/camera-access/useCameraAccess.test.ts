@@ -337,13 +337,10 @@ describe('useCameraAccess', () => {
       renderHook(() => useCameraAccess());
 
       await waitFor(() => {
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
-          video: {
-            facingMode: 'environment',
-            aspectRatio: 3 / 2,
-          },
-          audio: false,
-        });
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
+        const call = (navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mock
+          .calls[0][0];
+        expect(call.video.facingMode).toBe('environment');
       });
     });
 
@@ -364,6 +361,23 @@ describe('useCameraAccess', () => {
         const call = (navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mock
           .calls[0][0];
         expect(call.audio).toBe(false);
+      });
+    });
+
+    it('should request advanced low-light constraints', async () => {
+      renderHook(() => useCameraAccess());
+
+      await waitFor(() => {
+        const call = (navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mock
+          .calls[0][0];
+
+        // Check for enhanced low-light constraints
+        expect(call.video.focusMode).toEqual({ ideal: 'continuous' });
+        expect(call.video.pointsOfInterest).toEqual({ ideal: [{ x: 0.5, y: 0.5 }] });
+        expect(call.video.exposureMode).toEqual({ ideal: 'continuous' });
+        expect(call.video.whiteBalanceMode).toEqual({ ideal: 'continuous' });
+        expect(call.video.brightness).toEqual({ ideal: 1.2 });
+        expect(call.video.contrast).toEqual({ ideal: 1.2 });
       });
     });
   });

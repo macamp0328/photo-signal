@@ -30,10 +30,12 @@ Identify photos from camera stream using perceptual hashing (dHash algorithm) an
 ```typescript
 stream: MediaStream | null       // Camera video stream
 options?: {
-  recognitionDelay?: number;     // Delay before confirming match (ms), default 1000
+  recognitionDelay?: number;     // Delay before confirming match (ms), default 3000
   enabled?: boolean;             // Enable/disable recognition, default true
-  similarityThreshold?: number;  // Hamming distance threshold (0-64), default 10
+  similarityThreshold?: number;  // Hamming distance threshold (0-64), default 40
   checkInterval?: number;        // Interval for checking frames (ms), default 1000
+  enableDebugInfo?: boolean;     // Enable debug information output, default false
+  aspectRatio?: '3:2' | '2:3';   // Aspect ratio for frame cropping (default '3:2')
 }
 ```
 
@@ -44,6 +46,36 @@ options?: {
   recognizedConcert: Concert | null;    // Matched concert or null
   isRecognizing: boolean;               // True during potential match
   reset: () => void;                    // Reset recognition state
+  debugInfo: RecognitionDebugInfo | null; // Debug information (when enabled)
+}
+
+// Debug info structure
+interface RecognitionDebugInfo {
+  lastFrameHash: string | null;       // Last computed frame hash
+  bestMatch: BestMatchInfo | null;    // Best matching concert
+  lastCheckTime: number;              // Timestamp of last check
+  concertCount: number;               // Number of concerts checked
+  frameCount: number;                 // Frames processed since start
+  checkInterval: number;              // Active frame sampling interval
+  aspectRatio: AspectRatio;           // Current framing aspect ratio
+  frameSize: { width: number; height: number } | null; // Cropped frame size
+  stability: StabilityDebugInfo | null; // Countdown info for active candidate
+  similarityThreshold: number;        // Active matching threshold (distance)
+  recognitionDelay: number;           // Required hold duration (ms)
+}
+
+interface BestMatchInfo {
+  concert: Concert;      // The matched concert
+  distance: number;      // Hamming distance (0-64)
+  similarity: number;    // Similarity percentage (0-100)
+}
+
+interface StabilityDebugInfo {
+  concert: Concert;      // Candidate concert being confirmed
+  elapsedMs: number;     // Time spent above threshold
+  remainingMs: number;   // Time left before confirmation
+  requiredMs: number;    // Total hold time required
+  progress: number;      // 0-1 progress toward confirmation
 }
 ```
 
@@ -57,26 +89,50 @@ options?: {
 
 ---
 
-## Implementation: Perceptual Hashing (dHash)
+## Implementation: Functional Framing with Dual Aspect Ratios
 
-**Algorithm**: dHash (Difference Hash)
+**Algorithm**: dHash (Difference Hash) with Functional Frame Cropping
 
-This module uses a lightweight, client-side perceptual hashing algorithm to recognize photos:
+This module uses a lightweight, client-side perceptual hashing algorithm with **functional frame cropping** to recognize photos:
 
 1. **Capture Frame**: Extract current video frame from MediaStream
-2. **Resize**: Reduce to 9x8 pixels (optimized for speed)
-3. **Grayscale**: Convert to grayscale using luminance formula
-4. **Gradient Hash**: Compute horizontal pixel gradients
-5. **Generate Hash**: Create 64-bit hash from gradient differences
-6. **Compare**: Use Hamming distance to compare with stored hashes
-7. **Match**: Recognize photo when distance < threshold for stable period
+2. **Crop to Framed Region**: Extract only pixels inside the framing guide (3:2 or 2:3)
+3. **Resize**: Reduce cropped region to 17x8 pixels (optimized for speed)
+4. **Grayscale**: Convert to grayscale using luminance formula
+5. **Gradient Hash**: Compute horizontal pixel gradients
+6. **Generate Hash**: Create 128-bit hash from gradient differences
+7. **Compare**: Use Hamming distance to compare with stored hashes
+8. **Match**: Recognize photo when distance < threshold for stable period
+
+### Functional Framing
+
+The photo recognition module **only analyzes pixels within the framing guide**, not the entire camera frame. This eliminates background noise and improves accuracy.
+
+**Benefits**:
+
+- ✅ Eliminates background noise and clutter
+- ✅ Reduces false positives from unrelated objects
+- ✅ Improves recognition accuracy
+- ✅ Makes framing guide intuitive and trustworthy
+- ✅ Supports both landscape (3:2) and portrait (2:3) photos
+
+**Aspect Ratios**:
+
+- **3:2 (Landscape)**: Default, for horizontal photos
+- **2:3 (Portrait)**: For vertical photos
+
+**Cropping Behavior**:
+
+- Framed region uses ~80% of available viewport space
+- Region is centered in the camera feed
+- GPU-accelerated canvas cropping (no performance impact)
 
 **Why dHash?**
 
 Based on research and testing:
 
 - ✅ Fast: ~6-8ms per frame on mobile
-- ✅ Accurate: 85-90% under varying conditions
+- ✅ Accurate: 85-90% under varying conditions (improved with cropping)
 - ✅ Small: ~3KB code size (zero dependencies)
 - ✅ Private: 100% client-side processing
 - ✅ Offline: Works without internet
@@ -90,13 +146,12 @@ Based on research and testing:
 
 Controls how strict the matching is (Hamming distance):
 
-- **0**: Exact match only (very strict, may miss valid photos)
-- **5**: Very strict (90%+ similar)
-- **10**: Balanced (default, ~85% similar)
-- **15**: Lenient (allows more variation)
-- **20**: Very lenient (may allow false positives)
+- **20** (~92% similarity): Ultra strict, requires near-perfect match
+- **30** (~88% similarity): Strict, good lighting required
+- **40** (~84% similarity, **default**): Balanced for real-world lighting and phones
+- **50** (~80% similarity): Lenient, may allow more drift but risks false positives
 
-**Recommendation**: Start with 10, adjust based on accuracy testing.
+**Recommendation**: Start with 40, then tighten/loosen based on environment.
 
 ### Check Interval
 
@@ -112,32 +167,191 @@ How often to analyze frames (in milliseconds):
 
 How long a photo must be stable before confirming match:
 
-- **500ms**: Fast (may be too eager)
-- **1000ms**: Balanced (default)
-- **2000ms**: Conservative (ensures stability)
+- **1000ms**: Fast (good for rapid testing but prone to false triggers)
+- **2000ms**: Balanced
+- **3000ms**: **Default** – enough time for handheld wobble to settle
+- **4000ms+**: Very conservative (installations with lots of motion/noise)
 
-**Recommendation**: Use 1000ms to avoid false triggers while maintaining good UX.
+**Recommendation**: Use 3000ms for physical photos, then dial down if your environment is very stable. You can adjust this value from the Secret Settings menu (Custom Settings → Recognition Delay).
 
 ---
 
 ## Debug Mode
 
-When running in development mode (`import.meta.env.DEV`), the module logs:
+### Enhanced Logging (Dev Mode & Test Mode)
 
-- Hash values of each frame
-- Similarity scores for each concert
-- Match/lost match events
-- Recognized concert confirmation
+When running in development mode (`import.meta.env.DEV`) or when Test Mode is enabled, the module provides detailed logging:
 
-**Example console output**:
+**Initialization Logs**:
 
 ```
-[Photo Recognition] Frame hash: a5b3c7d9e1f20486
-[Photo Recognition] The Midnight Echoes: distance=8, similarity=87.5%
-[Photo Recognition] Electric Dreams: distance=24, similarity=62.5%
-[Photo Recognition] Potential match: The Midnight Echoes
-[Photo Recognition] Recognized: The Midnight Echoes
+============================================================
+[Photo Recognition] Initializing recognition system
+  Concerts loaded: 4
+  Concerts with hashes: 4
+  Similarity threshold: 40 (≥84.4% match)
+  Recognition delay: 3000ms
+  Check interval: 1000ms
+  Test Mode: ON
+
+  Available hashes:
+    The Midnight Echoes: 000000042a000000
+    Electric Dreams: 0000000416000000
+============================================================
 ```
+
+**Frame-by-Frame Logs**:
+
+```
+============================================================
+[Photo Recognition] FRAME 42 @ 12:34:56.789
+Frame Hash: a5b3c7d9e1f20486
+Frame Size: 640 × 480 px (cropped)
+Cropped Region: x=64, y=108, w=512, h=341
+Aspect Ratio: 3:2
+Concerts Checked: 4
+Threshold: 40 (similarity ≥ 84.4%)
+
+Results:
+  ✓ The Midnight Echoes: distance=6, similarity=90.6% ← BEST MATCH
+  ✗ Electric Dreams: distance=24, similarity=62.5%
+  ✗ Velvet Revolution: distance=31, similarity=51.6%
+  ✗ Sunset Boulevard: distance=28, similarity=56.3%
+
+Match Decision: POTENTIAL MATCH (The Midnight Echoes)
+  Distance: 6 / 10 threshold
+  Similarity: 90.6%
+  Stability Timer: 1.2s / 3.0s required
+============================================================
+```
+
+**Recognition Confirmation**:
+
+```
+🎵 RECOGNIZED! The Midnight Echoes
+============================================================
+```
+
+### Debug Information API
+
+Enable debug information output with `enableDebugInfo` option:
+
+```typescript
+const { recognizedConcert, debugInfo } = usePhotoRecognition(stream, {
+  enableDebugInfo: true, // Enables debugInfo return value
+});
+
+// debugInfo contains:
+// - lastFrameHash: Hash of the last processed frame
+// - bestMatch: { concert, distance, similarity }
+// - lastCheckTime: Timestamp of last frame check
+// - concertCount: Number of concerts being checked
+```
+
+Use `debugInfo` with the DebugOverlay component for real-time visualization:
+
+```typescript
+import { DebugOverlay } from '@/modules/debug-overlay';
+
+function App() {
+  const { debugInfo, recognizedConcert, isRecognizing } = usePhotoRecognition(stream, {
+    enableDebugInfo: isTestMode,
+  });
+
+  return (
+    <>
+      {/* Your app UI */}
+      <DebugOverlay
+        enabled={isTestMode}
+        recognizedConcert={recognizedConcert}
+        isRecognizing={isRecognizing}
+        debugInfo={debugInfo}
+      />
+    </>
+  );
+}
+```
+
+---
+
+## Generating Photo Hashes
+
+Photo hashes are required for recognition to work. The concert data must include a `photoHash` field for each concert.
+
+### Hash Format
+
+Photo hashes are 16-character hexadecimal strings generated by the dHash algorithm:
+
+```json
+{
+  "id": 1,
+  "band": "The Midnight Echoes",
+  "venue": "The Fillmore",
+  "date": "2023-08-15",
+  "audioFile": "/audio/concert-1.mp3",
+  "photoHash": "a5b3c7d9e1f20486"
+}
+```
+
+### Hash Generation Tools
+
+Two tools are available to generate photo hashes:
+
+#### 1. Browser-Based Tool (Easiest)
+
+Open `scripts/generate-photo-hashes.html` in your browser:
+
+1. Drag and drop image files onto the page
+2. Hashes are computed instantly using the same algorithm
+3. Copy individual hashes or the complete JSON output
+4. Add hashes to your concert data
+
+**Features**:
+
+- No installation required
+- Visual preview of images
+- Drag-and-drop interface
+- Copy-to-clipboard functionality
+
+#### 2. Node.js Script (For Automation)
+
+Run the command-line script:
+
+```bash
+# Place images in assets/test-images/
+npm run generate-hashes
+
+# Output will show hashes for all images:
+# concert-1.jpg: a5b3c7d9e1f20486
+# concert-2.jpg: b6c4d8e2f3a10597
+# ...
+```
+
+**Features**:
+
+- Batch processing
+- JSON output for easy copy-paste
+- Can be integrated into build scripts
+- Consistent with browser tool
+
+### Hash Algorithm (dHash)
+
+The hash generation uses the **dHash (Difference Hash)** algorithm:
+
+1. **Resize** image to 17×8 pixels (136 pixels total)
+2. **Convert** to grayscale using ITU-R BT.601 luma coefficients
+3. **Calculate** horizontal gradient differences (left vs. right neighbor)
+4. **Generate** 128-bit binary hash based on differences
+5. **Encode** as 32-character hexadecimal string
+
+**Characteristics**:
+
+- Fast: ~6-8ms on mobile devices
+- Robust: Handles brightness/contrast changes well
+- Compact: Only 32 bytes per hash
+- Accurate: ~85-90% recognition under varying conditions
+
+For technical details, see `algorithms/dhash.ts`.
 
 ---
 
@@ -180,7 +394,33 @@ const { recognizedConcert } = usePhotoRecognition(stream, {
   similarityThreshold: 8, // Stricter matching
   checkInterval: 500, // Check more frequently
   recognitionDelay: 2000, // Wait longer before confirming
+  aspectRatio: '2:3', // Use portrait mode for vertical photos
 });
+```
+
+### With Aspect Ratio Toggle
+
+```typescript
+import { useState } from 'react';
+import type { AspectRatio } from '@/modules/photo-recognition';
+
+function App() {
+  const { stream } = useCameraAccess();
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
+
+  const { recognizedConcert } = usePhotoRecognition(stream, {
+    aspectRatio,
+  });
+
+  return (
+    <div>
+      <button onClick={() => setAspectRatio(prev => prev === '3:2' ? '2:3' : '3:2')}>
+        Toggle Aspect Ratio
+      </button>
+      {recognizedConcert && <h2>{recognizedConcert.band}</h2>}
+    </div>
+  );
+}
 ```
 
 ---

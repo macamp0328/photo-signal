@@ -98,10 +98,43 @@ Camera constraints (can be modified in `useCameraAccess.ts`):
   video: {
     facingMode: 'environment',  // Rear camera
     aspectRatio: 3 / 2,         // 3:2 ratio for photo framing
+
+    // Advanced constraints for low-light bathroom use case
+    // Using 'ideal' to allow graceful fallback if unsupported
+    focusMode: { ideal: 'continuous' },              // Continuous autofocus
+    pointsOfInterest: { ideal: [{ x: 0.5, y: 0.5 }] }, // Center focus point
+    exposureMode: { ideal: 'continuous' },           // Auto exposure
+    whiteBalanceMode: { ideal: 'continuous' },       // Auto white balance
+    brightness: { ideal: 1.2 },                      // Slight boost for low light
+    contrast: { ideal: 1.2 },                        // Improve visibility
   },
   audio: false                   // No audio needed
 }
 ```
+
+### Advanced Constraints
+
+The camera module now attempts to optimize for low-light conditions (e.g., bathroom installations) by requesting:
+
+- **Autofocus**: Continuous autofocus with center focus point
+- **Auto Exposure**: Automatic exposure adjustment for varying light conditions
+- **Auto White Balance**: Automatic white balance for natural colors
+- **Brightness/Contrast**: Slight boost to improve visibility in low light
+
+**Browser Support**: These advanced constraints have limited support across browsers:
+
+| Constraint         | Chrome/Edge | Firefox | Safari | Mobile           |
+| ------------------ | ----------- | ------- | ------ | ---------------- |
+| `focusMode`        | ✅ Android  | ❌      | ❌     | ✅ iOS (limited) |
+| `pointsOfInterest` | ✅ Android  | ❌      | ❌     | ✅ iOS (limited) |
+| `exposureMode`     | ✅ Android  | ❌      | ❌     | ✅ iOS (limited) |
+| `whiteBalanceMode` | ✅ Android  | ❌      | ❌     | ✅ iOS (limited) |
+| `brightness`       | ✅ Android  | ❌      | ❌     | ⚠️ Varies        |
+| `contrast`         | ✅ Android  | ❌      | ❌     | ⚠️ Varies        |
+
+**Fallback Behavior**: All constraints use `{ ideal: value }` instead of `{ exact: value }`, so browsers that don't support these constraints will gracefully ignore them and use default camera settings. The app will still function normally.
+
+**Development Logging**: In development mode, the actual applied camera settings are logged to the console, allowing you to verify which constraints were applied by the browser.
 
 ---
 
@@ -119,6 +152,8 @@ Camera constraints (can be modified in `useCameraAccess.ts`):
 - [ ] Support custom aspect ratios
 - [ ] Add resolution preferences (720p, 1080p)
 - [ ] Flash/torch control for low light
+- [x] ~~Autofocus and exposure optimization~~ (implemented with advanced constraints)
+- [x] ~~Black and white mode~~ (implemented in photo-recognition module with grayscale conversion feature flag)
 
 ---
 

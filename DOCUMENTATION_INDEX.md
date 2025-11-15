@@ -27,6 +27,8 @@
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/image-recognition-exploratory-analysis.md](./docs/image-recognition-exploratory-analysis.md)** - Exploratory analysis and benchmarking of image recognition pipeline: current failure points, performance metrics, comparative analysis vs QR codes, and actionable improvement roadmap
+- **[docs/mp3-streaming-implementation-plan.md](./docs/mp3-streaming-implementation-plan.md)** - Complete implementation plan for production MP3 streaming with CDN delivery (GitHub Releases and Cloudflare R2)
+- **[docs/audio-streaming-setup.md](./docs/audio-streaming-setup.md)** - User guide for setting up and managing audio streaming from CDN with migration scripts, validation tools, and troubleshooting
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
 - **[docs/grayscale-feature-implementation.md](./docs/grayscale-feature-implementation.md)** - Implementation details for grayscale camera feature flag, including technical specs, usage guide, and browser compatibility
 - **[docs/mobile-first-refactor-summary.md](./docs/mobile-first-refactor-summary.md)** - Comprehensive summary of mobile-first CSS refactoring with detailed before/after comparisons, touch target improvements, and responsive breakpoint documentation

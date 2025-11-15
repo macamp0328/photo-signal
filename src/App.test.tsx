@@ -16,16 +16,21 @@ beforeEach(() => {
   });
 });
 
+// Helper to render app
+const renderApp = () => {
+  return render(<App />);
+};
+
 describe('App', () => {
   it('renders without crashing', () => {
-    const { container } = render(<App />);
+    const { container } = renderApp();
     // Basic smoke test - if we get here, the app rendered successfully
     expect(container).toBeDefined();
     expect(container.querySelector('div')).toBeTruthy();
   });
 
   it('shows landing page initially', () => {
-    render(<App />);
+    renderApp();
     // Check for landing page elements
     expect(screen.getByText('Photo Signal')).toBeTruthy();
     expect(screen.getByText(/Point your camera at a photograph/i)).toBeTruthy();

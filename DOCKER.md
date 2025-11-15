@@ -149,6 +149,7 @@ docker-compose down -v
 ### What You Get
 
 - Pre-configured Node.js 20 environment
+- **GitHub CLI (`gh`)** - for interacting with GitHub issues, PRs, and repositories
 - All VS Code extensions installed:
   - ESLint
   - Prettier
@@ -157,6 +158,22 @@ docker-compose down -v
 - Auto-fix ESLint issues on save
 - Port 5173 forwarded for dev server
 - Dependencies automatically installed
+
+### Available Tools
+
+The dev container includes these CLI tools:
+
+- **GitHub CLI (`gh`)**: Interact with GitHub from the command line
+  ```bash
+  gh issue list
+  gh issue view 73
+  gh pr create
+  gh pr view
+  ```
+- **npm/node**: Package management and JavaScript runtime
+- **git**: Version control
+- **curl/wget**: HTTP requests
+- **apt**: Package management (Debian-based)
 
 ### Working in Dev Container
 
@@ -176,6 +193,7 @@ The dev server will be accessible at http://localhost:5173 on your host machine.
 ### Development Image (`Dockerfile`)
 
 - Based on `node:20-bullseye`
+- Includes GitHub CLI for GitHub integration
 - Includes all dev dependencies
 - Optimized for hot reload
 - Uses volume mounts for source code

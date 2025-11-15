@@ -1,0 +1,259 @@
+/**
+ * Secret Settings Module - Settings Page Component
+ *
+ * A modal/page that displays feature flags and custom settings
+ * for advanced users and developers.
+ */
+
+import type { SecretSettingsProps } from './types';
+import { useFeatureFlags } from './useFeatureFlags';
+import { useCustomSettings } from './useCustomSettings';
+import { useRetroSounds } from './useRetroSounds';
+import { useCallback, useEffect, useRef } from 'react';
+import styles from './SecretSettings.module.css';
+
+/**
+ * Secret Settings Page Component
+ *
+ * Displays a modal with:
+ * - Feature flags (experimental features on/off)
+ * - Custom settings (adjustable parameters)
+ *
+ * @param props - Component props
+ * @returns React component
+ *
+ * @example
+ * ```tsx
+ * <SecretSettings
+ *   isVisible={isOpen}
+ *   onClose={() => setIsOpen(false)}
+ * />
+ * ```
+ */
+export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
+  const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
+  const { settings, updateSetting, resetSettings } = useCustomSettings();
+  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
+  const timeoutRef = useRef<number | null>(null);
+
+  // Clean up timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSendIt = useCallback(() => {
+    // Play sound if retro sounds enabled
+    if (isEnabled('retro-sounds')) {
+      playRandomSound();
+    }
+
+    // Close the menu first (provides immediate feedback)
+    onClose();
+
+    // Reload page after short delay (100ms) to show close animation
+    timeoutRef.current = window.setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  }, [isEnabled, playRandomSound, onClose]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+        role="document"
+        aria-label="Secret Settings Menu"
+      >
+        {/* Header */}
+        <div className={styles.header}>
+          <h1 className={styles.title}>🔧 Secret Settings</h1>
+          <button
+            onClick={onClose}
+            className={styles.closeButton}
+            aria-label="Close settings menu"
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className={styles.content}>
+          {/* Introduction */}
+          <div className={styles.section}>
+            <p className={styles.intro}>
+              This hidden menu is activated by triple-tapping in the center of the screen. It's
+              designed to hold feature flags and custom settings for advanced users and developers.
+            </p>
+            <p className={styles.intro}>
+              <span
+                className={`${styles.modeBadge} ${isEnabled('test-mode') ? styles.modeBadgeTest : styles.modeBadgeProduction}`}
+              >
+                {isEnabled('test-mode') ? '🧪 Test Mode' : '🎯 Production Mode'}
+              </span>
+            </p>
+          </div>
+
+          {/* Feature Flags Section */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
+            <p className={styles.sectionDescription}>
+              Toggle experimental and creative features on or off.
+            </p>
+
+            {flags.length > 0 ? (
+              <>
+                <div className={styles.flagList}>
+                  {flags.map((flag) => (
+                    <div key={flag.id} className={styles.flagItem}>
+                      <label className={styles.flagLabel}>
+                        <input
+                          type="checkbox"
+                          checked={flag.enabled}
+                          onChange={() => toggleFlag(flag.id)}
+                          className={styles.flagCheckbox}
+                        />
+                        <div className={styles.flagInfo}>
+                          <span className={styles.flagName}>{flag.name}</span>
+                          <span className={styles.flagDescription}>{flag.description}</span>
+                          {flag.category && (
+                            <span className={styles.flagCategory}>{flag.category}</span>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={resetFlags} className={styles.resetButton}>
+                  Reset All Flags
+                </button>
+              </>
+            ) : (
+              <div className={styles.placeholder}>
+                <p className={styles.placeholderText}>No feature flags configured yet.</p>
+              </div>
+            )}
+          </section>
+
+          {/* Custom Settings Section */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
+            <p className={styles.sectionDescription}>Adjust advanced parameters and preferences.</p>
+
+            {settings.length > 0 ? (
+              <>
+                <div className={styles.settingList}>
+                  {settings.map((setting) => (
+                    <div key={setting.id} className={styles.settingItem}>
+                      <label className={styles.settingLabel}>
+                        <div className={styles.settingInfo}>
+                          <span className={styles.settingName}>{setting.name}</span>
+                          <span className={styles.settingDescription}>{setting.description}</span>
+                          {setting.category && (
+                            <span className={styles.settingCategory}>{setting.category}</span>
+                          )}
+                        </div>
+
+                        {setting.type === 'number' && (
+                          <div className={styles.settingControl}>
+                            <input
+                              type="range"
+                              min={setting.min}
+                              max={setting.max}
+                              step={setting.step ?? 100}
+                              value={setting.value as number}
+                              onChange={(e) => updateSetting(setting.id, parseInt(e.target.value))}
+                              className={styles.settingRange}
+                            />
+                            <div className={styles.settingValueGroup}>
+                              <span className={styles.settingValue}>{setting.value}</span>
+                              {setting.unit && (
+                                <span className={styles.settingUnit}>{setting.unit}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {setting.type === 'select' && (
+                          <div className={styles.settingControl}>
+                            <select
+                              value={setting.value as string}
+                              onChange={(e) => updateSetting(setting.id, e.target.value)}
+                              className={styles.settingSelect}
+                            >
+                              {setting.options?.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {setting.type === 'boolean' && (
+                          <div className={styles.settingControl}>
+                            <input
+                              type="checkbox"
+                              checked={setting.value as boolean}
+                              onChange={(e) => updateSetting(setting.id, e.target.checked)}
+                              className={styles.flagCheckbox}
+                            />
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={resetSettings} className={styles.resetButton}>
+                  Reset All Settings
+                </button>
+              </>
+            ) : (
+              <div className={styles.placeholder}>
+                <p className={styles.placeholderText}>No custom settings configured yet.</p>
+              </div>
+            )}
+          </section>
+
+          {/* Send It Button */}
+          <section className={styles.section}>
+            <button
+              onClick={handleSendIt}
+              className={styles.sendItButton}
+              aria-label="Send It - Apply changes and reload page"
+              type="button"
+            >
+              Send It 🚀
+            </button>
+            <p className={styles.sendItDescription}>
+              Apply all changes and reload the page to ensure everything takes effect
+            </p>
+          </section>
+
+          {/* Developer Info */}
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>📚 For Developers</h2>
+            <p className={styles.sectionDescription}>
+              This module is designed for extensibility. See{' '}
+              <code>src/modules/secret-settings/DEVELOPER_GUIDE.md</code> for:
+            </p>
+            <ul className={styles.devList}>
+              <li>How to add new feature flags</li>
+              <li>How to add custom settings</li>
+              <li>Type definitions and examples</li>
+              <li>Best practices for UI integration</li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}

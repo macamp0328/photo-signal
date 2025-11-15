@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a202c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d3748;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Camera Icon (centered) -->
+  <g transform="translate(500, 215)">
+    <!-- Camera body -->
+    <rect x="0" y="35" width="120" height="90" rx="8" fill="#4a5568"/>
+    
+    <!-- Camera lens -->
+    <circle cx="60" cy="80" r="30" fill="#1a202c"/>
+    <circle cx="60" cy="80" r="24" fill="#2d3748"/>
+    <circle cx="60" cy="80" r="16" fill="#4a5568"/>
+    
+    <!-- Viewfinder -->
+    <rect x="20" y="15" width="80" height="16" rx="4" fill="#4a5568"/>
+    
+    <!-- Flash -->
+    <circle cx="100" cy="50" r="6" fill="#ed8936"/>
+    
+    <!-- Lens highlight -->
+    <circle cx="52" cy="72" r="6" fill="#cbd5e0" opacity="0.6"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="600" y="450" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700" fill="#ffffff" text-anchor="middle">
+    Photo Signal
+  </text>
+  <text x="600" y="500" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#cbd5e0" text-anchor="middle">
+    Camera-Based Music Gallery
+  </text>
+  
+  <!-- Decorative elements -->
+  <circle cx="200" cy="150" r="4" fill="#ed8936" opacity="0.6"/>
+  <circle cx="1000" cy="480" r="4" fill="#ed8936" opacity="0.6"/>
+  <circle cx="150" cy="500" r="3" fill="#4299e1" opacity="0.5"/>
+  <circle cx="1050" cy="180" r="3" fill="#4299e1" opacity="0.5"/>
+</svg>

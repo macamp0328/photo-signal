@@ -54,7 +54,7 @@ Everything runs in the browser. No backend needed.
 - **Vite** - Fast build tool and dev server
 - **React** - UI library
 - **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first CSS framework
+- **CSS Modules** - Scoped, modular CSS
 - **Howler.js** - Audio playback library
 
 ---
@@ -207,10 +207,11 @@ Key docs:
 
 ```
 photo-signal/
-├── assets/              # Test assets (CC0 licensed)
-│   ├── test-images/     # Sample JPEG images for testing
+├── assets/              # Test assets (CC0 unless noted)
+│   ├── test-images/     # Gradient + high-contrast PNG targets for testing
 │   ├── test-audio/      # Sample MP3 files for testing
-│   └── test-data/       # Sample JSON/CSV data files
+│   ├── test-data/       # Sample JSON/CSV data files
+│   └── example-real-photos/ # Contributor-provided photos for real-world testing
 ├── public/
 │   ├── audio/           # MP3 files
 │   ├── images/          # Photo storage (future)
@@ -224,10 +225,9 @@ photo-signal/
 │   ├── App.tsx          # Main app component
 │   ├── main.tsx         # Entry point
 │   ├── types.ts         # TypeScript types
-│   └── index.css        # Global styles with Tailwind
+│   └── index.css        # Global styles and CSS reset
 ├── index.html           # HTML entry point
 ├── vite.config.ts       # Vite configuration
-├── tailwind.config.js   # Tailwind configuration
 ├── tsconfig.json        # TypeScript configuration
 ├── package.json         # Dependencies and scripts
 └── ASSET_LICENSES.md    # Licensing info for test assets
@@ -241,13 +241,14 @@ The repository includes sample test assets to facilitate development and testing
 
 ### Test Assets Location
 
-- **Images**: `assets/test-images/` - 4 sample JPEG images (~30KB each)
+- **Images**: `assets/test-images/` - 4 gradient JPEGs + 3 high-contrast PNG targets (all ~30KB)
 - **Audio**: `assets/test-audio/` - 4 sample MP3 files (~40KB each, 5 seconds)
 - **Data**: `assets/test-data/` - Sample JSON and CSV data files
+- **Real Photos**: `assets/example-real-photos/` - 5 contributor-provided concert shots (internal testing)
 
 ### License
 
-All test assets are CC0 (Public Domain) licensed. See [ASSET_LICENSES.md](./ASSET_LICENSES.md) for complete details.
+Generated test assets are CC0 (Public Domain). Example real photos remain proprietary to the contributor and are licensed for internal testing only. See [ASSET_LICENSES.md](./ASSET_LICENSES.md) for complete details.
 
 ### Usage
 

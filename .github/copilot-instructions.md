@@ -10,13 +10,57 @@ When working on this project:
 2. **Follow Patterns**: Use established patterns from existing code
 3. **Ask Questions**: If unclear, ask for clarification rather than guessing
 4. **Update Documentation**: Keep these instructions current as the project evolves
-5. **Quality First**: Always run lint, type-check, and build before committing
+5. **Quality First**: Always run ALL quality checks before committing (see below)
+
+## ⚠️ MANDATORY Pre-Commit Workflow
+
+**EVERY TIME you make changes, you MUST run these commands before committing:**
+
+```bash
+npm run lint:fix      # Auto-fix linting issues
+npm run format        # Format code with Prettier
+npm run type-check    # Validate TypeScript types
+npm run test:run      # Run all tests
+npm run build         # Create production bundle
+```
+
+**DO NOT SKIP THIS.** These checks ensure code quality and prevent CI failures. If any check fails, fix the issue before committing.
+
+**User Expectation**: The user expects you to automatically run these checks before committing, without being asked. Make it a habit.
+
+### How to Interpret Test Output
+
+**Tests PASS when you see:**
+
+- `Test Files  X passed (X)` at the end
+- Exit code 0
+- Even if there are `stderr` warnings (React `act()` warnings, mock warnings, etc.)
+
+**Tests FAIL when you see:**
+
+- `Test Files  X failed`
+- Red ❌ or `FAIL` markers
+- Exit code != 0
+- Actual assertion errors
+
+**Common Non-Critical Warnings (can be ignored):**
+
+- `An update to TestComponent inside a test was not wrapped in act(...)` - React 19 warning, tests still pass
+- `Failed to set video srcObject in test environment` - Mock limitation, tests still pass
+- `Camera access error` in test output - Expected test behavior
+
+**If tests actually fail:**
+
+1. Read the error message carefully
+2. Fix the failing test or code
+3. Re-run `npm run test:run` to verify fix
+4. Only commit when exit code is 0
 
 ## Project Overview
 
 Photo Signal is a camera-based gallery app that plays music when you point at a printed photo. It's designed as a quiet, in-home installation that uses computer vision to recognize photos and trigger corresponding audio playback.
 
-**Tech Stack**: React 19, TypeScript, Vite, Tailwind CSS, Howler.js
+**Tech Stack**: React 19, TypeScript, Vite, CSS Modules, Howler.js
 
 ## Architecture Principles
 
@@ -97,14 +141,17 @@ npm run dev           # Start development server
 
 ### Before Committing
 
-Always run:
+**MANDATORY**: Always run ALL quality checks before committing:
 
 ```bash
 npm run lint:fix
 npm run format
 npm run type-check
+npm run test:run
 npm run build
 ```
+
+**These checks are NON-NEGOTIABLE.** Run them every single time before committing changes.
 
 ## Code Style Guidelines
 
@@ -123,9 +170,12 @@ npm run build
 
 ### Styling
 
-- Use Tailwind CSS utility classes
-- Keep inline styles to minimum
+- Use CSS Modules for component-specific styles
+- Import styles: `import styles from './Component.module.css'`
+- Apply classes: `className={styles.className}`
+- Keep inline styles for dynamic/calculated values only
 - Mobile-first responsive design
+- Use CSS custom properties (variables) for theming
 
 ### Prettier Configuration
 
@@ -611,10 +661,10 @@ npm audit fix  # Auto-fix vulnerabilities if possible
 
 - **State Management**: React hooks (useState, useContext) - no Redux needed for MVP
 - **HTTP Client**: Native `fetch` API
-- **Animations**: CSS transitions/animations or Tailwind
+- **Animations**: CSS transitions/animations (CSS Modules)
 - **Testing**: Vitest + React Testing Library (when implemented)
 - **Audio**: Howler.js (already included)
-- **Styling**: Tailwind CSS (already configured)
+- **Styling**: CSS Modules (scoped, modular CSS)
 
 ---
 

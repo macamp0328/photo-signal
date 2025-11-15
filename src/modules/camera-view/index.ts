@@ -5,4 +5,4 @@
  */
 
 export { CameraView } from './CameraView';
-export type { CameraViewProps } from './types';
+export type { CameraViewProps, AspectRatio } from './types';

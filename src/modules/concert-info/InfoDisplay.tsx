@@ -1,4 +1,5 @@
 import type { InfoDisplayProps } from './types';
+import styles from './InfoDisplay.module.css';
 
 /**
  * Concert Info Display Component
@@ -11,7 +12,9 @@ export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayP
   if (!concert || !isVisible) return null;
 
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
+    // Parse as local date to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -21,23 +24,17 @@ export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayP
 
   // For the new gallery layout, we use a card-style design
   return (
-    <div
-      className={`
-        bg-white border-2 border-main-text rounded-lg shadow-lg
-        p-6
-        ${className}
-      `}
-    >
-      <div className="space-y-3">
-        <div className="border-b-2 border-sub-background pb-3">
-          <h2 className="text-2xl font-bold text-main-text leading-tight">{concert.band}</h2>
+    <div className={`${styles.card} ${className}`}>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h2 className={styles.bandName}>{concert.band}</h2>
         </div>
-        <div className="space-y-2">
-          <p className="text-lg text-sub-text font-medium">{concert.venue}</p>
-          <p className="text-sm text-bonus-text">{formatDate(concert.date)}</p>
+        <div className={styles.details}>
+          <p className={styles.venue}>{concert.venue}</p>
+          <p className={styles.date}>{formatDate(concert.date)}</p>
         </div>
-        <div className="pt-2 border-t border-sub-background">
-          <p className="text-xs text-bonus-text uppercase tracking-wide">Now Playing</p>
+        <div className={styles.footer}>
+          <p className={styles.nowPlaying}>Now Playing</p>
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@ This project is now fully configured with a modern development workflow includin
 - **Vite** - Fast build tool and dev server
 - **React 19** - UI library
 - **TypeScript** - Type safety
-- **Tailwind CSS** - Utility-first CSS framework
+- **CSS Modules** - Scoped, modular CSS
 - **Howler.js** - Audio playback library
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
@@ -332,7 +332,7 @@ photo-signal/
 │   ├── App.tsx          # Main app component
 │   ├── main.tsx         # Entry point
 │   ├── types.ts         # TypeScript types
-│   └── index.css        # Global styles with Tailwind
+│   └── index.css        # Global styles and CSS reset
 ├── scripts/
 │   └── create-sample-audio.sh # Helper to create sample audio
 ├── eslint.config.js     # ESLint configuration (flat config format)
@@ -343,8 +343,6 @@ photo-signal/
 ├── tsconfig.json        # TypeScript configuration
 ├── tsconfig.app.json    # App TypeScript config
 ├── tsconfig.node.json   # Node TypeScript config
-├── postcss.config.js    # PostCSS configuration
-├── tailwind.config.js   # Tailwind CSS configuration
 └── vite.config.ts       # Vite configuration
 ├── .devcontainer/
 │   └── devcontainer.json       # DevContainer configuration
@@ -532,6 +530,26 @@ The current implementation uses placeholder logic that triggers after 3 seconds.
 1. Rebuild container: Cmd+Shift+P > "Dev Containers: Rebuild Container"
 2. Check Docker is running
 3. Ensure you have enough disk space
+
+### Files Appear Read-Only in VS Code (DevContainer)
+
+**Symptom**: Files show as read-only and cannot be saved, with error "File is read-only. Select 'Overwrite' to attempt to make it writeable."
+
+**Root Cause**: This is a bug in the `fakeowner` filesystem used by dev containers when mounting from macOS/Windows hosts. Files may be created with incorrect permissions (400 instead of 644).
+
+**Solution**: Recreate the affected files to fix permissions:
+
+```bash
+# For a single file
+cp path/to/readonly-file.ts /tmp/backup.ts
+cat /tmp/backup.ts > path/to/readonly-file.ts.new
+mv path/to/readonly-file.ts.new path/to/readonly-file.ts
+
+# Verify permissions are fixed (should show -rw-r--r--)
+ls -la path/to/readonly-file.ts
+```
+
+**Prevention**: This issue appears to be random. If you encounter it frequently, consider using local npm development instead of the DevContainer.
 
 ## Security
 

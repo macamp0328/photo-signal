@@ -24,4 +24,11 @@ export default [
       globals: globals.browser,
     },
   },
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.node,
+    },
+  },
 ];

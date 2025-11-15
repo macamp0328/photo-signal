@@ -1,5 +1,13 @@
-id,band,venue,date,audioFile,imageFile
-1,The Midnight Echoes,The Fillmore,2023-08-15,/assets/test-audio/concert-1.mp3,/assets/test-images/concert-1.jpg
-2,Electric Dreams,Red Rocks Amphitheatre,2023-09-22,/assets/test-audio/concert-2.mp3,/assets/test-images/concert-2.jpg
-3,Velvet Revolution,Madison Square Garden,2023-10-10,/assets/test-audio/concert-3.mp3,/assets/test-images/concert-3.jpg
-4,Sunset Boulevard,Hollywood Bowl,2023-11-05,/assets/test-audio/concert-4.mp3,/assets/test-images/concert-4.jpg
+id,band,venue,date,audioFile,imageFile,photoHash
+1,The Midnight Echoes,The Fillmore,2023-08-15,/assets/test-audio/concert-1.mp3,/assets/test-images/concert-1.jpg,00000000000001600acc000000000000
+2,Electric Dreams,Red Rocks Amphitheatre,2023-09-22,/assets/test-audio/concert-2.mp3,/assets/test-images/concert-2.jpg,00000000000001200330000000000000
+3,Velvet Revolution,Madison Square Garden,2023-10-10,/assets/test-audio/concert-3.mp3,/assets/test-images/concert-3.jpg,00000000000001200278000000000000
+4,Sunset Boulevard,Hollywood Bowl,2023-11-05,/assets/test-audio/concert-4.mp3,/assets/test-images/concert-4.jpg,00000000000001200a18000000000000
+5,Neon Bullseye,Calibration Hall,2024-01-05,/assets/test-audio/concert-song-1.mp3,/assets/test-images/easy-target-bullseye.png,00e00078061c0d4e0d4e061c007800e0
+6,Signal Stripes,Diagonal Pavilion,2024-01-06,/assets/test-audio/concert-song-2.mp3,/assets/test-images/easy-target-diagonals.png,0c008180b060265c05d101b100d90000
+7,Monochrome Grid,Pattern Plaza,2024-01-07,/assets/test-audio/concert-1.mp3,/assets/test-images/easy-target-checker.png,1188c663c6632508e00b118811884662
+8,"Example Real Photo (R0043343)",Analog Loft Stage,2024-02-01,/assets/test-audio/concert-2.mp3,/assets/example-real-photos/R0043343.jpg,c4f53cf10ccd16675d674cd2555b4b53
+9,"Example Real Photo (R0055333)",Downtown Rooftop,2024-02-02,/assets/test-audio/concert-3.mp3,/assets/example-real-photos/R0055333.jpg,953f16ff30fb02db0352534504410041
+10,"Example Real Photo (R0055917)",Indie Gallery,2024-02-03,/assets/test-audio/concert-4.mp3,/assets/example-real-photos/R0055917.jpg,41bb499486698c791cfb9acddacd5538
+11,"Example Real Photo (R0060632)",Harbor Warehouse,2024-02-04,/assets/test-audio/concert-song-1.mp3,/assets/example-real-photos/R0060632.jpg,866f356722d6b4c3319d133c0ab9555a
+12,"Example Real Photo (R0060861)",Night Market Stage,2024-02-05,/assets/test-audio/concert-song-2.mp3,/assets/example-real-photos/R0060861.jpg,960bc5ef462e2e8c4e6b566ec2eda7ed

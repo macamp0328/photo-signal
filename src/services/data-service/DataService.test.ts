@@ -42,9 +42,17 @@ describe('DataService', () => {
   // Store original fetch to restore after tests
   let originalFetch: typeof global.fetch;
 
+  // Spy on console methods to avoid noise in test output
+  let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     // Store original fetch
     originalFetch = global.fetch;
+
+    // Mock console methods to avoid noise in test output
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Clear cache before each test to ensure isolation
     dataService.clearCache();
@@ -56,6 +64,10 @@ describe('DataService', () => {
   afterEach(() => {
     // Restore original fetch
     global.fetch = originalFetch;
+
+    // Restore console methods
+    consoleLogSpy.mockRestore();
+    consoleWarnSpy.mockRestore();
 
     // Clear cache after each test
     dataService.clearCache();
@@ -127,8 +139,14 @@ describe('DataService', () => {
       // Verify error handling
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to load concert data:',
+        '[DataService] Failed to load concert data:',
         expect.any(Error)
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[DataService] Attempted to load from: /data.json'
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[DataService] Test mode is DISABLED. Try enabling it in Secret Settings.'
       );
       expect(concerts).toEqual([]);
 
@@ -508,6 +526,140 @@ describe('DataService', () => {
       const concert = dataService.getRandomConcert();
 
       expect(concert).toBeNull();
+    });
+  });
+
+  describe('setTestMode() and test data loading', () => {
+    it('should switch data source when test mode is enabled', async () => {
+      // Enable test mode
+      dataService.setTestMode(true);
+
+      // Mock fetch for test data URL
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ concerts: mockConcerts }),
+      });
+      global.fetch = mockFetch;
+
+      await dataService.getConcerts();
+
+      // Verify fetch was called with test data URL
+      expect(mockFetch).toHaveBeenCalledWith('/assets/test-data/concerts.json');
+      expect(dataService.getTestMode()).toBe(true);
+    });
+
+    it('should switch back to production data when test mode is disabled', async () => {
+      // Enable then disable test mode
+      dataService.setTestMode(true);
+      dataService.setTestMode(false);
+
+      // Mock fetch for production data URL
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ concerts: mockConcerts }),
+      });
+      global.fetch = mockFetch;
+
+      await dataService.getConcerts();
+
+      // Verify fetch was called with production data URL
+      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(dataService.getTestMode()).toBe(false);
+    });
+
+    it('should clear cache when switching test mode', async () => {
+      // Load production data
+      const mockFetch1 = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ concerts: mockConcerts }),
+      });
+      global.fetch = mockFetch1;
+      await dataService.getConcerts();
+
+      expect(mockFetch1).toHaveBeenCalledTimes(1);
+      expect(mockFetch1).toHaveBeenCalledWith('/data.json');
+
+      // Switch to test mode
+      dataService.setTestMode(true);
+
+      // Load test data
+      const testMockData = [{ ...mockConcerts[0], band: 'Test Band' }];
+      const mockFetch2 = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ concerts: testMockData }),
+      });
+      global.fetch = mockFetch2;
+
+      const concerts = await dataService.getConcerts();
+
+      // Should fetch from test URL with new data
+      expect(mockFetch2).toHaveBeenCalledTimes(1);
+      expect(mockFetch2).toHaveBeenCalledWith('/assets/test-data/concerts.json');
+      expect(concerts[0].band).toBe('Test Band');
+    });
+
+    it('should log when test mode changes', () => {
+      // Ensure starting state is disabled so subsequent toggle triggers logs
+      dataService.setTestMode(false);
+      consoleLogSpy.mockClear();
+
+      dataService.setTestMode(true);
+
+      // Verify logging occurred
+      expect(consoleLogSpy).toHaveBeenCalledWith('[DataService] Test mode ENABLED');
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        '[DataService] Data will be loaded from: /assets/test-data/concerts.json'
+      );
+    });
+
+    it('should not clear cache or notify if test mode does not change', () => {
+      // Set test mode to true
+      dataService.setTestMode(true);
+      consoleLogSpy.mockClear();
+
+      // Set it to true again (no change)
+      dataService.setTestMode(true);
+
+      // Should not log again
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('data source change notifications', () => {
+    it('should notify subscribers when test mode changes', () => {
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
+
+      // Ensure a known starting state
+      dataService.setTestMode(false);
+
+      // Subscribe
+      const unsubscribe1 = dataService.subscribe(listener1);
+      const unsubscribe2 = dataService.subscribe(listener2);
+
+      // Change test mode
+      dataService.setTestMode(true);
+
+      // Both listeners should be called
+      expect(listener1).toHaveBeenCalledTimes(1);
+      expect(listener2).toHaveBeenCalledTimes(1);
+
+      // Unsubscribe one listener
+      unsubscribe1();
+
+      // Change test mode again
+      dataService.setTestMode(false);
+
+      // Only listener2 should be called again
+      expect(listener1).toHaveBeenCalledTimes(1); // Still 1
+      expect(listener2).toHaveBeenCalledTimes(2); // Now 2
+
+      // Clean up
+      unsubscribe2();
     });
   });
 });

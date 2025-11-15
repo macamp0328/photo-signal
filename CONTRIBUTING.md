@@ -33,10 +33,12 @@ AI agents must follow additional requirements to ensure high-quality, production
 1. **Understand the architecture** by reading [ARCHITECTURE.md](./ARCHITECTURE.md) and [AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)
 2. **Read module contracts** before making changes (each module's README.md)
 3. **Make minimal, surgical changes** - only modify what's necessary
-4. **Run all quality checks** and fix failures before submitting PR
+4. **Run all quality checks AUTOMATICALLY** before every commit (see below)
 5. **Monitor your PRs** for CI failures and fix them proactively
 6. **Update documentation** when changing contracts or adding features
 7. **Use the PR template** and complete all checklist items
+
+**CRITICAL**: The user expects you to run quality checks **automatically before committing**, without being asked. This is a standard workflow, not an optional step.
 
 ---
 
@@ -64,6 +66,34 @@ npm run test:run
 ```
 
 **All checks must pass with zero errors before committing.**
+
+### How to Interpret Test Output
+
+**Tests PASS when you see:**
+
+- `Test Files  X passed (X)` at the end
+- Exit code 0
+- Even if there are `stderr` warnings (React `act()` warnings, mock warnings, etc.)
+
+**Tests FAIL when you see:**
+
+- `Test Files  X failed`
+- Red ❌ or `FAIL` markers
+- Exit code != 0
+- Actual assertion errors
+
+**Common Non-Critical Warnings (can be ignored):**
+
+- `An update to TestComponent inside a test was not wrapped in act(...)` - React 19 warning, tests still pass
+- `Failed to set video srcObject in test environment` - Mock limitation, tests still pass
+- `Camera access error` in test output - Expected test behavior
+
+**If tests actually fail:**
+
+1. Read the error message carefully
+2. Fix the failing test or code
+3. Re-run `npm run test:run` to verify fix
+4. Only commit when exit code is 0
 
 ### Pre-PR Submission Checks
 
@@ -417,6 +447,10 @@ vercel --prod
 2. **Architecture**: Read [ARCHITECTURE.md](./ARCHITECTURE.md) for system design
 3. **Setup Issues**: See [SETUP.md](./SETUP.md) troubleshooting section
 4. **Module Contracts**: Read module READMEs for API details
+5. **Custom Agents**: Use GitHub Copilot custom agents for specialized tasks:
+   - **[implementation-planner](./.github/agents/implementation-planner.md)** - Creates detailed implementation plans and technical specifications
+   - **[bug-fix-teammate](./.github/agents/bug-fix-teammate.md)** - Identifies and fixes critical bugs with targeted code changes
+   - **[cleanup-specialist](./.github/agents/cleanup-specialist.md)** - Improves code quality and maintainability through cleanup and refactoring
 
 ### Asking Questions
 

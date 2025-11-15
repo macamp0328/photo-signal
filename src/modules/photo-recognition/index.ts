@@ -6,5 +6,5 @@
  * Future: ML-based image recognition
  */
 
-export { usePhotoRecognition } from './usePhotoRecognition';
-export type { PhotoRecognitionHook, PhotoRecognitionOptions } from './types';
+export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';
+export type { PhotoRecognitionHook, PhotoRecognitionOptions, AspectRatio } from './types';

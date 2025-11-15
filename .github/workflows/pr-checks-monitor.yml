@@ -60,7 +60,12 @@ jobs:
               pr.data.head.ref.toLowerCase().startsWith(prefix)
             ) || pr.data.user.type === 'Bot';
 
-            return isAiAgent;
+            // Check if @copilot is assigned to the PR
+            const copilotAssigned = pr.data.assignees?.some(assignee => 
+              assignee.login === 'copilot'
+            ) || false;
+
+            return { isAiAgent, copilotAssigned };
 
       - name: Comment on PR with failure details
         if: steps.pr.outputs.result != 'null'
@@ -68,7 +73,9 @@ jobs:
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.result }};
-            const isAiAgent = ${{ steps.check_ai.outputs.result || false }};
+            const checkResult = ${{ steps.check_ai.outputs.result || '{}' }};
+            const isAiAgent = checkResult.isAiAgent || false;
+            const copilotAssigned = checkResult.copilotAssigned || false;
             const runId = context.payload.workflow_run.id;
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
 
@@ -92,13 +99,16 @@ jobs:
             // Build appropriate message based on contributor type
             let message = '';
 
+            // Always add @copilot mention for all PR failures
+            const copilotMention = '@copilot ';
+
             if (isAiAgent) {
               message = [
                 '## ⚠️ GitHub Actions Checks Failed',
                 '',
                 `<!-- ci-failure-${runId} -->`,
                 '',
-                '**Action Required**: This PR has failing GitHub Actions checks that must be fixed before review.',
+                `${copilotMention}**Action Required**: This PR has failing GitHub Actions checks that must be fixed before review.`,
                 '',
                 '### 🤖 AI Agent Responsibilities',
                 '',
@@ -145,7 +155,7 @@ jobs:
                 '',
                 `<!-- ci-failure-${runId} -->`,
                 '',
-                `Some checks failed for this PR. Please review the [CI logs](${runUrl}) and fix the issues.`,
+                `${copilotMention}Some checks failed for this PR. Please review the [CI logs](${runUrl}) and fix the issues.`,
                 '',
                 '### How to Fix',
                 '',

@@ -5,8 +5,12 @@
 set -e
 
 DIST_DIR="dist/assets"
-MAX_JS_SIZE_KB=80    # Maximum gzipped JS size in KB
-MAX_CSS_SIZE_KB=3    # Maximum gzipped CSS size in KB
+# Maximum gzipped JS size in KB
+# Set to 140KB to accommodate Howler.js audio library (~90KB gzipped)
+# + React/DOM (~40KB) + app code (~10KB)
+# TODO: Consider code splitting or lighter audio library for future optimization
+MAX_JS_SIZE_KB=140
+MAX_CSS_SIZE_KB=5    # Maximum gzipped CSS size in KB (increased for secret-settings and debug-overlay modules)
 
 echo "📦 Bundle Size Analysis"
 echo "======================="

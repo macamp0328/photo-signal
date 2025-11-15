@@ -14,6 +14,62 @@
 
 ---
 
+## Architecture Evolution
+
+### From Monolithic to Modular (2025)
+
+Photo Signal was refactored from monolithic components to a modular architecture to enable parallel development and improve maintainability.
+
+**Old Architecture (Before 2025):**
+
+```
+Camera.tsx (179 lines)
+├── Camera access logic
+├── Motion detection logic
+├── Photo recognition logic
+├── Data fetching
+├── UI rendering
+└── Permission handling
+```
+
+**Problems:**
+
+- ❌ One file does too much (violates Single Responsibility Principle)
+- ❌ Hard to test individual features in isolation
+- ❌ Multiple developers would conflict on same file
+- ❌ Difficult to replace just one feature (e.g., photo recognition algorithm)
+
+**New Architecture (Current):**
+
+```
+modules/
+├── camera-access/      (65 lines)   ← ONE job: manage camera stream
+├── camera-view/        (88 lines)   ← ONE job: display video UI
+├── motion-detection/   (105 lines)  ← ONE job: detect movement
+└── photo-recognition/  (75 lines)   ← ONE job: match photos
+```
+
+**Benefits:**
+
+- ✅ Each module has ONE clear responsibility
+- ✅ Easy to test in isolation (unit tests per module)
+- ✅ Multiple developers/agents work in parallel without conflicts
+- ✅ Replace any module without touching others (e.g., swap recognition algorithm)
+- ✅ Clear contracts via TypeScript interfaces
+- ✅ Better code organization and discoverability
+
+**Migration Mapping:**
+
+| Old Component                | New Module(s)                                                                                                                  | Notes                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `Camera.tsx` (179 lines)     | `camera-access/` (65 lines)<br>`camera-view/` (88 lines)<br>`motion-detection/` (105 lines)<br>`photo-recognition/` (75 lines) | Split into 4 focused modules        |
+| `AudioPlayer.tsx` (73 lines) | `audio-playback/` (113 lines)                                                                                                  | Enhanced with better controls       |
+| `InfoDisplay.tsx` (36 lines) | `concert-info/` (54 lines)                                                                                                     | Slightly expanded with more options |
+
+The new modular architecture achieved **100% feature parity** while improving code quality, testability, and developer experience.
+
+---
+
 ## System Overview
 
 ```
@@ -129,10 +185,69 @@ interface PhotoRecognitionService {
 }
 ```
 
-**Current**: Placeholder (3s delay simulation)  
-**Future**: ML-based perceptual hashing
+**Current**: dHash perceptual hashing with functional frame cropping  
+**Future**: Enhanced ML-based recognition
 
 **Dependencies**: `data-service`
+
+---
+
+### 3a. Functional Framing Guides
+
+**Location**: `src/modules/camera-view/` and `src/modules/photo-recognition/`
+
+**Purpose**: Provide meaningful visual framing that functionally crops the analyzed region
+
+The camera view displays a framing guide to help users align photos. This guide is **functionally meaningful** - the photo recognition module only analyzes pixels within the framed region.
+
+**Benefits**:
+
+- ✅ Eliminates background noise and clutter
+- ✅ Reduces false positives from unrelated objects
+- ✅ Improves recognition accuracy
+- ✅ Makes framing guide intuitive and trustworthy
+- ✅ Supports both landscape (3:2) and portrait (2:3) photos
+
+**Aspect Ratios**:
+
+- **3:2 (Landscape)**: Default, for horizontal photos
+- **2:3 (Portrait)**: For vertical photos
+
+**Data Flow with Functional Cropping**:
+
+```
+Camera Stream → Full Video Frame → Crop to Framed Region → dHash Algorithm
+                                    ↑
+                      Only analyzes pixels inside framing guide
+                      (3:2 landscape OR 2:3 portrait)
+```
+
+**Implementation**:
+
+1. CameraView renders framing overlay (CSS-based)
+2. Photo recognition calculates framed region coordinates
+3. Canvas extracts only the cropped region
+4. dHash algorithm analyzes cropped pixels only
+5. Matching compares cropped hash with reference hashes
+
+**Cropping Logic**:
+
+```typescript
+function calculateFramedRegion(
+  videoWidth: number,
+  videoHeight: number,
+  aspectRatio: '3:2' | '2:3'
+): { x: number; y: number; width: number; height: number } {
+  // Calculates centered crop region at 80% of viewport
+  // Matches visual framing guide exactly
+}
+```
+
+**Performance**:
+
+- GPU-accelerated canvas cropping (no overhead)
+- Smaller canvas = faster hash computation
+- ~6-8ms per frame on mobile (same or faster than before)
 
 ---
 

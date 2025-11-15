@@ -172,6 +172,7 @@ function App() {
       onRetry={retry}
       aspectRatio={aspectRatio}
       onAspectRatioToggle={() => setAspectRatio((prev) => (prev === '3:2' ? '2:3' : '3:2'))}
+      grayscale={isEnabled('grayscale-mode')}
     />
   );
 

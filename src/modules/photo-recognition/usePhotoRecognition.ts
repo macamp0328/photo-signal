@@ -199,7 +199,8 @@ export function usePhotoRecognition(
             if (hashes.length > 1) {
               console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
               hashes.forEach((hash, idx) => {
-                const exposureLabel = idx === 0 ? 'dark' : idx === 1 ? 'normal' : 'bright';
+                const exposureLabels = ['dark', 'normal', 'bright'];
+                const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
                 console.log(`      [${exposureLabel}] ${hash}`);
               });
             } else {

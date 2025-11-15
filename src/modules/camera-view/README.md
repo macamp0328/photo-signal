@@ -37,6 +37,7 @@ Render camera video feed with UI overlay.
   onRetry?: () => void;               // Retry callback for errors
   aspectRatio?: '3:2' | '2:3';        // Aspect ratio for framing guide (default '3:2')
   onAspectRatioToggle?: () => void;   // Callback when aspect ratio toggle is clicked
+  grayscale?: boolean;                // Apply grayscale filter to camera view (default false)
 }
 ```
 
@@ -50,6 +51,7 @@ Render camera video feed with UI overlay.
 - **3:2 aspect ratio guide overlay (landscape)**
 - **2:3 aspect ratio guide overlay (portrait)**
 - **Aspect ratio toggle button**
+- **Grayscale filter support**
 - Corner markers for alignment
 - Instruction text
 - Permission error handling
@@ -119,6 +121,29 @@ function App() {
       hasPermission={hasPermission}
       onRetry={retry}
       aspectRatio="2:3"
+    />
+  );
+}
+```
+
+### With Grayscale Filter
+
+```typescript
+import { useCameraAccess } from '@/modules/camera-access';
+import { CameraView } from '@/modules/camera-view';
+import { useFeatureFlags } from '@/modules/secret-settings';
+
+function App() {
+  const { stream, error, hasPermission, retry } = useCameraAccess();
+  const { isEnabled } = useFeatureFlags();
+
+  return (
+    <CameraView
+      stream={stream}
+      error={error}
+      hasPermission={hasPermission}
+      onRetry={retry}
+      grayscale={isEnabled('grayscale-mode')}
     />
   );
 }

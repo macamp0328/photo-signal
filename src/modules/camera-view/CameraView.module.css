@@ -85,6 +85,10 @@
   object-fit: cover;
 }
 
+.grayscale {
+  filter: grayscale(100%);
+}
+
 /* 3:2 Aspect Ratio Overlay */
 .overlay {
   position: absolute;

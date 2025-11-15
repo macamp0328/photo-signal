@@ -14,6 +14,7 @@ export function CameraView({
   onRetry,
   aspectRatio = '3:2',
   onAspectRatioToggle,
+  grayscale = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -54,7 +55,13 @@ export function CameraView({
   return (
     <div className={styles.container}>
       {/* Video feed */}
-      <video ref={videoRef} autoPlay playsInline muted className={styles.video} />
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={`${styles.video} ${grayscale ? styles.grayscale : ''}`}
+      />
 
       {/* Aspect Ratio Overlay */}
       <div className={styles.overlay}>

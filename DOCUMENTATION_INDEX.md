@@ -26,6 +26,7 @@
 ### Research & Technical Specifications
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
+- **[docs/image-recognition-exploratory-analysis.md](./docs/image-recognition-exploratory-analysis.md)** - Exploratory analysis and benchmarking of image recognition pipeline: current failure points, performance metrics, comparative analysis vs QR codes, and actionable improvement roadmap
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
 - **[docs/grayscale-feature-implementation.md](./docs/grayscale-feature-implementation.md)** - Implementation details for grayscale camera feature flag, including technical specs, usage guide, and browser compatibility
 - **[docs/mobile-first-refactor-summary.md](./docs/mobile-first-refactor-summary.md)** - Comprehensive summary of mobile-first CSS refactoring with detailed before/after comparisons, touch target improvements, and responsive breakpoint documentation
@@ -318,7 +319,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (8 files)
-- ✅ Research & technical specifications (11 files - including grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
+- ✅ Research & technical specifications (12 files - including exploratory analysis, grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
@@ -338,6 +339,6 @@ This index covers:
 - ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 122 documented files
+**Total**: 123 documented files
 
 Last updated: 2025-11-15

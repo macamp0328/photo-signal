@@ -12,6 +12,7 @@ This document summarizes the comprehensive mobile-first CSS refactoring complete
 ## Key Changes
 
 ### 1. Removed Duplicate CSS Variables
+
 **File**: `src/index.css`
 
 **Problem**: CSS variables were defined twice (lines 19-64 and 198-243), causing redundancy and potential confusion.
@@ -27,6 +28,7 @@ This document summarizes the comprehensive mobile-first CSS refactoring complete
 All CSS modules were converted from desktop-first (or mixed) to truly mobile-first approach.
 
 #### Before (Desktop-First)
+
 ```css
 .component {
   font-size: 1.5rem;
@@ -42,6 +44,7 @@ All CSS modules were converted from desktop-first (or mixed) to truly mobile-fir
 ```
 
 #### After (Mobile-First)
+
 ```css
 .component {
   font-size: 1rem;
@@ -57,6 +60,7 @@ All CSS modules were converted from desktop-first (or mixed) to truly mobile-fir
 ```
 
 **Files Changed**:
+
 - `src/modules/debug-overlay/DebugOverlay.module.css`
 - `src/modules/secret-settings/SecretSettings.module.css`
 - `src/modules/gallery-layout/GalleryLayout.module.css`
@@ -69,15 +73,16 @@ All CSS modules were converted from desktop-first (or mixed) to truly mobile-fir
 
 Established consistent breakpoints across all modules:
 
-| Breakpoint | Target | Usage |
-|------------|--------|-------|
-| Base | Mobile (320px+) | All base styles |
-| 400px | Small tablets | DebugOverlay enhancements |
-| 640px | Tablets | SecretSettings modal styling |
-| 768px | Large tablets/Desktop | Most layout changes |
-| 1280px | Desktop/Ultrawide | Large text scaling |
+| Breakpoint | Target                | Usage                        |
+| ---------- | --------------------- | ---------------------------- |
+| Base       | Mobile (320px+)       | All base styles              |
+| 400px      | Small tablets         | DebugOverlay enhancements    |
+| 640px      | Tablets               | SecretSettings modal styling |
+| 768px      | Large tablets/Desktop | Most layout changes          |
+| 1280px     | Desktop/Ultrawide     | Large text scaling           |
 
 **Special Breakpoint**:
+
 - `@media (max-height: 500px) and (orientation: landscape)` - Mobile landscape adjustments
 
 ---
@@ -89,6 +94,7 @@ Established consistent breakpoints across all modules:
 **Implementation**: Added `min-height: 2.75rem` and `min-width: 2.75rem` to all interactive elements.
 
 **Components Updated**:
+
 - ✅ `.beginButton` (GalleryLayout)
 - ✅ `.retryButton` (CameraView)
 - ✅ `.aspectToggle` (CameraView)
@@ -104,13 +110,14 @@ Established consistent breakpoints across all modules:
 **Problem**: Content could be obscured by iPhone notches or Android punch-holes in fullscreen mode.
 
 **Solution**:
+
 1. Added `viewport-fit=cover` to viewport meta tag (`index.html`)
 2. Added safe-area padding to body element (`src/index.css`)
 
 ```css
 body {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) 
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 ```
 
@@ -142,11 +149,13 @@ body {
 **Change**: Converted all fixed pixel values to rem units across all CSS modules.
 
 **Benefits**:
+
 - Better accessibility (respects user font size preferences)
 - Consistent scaling
 - Easier maintenance
 
 **Example**:
+
 - `font-size: 14px` → `font-size: 0.875rem`
 - `padding: 16px` → `padding: 1rem`
 - `gap: 8px` → `gap: 0.5rem`
@@ -177,6 +186,7 @@ Added `@media (prefers-reduced-motion: reduce)` to respect user preferences.
 #### B. Existing Focus Indicators
 
 Verified all interactive elements have proper focus indicators (already implemented):
+
 - 2px solid outline
 - 2px offset
 - High contrast colors
@@ -189,23 +199,26 @@ Verified all interactive elements have proper focus indicators (already implemen
 Implemented mobile-first typography scaling across components:
 
 #### GalleryLayout Landing Page
-| Element | Mobile | Tablet (768px) | Desktop (1280px) |
-|---------|--------|----------------|------------------|
-| Title | 2rem | 3rem | 3.75rem |
-| Subtitle | 1rem | 1.25rem | 1.5rem |
-| Description | 0.875rem | 1rem | 1.125rem |
+
+| Element     | Mobile   | Tablet (768px) | Desktop (1280px) |
+| ----------- | -------- | -------------- | ---------------- |
+| Title       | 2rem     | 3rem           | 3.75rem          |
+| Subtitle    | 1rem     | 1.25rem        | 1.5rem           |
+| Description | 0.875rem | 1rem           | 1.125rem         |
 
 #### GalleryLayout Active View
-| Element | Mobile | Tablet (768px) |
-|---------|--------|----------------|
-| Header Title | 1.25rem | 1.875rem |
-| Header Subtitle | 0.75rem | 1rem |
+
+| Element         | Mobile  | Tablet (768px) |
+| --------------- | ------- | -------------- |
+| Header Title    | 1.25rem | 1.875rem       |
+| Header Subtitle | 0.75rem | 1rem           |
 
 #### InfoDisplay
-| Element | Mobile | Tablet (768px) |
-|---------|--------|----------------|
-| Band Name | 1.25rem | 1.5rem |
-| Venue | 1rem | 1.125rem |
+
+| Element   | Mobile  | Tablet (768px) |
+| --------- | ------- | -------------- |
+| Band Name | 1.25rem | 1.5rem         |
+| Venue     | 1rem    | 1.125rem       |
 
 ---
 
@@ -223,7 +236,7 @@ Implemented mobile-first typography scaling across components:
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
   }
-  
+
   .instructions {
     bottom: 0.5rem;
     font-size: 0.625rem;
@@ -240,12 +253,14 @@ Implemented mobile-first typography scaling across components:
 ### GalleryLayout (`src/modules/gallery-layout/GalleryLayout.module.css`)
 
 **Changes**:
+
 - Reduced mobile padding from `3rem 1.5rem` to `1.5rem 1rem`
 - Reduced mobile gap from `1.5rem` to `1rem`
 - Smaller mobile typography (see table above)
 - Added ultrawide breakpoint (1280px) for even larger text
 
 **Before/After**:
+
 - **Mobile padding**: 3rem → 1.5rem (50% reduction)
 - **Mobile title size**: 3rem → 2rem (33% reduction)
 - **Touch target**: ✅ Now 2.75rem minimum
@@ -255,6 +270,7 @@ Implemented mobile-first typography scaling across components:
 ### CameraView (`src/modules/camera-view/CameraView.module.css`)
 
 **Changes**:
+
 - Smaller corner markers on mobile (1.5rem vs 2rem)
 - Thinner borders on mobile (3px vs 4px)
 - Smaller instructions text on mobile
@@ -262,6 +278,7 @@ Implemented mobile-first typography scaling across components:
 - Touch-friendly buttons (min 2.75rem)
 
 **Before/After**:
+
 - **Corner markers**: 2rem → 1.5rem mobile, 2rem tablet+
 - **Instructions position**: Bottom 2rem → 1rem mobile, 2rem tablet+
 - **Landscape mode**: New special handling for tight vertical space
@@ -271,11 +288,13 @@ Implemented mobile-first typography scaling across components:
 ### InfoDisplay (`src/modules/concert-info/InfoDisplay.module.css`)
 
 **Changes**:
+
 - Added responsive breakpoints (previously had none)
 - Smaller padding on mobile
 - Responsive typography
 
 **Before/After**:
+
 - **Padding**: 1.5rem → 1rem mobile, 1.5rem tablet+
 - **Band name**: 1.5rem → 1.25rem mobile, 1.5rem tablet+
 - **Venue**: 1.125rem → 1rem mobile, 1.125rem tablet+
@@ -285,11 +304,13 @@ Implemented mobile-first typography scaling across components:
 ### DebugOverlay (`src/modules/debug-overlay/DebugOverlay.module.css`)
 
 **Changes**:
+
 - Converted from desktop-first to mobile-first
 - All pixel values → rem units
 - Smaller on mobile, larger on tablet+
 
 **Before/After**:
+
 - **Position**: Bottom 20px/Right 20px → 0.625rem mobile, 1.25rem tablet+
 - **Min width**: 280px → 15rem mobile, 17.5rem tablet+
 - **Font size**: 13px → 0.75rem mobile, 0.8125rem tablet+
@@ -299,11 +320,13 @@ Implemented mobile-first typography scaling across components:
 ### SecretSettings (`src/modules/secret-settings/SecretSettings.module.css`)
 
 **Changes**:
+
 - Converted from desktop-first to mobile-first
 - Full-screen on mobile, modal with padding on tablet+
 - Touch-friendly controls
 
 **Before/After**:
+
 - **Mobile**: Full screen (100vh), no border radius
 - **Tablet+**: Modal with 0.75rem border radius, 1rem padding
 - **Touch targets**: All buttons/checkboxes now 2.75rem minimum
@@ -315,6 +338,7 @@ Implemented mobile-first typography scaling across components:
 ### Visual Regression Testing
 
 Test at these viewport sizes:
+
 - ✅ **320px** - iPhone SE (smallest common device)
 - ✅ **375px** - iPhone 6/7/8
 - ✅ **414px** - iPhone Plus models
@@ -332,12 +356,14 @@ Test at these viewport sizes:
 ### Device Testing
 
 **iOS**:
+
 - iPhone SE (compact)
 - iPhone 13/14 (standard)
 - iPhone 14 Pro Max (large, with notch)
 - iPad (tablet)
 
 **Android**:
+
 - Pixel 5 (compact)
 - Samsung Galaxy S21 (standard, punch-hole)
 - Samsung Galaxy Fold (unique form factor)
@@ -357,33 +383,34 @@ Test at these viewport sizes:
 
 ### Code Quality Improvements
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
+| Metric                  | Before   | After   | Change     |
+| ----------------------- | -------- | ------- | ---------- |
 | Duplicate CSS variables | 2 blocks | 1 block | -100 lines |
-| Desktop-first modules | 3 | 0 | -3 |
-| Mobile-first modules | 4 | 7 | +3 |
-| Touch target compliance | Partial | 100% | ✅ |
-| Pixel values | ~200 | 0 | All rem |
-| Safe-area support | No | Yes | ✅ |
-| Reduced motion support | No | Yes | ✅ |
-| Landscape support | Partial | Full | ✅ |
+| Desktop-first modules   | 3        | 0       | -3         |
+| Mobile-first modules    | 4        | 7       | +3         |
+| Touch target compliance | Partial  | 100%    | ✅         |
+| Pixel values            | ~200     | 0       | All rem    |
+| Safe-area support       | No       | Yes     | ✅         |
+| Reduced motion support  | No       | Yes     | ✅         |
+| Landscape support       | Partial  | Full    | ✅         |
 
 ### Responsive Breakpoint Coverage
 
-| Component | Breakpoints | Mobile-First |
-|-----------|-------------|--------------|
-| GalleryLayout | 768px, 1280px | ✅ |
-| CameraView | 768px, landscape | ✅ |
-| InfoDisplay | 768px | ✅ |
-| DebugOverlay | 400px | ✅ |
-| SecretSettings | 640px | ✅ |
-| PsychedelicEffect | N/A (works all sizes) | ✅ |
+| Component         | Breakpoints           | Mobile-First |
+| ----------------- | --------------------- | ------------ |
+| GalleryLayout     | 768px, 1280px         | ✅           |
+| CameraView        | 768px, landscape      | ✅           |
+| InfoDisplay       | 768px                 | ✅           |
+| DebugOverlay      | 400px                 | ✅           |
+| SecretSettings    | 640px                 | ✅           |
+| PsychedelicEffect | N/A (works all sizes) | ✅           |
 
 ---
 
 ## Browser Compatibility
 
 All changes use standard CSS features supported by:
+
 - ✅ Chrome 90+ (including Android)
 - ✅ Safari 14+ (including iOS)
 - ✅ Firefox 88+
@@ -397,7 +424,9 @@ All changes use standard CSS features supported by:
 ## Future Recommendations
 
 ### 1. Adopt Fluid Spacing Variables
+
 Consider replacing fixed spacing with the new fluid variables:
+
 ```css
 /* Instead of */
 padding: 1rem;
@@ -407,12 +436,15 @@ padding: var(--spacing-lg);
 ```
 
 ### 2. Add Container Queries
+
 When browser support improves, consider using container queries for even more granular responsiveness.
 
 ### 3. Progressive Enhancement
+
 Consider adding CSS Grid fallbacks for older browsers (though current support is excellent).
 
 ### 4. Performance Optimization
+
 - Consider using CSS containment for better rendering performance
 - Audit for unused CSS rules
 - Consider critical CSS extraction for faster initial load

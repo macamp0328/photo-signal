@@ -8,7 +8,7 @@ assignees: ''
 
 ## Problem Statement
 
-Test Mode now includes real concert recordings that live under `assets/example-real-songs/`. The current approach works for a handful of files (~170 MB total) but does **not** scale:
+Test Mode now includes a pack of real 30-second clips under `assets/example-real-songs/`. The current approach works for a handful of files (~12 MB total) but does **not** scale once we add full-length takes or dozens more clips:
 
 - Git history balloons quickly when committing large binaries
 - Vite copies every MP3 into `public/assets/example-real-songs/`, increasing build times and preview startup
@@ -19,7 +19,7 @@ We need a sustainable storage + delivery model before adding more real songs.
 
 ## Context
 
-- Audio playback today expects static URLs (e.g., `/assets/example-real-songs/01 Mass Romantic.mp3`)
+- Audio playback today expects static URLs (e.g., `/assets/example-real-songs/01-mass-romantic-clip-01.mp3`)
 - Build pipeline runs in Vercel + GitHub Actions with default disk quotas
 - Some contributors work offline, so we still need an easy path for local testing
 - Licensing rules differ between synthetic tones (CC0) and user-provided recordings (internal-use only)

@@ -146,3 +146,117 @@ export function hexToBinary(hex: string): string {
 
   return binary;
 }
+
+/**
+ * Compute Laplacian variance of an image to detect blur
+ *
+ * The Laplacian variance measures the amount of edges in an image.
+ * Lower variance indicates a blurrier image (motion blur, out of focus).
+ * Higher variance indicates a sharper image with clear edges.
+ *
+ * Based on the method described in:
+ * Pech-Pacheco et al., 2000, "Diatom autofocusing in brightfield microscopy"
+ *
+ * @param imageData - Image data to analyze
+ * @returns Variance value (higher = sharper, lower = blurrier)
+ */
+export function computeLaplacianVariance(imageData: ImageData): number {
+  const { width, height } = imageData;
+  const grayscale = toGrayscale(imageData);
+
+  // Laplacian kernel (3x3):
+  // [ 0  1  0 ]
+  // [ 1 -4  1 ]
+  // [ 0  1  0 ]
+  const laplacianValues: number[] = [];
+
+  // Apply Laplacian filter (skip 1px border to avoid edge cases)
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const center = grayscale[y * width + x];
+      const top = grayscale[(y - 1) * width + x];
+      const bottom = grayscale[(y + 1) * width + x];
+      const left = grayscale[y * width + (x - 1)];
+      const right = grayscale[y * width + (x + 1)];
+
+      // Apply Laplacian kernel
+      const laplacian = top + bottom + left + right - 4 * center;
+      laplacianValues.push(laplacian);
+    }
+  }
+
+  // Compute variance of Laplacian values
+  if (laplacianValues.length === 0) {
+    return 0;
+  }
+
+  const mean = laplacianValues.reduce((sum, val) => sum + val, 0) / laplacianValues.length;
+  const variance =
+    laplacianValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+    laplacianValues.length;
+
+  return variance;
+}
+
+/**
+ * Detect glare in an image by checking for blown-out pixels
+ *
+ * Glare (specular reflections) causes pixels to be blown out to near-white values.
+ * This function detects when a significant portion of the image is affected by glare.
+ *
+ * @param imageData - Image data to analyze
+ * @param threshold - Brightness threshold for blown-out pixels (0-255), default 250
+ * @param percentageThreshold - Percentage of image that must be blown out to trigger detection (0-100), default 20
+ * @returns Object with glare detection results
+ */
+export function detectGlare(
+  imageData: ImageData,
+  threshold: number = 250,
+  percentageThreshold: number = 20
+): { hasGlare: boolean; glarePercentage: number } {
+  const { data } = imageData;
+  let blownOutPixels = 0;
+  const totalPixels = data.length / 4; // Each pixel has 4 values (RGBA)
+
+  // Count pixels where all RGB channels are above threshold
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    // Check if all channels are blown out (near white)
+    if (r > threshold && g > threshold && b > threshold) {
+      blownOutPixels++;
+    }
+  }
+
+  const glarePercentage = (blownOutPixels / totalPixels) * 100;
+  const hasGlare = glarePercentage > percentageThreshold;
+
+  return { hasGlare, glarePercentage };
+}
+
+/**
+ * Adjust image brightness to simulate different exposure levels
+ *
+ * Used for generating multi-exposure reference hashes.
+ * Positive factor brightens, negative factor darkens.
+ *
+ * @param imageData - Image data to adjust
+ * @param factor - Brightness adjustment factor (-100 to +100)
+ * @returns New ImageData with adjusted brightness
+ */
+export function adjustBrightness(imageData: ImageData, factor: number): ImageData {
+  const { width, height, data } = imageData;
+  const adjusted = new ImageData(width, height);
+
+  for (let i = 0; i < data.length; i += 4) {
+    // Adjust RGB channels, keep alpha unchanged
+    adjusted.data[i] = Math.max(0, Math.min(255, data[i] + factor)); // R
+    adjusted.data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + factor)); // G
+    adjusted.data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + factor)); // B
+    adjusted.data[i + 3] = data[i + 3]; // A (unchanged)
+  }
+
+  return adjusted;
+}

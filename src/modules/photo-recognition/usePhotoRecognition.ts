@@ -7,10 +7,12 @@ import type {
   PhotoRecognitionOptions,
   RecognitionDebugInfo,
   AspectRatio,
+  FrameQualityInfo,
+  RecognitionTelemetry,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
 import { hammingDistance } from './algorithms/hamming';
-import { convertToGrayscale } from './algorithms/utils';
+import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
 
 const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string } => {
   return typeof concert.photoHash === 'string' && concert.photoHash.length > 0;
@@ -76,6 +78,9 @@ export function usePhotoRecognition(
     checkInterval = 1000,
     enableDebugInfo = false,
     aspectRatio = '3:2',
+    sharpnessThreshold = 100,
+    glareThreshold = 250,
+    glarePercentageThreshold = 20,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -84,6 +89,7 @@ export function usePhotoRecognition(
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
+  const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
   const [restartKey, setRestartKey] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -92,6 +98,16 @@ export function usePhotoRecognition(
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef<number>(0);
+  
+  // Telemetry tracking
+  const telemetryRef = useRef<RecognitionTelemetry>({
+    totalFrames: 0,
+    blurRejections: 0,
+    glareRejections: 0,
+    qualityFrames: 0,
+    successfulRecognitions: 0,
+    failedAttempts: 0,
+  });
 
   // Load concert data
   const loadConcerts = useCallback(() => {
@@ -121,9 +137,18 @@ export function usePhotoRecognition(
     setRecognizedConcert(null);
     setIsRecognizing(false);
     setDebugInfo(null);
+    setFrameQuality(null);
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
+    telemetryRef.current = {
+      totalFrames: 0,
+      blurRejections: 0,
+      glareRejections: 0,
+      qualityFrames: 0,
+      successfulRecognitions: 0,
+      failedAttempts: 0,
+    };
     setRestartKey((key) => key + 1);
   }, []);
 
@@ -244,6 +269,61 @@ export function usePhotoRecognition(
 
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+        // Phase 1: Check frame quality (sharpness and glare detection)
+        telemetryRef.current.totalFrames += 1;
+
+        // Check sharpness (motion blur detection)
+        const sharpness = computeLaplacianVariance(imageData);
+        const isSharp = sharpness >= sharpnessThreshold;
+
+        // Check for glare
+        const glareDetection = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
+        const { hasGlare, glarePercentage } = glareDetection;
+
+        // Update frame quality state for UI feedback
+        const currentFrameQuality: FrameQualityInfo = {
+          sharpness,
+          isSharp,
+          glarePercentage,
+          hasGlare,
+        };
+        setFrameQuality(currentFrameQuality);
+
+        // Log frame quality in Test Mode
+        if (isTestMode) {
+          console.debug(`\nFrame Quality Check:`);
+          console.debug(`  Sharpness: ${sharpness.toFixed(1)} (threshold: ${sharpnessThreshold})`);
+          console.debug(`  ${isSharp ? '✓' : '✗'} Sharp enough: ${isSharp}`);
+          console.debug(`  Glare: ${glarePercentage.toFixed(1)}% (threshold: ${glarePercentageThreshold}%)`);
+          console.debug(`  ${hasGlare ? '✗' : '✓'} Glare detected: ${hasGlare}`);
+        }
+
+        // Skip frame if it fails quality checks
+        if (!isSharp) {
+          telemetryRef.current.blurRejections += 1;
+          if (isTestMode) {
+            console.debug(`❌ Frame REJECTED: Too blurry (motion blur detected)`);
+            console.debug(`   Telemetry: ${telemetryRef.current.blurRejections} blur rejections / ${telemetryRef.current.totalFrames} total frames`);
+          }
+          return; // Skip hashing for blurry frames
+        }
+
+        if (hasGlare) {
+          telemetryRef.current.glareRejections += 1;
+          if (isTestMode) {
+            console.debug(`❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`);
+            console.debug(`   Telemetry: ${telemetryRef.current.glareRejections} glare rejections / ${telemetryRef.current.totalFrames} total frames`);
+          }
+          return; // Skip hashing for frames with glare
+        }
+
+        // Frame passed quality checks
+        telemetryRef.current.qualityFrames += 1;
+        if (isTestMode) {
+          console.debug(`✓ Frame PASSED quality checks`);
+          console.debug(`  Telemetry: ${telemetryRef.current.qualityFrames} quality frames / ${telemetryRef.current.totalFrames} total`);
+        }
+
         // Apply grayscale conversion if enabled
         if (isEnabled('grayscale-mode')) {
           convertToGrayscale(imageData);
@@ -338,6 +418,8 @@ export function usePhotoRecognition(
             stability: stabilityInfo,
             similarityThreshold,
             recognitionDelay,
+            frameQuality: currentFrameQuality,
+            telemetry: { ...telemetryRef.current },
           });
         }
 
@@ -368,11 +450,19 @@ export function usePhotoRecognition(
                 // Stable match confirmed!
                 setRecognizedConcert(bestMatch);
                 setIsRecognizing(false);
+                telemetryRef.current.successfulRecognitions += 1;
 
                 if (import.meta.env.DEV || isTestMode) {
                   console.log('');
                   console.log('🎵 RECOGNIZED!', bestMatch.band);
                   console.log('━'.repeat(60));
+                  console.log(`📊 Telemetry Summary:`);
+                  console.log(`  Total Frames: ${telemetryRef.current.totalFrames}`);
+                  console.log(`  Quality Frames: ${telemetryRef.current.qualityFrames} (${((telemetryRef.current.qualityFrames / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`);
+                  console.log(`  Blur Rejections: ${telemetryRef.current.blurRejections} (${((telemetryRef.current.blurRejections / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`);
+                  console.log(`  Glare Rejections: ${telemetryRef.current.glareRejections} (${((telemetryRef.current.glareRejections / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`);
+                  console.log(`  Successful Recognitions: ${telemetryRef.current.successfulRecognitions}`);
+                  console.log(`  Failed Attempts: ${telemetryRef.current.failedAttempts}`);
                 }
 
                 lastMatchedConcertRef.current = null;
@@ -411,6 +501,7 @@ export function usePhotoRecognition(
           }
 
           if (lastMatchedConcertRef.current) {
+            telemetryRef.current.failedAttempts += 1;
             lastMatchedConcertRef.current = null;
             matchStartTimeRef.current = null;
             setIsRecognizing(false);
@@ -449,6 +540,9 @@ export function usePhotoRecognition(
     similarityThreshold,
     checkInterval,
     aspectRatio,
+    sharpnessThreshold,
+    glareThreshold,
+    glarePercentageThreshold,
     isEnabled,
     restartKey,
   ]);
@@ -458,5 +552,6 @@ export function usePhotoRecognition(
     isRecognizing,
     reset,
     debugInfo,
+    frameQuality,
   };
 }

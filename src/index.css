@@ -23,28 +23,40 @@ body {
   --color-bonus-text: #a1a1aa; /* 7.72:1 contrast */
   --color-sub-background: #1a1a1a;
   --color-background: #0a0a0a;
-  --color-text: #f5f5f5; /* 18.16:1 contrast */
+  --color-text: #f5f5f5;
   --color-accent: #4a90e2; /* 6.01:1 contrast */
-  --color-accent-light: #5595de; /* 6.35:1 contrast, improved from #6ba3e8 */
-  --color-accent-hover: #5090db; /* 5.99:1 contrast, improved from #357abd */
-  --color-text-muted: #999999; /* 6.95:1 contrast, improved from #888 */
+  --color-accent-light: #6ba3e8;
+  --color-accent-hover: #5ca3e6; /* 7.22:1 contrast */
+  --color-text-muted: #a8a8a8; /* 8.33:1 contrast */
 
-  /* Semantic colors for states */
-  --color-error: #ef4444; /* 5.26:1 contrast */
-  --color-success: #22c55e; /* 8.69:1 contrast */
-  --color-warning: #fbbf24; /* 11.86:1 contrast */
+  /* Interactive element colors */
+  --color-button-bg: #f5f5f5;
+  --color-button-text: #0a0a0a;
+  --color-button-hover-bg: #e5e7eb;
+  --color-button-hover-text: #0a0a0a;
+  --color-button-disabled-bg: #3a3a3a;
+  --color-button-disabled-text: #6b6b6b;
+
+  /* Semantic colors */
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #fbbf24;
 
   /* Additional colors used in components */
   --color-gray-200: #e5e7eb;
   --color-gray-400: #9ca3af;
 
-  /* Focus indicator */
-  --color-focus: #60a5fa; /* Visible focus ring */
+  /* Focus indicators - WCAG compliant */
+  --color-focus: #6ba3e8;
+  --focus-ring-color: #6ba3e8;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+  --focus-ring-style: solid;
 
-  /* Button colors */
-  --color-button-text: #ffffff; /* White text for buttons on colored backgrounds */
+  /* Overlay and modal backgrounds */
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --modal-bg: #1a1a1a;
+  --modal-border: rgba(255, 255, 255, 0.1);
 
   /* Texture settings */
   --texture-opacity: 0.3;
@@ -53,24 +65,38 @@ body {
 
 /* Light Theme - WCAG AA Compliant */
 [data-theme='light'] {
-  --color-main-text: #0f172a; /* slate-900, 16.36:1 contrast */
-  --color-sub-text: #44403c; /* stone-700, 9.42:1 contrast */
-  --color-bonus-text: #3f3f46; /* zinc-700, 9.57:1 contrast */
-  --color-sub-background: #cbd5e1; /* slate-300 */
+  --color-main-text: #0f172a; /* 16.36:1 contrast */
+  --color-sub-text: #44403c; /* 9.42:1 contrast */
+  --color-bonus-text: #3f3f46; /* 9.57:1 contrast */
+  --color-sub-background: #cbd5e1;
   --color-background: #f5f5f4;
-  --color-text: #0f172a; /* 16.36:1 contrast */
+  --color-text: #0f172a;
   --color-accent: #2563eb; /* 4.74:1 contrast */
-  --color-accent-light: #1d4ed8; /* 6.14:1 contrast, improved from #3b82f6 */
-  --color-accent-hover: #1e40af; /* 8.00:1 contrast, improved from #1d4ed8 */
-  --color-text-muted: #555555; /* 6.83:1 contrast, improved from #666 */
+  --color-accent-light: #1d4ed8; /* 6.14:1 contrast */
+  --color-accent-hover: #1e40af; /* 7.93:1 contrast */
+  --color-text-muted: #595959; /* 6.42:1 contrast */
 
-  /* Semantic colors for states */
-  --color-error: #b91c1c; /* 5.93:1 contrast */
-  --color-success: #15803d; /* 4.60:1 contrast */
-  --color-warning: #a16207; /* 4.51:1 contrast */
+  /* Interactive element colors */
+  --color-button-bg: #0f172a;
+  --color-button-text: #f5f5f4;
+  --color-button-hover-bg: #1e293b;
+  --color-button-hover-text: #f5f5f4;
+  --color-button-disabled-bg: #cbd5e1;
+  --color-button-disabled-text: #94a3b8;
 
-  /* Focus indicator */
-  --color-focus: #1d4ed8; /* Visible focus ring */
+  /* Semantic colors */
+  --color-error: #b91c1c;
+  --color-success: #15803d;
+  --color-warning: #a16207;
+
+  /* Focus indicators */
+  --color-focus: #2563eb;
+  --focus-ring-color: #2563eb;
+
+  /* Overlay and modal backgrounds */
+  --overlay-bg: rgba(0, 0, 0, 0.75);
+  --modal-bg: #ffffff;
+  --modal-border: rgba(15, 23, 42, 0.1);
 }
 
 /* Classic UI Style */
@@ -154,4 +180,100 @@ body::before {
   overflow: hidden;
   position: relative;
   z-index: 1;
+}
+
+/* Global focus styles for accessibility */
+*:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style)
+    var(--focus-ring-color, var(--color-focus, #60a5fa));
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 2px;
+}
+
+/* Remove default focus outline, but keep it for keyboard navigation */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:root {
+  /* Default (Dark) Theme - WCAG AA Compliant */
+  --color-main-text: #f5f5f5; /* 18.16:1 contrast */
+  --color-sub-text: #cbd5e1; /* 13.33:1 contrast */
+  --color-bonus-text: #a1a1aa; /* 7.72:1 contrast */
+  --color-sub-background: #1a1a1a;
+  --color-background: #0a0a0a;
+  --color-text: #f5f5f5;
+  --color-accent: #4a90e2; /* 6.01:1 contrast */
+  --color-accent-light: #6ba3e8;
+  --color-accent-hover: #5ca3e6; /* 7.22:1 contrast */
+  --color-text-muted: #a8a8a8; /* 8.33:1 contrast */
+
+  /* Interactive element colors */
+  --color-button-bg: #f5f5f5;
+  --color-button-text: #0a0a0a;
+  --color-button-hover-bg: #e5e7eb;
+  --color-button-hover-text: #0a0a0a;
+  --color-button-disabled-bg: #3a3a3a;
+  --color-button-disabled-text: #6b6b6b;
+
+  /* Semantic colors */
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #fbbf24;
+
+  /* Additional colors used in components */
+  --color-gray-200: #e5e7eb;
+  --color-gray-400: #9ca3af;
+
+  /* Focus indicators - WCAG compliant */
+  --color-focus: #6ba3e8;
+  --focus-ring-color: #6ba3e8;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-style: solid;
+
+  /* Overlay and modal backgrounds */
+  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --modal-bg: #1a1a1a;
+  --modal-border: rgba(255, 255, 255, 0.1);
+
+  /* Texture settings */
+  --texture-opacity: 0.3;
+  --texture-blend-mode: multiply;
+}
+
+/* Light Theme - WCAG AA Compliant */
+[data-theme='light'] {
+  --color-main-text: #0f172a; /* 16.36:1 contrast */
+  --color-sub-text: #44403c; /* 9.42:1 contrast */
+  --color-bonus-text: #3f3f46; /* 9.57:1 contrast */
+  --color-sub-background: #cbd5e1;
+  --color-background: #f5f5f4;
+  --color-text: #0f172a;
+  --color-accent: #2563eb; /* 4.74:1 contrast */
+  --color-accent-light: #1d4ed8; /* 6.14:1 contrast */
+  --color-accent-hover: #1e40af; /* 7.93:1 contrast */
+  --color-text-muted: #595959; /* 6.42:1 contrast */
+
+  /* Interactive element colors */
+  --color-button-bg: #0f172a;
+  --color-button-text: #f5f5f4;
+  --color-button-hover-bg: #1e293b;
+  --color-button-hover-text: #f5f5f4;
+  --color-button-disabled-bg: #cbd5e1;
+  --color-button-disabled-text: #94a3b8;
+
+  /* Semantic colors */
+  --color-error: #b91c1c;
+  --color-success: #15803d;
+  --color-warning: #a16207;
+
+  /* Focus indicators */
+  --color-focus: #2563eb;
+  --focus-ring-color: #2563eb;
+
+  /* Overlay and modal backgrounds */
+  --overlay-bg: rgba(0, 0, 0, 0.75);
+  --modal-bg: #ffffff;
+  --modal-border: rgba(15, 23, 42, 0.1);
 }

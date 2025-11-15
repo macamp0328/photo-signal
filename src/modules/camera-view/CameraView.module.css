@@ -24,7 +24,7 @@
 
 .retryButton {
   padding: 0.5rem 1rem;
-  background-color: var(--color-accent);
+  background-color: var(--color-button-bg);
   color: var(--color-button-text);
   border: none;
   border-radius: 0.25rem;
@@ -34,17 +34,24 @@
 }
 
 .retryButton:hover {
-  background-color: var(--color-accent-hover);
+  background-color: var(--color-button-hover-bg);
+  color: var(--color-button-hover-text, var(--color-button-text));
 }
 
-.retryButton:focus {
-  outline: var(--focus-ring-width, 2px) solid var(--color-focus, #60a5fa);
+.retryButton:focus-visible {
+  outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)
+    var(--focus-ring-color, var(--color-focus, #60a5fa));
   outline-offset: var(--focus-ring-offset, 2px);
 }
 
 .retryButton:active {
-  background-color: var(--color-accent-hover);
   transform: scale(0.98);
+}
+
+.retryButton:disabled {
+  background-color: var(--color-button-disabled-bg);
+  color: var(--color-button-disabled-text);
+  cursor: not-allowed;
 }
 
 /* Loading State */
@@ -63,7 +70,7 @@
   width: 100%;
   height: 100%;
   flex: 1;
-  background-color: #000;
+  background-color: var(--color-background);
   overflow: hidden;
 }
 
@@ -162,24 +169,26 @@
   top: 1rem;
   right: 1rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: var(--overlay-bg);
+  color: var(--color-text);
+  border: 1px solid var(--modal-border);
   border-radius: 0.25rem;
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s;
   backdrop-filter: blur(4px);
   z-index: 10;
+  font-weight: 500;
 }
 
 .aspectToggle:hover {
-  background-color: rgba(0, 0, 0, 0.8);
-  border-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--overlay-bg);
+  border-color: var(--color-accent);
 }
 
-.aspectToggle:focus {
-  outline: var(--focus-ring-width, 2px) solid var(--color-focus, #60a5fa);
+.aspectToggle:focus-visible {
+  outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)
+    var(--focus-ring-color, var(--color-focus, #60a5fa));
   outline-offset: var(--focus-ring-offset, 2px);
 }
 

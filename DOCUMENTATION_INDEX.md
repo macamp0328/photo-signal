@@ -27,7 +27,9 @@
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
-- **[docs/accessibility-guide.md](./docs/accessibility-guide.md)** - WCAG AA compliance guide with color contrast standards, focus indicators, keyboard navigation, testing procedures, and contributor best practices
+- **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** - Unified WCAG 2.1 Level AA standards, contrast ratios, focus indicators, and component-level guidance
+- **[docs/ACCESSIBILITY_QUICK_REFERENCE.md](./docs/ACCESSIBILITY_QUICK_REFERENCE.md)** - Developer checklist and color reference for day-to-day accessibility work
+- **[docs/ACCESSIBILITY_VERIFICATION.md](./docs/ACCESSIBILITY_VERIFICATION.md)** - Formal verification report covering contrast audits, focus review, keyboard navigation, and testing status
 - **[docs/code-analysis-tooling-research.md](./docs/code-analysis-tooling-research.md)** - Research and evaluation of tracing, logging, and code analysis tools for AI agent development
 - **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Comprehensive guide to using and interpreting automated code analysis tools (CodeQL, Codecov, npm audit, etc.)
 - **[docs/code-analysis-examples.md](./docs/code-analysis-examples.md)** - Real-world examples showing what each automated tool looks like when it runs

@@ -90,6 +90,8 @@ export interface RecognitionDebugInfo {
   frameQuality: FrameQualityInfo | null;
   /** Recognition telemetry metrics */
   telemetry: RecognitionTelemetry;
+  /** Hash algorithm currently in use */
+  hashAlgorithm: 'dhash' | 'phash';
 }
 
 export interface PhotoRecognitionHook {
@@ -124,4 +126,6 @@ export interface PhotoRecognitionOptions {
   glareThreshold?: number;
   /** Percentage of image that must be blown out to trigger glare detection (default 20) */
   glarePercentageThreshold?: number;
+  /** Hash algorithm to use: 'dhash' or 'phash' (default 'dhash') */
+  hashAlgorithm?: 'dhash' | 'phash';
 }

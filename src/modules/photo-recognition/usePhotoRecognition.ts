@@ -11,6 +11,7 @@ import type {
   RecognitionTelemetry,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
+import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
 
@@ -100,6 +101,7 @@ export function usePhotoRecognition(
     sharpnessThreshold = 100,
     glareThreshold = 250,
     glarePercentageThreshold = 20,
+    hashAlgorithm = 'dhash',
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -190,6 +192,7 @@ export function usePhotoRecognition(
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
       console.log(`  Check interval: ${checkInterval}ms`);
       console.log(`  Aspect ratio: ${aspectRatio}`);
+      console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
       if (concerts.length > 0 && concerts.filter((c) => c.photoHash).length > 0) {
         console.log('\n  Available hashes:');
@@ -368,8 +371,10 @@ export function usePhotoRecognition(
           convertToGrayscale(imageData);
         }
 
-        // Compute hash of current frame
-        const currentHash = computeDHash(imageData);
+        // Compute hash of current frame using selected algorithm
+        const currentHash = hashAlgorithm === 'phash' 
+          ? computePHash(imageData) 
+          : computeDHash(imageData);
 
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
@@ -476,6 +481,7 @@ export function usePhotoRecognition(
             recognitionDelay,
             frameQuality: currentFrameQuality,
             telemetry: { ...telemetryRef.current },
+            hashAlgorithm,
           });
         }
 

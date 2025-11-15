@@ -53,16 +53,20 @@ These photos are owned by the contributor and included solely for internal testi
 
 ### Example Real Songs (`assets/example-real-songs/`)
 
-| File                      | Description                    | Source                              | License                   |
-| ------------------------- | ------------------------------ | ----------------------------------- | ------------------------- |
-| `01 Mass Romantic.mp3`    | Indie rock live recording      | Provided by Photo Signal maintainer | Internal testing use only |
-| `06 Ocelot.mp3`           | Jam band live performance      | Provided by Photo Signal maintainer | Internal testing use only |
-| `13 1999.mp3`             | Synth-driven cover recording   | Provided by Photo Signal maintainer | Internal testing use only |
-| `16 You Enjoy Myself.mp3` | Extended improvisational track | Provided by Photo Signal maintainer | Internal testing use only |
-| `18 Meatstick.mp3`        | Crowd-participation favorite   | Provided by Photo Signal maintainer | Internal testing use only |
-| `20 Possum.mp3`           | Blues-rock closer              | Provided by Photo Signal maintainer | Internal testing use only |
+| Clip Pattern                      | Description                               | Source                              | License                   |
+| --------------------------------- | ----------------------------------------- | ----------------------------------- | ------------------------- |
+| `01-mass-romantic-clip-0X.mp3`    | 30s stems from "Mass Romantic" live take  | Provided by Photo Signal maintainer | Internal testing use only |
+| `06-ocelot-clip-0X.mp3`           | 30s stems from "Ocelot" jam-band cut      | Provided by Photo Signal maintainer | Internal testing use only |
+| `13-1999-clip-0X.mp3`             | 30s stems from a "1999" synth-heavy cover | Provided by Photo Signal maintainer | Internal testing use only |
+| `16-you-enjoy-myself-clip-0X.mp3` | 30s stems from "You Enjoy Myself"         | Provided by Photo Signal maintainer | Internal testing use only |
+| `18-meatstick-clip-0X.mp3`        | 30s stems from "Meatstick" crowd favorite | Provided by Photo Signal maintainer | Internal testing use only |
+| `20-possum-clip-0X.mp3`           | 30s stems from "Possum" blues-rock closer | Provided by Photo Signal maintainer | Internal testing use only |
 
-These recordings may be subject to copyright and therefore must not be redistributed outside of this repository. They are intended to provide a more realistic audio experience when pairing the real photo set with Test Data Mode.
+Each pattern currently expands to four clips (X = 1…4) encoded at 128 kbps. The
+clips dramatically cut repository size while preserving the realism of the
+original field recordings. As with the source takes, these derived clips may be
+subject to copyright and therefore must not be redistributed outside of this
+repository.
 
 ### Test Audio Files (`assets/test-audio/`)
 

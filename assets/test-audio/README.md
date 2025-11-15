@@ -29,6 +29,11 @@ These audio files are used for:
 - Module-level testing of audio controls
 - Performance testing with realistic song-length files
 - Development without requiring real concert recordings
+- Pairing with generated photo assets when Test Data Mode is active
+
+Looking for full concert recordings for the real example photos? See
+[`assets/example-real-songs`](../example-real-songs/README.md) for the
+user-provided MP3 library that now ships with test mode.
 
 ## Specifications
 

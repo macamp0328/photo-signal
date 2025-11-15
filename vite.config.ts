@@ -19,6 +19,7 @@ function copyTestAssetsPlugin() {
         const testAudioSrc = path.resolve(__dirname, 'assets/test-audio');
         const testImagesSrc = path.resolve(__dirname, 'assets/test-images');
         const examplePhotosSrc = path.resolve(__dirname, 'assets/example-real-photos');
+        const exampleSongsSrc = path.resolve(__dirname, 'assets/example-real-songs');
 
         const { mkdir, copyFile, readdir, stat, access } = fs.promises;
         const startTime = Date.now();
@@ -50,6 +51,7 @@ function copyTestAssetsPlugin() {
           mkdir(path.join(publicAssetsDir, 'test-audio'), { recursive: true }),
           mkdir(path.join(publicAssetsDir, 'test-images'), { recursive: true }),
           mkdir(path.join(publicAssetsDir, 'example-real-photos'), { recursive: true }),
+          mkdir(path.join(publicAssetsDir, 'example-real-songs'), { recursive: true }),
         ]);
 
         let copiedCount = 0;
@@ -67,6 +69,27 @@ function copyTestAssetsPlugin() {
           }
         } else {
           console.warn('⚠ concerts.json not found in test-data directory');
+        }
+
+        // Copy example real songs if directory exists
+        if (await exists(exampleSongsSrc)) {
+          const songFiles = (await readdir(exampleSongsSrc)).filter((f) => f.endsWith('.mp3'));
+          if (songFiles.length > 0) {
+            await Promise.all(
+              songFiles.map(async (file) => {
+                const src = path.join(exampleSongsSrc, file);
+                const dest = path.join(publicAssetsDir, 'example-real-songs', file);
+                if (await needsCopy(src, dest)) {
+                  await copyFile(src, dest);
+                  copiedCount++;
+                } else {
+                  skippedCount++;
+                }
+              })
+            );
+          } else {
+            console.warn('⚠ No MP3 files found in example-real-songs directory');
+          }
         }
 
         // Copy test audio if directory exists

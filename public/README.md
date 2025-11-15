@@ -44,6 +44,7 @@ The `assets/` subdirectory is **auto-generated** and should not be committed:
 - **`assets/test-audio/`** - Test audio MP3 files (copied from `assets/test-audio/`)
 - **`assets/test-images/`** - Test images (copied from `assets/test-images/`)
 - **`assets/example-real-photos/`** - Real photo references (copied from `assets/example-real-photos/`)
+- **`assets/example-real-songs/`** - Real MP3 library for immersive test sessions (copied from `assets/example-real-songs/`)
 
 These directories are created by a Vite plugin during build and dev server startup, making test assets accessible at runtime when Test Mode is enabled in Secret Settings.
 

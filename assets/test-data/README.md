@@ -51,7 +51,7 @@ Standard JSON format matching the application's data structure:
 
 **Key differences from production data**:
 
-- `audioFile` paths point to `/assets/test-audio/*`
+- `audioFile` paths point to `/assets/test-audio/*` for synthetic tones **or** `/assets/example-real-songs/*` for the long-form recordings
 - `imageFile` paths point to `/assets/test-images/*` or `/assets/example-real-photos/*`
 - `photoHash` values are included for every concert to unblock recognition testing
 

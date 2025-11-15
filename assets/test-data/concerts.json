@@ -59,7 +59,7 @@
       "band": "Monochrome Grid",
       "venue": "Pattern Plaza",
       "date": "2024-01-07",
-      "audioFile": "/assets/test-audio/concert-1.mp3",
+      "audioFile": "/assets/example-real-songs/20 Possum.mp3",
       "imageFile": "/assets/test-images/easy-target-checker.png",
       "photoHash": "1188c663c6632508e00b118811884662"
     },
@@ -68,7 +68,7 @@
       "band": "Example Real Photo (R0043343)",
       "venue": "Analog Loft Stage",
       "date": "2024-02-01",
-      "audioFile": "/assets/test-audio/concert-2.mp3",
+      "audioFile": "/assets/example-real-songs/01 Mass Romantic.mp3",
       "imageFile": "/assets/example-real-photos/R0043343.jpg",
       "photoHash": "c4f53cf10ccd16675d674cd2555b4b53"
     },
@@ -77,7 +77,7 @@
       "band": "Example Real Photo (R0055333)",
       "venue": "Downtown Rooftop",
       "date": "2024-02-02",
-      "audioFile": "/assets/test-audio/concert-3.mp3",
+      "audioFile": "/assets/example-real-songs/06 Ocelot.mp3",
       "imageFile": "/assets/example-real-photos/R0055333.jpg",
       "photoHash": "953f16ff30fb02db0352534504410041"
     },
@@ -86,7 +86,7 @@
       "band": "Example Real Photo (R0055917)",
       "venue": "Indie Gallery",
       "date": "2024-02-03",
-      "audioFile": "/assets/test-audio/concert-4.mp3",
+      "audioFile": "/assets/example-real-songs/13 1999.mp3",
       "imageFile": "/assets/example-real-photos/R0055917.jpg",
       "photoHash": "41bb499486698c791cfb9acddacd5538"
     },
@@ -95,7 +95,7 @@
       "band": "Example Real Photo (R0060632)",
       "venue": "Harbor Warehouse",
       "date": "2024-02-04",
-      "audioFile": "/assets/test-audio/concert-song-1.mp3",
+      "audioFile": "/assets/example-real-songs/16 You Enjoy Myself.mp3",
       "imageFile": "/assets/example-real-photos/R0060632.jpg",
       "photoHash": "866f356722d6b4c3319d133c0ab9555a"
     },
@@ -104,7 +104,7 @@
       "band": "Example Real Photo (R0060861)",
       "venue": "Night Market Stage",
       "date": "2024-02-05",
-      "audioFile": "/assets/test-audio/concert-song-2.mp3",
+      "audioFile": "/assets/example-real-songs/18 Meatstick.mp3",
       "imageFile": "/assets/example-real-photos/R0060861.jpg",
       "photoHash": "960bc5ef462e2e8c4e6b566ec2eda7ed"
     }

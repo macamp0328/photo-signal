@@ -31,6 +31,7 @@ mkdir -p "$PROJECT_ROOT/public/assets/test-audio"
 mkdir -p "$PROJECT_ROOT/public/assets/test-images"
 # - public/assets/example-real-photos
 mkdir -p "$PROJECT_ROOT/public/assets/example-real-photos"
+mkdir -p "$PROJECT_ROOT/public/assets/example-real-songs"
 
 # Copy test data
 if [ -f "$PROJECT_ROOT/assets/test-data/concerts.json" ]; then
@@ -64,6 +65,15 @@ if [ ${#example_photo_sources[@]} -gt 0 ]; then
   echo "✓ Copied example real photos"
 else
   echo "⚠ No files found in example-real-photos directory"
+fi
+
+# Copy example real songs
+example_song_sources=("$PROJECT_ROOT/assets/example-real-songs"/*.mp3)
+if [ ${#example_song_sources[@]} -gt 0 ]; then
+  cp "${example_song_sources[@]}" "$PROJECT_ROOT/public/assets/example-real-songs/"
+  echo "✓ Copied example real songs"
+else
+  echo "⚠ No MP3 files found in example-real-songs directory"
 fi
 
 echo ""

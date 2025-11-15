@@ -29,6 +29,38 @@ export interface FrameSizeInfo {
 }
 
 /**
+ * Frame quality metrics for motion blur and glare detection
+ */
+export interface FrameQualityInfo {
+  /** Laplacian variance (sharpness metric) */
+  sharpness: number;
+  /** Whether frame is sharp enough for recognition */
+  isSharp: boolean;
+  /** Percentage of blown-out pixels (glare) */
+  glarePercentage: number;
+  /** Whether frame has significant glare */
+  hasGlare: boolean;
+}
+
+/**
+ * Telemetry metrics for tracking frame rejection reasons
+ */
+export interface RecognitionTelemetry {
+  /** Total frames processed */
+  totalFrames: number;
+  /** Frames rejected due to motion blur */
+  blurRejections: number;
+  /** Frames rejected due to glare */
+  glareRejections: number;
+  /** Frames that passed quality checks */
+  qualityFrames: number;
+  /** Successful recognitions */
+  successfulRecognitions: number;
+  /** Failed recognition attempts (quality frame but no match) */
+  failedAttempts: number;
+}
+
+/**
  * Debug information from photo recognition
  */
 export interface RecognitionDebugInfo {
@@ -54,6 +86,10 @@ export interface RecognitionDebugInfo {
   similarityThreshold: number;
   /** Active recognition delay (ms) */
   recognitionDelay: number;
+  /** Frame quality metrics (sharpness, glare) */
+  frameQuality: FrameQualityInfo | null;
+  /** Recognition telemetry metrics */
+  telemetry: RecognitionTelemetry;
 }
 
 export interface PhotoRecognitionHook {
@@ -65,6 +101,8 @@ export interface PhotoRecognitionHook {
   reset: () => void;
   /** Debug information (only populated in dev mode or test mode) */
   debugInfo: RecognitionDebugInfo | null;
+  /** Current frame quality status (for UI feedback) */
+  frameQuality: FrameQualityInfo | null;
 }
 
 export interface PhotoRecognitionOptions {
@@ -80,4 +118,10 @@ export interface PhotoRecognitionOptions {
   enableDebugInfo?: boolean;
   /** Aspect ratio for frame cropping (default '3:2') */
   aspectRatio?: AspectRatio;
+  /** Sharpness threshold for blur detection (default 100) */
+  sharpnessThreshold?: number;
+  /** Glare detection threshold for blown-out pixels (default 250) */
+  glareThreshold?: number;
+  /** Percentage of image that must be blown out to trigger glare detection (default 20) */
+  glarePercentageThreshold?: number;
 }

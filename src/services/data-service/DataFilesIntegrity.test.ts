@@ -14,7 +14,7 @@ interface RawConcert {
   date: string;
   audioFile: string;
   imageFile?: string;
-  photoHash?: string;
+  photoHash?: string | string[];
 }
 
 function loadConcerts(relativePath: string): RawConcert[] {
@@ -25,9 +25,16 @@ function loadConcerts(relativePath: string): RawConcert[] {
   return parsed.concerts as RawConcert[];
 }
 
-function expectHexHash(hash: string | undefined) {
+function expectHexHash(hash: string | string[] | undefined) {
   expect(hash, 'photoHash should be defined').toBeTruthy();
-  expect(hash).toMatch(/^[0-9a-f]{32}$/i);
+
+  const hashes = Array.isArray(hash) ? hash : [hash];
+  expect(hashes.length, 'photoHash array should not be empty').toBeGreaterThan(0);
+
+  hashes.forEach((value) => {
+    expect(typeof value).toBe('string');
+    expect(value).toMatch(/^[0-9a-f]{32}$/i);
+  });
 }
 
 function ensureFileExists(relativePath: string) {

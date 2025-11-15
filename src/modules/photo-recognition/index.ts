@@ -7,4 +7,11 @@
  */
 
 export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';
-export type { PhotoRecognitionHook, PhotoRecognitionOptions, AspectRatio } from './types';
+export { FrameQualityIndicator } from './FrameQualityIndicator';
+export type {
+  PhotoRecognitionHook,
+  PhotoRecognitionOptions,
+  AspectRatio,
+  FrameQualityInfo,
+  RecognitionTelemetry,
+} from './types';

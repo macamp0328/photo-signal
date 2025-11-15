@@ -11,7 +11,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
-import { usePhotoRecognition } from './modules/photo-recognition';
+import { usePhotoRecognition, FrameQualityIndicator } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
@@ -93,6 +93,7 @@ function App() {
     reset: resetRecognition,
     debugInfo,
     isRecognizing,
+    frameQuality,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
     enableDebugInfo: isTestModeEnabled,
@@ -181,6 +182,11 @@ function App() {
     <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
   );
 
+  // Render frame quality indicator (only when camera is active and no concert recognized)
+  const frameQualityIndicator = isActive && stream && !recognizedConcert && (
+    <FrameQualityIndicator frameQuality={frameQuality} />
+  );
+
   return (
     <>
       <GalleryLayout
@@ -189,6 +195,7 @@ function App() {
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
       />
+      {frameQualityIndicator}
       <SecretSettings
         isVisible={showSecretSettings}
         onClose={() => {

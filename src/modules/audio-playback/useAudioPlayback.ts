@@ -159,6 +159,12 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         return;
       }
 
+      // Clean up any existing fading-out sound before starting new crossfade
+      if (fadingOutSoundRef.current) {
+        fadingOutSoundRef.current.unload();
+        fadingOutSoundRef.current = null;
+      }
+
       // Move current sound to fading out ref
       fadingOutSoundRef.current = currentSound;
       soundRef.current = null;

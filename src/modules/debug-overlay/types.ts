@@ -26,4 +26,6 @@ export interface DebugOverlayProps {
   threshold?: number;
   /** Aggregated debug information */
   debugInfo?: RecognitionDebugInfo | null;
+  /** Optional reset handler for restarting recognition */
+  onReset?: () => void;
 }

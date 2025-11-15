@@ -14,8 +14,24 @@ import { computeDHash } from './algorithms/dhash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
 
-const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string } => {
-  return typeof concert.photoHash === 'string' && concert.photoHash.length > 0;
+const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string | string[] } => {
+  if (typeof concert.photoHash === 'string') {
+    return concert.photoHash.length > 0;
+  }
+  if (Array.isArray(concert.photoHash)) {
+    return concert.photoHash.length > 0 && concert.photoHash.every(h => typeof h === 'string' && h.length > 0);
+  }
+  return false;
+};
+
+/**
+ * Get all hashes for a concert (handles both single hash and multi-exposure array)
+ */
+const getPhotoHashes = (concert: Concert): string[] => {
+  if (!concert.photoHash) {
+    return [];
+  }
+  return Array.isArray(concert.photoHash) ? concert.photoHash : [concert.photoHash];
 };
 
 /**
@@ -176,7 +192,16 @@ export function usePhotoRecognition(
         console.log('\n  Available hashes:');
         concerts.forEach((concert) => {
           if (concert.photoHash) {
-            console.log(`    ${concert.band}: ${concert.photoHash}`);
+            const hashes = getPhotoHashes(concert);
+            if (hashes.length > 1) {
+              console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
+              hashes.forEach((hash, idx) => {
+                const exposureLabel = idx === 0 ? 'dark' : idx === 1 ? 'normal' : 'bright';
+                console.log(`      [${exposureLabel}] ${hash}`);
+              });
+            } else {
+              console.log(`    ${concert.band}: ${hashes[0]}`);
+            }
           }
         });
       }
@@ -361,7 +386,22 @@ export function usePhotoRecognition(
         }
 
         for (const concert of concertsWithHashes) {
-          const distance = hammingDistance(currentHash, concert.photoHash);
+          // Get all hashes for this concert (handles both single and multi-exposure)
+          const hashes = getPhotoHashes(concert);
+          
+          // Find best match across all exposure variants
+          let bestHashDistance = Infinity;
+          let matchedHashIndex = -1;
+          
+          for (let i = 0; i < hashes.length; i++) {
+            const hashDistance = hammingDistance(currentHash, hashes[i]);
+            if (hashDistance < bestHashDistance) {
+              bestHashDistance = hashDistance;
+              matchedHashIndex = i;
+            }
+          }
+          
+          const distance = bestHashDistance;
           const similarity = ((256 - distance) / 256) * 100;
 
           // Enhanced logging in dev mode or Test Mode
@@ -369,8 +409,9 @@ export function usePhotoRecognition(
             const isBest = distance < bestDistance;
             const meetsThreshold = distance <= similarityThreshold;
             const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
+            const hashInfo = hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
             console.debug(
-              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${isBest ? ' ← BEST MATCH' : ''}`
+              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${isBest ? ' ← BEST MATCH' : ''}`
             );
           }
 

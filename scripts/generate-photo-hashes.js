@@ -108,6 +108,26 @@ function computeDHash(imageData) {
   return binaryToHex(binaryHash);
 }
 
+/**
+ * Adjust image brightness to simulate different exposure levels
+ */
+function adjustBrightness(imageData, factor) {
+  const { width, height, data } = imageData;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const adjusted = ctx.createImageData(width, height);
+
+  for (let i = 0; i < data.length; i += 4) {
+    // Adjust RGB channels, keep alpha unchanged
+    adjusted.data[i] = Math.max(0, Math.min(255, data[i] + factor)); // R
+    adjusted.data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + factor)); // G
+    adjusted.data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + factor)); // B
+    adjusted.data[i + 3] = data[i + 3]; // A (unchanged)
+  }
+
+  return adjusted;
+}
+
 // ========================================
 // Main Script
 // ========================================
@@ -193,16 +213,27 @@ async function generateHashes() {
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(image, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const hash = computeDHash(imageData);
+        
+        // Generate multi-exposure hashes for lighting robustness
+        // Dark (-50), Normal (0), Bright (+50) exposure adjustments
+        const darkImageData = adjustBrightness(imageData, -50);
+        const normalImageData = imageData; // Original
+        const brightImageData = adjustBrightness(imageData, 50);
+        
+        const darkHash = computeDHash(darkImageData);
+        const normalHash = computeDHash(normalImageData);
+        const brightHash = computeDHash(brightImageData);
 
         results.push({
           file: displayPath,
-          photoHash: hash,
+          photoHash: [darkHash, normalHash, brightHash],
           dimensions: `${image.width} × ${image.height} px`,
         });
 
         console.log(`✓ ${displayPath}`);
-        console.log(`  Hash: ${hash}`);
+        console.log(`  Hash (dark):   ${darkHash}`);
+        console.log(`  Hash (normal): ${normalHash}`);
+        console.log(`  Hash (bright): ${brightHash}`);
         console.log(`  Size: ${image.width} × ${image.height} px\n`);
       } catch (error) {
         console.error(`❌ Failed to process ${displayPath}:`, error.message);

@@ -1,0 +1,118 @@
+# Visual Regression Testing Workflow
+#
+# 📚 IMPORTANT FOR AI AGENTS:
+# When adding/removing/modifying any of the following, update DOCUMENTATION_INDEX.md:
+#   - New documentation files (*.md)
+#   - New configuration files (*.json, *.js, *.ts config files)
+#   - New modules or services (with their README.md files)
+#   - New GitHub workflows or templates
+#   - New development environment configs
+#
+# See DOCUMENTATION_INDEX.md for the complete documentation structure.
+#
+name: Visual Regression Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      pull-requests: write # For commenting on PRs with results
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run visual regression tests
+        run: npx playwright test
+        continue-on-error: true
+        id: playwright
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload visual diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diff-results
+          path: test-results/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Check if test-results directory exists
+            const testResultsDir = 'test-results';
+            let hasVisualDiffs = false;
+
+            try {
+              if (fs.existsSync(testResultsDir)) {
+                const files = fs.readdirSync(testResultsDir);
+                hasVisualDiffs = files.some(f => f.includes('-diff.png'));
+              }
+            } catch (error) {
+              console.log('Error checking test results:', error);
+            }
+
+            const comment = hasVisualDiffs
+              ? `## ⚠️ Visual Regression Test Failures
+
+            Visual differences were detected in this PR. Please review the changes:
+
+            1. Download the \`visual-diff-results\` artifact from the workflow run
+            2. Review the diff images to verify changes are intentional
+            3. If changes are intentional:
+               - Run \`npx playwright test --update-snapshots\` locally
+               - Commit the updated baseline screenshots
+            4. If changes are unintentional, fix the CSS/UI issue
+
+            See [Visual Regression Test Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
+              : `## ❌ Visual Regression Tests Failed
+
+            The visual regression tests failed. Please check the [test report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Fail if tests failed
+        if: steps.playwright.outcome == 'failure'
+        run: exit 1

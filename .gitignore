@@ -16,6 +16,10 @@ dist-ssr
 # Test coverage
 coverage
 
+# Playwright test results
+test-results/
+playwright-report/
+
 # Generated test assets (copied from assets/ to public/ by Vite plugin)
 public/assets
 

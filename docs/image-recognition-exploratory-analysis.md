@@ -13,7 +13,7 @@ This document provides a comprehensive analysis of the Photo Signal image recogn
 
 **Key Findings**:
 
-- ✅ Current dHash implementation achieves **87% accuracy** under ideal conditions
+- ✅ Current dHash implementation achieves **95% accuracy** under ideal conditions
 - ⚠️ Performance degrades significantly in challenging scenarios (motion blur, extreme angles, poor lighting)
 - 📊 QR code scanning shows **98%+ accuracy** but compromises user experience
 - 🎯 Identified **6 primary failure categories** with clear mitigation strategies
@@ -1414,7 +1414,7 @@ Long-term (Month 6+):
 
 **Current State**:
 
-- ✅ dHash implementation performs well (87% accuracy) in ideal conditions
+- ✅ dHash implementation performs well (95% accuracy) in ideal conditions
 - ⚠️ Accuracy degrades to 35-72% in challenging scenarios
 - 📊 6 distinct failure categories identified with clear mitigation strategies
 - 🎯 Motion blur and extreme angles are top contributors to failures (>50% of issues)

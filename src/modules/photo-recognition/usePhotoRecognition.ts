@@ -9,6 +9,8 @@ import type {
   AspectRatio,
   FrameQualityInfo,
   RecognitionTelemetry,
+  FailureCategory,
+  FailureDiagnostic,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
 import { computePHash } from './algorithms/phash';
@@ -36,6 +38,32 @@ const getPhotoHashes = (concert: Concert): string[] => {
     return [];
   }
   return Array.isArray(concert.photoHash) ? concert.photoHash : [concert.photoHash];
+};
+
+/**
+ * Record a recognition failure in telemetry
+ */
+const recordFailure = (
+  telemetry: RecognitionTelemetry,
+  category: FailureCategory,
+  reason: string,
+  frameHash: string
+): void => {
+  // Increment category counter
+  telemetry.failureByCategory[category] += 1;
+
+  // Add to failure history (keep last 10)
+  const diagnostic: FailureDiagnostic = {
+    category,
+    reason,
+    frameHash,
+    timestamp: Date.now(),
+  };
+
+  telemetry.failureHistory.push(diagnostic);
+  if (telemetry.failureHistory.length > 10) {
+    telemetry.failureHistory.shift(); // Remove oldest
+  }
 };
 
 /**
@@ -128,6 +156,15 @@ export function usePhotoRecognition(
     qualityFrames: 0,
     successfulRecognitions: 0,
     failedAttempts: 0,
+    failureHistory: [],
+    failureByCategory: {
+      'motion-blur': 0,
+      'glare': 0,
+      'poor-quality': 0,
+      'no-match': 0,
+      'collision': 0,
+      'unknown': 0,
+    },
   });
 
   // Load concert data
@@ -169,6 +206,15 @@ export function usePhotoRecognition(
       qualityFrames: 0,
       successfulRecognitions: 0,
       failedAttempts: 0,
+      failureHistory: [],
+      failureByCategory: {
+        'motion-blur': 0,
+        'glare': 0,
+        'poor-quality': 0,
+        'no-match': 0,
+        'collision': 0,
+        'unknown': 0,
+      },
     };
     setRestartKey((key) => key + 1);
   }, []);
@@ -335,17 +381,32 @@ export function usePhotoRecognition(
         // Skip frame if it fails quality checks
         if (!isSharp) {
           telemetryRef.current.blurRejections += 1;
+          // Record diagnostic with placeholder hash (not computed yet for blurry frames)
+          recordFailure(
+            telemetryRef.current,
+            'motion-blur',
+            `Sharpness ${sharpness.toFixed(1)} below threshold ${sharpnessThreshold}`,
+            'N/A'
+          );
           if (isTestMode) {
             console.debug(`❌ Frame REJECTED: Too blurry (motion blur detected)`);
             console.debug(
               `   Telemetry: ${telemetryRef.current.blurRejections} blur rejections / ${telemetryRef.current.totalFrames} total frames`
             );
+            console.debug(`   Failure Category: motion-blur`);
           }
           return; // Skip hashing for blurry frames
         }
 
         if (hasGlare) {
           telemetryRef.current.glareRejections += 1;
+          // Record diagnostic with placeholder hash
+          recordFailure(
+            telemetryRef.current,
+            'glare',
+            `${glarePercentage.toFixed(1)}% of frame blown out (threshold: ${glarePercentageThreshold}%)`,
+            'N/A'
+          );
           if (isTestMode) {
             console.debug(
               `❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`
@@ -353,6 +414,7 @@ export function usePhotoRecognition(
             console.debug(
               `   Telemetry: ${telemetryRef.current.glareRejections} glare rejections / ${telemetryRef.current.totalFrames} total frames`
             );
+            console.debug(`   Failure Category: glare`);
           }
           return; // Skip hashing for frames with glare
         }
@@ -533,6 +595,21 @@ export function usePhotoRecognition(
                     `  Successful Recognitions: ${telemetryRef.current.successfulRecognitions}`
                   );
                   console.log(`  Failed Attempts: ${telemetryRef.current.failedAttempts}`);
+                  console.log(`\n  Failure Categories:`);
+                  const categories = Object.entries(telemetryRef.current.failureByCategory);
+                  categories.forEach(([category, count]) => {
+                    if (count > 0) {
+                      const pct = ((count / telemetryRef.current.totalFrames) * 100).toFixed(1);
+                      console.log(`    ${category}: ${count} (${pct}%)`);
+                    }
+                  });
+                  if (telemetryRef.current.failureHistory.length > 0) {
+                    console.log(`\n  Recent Failures (last ${telemetryRef.current.failureHistory.length}):`);
+                    telemetryRef.current.failureHistory.slice(-5).forEach((failure, idx) => {
+                      const time = new Date(failure.timestamp).toLocaleTimeString();
+                      console.log(`    ${idx + 1}. [${time}] ${failure.category}: ${failure.reason}`);
+                    });
+                  }
                 }
 
                 lastMatchedConcertRef.current = null;
@@ -568,6 +645,34 @@ export function usePhotoRecognition(
               console.debug('Match Decision: NO CANDIDATES');
             }
             console.debug('━'.repeat(60));
+          }
+
+          // Record failure diagnostic
+          if (bestMatch) {
+            const similarity = ((256 - bestDistance) / 256) * 100;
+            // Determine category based on how close we were
+            const category: FailureCategory = bestDistance <= similarityThreshold + 10
+              ? 'collision' // Close call, might be similar photos
+              : 'no-match';
+            recordFailure(
+              telemetryRef.current,
+              category,
+              `Best match: ${bestMatch.band}, distance ${bestDistance}, similarity ${similarity.toFixed(1)}%`,
+              currentHash
+            );
+            if (isTestMode) {
+              console.debug(`   Failure Category: ${category}`);
+            }
+          } else {
+            recordFailure(
+              telemetryRef.current,
+              'no-match',
+              'No concerts with hashes in database',
+              currentHash
+            );
+            if (isTestMode) {
+              console.debug(`   Failure Category: no-match (no candidates)`);
+            }
           }
 
           if (lastMatchedConcertRef.current) {

@@ -43,6 +43,27 @@ export interface FrameQualityInfo {
 }
 
 /**
+ * Failure categories for recognition diagnostics
+ */
+export type FailureCategory =
+  | 'motion-blur'
+  | 'glare'
+  | 'poor-quality'
+  | 'no-match'
+  | 'collision'
+  | 'unknown';
+
+/**
+ * Failure diagnostic information
+ */
+export interface FailureDiagnostic {
+  category: FailureCategory;
+  reason: string;
+  frameHash: string;
+  timestamp: number;
+}
+
+/**
  * Telemetry metrics for tracking frame rejection reasons
  */
 export interface RecognitionTelemetry {
@@ -58,6 +79,10 @@ export interface RecognitionTelemetry {
   successfulRecognitions: number;
   /** Failed recognition attempts (quality frame but no match) */
   failedAttempts: number;
+  /** Failure history (last 10 failures) */
+  failureHistory: FailureDiagnostic[];
+  /** Categorized failure counts */
+  failureByCategory: Record<FailureCategory, number>;
 }
 
 /**

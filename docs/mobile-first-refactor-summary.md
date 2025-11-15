@@ -1,7 +1,7 @@
 # Mobile-First CSS Refactor Summary
 
 **Date**: 2025-11-15  
-**Issue**: [Sweep: Ensure all layouts/CSS are truly mobile-first and scale to tablet/desktop](https://github.com/macamp0328/photo-signal/issues/XXX)
+**Issue**: [Sweep: Ensure all layouts/CSS are truly mobile-first and scale to tablet/desktop](https://github.com/macamp0328/photo-signal/issues/131)
 
 ## Overview
 

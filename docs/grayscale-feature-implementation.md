@@ -12,6 +12,7 @@ This document describes the implementation of the grayscale camera image feature
 **Default:** disabled
 
 **Description:**
+
 > Convert camera frames to black and white before photo recognition. May improve accuracy since printed reference photos are monochrome, and can reduce noise in low-light conditions.
 
 ## Implementation

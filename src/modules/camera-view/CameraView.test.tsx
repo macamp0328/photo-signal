@@ -340,7 +340,9 @@ describe('CameraView', () => {
       let video = container.querySelector('video');
       expect(video?.className).not.toContain('grayscale');
 
-      rerender(<CameraView stream={mockStream} error={null} hasPermission={true} grayscale={true} />);
+      rerender(
+        <CameraView stream={mockStream} error={null} hasPermission={true} grayscale={true} />
+      );
 
       video = container.querySelector('video');
       expect(video?.className).toContain('grayscale');

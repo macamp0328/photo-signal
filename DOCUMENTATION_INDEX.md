@@ -162,6 +162,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode photo recognition
 - **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote gallery viewing
 - **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Remove outdated documentation
+- **[optimize-mp3-storage.md](./.github/ISSUE_TEMPLATE/optimize-mp3-storage.md)** - Chore: Design a scalable MP3 storage strategy
 
 ### Custom Agents
 
@@ -252,10 +253,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Test Assets (CC0 Licensed)
 
-- **[ASSET_LICENSES.md](./ASSET_LICENSES.md)** - Licensing information and attribution for all test assets
-- **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG + PNG images for testing (4 gradients + 3 high-contrast targets)
-- **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Sample MP3 audio files for testing (4 files, ~40KB each, 5 seconds)
-- **[assets/test-data/README.md](./assets/test-data/README.md)** - Sample structured data files (JSON, CSV formats)
+- **[assets/example-real-songs/README.md](./assets/example-real-songs/README.md)** - Real-world MP3 library paired with example photos for immersive test mode sessions
 
 ### Example Real Photos
 

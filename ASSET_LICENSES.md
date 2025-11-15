@@ -6,6 +6,7 @@ This document provides attribution and licensing information for all test assets
 
 - All synthetic test assets (images, audio files, data files) in the `assets/` directory are **generated files** created specifically for this project and released under CC0.
 - The `assets/example-real-photos/` directory contains user-provided photos that ship with the repository for recognition testing. These images remain the property of the contributor and are licensed for Photo Signal development use only (see section below).
+- The `assets/example-real-songs/` directory contains user-provided MP3 recordings that may contain copyrighted material. These tracks are licensed for internal Photo Signal development/testing only.
 
 ## License
 
@@ -49,6 +50,19 @@ These images are simple gradients and programmatically generated graphics (via I
 | `R0060861.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
 
 These photos are owned by the contributor and included solely for internal testing and manual recognition exercises. Do not redistribute outside this repository without explicit permission.
+
+### Example Real Songs (`assets/example-real-songs/`)
+
+| File                      | Description                    | Source                              | License                   |
+| ------------------------- | ------------------------------ | ----------------------------------- | ------------------------- |
+| `01 Mass Romantic.mp3`    | Indie rock live recording      | Provided by Photo Signal maintainer | Internal testing use only |
+| `06 Ocelot.mp3`           | Jam band live performance      | Provided by Photo Signal maintainer | Internal testing use only |
+| `13 1999.mp3`             | Synth-driven cover recording   | Provided by Photo Signal maintainer | Internal testing use only |
+| `16 You Enjoy Myself.mp3` | Extended improvisational track | Provided by Photo Signal maintainer | Internal testing use only |
+| `18 Meatstick.mp3`        | Crowd-participation favorite   | Provided by Photo Signal maintainer | Internal testing use only |
+| `20 Possum.mp3`           | Blues-rock closer              | Provided by Photo Signal maintainer | Internal testing use only |
+
+These recordings may be subject to copyright and therefore must not be redistributed outside of this repository. They are intended to provide a more realistic audio experience when pairing the real photo set with Test Data Mode.
 
 ### Test Audio Files (`assets/test-audio/`)
 
@@ -181,6 +195,6 @@ If you have any questions about the licensing of these test assets, please open 
 
 ---
 
-**Last Updated**: 2025-11-14
-**Asset Count**: 12 images (7 generated, 5 contributor-provided), 6 audio files (4 short + 2 full-length), 2 data files
-**Total Size**: ~4.4MB
+**Last Updated**: 2025-11-15
+**Asset Count**: 12 images (7 generated, 5 contributor-provided), 12 audio files (6 synthetic + 6 real), 2 data files
+**Total Size**: ~175MB (real songs add ~170MB to the repository)

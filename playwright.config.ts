@@ -7,7 +7,10 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration
  */
 
-const htmlReporter: ['html', { open: 'always' | 'never' | 'on-failure'; host: string; port: number }] = [
+const htmlReporter: [
+  'html',
+  { open: 'always' | 'never' | 'on-failure'; host: string; port: number },
+] = [
   'html',
   {
     open: process.env.CI ? 'never' : 'on-failure',

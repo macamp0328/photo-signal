@@ -23,9 +23,18 @@ test.describe('Camera View', () => {
     // Wait for either camera view or permission denied state
     // In CI/headless, camera may not be available, so we check for either state
     await Promise.race([
-      page.locator('video').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-      page.locator('text=Camera Access Required').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-      page.locator('text=Point camera at a photo to play music').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+      page
+        .locator('video')
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .catch(() => null),
+      page
+        .locator('text=Camera Access Required')
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .catch(() => null),
+      page
+        .locator('text=Point camera at a photo to play music')
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .catch(() => null),
     ]);
 
     // Give a brief moment for UI to stabilize
@@ -54,9 +63,18 @@ test.describe('Camera View', () => {
     // Wait for either camera view or permission denied state
     // In CI/headless, camera may not be available, so we check for either state
     await Promise.race([
-      page.locator('video').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-      page.locator('text=Camera Access Required').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
-      page.locator('text=Point camera at a photo to play music').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+      page
+        .locator('video')
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .catch(() => null),
+      page
+        .locator('text=Camera Access Required')
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .catch(() => null),
+      page
+        .locator('text=Point camera at a photo to play music')
+        .waitFor({ state: 'visible', timeout: 10000 })
+        .catch(() => null),
     ]);
 
     // Give a brief moment for UI to stabilize

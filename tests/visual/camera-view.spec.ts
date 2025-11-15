@@ -20,8 +20,16 @@ test.describe('Camera View', () => {
     await expect(activateButton).toBeVisible();
     await activateButton.click();
 
-    // Wait for camera view to be initialized
-    await page.waitForTimeout(1500);
+    // Wait for either camera view or permission denied state
+    // In CI/headless, camera may not be available, so we check for either state
+    await Promise.race([
+      page.locator('video').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+      page.locator('text=Camera Access Required').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+      page.locator('text=Point camera at a photo to play music').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+    ]);
+
+    // Give a brief moment for UI to stabilize
+    await page.waitForLoadState('networkidle');
 
     // Take screenshot of active camera state
     await expect(page).toHaveScreenshot('camera-active-view.png', {
@@ -43,8 +51,16 @@ test.describe('Camera View', () => {
     const activateButton = page.getByRole('button', { name: /begin/i });
     await activateButton.click();
 
-    // Wait for camera view
-    await page.waitForTimeout(1500);
+    // Wait for either camera view or permission denied state
+    // In CI/headless, camera may not be available, so we check for either state
+    await Promise.race([
+      page.locator('video').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+      page.locator('text=Camera Access Required').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+      page.locator('text=Point camera at a photo to play music').waitFor({ state: 'visible', timeout: 10000 }).catch(() => null),
+    ]);
+
+    // Give a brief moment for UI to stabilize
+    await page.waitForLoadState('networkidle');
 
     // Take screenshot of active camera state on mobile
     await expect(page).toHaveScreenshot('camera-active-view-mobile.png', {

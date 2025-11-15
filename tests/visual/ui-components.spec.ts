@@ -62,7 +62,10 @@ test.describe('UI Components', () => {
 
       // Hover over the button
       await activateButton.hover();
-      await page.waitForTimeout(300);
+
+      // Wait for hover animations to complete by waiting for load state
+      // This ensures any CSS transitions are fully applied
+      await page.waitForLoadState('networkidle');
 
       // Take screenshot with hover state
       await expect(page).toHaveScreenshot('button-hover-state.png');

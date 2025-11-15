@@ -129,40 +129,52 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 2rem;
-  height: 2rem;
-  border-top: 4px solid #fff;
-  border-left: 4px solid #fff;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-top: 3px solid #fff;
+  border-left: 3px solid #fff;
 }
 
 .cornerTopRight {
   position: absolute;
   top: 0;
   right: 0;
-  width: 2rem;
-  height: 2rem;
-  border-top: 4px solid #fff;
-  border-right: 4px solid #fff;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-top: 3px solid #fff;
+  border-right: 3px solid #fff;
 }
 
 .cornerBottomLeft {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 2rem;
-  height: 2rem;
-  border-bottom: 4px solid #fff;
-  border-left: 4px solid #fff;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-bottom: 3px solid #fff;
+  border-left: 3px solid #fff;
 }
 
 .cornerBottomRight {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 2rem;
-  height: 2rem;
-  border-bottom: 4px solid #fff;
-  border-right: 4px solid #fff;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-bottom: 3px solid #fff;
+  border-right: 3px solid #fff;
+}
+
+/* Responsive: Larger corner markers on bigger screens */
+@media (min-width: 768px) {
+  .cornerTopLeft,
+  .cornerTopRight,
+  .cornerBottomLeft,
+  .cornerBottomRight {
+    width: 2rem;
+    height: 2rem;
+    border-width: 4px;
+  }
 }
 
 /* Aspect Ratio Toggle Button */
@@ -203,12 +215,12 @@
 /* Instructions */
 .instructions {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1rem;
   left: 0;
   right: 0;
   text-align: center;
   color: #fff;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   padding-left: 1rem;
   padding-right: 1rem;
   pointer-events: none;
@@ -219,4 +231,31 @@
   display: inline-block;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
+}
+
+/* Responsive: Larger instructions on bigger screens */
+@media (min-width: 768px) {
+  .instructions {
+    bottom: 2rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Landscape orientation adjustments for mobile devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  .aspectToggle {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .instructions {
+    bottom: 0.5rem;
+    font-size: 0.625rem;
+  }
+
+  .instructionsText {
+    padding: 0.25rem 0.5rem;
+  }
 }

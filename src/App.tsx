@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import { usePhotoRecognition } from './modules/photo-recognition';
@@ -38,9 +38,13 @@ function App() {
   // State for aspect ratio
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
 
+  // Ref to store auto-reset timer ID for test mode
+  const autoResetTimerRef = useRef<number | null>(null);
+
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
   const { getSetting, settings } = useCustomSettings();
+  const isTestModeEnabled = isEnabled('test-mode');
 
   // Module: Retro Sounds
   const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
@@ -91,7 +95,7 @@ function App() {
     isRecognizing,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
-    enableDebugInfo: isEnabled('test-mode'),
+    enableDebugInfo: isTestModeEnabled,
     aspectRatio: aspectRatio,
   });
 
@@ -112,10 +116,37 @@ function App() {
     }
   }, [recognizedConcert, play, playRandomSound]);
 
+  useEffect(() => {
+    if (!isTestModeEnabled || !recognizedConcert) {
+      return;
+    }
+
+    const AUTO_RESET_DELAY_MS = 4000;
+    const timerId = window.setTimeout(() => {
+      fadeOut();
+      resetRecognition();
+    }, AUTO_RESET_DELAY_MS);
+
+    // Store timer ID in ref so motion detection can clear it
+    autoResetTimerRef.current = timerId;
+
+    return () => {
+      window.clearTimeout(timerId);
+      autoResetTimerRef.current = null;
+    };
+  }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
+
   // Fade out audio when movement is detected
   useEffect(() => {
     if (isMoving && isPlaying) {
       console.log('Movement detected, fading out');
+
+      // Clear auto-reset timer if it's running to avoid race condition
+      if (autoResetTimerRef.current !== null) {
+        window.clearTimeout(autoResetTimerRef.current);
+        autoResetTimerRef.current = null;
+      }
+
       fadeOut();
 
       // Reset recognition after fade completes
@@ -167,10 +198,11 @@ function App() {
       />
       <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
       <DebugOverlay
-        enabled={isEnabled('test-mode')}
+        enabled={isTestModeEnabled}
         recognizedConcert={recognizedConcert}
         isRecognizing={isRecognizing}
         debugInfo={debugInfo ?? undefined}
+        onReset={resetRecognition}
       />
     </>
   );

@@ -16,6 +16,7 @@ The Debug Overlay module provides real-time debugging information for the photo 
 ✅ **Metric Snapshot**: Frames processed, concerts evaluated, check interval, aspect ratio, frame size, last check timestamp
 ✅ **Test Mode Integration**: Only visible when Test Mode is enabled
 ✅ **Non-intrusive Design**: Positioned in bottom-right corner with semi-transparent background
+✅ **Manual Reset Control**: Optional reset button to restart recognition during Test Mode
 
 ## Usage
 
@@ -38,6 +39,7 @@ function App() {
         recognizedConcert={recognizedConcert}
         isRecognizing={false}
         debugInfo={debugInfo}
+        onReset={() => console.log('Reset recognition')}
       />
     </>
   );
@@ -64,6 +66,9 @@ interface DebugOverlayProps {
 
   /** Aggregated debug info from the recognition hook */
   debugInfo?: RecognitionDebugInfo | null;
+
+  /** Optional handler that renders a reset button when provided */
+  onReset?: () => void;
 }
 ```
 
@@ -85,6 +90,7 @@ interface DebugOverlayProps {
 5. **Threshold**: Current threshold setting with required similarity
 6. **Metrics**: Frames processed, concerts compared, check interval, aspect ratio, frame size, last check timestamp
 7. **Recognized Concert**: Full concert details when recognized (highlighted in green)
+8. **Reset Button**: When provided, a “Reset” action appears next to the Test Mode badge
 
 ## Styling
 

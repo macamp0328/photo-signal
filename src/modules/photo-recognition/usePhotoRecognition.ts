@@ -84,6 +84,7 @@ export function usePhotoRecognition(
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
+  const [restartKey, setRestartKey] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -123,10 +124,7 @@ export function usePhotoRecognition(
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = undefined;
-    }
+    setRestartKey((key) => key + 1);
   }, []);
 
   // Start recognition when stream is available
@@ -377,12 +375,6 @@ export function usePhotoRecognition(
                   console.log('━'.repeat(60));
                 }
 
-                // Stop checking
-                if (intervalRef.current) {
-                  clearInterval(intervalRef.current);
-                  intervalRef.current = undefined;
-                }
-
                 lastMatchedConcertRef.current = null;
                 matchStartTimeRef.current = null;
               } else {
@@ -458,6 +450,7 @@ export function usePhotoRecognition(
     checkInterval,
     aspectRatio,
     isEnabled,
+    restartKey,
   ]);
 
   return {

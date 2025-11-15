@@ -1,6 +1,6 @@
 /* Info Display Card */
 .card {
-  background-color: var(--color-sub-background);
+  background-color: var(--modal-bg, var(--color-sub-background));
   border: 2px solid var(--color-accent);
   border-radius: 0.5rem;
   box-shadow:

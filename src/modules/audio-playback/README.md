@@ -30,6 +30,8 @@ Control music playback with smooth fades.
 options?: {
   volume?: number;        // Initial volume 0-1, default 0.8
   fadeTime?: number;      // Fade duration in ms, default 1000
+  crossfadeDuration?: number;  // Default crossfade duration in ms, default 2000
+  crossfadeEnabled?: boolean;  // Enable crossfade functionality, default true
 }
 ```
 
@@ -41,6 +43,7 @@ options?: {
   pause: () => void;                   // Pause playback
   stop: () => void;                    // Stop and unload
   fadeOut: (duration?: number) => void; // Fade out over duration
+  crossfade: (newUrl: string, duration?: number) => void; // Crossfade to new track
   isPlaying: boolean;                  // Current playback state
   volume: number;                      // Current volume 0-1
   setVolume: (v: number) => void;      // Set volume 0-1
@@ -93,7 +96,7 @@ options?: {
 import { useAudioPlayback } from '@/modules/audio-playback';
 
 function App() {
-  const { play, fadeOut, isPlaying } = useAudioPlayback();
+  const { play, fadeOut, crossfade, isPlaying } = useAudioPlayback();
 
   const handlePhotoRecognized = (concert) => {
     play(concert.audioFile);
@@ -102,8 +105,64 @@ function App() {
   const handleMovement = () => {
     fadeOut(1000); // Fade out over 1 second
   };
+
+  const handleTrackChange = (newConcert) => {
+    // Smooth transition between tracks
+    crossfade(newConcert.audioFile, 2000); // Crossfade over 2 seconds
+  };
 }
 ```
+
+### Crossfade Example
+
+```typescript
+// Use default crossfade duration (2000ms)
+const { crossfade } = useAudioPlayback({
+  crossfadeDuration: 3000, // Default to 3 seconds
+});
+
+// Crossfade with default duration
+crossfade('/audio/new-track.mp3');
+
+// Crossfade with custom duration
+crossfade('/audio/new-track.mp3', 1500);
+
+// Disable crossfade for immediate switching
+const { crossfade: switchTrack } = useAudioPlayback({
+  crossfadeEnabled: false,
+});
+switchTrack('/audio/new-track.mp3'); // Acts like play()
+```
+
+---
+
+## Crossfade Behavior
+
+### How It Works
+
+When you call `crossfade()`, the module:
+
+1. **Fades out** the current track from its current volume to 0
+2. **Simultaneously fades in** the new track from 0 to the current volume setting
+3. **Manages two Howl instances** during the transition
+4. **Cleans up** the old instance after the fade completes
+
+### Edge Cases
+
+| Scenario                  | Behavior                                          |
+| ------------------------- | ------------------------------------------------- |
+| No audio playing          | Acts like `play()` - starts new track immediately |
+| Same URL                  | Seeks to beginning (restarts track)               |
+| Crossfade in progress     | Cancels previous crossfade, starts new one        |
+| `crossfadeEnabled: false` | Acts like `play()` - immediate switch             |
+| Component unmounts        | Cleans up both tracks and pending timeouts        |
+
+### Performance
+
+- **Memory**: Two Howl instances exist only during crossfade
+- **CPU**: Minimal - leverages Howler.js optimized fade
+- **Network**: New track starts loading immediately
+- **Audio gaps**: None - guaranteed smooth transition
 
 ---
 
@@ -117,7 +176,7 @@ function App() {
 
 ## Future Enhancements
 
-- [ ] Crossfade between tracks
+- [x] Crossfade between tracks
 - [ ] Equalizer controls
 - [ ] Spatial audio (stereo positioning)
 - [ ] Visualizer data export

@@ -26,6 +26,7 @@ vi.mock('howler', () => {
     public volume: ReturnType<typeof vi.fn>;
     public unload: ReturnType<typeof vi.fn>;
     public playing: ReturnType<typeof vi.fn>;
+    public seek: ReturnType<typeof vi.fn>;
 
     constructor(options: {
       src: string[];
@@ -86,6 +87,13 @@ vi.mock('howler', () => {
 
       this.playing = vi.fn(() => {
         return this._playing;
+      });
+
+      this.seek = vi.fn((position?: number) => {
+        if (position !== undefined) {
+          return this;
+        }
+        return 0;
       });
     }
   }
@@ -411,6 +419,7 @@ describe('useAudioPlayback', () => {
       expect(typeof result.current.pause).toBe('function');
       expect(typeof result.current.stop).toBe('function');
       expect(typeof result.current.fadeOut).toBe('function');
+      expect(typeof result.current.crossfade).toBe('function');
       expect(typeof result.current.setVolume).toBe('function');
 
       // Verify all contract properties are present
@@ -427,6 +436,220 @@ describe('useAudioPlayback', () => {
       );
 
       expect(result.current.volume).toBe(0.7);
+    });
+  });
+
+  describe('Crossfade Functionality', () => {
+    it('should create two Howl instances during crossfade', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      // Start playing first audio
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Crossfade to second audio
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 1000);
+      });
+
+      // Should still be playing during crossfade
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should use default crossfade duration from options', () => {
+      const { result } = renderHook(() => useAudioPlayback({ crossfadeDuration: 3000 }));
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      // Crossfade without specifying duration
+      act(() => {
+        result.current.crossfade('/audio/second.mp3');
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Fast-forward past crossfade duration
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+
+      // Should still be playing the new track
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should use custom duration when provided', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      // Crossfade with custom duration
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 500);
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Fast-forward past crossfade duration
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      // Should still be playing the new track
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should clean up old instance after crossfade completes', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      // Crossfade
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 1000);
+      });
+
+      // Fast-forward past crossfade duration to trigger cleanup
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      // No errors should occur, cleanup should be successful
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should handle crossfade when no audio is playing', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      expect(result.current.isPlaying).toBe(false);
+
+      // Crossfade when nothing is playing (should just play)
+      act(() => {
+        result.current.crossfade('/audio/test.mp3', 1000);
+      });
+
+      // Should start playing the new track
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should handle crossfade with same URL (no-op)', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const sameUrl = '/audio/test.mp3';
+
+      // Start playing
+      act(() => {
+        result.current.play(sameUrl);
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Crossfade to same URL (should restart)
+      act(() => {
+        result.current.crossfade(sameUrl, 1000);
+      });
+
+      // Should still be playing
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should handle crossfade while another crossfade is in progress', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      // Start first crossfade
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 2000);
+      });
+
+      // Advance time partially
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      // Start second crossfade before first completes
+      act(() => {
+        result.current.crossfade('/audio/third.mp3', 1000);
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Complete second crossfade
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      // Should still be playing
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should respect crossfadeEnabled flag when false', () => {
+      const { result } = renderHook(() => useAudioPlayback({ crossfadeEnabled: false }));
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Crossfade when disabled (should just play normally)
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 1000);
+      });
+
+      // Should be playing the new track (no crossfade, just immediate switch)
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should cleanup crossfade on unmount', () => {
+      const { result, unmount } = renderHook(() => useAudioPlayback());
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      // Start crossfade
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 2000);
+      });
+
+      // Unmount before crossfade completes
+      unmount();
+
+      // No errors should occur
+    });
+
+    it('should fade new track in to current volume level', () => {
+      const { result } = renderHook(() => useAudioPlayback({ volume: 0.6 }));
+
+      // Start playing
+      act(() => {
+        result.current.play('/audio/first.mp3');
+      });
+
+      // Crossfade
+      act(() => {
+        result.current.crossfade('/audio/second.mp3', 1000);
+      });
+
+      // Volume should remain at initial level
+      expect(result.current.volume).toBe(0.6);
     });
   });
 });

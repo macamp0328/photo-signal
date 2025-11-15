@@ -11,6 +11,8 @@ export interface AudioPlaybackHook {
   stop: () => void;
   /** Fade out over duration (ms) */
   fadeOut: (duration?: number) => void;
+  /** Crossfade to new audio track */
+  crossfade: (newUrl: string, duration?: number) => void;
   /** Current playback state */
   isPlaying: boolean;
   /** Current volume (0-1) */
@@ -24,4 +26,8 @@ export interface AudioPlaybackOptions {
   volume?: number;
   /** Default fade duration (ms), default 1000 */
   fadeTime?: number;
+  /** Default crossfade duration (ms), default 2000 */
+  crossfadeDuration?: number;
+  /** Enable crossfade functionality, default true */
+  crossfadeEnabled?: boolean;
 }

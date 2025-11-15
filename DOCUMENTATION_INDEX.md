@@ -9,7 +9,7 @@
 ### Project Overview & Setup
 
 - **[README.md](./README.md)** - Main project documentation, features, setup instructions, and usage
-- **[SETUP.md](./SETUP.md)** - Detailed development environment setup, CI/CD, DevContainer, and Vercel deployment
+- **[SETUP.md](./SETUP.md)** - Detailed development environment setup, CI/CD, DevContainer, Vercel deployment, and Playwright visual test setup
 - **[DOCKER.md](./DOCKER.md)** - Docker and Docker Compose setup, containerized development guide
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines, quality gates, AI agent PR policy, code style, testing requirements, and security guidelines
 

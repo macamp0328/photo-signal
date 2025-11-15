@@ -186,6 +186,24 @@ npm run test:coverage
 
 Current test coverage includes basic smoke tests. See [TESTING.md](./TESTING.md) for the testing strategy.
 
+### Visual Regression Tests
+
+Playwright powers the screenshot-based regression suite located in `tests/visual`. Because Playwright downloads real browser binaries, each dev environment must run a one-time install before executing the suite:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+After the browser download finishes you can run, update, or inspect the visuals via the existing npm scripts:
+
+```bash
+npm run test:visual          # run all visual specs
+npm run test:visual:update   # refresh baselines when changes are intentional
+npm run test:visual:report   # open the latest HTML report
+```
+
+> Tip: CI already performs the browser install step, so you only need to run the command locally when setting up a new machine or rebuilding the DevContainer.
+
 ## GitHub Actions CI
 
 The CI workflow runs automatically on:

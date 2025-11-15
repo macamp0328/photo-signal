@@ -23,7 +23,7 @@
 }
 
 .retryButton {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   background-color: var(--color-button-bg);
   color: var(--color-button-text);
   border: none;
@@ -31,6 +31,8 @@
   cursor: pointer;
   transition: background-color 0.2s;
   font-weight: 500;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
 }
 
 .retryButton:hover {
@@ -168,7 +170,7 @@
   position: absolute;
   top: 1rem;
   right: 1rem;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   background-color: var(--overlay-bg);
   color: var(--color-text);
   border: 1px solid var(--modal-border);
@@ -179,6 +181,8 @@
   backdrop-filter: blur(4px);
   z-index: 10;
   font-weight: 500;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
 }
 
 .aspectToggle:hover {

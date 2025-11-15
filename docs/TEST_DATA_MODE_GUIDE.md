@@ -43,7 +43,7 @@ Alternatively, you can click the X button or click outside the modal to close th
 When Test Data Mode is enabled, the app uses data from these directories instead of production data:
 
 - **Concert data**: `assets/test-data/concerts.json` (instead of `/data.json`)
-- **Audio files**: `assets/test-audio/*.mp3` **plus** `assets/example-real-songs/*.mp3` for the immersive set
+- **Audio files**: `assets/test-audio/*.mp3` **plus** the 30-second clip pack in `assets/example-real-songs/*.mp3`
 - **Photo hashes**: Links to test images in `assets/test-images/*.jpg|png` and example real photos in `assets/example-real-photos/*.jpg`
 
 ### Testing the Photo Recognition Workflow
@@ -307,7 +307,7 @@ See `scripts/README.md` for detailed hash generation instructions.
 1. Check device volume
 2. Ensure you've interacted with the page (browsers block autoplay until user interaction)
 3. Check browser console for audio loading errors
-4. Verify the synthetic clips exist in `assets/test-audio/` **and** the real MP3s live in `assets/example-real-songs/`
+4. Verify the synthetic clips exist in `assets/test-audio/` **and** the real clip pack lives in `assets/example-real-songs/`
 
 ### Mode Not Persisting
 
@@ -365,18 +365,18 @@ If you see "[DataService] Warning: No concerts have photoHash values" or test da
 
 ### Data Sources by Mode
 
-| Resource     | Production Mode          | Test Mode                                                       |
-| ------------ | ------------------------ | --------------------------------------------------------------- |
-| Concert Data | `/data.json`             | `/assets/test-data/concerts.json`                               |
-| Audio Files  | `/audio/*.mp3`           | `/assets/test-audio/*.mp3` + `/assets/example-real-songs/*.mp3` |
-| Photo Hashes | (stored in concert data) | (stored in test concert data)                                   |
+| Resource     | Production Mode          | Test Mode                                                                   |
+| ------------ | ------------------------ | --------------------------------------------------------------------------- |
+| Concert Data | `/data.json`             | `/assets/test-data/concerts.json`                                           |
+| Audio Files  | `/audio/*.mp3`           | `/assets/test-audio/*.mp3` + `/assets/example-real-songs/*.mp3` (30s clips) |
+| Photo Hashes | (stored in concert data) | (stored in test concert data)                                               |
 
 ### Test Data Contents
 
 The test dataset now includes:
 
 - **12 concerts** with complete metadata (4 gradients, 3 high-contrast targets, 5 real photos)
-- **12 audio samples** (6 synthetic tones + 6 real concert recordings)
+- **12 assigned audio samples** (6 synthetic tones + 6 real clip references, with 18 extra clip variations available for swapping)
 - **12 photo images** with pre-computed dHash values (JPEG + PNG)
 - **Full recognition workflow** ready to test, including real-world photo hashing baselines
 

@@ -213,13 +213,13 @@ async function generateHashes() {
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         ctx.drawImage(image, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
+
         // Generate multi-exposure hashes for lighting robustness
         // Dark (-50), Normal (0), Bright (+50) exposure adjustments
         const darkImageData = adjustBrightness(imageData, -50);
         const normalImageData = imageData; // Original
         const brightImageData = adjustBrightness(imageData, 50);
-        
+
         const darkHash = computeDHash(darkImageData);
         const normalHash = computeDHash(normalImageData);
         const brightHash = computeDHash(brightImageData);

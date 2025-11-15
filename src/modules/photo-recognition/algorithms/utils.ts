@@ -192,8 +192,7 @@ export function computeLaplacianVariance(imageData: ImageData): number {
 
   const mean = laplacianValues.reduce((sum, val) => sum + val, 0) / laplacianValues.length;
   const variance =
-    laplacianValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-    laplacianValues.length;
+    laplacianValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / laplacianValues.length;
 
   return variance;
 }

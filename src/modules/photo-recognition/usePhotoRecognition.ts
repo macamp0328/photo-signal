@@ -19,7 +19,10 @@ const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: strin
     return concert.photoHash.length > 0;
   }
   if (Array.isArray(concert.photoHash)) {
-    return concert.photoHash.length > 0 && concert.photoHash.every(h => typeof h === 'string' && h.length > 0);
+    return (
+      concert.photoHash.length > 0 &&
+      concert.photoHash.every((h) => typeof h === 'string' && h.length > 0)
+    );
   }
   return false;
 };
@@ -114,7 +117,7 @@ export function usePhotoRecognition(
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef<number>(0);
-  
+
   // Telemetry tracking
   const telemetryRef = useRef<RecognitionTelemetry>({
     totalFrames: 0,
@@ -319,7 +322,9 @@ export function usePhotoRecognition(
           console.debug(`\nFrame Quality Check:`);
           console.debug(`  Sharpness: ${sharpness.toFixed(1)} (threshold: ${sharpnessThreshold})`);
           console.debug(`  ${isSharp ? '✓' : '✗'} Sharp enough: ${isSharp}`);
-          console.debug(`  Glare: ${glarePercentage.toFixed(1)}% (threshold: ${glarePercentageThreshold}%)`);
+          console.debug(
+            `  Glare: ${glarePercentage.toFixed(1)}% (threshold: ${glarePercentageThreshold}%)`
+          );
           console.debug(`  ${hasGlare ? '✗' : '✓'} Glare detected: ${hasGlare}`);
         }
 
@@ -328,7 +333,9 @@ export function usePhotoRecognition(
           telemetryRef.current.blurRejections += 1;
           if (isTestMode) {
             console.debug(`❌ Frame REJECTED: Too blurry (motion blur detected)`);
-            console.debug(`   Telemetry: ${telemetryRef.current.blurRejections} blur rejections / ${telemetryRef.current.totalFrames} total frames`);
+            console.debug(
+              `   Telemetry: ${telemetryRef.current.blurRejections} blur rejections / ${telemetryRef.current.totalFrames} total frames`
+            );
           }
           return; // Skip hashing for blurry frames
         }
@@ -336,8 +343,12 @@ export function usePhotoRecognition(
         if (hasGlare) {
           telemetryRef.current.glareRejections += 1;
           if (isTestMode) {
-            console.debug(`❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`);
-            console.debug(`   Telemetry: ${telemetryRef.current.glareRejections} glare rejections / ${telemetryRef.current.totalFrames} total frames`);
+            console.debug(
+              `❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`
+            );
+            console.debug(
+              `   Telemetry: ${telemetryRef.current.glareRejections} glare rejections / ${telemetryRef.current.totalFrames} total frames`
+            );
           }
           return; // Skip hashing for frames with glare
         }
@@ -346,7 +357,9 @@ export function usePhotoRecognition(
         telemetryRef.current.qualityFrames += 1;
         if (isTestMode) {
           console.debug(`✓ Frame PASSED quality checks`);
-          console.debug(`  Telemetry: ${telemetryRef.current.qualityFrames} quality frames / ${telemetryRef.current.totalFrames} total`);
+          console.debug(
+            `  Telemetry: ${telemetryRef.current.qualityFrames} quality frames / ${telemetryRef.current.totalFrames} total`
+          );
         }
 
         // Apply grayscale conversion if enabled
@@ -388,11 +401,11 @@ export function usePhotoRecognition(
         for (const concert of concertsWithHashes) {
           // Get all hashes for this concert (handles both single and multi-exposure)
           const hashes = getPhotoHashes(concert);
-          
+
           // Find best match across all exposure variants
           let bestHashDistance = Infinity;
           let matchedHashIndex = -1;
-          
+
           for (let i = 0; i < hashes.length; i++) {
             const hashDistance = hammingDistance(currentHash, hashes[i]);
             if (hashDistance < bestHashDistance) {
@@ -400,7 +413,7 @@ export function usePhotoRecognition(
               matchedHashIndex = i;
             }
           }
-          
+
           const distance = bestHashDistance;
           const similarity = ((256 - distance) / 256) * 100;
 
@@ -409,7 +422,8 @@ export function usePhotoRecognition(
             const isBest = distance < bestDistance;
             const meetsThreshold = distance <= similarityThreshold;
             const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
-            const hashInfo = hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
+            const hashInfo =
+              hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
             console.debug(
               `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${isBest ? ' ← BEST MATCH' : ''}`
             );
@@ -499,10 +513,18 @@ export function usePhotoRecognition(
                   console.log('━'.repeat(60));
                   console.log(`📊 Telemetry Summary:`);
                   console.log(`  Total Frames: ${telemetryRef.current.totalFrames}`);
-                  console.log(`  Quality Frames: ${telemetryRef.current.qualityFrames} (${((telemetryRef.current.qualityFrames / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`);
-                  console.log(`  Blur Rejections: ${telemetryRef.current.blurRejections} (${((telemetryRef.current.blurRejections / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`);
-                  console.log(`  Glare Rejections: ${telemetryRef.current.glareRejections} (${((telemetryRef.current.glareRejections / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`);
-                  console.log(`  Successful Recognitions: ${telemetryRef.current.successfulRecognitions}`);
+                  console.log(
+                    `  Quality Frames: ${telemetryRef.current.qualityFrames} (${((telemetryRef.current.qualityFrames / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`
+                  );
+                  console.log(
+                    `  Blur Rejections: ${telemetryRef.current.blurRejections} (${((telemetryRef.current.blurRejections / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`
+                  );
+                  console.log(
+                    `  Glare Rejections: ${telemetryRef.current.glareRejections} (${((telemetryRef.current.glareRejections / telemetryRef.current.totalFrames) * 100).toFixed(1)}%)`
+                  );
+                  console.log(
+                    `  Successful Recognitions: ${telemetryRef.current.successfulRecognitions}`
+                  );
                   console.log(`  Failed Attempts: ${telemetryRef.current.failedAttempts}`);
                 }
 

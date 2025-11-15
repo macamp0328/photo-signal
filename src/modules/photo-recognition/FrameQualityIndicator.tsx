@@ -15,7 +15,10 @@ interface FrameQualityIndicatorProps {
  *
  * Only shown when quality issues are actively detected.
  */
-export function FrameQualityIndicator({ frameQuality, className = '' }: FrameQualityIndicatorProps) {
+export function FrameQualityIndicator({
+  frameQuality,
+  className = '',
+}: FrameQualityIndicatorProps) {
   if (!frameQuality) return null;
 
   const { isSharp, hasGlare } = frameQuality;

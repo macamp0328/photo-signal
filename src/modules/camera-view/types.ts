@@ -19,4 +19,6 @@ export interface CameraViewProps {
   aspectRatio?: AspectRatio;
   /** Callback when aspect ratio toggle is clicked */
   onAspectRatioToggle?: () => void;
+  /** Apply grayscale filter to camera view */
+  grayscale?: boolean;
 }

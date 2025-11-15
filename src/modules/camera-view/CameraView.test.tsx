@@ -298,6 +298,55 @@ describe('CameraView', () => {
     });
   });
 
+  describe('Grayscale Mode', () => {
+    let mockStream: MediaStream;
+
+    beforeEach(() => {
+      mockStream = new MediaStream();
+    });
+
+    it('should not apply grayscale filter by default', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} />
+      );
+
+      const video = container.querySelector('video');
+      expect(video?.className).not.toContain('grayscale');
+    });
+
+    it('should apply grayscale filter when grayscale prop is true', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} grayscale={true} />
+      );
+
+      const video = container.querySelector('video');
+      expect(video?.className).toContain('grayscale');
+    });
+
+    it('should not apply grayscale filter when grayscale prop is false', () => {
+      const { container } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} grayscale={false} />
+      );
+
+      const video = container.querySelector('video');
+      expect(video?.className).not.toContain('grayscale');
+    });
+
+    it('should toggle grayscale filter when prop changes', () => {
+      const { container, rerender } = render(
+        <CameraView stream={mockStream} error={null} hasPermission={true} grayscale={false} />
+      );
+
+      let video = container.querySelector('video');
+      expect(video?.className).not.toContain('grayscale');
+
+      rerender(<CameraView stream={mockStream} error={null} hasPermission={true} grayscale={true} />);
+
+      video = container.querySelector('video');
+      expect(video?.className).toContain('grayscale');
+    });
+  });
+
   describe('Aspect Ratio Support', () => {
     let mockStream: MediaStream;
 

@@ -110,7 +110,7 @@ function App() {
   useEffect(() => {
     if (recognizedConcert) {
       console.log('Photo recognized:', recognizedConcert.band);
-      play(recognizedConcert.audioFile);
+      play(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
       // Play retro sound on recognition
       playRandomSound();
     }

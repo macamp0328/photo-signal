@@ -50,29 +50,37 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   }, []);
 
   const play = useCallback(
-    (url: string) => {
+    (url: string, fallbackUrl?: string) => {
       // Stop and unload previous sound
       if (soundRef.current) {
         soundRef.current.unload();
         soundRef.current = null;
       }
 
+      // Build source array with fallback support
+      // Howler will try sources in order until one works
+      const sources = fallbackUrl ? [url, fallbackUrl] : [url];
+
       // Create new sound
       soundRef.current = new Howl({
-        src: [url],
+        src: sources,
         html5: true,
         volume: volume,
         onplay: () => setIsPlaying(true),
         onend: () => setIsPlaying(false),
         onstop: () => setIsPlaying(false),
         onloaderror: (_id, error) => {
-          console.error('Audio load error:', error);
-          console.warn('Audio file not found:', url);
+          console.error('[Audio] Load error:', error);
+          if (fallbackUrl) {
+            console.warn(`[Audio] Failed to load: ${url}, fallback: ${fallbackUrl}`);
+          } else {
+            console.warn('[Audio] File not found:', url);
+          }
           // Still mark as "playing" to allow state management
           setIsPlaying(true);
         },
         onplayerror: (_id, error) => {
-          console.error('Audio play error:', error);
+          console.error('[Audio] Play error:', error);
         },
       });
 
@@ -126,10 +134,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   }, []);
 
   const crossfade = useCallback(
-    (newUrl: string, duration: number = crossfadeDuration) => {
+    (newUrl: string, duration: number = crossfadeDuration, fallbackUrl?: string) => {
       // If crossfade is disabled, just play the new track
       if (!crossfadeEnabled) {
-        play(newUrl);
+        play(newUrl, fallbackUrl);
         return;
       }
 
@@ -141,7 +149,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       // If no audio is currently playing, just play the new track
       if (!soundRef.current || !isPlaying) {
-        play(newUrl);
+        play(newUrl, fallbackUrl);
         return;
       }
 
@@ -172,9 +180,12 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       // Start fading out the old sound
       fadingOutSoundRef.current.fade(currentVolume, 0, duration);
 
+      // Build source array with fallback support
+      const sources = fallbackUrl ? [newUrl, fallbackUrl] : [newUrl];
+
       // Create and start new sound at 0 volume
       const newSound = new Howl({
-        src: [newUrl],
+        src: sources,
         html5: true,
         volume: 0,
         onplay: () => setIsPlaying(true),
@@ -191,12 +202,16 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           }
         },
         onloaderror: (_id, error) => {
-          console.error('Audio load error:', error);
-          console.warn('Audio file not found:', newUrl);
+          console.error('[Audio] Load error:', error);
+          if (fallbackUrl) {
+            console.warn(`[Audio] Failed to load: ${newUrl}, fallback: ${fallbackUrl}`);
+          } else {
+            console.warn('[Audio] File not found:', newUrl);
+          }
           setIsPlaying(true);
         },
         onplayerror: (_id, error) => {
-          console.error('Audio play error:', error);
+          console.error('[Audio] Play error:', error);
         },
       });
 

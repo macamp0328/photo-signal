@@ -24,7 +24,7 @@ Photo Signal currently stores all MP3 audio files in the `/public/audio/` direct
 1. **Fast playback**: MP3 streaming starts in <1 second on fast wifi (same as current local files)
 2. **Full library access**: Test Mode supports 100+ tracks with instant switching
 3. **Clean repository**: Production MP3s removed from git; only demo starter pack remains
-4. **Dual-mode support**: 
+4. **Dual-mode support**:
    - **Production mode**: Streams from CDN
    - **Local/offline mode**: Falls back to `/public/audio/` for development
 5. **Automation-ready**: Migration script can be run by AI agents or developers
@@ -46,23 +46,25 @@ Photo Signal currently stores all MP3 audio files in the `/public/audio/` direct
 After evaluating all options, a **hybrid approach** is recommended:
 
 **Phase 1 (MVP): GitHub Releases Only**
+
 - **Storage**: GitHub Releases (2GB per file, unlimited bandwidth)
 - **Pros**: Zero cost, zero config, integrated with existing GitHub workflow
 - **Cons**: Manual upload via GitHub UI or API
 
 **Phase 2 (Scale): Cloudflare R2 for large libraries**
+
 - **Storage**: Cloudflare R2 (10GB free, no egress fees)
 - **Pros**: Scriptable uploads, fast global CDN, no bandwidth charges
 - **Cons**: Requires Cloudflare account and API credentials
 
 **Why this approach?**
 
-| Option | Cost | Bandwidth | CORS | Automation | Verdict |
-|--------|------|-----------|------|------------|---------|
-| **GitHub Releases** | Free | Unlimited | ✅ Yes | GitHub API | ✅ **Best for MVP** |
-| **Cloudflare R2** | $0-5/mo | Free | ✅ Yes | S3 API | ✅ **Best for scale** |
-| Backblaze B2 | Free tier | 1GB/day free | ✅ Yes | S3 API | ⚠️ Bandwidth limits |
-| Bunny.net | Free tier | 100GB/mo | ✅ Yes | API | ⚠️ Bandwidth limits |
+| Option              | Cost      | Bandwidth    | CORS   | Automation | Verdict               |
+| ------------------- | --------- | ------------ | ------ | ---------- | --------------------- |
+| **GitHub Releases** | Free      | Unlimited    | ✅ Yes | GitHub API | ✅ **Best for MVP**   |
+| **Cloudflare R2**   | $0-5/mo   | Free         | ✅ Yes | S3 API     | ✅ **Best for scale** |
+| Backblaze B2        | Free tier | 1GB/day free | ✅ Yes | S3 API     | ⚠️ Bandwidth limits   |
+| Bunny.net           | Free tier | 100GB/mo     | ✅ Yes | API        | ⚠️ Bandwidth limits   |
 
 **Decision**: Start with GitHub Releases (zero friction), migrate to R2 when library exceeds 50 tracks or automation needs increase.
 
@@ -76,7 +78,7 @@ export interface Concert {
   band: string;
   venue: string;
   date: string;
-  audioFile: string;  // "/audio/concert-1.mp3"
+  audioFile: string; // "/audio/concert-1.mp3"
   imageFile?: string;
   photoHash?: string;
 }
@@ -90,9 +92,9 @@ export interface Concert {
   band: string;
   venue: string;
   date: string;
-  audioFile: string;           // CHANGED: Now supports URLs
-  audioFileFallback?: string;  // NEW: Local fallback path
-  audioFileSource?: 'local' | 'cdn' | 'github-release' | 'r2';  // NEW: Optional metadata
+  audioFile: string; // CHANGED: Now supports URLs
+  audioFileFallback?: string; // NEW: Local fallback path
+  audioFileSource?: 'local' | 'cdn' | 'github-release' | 'r2'; // NEW: Optional metadata
   imageFile?: string;
   photoHash?: string;
 }
@@ -101,14 +103,14 @@ export interface Concert {
 **Migration path:**
 
 1. **Local development**: `audioFile: "/audio/concert-1.mp3"`
-2. **Production (GitHub Releases)**: 
+2. **Production (GitHub Releases)**:
    ```json
    {
      "audioFile": "https://github.com/username/photo-signal/releases/download/audio-v1/concert-1.mp3",
      "audioFileFallback": "/audio/concert-1.mp3"
    }
    ```
-3. **Production (R2)**: 
+3. **Production (R2)**:
    ```json
    {
      "audioFile": "https://audio.photo-signal.example.com/concert-1.mp3",
@@ -403,12 +405,12 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 **Metrics to measure:**
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Time to first byte (TTFB)** | <500ms | Chrome DevTools Network tab |
-| **Audio start latency** | <1s | `performance.now()` from click to `onplay` |
-| **Fallback latency** | <2s | Time from CDN failure to fallback success |
-| **Bundle size impact** | +0KB | No new dependencies added |
+| Metric                        | Target | Measurement                                |
+| ----------------------------- | ------ | ------------------------------------------ |
+| **Time to first byte (TTFB)** | <500ms | Chrome DevTools Network tab                |
+| **Audio start latency**       | <1s    | `performance.now()` from click to `onplay` |
+| **Fallback latency**          | <2s    | Time from CDN failure to fallback success  |
+| **Bundle size impact**        | +0KB   | No new dependencies added                  |
 
 **Baseline (current local files):**
 
@@ -567,7 +569,7 @@ Testing 6 concerts...
 ❌ Concert 3: Velvet Revolution
    Primary: https://github.com/.../concert-3.mp3 (404 Not Found)
    Fallback: /audio/concert-3.mp3 (exists)
-   
+
 Summary:
 - 6 concerts tested
 - 5 passed (83%)
@@ -646,7 +648,8 @@ git checkout data.json  # Or restore from backup
 
 **Root cause**: GitHub Release URLs don't allow cross-origin requests
 
-**Solution**: 
+**Solution**:
+
 1. Switch to Cloudflare R2 (has configurable CORS)
 2. Or use local files for production (keep MP3s in repo)
 
@@ -657,11 +660,13 @@ git checkout data.json  # Or restore from backup
 **Scenario 3: Migration script corrupts data.json**
 
 **Prevention**:
+
 - Always backup before modification
 - Use `--dry-run` flag to preview changes
 - Version control catches issues
 
 **Recovery**:
+
 ```bash
 # Restore from backup
 cp data.json.backup data.json
@@ -677,6 +682,7 @@ git checkout HEAD -- data.json
 **Root cause**: Too many requests in short period
 
 **Solution**:
+
 - Use authenticated requests (higher rate limits)
 - Add delays between uploads
 - Batch uploads in smaller chunks
@@ -712,23 +718,23 @@ git checkout HEAD -- data.json
 
 ### Technical Risks & Mitigations
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| GitHub rate limits block downloads | Low | High | Use authenticated requests, cache audio in browser |
-| CORS errors prevent streaming | Low | High | Test early, switch to R2 if needed |
-| Slow CDN response (>3s) | Low | Medium | Use fallback to local files |
-| Migration script data corruption | Medium | High | Always backup data.json, use dry-run mode |
-| MP3 files too large for free tier | Low | Low | Compress audio to 128-192kbps |
-| GitHub deletes old releases | Very Low | High | Keep backups, use R2 as secondary storage |
+| Risk                               | Probability | Impact | Mitigation                                         |
+| ---------------------------------- | ----------- | ------ | -------------------------------------------------- |
+| GitHub rate limits block downloads | Low         | High   | Use authenticated requests, cache audio in browser |
+| CORS errors prevent streaming      | Low         | High   | Test early, switch to R2 if needed                 |
+| Slow CDN response (>3s)            | Low         | Medium | Use fallback to local files                        |
+| Migration script data corruption   | Medium      | High   | Always backup data.json, use dry-run mode          |
+| MP3 files too large for free tier  | Low         | Low    | Compress audio to 128-192kbps                      |
+| GitHub deletes old releases        | Very Low    | High   | Keep backups, use R2 as secondary storage          |
 
 ### Operational Risks & Mitigations
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Developer forgets to update data.json | Medium | Low | Validation script catches broken URLs |
-| New MP3s added to repo by mistake | Medium | Low | `.gitignore` prevents commits, CI checks file sizes |
-| CDN goes down | Very Low | High | Fallback to local files, monitor uptime |
-| Cost increases unexpectedly | Low | Medium | Set up billing alerts, use free tier providers |
+| Risk                                  | Probability | Impact | Mitigation                                          |
+| ------------------------------------- | ----------- | ------ | --------------------------------------------------- |
+| Developer forgets to update data.json | Medium      | Low    | Validation script catches broken URLs               |
+| New MP3s added to repo by mistake     | Medium      | Low    | `.gitignore` prevents commits, CI checks file sizes |
+| CDN goes down                         | Very Low    | High   | Fallback to local files, monitor uptime             |
+| Cost increases unexpectedly           | Low         | Medium | Set up billing alerts, use free tier providers      |
 
 ---
 
@@ -784,22 +790,22 @@ git checkout HEAD -- data.json
 
 ### GitHub Releases (Phase 1-3)
 
-| Item | Free Tier | Expected Usage | Cost |
-|------|-----------|----------------|------|
-| Storage | 2GB per file | 100 tracks × 5MB = 500MB | **$0** |
-| Bandwidth | Unlimited (public repos) | ~10GB/month (estimated) | **$0** |
-| API calls | 5,000/hour (authenticated) | ~100/day (uploads) | **$0** |
-| **Total** | | | **$0/month** |
+| Item      | Free Tier                  | Expected Usage           | Cost         |
+| --------- | -------------------------- | ------------------------ | ------------ |
+| Storage   | 2GB per file               | 100 tracks × 5MB = 500MB | **$0**       |
+| Bandwidth | Unlimited (public repos)   | ~10GB/month (estimated)  | **$0**       |
+| API calls | 5,000/hour (authenticated) | ~100/day (uploads)       | **$0**       |
+| **Total** |                            |                          | **$0/month** |
 
 ### Cloudflare R2 (Phase 4 - Optional)
 
-| Item | Free Tier | Expected Usage | Cost |
-|------|-----------|----------------|------|
-| Storage | 10GB | 100 tracks × 5MB = 500MB | **$0** |
-| Class A ops (write) | 1M/month | 100 uploads/month | **$0** |
-| Class B ops (read) | 10M/month | ~50K plays/month | **$0** |
-| Egress | Unlimited | ~50GB/month | **$0** (R2 has no egress fees) |
-| **Total** | | | **$0/month** |
+| Item                | Free Tier | Expected Usage           | Cost                           |
+| ------------------- | --------- | ------------------------ | ------------------------------ |
+| Storage             | 10GB      | 100 tracks × 5MB = 500MB | **$0**                         |
+| Class A ops (write) | 1M/month  | 100 uploads/month        | **$0**                         |
+| Class B ops (read)  | 10M/month | ~50K plays/month         | **$0**                         |
+| Egress              | Unlimited | ~50GB/month              | **$0** (R2 has no egress fees) |
+| **Total**           |           |                          | **$0/month**                   |
 
 **After free tier (200+ tracks, 2GB+):**
 
@@ -809,11 +815,11 @@ git checkout HEAD -- data.json
 **Scaling projection:**
 
 | Library Size | Storage | Est. Monthly Cost |
-|--------------|---------|-------------------|
-| 100 tracks | 500MB | $0 |
-| 200 tracks | 1GB | $0 |
-| 500 tracks | 2.5GB | $0.04/month |
-| 1,000 tracks | 5GB | $0.08/month |
+| ------------ | ------- | ----------------- |
+| 100 tracks   | 500MB   | $0                |
+| 200 tracks   | 1GB     | $0                |
+| 500 tracks   | 2.5GB   | $0.04/month       |
+| 1,000 tracks | 5GB     | $0.08/month       |
 
 **Conclusion**: Both solutions are effectively **free for realistic usage** (<500 tracks).
 
@@ -844,13 +850,13 @@ git checkout HEAD -- data.json
 
 ### Overall Success Metrics
 
-| Metric | Baseline (Local) | Target (CDN) | Measurement Method |
-|--------|------------------|--------------|-------------------|
-| **Playback latency** | ~500ms | <1s | Chrome DevTools Performance |
-| **Repository size** | 4MB (6 files) | <1MB (demo only) | `git count-objects -vH` |
-| **Deployment time** | ~30s | ~20s | Vercel deployment logs |
-| **Developer onboarding** | Clone 4MB | Clone <1MB | New contributor experience |
-| **Monthly cost** | $0 | $0 | Cloudflare/GitHub billing |
+| Metric                   | Baseline (Local) | Target (CDN)     | Measurement Method          |
+| ------------------------ | ---------------- | ---------------- | --------------------------- |
+| **Playback latency**     | ~500ms           | <1s              | Chrome DevTools Performance |
+| **Repository size**      | 4MB (6 files)    | <1MB (demo only) | `git count-objects -vH`     |
+| **Deployment time**      | ~30s             | ~20s             | Vercel deployment logs      |
+| **Developer onboarding** | Clone 4MB        | Clone <1MB       | New contributor experience  |
+| **Monthly cost**         | $0               | $0               | Cloudflare/GitHub billing   |
 
 ---
 
@@ -866,18 +872,22 @@ git checkout HEAD -- data.json
 ### Parallel AI Agents (3 agents)
 
 **Agent 1: Data Model & Audio Module**
+
 - Phase 1, Tasks 1-2 (TypeScript + audio fallback)
 - **Time**: 0.5 days
 
 **Agent 2: Migration Scripts**
+
 - Phase 2, Tasks 1-3 (migration + validation scripts)
 - **Time**: 1 day
 
 **Agent 3: Documentation & Optimization**
+
 - Phase 3, all tasks (docs + MP3 optimization)
 - **Time**: 0.5 days
 
 **Dependencies:**
+
 - Agent 2 must wait for Agent 1 to complete Task 1 (type definitions)
 - Agent 3 can work in parallel (documentation tasks)
 
@@ -892,12 +902,14 @@ git checkout HEAD -- data.json
 **Options:**
 
 A. **Keep 6 demo files in `/public/audio/`** (recommended)
-   - Pros: Instant local development, no setup required
-   - Cons: 4MB repo size
+
+- Pros: Instant local development, no setup required
+- Cons: 4MB repo size
 
 B. **Remove all MP3s, require developers to download**
-   - Pros: Smaller repo
-   - Cons: Extra setup step for new developers
+
+- Pros: Smaller repo
+- Cons: Extra setup step for new developers
 
 **Decision**: **Option A** - Developer experience is more important than 4MB repo size.
 
@@ -908,12 +920,14 @@ B. **Remove all MP3s, require developers to download**
 **Options:**
 
 A. **Start with GitHub Releases** (recommended)
-   - Pros: Zero setup, free, integrated with GitHub
-   - Cons: Manual upload via UI or API
+
+- Pros: Zero setup, free, integrated with GitHub
+- Cons: Manual upload via UI or API
 
 B. **Jump to Cloudflare R2 immediately**
-   - Pros: Better automation, S3-compatible API
-   - Cons: Requires Cloudflare account setup, API keys
+
+- Pros: Better automation, S3-compatible API
+- Cons: Requires Cloudflare account setup, API keys
 
 **Decision**: **Option A** - Start simple, migrate to R2 when automation needs increase.
 
@@ -924,16 +938,19 @@ B. **Jump to Cloudflare R2 immediately**
 **Options:**
 
 A. **Keep original quality** (unknown bitrate)
-   - Pros: Best quality
-   - Cons: Larger files, longer download
+
+- Pros: Best quality
+- Cons: Larger files, longer download
 
 B. **Re-encode to 192kbps VBR**
-   - Pros: Good quality, 50% size reduction
-   - Cons: Lossy compression (but imperceptible for most users)
+
+- Pros: Good quality, 50% size reduction
+- Cons: Lossy compression (but imperceptible for most users)
 
 C. **Re-encode to 128kbps CBR**
-   - Pros: Smallest size, fastest download
-   - Cons: Noticeable quality loss for music
+
+- Pros: Smallest size, fastest download
+- Cons: Noticeable quality loss for music
 
 **Decision**: **Option B (192kbps VBR)** - Best balance of quality and size. Provide compression script but don't enforce.
 
@@ -981,7 +998,7 @@ This implementation plan provides a **phased, low-risk approach** to migrating P
 ✅ **Clean repository**: Production MP3s removed from git  
 ✅ **Developer-friendly**: Local files still work for development  
 ✅ **Cost-effective**: $0/month for realistic usage  
-✅ **Automation-ready**: Scripts can be run by AI agents  
+✅ **Automation-ready**: Scripts can be run by AI agents
 
 The phased approach minimizes risk and allows for course correction at each milestone. If GitHub Releases proves insufficient, we have a clear path to Cloudflare R2. If CDN streaming introduces latency issues, the fallback mechanism ensures the app continues to work.
 

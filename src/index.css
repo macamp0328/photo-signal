@@ -61,6 +61,14 @@ body {
   /* Texture settings */
   --texture-opacity: 0.3;
   --texture-blend-mode: multiply;
+
+  /* Fluid spacing - scales with viewport width */
+  --spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+  --spacing-sm: clamp(0.5rem, 1vw, 0.75rem);
+  --spacing-md: clamp(0.75rem, 1.5vw, 1rem);
+  --spacing-lg: clamp(1rem, 2vw, 1.5rem);
+  --spacing-xl: clamp(1.5rem, 3vw, 2rem);
+  --spacing-2xl: clamp(2rem, 4vw, 3rem);
 }
 
 /* Light Theme - WCAG AA Compliant */
@@ -140,6 +148,9 @@ body {
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
+  /* Safe area insets for mobile devices with notches */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
 }
 
 /* Textured background overlay */
@@ -195,85 +206,14 @@ body::before {
   outline: none;
 }
 
-:root {
-  /* Default (Dark) Theme - WCAG AA Compliant */
-  --color-main-text: #f5f5f5; /* 18.16:1 contrast */
-  --color-sub-text: #cbd5e1; /* 13.33:1 contrast */
-  --color-bonus-text: #a1a1aa; /* 7.72:1 contrast */
-  --color-sub-background: #1a1a1a;
-  --color-background: #0a0a0a;
-  --color-text: #f5f5f5;
-  --color-accent: #4a90e2; /* 6.01:1 contrast */
-  --color-accent-light: #6ba3e8;
-  --color-accent-hover: #5ca3e6; /* 7.22:1 contrast */
-  --color-text-muted: #a8a8a8; /* 8.33:1 contrast */
-
-  /* Interactive element colors */
-  --color-button-bg: #f5f5f5;
-  --color-button-text: #0a0a0a;
-  --color-button-hover-bg: #e5e7eb;
-  --color-button-hover-text: #0a0a0a;
-  --color-button-disabled-bg: #3a3a3a;
-  --color-button-disabled-text: #6b6b6b;
-
-  /* Semantic colors */
-  --color-error: #ef4444;
-  --color-success: #22c55e;
-  --color-warning: #fbbf24;
-
-  /* Additional colors used in components */
-  --color-gray-200: #e5e7eb;
-  --color-gray-400: #9ca3af;
-
-  /* Focus indicators - WCAG compliant */
-  --color-focus: #6ba3e8;
-  --focus-ring-color: #6ba3e8;
-  --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
-  --focus-ring-style: solid;
-
-  /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(0, 0, 0, 0.85);
-  --modal-bg: #1a1a1a;
-  --modal-border: rgba(255, 255, 255, 0.1);
-
-  /* Texture settings */
-  --texture-opacity: 0.3;
-  --texture-blend-mode: multiply;
-}
-
-/* Light Theme - WCAG AA Compliant */
-[data-theme='light'] {
-  --color-main-text: #0f172a; /* 16.36:1 contrast */
-  --color-sub-text: #44403c; /* 9.42:1 contrast */
-  --color-bonus-text: #3f3f46; /* 9.57:1 contrast */
-  --color-sub-background: #cbd5e1;
-  --color-background: #f5f5f4;
-  --color-text: #0f172a;
-  --color-accent: #2563eb; /* 4.74:1 contrast */
-  --color-accent-light: #1d4ed8; /* 6.14:1 contrast */
-  --color-accent-hover: #1e40af; /* 7.93:1 contrast */
-  --color-text-muted: #595959; /* 6.42:1 contrast */
-
-  /* Interactive element colors */
-  --color-button-bg: #0f172a;
-  --color-button-text: #f5f5f4;
-  --color-button-hover-bg: #1e293b;
-  --color-button-hover-text: #f5f5f4;
-  --color-button-disabled-bg: #cbd5e1;
-  --color-button-disabled-text: #94a3b8;
-
-  /* Semantic colors */
-  --color-error: #b91c1c;
-  --color-success: #15803d;
-  --color-warning: #a16207;
-
-  /* Focus indicators */
-  --color-focus: #2563eb;
-  --focus-ring-color: #2563eb;
-
-  /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(0, 0, 0, 0.75);
-  --modal-bg: #ffffff;
-  --modal-border: rgba(15, 23, 42, 0.1);
+/* Accessibility: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

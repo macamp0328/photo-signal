@@ -253,6 +253,9 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Test Assets (CC0 Licensed)
 
+- **[assets/test-images/README.md](./assets/test-images/README.md)** - Test images (synthetic, calibration, and sample photos) for development and automated testing
+- **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Test audio files (CC0 music, tones, and noise) for playback and audio pipeline validation
+- **[assets/test-data/README.md](./assets/test-data/README.md)** - Test data files (JSON, CSV, etc.) for data service and integration tests
 - **[assets/example-real-songs/README.md](./assets/example-real-songs/README.md)** - Real-world MP3 library paired with example photos for immersive test mode sessions
 
 ### Example Real Photos

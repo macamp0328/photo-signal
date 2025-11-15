@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import { usePhotoRecognition } from './modules/photo-recognition';
@@ -37,6 +37,9 @@ function App() {
 
   // State for aspect ratio
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
+
+  // Ref to store auto-reset timer ID for test mode
+  const autoResetTimerRef = useRef<number | null>(null);
 
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
@@ -124,13 +127,26 @@ function App() {
       resetRecognition();
     }, AUTO_RESET_DELAY_MS);
 
-    return () => window.clearTimeout(timerId);
+    // Store timer ID in ref so motion detection can clear it
+    autoResetTimerRef.current = timerId;
+
+    return () => {
+      window.clearTimeout(timerId);
+      autoResetTimerRef.current = null;
+    };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
   // Fade out audio when movement is detected
   useEffect(() => {
     if (isMoving && isPlaying) {
       console.log('Movement detected, fading out');
+
+      // Clear auto-reset timer if it's running to avoid race condition
+      if (autoResetTimerRef.current !== null) {
+        window.clearTimeout(autoResetTimerRef.current);
+        autoResetTimerRef.current = null;
+      }
+
       fadeOut();
 
       // Reset recognition after fade completes

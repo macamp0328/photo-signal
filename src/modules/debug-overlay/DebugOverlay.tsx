@@ -107,7 +107,7 @@ export function DebugOverlay({
               type="button"
               className={styles.resetButton}
               onClick={onReset}
-              disabled={!recognizedConcert && !isRecognizing}
+              disabled={!!recognizedConcert || isRecognizing}
               aria-label="Reset recognition"
             >
               Reset

@@ -20,6 +20,6 @@
       }
     }
   },
-  "forwardPorts": [5173],
+  "forwardPorts": [5173, 9323],
   "postCreateCommand": "npm install"
 }

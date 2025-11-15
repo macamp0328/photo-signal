@@ -9,7 +9,7 @@
 ### Project Overview & Setup
 
 - **[README.md](./README.md)** - Main project documentation, features, setup instructions, and usage
-- **[SETUP.md](./SETUP.md)** - Detailed development environment setup, CI/CD, DevContainer, and Vercel deployment
+- **[SETUP.md](./SETUP.md)** - Detailed development environment setup, CI/CD, DevContainer, Vercel deployment, and Playwright visual test setup
 - **[DOCKER.md](./DOCKER.md)** - Docker and Docker Compose setup, containerized development guide
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines, quality gates, AI agent PR policy, code style, testing requirements, and security guidelines
 
@@ -93,6 +93,8 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[src/test/setup.ts](./src/test/setup.ts)** - Vitest setup file with global test configuration
 - **[src/test/mocks.ts](./src/test/mocks.ts)** - Global mocks for native browser APIs (MediaDevices, Canvas, Fetch, etc.)
+- **[playwright.config.ts](./playwright.config.ts)** - Playwright configuration for visual regression testing
+- **[tests/visual/README.md](./tests/visual/README.md)** - Visual regression testing guide, running tests, updating baselines, and troubleshooting
 
 #### Module Tests
 
@@ -105,6 +107,12 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
 - **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
 - **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
+
+#### Visual Regression Tests
+
+- **[tests/visual/landing-page.spec.ts](./tests/visual/landing-page.spec.ts)** - Visual regression tests for landing page at multiple viewports
+- **[tests/visual/camera-view.spec.ts](./tests/visual/camera-view.spec.ts)** - Visual regression tests for camera view states
+- **[tests/visual/ui-components.spec.ts](./tests/visual/ui-components.spec.ts)** - Visual regression tests for UI components, themes, responsive design, and interactive states
 
 ### Code Quality
 
@@ -127,6 +135,7 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Workflows
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
+- **[.github/workflows/visual-regression.yml](./.github/workflows/visual-regression.yml)** - Playwright visual regression testing workflow (separate from main CI)
 - **[.github/workflows/pr-checks-monitor.yml](./.github/workflows/pr-checks-monitor.yml)** - Automated PR monitoring workflow that comments on PRs with failing checks and enforces AI agent compliance
 - **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels (ci-failing, needs-fixes)
 - **[.github/workflows/close-stale-failing-prs.yml](./.github/workflows/close-stale-failing-prs.yml)** - Automated workflow to close PRs with failing checks after 7 days (enforces AI agent policy)
@@ -314,8 +323,8 @@ This index covers:
 - ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Module implementation files (7 files - secret-settings feature flags, custom settings, hooks, and effects)
 - ✅ Photo recognition algorithms (3 files)
-- ✅ Configuration files (14 files)
-- ✅ GitHub Actions & workflows (5 files - CI workflow, PR checks monitor, label management, stale PR closure, and Dependabot config)
+- ✅ Configuration files (15 files - including playwright.config.ts)
+- ✅ GitHub Actions & workflows (6 files - CI workflow, visual regression, PR checks monitor, label management, stale PR closure, and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
@@ -324,9 +333,10 @@ This index covers:
 - ✅ Docker configuration (4 files)
 - ✅ Helper scripts (9 files including README, easy image generator, and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
-- ✅ Test infrastructure (2 files)
+- ✅ Test infrastructure (4 files - Vitest setup, mocks, Playwright config, visual test README)
 - ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
+- ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 115 documented files
+**Total**: 121 documented files
 
 Last updated: 2025-11-15

@@ -17,6 +17,10 @@
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:visual": "playwright test",
+    "test:visual:ui": "playwright test --ui",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:report": "playwright show-report --host 0.0.0.0 --port 9323",
     "generate-hashes": "node scripts/generate-photo-hashes.js",
     "create-easy-images": "node scripts/create-easy-test-images.js",
     "pre-commit": "npm audit --audit-level=moderate && npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh"
@@ -31,6 +35,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@playwright/test": "^1.56.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

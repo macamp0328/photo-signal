@@ -13,6 +13,7 @@
 .permissionTitle {
   font-size: 1.125rem;
   margin-bottom: 0.5rem;
+  color: var(--color-main-text);
 }
 
 .permissionError {
@@ -34,11 +35,17 @@
 
 .retryButton:hover {
   background-color: var(--color-button-hover-bg);
+  color: var(--color-button-hover-text, var(--color-button-text));
 }
 
 .retryButton:focus-visible {
-  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
+  outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)
+    var(--focus-ring-color, var(--color-focus, #60a5fa));
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+.retryButton:active {
+  transform: scale(0.98);
 }
 
 .retryButton:disabled {
@@ -180,8 +187,9 @@
 }
 
 .aspectToggle:focus-visible {
-  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
-  outline-offset: var(--focus-ring-offset);
+  outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)
+    var(--focus-ring-color, var(--color-focus, #60a5fa));
+  outline-offset: var(--focus-ring-offset, 2px);
 }
 
 .aspectToggle:active {

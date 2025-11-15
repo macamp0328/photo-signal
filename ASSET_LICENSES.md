@@ -4,7 +4,8 @@ This document provides attribution and licensing information for all test assets
 
 ## Overview
 
-All test assets (images, audio files, and data files) in the `assets/` directory are **generated files** created specifically for this project to facilitate testing and development. They are not derived from any copyrighted source material.
+- All synthetic test assets (images, audio files, data files) in the `assets/` directory are **generated files** created specifically for this project and released under CC0.
+- The `assets/example-real-photos/` directory contains user-provided photos that ship with the repository for recognition testing. These images remain the property of the contributor and are licensed for Photo Signal development use only (see section below).
 
 ## License
 
@@ -23,16 +24,31 @@ This means:
 
 ### Test Images (`assets/test-images/`)
 
-| File            | Description                | Generation Method          | License |
-| --------------- | -------------------------- | -------------------------- | ------- |
-| `concert-1.jpg` | Blue gradient test image   | Generated with ImageMagick | CC0     |
-| `concert-2.jpg` | Red gradient test image    | Generated with ImageMagick | CC0     |
-| `concert-3.jpg` | Green gradient test image  | Generated with ImageMagick | CC0     |
-| `concert-4.jpg` | Purple gradient test image | Generated with ImageMagick | CC0     |
+| File                        | Description                         | Generation Method                           | License |
+| --------------------------- | ----------------------------------- | ------------------------------------------- | ------- |
+| `concert-1.jpg`             | Blue gradient test image            | Generated with ImageMagick                  | CC0     |
+| `concert-2.jpg`             | Red gradient test image             | Generated with ImageMagick                  | CC0     |
+| `concert-3.jpg`             | Green gradient test image           | Generated with ImageMagick                  | CC0     |
+| `concert-4.jpg`             | Purple gradient test image          | Generated with ImageMagick                  | CC0     |
+| `easy-target-bullseye.png`  | Bullseye + glyph design             | Generated with `npm run create-easy-images` | CC0     |
+| `easy-target-diagonals.png` | Diagonal stripes with text overlay  | Generated with `npm run create-easy-images` | CC0     |
+| `easy-target-checker.png`   | Checkerboard grid with framed label | Generated with `npm run create-easy-images` | CC0     |
 
 **Creation Command**: `convert -size 640x480 gradient:color1-color2 [filename].jpg`
 
-These images are simple color gradients with text overlays, created programmatically using ImageMagick's gradient generator. They contain no copyrighted imagery.
+These images are simple gradients and programmatically generated graphics (via ImageMagick or the `create-easy-test-images` canvas script). They contain no copyrighted imagery.
+
+### Example Real Photos (`assets/example-real-photos/`)
+
+| File           | Description              | Source                              | License                   |
+| -------------- | ------------------------ | ----------------------------------- | ------------------------- |
+| `R0043343.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+| `R0055333.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+| `R0055917.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+| `R0060632.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+| `R0060861.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+
+These photos are owned by the contributor and included solely for internal testing and manual recognition exercises. Do not redistribute outside this repository without explicit permission.
 
 ### Test Audio Files (`assets/test-audio/`)
 
@@ -165,6 +181,6 @@ If you have any questions about the licensing of these test assets, please open 
 
 ---
 
-**Last Updated**: 2025-11-10
-**Asset Count**: 4 images, 6 audio files (4 short + 2 full-length), 2 data files
-**Total Size**: ~4.1MB
+**Last Updated**: 2025-11-14
+**Asset Count**: 12 images (7 generated, 5 contributor-provided), 6 audio files (4 short + 2 full-length), 2 data files
+**Total Size**: ~4.4MB

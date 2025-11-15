@@ -36,4 +36,16 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     ],
     category: 'ui',
   },
+  {
+    id: 'recognition-delay',
+    name: 'Recognition Delay',
+    description: 'Adjust how long a photo must stay steady before it is considered a match',
+    type: 'number',
+    value: 3000,
+    min: 1000,
+    max: 5000,
+    step: 250,
+    unit: 'ms',
+    category: 'recognition',
+  },
 ];

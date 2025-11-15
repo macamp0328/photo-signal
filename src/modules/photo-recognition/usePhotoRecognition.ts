@@ -12,6 +12,10 @@ import { computeDHash } from './algorithms/dhash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale } from './algorithms/utils';
 
+const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string } => {
+  return typeof concert.photoHash === 'string' && concert.photoHash.length > 0;
+};
+
 /**
  * Calculate the framed region coordinates based on aspect ratio
  * @param videoWidth - Width of the video in pixels
@@ -66,9 +70,9 @@ export function usePhotoRecognition(
   options: PhotoRecognitionOptions = {}
 ): PhotoRecognitionHook {
   const {
-    recognitionDelay = 1000,
+    recognitionDelay = 3000,
     enabled = true,
-    similarityThreshold = 10,
+    similarityThreshold = 40,
     checkInterval = 1000,
     enableDebugInfo = false,
     aspectRatio = '3:2',
@@ -252,6 +256,8 @@ export function usePhotoRecognition(
 
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
+        const concertsWithHashes = concerts.filter(hasPhotoHash);
+
         if (import.meta.env.DEV || isTestMode) {
           console.debug(`\n${'='.repeat(60)}`);
           console.debug(`[Photo Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
@@ -261,7 +267,7 @@ export function usePhotoRecognition(
             `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
           );
           console.debug(`Aspect Ratio: ${aspectRatio}`);
-          console.debug(`Concerts Checked: ${concerts.filter((c) => c.photoHash).length}`);
+          console.debug(`Concerts Checked: ${concertsWithHashes.length}`);
           console.debug(
             `Threshold: ${similarityThreshold} (similarity ≥ ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%)`
           );
@@ -276,11 +282,7 @@ export function usePhotoRecognition(
           console.debug('Results:');
         }
 
-        for (const concert of concerts) {
-          if (!concert.photoHash) {
-            continue;
-          }
-
+        for (const concert of concertsWithHashes) {
           const distance = hammingDistance(currentHash, concert.photoHash);
           const similarity = ((256 - distance) / 256) * 100;
 
@@ -302,6 +304,24 @@ export function usePhotoRecognition(
 
         // Update debug info if enabled
         if (enableDebugInfo || isTestMode) {
+          const elapsedMs =
+            matchStartTimeRef.current && bestMatch && bestDistance <= similarityThreshold
+              ? currentTime - matchStartTimeRef.current
+              : 0;
+          const stabilityInfo =
+            matchStartTimeRef.current &&
+            bestMatch &&
+            bestDistance <= similarityThreshold &&
+            elapsedMs > 0
+              ? {
+                  concert: bestMatch,
+                  elapsedMs,
+                  remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
+                  requiredMs: recognitionDelay,
+                  progress: Math.min(elapsedMs / recognitionDelay, 1),
+                }
+              : null;
+
           setDebugInfo({
             lastFrameHash: currentHash,
             bestMatch: bestMatch
@@ -312,7 +332,14 @@ export function usePhotoRecognition(
                 }
               : null,
             lastCheckTime: currentTime,
-            concertCount: concerts.filter((c) => c.photoHash).length,
+            concertCount: concertsWithHashes.length,
+            frameCount: frameCountRef.current,
+            checkInterval,
+            aspectRatio,
+            frameSize: { width: canvas.width, height: canvas.height },
+            stability: stabilityInfo,
+            similarityThreshold,
+            recognitionDelay,
           });
         }
 

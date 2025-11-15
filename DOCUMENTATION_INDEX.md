@@ -27,7 +27,9 @@
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
-- **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** - Accessibility standards, WCAG 2.1 Level AA compliance, color contrast ratios, focus indicators, and testing guidelines
+- **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** - Unified WCAG 2.1 Level AA standards, contrast ratios, focus indicators, and component-level guidance
+- **[docs/ACCESSIBILITY_QUICK_REFERENCE.md](./docs/ACCESSIBILITY_QUICK_REFERENCE.md)** - Developer checklist and color reference for day-to-day accessibility work
+- **[docs/ACCESSIBILITY_VERIFICATION.md](./docs/ACCESSIBILITY_VERIFICATION.md)** - Formal verification report covering contrast audits, focus review, keyboard navigation, and testing status
 - **[docs/code-analysis-tooling-research.md](./docs/code-analysis-tooling-research.md)** - Research and evaluation of tracing, logging, and code analysis tools for AI agent development
 - **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Comprehensive guide to using and interpreting automated code analysis tools (CodeQL, Codecov, npm audit, etc.)
 - **[docs/code-analysis-examples.md](./docs/code-analysis-examples.md)** - Real-world examples showing what each automated tool looks like when it runs
@@ -37,7 +39,7 @@
 
 ### User Guides
 
-- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, and troubleshooting
+- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, troubleshooting, and technical details on the auto-copy mechanism
 
 ---
 
@@ -226,6 +228,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
 - **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
 - **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
+- **[scripts/create-easy-test-images.js](./scripts/create-easy-test-images.js)** - Canvas-based generator for high-contrast calibration targets (`npm run create-easy-images`)
 
 ---
 
@@ -239,7 +242,7 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Test Assets (CC0 Licensed)
 
 - **[ASSET_LICENSES.md](./ASSET_LICENSES.md)** - Licensing information and attribution for all test assets
-- **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG images for testing (4 files, ~30KB each)
+- **[assets/test-images/README.md](./assets/test-images/README.md)** - Sample JPEG + PNG images for testing (4 gradients + 3 high-contrast targets)
 - **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Sample MP3 audio files for testing (4 files, ~40KB each, 5 seconds)
 - **[assets/test-data/README.md](./assets/test-data/README.md)** - Sample structured data files (JSON, CSV formats)
 
@@ -304,7 +307,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (8 files)
-- ✅ Research & technical specifications (8 files - including camera settings guide, CodeQL, Codecov, and Vercel setup guides)
+- ✅ Research & technical specifications (9 files - including accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
@@ -318,11 +321,11 @@ This index covers:
 - ✅ Issue templates (22 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
-- ✅ Helper scripts (8 files including README and bundle size checker)
+- ✅ Helper scripts (9 files including README, easy image generator, and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (2 files)
 - ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
 
-**Total**: 112 documented files
+**Total**: 114 documented files
 
 Last updated: 2025-11-14

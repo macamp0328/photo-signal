@@ -12,6 +12,10 @@ This directory contains real concert/event photos for testing the Photo Signal g
 
 **Total**: 5 JPEG images
 
+# Example Real Photos
+
+This directory contains real concert/event photos for testing the Photo Signal gallery and photo recognition features.
+
 ## Purpose
 
 These photos are used for:
@@ -20,6 +24,33 @@ These photos are used for:
 - Validating the gallery layout and display
 - Generating perceptual hashes (dHash) for concert matching
 - End-to-end testing of the camera-to-audio workflow
+
+## Hash Reference (Precomputed)
+
+| File           | Photo Hash                         |
+| -------------- | ---------------------------------- |
+| `R0043343.jpg` | `c4f53cf10ccd16675d674cd2555b4b53` |
+| `R0055333.jpg` | `953f16ff30fb02db0352534504410041` |
+| `R0055917.jpg` | `41bb499486698c791cfb9acddacd5538` |
+| `R0060632.jpg` | `866f356722d6b4c3319d133c0ab9555a` |
+| `R0060861.jpg` | `960bc5ef462e2e8c4e6b566ec2eda7ed` |
+
+Regenerate hashes anytime with `npm run generate-hashes assets/example-real-photos` if the files change.
+
+## Concert Mapping
+
+These photos now ship in both production and test data sets:
+
+| Concert ID | Band Label                    | Image File Path                            |
+| ---------- | ----------------------------- | ------------------------------------------ |
+| 8          | Example Real Photo (R0043343) | `/assets/example-real-photos/R0043343.jpg` |
+| 9          | Example Real Photo (R0055333) | `/assets/example-real-photos/R0055333.jpg` |
+| 10         | Example Real Photo (R0055917) | `/assets/example-real-photos/R0055917.jpg` |
+| 11         | Example Real Photo (R0060632) | `/assets/example-real-photos/R0060632.jpg` |
+| 12         | Example Real Photo (R0060861) | `/assets/example-real-photos/R0060861.jpg` |
+
+- **Production**: `public/data.json` now contains the hashes above so the main experience recognizes your printed copies.
+- **Test Mode**: `assets/test-data/concerts.json` and `.csv` include the same entries with `/assets/example-real-photos/...` image paths for on-device previews.
 
 ## Usage
 

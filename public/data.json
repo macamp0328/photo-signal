@@ -5,28 +5,96 @@
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/audio/concert-1.mp3"
+      "audioFile": "/audio/concert-1.mp3",
+      "photoHash": "00000000000001600acc000000000000"
     },
     {
       "id": 2,
       "band": "Electric Dreams",
       "venue": "Red Rocks Amphitheatre",
       "date": "2023-09-22",
-      "audioFile": "/audio/concert-2.mp3"
+      "audioFile": "/audio/concert-2.mp3",
+      "photoHash": "00000000000001200330000000000000"
     },
     {
       "id": 3,
       "band": "Velvet Revolution",
       "venue": "Madison Square Garden",
       "date": "2023-10-10",
-      "audioFile": "/audio/concert-3.mp3"
+      "audioFile": "/audio/concert-3.mp3",
+      "photoHash": "00000000000001200278000000000000"
     },
     {
       "id": 4,
       "band": "Sunset Boulevard",
       "venue": "Hollywood Bowl",
       "date": "2023-11-05",
-      "audioFile": "/audio/concert-4.mp3"
+      "audioFile": "/audio/concert-4.mp3",
+      "photoHash": "00000000000001200a18000000000000"
+    },
+    {
+      "id": 5,
+      "band": "Neon Bullseye",
+      "venue": "Calibration Hall",
+      "date": "2024-01-05",
+      "audioFile": "/audio/concert-song-1.mp3",
+      "photoHash": "00e00078061c0d4e0d4e061c007800e0"
+    },
+    {
+      "id": 6,
+      "band": "Signal Stripes",
+      "venue": "Diagonal Pavilion",
+      "date": "2024-01-06",
+      "audioFile": "/audio/concert-song-2.mp3",
+      "photoHash": "0c008180b060265c05d101b100d90000"
+    },
+    {
+      "id": 7,
+      "band": "Monochrome Grid",
+      "venue": "Pattern Plaza",
+      "date": "2024-01-07",
+      "audioFile": "/audio/concert-1.mp3",
+      "photoHash": "1188c663c6632508e00b118811884662"
+    },
+    {
+      "id": 8,
+      "band": "Example Real Photo (R0043343)",
+      "venue": "Analog Loft Stage",
+      "date": "2024-02-01",
+      "audioFile": "/audio/concert-2.mp3",
+      "photoHash": "c4f53cf10ccd16675d674cd2555b4b53"
+    },
+    {
+      "id": 9,
+      "band": "Example Real Photo (R0055333)",
+      "venue": "Downtown Rooftop",
+      "date": "2024-02-02",
+      "audioFile": "/audio/concert-3.mp3",
+      "photoHash": "953f16ff30fb02db0352534504410041"
+    },
+    {
+      "id": 10,
+      "band": "Example Real Photo (R0055917)",
+      "venue": "Indie Gallery",
+      "date": "2024-02-03",
+      "audioFile": "/audio/concert-4.mp3",
+      "photoHash": "41bb499486698c791cfb9acddacd5538"
+    },
+    {
+      "id": 11,
+      "band": "Example Real Photo (R0060632)",
+      "venue": "Harbor Warehouse",
+      "date": "2024-02-04",
+      "audioFile": "/audio/concert-song-1.mp3",
+      "photoHash": "866f356722d6b4c3319d133c0ab9555a"
+    },
+    {
+      "id": 12,
+      "band": "Example Real Photo (R0060861)",
+      "venue": "Night Market Stage",
+      "date": "2024-02-05",
+      "audioFile": "/audio/concert-song-2.mp3",
+      "photoHash": "960bc5ef462e2e8c4e6b566ec2eda7ed"
     }
   ]
 }

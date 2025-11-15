@@ -16,31 +16,31 @@ This document outlines the accessibility standards and best practices implemente
 
 #### Dark Mode (Default Theme)
 
-| Variable | Color | Contrast | Usage |
-|----------|-------|----------|-------|
-| `--color-main-text` | #f5f5f5 | 18.16:1 | Primary headings, body text |
-| `--color-sub-text` | #cbd5e1 | 13.33:1 | Secondary text, descriptions |
-| `--color-bonus-text` | #a1a1aa | 7.72:1 | Tertiary text, labels |
-| `--color-text-muted` | #a8a8a8 | 8.33:1 | Muted text, hints |
-| `--color-accent` | #4a90e2 | 6.01:1 | Primary action color |
-| `--color-accent-light` | #6ba3e8 | 7.57:1 | Light accent, hover states |
-| `--color-accent-hover` | #5ca3e6 | 7.22:1 | Hover states for accents |
-| `--color-background` | #0a0a0a | N/A | Main background |
-| `--color-sub-background` | #1a1a1a | N/A | Secondary backgrounds |
+| Variable                 | Color   | Contrast | Usage                        |
+| ------------------------ | ------- | -------- | ---------------------------- |
+| `--color-main-text`      | #f5f5f5 | 18.16:1  | Primary headings, body text  |
+| `--color-sub-text`       | #cbd5e1 | 13.33:1  | Secondary text, descriptions |
+| `--color-bonus-text`     | #a1a1aa | 7.72:1   | Tertiary text, labels        |
+| `--color-text-muted`     | #a8a8a8 | 8.33:1   | Muted text, hints            |
+| `--color-accent`         | #4a90e2 | 6.01:1   | Primary action color         |
+| `--color-accent-light`   | #6ba3e8 | 7.57:1   | Light accent, hover states   |
+| `--color-accent-hover`   | #5ca3e6 | 7.22:1   | Hover states for accents     |
+| `--color-background`     | #0a0a0a | N/A      | Main background              |
+| `--color-sub-background` | #1a1a1a | N/A      | Secondary backgrounds        |
 
 #### Light Mode
 
-| Variable | Color | Contrast | Usage |
-|----------|-------|----------|-------|
-| `--color-main-text` | #0f172a | 16.36:1 | Primary headings, body text |
-| `--color-sub-text` | #44403c | 9.42:1 | Secondary text, descriptions |
-| `--color-bonus-text` | #3f3f46 | 9.57:1 | Tertiary text, labels |
-| `--color-text-muted` | #595959 | 6.42:1 | Muted text, hints |
-| `--color-accent` | #2563eb | 4.74:1 | Primary action color |
-| `--color-accent-light` | #1d4ed8 | 6.14:1 | Light accent, hover states |
-| `--color-accent-hover` | #1e40af | 7.93:1 | Hover states for accents |
-| `--color-background` | #f5f5f4 | N/A | Main background |
-| `--color-sub-background` | #cbd5e1 | N/A | Secondary backgrounds |
+| Variable                 | Color   | Contrast | Usage                        |
+| ------------------------ | ------- | -------- | ---------------------------- |
+| `--color-main-text`      | #0f172a | 16.36:1  | Primary headings, body text  |
+| `--color-sub-text`       | #44403c | 9.42:1   | Secondary text, descriptions |
+| `--color-bonus-text`     | #3f3f46 | 9.57:1   | Tertiary text, labels        |
+| `--color-text-muted`     | #595959 | 6.42:1   | Muted text, hints            |
+| `--color-accent`         | #2563eb | 4.74:1   | Primary action color         |
+| `--color-accent-light`   | #1d4ed8 | 6.14:1   | Light accent, hover states   |
+| `--color-accent-hover`   | #1e40af | 7.93:1   | Hover states for accents     |
+| `--color-background`     | #f5f5f4 | N/A      | Main background              |
+| `--color-sub-background` | #cbd5e1 | N/A      | Secondary backgrounds        |
 
 **All colors meet or exceed WCAG AA standards for their respective use cases.**
 
@@ -53,15 +53,14 @@ Focus indicators are critical for keyboard navigation accessibility. All interac
 #### CSS Variables
 
 ```css
---focus-ring-color: #6ba3e8 (dark) / #2563eb (light)
---focus-ring-width: 2px
---focus-ring-offset: 2px
---focus-ring-style: solid
+--focus-ring-color: #6ba3e8 (dark) / #2563eb (light) --focus-ring-width: 2px
+  --focus-ring-offset: 2px --focus-ring-style: solid;
 ```
 
 #### Implementation
 
 Focus styles are applied globally to:
+
 - Buttons
 - Links
 - Form inputs (text, select, textarea)
@@ -70,6 +69,7 @@ Focus styles are applied globally to:
 - All focusable interactive elements
 
 Example:
+
 ```css
 *:focus-visible {
   outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
@@ -98,31 +98,32 @@ All buttons support the following states with appropriate contrast:
 
 ```css
 /* Dark Mode */
---color-button-bg: #f5f5f5
---color-button-text: #0a0a0a
---color-button-hover-bg: #e5e7eb
---color-button-disabled-bg: #3a3a3a
---color-button-disabled-text: #6b6b6b
-
-/* Light Mode */
---color-button-bg: #0f172a
---color-button-text: #f5f5f4
---color-button-hover-bg: #1e293b
---color-button-disabled-bg: #cbd5e1
---color-button-disabled-text: #94a3b8
+--color-button-bg: #f5f5f5 --color-button-text: #0a0a0a --color-button-hover-bg: #e5e7eb
+  --color-button-disabled-bg: #3a3a3a --color-button-disabled-text: #6b6b6b /* Light Mode */
+  --color-button-bg: #0f172a --color-button-text: #f5f5f4 --color-button-hover-bg: #1e293b
+  --color-button-disabled-bg: #cbd5e1 --color-button-disabled-text: #94a3b8;
 ```
+
+### Button Implementation Tips
+
+- Prefer semantic `<button>` elements over click handlers on `div` or `span`
+- Use descriptive text or `aria-label` values so screen readers announce intent
+- Keep focus indicators visible; never remove `outline` without an accessible replacement
+- Target at least 44x44 CSS pixels on touch devices for comfortable activation
 
 ## Interactive Element Guidelines
 
 ### Minimum Touch/Click Targets
 
 While not enforced in CSS, all interactive elements should meet minimum size requirements:
+
 - **Mobile**: 44x44 CSS pixels (iOS) or 48x48 CSS pixels (Android Material Design)
 - **Desktop**: 24x24 CSS pixels minimum
 
 ### Hover States
 
 All interactive elements provide visual feedback on hover:
+
 - Buttons change background color
 - Links show underlines or color changes
 - Form elements show border changes
@@ -130,10 +131,27 @@ All interactive elements provide visual feedback on hover:
 ### Disabled States
 
 Disabled elements:
+
 - Use reduced contrast colors
 - Show `cursor: not-allowed`
 - Cannot receive focus
 - Are clearly distinguishable from active elements
+
+### Form Guidelines
+
+- Associate every input with a `<label>` via matching `for` / `id`
+- Provide inline helper text and error messaging that does not rely on color alone
+- Indicate required fields with text or `aria-required="true"`
+- Ensure custom controls (sliders, selects) support keyboard input and focus indicators
+- Group related controls with `<fieldset>` and `<legend>` when helpful for context
+
+### Modal Guidelines
+
+- Trap focus within the modal and return focus to the trigger element when closing
+- Provide a visible close button plus keyboard Escape support
+- Apply `role="dialog"` and `aria-modal="true"`
+- Prevent background scrolling while overlays are open
+- Maintain WCAG-compliant contrast for modal text, controls, and outlines
 
 ## Testing Tools
 
@@ -164,6 +182,18 @@ Disabled elements:
 - [ ] Test all UI states (hover, focus, active, disabled)
 - [ ] Validate with Lighthouse (score ≥ 90)
 
+## Accessibility Checklist
+
+- [ ] Text meets 4.5:1 contrast (3:1 for large text)
+- [ ] UI components meet 3:1 contrast
+- [ ] Focus indicators exist for every interactive element
+- [ ] Entire experience works with keyboard only
+- [ ] Semantic HTML (and ARIA where needed) describes controls accurately
+- [ ] Screen readers announce meaningful labels for buttons, inputs, and toggles
+- [ ] Hover, focus, active, and disabled states remain visually distinct
+- [ ] Lighthouse accessibility audit passes locally
+- [ ] No accessibility errors appear in browser DevTools console
+
 ## Theme Support
 
 ### Dark and Light Modes
@@ -171,6 +201,7 @@ Disabled elements:
 The application supports both dark and light themes with full accessibility compliance in both modes. All colors are defined as CSS custom properties for easy theming.
 
 To toggle themes:
+
 ```javascript
 document.documentElement.setAttribute('data-theme', 'light');
 document.documentElement.setAttribute('data-theme', 'dark');
@@ -183,21 +214,25 @@ The application also supports a "classic" UI style with different typography and
 ## Component-Specific Notes
 
 ### CameraView
+
 - All permission states use theme-aware colors
 - Retry button meets contrast requirements in both themes
 - Aspect ratio toggle button has clear focus indicator
 
 ### InfoDisplay
+
 - Card background adapts to theme
 - All text maintains proper contrast against card background
 - Border provides clear visual separation
 
 ### GalleryLayout
+
 - Begin button uses dedicated button color variables
 - Disabled state clearly distinguishable
 - Focus ring visible and meets standards
 
 ### SecretSettings
+
 - Modal overlay provides sufficient contrast for content
 - All form controls have focus indicators
 - Checkbox accent color matches theme
@@ -205,6 +240,7 @@ The application also supports a "classic" UI style with different typography and
 - Select dropdowns themed appropriately
 
 ### DebugOverlay
+
 - Fixed position overlay with high contrast
 - Status indicators use distinct colors
 - Background provides sufficient contrast for all text
@@ -228,16 +264,19 @@ The application also supports a "classic" UI style with different typography and
 ## Resources
 
 ### WCAG Guidelines
+
 - [WCAG 2.1 Overview](https://www.w3.org/WAI/WCAG21/quickref/)
 - [Understanding Color Contrast](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html)
 - [Understanding Focus Visible](https://www.w3.org/WAI/WCAG21/Understanding/focus-visible.html)
 
 ### Tools
+
 - [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
 - [Accessible Color Palette Builder](https://toolness.github.io/accessible-color-matrix/)
 - [axe DevTools](https://www.deque.com/axe/devtools/)
 
 ### Testing
+
 - [Lighthouse Documentation](https://developer.chrome.com/docs/lighthouse/accessibility/)
 - [NVDA Screen Reader](https://www.nvaccess.org/)
 - [VoiceOver User Guide](https://www.apple.com/voiceover/info/guide/)
@@ -265,6 +304,7 @@ The application also supports a "classic" UI style with different typography and
 ## Contact
 
 For accessibility questions or to report accessibility issues, please:
+
 1. Open a GitHub issue with the "accessibility" label
 2. Include specific WCAG criterion if applicable
 3. Provide screenshots or screen recordings

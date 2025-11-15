@@ -174,6 +174,99 @@ Creates a silent MP3 file for testing.
 
 ---
 
+### `generate-photo-hashes.js` - Generate Photo Hashes
+
+Node.js script to generate dHash fingerprints for reference photos.
+
+**Requirements:** Node.js and canvas package (installed via npm)
+
+**Usage:**
+
+```bash
+npm run generate-hashes
+# or directly:
+node scripts/generate-photo-hashes.js
+```
+
+**What it does:**
+
+- Reads images from `assets/test-images/` by default (pass directories/files as arguments for other folders, e.g., `npm run generate-hashes assets/example-real-photos`)
+- Computes dHash for each image
+- Outputs photo hashes to console
+- Use these hashes in `concerts.json` photoHash field
+
+**Example output:**
+
+```
+Photo Hashes for assets/test-images/
+concert-1.jpg: 00000000000001600acc000000000000
+concert-2.jpg: 00000000000001200330000000000000
+```
+
+---
+
+### `create-easy-test-images.js` - Generate High-Contrast Targets
+
+Creates bold, high-contrast PNG images that are easy for the recognition system to match.
+
+**Local:**
+
+```bash
+npm run create-easy-images
+```
+
+**What it does:**
+
+- Generates three 640×480 PNG files in `assets/test-images/`
+- Designs include a bullseye, diagonal stripes, and checkerboard grid
+- Ensures repeatable assets for troubleshooting recognition accuracy
+- Safe to re-run at any time (files will be overwritten)
+
+Use these assets when you need ultra-distinct patterns for calibration or debugging.
+
+---
+
+### `generate-photo-hashes.html` - Generate Photo Hashes (Browser)
+
+Browser-based tool to generate dHash fingerprints for reference photos.
+
+**Usage:**
+
+1. Open `scripts/generate-photo-hashes.html` in a web browser
+2. Click "Choose Files" and select image(s)
+3. Copy the generated hash values
+4. Add to `concerts.json` photoHash field
+
+**What it does:**
+
+- Uses same dHash algorithm as the app
+- Processes images client-side in browser
+- No server/Node.js required
+- Useful for quick hash generation
+
+---
+
+### `generate-favicons.html` - Generate Favicon Images
+
+Browser-based tool to generate PNG favicons from SVG.
+
+**Usage:**
+
+1. Open `scripts/generate-favicons.html` in a web browser
+2. Click "Generate All Favicons"
+3. Download each PNG file
+4. Place in `public/` directory
+
+**What it does:**
+
+- Converts `public/favicon.svg` to PNG at various sizes
+- Generates 16×16, 32×32, 180×180, 192×192, 512×512 px PNGs
+- Client-side generation (no server required)
+
+See [public/README.md](../public/README.md) for more details.
+
+---
+
 ### `check-bundle-size.sh` - Check Bundle Size
 
 Monitors production bundle sizes and enforces size limits (used in CI).
@@ -205,6 +298,37 @@ Total Bundle: 73 KB
 ```
 
 **Used by:** GitHub Actions CI workflow
+
+---
+
+### `copy-test-assets.sh` - Copy Test Assets
+
+Manually copies test assets from `assets/` to `public/assets/`.
+
+**Note:** This is normally done automatically by the Vite plugin during `npm run dev` or `npm run build`.
+
+**Usage:**
+
+```bash
+./scripts/copy-test-assets.sh
+```
+
+**When to use:**
+
+- Manual testing without running dev server
+- Troubleshooting asset copying issues
+- Preparing assets for deployment without Vite
+
+**What it does:**
+
+- Creates `public/assets/test-data/`, `test-audio/`, and `test-images/` directories
+- Copies `concerts.json` from `assets/test-data/`
+- Copies all MP3 files from `assets/test-audio/`
+- Copies all JPG files from `assets/test-images/`
+
+**Normal workflow:**
+
+Just run `npm run dev` or `npm run build` - the Vite plugin handles this automatically.
 
 ## Script Features
 

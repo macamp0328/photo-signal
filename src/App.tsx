@@ -77,6 +77,12 @@ function App() {
     checkInterval: 500,
   });
 
+  const recognitionDelaySetting = getSetting<number>('recognition-delay');
+  const recognitionDelayValue =
+    typeof recognitionDelaySetting === 'number' && !Number.isNaN(recognitionDelaySetting)
+      ? recognitionDelaySetting
+      : 3000;
+
   // Module: Photo Recognition
   const {
     recognizedConcert,
@@ -84,7 +90,7 @@ function App() {
     debugInfo,
     isRecognizing,
   } = usePhotoRecognition(stream, {
-    recognitionDelay: 3000,
+    recognitionDelay: recognitionDelayValue,
     enableDebugInfo: isEnabled('test-mode'),
     aspectRatio: aspectRatio,
   });
@@ -164,10 +170,7 @@ function App() {
         enabled={isEnabled('test-mode')}
         recognizedConcert={recognizedConcert}
         isRecognizing={isRecognizing}
-        lastFrameHash={debugInfo?.lastFrameHash ?? undefined}
-        bestMatch={debugInfo?.bestMatch ?? undefined}
-        threshold={40}
-        lastCheckTime={debugInfo?.lastCheckTime}
+        debugInfo={debugInfo ?? undefined}
       />
     </>
   );

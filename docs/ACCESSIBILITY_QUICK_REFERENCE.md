@@ -5,11 +5,13 @@
 ## ✅ Checklist for New Features
 
 ### Before Coding
+
 - [ ] Review color palette in `docs/ACCESSIBILITY.md`
 - [ ] Plan for keyboard navigation
 - [ ] Consider screen reader users
 
 ### During Development
+
 - [ ] Use CSS custom properties (not hardcoded colors)
 - [ ] Add focus indicators to all interactive elements
 - [ ] Include hover states for all buttons/links
@@ -17,6 +19,7 @@
 - [ ] Use semantic HTML (`<button>`, `<nav>`, `<main>`, etc.)
 
 ### Before Committing
+
 - [ ] Test keyboard navigation (Tab, Enter, Escape)
 - [ ] Verify focus indicators are visible
 - [ ] Run Lighthouse accessibility audit
@@ -26,22 +29,25 @@
 ## 🎨 Using Color Variables
 
 ### Text Colors
+
 ```css
 /* Always use CSS variables */
-color: var(--color-main-text);      /* Primary text */
-color: var(--color-sub-text);       /* Secondary text */
-color: var(--color-bonus-text);     /* Tertiary text */
-color: var(--color-text-muted);     /* Muted/hint text */
+color: var(--color-main-text); /* Primary text */
+color: var(--color-sub-text); /* Secondary text */
+color: var(--color-bonus-text); /* Tertiary text */
+color: var(--color-text-muted); /* Muted/hint text */
 ```
 
 ### Background Colors
+
 ```css
-background-color: var(--color-background);     /* Main background */
+background-color: var(--color-background); /* Main background */
 background-color: var(--color-sub-background); /* Secondary background */
-background-color: var(--modal-bg);             /* Modal/card background */
+background-color: var(--modal-bg); /* Modal/card background */
 ```
 
 ### Interactive Elements
+
 ```css
 /* Buttons */
 background-color: var(--color-button-bg);
@@ -55,15 +61,17 @@ background-color: var(--color-button-disabled-bg);
 color: var(--color-button-disabled-text);
 
 /* Accent colors */
-background-color: var(--color-accent);        /* Primary accent */
-background-color: var(--color-accent-light);  /* Light accent */
-background-color: var(--color-accent-hover);  /* Hover state */
+background-color: var(--color-accent); /* Primary accent */
+background-color: var(--color-accent-light); /* Light accent */
+background-color: var(--color-accent-hover); /* Hover state */
 ```
 
 ## 🎯 Focus Indicators
 
 ### Automatic (Global)
+
 Most elements get focus indicators automatically from global styles:
+
 ```css
 *:focus-visible {
   outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
@@ -72,7 +80,9 @@ Most elements get focus indicators automatically from global styles:
 ```
 
 ### Custom (When Needed)
+
 For custom focus styles, use the variables:
+
 ```css
 .customElement:focus-visible {
   outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
@@ -84,6 +94,7 @@ For custom focus styles, use the variables:
 ## 🔍 Testing Colors
 
 ### Browser DevTools
+
 1. Open DevTools (F12)
 2. Inspect element
 3. Find "Accessibility" panel
@@ -91,6 +102,7 @@ For custom focus styles, use the variables:
 5. Verify ratio meets requirements
 
 ### Requirements
+
 - Normal text: **4.5:1** minimum
 - Large text (18pt+): **3.1** minimum
 - Interactive elements: **3:1** minimum
@@ -98,6 +110,7 @@ For custom focus styles, use the variables:
 ## 🚫 Common Mistakes
 
 ### ❌ Don't Do This
+
 ```css
 /* Hardcoded colors */
 color: #fff;
@@ -113,6 +126,7 @@ color: #888; /* May not meet WCAG AA on all backgrounds */
 ```
 
 ### ✅ Do This Instead
+
 ```css
 /* Use CSS variables */
 color: var(--color-text);
@@ -147,6 +161,7 @@ npm run build
 ## 📱 Keyboard Navigation
 
 ### Essential Keys
+
 - **Tab**: Move to next interactive element
 - **Shift + Tab**: Move to previous element
 - **Enter/Space**: Activate buttons
@@ -154,6 +169,7 @@ npm run build
 - **Arrow keys**: Navigate within components
 
 ### Testing Checklist
+
 1. Can you reach all interactive elements with Tab?
 2. Is focus order logical?
 3. Can you activate all buttons with Enter/Space?
@@ -163,20 +179,22 @@ npm run build
 ## 🎨 Color Contrast Quick Reference
 
 ### Dark Mode (on #0a0a0a)
-| Color | Variable | Contrast |
-|-------|----------|----------|
-| #f5f5f5 | `--color-main-text` | 18.16:1 ✓ |
-| #cbd5e1 | `--color-sub-text` | 13.33:1 ✓ |
-| #a1a1aa | `--color-bonus-text` | 7.72:1 ✓ |
-| #a8a8a8 | `--color-text-muted` | 8.33:1 ✓ |
+
+| Color   | Variable             | Contrast  |
+| ------- | -------------------- | --------- |
+| #f5f5f5 | `--color-main-text`  | 18.16:1 ✓ |
+| #cbd5e1 | `--color-sub-text`   | 13.33:1 ✓ |
+| #a1a1aa | `--color-bonus-text` | 7.72:1 ✓  |
+| #a8a8a8 | `--color-text-muted` | 8.33:1 ✓  |
 
 ### Light Mode (on #f5f5f4)
-| Color | Variable | Contrast |
-|-------|----------|----------|
-| #0f172a | `--color-main-text` | 16.36:1 ✓ |
-| #44403c | `--color-sub-text` | 9.42:1 ✓ |
-| #3f3f46 | `--color-bonus-text` | 9.57:1 ✓ |
-| #595959 | `--color-text-muted` | 6.42:1 ✓ |
+
+| Color   | Variable             | Contrast  |
+| ------- | -------------------- | --------- |
+| #0f172a | `--color-main-text`  | 16.36:1 ✓ |
+| #44403c | `--color-sub-text`   | 9.42:1 ✓  |
+| #3f3f46 | `--color-bonus-text` | 9.57:1 ✓  |
+| #595959 | `--color-text-muted` | 6.42:1 ✓  |
 
 ## 🔗 Quick Links
 

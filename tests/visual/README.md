@@ -49,8 +49,10 @@ npx playwright test --update-snapshots
 After running tests, view the HTML report:
 
 ```bash
-npx playwright show-report
+npm run test:visual:report
 ```
+
+This script runs `playwright show-report --host 0.0.0.0 --port 9323`, which binds the report server to all interfaces so it can be accessed from devcontainers and other remote environments. If you're running locally you can still execute `npx playwright show-report` directly.
 
 ## CI Integration
 

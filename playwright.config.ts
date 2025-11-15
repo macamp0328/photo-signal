@@ -7,6 +7,15 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration
  */
 
+const htmlReporter: ['html', { open: 'always' | 'never' | 'on-failure'; host: string; port: number }] = [
+  'html',
+  {
+    open: process.env.CI ? 'never' : 'on-failure',
+    host: '0.0.0.0',
+    port: 9323,
+  },
+];
+
 export default defineConfig({
   testDir: './tests/visual',
   // Maximum time one test can run (30s for visual tests)
@@ -33,7 +42,7 @@ export default defineConfig({
   // Opt out of parallel tests on CI
   workers: process.env.CI ? 1 : undefined,
   // Reporter to use
-  reporter: process.env.CI ? [['html'], ['github'], ['list']] : [['html'], ['list']],
+  reporter: process.env.CI ? [htmlReporter, ['github'], ['list']] : [htmlReporter, ['list']],
   // Shared settings for all the projects below
   use: {
     // Base URL for the app

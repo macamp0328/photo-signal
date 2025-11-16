@@ -47,7 +47,8 @@ Everything runs in the browser. No backend needed.
 - **Photo Recognition**: Placeholder logic simulates photo recognition (triggers after 3 seconds)
 - **Concert Information Display**: Shows band name, venue, and date when photo is recognized
 - **Audio Playback**: Uses Howler.js to play MP3 files
-- **Motion Detection**: Fades out audio when camera movement is detected
+- **Motion Detection**: Detects movement to trigger a fresh recognition pass when you move to a new photo
+- **Persistent Playback**: Music keeps playing through small hand shakes and only crossfades when a different photo is confidently recognized
 
 ## Tech Stack
 

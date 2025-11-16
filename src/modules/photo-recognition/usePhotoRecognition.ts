@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
 import type { Concert } from '../../types';
@@ -156,6 +156,14 @@ export function usePhotoRecognition(
 
   const { isEnabled } = useFeatureFlags();
 
+  // Memoize multiScaleVariants to prevent unnecessary re-renders
+  // This ensures the array reference is stable unless the actual values change
+  const stableMultiScaleVariants = useMemo(
+    () => multiScaleVariants,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [multiScaleVariants.join(',')]
+  );
+
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -165,6 +173,7 @@ export function usePhotoRecognition(
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const tempCanvasRef = useRef<HTMLCanvasElement | null>(null); // Reusable temp canvas for multi-scale
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
@@ -265,7 +274,7 @@ export function usePhotoRecognition(
       console.log(`  Aspect ratio: ${aspectRatio}`);
       console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
       console.log(
-        `  Multi-scale recognition: ${enableMultiScale ? `ENABLED (scales: ${multiScaleVariants.map((s) => `${(s * 100).toFixed(0)}%`).join(', ')})` : 'DISABLED'}`
+        `  Multi-scale recognition: ${enableMultiScale ? `ENABLED (scales: ${stableMultiScaleVariants.map((s) => `${(s * 100).toFixed(0)}%`).join(', ')})` : 'DISABLED'}`
       );
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
       if (concertsWithHashes.length > 0) {
@@ -463,62 +472,75 @@ export function usePhotoRecognition(
         const currentHash =
           hashAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
 
-        // Multi-scale recognition: if enabled, try additional crop scales
-        const scaleHashes: Array<{ hash: string; scale: number; region: typeof framedRegion }> = [
-          { hash: currentHash, scale: 0.8, region: framedRegion },
-        ];
+        // Multi-scale recognition: determine which scales to test
+        // If multi-scale is enabled, use user's custom variants; otherwise just test default scale (0.8)
+        const scalesToTest = enableMultiScale ? stableMultiScaleVariants : [0.8];
+        const scaleHashes: Array<{ hash: string; scale: number; region: typeof framedRegion }> = [];
 
-        if (enableMultiScale) {
-          // Try additional scales (excluding the default 0.8 which we already computed)
-          const additionalScales = multiScaleVariants.filter((s) => s !== 0.8);
+        for (const scale of scalesToTest) {
+          // If scale is 0.8, we can reuse the current frame and hash (already computed)
+          if (scale === 0.8) {
+            scaleHashes.push({ hash: currentHash, scale, region: framedRegion });
+            continue;
+          }
 
-          for (const scale of additionalScales) {
-            const scaledRegion = calculateFramedRegion(
-              video.videoWidth,
-              video.videoHeight,
-              aspectRatio,
-              scale
+          // Calculate the scaled region
+          const scaledRegion = calculateFramedRegion(
+            video.videoWidth,
+            video.videoHeight,
+            aspectRatio,
+            scale
+          );
+
+          // Reuse temp canvas to avoid creating new canvas elements in every iteration
+          if (!tempCanvasRef.current) {
+            tempCanvasRef.current = document.createElement('canvas');
+          }
+          const tempCanvas = tempCanvasRef.current;
+          tempCanvas.width = scaledRegion.width;
+          tempCanvas.height = scaledRegion.height;
+
+          const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+          if (tempCtx) {
+            // Draw the scaled region
+            tempCtx.drawImage(
+              video,
+              scaledRegion.x,
+              scaledRegion.y,
+              scaledRegion.width,
+              scaledRegion.height,
+              0,
+              0,
+              scaledRegion.width,
+              scaledRegion.height
             );
 
-            // Create a temporary canvas for this scale
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = scaledRegion.width;
-            tempCanvas.height = scaledRegion.height;
-            const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+            const scaledImageData = tempCtx.getImageData(
+              0,
+              0,
+              tempCanvas.width,
+              tempCanvas.height
+            );
 
-            if (tempCtx) {
-              // Draw the scaled region
-              tempCtx.drawImage(
-                video,
-                scaledRegion.x,
-                scaledRegion.y,
-                scaledRegion.width,
-                scaledRegion.height,
-                0,
-                0,
-                scaledRegion.width,
-                scaledRegion.height
+            // Apply grayscale if enabled
+            if (isEnabled('grayscale-mode')) {
+              convertToGrayscale(scaledImageData);
+            }
+
+            // Compute hash for this scale
+            const scaledHash =
+              hashAlgorithm === 'phash'
+                ? computePHash(scaledImageData)
+                : computeDHash(scaledImageData);
+
+            scaleHashes.push({ hash: scaledHash, scale, region: scaledRegion });
+          } else {
+            // Log when a scale is skipped due to context creation failure
+            if (import.meta.env.DEV || isTestMode) {
+              console.debug(
+                `[Photo Recognition] Skipped scale ${(scale * 100).toFixed(0)}% (region: ${scaledRegion.width}x${scaledRegion.height}) - could not create 2D context for temporary canvas`
               );
-
-              const scaledImageData = tempCtx.getImageData(
-                0,
-                0,
-                tempCanvas.width,
-                tempCanvas.height
-              );
-
-              // Apply grayscale if enabled
-              if (isEnabled('grayscale-mode')) {
-                convertToGrayscale(scaledImageData);
-              }
-
-              // Compute hash for this scale
-              const scaledHash =
-                hashAlgorithm === 'phash'
-                  ? computePHash(scaledImageData)
-                  : computeDHash(scaledImageData);
-
-              scaleHashes.push({ hash: scaledHash, scale, region: scaledRegion });
             }
           }
         }
@@ -831,7 +853,7 @@ export function usePhotoRecognition(
     glarePercentageThreshold,
     hashAlgorithm,
     enableMultiScale,
-    multiScaleVariants,
+    stableMultiScaleVariants,
     isEnabled,
     restartKey,
   ]);

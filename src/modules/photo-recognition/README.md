@@ -257,19 +257,27 @@ const { recognizedConcert } = usePhotoRecognition(stream, {
   enableMultiScale: true,
 });
 
-// Customize scale variants
+// Customize scale variants - these REPLACE the defaults entirely
 const { recognizedConcert } = usePhotoRecognition(stream, {
   enableMultiScale: true,
-  multiScaleVariants: [0.7, 0.8, 0.9, 0.95], // Test 4 scales
+  multiScaleVariants: [0.7, 0.8, 0.9, 0.95], // Test exactly these 4 scales
+});
+
+// For better performance with fewer scales
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  enableMultiScale: true,
+  multiScaleVariants: [0.8, 0.9], // Test only 2 scales
 });
 ```
+
+**Important Note:** When you provide custom `multiScaleVariants`, those scales completely replace the defaults. If you want to include 80% (the default crop), make sure to include `0.8` in your custom array.
 
 **Performance Considerations:**
 
 - Additional hashes are only computed for quality frames (after blur/glare checks pass)
-- Minimal performance impact: ~2-4ms per additional scale on mobile
+- Minimal performance impact: ~2-4ms per scale on mobile
 - Default 4 scales = ~6-15ms total (still fast enough for real-time recognition)
-- Can reduce variants for better performance: `multiScaleVariants: [0.75, 0.85]`
+- Each scale in your custom variants is tested - fewer scales = better performance
 
 **When to use:**
 

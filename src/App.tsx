@@ -11,7 +11,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
-import { usePhotoRecognition, FrameQualityIndicator } from './modules/photo-recognition';
+import { usePhotoRecognition, FrameQualityIndicator, TelemetryExport } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
@@ -241,6 +241,9 @@ function App() {
         debugInfo={debugInfo ?? undefined}
         onReset={resetRecognition}
       />
+      {isTestModeEnabled && debugInfo?.telemetry && (
+        <TelemetryExport telemetry={debugInfo.telemetry} />
+      )}
     </>
   );
 }

@@ -1,5 +1,30 @@
 import type { Concert } from '../../types';
 
+function hasAnyPhotoHashes(concert: Concert): boolean {
+  const legacy = concert.photoHash;
+  if (typeof legacy === 'string' && legacy.length > 0) {
+    return true;
+  }
+  if (Array.isArray(legacy) && legacy.length > 0) {
+    return legacy.every((hash) => typeof hash === 'string' && hash.length > 0);
+  }
+
+  const { photoHashes } = concert;
+  if (photoHashes) {
+    const algorithmKeys: Array<'dhash' | 'phash'> = ['dhash', 'phash'];
+    return algorithmKeys.some((algorithm) => {
+      const values = photoHashes[algorithm];
+      return (
+        Array.isArray(values) &&
+        values.length > 0 &&
+        values.every((hash) => typeof hash === 'string' && hash.length > 0)
+      );
+    });
+  }
+
+  return false;
+}
+
 /**
  * Data Service
  *
@@ -86,7 +111,7 @@ class DataService {
       const concerts = Array.isArray(data.concerts) ? data.concerts : [];
       this.cache = concerts;
 
-      const concertsWithHashes = concerts.filter((c: Concert) => c.photoHash).length;
+      const concertsWithHashes = concerts.filter((c: Concert) => hasAnyPhotoHashes(c)).length;
 
       console.log(`[DataService] Successfully loaded ${concerts.length} concerts`);
       console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);

@@ -327,7 +327,7 @@ async function generateHashes() {
 
         results.push({
           file: displayPath,
-          photoHash: [darkHash, normalHash, brightHash],
+          hashes: [darkHash, normalHash, brightHash],
           dimensions: `${image.width} × ${image.height} px`,
         });
 
@@ -344,21 +344,32 @@ async function generateHashes() {
     console.log('━'.repeat(60));
     console.log(`\n📋 JSON Output (for concerts.json) - ${hashType} hashes:\n`);
 
-    const jsonOutput = results.map((r) => ({
-      file: r.file,
-      photoHash: r.photoHash,
-    }));
+    const jsonOutput = results.map((r) => {
+      const photoHashes = {
+        [algorithm]: r.hashes,
+      };
+
+      const entry = {
+        file: r.file,
+        photoHashes,
+      };
+
+      if (algorithm === 'phash') {
+        entry.photoHash = r.hashes;
+      }
+
+      return entry;
+    });
 
     console.log(JSON.stringify(jsonOutput, null, 2));
 
     console.log('\n━'.repeat(60));
     console.log(`\n✅ ${hashType} hash generation complete!`);
     console.log('\n💡 Next steps:');
-    console.log('   1. Copy the photoHash values from the JSON output above');
-    console.log('   2. Add them to the corresponding concerts in assets/test-data/concerts.json');
-    console.log(`   3. Match files to concert entries as needed`);
+    console.log(`   1. Merge the JSON block above into assets/test-data/concerts.json`);
+    console.log('   2. Ensure concert file paths line up with the generated hashes');
     console.log(
-      `   4. Use hashAlgorithm: '${algorithm}' option in usePhotoRecognition to enable ${hashType}\n`
+      `   3. Use hashAlgorithm: '${algorithm}' option in usePhotoRecognition to enable ${hashType}\n`
     );
   } catch (error) {
     console.error('❌ Error:', error.message);

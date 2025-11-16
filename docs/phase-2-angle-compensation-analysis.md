@@ -60,11 +60,15 @@ function generateAngleVariants(imageData: ImageData): string[] {
   });
 }
 
-// Data structure
+// Data structure extension
 {
   "id": 1,
   "band": "Concert Name",
-  "photoHash": {
+  "photoHashes": {
+    "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+    "dhash": ["00000000000001600acc000000000000", "00000000000001600acc000000000000", "00000000000001600acc000000000000"]
+  },
+  "photoHashesAngleVariants": {
     "0deg": "a5b3c7d9e1f20486",
     "15deg": "b6c4d8e2f3a10597",
     "30deg": "c7d5e9f1a2b30849",

@@ -251,8 +251,8 @@
           <li>The tool will compute dHash for each image</li>
           <li>Copy individual hashes or copy the complete JSON output</li>
           <li>
-            Update <code>assets/test-data/concerts.json</code> with the <code>photoHash</code>
-            values
+            Update <code>assets/test-data/concerts.json</code>: the JSON already matches the
+            <code>photoHashes</code> schema (under the <code>dhash</code> key)
           </li>
         </ol>
       </div>
@@ -537,7 +537,9 @@
       function generateJsonOutput() {
         const jsonData = hashResults.map((result) => ({
           file: result.filename,
-          photoHash: result.hash,
+          photoHashes: {
+            dhash: [result.hash],
+          },
         }));
 
         const jsonString = JSON.stringify(jsonData, null, 2);
@@ -554,7 +556,9 @@
       function copyJson() {
         const jsonData = hashResults.map((result) => ({
           file: result.filename,
-          photoHash: result.hash,
+          photoHashes: {
+            dhash: [result.hash],
+          },
         }));
 
         const jsonString = JSON.stringify(jsonData, null, 2);

@@ -173,11 +173,18 @@ Edit `public/data.json` to add your own concert data:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "2023-08-15",
-      "audioFile": "/audio/sample.mp3"
+      "audioFile": "/audio/sample.mp3",
+      "photoHashes": {
+        "phash": ["dark-hash", "normal-hash", "bright-hash"],
+        "dhash": ["dark-dhash", "normal-dhash", "bright-dhash"]
+      },
+      "photoHash": ["dark-hash", "normal-hash", "bright-hash"]
     }
   ]
 }
 ```
+
+> `photoHashes` is the canonical storage for algorithm-specific hash arrays; keep the legacy `photoHash` array mirrored until older builds are retired.
 
 ### Photo Recognition
 

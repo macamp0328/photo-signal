@@ -5,7 +5,7 @@
 The Test Data Mode feature was not working because:
 
 1. **Assets not accessible at runtime**: Test data files existed in `assets/test-data/` but weren't served by Vite (which only serves files from `public/`)
-2. **Missing photo hashes**: Production data had no `photoHash` values, making photo recognition impossible
+2. **Missing photo hashes**: Production data had no `photoHash`/`photoHashes` values, making photo recognition impossible
 3. **Insufficient feedback**: No console logging to help users debug what was failing
 4. **Poor discoverability**: Unclear documentation on how to use test mode
 
@@ -117,7 +117,7 @@ Located in `assets/test-images/`:
 - `concert-3.jpg` - Velvet Revolution
 - `concert-4.jpg` - Sunset Boulevard
 
-Each has a corresponding `photoHash` in `assets/test-data/concerts.json`.
+Each has a corresponding `photoHashes` entry (plus legacy `photoHash`) in `assets/test-data/concerts.json`.
 
 ## Technical Details
 
@@ -125,10 +125,10 @@ Each has a corresponding `photoHash` in `assets/test-data/concerts.json`.
 
 ```
 Production Mode:
-  fetch('/data.json') → No photoHash → Photo recognition doesn't work
+  fetch('/data.json') → No photoHashes → Photo recognition doesn't work
 
 Test Mode:
-  fetch('/assets/test-data/concerts.json') → Has photoHash → Photo recognition works
+  fetch('/assets/test-data/concerts.json') → Has photoHashes → Photo recognition works
 ```
 
 ### Asset Generation
@@ -146,11 +146,19 @@ Build/Dev Startup:
 {
   "id": 1,
   "band": "The Midnight Echoes",
-  "photoHash": "00000000000001600acc000000000000"
+  "photoHashes": {
+    "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+    "dhash": [
+      "00000000000001600acc000000000000",
+      "00000000000001600acc000000000000",
+      "00000000000001600acc000000000000"
+    ]
+  },
+  "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"]
 }
 ```
 
-The `photoHash` is a 256-bit dHash (Difference Hash) represented as 32 hex characters.
+Each `photoHashes` entry stores both **pHash** (16-char) and **dHash** (32-char) arrays for three exposure variants (dark, normal, bright). The legacy `photoHash` array mirrors the `phash` values until older clients are retired.
 
 ## Files Changed
 

@@ -77,6 +77,42 @@ src/modules/secret-settings/
    - Classic mode uses monospace fonts and removes textures
    - Applied globally via `data-ui-style` attribute
 
+5. **Recognition Delay** (`recognition-delay`)
+
+- Adjust how long a photo must stay steady before we confirm a match
+- Range: 1000–5000ms (default 3000ms)
+- Longer delays reduce false positives; shorter delays feel more responsive
+
+6. **Hash Algorithm** (`hash-algorithm`)
+
+- Switch between dHash (fast) and pHash (more robust to lighting/angles)
+- Useful for A/B testing the new hashing path on real devices
+
+7. **Similarity Threshold** (`similarity-threshold`)
+
+- Tweak the maximum Hamming distance allowed for a match
+- Lower numbers demand closer matches; higher numbers tolerate more noise
+
+8. **Frame Scan Interval** (`recognition-check-interval`)
+
+- Controls how often we hash frames (in ms)
+- Lower values improve responsiveness but increase CPU/battery usage
+
+9. **Sharpness Threshold** (`sharpness-threshold`)
+
+- Minimum Laplacian variance required to accept a frame
+- Raise this to filter out more motion blur; lower it to be more permissive
+
+10. **Glare Pixel Threshold** (`glare-threshold`)
+
+- Pixel intensity above this value counts as glare
+- Helpful for tuning indoor vs. outdoor lighting conditions
+
+11. **Glare Coverage Threshold** (`glare-percentage-threshold`)
+
+- Percentage of pixels that can be blown out before we skip the frame
+- Lower values aggressively reject glare; higher values allow more hotspots
+
 ---
 
 ## Adding Feature Flags

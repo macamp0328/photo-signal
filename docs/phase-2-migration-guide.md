@@ -17,7 +17,7 @@ Phase 2 introduces **pHash** (Perceptual Hash), a DCT-based algorithm that provi
 - **Better discrimination** between similar photos
 - **Smaller hash size** (64-bit vs 128-bit)
 
-This guide walks through migrating your existing dHash-based setup to pHash.
+This guide walks through migrating your existing dHash-based setup to pHash. The current data schema uses a `photoHashes` object so both algorithms can live side-by-side while you experiment.
 
 ---
 
@@ -81,9 +81,9 @@ Targets:
 Found 12 image(s):
 
 ✓ assets/test-images/concert-1.jpg
-  Hash (dark):   a792586c63b0ccc7
-  Hash (normal): a792d8cc6338c467
-  Hash (bright): 87b2f8e4691a6466
+  Hash (dark):   9853660d98d36f26
+  Hash (normal): 98d2662d98d26f26
+  Hash (bright): 98f2662c98d26f26
   Size: 640 × 480 px
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -93,10 +93,17 @@ Found 12 image(s):
 [
   {
     "file": "assets/test-images/concert-1.jpg",
+    "photoHashes": {
+      "phash": [
+        "9853660d98d36f26",
+        "98d2662d98d26f26",
+        "98f2662c98d26f26"
+      ]
+    },
     "photoHash": [
-      "a792586c63b0ccc7",
-      "a792d8cc6338c467",
-      "87b2f8e4691a6466"
+      "9853660d98d36f26",
+      "98d2662d98d26f26",
+      "98f2662c98d26f26"
     ]
   },
   ...
@@ -133,7 +140,7 @@ Update your `data.json` (or production data file) with the new pHash values:
 }
 ```
 
-**After (pHash)**:
+**After (pHash + dual storage)**:
 
 ```json
 {
@@ -144,13 +151,21 @@ Update your `data.json` (or production data file) with the new pHash values:
       "venue": "The Fillmore",
       "date": "2023-08-15",
       "audioFile": "/audio/concert-1.mp3",
-      "photoHash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"]
+      "photoHashes": {
+        "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+        "dhash": [
+          "00000000000001600acc000000000000",
+          "00000000000001600acc000000000000",
+          "00000000000001600acc000000000000"
+        ]
+      },
+      "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"]
     }
   ]
 }
 ```
 
-💡 **Tip**: Copy the JSON output from the hash generation script directly!
+💡 **Tip**: Copy the JSON output from the hash generation script directly—the snippet already matches the `photoHashes` schema (and includes the legacy `photoHash` array when using pHash). If you need dHash coverage, run the script with `--algorithm dhash` to populate `photoHashes.dhash` as well.
 
 ### Step 3: Update Application Code
 
@@ -293,20 +308,21 @@ Want to compare both algorithms before fully migrating?
 
 ### Dual Hash Storage
 
-Store both dHash and pHash values:
+Store both dHash and pHash values inside the `photoHashes` object:
 
 ```json
 {
   "id": 1,
   "band": "The Midnight Echoes",
-  "photoHash": {
+  "photoHashes": {
     "dhash": [
       "00000000000001600acc000000000000",
       "00000000000001600acc000000000000",
       "00000000000001600acc000000000000"
     ],
-    "phash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"]
-  }
+    "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"]
+  },
+  "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"]
 }
 ```
 
@@ -376,7 +392,7 @@ function App() {
 
 1. Regenerate pHash values from source images
 2. Increase threshold to 12-15 and test
-3. Verify photoHash values are 16 hex chars (pHash) not 32 (dHash)
+3. Verify `photoHashes.phash` values are 16 hex chars (pHash) and `photoHashes.dhash` values are 32 hex chars (legacy dHash)
 
 ### Lower accuracy than expected
 

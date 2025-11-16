@@ -44,7 +44,7 @@ When Test Data Mode is enabled, the app uses data from these directories instead
 
 - **Concert data**: `assets/test-data/concerts.json` (instead of `/data.json`)
 - **Audio files**: `assets/test-audio/*.mp3` **plus** the 30-second clip pack in `assets/example-real-songs/*.mp3`
-- **Photo hashes**: Links to test images in `assets/test-images/*.jpg|png` and example real photos in `assets/example-real-photos/*.jpg`
+- **Photo hashes**: Each concert now includes a `photoHashes` object with separate `phash` (16-char) and `dhash` (32-char) arrays so you can toggle algorithms at runtime. The legacy `photoHash` array remains for backward compatibility but will be removed in a future cleanup.
 
 ### Testing the Photo Recognition Workflow
 
@@ -77,7 +77,7 @@ Print whichever asset set you want to exercise:
 
 - Print at 4x6" or larger for the most reliable recognition window.
 - The easy PNGs are ideal when you just need a guaranteed match while tuning settings.
-- The example real photos now ship with hashes in both production and test data, so your existing physical prints should work immediately.
+- The example real photos now ship with both `phash` and `dhash` arrays in production and test data, so you can flip the **Hash Algorithm** custom setting without editing JSON.
 
 #### Testing Steps
 
@@ -251,7 +251,7 @@ When testing, you may discover features that are **planned but not yet implement
 5. Hold camera steady for 3+ seconds
 6. Try adjusting distance (6-12 inches usually works best)
 7. Check that the image is printed clearly (not on a screen)
-8. Verify the test concert has a `photoHash` field in `assets/test-data/concerts.json`
+8. Verify the test concert has a `photoHashes.phash` array (or at least the legacy `photoHash` array) in `assets/test-data/concerts.json`
 
 **Example Debug Info for Successful Recognition**:
 
@@ -284,6 +284,7 @@ When testing, you may discover features that are **planned but not yet implement
    Need a guaranteed-match calibration target? Run `npm run create-easy-images` to regenerate the bullseye/diagonal/checkerboard PNGs before printing.
 
 3. **Hash Format**:
+
    ```json
    {
      "id": 5,
@@ -292,9 +293,15 @@ When testing, you may discover features that are **planned but not yet implement
      "date": "2024-01-01",
      "audioFile": "/assets/test-audio/new-audio.mp3",
      "imageFile": "/assets/test-images/new-image.jpg",
-     "photoHash": "a5b3c7d9e1f20486"
+     "photoHashes": {
+       "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
+       "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
+     },
+     "photoHash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
    }
    ```
+
+   > `photoHashes` is the new canonical shape. Keep the legacy `photoHash` array in sync until older builds are retired.
 
 See `scripts/README.md` for detailed hash generation instructions.
 

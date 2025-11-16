@@ -11,34 +11,50 @@ import type {
   RecognitionTelemetry,
   FailureCategory,
   FailureDiagnostic,
+  HashAlgorithm,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
 import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
 
-const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string | string[] } => {
-  if (typeof concert.photoHash === 'string') {
-    return concert.photoHash.length > 0;
-  }
-  if (Array.isArray(concert.photoHash)) {
-    return (
-      concert.photoHash.length > 0 &&
-      concert.photoHash.every((h) => typeof h === 'string' && h.length > 0)
-    );
-  }
-  return false;
+const HASH_LENGTHS: Record<HashAlgorithm, number> = {
+  dhash: 32,
+  phash: 16,
 };
 
-/**
- * Get all hashes for a concert (handles both single hash and multi-exposure array)
- */
-const getPhotoHashes = (concert: Concert): string[] => {
-  if (!concert.photoHash) {
+const normalizeLegacyHashes = (hash: string | string[] | undefined): string[] => {
+  if (!hash) {
     return [];
   }
-  return Array.isArray(concert.photoHash) ? concert.photoHash : [concert.photoHash];
+  const hashes = Array.isArray(hash) ? hash : [hash];
+  return hashes.filter((value) => typeof value === 'string' && value.length > 0);
 };
+
+const isValidForAlgorithm = (hashes: string[], algorithm: HashAlgorithm): boolean => {
+  if (hashes.length === 0) {
+    return false;
+  }
+  const expectedLength = HASH_LENGTHS[algorithm];
+  return hashes.every((value) => value.length === expectedLength);
+};
+
+const getPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): string[] => {
+  const hashSet = concert.photoHashes?.[algorithm];
+  if (Array.isArray(hashSet) && hashSet.length > 0 && isValidForAlgorithm(hashSet, algorithm)) {
+    return hashSet;
+  }
+
+  const legacyHashes = normalizeLegacyHashes(concert.photoHash);
+  if (isValidForAlgorithm(legacyHashes, algorithm)) {
+    return legacyHashes;
+  }
+
+  return [];
+};
+
+const hasPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): boolean =>
+  getPhotoHashesForAlgorithm(concert, algorithm).length > 0;
 
 /**
  * Record a recognition failure in telemetry
@@ -231,7 +247,10 @@ export function usePhotoRecognition(
       console.log('━'.repeat(60));
       console.log('[Photo Recognition] Initializing recognition system');
       console.log(`  Concerts loaded: ${concerts.length}`);
-      console.log(`  Concerts with hashes: ${concerts.filter((c) => c.photoHash).length}`);
+      const concertsWithHashes = concerts.filter((concert) =>
+        hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+      );
+      console.log(`  Concerts with hashes: ${concertsWithHashes.length}`);
       console.log(
         `  Similarity threshold: ${similarityThreshold} (≥${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}% match)`
       );
@@ -240,21 +259,19 @@ export function usePhotoRecognition(
       console.log(`  Aspect ratio: ${aspectRatio}`);
       console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
-      if (concerts.length > 0 && concerts.filter((c) => c.photoHash).length > 0) {
+      if (concertsWithHashes.length > 0) {
         console.log('\n  Available hashes:');
-        concerts.forEach((concert) => {
-          if (concert.photoHash) {
-            const hashes = getPhotoHashes(concert);
-            if (hashes.length > 1) {
-              console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
-              hashes.forEach((hash, idx) => {
-                const exposureLabels = ['dark', 'normal', 'bright'];
-                const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
-                console.log(`      [${exposureLabel}] ${hash}`);
-              });
-            } else {
-              console.log(`    ${concert.band}: ${hashes[0]}`);
-            }
+        concertsWithHashes.forEach((concert) => {
+          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
+          if (hashes.length > 1) {
+            console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
+            hashes.forEach((hash, idx) => {
+              const exposureLabels = ['dark', 'normal', 'bright'];
+              const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
+              console.log(`      [${exposureLabel}] ${hash}`);
+            });
+          } else if (hashes.length === 1) {
+            console.log(`    ${concert.band}: ${hashes[0]}`);
           }
         });
       }
@@ -439,7 +456,9 @@ export function usePhotoRecognition(
 
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
-        const concertsWithHashes = concerts.filter(hasPhotoHash);
+        const concertsWithHashes = concerts.filter((concert) =>
+          hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+        );
 
         if (import.meta.env.DEV || isTestMode) {
           console.debug(`\n${'='.repeat(60)}`);
@@ -467,7 +486,7 @@ export function usePhotoRecognition(
 
         for (const concert of concertsWithHashes) {
           // Get all hashes for this concert (handles both single and multi-exposure)
-          const hashes = getPhotoHashes(concert);
+          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
 
           // Find best match across all exposure variants
           let bestHashDistance = Infinity;
@@ -722,6 +741,7 @@ export function usePhotoRecognition(
     sharpnessThreshold,
     glareThreshold,
     glarePercentageThreshold,
+    hashAlgorithm,
     isEnabled,
     restartKey,
   ]);

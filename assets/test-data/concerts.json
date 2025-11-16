@@ -7,11 +7,15 @@
       "date": "2023-08-15",
       "audioFile": "/assets/test-audio/concert-1.mp3",
       "imageFile": "/assets/test-images/concert-1.jpg",
-      "photoHash": [
-        "00000000000001200acc000000000000",
-        "00000000000001600acc000000000000",
-        "00000000000001200acc000000000000"
-      ]
+      "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+      "photoHashes": {
+        "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+        "dhash": [
+          "00000000000001200acc000000000000",
+          "00000000000001600acc000000000000",
+          "00000000000001200acc000000000000"
+        ]
+      }
     },
     {
       "id": 2,
@@ -20,11 +24,15 @@
       "date": "2023-09-22",
       "audioFile": "/assets/test-audio/concert-2.mp3",
       "imageFile": "/assets/test-images/concert-2.jpg",
-      "photoHash": [
-        "00000000000001200330000000000000",
-        "00000000000001200330000000000000",
-        "00000000000001200330000000000000"
-      ]
+      "photoHash": ["36d9492796d86d22", "b6d8482796d86d23", "36dac82596da6d22"],
+      "photoHashes": {
+        "phash": ["36d9492796d86d22", "b6d8482796d86d23", "36dac82596da6d22"],
+        "dhash": [
+          "00000000000001200330000000000000",
+          "00000000000001200330000000000000",
+          "00000000000001200330000000000000"
+        ]
+      }
     },
     {
       "id": 3,
@@ -33,11 +41,15 @@
       "date": "2023-10-10",
       "audioFile": "/assets/test-audio/concert-3.mp3",
       "imageFile": "/assets/test-images/concert-3.jpg",
-      "photoHash": [
-        "00000000000001200278000000000000",
-        "00000000000001200278000000000000",
-        "00000000000001200278000000000000"
-      ]
+      "photoHash": ["3cdac2259cda6722", "3cda62259cda6722", "1cda63259cda6722"],
+      "photoHashes": {
+        "phash": ["3cdac2259cda6722", "3cda62259cda6722", "1cda63259cda6722"],
+        "dhash": [
+          "00000000000001200278000000000000",
+          "00000000000001200278000000000000",
+          "00000000000001200278000000000000"
+        ]
+      }
     },
     {
       "id": 4,
@@ -46,11 +58,15 @@
       "date": "2023-11-05",
       "audioFile": "/assets/test-audio/concert-4.mp3",
       "imageFile": "/assets/test-images/concert-4.jpg",
-      "photoHash": [
-        "00000000000001200a18000000000000",
-        "00000000000001200a18000000000000",
-        "00000000000001200a18000000000000"
-      ]
+      "photoHash": ["36d9c82736d8cc23", "36dac82736d8cc23", "36dac82736d8cc23"],
+      "photoHashes": {
+        "phash": ["36d9c82736d8cc23", "36dac82736d8cc23", "36dac82736d8cc23"],
+        "dhash": [
+          "00000000000001200a18000000000000",
+          "00000000000001200a18000000000000",
+          "00000000000001200a18000000000000"
+        ]
+      }
     },
     {
       "id": 5,
@@ -59,11 +75,15 @@
       "date": "2024-01-05",
       "audioFile": "/assets/test-audio/concert-song-1.mp3",
       "imageFile": "/assets/test-images/easy-target-bullseye.png",
-      "photoHash": [
-        "00e00078061c0d4e0d4e061c007800e0",
-        "00e00078061c0d4e0d4e061c007800e0",
-        "00e00078061c0d4e0d4e061c007800e0"
-      ]
+      "photoHash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"],
+      "photoHashes": {
+        "phash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"],
+        "dhash": [
+          "00e00078061c0d4e0d4e061c007800e0",
+          "00e00078061c0d4e0d4e061c007800e0",
+          "00e00078061c0d4e0d4e061c007800e0"
+        ]
+      }
     },
     {
       "id": 6,
@@ -72,11 +92,15 @@
       "date": "2024-01-06",
       "audioFile": "/assets/test-audio/concert-song-2.mp3",
       "imageFile": "/assets/test-images/easy-target-diagonals.png",
-      "photoHash": [
-        "0c008180b060365c05d101b100d90000",
-        "0c008180b060265c05d101b100d90000",
-        "0c008180b060265c05d101b100d90000"
-      ]
+      "photoHash": ["89c6710bc6f07ec1", "89c6f10be4f03ec1", "8bc4f10be4f03ec1"],
+      "photoHashes": {
+        "phash": ["89c6710bc6f07ec1", "89c6f10be4f03ec1", "8bc4f10be4f03ec1"],
+        "dhash": [
+          "0c008180b060365c05d101b100d90000",
+          "0c008180b060265c05d101b100d90000",
+          "0c008180b060265c05d101b100d90000"
+        ]
+      }
     },
     {
       "id": 7,
@@ -85,11 +109,15 @@
       "date": "2024-01-07",
       "audioFile": "/assets/example-real-songs/20-possum-clip-01.mp3",
       "imageFile": "/assets/test-images/easy-target-checker.png",
-      "photoHash": [
-        "1188c663c6632508c00b118811884662",
-        "1188c663c6632508e00b118811884662",
-        "1188c663c6632508e00b118811884662"
-      ]
+      "photoHash": ["8f54f3118c4473b5", "8d54f3118c44f3b5", "8d54f3118c44f3b5"],
+      "photoHashes": {
+        "phash": ["8f54f3118c4473b5", "8d54f3118c44f3b5", "8d54f3118c44f3b5"],
+        "dhash": [
+          "1188c663c6632508c00b118811884662",
+          "1188c663c6632508e00b118811884662",
+          "1188c663c6632508e00b118811884662"
+        ]
+      }
     },
     {
       "id": 8,
@@ -98,11 +126,15 @@
       "date": "2024-02-01",
       "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-01.mp3",
       "imageFile": "/assets/example-real-photos/R0043343.jpg",
-      "photoHash": [
-        "c4d534e10cc91467156648d241100000",
-        "c4f53cf10ccd16675d674cd2555b4b53",
-        "c4f53cf10ccd16675de74cd2555b4253"
-      ]
+      "photoHash": ["2bcad5353ac88595", "8bc2d5b52bc88595", "83c2d5b52be88595"],
+      "photoHashes": {
+        "phash": ["2bcad5353ac88595", "8bc2d5b52bc88595", "83c2d5b52be88595"],
+        "dhash": [
+          "c4d534e10cc91467156648d241100000",
+          "c4f53cf10ccd16675d674cd2555b4b53",
+          "c4f53cf10ccd16675de74cd2555b4253"
+        ]
+      }
     },
     {
       "id": 9,
@@ -111,11 +143,15 @@
       "date": "2024-02-02",
       "audioFile": "/assets/example-real-songs/06-ocelot-clip-01.mp3",
       "imageFile": "/assets/example-real-photos/R0055333.jpg",
-      "photoHash": [
-        "013016e020f202c20350000000000000",
-        "953f16ff30fb02db0352534504410041",
-        "953f16ff30fb02db0352534504410041"
-      ]
+      "photoHash": ["9b92e46c733232c6", "9392646d2b3a72c6", "9392646c2b3a76c6"],
+      "photoHashes": {
+        "phash": ["9b92e46c733232c6", "9392646d2b3a72c6", "9392646c2b3a76c6"],
+        "dhash": [
+          "013016e020f202c20350000000000000",
+          "953f16ff30fb02db0352534504410041",
+          "953f16ff30fb02db0352534504410041"
+        ]
+      }
     },
     {
       "id": 10,
@@ -124,11 +160,15 @@
       "date": "2024-02-03",
       "audioFile": "/assets/example-real-songs/13-1999-clip-01.mp3",
       "imageFile": "/assets/example-real-photos/R0055917.jpg",
-      "photoHash": [
-        "41bb499486698c791ce39ac9dacd0400",
-        "41bb499486698c791cfb9acddacd5538",
-        "41bb499486698c791cfb9acddacd5538"
-      ]
+      "photoHash": ["a7144cfa13789b07", "a7144dfa13788e13", "a7144dfa13788e13"],
+      "photoHashes": {
+        "phash": ["a7144cfa13789b07", "a7144dfa13788e13", "a7144dfa13788e13"],
+        "dhash": [
+          "41bb499486698c791ce39ac9dacd0400",
+          "41bb499486698c791cfb9acddacd5538",
+          "41bb499486698c791cfb9acddacd5538"
+        ]
+      }
     },
     {
       "id": 11,
@@ -137,11 +177,15 @@
       "date": "2024-02-04",
       "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-01.mp3",
       "imageFile": "/assets/example-real-photos/R0060632.jpg",
-      "photoHash": [
-        "866f356722c084822100000000010040",
-        "866f356722d6b4c3319d133c0ab9555a",
-        "866f356722d6b4cb319d13388ab9555a"
-      ]
+      "photoHash": ["a1a1e9b594969786", "a9a9ebb134169782", "89a9ebb334169782"],
+      "photoHashes": {
+        "phash": ["a1a1e9b594969786", "a9a9ebb134169782", "89a9ebb334169782"],
+        "dhash": [
+          "866f356722c084822100000000010040",
+          "866f356722d6b4c3319d133c0ab9555a",
+          "866f356722d6b4cb319d13388ab9555a"
+        ]
+      }
     },
     {
       "id": 12,
@@ -150,11 +194,15 @@
       "date": "2024-02-05",
       "audioFile": "/assets/example-real-songs/18-meatstick-clip-01.mp3",
       "imageFile": "/assets/example-real-photos/R0060861.jpg",
-      "photoHash": [
-        "040801ee462c2c984a4b42688ac027a1",
-        "960bc5ef462e2e8c4e6b566ec2eda7ed",
-        "964bc5ef462eae9c4e6b566ec2eda7ed"
-      ]
+      "photoHash": ["8f84d87ba3e57011", "a74c987aa3f57011", "a74c987aa3f57011"],
+      "photoHashes": {
+        "phash": ["8f84d87ba3e57011", "a74c987aa3f57011", "a74c987aa3f57011"],
+        "dhash": [
+          "040801ee462c2c984a4b42688ac027a1",
+          "960bc5ef462e2e8c4e6b566ec2eda7ed",
+          "964bc5ef462eae9c4e6b566ec2eda7ed"
+        ]
+      }
     }
   ]
 }

@@ -10,7 +10,7 @@ assignees: ''
 
 **Test Mode is currently non-functional for its primary purpose**: enabling users to point the camera at printed test images and have them recognized and trigger audio playback.
 
-The issue is that the test data in `assets/test-data/concerts.json` **does NOT include `photoHash` values**, which are required by the photo recognition module to match camera frames to concert photos.
+The issue is that the test data in `assets/test-data/concerts.json` **does NOT include `photoHashes` (and legacy `photoHash`) values**, which are required by the photo recognition module to match camera frames to concert photos and enable runtime algorithm switching.
 
 ### Current State vs. Expected State
 
@@ -24,7 +24,7 @@ The issue is that the test data in `assets/test-data/concerts.json` **does NOT i
   "date": "2023-08-15",
   "audioFile": "/assets/test-audio/concert-1.mp3",
   "imageFile": "/assets/test-images/concert-1.jpg"
-  // ❌ NO photoHash field!
+  // ❌ NO photoHashes/photoHash fields!
 }
 ```
 
@@ -38,7 +38,11 @@ The issue is that the test data in `assets/test-data/concerts.json` **does NOT i
   "date": "2023-08-15",
   "audioFile": "/assets/test-audio/concert-1.mp3",
   "imageFile": "/assets/test-images/concert-1.jpg",
-  "photoHash": "a5b3c7d9e1f20486" // ✅ Hash computed from concert-1.jpg
+  "photoHashes": {
+    "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+    "dhash": ["00000000000001600acc000000000000", "00000000000001600acc000000000000", "00000000000001600acc000000000000"]
+  },
+  "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"] // ✅ Legacy mirror for older builds
 }
 ```
 
@@ -49,7 +53,7 @@ When Test Mode is enabled:
 1. ✅ Data service correctly loads test concert data
 2. ✅ Camera access works
 3. ✅ Motion detection works
-4. ❌ **Photo recognition SILENTLY FAILS** - skips concerts without `photoHash`
+4. ❌ **Photo recognition SILENTLY FAILS** - skips concerts without `photoHashes`
 5. ❌ User points camera at test images but **nothing happens**
 6. ❌ No clear indication to user WHY it's not working
 
@@ -102,7 +106,7 @@ Fix Test Mode to fully enable photo recognition with test images and add compreh
   - [ ] Document hashes in issue comment for review
 
 - [ ] **Update test data with hashes**
-  - [ ] Add `photoHash` field to all 4 concerts in `assets/test-data/concerts.json`
+  - [ ] Add `photoHashes` (with `phash` + `dhash`) and legacy `photoHash` arrays to all 4 concerts in `assets/test-data/concerts.json`
   - [ ] Verify JSON is valid
   - [ ] Commit changes
 
@@ -228,7 +232,7 @@ Upgrade logging in `photo-recognition` module:
 
 ### Core Functionality ✅
 
-- [ ] All 4 test images have `photoHash` values in `assets/test-data/concerts.json`
+- [ ] All 4 test images have `photoHashes` (`phash` + `dhash`) and legacy `photoHash` mirrors in `assets/test-data/concerts.json`
 - [ ] Pointing camera at printed test images triggers recognition (with hash match)
 - [ ] Audio plays when test photo is recognized
 - [ ] Photo recognition works in Test Mode at ≥80% success rate in good lighting
@@ -299,7 +303,7 @@ Choose the approach that best fits the architecture (see ARCHITECTURE.md).
 
 **Data**:
 
-- `assets/test-data/concerts.json` - Add `photoHash` fields to all 4 concerts
+- `assets/test-data/concerts.json` - Add `photoHashes` (and `photoHash` mirrors) to all 4 concerts
 
 **Code**:
 
@@ -462,13 +466,17 @@ After:
       "date": "2023-08-15",
       "audioFile": "/assets/test-audio/concert-1.mp3",
       "imageFile": "/assets/test-images/concert-1.jpg",
-      "photoHash": "a5b3c7d9e1f20486"
+      "photoHashes": {
+        "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+        "dhash": ["00000000000001600acc000000000000", "00000000000001600acc000000000000", "00000000000001600acc000000000000"]
+      },
+      "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"]
     }
   ]
 }
 ```
 
-**Note**: The `imageFile` field is currently not used by the app (it's metadata only). The `photoHash` field is what the recognition algorithm needs.
+**Note**: The `imageFile` field is currently not used by the app (it's metadata only). The `photoHashes` object (and temporary `photoHash` mirror) is what the recognition algorithm needs.
 
 ---
 

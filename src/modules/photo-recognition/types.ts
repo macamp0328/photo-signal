@@ -88,6 +88,8 @@ export interface RecognitionTelemetry {
 /**
  * Debug information from photo recognition
  */
+export type HashAlgorithm = 'dhash' | 'phash';
+
 export interface RecognitionDebugInfo {
   /** Last computed frame hash */
   lastFrameHash: string | null;
@@ -116,7 +118,7 @@ export interface RecognitionDebugInfo {
   /** Recognition telemetry metrics */
   telemetry: RecognitionTelemetry;
   /** Hash algorithm currently in use */
-  hashAlgorithm: 'dhash' | 'phash';
+  hashAlgorithm: HashAlgorithm;
 }
 
 export interface PhotoRecognitionHook {
@@ -152,5 +154,5 @@ export interface PhotoRecognitionOptions {
   /** Percentage of image that must be blown out to trigger glare detection (default 20) */
   glarePercentageThreshold?: number;
   /** Hash algorithm to use: 'dhash' or 'phash' (default 'dhash') */
-  hashAlgorithm?: 'dhash' | 'phash';
+  hashAlgorithm?: HashAlgorithm;
 }

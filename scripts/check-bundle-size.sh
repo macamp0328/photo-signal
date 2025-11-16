@@ -22,8 +22,26 @@ if [ ! -d "dist" ]; then
 fi
 
 # Find JS and CSS files
-JS_FILE=$(find "$DIST_DIR" -name "index-*.js" | head -1)
-CSS_FILE=$(find "$DIST_DIR" -name "index-*.css" | head -1)
+find_largest_bundle_file() {
+  local pattern=$1
+  local largest_file=""
+  local largest_size=0
+
+  while IFS= read -r file; do
+    [ -f "$file" ] || continue
+    local gz_size
+    gz_size=$(gzip -c "$file" | wc -c | tr -d ' ')
+    if [ "$gz_size" -gt "$largest_size" ]; then
+      largest_size=$gz_size
+      largest_file=$file
+    fi
+  done < <(find "$DIST_DIR" -name "$pattern" -type f)
+
+  echo "$largest_file"
+}
+
+JS_FILE=$(find_largest_bundle_file "index-*.js")
+CSS_FILE=$(find_largest_bundle_file "index-*.css")
 
 if [ -z "$JS_FILE" ]; then
   echo "❌ Error: No JavaScript bundle found in $DIST_DIR"

@@ -8,25 +8,42 @@
  * without conflicts or coupling.
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
-import { usePhotoRecognition, GuidanceMessage } from './modules/photo-recognition';
+import {
+  usePhotoRecognition,
+  FrameQualityIndicator,
+  GuidanceMessage,
+  TelemetryExport,
+} from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
-import { DebugOverlay } from './modules/debug-overlay';
-import type { AspectRatio } from './types';
+import type { AspectRatio, Concert } from './types';
 import {
   useTripleTap,
-  SecretSettings,
   useFeatureFlags,
   useCustomSettings,
   useRetroSounds,
-  PsychedelicEffect,
 } from './modules/secret-settings';
 import './index.css';
+
+const SecretSettings = lazy(async () => {
+  const module = await import('./modules/secret-settings/SecretSettings');
+  return { default: module.SecretSettings };
+});
+
+const PsychedelicEffect = lazy(async () => {
+  const module = await import('./modules/secret-settings/PsychedelicEffect');
+  return { default: module.PsychedelicEffect };
+});
+
+const DebugOverlay = lazy(async () => {
+  const module = await import('./modules/debug-overlay');
+  return { default: module.DebugOverlay };
+});
 
 const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
@@ -41,6 +58,9 @@ function App() {
 
   // State for aspect ratio
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
+
+  // Track audio that is currently playing so we can keep music alive between scans
+  const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
 
   // Ref to store auto-reset timer ID for test mode
   const autoResetTimerRef = useRef<number | null>(null);
@@ -112,6 +132,7 @@ function App() {
     reset: resetRecognition,
     debugInfo,
     isRecognizing,
+    frameQuality,
     activeGuidance,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
@@ -127,7 +148,7 @@ function App() {
   });
 
   // Module: Audio Playback
-  const { play, fadeOut, isPlaying } = useAudioPlayback({
+  const { play, fadeOut, crossfade, isPlaying } = useAudioPlayback({
     volume: 0.8,
     fadeTime: 1000,
   });
@@ -135,13 +156,29 @@ function App() {
   // Orchestration Logic
   // Play audio when photo is recognized
   useEffect(() => {
-    if (recognizedConcert) {
+    if (!recognizedConcert) {
+      return;
+    }
+
+    const isSameConcert = activeConcert?.id === recognizedConcert.id;
+
+    if (!activeConcert) {
       console.log('Photo recognized:', recognizedConcert.band);
       play(recognizedConcert.audioFile);
-      // Play retro sound on recognition
+      setActiveConcert(recognizedConcert);
       playRandomSound();
+      return;
     }
-  }, [recognizedConcert, play, playRandomSound]);
+
+    if (isSameConcert) {
+      return;
+    }
+
+    console.log('Photo changed, crossfading to:', recognizedConcert.band);
+    crossfade(recognizedConcert.audioFile);
+    setActiveConcert(recognizedConcert);
+    playRandomSound();
+  }, [recognizedConcert, activeConcert, play, crossfade, playRandomSound]);
 
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {
@@ -151,6 +188,7 @@ function App() {
     const AUTO_RESET_DELAY_MS = 4000;
     const timerId = window.setTimeout(() => {
       fadeOut();
+      setActiveConcert(null);
       resetRecognition();
     }, AUTO_RESET_DELAY_MS);
 
@@ -163,25 +201,20 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Fade out audio when movement is detected
+  // Restart recognition when movement begins so we can confirm the next photo.
+  const previousMovementRef = useRef(false);
   useEffect(() => {
-    if (isMoving && isPlaying) {
-      console.log('Movement detected, fading out');
-
-      // Clear auto-reset timer if it's running to avoid race condition
+    if (isMoving && !previousMovementRef.current && activeConcert) {
       if (autoResetTimerRef.current !== null) {
         window.clearTimeout(autoResetTimerRef.current);
         autoResetTimerRef.current = null;
       }
 
-      fadeOut();
-
-      // Reset recognition after fade completes
-      setTimeout(() => {
-        resetRecognition();
-      }, 1500);
+      resetRecognition();
     }
-  }, [isMoving, isPlaying, fadeOut, resetRecognition]);
+
+    previousMovementRef.current = isMoving;
+  }, [isMoving, activeConcert, resetRecognition]);
 
   // Handle activation from landing view
   const handleActivate = () => {
@@ -191,6 +224,8 @@ function App() {
   };
 
   // Render camera view
+  const displayedConcert = activeConcert ?? recognizedConcert;
+
   const cameraView = (
     <CameraView
       stream={stream}
@@ -200,14 +235,19 @@ function App() {
       aspectRatio={aspectRatio}
       onAspectRatioToggle={() => setAspectRatio((prev) => (prev === '3:2' ? '2:3' : '3:2'))}
       grayscale={isEnabled('grayscale-mode')}
-      concertInfo={recognizedConcert}
-      showConcertOverlay={!!recognizedConcert && isPlaying}
+      concertInfo={displayedConcert}
+      showConcertOverlay={!!displayedConcert && isPlaying}
     />
   );
 
   // Render info display (not shown since showInfoSection is false, concert info is in camera overlay)
   const infoDisplay = (
-    <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
+    <InfoDisplay concert={displayedConcert} isVisible={!!displayedConcert && isPlaying} />
+  );
+
+  // Render frame quality indicator (only when camera is active and no concert recognized)
+  const frameQualityIndicator = isActive && stream && !recognizedConcert && (
+    <FrameQualityIndicator frameQuality={frameQuality} />
   );
 
   // Render guidance message (only when camera is active and no concert recognized)
@@ -224,23 +264,39 @@ function App() {
         onActivate={handleActivate}
         showInfoSection={false}
       />
+      {frameQualityIndicator}
       {guidanceMessage}
-      <SecretSettings
-        isVisible={showSecretSettings}
-        onClose={() => {
-          setShowSecretSettings(false);
-          // Play sound when closing secret menu
-          playRandomSound();
-        }}
-      />
-      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
-      <DebugOverlay
-        enabled={isTestModeEnabled}
-        recognizedConcert={recognizedConcert}
-        isRecognizing={isRecognizing}
-        debugInfo={debugInfo ?? undefined}
-        onReset={resetRecognition}
-      />
+      {showSecretSettings && (
+        <Suspense fallback={null}>
+          <SecretSettings
+            isVisible={showSecretSettings}
+            onClose={() => {
+              setShowSecretSettings(false);
+              // Play sound when closing secret menu
+              playRandomSound();
+            }}
+          />
+        </Suspense>
+      )}
+      {isEnabled('psychedelic-mode') && (
+        <Suspense fallback={null}>
+          <PsychedelicEffect enabled={true} />
+        </Suspense>
+      )}
+      {isTestModeEnabled && (
+        <Suspense fallback={null}>
+          <DebugOverlay
+            enabled={isTestModeEnabled}
+            recognizedConcert={recognizedConcert}
+            isRecognizing={isRecognizing}
+            debugInfo={debugInfo ?? undefined}
+            onReset={resetRecognition}
+          />
+        </Suspense>
+      )}
+      {isTestModeEnabled && debugInfo?.telemetry && (
+        <TelemetryExport telemetry={debugInfo.telemetry} />
+      )}
     </>
   );
 }

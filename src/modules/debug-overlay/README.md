@@ -16,6 +16,7 @@ The Debug Overlay module provides real-time debugging information for the photo 
 ✅ **Metric Snapshot**: Frames processed, concerts evaluated, check interval, aspect ratio, frame size, last check timestamp
 ✅ **Test Mode Integration**: Only visible when Test Mode is enabled
 ✅ **Non-intrusive Design**: Positioned in bottom-right corner with semi-transparent background
+✅ **Collapsible UI**: Quickly hide or show the overlay to reclaim screen space
 ✅ **Manual Reset Control**: Optional reset button to restart recognition during Test Mode
 
 ## Usage
@@ -45,6 +46,10 @@ function App() {
   );
 }
 ```
+
+### Collapsing the Overlay
+
+Use the **Hide** button in the overlay header to collapse it into a compact pill. Click **Show overlay** to reopen it. The collapsed state resets automatically whenever Test Mode is turned off.
 
 ## Component API
 

@@ -21,6 +21,14 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     category: 'development',
   },
   {
+    id: 'multi-scale-recognition',
+    name: 'Multi-Scale Recognition (Relaxed Framing)',
+    description:
+      'Enable multi-scale photo recognition to support imprecise alignment. Tests multiple crop scales (75%, 80%, 85%, 90%) to match photos that don\'t perfectly fill the framing guide. More forgiving for handheld use and photos with small borders or background visible.',
+    enabled: false,
+    category: 'experimental',
+  },
+  {
     id: 'grayscale-mode',
     name: 'Grayscale Conversion',
     description:

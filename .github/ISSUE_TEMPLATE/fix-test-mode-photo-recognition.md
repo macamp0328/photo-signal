@@ -40,7 +40,11 @@ The issue is that the test data in `assets/test-data/concerts.json` **does NOT i
   "imageFile": "/assets/test-images/concert-1.jpg",
   "photoHashes": {
     "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
-    "dhash": ["00000000000001600acc000000000000", "00000000000001600acc000000000000", "00000000000001600acc000000000000"]
+    "dhash": [
+      "00000000000001600acc000000000000",
+      "00000000000001600acc000000000000",
+      "00000000000001600acc000000000000"
+    ]
   },
   "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"] // ✅ Legacy mirror for older builds
 }
@@ -468,7 +472,11 @@ After:
       "imageFile": "/assets/test-images/concert-1.jpg",
       "photoHashes": {
         "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
-        "dhash": ["00000000000001600acc000000000000", "00000000000001600acc000000000000", "00000000000001600acc000000000000"]
+        "dhash": [
+          "00000000000001600acc000000000000",
+          "00000000000001600acc000000000000",
+          "00000000000001600acc000000000000"
+        ]
       },
       "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"]
     }

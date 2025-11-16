@@ -19,10 +19,6 @@
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 
-### Project Planning & Roadmap
-
-- **[ROADMAP.md](./ROADMAP.md)** - Complete project roadmap with 7 milestones and 60+ issues organized for AI agent development
-
 ### Research & Technical Specifications
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
@@ -328,7 +324,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (8 files)
+- ✅ Root documentation (7 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, ASSET_LICENSES, FAVICON_SETUP)
 - ✅ Research & technical specifications (15 files - including exploratory analysis, Phase 2 benchmarking guide, Phase 2 angle compensation analysis, Phase 2 migration guide, grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
@@ -349,6 +345,6 @@ This index covers:
 - ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 128 documented files
+**Total**: 127 documented files
 
 Last updated: 2025-11-16

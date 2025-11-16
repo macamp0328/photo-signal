@@ -19,4 +19,7 @@ export interface GalleryLayoutProps {
 
   /** Callback when user wants to activate camera */
   onActivate: () => void;
+
+  /** Whether to show the info section (for backward compatibility, defaults to true) */
+  showInfoSection?: boolean;
 }

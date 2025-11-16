@@ -174,10 +174,12 @@ function App() {
       aspectRatio={aspectRatio}
       onAspectRatioToggle={() => setAspectRatio((prev) => (prev === '3:2' ? '2:3' : '3:2'))}
       grayscale={isEnabled('grayscale-mode')}
+      concertInfo={recognizedConcert}
+      showConcertOverlay={!!recognizedConcert && isPlaying}
     />
   );
 
-  // Render info display
+  // Render info display (only for side panel on desktop when no concert is playing)
   const infoDisplay = (
     <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
   );
@@ -194,6 +196,7 @@ function App() {
         cameraView={cameraView}
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
+        showInfoSection={false}
       />
       {frameQualityIndicator}
       <SecretSettings

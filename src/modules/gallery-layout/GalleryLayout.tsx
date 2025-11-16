@@ -15,6 +15,7 @@ export function GalleryLayout({
   cameraView,
   infoDisplay,
   onActivate,
+  showInfoSection = false,
 }: GalleryLayoutProps) {
   if (!isActive) {
     // Landing/Initial View
@@ -54,8 +55,8 @@ export function GalleryLayout({
         {/* Camera View - Takes up main space */}
         <div className={styles.cameraSection}>{cameraView}</div>
 
-        {/* Info Display - Side panel on desktop, below on mobile */}
-        <div className={styles.infoSection}>{infoDisplay}</div>
+        {/* Info Display - Side panel on desktop, below on mobile (hidden when concert is overlaid) */}
+        {showInfoSection && <div className={styles.infoSection}>{infoDisplay}</div>}
       </div>
     </div>
   );

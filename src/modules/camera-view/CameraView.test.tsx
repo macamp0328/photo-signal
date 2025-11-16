@@ -461,4 +461,130 @@ describe('CameraView', () => {
       expect(toggleButton.textContent).toContain('Landscape');
     });
   });
+
+  describe('Concert Info Overlay', () => {
+    let mockStream: MediaStream;
+    const mockConcert = {
+      id: 1,
+      band: 'The Beatles',
+      venue: 'Shea Stadium',
+      date: '1965-08-15',
+      audioFile: '/audio/beatles.mp3',
+    };
+
+    beforeEach(() => {
+      mockStream = new MediaStream();
+    });
+
+    it('should not render concert overlay when concertInfo is null', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={null}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
+    });
+
+    it('should not render concert overlay when showConcertOverlay is false', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={mockConcert}
+          showConcertOverlay={false}
+        />
+      );
+
+      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
+    });
+
+    it('should render concert overlay when both concertInfo and showConcertOverlay are provided', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.getByText('The Beatles')).toBeInTheDocument();
+      expect(screen.getByText('Shea Stadium')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 1965')).toBeInTheDocument();
+      expect(screen.getByText('Now Playing')).toBeInTheDocument();
+    });
+
+    it('should format date correctly in concert overlay', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.getByText('August 15, 1965')).toBeInTheDocument();
+    });
+
+    it('should render concert overlay with proper structure', () => {
+      const { container } = render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      const overlay = container.querySelector('[class*="concertOverlay"]');
+      const card = container.querySelector('[class*="concertCard"]');
+      const header = container.querySelector('[class*="concertHeader"]');
+      const details = container.querySelector('[class*="concertDetails"]');
+      const footer = container.querySelector('[class*="concertFooter"]');
+
+      expect(overlay).toBeInTheDocument();
+      expect(card).toBeInTheDocument();
+      expect(header).toBeInTheDocument();
+      expect(details).toBeInTheDocument();
+      expect(footer).toBeInTheDocument();
+    });
+
+    it('should not render concert overlay when camera is in error state', () => {
+      render(
+        <CameraView
+          stream={null}
+          error="Camera access denied"
+          hasPermission={false}
+          concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
+    });
+
+    it('should not render concert overlay when camera is in loading state', () => {
+      render(
+        <CameraView
+          stream={null}
+          error={null}
+          hasPermission={null}
+          concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
+    });
+  });
 });

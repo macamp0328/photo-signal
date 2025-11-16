@@ -71,7 +71,7 @@ export interface FailureDiagnostic {
 }
 
 /**
- * Telemetry metrics for tracking frame rejection reasons
+ * Telemetry metrics for tracking frame rejection reasons and guidance effectiveness
  */
 export interface RecognitionTelemetry {
   /** Total frames processed */
@@ -80,6 +80,8 @@ export interface RecognitionTelemetry {
   blurRejections: number;
   /** Frames rejected due to glare */
   glareRejections: number;
+  /** Frames rejected due to poor lighting */
+  lightingRejections: number;
   /** Frames that passed quality checks */
   qualityFrames: number;
   /** Successful recognitions */
@@ -90,6 +92,15 @@ export interface RecognitionTelemetry {
   failureHistory: FailureDiagnostic[];
   /** Categorized failure counts */
   failureByCategory: Record<FailureCategory, number>;
+  /** Guidance tracking */
+  guidanceTracking: {
+    /** Number of times each guidance type was shown */
+    shown: Record<GuidanceType, number>;
+    /** Total time in each guidance state (ms) */
+    duration: Record<GuidanceType, number>;
+    /** Last time each guidance was shown (timestamp) */
+    lastShown: Record<GuidanceType, number>;
+  };
 }
 
 /**

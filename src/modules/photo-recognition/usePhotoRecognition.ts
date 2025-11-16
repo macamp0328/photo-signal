@@ -193,6 +193,7 @@ export function usePhotoRecognition(
     totalFrames: 0,
     blurRejections: 0,
     glareRejections: 0,
+    lightingRejections: 0,
     qualityFrames: 0,
     successfulRecognitions: 0,
     failedAttempts: 0,
@@ -205,7 +206,37 @@ export function usePhotoRecognition(
       collision: 0,
       unknown: 0,
     },
+    guidanceTracking: {
+      shown: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+      duration: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+      lastShown: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+    },
   });
+
+  // Track previous guidance state for duration tracking
+  const previousGuidanceRef = useRef<GuidanceType>('none');
+  const guidanceStartTimeRef = useRef<number>(Date.now());
 
   // Load concert data
   const loadConcerts = useCallback(() => {
@@ -240,10 +271,13 @@ export function usePhotoRecognition(
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
+    previousGuidanceRef.current = 'none';
+    guidanceStartTimeRef.current = Date.now();
     telemetryRef.current = {
       totalFrames: 0,
       blurRejections: 0,
       glareRejections: 0,
+      lightingRejections: 0,
       qualityFrames: 0,
       successfulRecognitions: 0,
       failedAttempts: 0,
@@ -255,6 +289,32 @@ export function usePhotoRecognition(
         'no-match': 0,
         collision: 0,
         unknown: 0,
+      },
+      guidanceTracking: {
+        shown: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+        duration: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+        lastShown: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
       },
     };
     setRestartKey((key) => key + 1);
@@ -416,6 +476,25 @@ export function usePhotoRecognition(
         } else if (hasPoorLighting) {
           currentGuidance = 'poor-lighting';
         }
+
+        // Track guidance telemetry
+        const now = Date.now();
+        const previousGuidance = previousGuidanceRef.current;
+
+        // If guidance changed, update duration for previous guidance
+        if (previousGuidance !== currentGuidance) {
+          const duration = now - guidanceStartTimeRef.current;
+          telemetryRef.current.guidanceTracking.duration[previousGuidance] += duration;
+          guidanceStartTimeRef.current = now;
+          previousGuidanceRef.current = currentGuidance;
+
+          // Track when guidance is shown (not 'none')
+          if (currentGuidance !== 'none') {
+            telemetryRef.current.guidanceTracking.shown[currentGuidance] += 1;
+            telemetryRef.current.guidanceTracking.lastShown[currentGuidance] = now;
+          }
+        }
+
         setActiveGuidance(currentGuidance);
 
         // Update frame quality state for UI feedback

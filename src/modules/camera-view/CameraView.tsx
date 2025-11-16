@@ -3,6 +3,20 @@ import type { CameraViewProps } from './types';
 import styles from './CameraView.module.css';
 
 /**
+ * Format date string (YYYY-MM-DD) to readable format
+ */
+const formatDate = (dateString: string): string => {
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+/**
  * Camera View Component
  *
  * Pure UI component for displaying camera feed with overlay.
@@ -15,6 +29,8 @@ export function CameraView({
   aspectRatio = '3:2',
   onAspectRatioToggle,
   grayscale = false,
+  concertInfo = null,
+  showConcertOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -82,6 +98,24 @@ export function CameraView({
         </div>
       </div>
 
+      {/* Concert Info Overlay */}
+      {concertInfo && showConcertOverlay && (
+        <div className={styles.concertOverlay}>
+          <div className={styles.concertCard}>
+            <div className={styles.concertHeader}>
+              <h2 className={styles.concertBandName}>{concertInfo.band}</h2>
+            </div>
+            <div className={styles.concertDetails}>
+              <p className={styles.concertVenue}>{concertInfo.venue}</p>
+              <p className={styles.concertDate}>{formatDate(concertInfo.date)}</p>
+            </div>
+            <div className={styles.concertFooter}>
+              <p className={styles.concertNowPlaying}>Now Playing</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Aspect Ratio Toggle Button */}
       {onAspectRatioToggle && (
         <button
@@ -94,9 +128,11 @@ export function CameraView({
       )}
 
       {/* Instructions */}
-      <div className={styles.instructions}>
-        <p className={styles.instructionsText}>Point camera at a photo to play music</p>
-      </div>
+      {!showConcertOverlay && (
+        <div className={styles.instructions}>
+          <p className={styles.instructionsText}>Point camera at a photo to play music</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -38,6 +38,7 @@
 - **[docs/codecov-setup-guide.md](./docs/codecov-setup-guide.md)** - Step-by-step guide for setting up Codecov coverage tracking with screenshots and troubleshooting
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
+- **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** - Complete guide to understanding and using photo recognition telemetry data, including failure category analysis, debugging workflows, and regression testing
 
 ### User Guides
 
@@ -62,8 +63,10 @@ Each module has its own README defining its API contract, usage, and examples.
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities (Laplacian variance for blur detection, glare detection, brightness adjustment for multi-exposure hashing)
   - **[photo-recognition/FrameQualityIndicator.tsx](./src/modules/photo-recognition/FrameQualityIndicator.tsx)** - UI component for displaying frame quality warnings ("Hold steady...", "Tilt to avoid glare")
+  - **[photo-recognition/TelemetryExport.tsx](./src/modules/photo-recognition/TelemetryExport.tsx)** - Telemetry data export component for Test Mode (JSON and Markdown reports)
   - **[photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
   - **[photo-recognition/**tests**/multiExposureMatching.test.ts](./src/modules/photo-recognition/**tests**/multiExposureMatching.test.ts)** - Unit tests for multi-exposure hash matching logic (8 tests)
+  - **[photo-recognition/**tests**/edgeCaseAccuracy.test.ts](./src/modules/photo-recognition/**tests**/edgeCaseAccuracy.test.ts)** - Edge case accuracy regression tests validating recognition thresholds (17 tests)
   - **[photo-recognition/algorithms/**tests**/phash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/phash.test.ts)** - Unit tests for pHash algorithm (17 tests, Phase 2)
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
@@ -143,6 +146,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
 - **[.github/workflows/visual-regression.yml](./.github/workflows/visual-regression.yml)** - Playwright visual regression testing workflow (separate from main CI)
+- **[.github/workflows/edge-case-accuracy.yml](./.github/workflows/edge-case-accuracy.yml)** - Edge case accuracy regression testing workflow that validates photo recognition thresholds and posts PR reports
 - **[.github/workflows/pr-checks-monitor.yml](./.github/workflows/pr-checks-monitor.yml)** - Automated PR monitoring workflow that comments on PRs with failing checks and enforces AI agent compliance
 - **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels (ci-failing, needs-fixes)
 - **[.github/workflows/close-stale-failing-prs.yml](./.github/workflows/close-stale-failing-prs.yml)** - Automated workflow to close PRs with failing checks after 7 days (enforces AI agent policy)
@@ -247,6 +251,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
 - **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
 - **[scripts/create-easy-test-images.js](./scripts/create-easy-test-images.js)** - Canvas-based generator for high-contrast calibration targets (`npm run create-easy-images`)
+- **[scripts/create-edge-case-test-images.js](./scripts/create-edge-case-test-images.js)** - Generator for edge case test images covering motion blur, glare, lighting, and angle challenges (`npm run create-edge-case-images`)
 
 ---
 

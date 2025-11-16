@@ -12,6 +12,8 @@ import {
   computeLaplacianVariance,
   detectGlare,
   adjustBrightness,
+  calculateAverageBrightness,
+  detectPoorLighting,
 } from '../utils';
 
 describe('Image Processing Utilities', () => {
@@ -680,6 +682,113 @@ describe('Image Processing Utilities', () => {
       expect(adjusted.data[0]).toBe(100);
       expect(adjusted.data[1]).toBe(150);
       expect(adjusted.data[2]).toBe(200);
+    });
+  });
+
+  describe('calculateAverageBrightness', () => {
+    it('should calculate average brightness correctly', () => {
+      // Create image with known grayscale values
+      // ITU-R BT.601: gray = 0.299*R + 0.587*G + 0.114*B
+      const data = new Uint8ClampedArray([
+        0,
+        0,
+        0,
+        255, // Black (brightness 0)
+        255,
+        255,
+        255,
+        255, // White (brightness 255)
+      ]);
+      const imageData = new ImageData(data, 2, 1);
+
+      const avgBrightness = calculateAverageBrightness(imageData);
+
+      // Average of 0 and 255 = 127.5
+      expect(avgBrightness).toBeCloseTo(127.5, 1);
+    });
+
+    it('should return 0 for empty image', () => {
+      const data = new Uint8ClampedArray([]);
+      const imageData = new ImageData(data, 0, 0);
+
+      const avgBrightness = calculateAverageBrightness(imageData);
+
+      expect(avgBrightness).toBe(0);
+    });
+
+    it('should handle mid-tone images', () => {
+      // Create uniform mid-gray image (128, 128, 128)
+      const data = new Uint8ClampedArray([128, 128, 128, 255, 128, 128, 128, 255]);
+      const imageData = new ImageData(data, 2, 1);
+
+      const avgBrightness = calculateAverageBrightness(imageData);
+
+      // ITU-R BT.601: gray = 0.299*R + 0.587*G + 0.114*B
+      // For RGB(128,128,128): floor(0.299*128 + 0.587*128 + 0.114*128) = 127
+      expect(avgBrightness).toBe(127);
+    });
+  });
+
+  describe('detectPoorLighting', () => {
+    it('should detect underexposed images', () => {
+      // Create very dark image
+      const data = new Uint8ClampedArray([10, 10, 10, 255, 20, 20, 20, 255]);
+      const imageData = new ImageData(data, 2, 1);
+
+      const result = detectPoorLighting(imageData, 50, 220);
+
+      expect(result.hasPoorLighting).toBe(true);
+      expect(result.type).toBe('underexposed');
+      expect(result.averageBrightness).toBeLessThan(50);
+    });
+
+    it('should detect overexposed images', () => {
+      // Create very bright image
+      const data = new Uint8ClampedArray([240, 240, 240, 255, 250, 250, 250, 255]);
+      const imageData = new ImageData(data, 2, 1);
+
+      const result = detectPoorLighting(imageData, 50, 220);
+
+      expect(result.hasPoorLighting).toBe(true);
+      expect(result.type).toBe('overexposed');
+      expect(result.averageBrightness).toBeGreaterThan(220);
+    });
+
+    it('should not flag well-lit images', () => {
+      // Create normal brightness image
+      const data = new Uint8ClampedArray([128, 128, 128, 255, 150, 150, 150, 255]);
+      const imageData = new ImageData(data, 2, 1);
+
+      const result = detectPoorLighting(imageData, 50, 220);
+
+      expect(result.hasPoorLighting).toBe(false);
+      expect(result.type).toBe('ok');
+      expect(result.averageBrightness).toBeGreaterThanOrEqual(50);
+      expect(result.averageBrightness).toBeLessThanOrEqual(220);
+    });
+
+    it('should use custom thresholds', () => {
+      // Create image with brightness 100
+      const data = new Uint8ClampedArray([100, 100, 100, 255]);
+      const imageData = new ImageData(data, 1, 1);
+
+      // With strict thresholds (120-200), this should be underexposed
+      const result = detectPoorLighting(imageData, 120, 200);
+
+      expect(result.hasPoorLighting).toBe(true);
+      expect(result.type).toBe('underexposed');
+    });
+
+    it('should handle edge case at exact threshold', () => {
+      // Create image at exactly the minimum threshold
+      const data = new Uint8ClampedArray([50, 50, 50, 255]);
+      const imageData = new ImageData(data, 1, 1);
+
+      const result = detectPoorLighting(imageData, 50, 220);
+
+      // At exact threshold should be OK
+      expect(result.hasPoorLighting).toBe(false);
+      expect(result.type).toBe('ok');
     });
   });
 });

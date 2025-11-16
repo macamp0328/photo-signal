@@ -12,11 +12,17 @@ import type {
   FailureCategory,
   FailureDiagnostic,
   HashAlgorithm,
+  GuidanceType,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
 import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
-import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
+import {
+  convertToGrayscale,
+  computeLaplacianVariance,
+  detectGlare,
+  detectPoorLighting,
+} from './algorithms/utils';
 
 const HASH_LENGTHS: Record<HashAlgorithm, number> = {
   dhash: 32,
@@ -149,6 +155,8 @@ export function usePhotoRecognition(
     sharpnessThreshold = 100,
     glareThreshold = 250,
     glarePercentageThreshold = 20,
+    minBrightness = 50,
+    maxBrightness = 220,
     hashAlgorithm = 'dhash',
     enableMultiScale = false,
     multiScaleVariants = [0.75, 0.8, 0.85, 0.9],
@@ -169,6 +177,7 @@ export function usePhotoRecognition(
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
+  const [activeGuidance, setActiveGuidance] = useState<GuidanceType>('none');
   const [restartKey, setRestartKey] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -184,6 +193,7 @@ export function usePhotoRecognition(
     totalFrames: 0,
     blurRejections: 0,
     glareRejections: 0,
+    lightingRejections: 0,
     qualityFrames: 0,
     successfulRecognitions: 0,
     failedAttempts: 0,
@@ -196,7 +206,37 @@ export function usePhotoRecognition(
       collision: 0,
       unknown: 0,
     },
+    guidanceTracking: {
+      shown: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+      duration: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+      lastShown: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+    },
   });
+
+  // Track previous guidance state for duration tracking
+  const previousGuidanceRef = useRef<GuidanceType>('none');
+  const guidanceStartTimeRef = useRef<number>(Date.now());
 
   // Load concert data
   const loadConcerts = useCallback(() => {
@@ -227,13 +267,17 @@ export function usePhotoRecognition(
     setIsRecognizing(false);
     setDebugInfo(null);
     setFrameQuality(null);
+    setActiveGuidance('none');
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
+    previousGuidanceRef.current = 'none';
+    guidanceStartTimeRef.current = Date.now();
     telemetryRef.current = {
       totalFrames: 0,
       blurRejections: 0,
       glareRejections: 0,
+      lightingRejections: 0,
       qualityFrames: 0,
       successfulRecognitions: 0,
       failedAttempts: 0,
@@ -245,6 +289,32 @@ export function usePhotoRecognition(
         'no-match': 0,
         collision: 0,
         unknown: 0,
+      },
+      guidanceTracking: {
+        shown: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+        duration: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+        lastShown: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
       },
     };
     setRestartKey((key) => key + 1);
@@ -393,12 +463,49 @@ export function usePhotoRecognition(
         const glareDetection = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
         const { hasGlare, glarePercentage } = glareDetection;
 
+        // Check for poor lighting
+        const lightingDetection = detectPoorLighting(imageData, minBrightness, maxBrightness);
+        const { hasPoorLighting, averageBrightness, type: lightingType } = lightingDetection;
+
+        // Determine active guidance based on detected issues (priority order)
+        let currentGuidance: GuidanceType = 'none';
+        if (!isSharp) {
+          currentGuidance = 'motion-blur';
+        } else if (hasGlare) {
+          currentGuidance = 'glare';
+        } else if (hasPoorLighting) {
+          currentGuidance = 'poor-lighting';
+        }
+
+        // Track guidance telemetry
+        const now = Date.now();
+        const previousGuidance = previousGuidanceRef.current;
+
+        // If guidance changed, update duration for previous guidance
+        if (previousGuidance !== currentGuidance) {
+          const duration = now - guidanceStartTimeRef.current;
+          telemetryRef.current.guidanceTracking.duration[previousGuidance] += duration;
+          guidanceStartTimeRef.current = now;
+          previousGuidanceRef.current = currentGuidance;
+
+          // Track when guidance is shown (not 'none')
+          if (currentGuidance !== 'none') {
+            telemetryRef.current.guidanceTracking.shown[currentGuidance] += 1;
+            telemetryRef.current.guidanceTracking.lastShown[currentGuidance] = now;
+          }
+        }
+
+        setActiveGuidance(currentGuidance);
+
         // Update frame quality state for UI feedback
         const currentFrameQuality: FrameQualityInfo = {
           sharpness,
           isSharp,
           glarePercentage,
           hasGlare,
+          averageBrightness,
+          hasPoorLighting,
+          lightingType,
         };
         setFrameQuality(currentFrameQuality);
 
@@ -411,6 +518,13 @@ export function usePhotoRecognition(
             `  Glare: ${glarePercentage.toFixed(1)}% (threshold: ${glarePercentageThreshold}%)`
           );
           console.debug(`  ${hasGlare ? '✗' : '✓'} Glare detected: ${hasGlare}`);
+          console.debug(
+            `  Brightness: ${averageBrightness.toFixed(1)} (range: ${minBrightness}-${maxBrightness})`
+          );
+          console.debug(
+            `  ${hasPoorLighting ? '✗' : '✓'} Lighting: ${lightingType} ${hasPoorLighting ? '(poor)' : '(ok)'}`
+          );
+          console.debug(`  Active Guidance: ${currentGuidance}`);
         }
 
         // Skip frame if it fails quality checks
@@ -859,5 +973,6 @@ export function usePhotoRecognition(
     reset,
     debugInfo,
     frameQuality,
+    activeGuidance,
   };
 }

@@ -115,7 +115,7 @@ describe('Data files integrity', () => {
     concerts.forEach((concert) => {
       expectHexHash(concert.photoHash);
       // Edge case entries (ID 13+) may only have phash, not dhash
-      const isEdgeCase = concert.id && concert.id >= 13;
+      const isEdgeCase = Boolean(concert.id && concert.id >= 13);
       expectHashSet(concert.photoHashes, isEdgeCase);
       expect(typeof concert.audioFile).toBe('string');
       ensureFileExists(concert.audioFile);

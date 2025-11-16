@@ -18,7 +18,16 @@ import { readFile } from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const TEST_DATA_PATH = join(__dirname, '..', '..', '..', '..', 'assets', 'test-data', 'concerts.json');
+const TEST_DATA_PATH = join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  'assets',
+  'test-data',
+  'concerts.json'
+);
 
 interface EdgeCaseMetadata {
   category: string;
@@ -187,7 +196,9 @@ describe('Edge Case Accuracy Regression Tests', () => {
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.matches).toBe(true);
-      expect(result.similarity).toBeGreaterThanOrEqual(lightGlare!.edgeCase!.expectedAccuracy * 100);
+      expect(result.similarity).toBeGreaterThanOrEqual(
+        lightGlare!.edgeCase!.expectedAccuracy * 100
+      );
     });
 
     it('should meet accuracy threshold for moderate glare (≥70%)', async () => {
@@ -215,7 +226,9 @@ describe('Edge Case Accuracy Regression Tests', () => {
       const referenceHashes = heavyGlare!.photoHashes?.phash || heavyGlare!.photoHash!;
       const result = findBestMatch(testHash, referenceHashes);
 
-      expect(result.similarity).toBeGreaterThanOrEqual(heavyGlare!.edgeCase!.expectedAccuracy * 100);
+      expect(result.similarity).toBeGreaterThanOrEqual(
+        heavyGlare!.edgeCase!.expectedAccuracy * 100
+      );
     });
   });
 
@@ -277,8 +290,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
   describe('Combined Edge Cases', () => {
     it('should meet accuracy threshold for blur + glare combination (≥60%)', async () => {
       const combined = edgeCases.find(
-        (c) =>
-          c.edgeCase?.category === 'combined' && c.band.includes('Blur + Glare')
+        (c) => c.edgeCase?.category === 'combined' && c.band.includes('Blur + Glare')
       );
       expect(combined).toBeDefined();
 
@@ -291,8 +303,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
 
     it('should meet accuracy threshold for angle + low light combination (≥60%)', async () => {
       const combined = edgeCases.find(
-        (c) =>
-          c.edgeCase?.category === 'combined' && c.band.includes('Angle + Low Light')
+        (c) => c.edgeCase?.category === 'combined' && c.band.includes('Angle + Low Light')
       );
       expect(combined).toBeDefined();
 

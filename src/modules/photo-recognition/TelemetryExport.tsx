@@ -20,31 +20,40 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
       summary: {
         totalFrames: telemetry.totalFrames,
         qualityFrames: telemetry.qualityFrames,
-        qualityFrameRate: telemetry.totalFrames > 0 
-          ? ((telemetry.qualityFrames / telemetry.totalFrames) * 100).toFixed(1) + '%'
-          : '0%',
+        qualityFrameRate:
+          telemetry.totalFrames > 0
+            ? ((telemetry.qualityFrames / telemetry.totalFrames) * 100).toFixed(1) + '%'
+            : '0%',
         blurRejections: telemetry.blurRejections,
-        blurRejectionRate: telemetry.totalFrames > 0
-          ? ((telemetry.blurRejections / telemetry.totalFrames) * 100).toFixed(1) + '%'
-          : '0%',
+        blurRejectionRate:
+          telemetry.totalFrames > 0
+            ? ((telemetry.blurRejections / telemetry.totalFrames) * 100).toFixed(1) + '%'
+            : '0%',
         glareRejections: telemetry.glareRejections,
-        glareRejectionRate: telemetry.totalFrames > 0
-          ? ((telemetry.glareRejections / telemetry.totalFrames) * 100).toFixed(1) + '%'
-          : '0%',
+        glareRejectionRate:
+          telemetry.totalFrames > 0
+            ? ((telemetry.glareRejections / telemetry.totalFrames) * 100).toFixed(1) + '%'
+            : '0%',
         successfulRecognitions: telemetry.successfulRecognitions,
         failedAttempts: telemetry.failedAttempts,
-        recognitionSuccessRate: telemetry.qualityFrames > 0
-          ? ((telemetry.successfulRecognitions / (telemetry.successfulRecognitions + telemetry.failedAttempts)) * 100).toFixed(1) + '%'
-          : '0%',
+        recognitionSuccessRate:
+          telemetry.qualityFrames > 0
+            ? (
+                (telemetry.successfulRecognitions /
+                  (telemetry.successfulRecognitions + telemetry.failedAttempts)) *
+                100
+              ).toFixed(1) + '%'
+            : '0%',
       },
       failuresByCategory: Object.entries(telemetry.failureByCategory)
         .filter(([, count]) => count > 0)
         .map(([category, count]) => ({
           category,
           count,
-          percentage: telemetry.totalFrames > 0
-            ? ((count / telemetry.totalFrames) * 100).toFixed(1) + '%'
-            : '0%',
+          percentage:
+            telemetry.totalFrames > 0
+              ? ((count / telemetry.totalFrames) * 100).toFixed(1) + '%'
+              : '0%',
         })),
       recentFailures: telemetry.failureHistory.map((failure) => ({
         category: failure.category,
@@ -73,7 +82,7 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
   const exportMarkdownTable = () => {
     // Create markdown table matching research doc format
     const totalFrames = telemetry.totalFrames || 1; // Avoid division by zero
-    
+
     const markdown = `# Photo Signal Telemetry Report
 
 **Generated**: ${new Date().toISOString()}
@@ -95,18 +104,27 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
 |----------|-------|----------------------------|
 ${Object.entries(telemetry.failureByCategory)
   .filter(([, count]) => count > 0)
-  .map(([category, count]) => 
-    `| ${category} | ${count} | ${((count / totalFrames) * 100).toFixed(1)}% |`
+  .map(
+    ([category, count]) =>
+      `| ${category} | ${count} | ${((count / totalFrames) * 100).toFixed(1)}% |`
   )
   .join('\n')}
 
 ## Recent Failures (Last ${telemetry.failureHistory.length})
 
-${telemetry.failureHistory.length > 0 ? `| Timestamp | Category | Reason | Frame Hash |
+${
+  telemetry.failureHistory.length > 0
+    ? `| Timestamp | Category | Reason | Frame Hash |
 |-----------|----------|--------|------------|
-${telemetry.failureHistory.slice(-10).map((failure) => 
-  `| ${new Date(failure.timestamp).toISOString()} | ${failure.category} | ${failure.reason} | ${failure.frameHash} |`
-).join('\n')}` : '*No failures recorded*'}
+${telemetry.failureHistory
+  .slice(-10)
+  .map(
+    (failure) =>
+      `| ${new Date(failure.timestamp).toISOString()} | ${failure.category} | ${failure.reason} | ${failure.frameHash} |`
+  )
+  .join('\n')}`
+    : '*No failures recorded*'
+}
 
 ## Interpretation
 
@@ -119,8 +137,9 @@ ${Object.entries(telemetry.failureByCategory)
   .filter(([, count]) => count > 0)
   .sort(([, a], [, b]) => b - a)
   .slice(0, 3)
-  .map(([category, count], idx) => 
-    `${idx + 1}. **${category}**: ${count} occurrences (${((count / totalFrames) * 100).toFixed(1)}%)`
+  .map(
+    ([category, count], idx) =>
+      `${idx + 1}. **${category}**: ${count} occurrences (${((count / totalFrames) * 100).toFixed(1)}%)`
   )
   .join('\n')}
 `;
@@ -141,17 +160,20 @@ ${Object.entries(telemetry.failureByCategory)
   };
 
   // Calculate summary stats for display
-  const qualityRate = telemetry.totalFrames > 0 
-    ? ((telemetry.qualityFrames / telemetry.totalFrames) * 100).toFixed(1)
-    : '0';
-  
-  const blurRate = telemetry.totalFrames > 0
-    ? ((telemetry.blurRejections / telemetry.totalFrames) * 100).toFixed(1)
-    : '0';
-  
-  const glareRate = telemetry.totalFrames > 0
-    ? ((telemetry.glareRejections / telemetry.totalFrames) * 100).toFixed(1)
-    : '0';
+  const qualityRate =
+    telemetry.totalFrames > 0
+      ? ((telemetry.qualityFrames / telemetry.totalFrames) * 100).toFixed(1)
+      : '0';
+
+  const blurRate =
+    telemetry.totalFrames > 0
+      ? ((telemetry.blurRejections / telemetry.totalFrames) * 100).toFixed(1)
+      : '0';
+
+  const glareRate =
+    telemetry.totalFrames > 0
+      ? ((telemetry.glareRejections / telemetry.totalFrames) * 100).toFixed(1)
+      : '0';
 
   return (
     <div className={styles.container}>
@@ -176,16 +198,16 @@ ${Object.entries(telemetry.failureByCategory)
           </div>
         </div>
       </div>
-      
+
       <div className={styles.actions}>
-        <button 
+        <button
           onClick={exportTelemetry}
           className={styles.button}
           aria-label="Export telemetry as JSON"
         >
           📥 Export JSON
         </button>
-        <button 
+        <button
           onClick={exportMarkdownTable}
           className={styles.button}
           aria-label="Export telemetry as Markdown"
@@ -193,12 +215,8 @@ ${Object.entries(telemetry.failureByCategory)
           📝 Export Markdown Report
         </button>
       </div>
-      
-      {exported && (
-        <div className={styles.success}>
-          ✓ Telemetry exported successfully!
-        </div>
-      )}
+
+      {exported && <div className={styles.success}>✓ Telemetry exported successfully!</div>}
     </div>
   );
 }

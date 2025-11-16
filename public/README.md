@@ -52,7 +52,6 @@ These directories are created by a Vite plugin during build and dev server start
 
 ### Other Assets
 
-- **`vite.svg`** - Original Vite logo (can be removed)
 - **`backgrounds/`** - Background images/videos (optional)
 
 ## File Size Guidelines

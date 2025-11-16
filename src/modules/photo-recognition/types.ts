@@ -40,6 +40,12 @@ export interface FrameQualityInfo {
   glarePercentage: number;
   /** Whether frame has significant glare */
   hasGlare: boolean;
+  /** Average brightness (0-255) for lighting detection */
+  averageBrightness?: number;
+  /** Whether frame has poor lighting */
+  hasPoorLighting?: boolean;
+  /** Type of lighting issue if any */
+  lightingType?: 'underexposed' | 'overexposed' | 'ok';
 }
 
 /**
@@ -133,7 +139,20 @@ export interface PhotoRecognitionHook {
   debugInfo: RecognitionDebugInfo | null;
   /** Current frame quality status (for UI feedback) */
   frameQuality: FrameQualityInfo | null;
+  /** Active guidance type (for real-time user feedback) */
+  activeGuidance: GuidanceType;
 }
+
+/**
+ * Guidance types for user feedback
+ */
+export type GuidanceType =
+  | 'motion-blur'
+  | 'glare'
+  | 'poor-lighting'
+  | 'distance'
+  | 'off-center'
+  | 'none';
 
 export interface PhotoRecognitionOptions {
   /** Delay before triggering recognition (ms), default 3000 */
@@ -154,6 +173,10 @@ export interface PhotoRecognitionOptions {
   glareThreshold?: number;
   /** Percentage of image that must be blown out to trigger glare detection (default 20) */
   glarePercentageThreshold?: number;
+  /** Minimum brightness for underexposure detection (default 50) */
+  minBrightness?: number;
+  /** Maximum brightness for overexposure detection (default 220) */
+  maxBrightness?: number;
   /** Hash algorithm to use: 'dhash' or 'phash' (default 'dhash') */
   hashAlgorithm?: HashAlgorithm;
   /** Enable multi-scale recognition for imprecise framing (default false) */

@@ -11,7 +11,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
-import { usePhotoRecognition, FrameQualityIndicator } from './modules/photo-recognition';
+import { usePhotoRecognition, GuidanceMessage } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
@@ -112,7 +112,7 @@ function App() {
     reset: resetRecognition,
     debugInfo,
     isRecognizing,
-    frameQuality,
+    activeGuidance,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
     similarityThreshold: similarityThresholdValue,
@@ -210,9 +210,9 @@ function App() {
     <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
   );
 
-  // Render frame quality indicator (only when camera is active and no concert recognized)
-  const frameQualityIndicator = isActive && stream && !recognizedConcert && (
-    <FrameQualityIndicator frameQuality={frameQuality} />
+  // Render guidance message (only when camera is active and no concert recognized)
+  const guidanceMessage = isActive && stream && !recognizedConcert && (
+    <GuidanceMessage guidanceType={activeGuidance} />
   );
 
   return (
@@ -224,7 +224,7 @@ function App() {
         onActivate={handleActivate}
         showInfoSection={false}
       />
-      {frameQualityIndicator}
+      {guidanceMessage}
       <SecretSettings
         isVisible={showSecretSettings}
         onClose={() => {

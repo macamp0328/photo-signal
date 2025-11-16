@@ -13,6 +13,7 @@
 Photo Signal currently detects quality issues (blur, glare) but provides minimal user feedback. Users struggle to understand why photo recognition fails and how to improve their camera positioning. This leads to frustration and abandoned recognition attempts.
 
 The data shows significant failure rates:
+
 - **Motion blur**: 25% of recognition attempts (35% accuracy when present)
 - **Glare/reflections**: 15% of attempts (38% accuracy)
 - **Poor lighting**: 15% of attempts (52% accuracy)
@@ -401,6 +402,7 @@ export interface GuidanceTelemetry {
 **Grand Total**: ~65 hours (~8-9 days for solo developer)
 
 With parallel development (2 developers or AI agents):
+
 - Developer A: Phases 1-2 (detection + UI)
 - Developer B: Phases 3-4 (telemetry + integration)
 - Both: Phase 5 (testing)
@@ -428,13 +430,13 @@ With parallel development (2 developers or AI agents):
 
 ### Risks & Mitigation
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| Detection algorithms too slow | High | Medium | Benchmark early (Task 24), optimize or disable slow detections |
-| Guidance messages annoy users | Medium | Medium | Make timeout configurable, add "Dismiss" button, collect feedback |
-| False positive guidance | Medium | High | Tune thresholds conservatively, use multi-frame averaging |
-| Haptic/audio not supported | Low | Medium | Graceful degradation, feature detection before use |
-| Telemetry data inconclusive | Low | Low | Ensure sufficient sample size in Test Mode, export raw data for analysis |
+| Risk                          | Impact | Probability | Mitigation                                                               |
+| ----------------------------- | ------ | ----------- | ------------------------------------------------------------------------ |
+| Detection algorithms too slow | High   | Medium      | Benchmark early (Task 24), optimize or disable slow detections           |
+| Guidance messages annoy users | Medium | Medium      | Make timeout configurable, add "Dismiss" button, collect feedback        |
+| False positive guidance       | Medium | High        | Tune thresholds conservatively, use multi-frame averaging                |
+| Haptic/audio not supported    | Low    | Medium      | Graceful degradation, feature detection before use                       |
+| Telemetry data inconclusive   | Low    | Low         | Ensure sufficient sample size in Test Mode, export raw data for analysis |
 
 ---
 
@@ -497,7 +499,7 @@ export const GUIDANCE_CONFIGS: Record<GuidanceType, GuidanceConfig> = {
     enableHaptic: true,
     enableAudio: false,
   },
-  'glare': {
+  glare: {
     type: 'glare',
     message: 'Tilt to avoid glare',
     icon: '✨',
@@ -547,7 +549,7 @@ export const GUIDANCE_CONFIGS: Record<GuidanceType, GuidanceConfig> = {
 // Test Mode overrides (stricter thresholds for experimentation)
 export const TEST_MODE_OVERRIDES: Partial<Record<GuidanceType, Partial<GuidanceConfig>>> = {
   'motion-blur': { threshold: 120 }, // More lenient
-  'glare': { threshold: 15 }, // Stricter
+  glare: { threshold: 15 }, // Stricter
 };
 ```
 
@@ -611,13 +613,13 @@ Example JSON structure for Test Mode export:
 
 After implementation, measure these KPIs in Test Mode:
 
-| Metric | Baseline (Before) | Target (After) |
-|--------|------------------|----------------|
-| Recognition success rate | 67% | 80%+ |
-| Motion blur rejections | 25% | <15% |
-| Glare rejections | 15% | <10% |
-| Average time to recognition | 8 seconds | 5 seconds |
-| User frustration rate (inferred) | High | Low |
+| Metric                           | Baseline (Before) | Target (After) |
+| -------------------------------- | ----------------- | -------------- |
+| Recognition success rate         | 67%               | 80%+           |
+| Motion blur rejections           | 25%               | <15%           |
+| Glare rejections                 | 15%               | <10%           |
+| Average time to recognition      | 8 seconds         | 5 seconds      |
+| User frustration rate (inferred) | High              | Low            |
 
 ---
 

@@ -1,4 +1,6 @@
 id,band,venue,date,audioFile,imageFile,photoHash
+# Note: photoHash column contains pHash values (16 hex chars, normal exposure)
+# For complete multi-algorithm/multi-exposure data, see concerts.json
 1,The Midnight Echoes,The Fillmore,2023-08-15,/assets/test-audio/concert-1.mp3,/assets/test-images/concert-1.jpg,98d2662d98d26f26
 2,Electric Dreams,Red Rocks Amphitheatre,2023-09-22,/assets/test-audio/concert-2.mp3,/assets/test-images/concert-2.jpg,b6d8482796d86d23
 3,Velvet Revolution,Madison Square Garden,2023-10-10,/assets/test-audio/concert-3.mp3,/assets/test-images/concert-3.jpg,3cda62259cda6722

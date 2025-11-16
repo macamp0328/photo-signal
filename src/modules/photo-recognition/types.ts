@@ -55,11 +55,12 @@ export type FailureCategory =
 
 /**
  * Failure diagnostic information
+ * Note: frameHash may be 'N/A' when hash computation was skipped due to quality issues (blur/glare)
  */
 export interface FailureDiagnostic {
   category: FailureCategory;
   reason: string;
-  frameHash: string;
+  frameHash: string; // May be 'N/A' if hash not computed due to quality rejection
   timestamp: number;
 }
 

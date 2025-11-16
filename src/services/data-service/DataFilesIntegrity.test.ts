@@ -44,7 +44,8 @@ function expectHexHash(hash: string | string[] | undefined) {
     }
     const isLegacyDhash = /^[0-9a-f]{32}$/i.test(value);
     const isPhash = /^[0-9a-f]{16}$/i.test(value);
-    expect(isLegacyDhash || isPhash, 'Hash should be 16 or 32 hex chars').toBe(true);
+    const isValidHash = isLegacyDhash || isPhash;
+    expect(isValidHash, `Hash "${value}" should be 16 or 32 hex chars`).toBe(true);
   });
 }
 

@@ -352,11 +352,8 @@ async function generateHashes() {
       const entry = {
         file: r.file,
         photoHashes,
+        photoHash: r.hashes, // Always include legacy field for backward compatibility
       };
-
-      if (algorithm === 'phash') {
-        entry.photoHash = r.hashes;
-      }
 
       return entry;
     });

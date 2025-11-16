@@ -1,5 +1,10 @@
 import type { Concert } from '../../types';
 
+/**
+ * Check if a concert has any photo hashes (legacy or new format)
+ * Note: This only validates existence and type, not hash format/length.
+ * The legacy photoHash field may contain hashes in either format (16 or 32 chars).
+ */
 function hasAnyPhotoHashes(concert: Concert): boolean {
   const legacy = concert.photoHash;
   if (typeof legacy === 'string' && legacy.length > 0) {

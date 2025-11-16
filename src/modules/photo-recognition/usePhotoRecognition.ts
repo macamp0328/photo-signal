@@ -45,6 +45,8 @@ const getPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm):
     return hashSet;
   }
 
+  // Legacy photoHash field fallback - currently mirrors pHash values (16 chars)
+  // This fallback only works correctly for pHash algorithm; dHash will get empty array
   const legacyHashes = normalizeLegacyHashes(concert.photoHash);
   if (isValidForAlgorithm(legacyHashes, algorithm)) {
     return legacyHashes;

@@ -2,15 +2,16 @@
 
 ## Purpose
 
-Identify photos from camera stream using perceptual hashing (dHash algorithm) and match to concert data.
+Identify photos from camera stream using perceptual hashing (dHash or pHash algorithms) and match to concert data.
 
 ## Responsibility
 
 **ONLY** handles:
 
-- Analyzing video frames for photo detection using dHash perceptual hashing
+- Analyzing video frames for photo detection using perceptual hashing (dHash or pHash)
 - Matching photos to concert data using Hamming distance
 - Providing recognition results with confidence scoring
+- Tracking failure diagnostics for debugging and optimization
 
 **Does NOT** handle:
 
@@ -36,6 +37,10 @@ options?: {
   checkInterval?: number;        // Interval for checking frames (ms), default 1000
   enableDebugInfo?: boolean;     // Enable debug information output, default false
   aspectRatio?: '3:2' | '2:3';   // Aspect ratio for frame cropping (default '3:2')
+  hashAlgorithm?: 'dhash' | 'phash';  // Hash algorithm to use (default 'dhash')
+  sharpnessThreshold?: number;   // Sharpness threshold for blur detection (default 100)
+  glareThreshold?: number;       // Glare detection threshold (default 250)
+  glarePercentageThreshold?: number;  // Glare percentage threshold (default 20)
 }
 ```
 
@@ -89,18 +94,45 @@ interface StabilityDebugInfo {
 
 ---
 
-## Implementation: Functional Framing with Dual Aspect Ratios
+## Implementation: Functional Framing with Dual Hash Algorithms
 
-**Algorithm**: dHash (Difference Hash) with Functional Frame Cropping
+**Algorithms**: dHash (Difference Hash) or pHash (Perceptual Hash) with Functional Frame Cropping
 
-This module uses a lightweight, client-side perceptual hashing algorithm with **functional frame cropping** to recognize photos:
+This module supports two perceptual hashing algorithms with **functional frame cropping** to recognize photos:
+
+### Algorithm Choice: dHash vs pHash
+
+**dHash (Default)** - Difference Hash:
+
+- ✅ **Fast**: ~6-8ms per frame on mobile
+- ✅ **Small**: ~3KB code size
+- ✅ **Good accuracy**: 85-90% under ideal conditions
+- ⚠️ Less robust to extreme angles and perspective distortion
+- 📊 **Hash size**: 128-bit (32 hex characters)
+- **Best for**: Controlled environments, good lighting, frontal angles
+
+**pHash** - Perceptual Hash with DCT:
+
+- ✅ **More robust**: 15-30% better at handling angles and lighting
+- ✅ **Lower false positives**: Better discrimination between similar photos
+- ✅ **Handles perspective**: DCT-based algorithm more resilient to distortion
+- ⚠️ **Slower**: ~15-25ms per frame on mobile (still acceptable)
+- ⚠️ **Larger**: +8KB code size
+- 📊 **Hash size**: 64-bit (16 hex characters)
+- **Best for**: Challenging conditions, varied angles, larger galleries
+
+### Recognition Pipeline
 
 1. **Capture Frame**: Extract current video frame from MediaStream
-2. **Crop to Framed Region**: Extract only pixels inside the framing guide (3:2 or 2:3)
-3. **Resize**: Reduce cropped region to 17x8 pixels (optimized for speed)
-4. **Grayscale**: Convert to grayscale using luminance formula
-5. **Gradient Hash**: Compute horizontal pixel gradients
-6. **Generate Hash**: Create 128-bit hash from gradient differences
+2. **Quality Check**: Filter out blurry frames (motion blur) and frames with glare
+3. **Crop to Framed Region**: Extract only pixels inside the framing guide (3:2 or 2:3)
+4. **Resize**: Reduce cropped region based on algorithm:
+   - dHash: 17×8 pixels (optimized for speed)
+   - pHash: 32×32 pixels (for DCT computation)
+5. **Grayscale**: Convert to grayscale using ITU-R BT.601 luma coefficients
+6. **Hash Generation**:
+   - dHash: Compute horizontal pixel gradients → 128-bit hash
+   - pHash: Compute DCT → Extract low-frequency coefficients → 64-bit hash
 7. **Compare**: Use Hamming distance to compare with stored hashes
 8. **Match**: Recognize photo when distance < threshold for stable period
 
@@ -127,16 +159,38 @@ The photo recognition module **only analyzes pixels within the framing guide**, 
 - Region is centered in the camera feed
 - GPU-accelerated canvas cropping (no performance impact)
 
-**Why dHash?**
+### Quality Filtering (Phase 1)
 
-Based on research and testing:
+Before computing hashes, frames are checked for quality issues:
 
-- ✅ Fast: ~6-8ms per frame on mobile
-- ✅ Accurate: 85-90% under varying conditions (improved with cropping)
-- ✅ Small: ~3KB code size (zero dependencies)
-- ✅ Private: 100% client-side processing
-- ✅ Offline: Works without internet
-- ✅ Robust: Handles brightness/contrast changes well
+**Motion Blur Detection**:
+
+- Uses Laplacian variance to measure sharpness
+- Rejects frames below sharpness threshold (default: 100)
+- Prevents hashing blurry frames that won't match
+
+**Glare Detection**:
+
+- Detects blown-out pixels (>250 brightness)
+- Rejects frames with >20% glare coverage (configurable)
+- Prevents hashing frames with reflections
+
+### Failure Diagnostics
+
+The module tracks detailed failure categories for debugging:
+
+- **motion-blur**: Frame too blurry (camera shake, motion)
+- **glare**: Excessive reflections on photo surface
+- **no-match**: No concert hash similar enough
+- **collision**: Multiple photos with similar hashes
+- **poor-quality**: Other quality issues
+- **unknown**: Unclassified failures
+
+Telemetry is available in Test Mode showing:
+
+- Failure counts by category
+- Percentage breakdown
+- Last 10 failures with timestamps and reasons
 
 ---
 
@@ -276,11 +330,11 @@ function App() {
 
 ## Generating Photo Hashes
 
-Photo hashes are required for recognition to work. The concert data must include a `photoHash` field for each concert.
+Photo hashes are required for recognition to work. Each concert should now include a `photoHashes` object (with per-algorithm arrays) plus the legacy `photoHash` array for backwards compatibility.
 
 ### Hash Format
 
-Photo hashes are 16-character hexadecimal strings generated by the dHash algorithm:
+Photo hashes are hexadecimal strings generated by the perceptual hashing algorithms (`dhash` = 32 chars, `phash` = 16 chars). Store them per-algorithm:
 
 ```json
 {
@@ -289,9 +343,19 @@ Photo hashes are 16-character hexadecimal strings generated by the dHash algorit
   "venue": "The Fillmore",
   "date": "2023-08-15",
   "audioFile": "/audio/concert-1.mp3",
-  "photoHash": "a5b3c7d9e1f20486"
+  "photoHashes": {
+    "phash": ["a5b3c7d9e1f20486", "a5b3c7d9e1f20487", "a5b3c7d9e1f20488"],
+    "dhash": [
+      "00000000000001600acc000000000000",
+      "00000000000001600acc000000000000",
+      "00000000000001600acc000000000000"
+    ]
+  },
+  "photoHash": ["a5b3c7d9e1f20486", "a5b3c7d9e1f20487", "a5b3c7d9e1f20488"]
 }
 ```
+
+> `photoHash` (singular) mirrors `photoHashes.phash` for older builds. New code should read from `photoHashes` first.
 
 ### Hash Generation Tools
 
@@ -334,9 +398,11 @@ npm run generate-hashes
 - Can be integrated into build scripts
 - Consistent with browser tool
 
-### Hash Algorithm (dHash)
+### Hash Algorithms
 
-The hash generation uses the **dHash (Difference Hash)** algorithm:
+The hash generation supports both **dHash** and **pHash** algorithms:
+
+#### dHash (Difference Hash)
 
 1. **Resize** image to 17×8 pixels (136 pixels total)
 2. **Convert** to grayscale using ITU-R BT.601 luma coefficients
@@ -347,11 +413,37 @@ The hash generation uses the **dHash (Difference Hash)** algorithm:
 **Characteristics**:
 
 - Fast: ~6-8ms on mobile devices
-- Robust: Handles brightness/contrast changes well
-- Compact: Only 32 bytes per hash
-- Accurate: ~85-90% recognition under varying conditions
+- Compact: 32 hex characters per hash
+- Good for: Ideal conditions, frontal angles
 
-For technical details, see `algorithms/dhash.ts`.
+#### pHash (Perceptual Hash)
+
+1. **Resize** image to 32×32 pixels
+2. **Convert** to grayscale using ITU-R BT.601 luma coefficients
+3. **Compute** 2D Discrete Cosine Transform (DCT)
+4. **Extract** low-frequency coefficients (top-left 8×8, skip DC component)
+5. **Calculate** median of coefficients
+6. **Generate** 64-bit binary hash (1 if > median, 0 otherwise)
+7. **Encode** as 16-character hexadecimal string
+
+**Characteristics**:
+
+- Slower: ~15-25ms on mobile devices
+- More robust: Better handles angles, lighting, perspective
+- Compact: 16 hex characters per hash
+- Good for: Challenging conditions, varied environments
+
+**Algorithm Selection**:
+
+```bash
+# Generate dHash values (default)
+node scripts/generate-photo-hashes.js --algorithm dhash assets/test-images/
+
+# Generate pHash values (more robust)
+node scripts/generate-photo-hashes.js --algorithm phash assets/test-images/
+```
+
+For technical details, see `algorithms/dhash.ts` and `algorithms/phash.ts`.
 
 ---
 
@@ -390,11 +482,24 @@ function App() {
 ### Custom Configuration
 
 ```typescript
+// Use pHash for better robustness to angles and lighting
 const { recognizedConcert } = usePhotoRecognition(stream, {
-  similarityThreshold: 8, // Stricter matching
+  hashAlgorithm: 'phash', // Use pHash instead of dHash
+  similarityThreshold: 40, // Stricter matching
   checkInterval: 500, // Check more frequently
-  recognitionDelay: 2000, // Wait longer before confirming
-  aspectRatio: '2:3', // Use portrait mode for vertical photos
+  recognitionDelay: 2000, // Faster confirmation
+});
+```
+
+### Using pHash for Challenging Conditions
+
+```typescript
+// Optimal settings for challenging environments
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  hashAlgorithm: 'phash', // More robust algorithm
+  similarityThreshold: 35, // Slightly stricter
+  sharpnessThreshold: 80, // More lenient blur detection
+  glarePercentageThreshold: 25, // More lenient glare detection
 });
 ```
 
@@ -427,7 +532,7 @@ function App() {
 
 ## Photo Hash Generation
 
-For the recognition to work, each concert in `data.json` must have a `photoHash` field:
+For the recognition to work, each concert in `data.json` must have a `photoHashes` object (and, for now, the mirror `photoHash` array):
 
 ```json
 {
@@ -438,7 +543,15 @@ For the recognition to work, each concert in `data.json` must have a `photoHash`
       "venue": "The Fillmore",
       "date": "2023-08-15",
       "audioFile": "/audio/sample.mp3",
-      "photoHash": "a5b3c7d9e1f20486"
+      "photoHashes": {
+        "phash": ["a5b3c7d9e1f20486", "a5b3c7d9e1f20487", "a5b3c7d9e1f20488"],
+        "dhash": [
+          "00000000000001600acc000000000000",
+          "00000000000001600acc000000000000",
+          "00000000000001600acc000000000000"
+        ]
+      },
+      "photoHash": ["a5b3c7d9e1f20486", "a5b3c7d9e1f20487", "a5b3c7d9e1f20488"]
     }
   ]
 }
@@ -448,8 +561,8 @@ For the recognition to work, each concert in `data.json` must have a `photoHash`
 
 1. Take reference photo of printed concert photo
 2. Capture frame or load image
-3. Run through `computeDHash()` from `algorithms/dhash.ts`
-4. Add resulting hash to concert data
+3. Run through `computeDHash()` or `computePHash()` from `algorithms/*`
+4. Add resulting hash array to the matching `photoHashes` algorithm key (and keep the legacy `photoHash` array in sync with `phash` values)
 
 **Future**: A CLI tool could automate hash generation from image files.
 
@@ -531,7 +644,7 @@ To test the recognition:
 
 **Problem**: Not recognizing photos
 
-- Check that concerts have `photoHash` field
+- Check that concerts have `photoHashes.phash` (and `photoHashes.dhash` if you plan to test dHash)
 - Verify hash was computed from correct photo
 - Try increasing `similarityThreshold` (e.g., 15)
 - Check console logs for similarity scores

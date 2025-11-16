@@ -37,7 +37,7 @@ vi.mock('./algorithms/dhash', () => ({
     // Return a predictable hash based on image data
     // For testing, we'll use a simple checksum
     const sum = Array.from(imageData.data).reduce((a, b) => a + b, 0);
-    return sum.toString(16).padStart(16, '0');
+    return sum.toString(16).padStart(32, '0');
   }),
 }));
 
@@ -63,7 +63,15 @@ describe('usePhotoRecognition', () => {
       venue: 'Test Venue 1',
       date: '2023-08-15',
       audioFile: '/audio/test1.mp3',
-      photoHash: 'a5b3c7d9e1f20486', // Known hash
+      photoHash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'],
+      photoHashes: {
+        phash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'],
+        dhash: [
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          'cccccccccccccccccccccccccccccccc',
+        ],
+      },
     },
     {
       id: 2,
@@ -71,7 +79,15 @@ describe('usePhotoRecognition', () => {
       venue: 'Test Venue 2',
       date: '2023-09-20',
       audioFile: '/audio/test2.mp3',
-      photoHash: 'b6c4d8e2f3a10597', // Different hash
+      photoHash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'],
+      photoHashes: {
+        phash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'],
+        dhash: [
+          'dddddddddddddddddddddddddddddddd',
+          'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          'ffffffffffffffffffffffffffffffff',
+        ],
+      },
     },
   ];
 

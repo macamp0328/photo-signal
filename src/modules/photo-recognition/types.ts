@@ -43,6 +43,28 @@ export interface FrameQualityInfo {
 }
 
 /**
+ * Failure categories for recognition diagnostics
+ */
+export type FailureCategory =
+  | 'motion-blur'
+  | 'glare'
+  | 'poor-quality'
+  | 'no-match'
+  | 'collision'
+  | 'unknown';
+
+/**
+ * Failure diagnostic information
+ * Note: frameHash may be 'N/A' when hash computation was skipped due to quality issues (blur/glare)
+ */
+export interface FailureDiagnostic {
+  category: FailureCategory;
+  reason: string;
+  frameHash: string; // May be 'N/A' if hash not computed due to quality rejection
+  timestamp: number;
+}
+
+/**
  * Telemetry metrics for tracking frame rejection reasons
  */
 export interface RecognitionTelemetry {
@@ -58,11 +80,17 @@ export interface RecognitionTelemetry {
   successfulRecognitions: number;
   /** Failed recognition attempts (quality frame but no match) */
   failedAttempts: number;
+  /** Failure history (last 10 failures) */
+  failureHistory: FailureDiagnostic[];
+  /** Categorized failure counts */
+  failureByCategory: Record<FailureCategory, number>;
 }
 
 /**
  * Debug information from photo recognition
  */
+export type HashAlgorithm = 'dhash' | 'phash';
+
 export interface RecognitionDebugInfo {
   /** Last computed frame hash */
   lastFrameHash: string | null;
@@ -90,6 +118,8 @@ export interface RecognitionDebugInfo {
   frameQuality: FrameQualityInfo | null;
   /** Recognition telemetry metrics */
   telemetry: RecognitionTelemetry;
+  /** Hash algorithm currently in use */
+  hashAlgorithm: HashAlgorithm;
 }
 
 export interface PhotoRecognitionHook {
@@ -124,4 +154,6 @@ export interface PhotoRecognitionOptions {
   glareThreshold?: number;
   /** Percentage of image that must be blown out to trigger glare detection (default 20) */
   glarePercentageThreshold?: number;
+  /** Hash algorithm to use: 'dhash' or 'phash' (default 'dhash') */
+  hashAlgorithm?: HashAlgorithm;
 }

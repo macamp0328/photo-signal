@@ -9,32 +9,79 @@ import type {
   AspectRatio,
   FrameQualityInfo,
   RecognitionTelemetry,
+  FailureCategory,
+  FailureDiagnostic,
+  HashAlgorithm,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
+import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
 
-const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string | string[] } => {
-  if (typeof concert.photoHash === 'string') {
-    return concert.photoHash.length > 0;
-  }
-  if (Array.isArray(concert.photoHash)) {
-    return (
-      concert.photoHash.length > 0 &&
-      concert.photoHash.every((h) => typeof h === 'string' && h.length > 0)
-    );
-  }
-  return false;
+const HASH_LENGTHS: Record<HashAlgorithm, number> = {
+  dhash: 32,
+  phash: 16,
 };
 
-/**
- * Get all hashes for a concert (handles both single hash and multi-exposure array)
- */
-const getPhotoHashes = (concert: Concert): string[] => {
-  if (!concert.photoHash) {
+const normalizeLegacyHashes = (hash: string | string[] | undefined): string[] => {
+  if (!hash) {
     return [];
   }
-  return Array.isArray(concert.photoHash) ? concert.photoHash : [concert.photoHash];
+  const hashes = Array.isArray(hash) ? hash : [hash];
+  return hashes.filter((value) => typeof value === 'string' && value.length > 0);
+};
+
+const isValidForAlgorithm = (hashes: string[], algorithm: HashAlgorithm): boolean => {
+  if (hashes.length === 0) {
+    return false;
+  }
+  const expectedLength = HASH_LENGTHS[algorithm];
+  return hashes.every((value) => value.length === expectedLength);
+};
+
+const getPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): string[] => {
+  const hashSet = concert.photoHashes?.[algorithm];
+  if (Array.isArray(hashSet) && hashSet.length > 0 && isValidForAlgorithm(hashSet, algorithm)) {
+    return hashSet;
+  }
+
+  // Legacy photoHash field fallback - currently mirrors pHash values (16 chars)
+  // This fallback only works correctly for pHash algorithm; dHash will get empty array
+  const legacyHashes = normalizeLegacyHashes(concert.photoHash);
+  if (isValidForAlgorithm(legacyHashes, algorithm)) {
+    return legacyHashes;
+  }
+
+  return [];
+};
+
+const hasPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): boolean =>
+  getPhotoHashesForAlgorithm(concert, algorithm).length > 0;
+
+/**
+ * Record a recognition failure in telemetry
+ */
+const recordFailure = (
+  telemetry: RecognitionTelemetry,
+  category: FailureCategory,
+  reason: string,
+  frameHash: string
+): void => {
+  // Increment category counter
+  telemetry.failureByCategory[category] += 1;
+
+  // Add to failure history (keep last 10)
+  const diagnostic: FailureDiagnostic = {
+    category,
+    reason,
+    frameHash,
+    timestamp: Date.now(),
+  };
+
+  telemetry.failureHistory.push(diagnostic);
+  if (telemetry.failureHistory.length > 10) {
+    telemetry.failureHistory.shift(); // Remove oldest
+  }
 };
 
 /**
@@ -100,6 +147,7 @@ export function usePhotoRecognition(
     sharpnessThreshold = 100,
     glareThreshold = 250,
     glarePercentageThreshold = 20,
+    hashAlgorithm = 'dhash',
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -126,6 +174,15 @@ export function usePhotoRecognition(
     qualityFrames: 0,
     successfulRecognitions: 0,
     failedAttempts: 0,
+    failureHistory: [],
+    failureByCategory: {
+      'motion-blur': 0,
+      glare: 0,
+      'poor-quality': 0,
+      'no-match': 0,
+      collision: 0,
+      unknown: 0,
+    },
   });
 
   // Load concert data
@@ -167,6 +224,15 @@ export function usePhotoRecognition(
       qualityFrames: 0,
       successfulRecognitions: 0,
       failedAttempts: 0,
+      failureHistory: [],
+      failureByCategory: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-quality': 0,
+        'no-match': 0,
+        collision: 0,
+        unknown: 0,
+      },
     };
     setRestartKey((key) => key + 1);
   }, []);
@@ -183,29 +249,31 @@ export function usePhotoRecognition(
       console.log('━'.repeat(60));
       console.log('[Photo Recognition] Initializing recognition system');
       console.log(`  Concerts loaded: ${concerts.length}`);
-      console.log(`  Concerts with hashes: ${concerts.filter((c) => c.photoHash).length}`);
+      const concertsWithHashes = concerts.filter((concert) =>
+        hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+      );
+      console.log(`  Concerts with hashes: ${concertsWithHashes.length}`);
       console.log(
         `  Similarity threshold: ${similarityThreshold} (≥${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}% match)`
       );
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
       console.log(`  Check interval: ${checkInterval}ms`);
       console.log(`  Aspect ratio: ${aspectRatio}`);
+      console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
-      if (concerts.length > 0 && concerts.filter((c) => c.photoHash).length > 0) {
+      if (concertsWithHashes.length > 0) {
         console.log('\n  Available hashes:');
-        concerts.forEach((concert) => {
-          if (concert.photoHash) {
-            const hashes = getPhotoHashes(concert);
-            if (hashes.length > 1) {
-              console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
-              hashes.forEach((hash, idx) => {
-                const exposureLabels = ['dark', 'normal', 'bright'];
-                const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
-                console.log(`      [${exposureLabel}] ${hash}`);
-              });
-            } else {
-              console.log(`    ${concert.band}: ${hashes[0]}`);
-            }
+        concertsWithHashes.forEach((concert) => {
+          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
+          if (hashes.length > 1) {
+            console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
+            hashes.forEach((hash, idx) => {
+              const exposureLabels = ['dark', 'normal', 'bright'];
+              const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
+              console.log(`      [${exposureLabel}] ${hash}`);
+            });
+          } else if (hashes.length === 1) {
+            console.log(`    ${concert.band}: ${hashes[0]}`);
           }
         });
       }
@@ -332,17 +400,32 @@ export function usePhotoRecognition(
         // Skip frame if it fails quality checks
         if (!isSharp) {
           telemetryRef.current.blurRejections += 1;
+          // Record diagnostic with placeholder hash (not computed yet for blurry frames)
+          recordFailure(
+            telemetryRef.current,
+            'motion-blur',
+            `Sharpness ${sharpness.toFixed(1)} below threshold ${sharpnessThreshold}`,
+            'N/A'
+          );
           if (isTestMode) {
             console.debug(`❌ Frame REJECTED: Too blurry (motion blur detected)`);
             console.debug(
               `   Telemetry: ${telemetryRef.current.blurRejections} blur rejections / ${telemetryRef.current.totalFrames} total frames`
             );
+            console.debug(`   Failure Category: motion-blur`);
           }
           return; // Skip hashing for blurry frames
         }
 
         if (hasGlare) {
           telemetryRef.current.glareRejections += 1;
+          // Record diagnostic with placeholder hash
+          recordFailure(
+            telemetryRef.current,
+            'glare',
+            `${glarePercentage.toFixed(1)}% of frame blown out (threshold: ${glarePercentageThreshold}%)`,
+            'N/A'
+          );
           if (isTestMode) {
             console.debug(
               `❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`
@@ -350,6 +433,7 @@ export function usePhotoRecognition(
             console.debug(
               `   Telemetry: ${telemetryRef.current.glareRejections} glare rejections / ${telemetryRef.current.totalFrames} total frames`
             );
+            console.debug(`   Failure Category: glare`);
           }
           return; // Skip hashing for frames with glare
         }
@@ -368,12 +452,15 @@ export function usePhotoRecognition(
           convertToGrayscale(imageData);
         }
 
-        // Compute hash of current frame
-        const currentHash = computeDHash(imageData);
+        // Compute hash of current frame using selected algorithm
+        const currentHash =
+          hashAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
 
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
-        const concertsWithHashes = concerts.filter(hasPhotoHash);
+        const concertsWithHashes = concerts.filter((concert) =>
+          hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+        );
 
         if (import.meta.env.DEV || isTestMode) {
           console.debug(`\n${'='.repeat(60)}`);
@@ -401,7 +488,7 @@ export function usePhotoRecognition(
 
         for (const concert of concertsWithHashes) {
           // Get all hashes for this concert (handles both single and multi-exposure)
-          const hashes = getPhotoHashes(concert);
+          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
 
           // Find best match across all exposure variants
           let bestHashDistance = Infinity;
@@ -476,6 +563,7 @@ export function usePhotoRecognition(
             recognitionDelay,
             frameQuality: currentFrameQuality,
             telemetry: { ...telemetryRef.current },
+            hashAlgorithm,
           });
         }
 
@@ -527,6 +615,25 @@ export function usePhotoRecognition(
                     `  Successful Recognitions: ${telemetryRef.current.successfulRecognitions}`
                   );
                   console.log(`  Failed Attempts: ${telemetryRef.current.failedAttempts}`);
+                  console.log(`\n  Failure Categories:`);
+                  const categories = Object.entries(telemetryRef.current.failureByCategory);
+                  categories.forEach(([category, count]) => {
+                    if (count > 0) {
+                      const pct = ((count / telemetryRef.current.totalFrames) * 100).toFixed(1);
+                      console.log(`    ${category}: ${count} (${pct}%)`);
+                    }
+                  });
+                  if (telemetryRef.current.failureHistory.length > 0) {
+                    console.log(
+                      `\n  Recent Failures (last ${telemetryRef.current.failureHistory.length}):`
+                    );
+                    telemetryRef.current.failureHistory.slice(-5).forEach((failure, idx) => {
+                      const time = new Date(failure.timestamp).toLocaleTimeString();
+                      console.log(
+                        `    ${idx + 1}. [${time}] ${failure.category}: ${failure.reason}`
+                      );
+                    });
+                  }
                 }
 
                 lastMatchedConcertRef.current = null;
@@ -562,6 +669,35 @@ export function usePhotoRecognition(
               console.debug('Match Decision: NO CANDIDATES');
             }
             console.debug('━'.repeat(60));
+          }
+
+          // Record failure diagnostic
+          if (bestMatch) {
+            const similarity = ((256 - bestDistance) / 256) * 100;
+            // Determine category based on how close we were
+            const category: FailureCategory =
+              bestDistance <= similarityThreshold + 10
+                ? 'collision' // Close call, might be similar photos
+                : 'no-match';
+            recordFailure(
+              telemetryRef.current,
+              category,
+              `Best match: ${bestMatch.band}, distance ${bestDistance}, similarity ${similarity.toFixed(1)}%`,
+              currentHash
+            );
+            if (isTestMode) {
+              console.debug(`   Failure Category: ${category}`);
+            }
+          } else {
+            recordFailure(
+              telemetryRef.current,
+              'no-match',
+              'No concerts with hashes in database',
+              currentHash
+            );
+            if (isTestMode) {
+              console.debug(`   Failure Category: no-match (no candidates)`);
+            }
           }
 
           if (lastMatchedConcertRef.current) {
@@ -607,6 +743,7 @@ export function usePhotoRecognition(
     sharpnessThreshold,
     glareThreshold,
     glarePercentageThreshold,
+    hashAlgorithm,
     isEnabled,
     restartKey,
   ]);

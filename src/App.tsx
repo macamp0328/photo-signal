@@ -28,6 +28,10 @@ import {
 } from './modules/secret-settings';
 import './index.css';
 
+const coerceNumberSetting = (value: unknown, fallback: number): number => {
+  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
+};
+
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -81,11 +85,26 @@ function App() {
     checkInterval: 500,
   });
 
-  const recognitionDelaySetting = getSetting<number>('recognition-delay');
-  const recognitionDelayValue =
-    typeof recognitionDelaySetting === 'number' && !Number.isNaN(recognitionDelaySetting)
-      ? recognitionDelaySetting
-      : 3000;
+  const recognitionDelayValue = coerceNumberSetting(getSetting<number>('recognition-delay'), 3000);
+  const similarityThresholdValue = coerceNumberSetting(
+    getSetting<number>('similarity-threshold'),
+    40
+  );
+  const frameScanIntervalValue = coerceNumberSetting(
+    getSetting<number>('recognition-check-interval'),
+    1000
+  );
+  const sharpnessThresholdValue = coerceNumberSetting(
+    getSetting<number>('sharpness-threshold'),
+    100
+  );
+  const glareThresholdValue = coerceNumberSetting(getSetting<number>('glare-threshold'), 250);
+  const glarePercentageThresholdValue = coerceNumberSetting(
+    getSetting<number>('glare-percentage-threshold'),
+    20
+  );
+  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
+  const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
 
   // Module: Photo Recognition
   const {
@@ -96,8 +115,14 @@ function App() {
     frameQuality,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
+    similarityThreshold: similarityThresholdValue,
+    checkInterval: frameScanIntervalValue,
+    sharpnessThreshold: sharpnessThresholdValue,
+    glareThreshold: glareThresholdValue,
+    glarePercentageThreshold: glarePercentageThresholdValue,
     enableDebugInfo: isTestModeEnabled,
     aspectRatio: aspectRatio,
+    hashAlgorithm: hashAlgorithmValue,
   });
 
   // Module: Audio Playback

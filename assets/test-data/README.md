@@ -5,7 +5,7 @@ This directory contains sample structured data files for testing data service fu
 ## Files
 
 - `concerts.json` - JSON format concert data matching the structure in `public/data.json`
-- `concerts.csv` - CSV format concert data (same dataset, including `photoHash` column)
+- `concerts.csv` - CSV format concert data (same dataset, includes legacy `photoHash` column for backwards compatibility)
 
 ## License
 
@@ -43,7 +43,11 @@ Standard JSON format matching the application's data structure:
       "date": "YYYY-MM-DD",
       "audioFile": "/assets/test-audio/audio.mp3",
       "imageFile": "/assets/test-images/image.jpg",
-      "photoHash": "hexadecimal-hash-string"
+      "photoHashes": {
+        "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
+        "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
+      },
+      "photoHash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
     }
   ]
 }
@@ -53,7 +57,8 @@ Standard JSON format matching the application's data structure:
 
 - `audioFile` paths point to `/assets/test-audio/*` for synthetic tones **or** `/assets/example-real-songs/*` for the 30-second real clip pack
 - `imageFile` paths point to `/assets/test-images/*` or `/assets/example-real-photos/*`
-- `photoHash` values are included for every concert to unblock recognition testing
+- `photoHashes` provides both **pHash** (default runtime choice) and **dHash** arrays so you can toggle algorithms via Secret Settings without editing data
+- The legacy `photoHash` array mirrors the `phash` values to keep older builds functional until they can be fully migrated
 
 ### concerts.csv
 
@@ -61,7 +66,7 @@ CSV format with headers:
 
 ```csv
 id,band,venue,date,audioFile,imageFile,photoHash
-1,Band Name,Venue Name,YYYY-MM-DD,/assets/test-audio/audio.mp3,/assets/test-images/image.jpg,hexadecimal-hash-string
+1,Band Name,Venue Name,YYYY-MM-DD,/assets/test-audio/audio.mp3,/assets/test-images/image.jpg,normal-exposure-phash
 ```
 
 ## Usage in Tests

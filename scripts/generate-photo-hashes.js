@@ -5,12 +5,17 @@
 /**
  * Photo Hash Generator Script
  *
- * Generates dHash values for test images in assets/test-images/
- * Uses the same dHash algorithm as the photo recognition module
+ * Generates dHash or pHash values for test images in assets/test-images/
+ * Uses the same algorithms as the photo recognition module
  *
  * Usage:
- *   node scripts/generate-photo-hashes.js
- *   npm run generate-hashes (if npm script is added)
+ *   node scripts/generate-photo-hashes.js [--algorithm dhash|phash] [paths...]
+ *   npm run generate-hashes (uses default dhash)
+ *   npm run generate-hashes -- --algorithm phash
+ *
+ * Examples:
+ *   node scripts/generate-photo-hashes.js --algorithm phash assets/test-images/
+ *   node scripts/generate-photo-hashes.js --algorithm dhash image1.jpg image2.png
  */
 
 import { createCanvas, loadImage } from 'canvas';
@@ -23,7 +28,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_IMAGE_DIR = resolve(__dirname, '../assets/test-images');
 
 // ========================================
-// dHash Algorithm Implementation
+// Hash Algorithm Implementations
 // (Same as in src/modules/photo-recognition/algorithms/)
 // ========================================
 
@@ -109,6 +114,79 @@ function computeDHash(imageData) {
 }
 
 /**
+ * Compute 2D Discrete Cosine Transform (DCT) on a matrix
+ */
+function computeDCT(matrix, size) {
+  const dct = Array(size)
+    .fill(0)
+    .map(() => Array(size).fill(0));
+
+  for (let u = 0; u < size; u++) {
+    for (let v = 0; v < size; v++) {
+      let sum = 0;
+
+      for (let x = 0; x < size; x++) {
+        for (let y = 0; y < size; y++) {
+          const cosU = Math.cos(((2 * x + 1) * u * Math.PI) / (2 * size));
+          const cosV = Math.cos(((2 * y + 1) * v * Math.PI) / (2 * size));
+          sum += matrix[x][y] * cosU * cosV;
+        }
+      }
+
+      const alphaU = u === 0 ? 1 / Math.sqrt(2) : 1;
+      const alphaV = v === 0 ? 1 / Math.sqrt(2) : 1;
+      dct[u][v] = (alphaU * alphaV * sum) / 2;
+    }
+  }
+
+  return dct;
+}
+
+/**
+ * Compute pHash (Perceptual Hash) of an image using DCT
+ */
+function computePHash(imageData) {
+  // Step 1: Resize to 32x32 pixels
+  const resized = resizeImageData(imageData, 32, 32);
+
+  // Step 2: Convert to grayscale
+  const grayscaleArray = toGrayscale(resized);
+
+  // Convert 1D array to 2D matrix
+  const matrix = [];
+  for (let i = 0; i < 32; i++) {
+    matrix[i] = grayscaleArray.slice(i * 32, (i + 1) * 32);
+  }
+
+  // Step 3: Compute DCT
+  const dct = computeDCT(matrix, 32);
+
+  // Step 4: Extract low-frequency coefficients (top-left 8x8)
+  const lowFreq = [];
+  for (let u = 0; u < 8; u++) {
+    for (let v = 0; v < 8; v++) {
+      // Skip DC component (0,0)
+      if (u === 0 && v === 0) {
+        continue;
+      }
+      lowFreq.push(dct[u][v]);
+    }
+  }
+
+  // Step 5: Compute median
+  const sorted = [...lowFreq].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+
+  // Step 6: Generate 64-bit hash
+  let binaryHash = '';
+  for (const coeff of lowFreq) {
+    binaryHash += coeff > median ? '1' : '0';
+  }
+
+  return binaryToHex(binaryHash);
+}
+
+/**
  * Adjust image brightness to simulate different exposure levels
  */
 function adjustBrightness(imageData, factor) {
@@ -186,10 +264,33 @@ async function collectImageFiles(targets) {
 }
 
 async function generateHashes() {
-  const cliTargets = process.argv.slice(2);
-  const targets = cliTargets.length > 0 ? cliTargets : [DEFAULT_IMAGE_DIR];
+  // Parse command-line arguments
+  const args = process.argv.slice(2);
+  let algorithm = 'dhash'; // default
+  const imagePaths = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--algorithm' && i + 1 < args.length) {
+      algorithm = args[i + 1].toLowerCase();
+      if (algorithm !== 'dhash' && algorithm !== 'phash') {
+        console.error(`❌ Invalid algorithm: ${algorithm}. Must be 'dhash' or 'phash'.`);
+        process.exit(1);
+      }
+      i++; // skip next arg
+    } else {
+      imagePaths.push(args[i]);
+    }
+  }
+
+  const targets = imagePaths.length > 0 ? imagePaths : [DEFAULT_IMAGE_DIR];
+  const computeHash = algorithm === 'phash' ? computePHash : computeDHash;
+  const hashType = algorithm.toUpperCase();
 
   console.log('📸 Photo Hash Generator\n');
+  console.log(`Algorithm: ${hashType}`);
+  console.log(
+    `Hash size: ${algorithm === 'phash' ? '64-bit (16 hex chars)' : '128-bit (32 hex chars)'}`
+  );
   console.log('Targets:');
   targets.forEach((target) => console.log(`  • ${target}`));
   console.log('');
@@ -220,13 +321,13 @@ async function generateHashes() {
         const normalImageData = imageData; // Original
         const brightImageData = adjustBrightness(imageData, 50);
 
-        const darkHash = computeDHash(darkImageData);
-        const normalHash = computeDHash(normalImageData);
-        const brightHash = computeDHash(brightImageData);
+        const darkHash = computeHash(darkImageData);
+        const normalHash = computeHash(normalImageData);
+        const brightHash = computeHash(brightImageData);
 
         results.push({
           file: displayPath,
-          photoHash: [darkHash, normalHash, brightHash],
+          hashes: [darkHash, normalHash, brightHash],
           dimensions: `${image.width} × ${image.height} px`,
         });
 
@@ -241,21 +342,32 @@ async function generateHashes() {
     }
 
     console.log('━'.repeat(60));
-    console.log('\n📋 JSON Output (for concerts.json):\n');
+    console.log(`\n📋 JSON Output (for concerts.json) - ${hashType} hashes:\n`);
 
-    const jsonOutput = results.map((r) => ({
-      file: r.file,
-      photoHash: r.photoHash,
-    }));
+    const jsonOutput = results.map((r) => {
+      const photoHashes = {
+        [algorithm]: r.hashes,
+      };
+
+      const entry = {
+        file: r.file,
+        photoHashes,
+        photoHash: r.hashes, // Always include legacy field for backward compatibility
+      };
+
+      return entry;
+    });
 
     console.log(JSON.stringify(jsonOutput, null, 2));
 
     console.log('\n━'.repeat(60));
-    console.log('\n✅ Hash generation complete!');
+    console.log(`\n✅ ${hashType} hash generation complete!`);
     console.log('\n💡 Next steps:');
-    console.log('   1. Copy the photoHash values from the JSON output above');
-    console.log('   2. Add them to the corresponding concerts in assets/test-data/concerts.json');
-    console.log('   3. Match files to concert entries as needed.\n');
+    console.log(`   1. Merge the JSON block above into assets/test-data/concerts.json`);
+    console.log('   2. Ensure concert file paths line up with the generated hashes');
+    console.log(
+      `   3. Use hashAlgorithm: '${algorithm}' option in usePhotoRecognition to enable ${hashType}\n`
+    );
   } catch (error) {
     console.error('❌ Error:', error.message);
     process.exit(1);

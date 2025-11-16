@@ -7,6 +7,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
 
+interface RawHashSet {
+  phash?: string[];
+  dhash?: string[];
+}
+
 interface RawConcert {
   id: number;
   band: string;
@@ -15,6 +20,7 @@ interface RawConcert {
   audioFile: string;
   imageFile?: string;
   photoHash?: string | string[];
+  photoHashes?: RawHashSet;
 }
 
 function loadConcerts(relativePath: string): RawConcert[] {
@@ -33,8 +39,45 @@ function expectHexHash(hash: string | string[] | undefined) {
 
   hashes.forEach((value) => {
     expect(typeof value).toBe('string');
-    expect(value).toMatch(/^[0-9a-f]{32}$/i);
+    if (typeof value !== 'string') {
+      throw new Error('photoHash values must be strings');
+    }
+    const isLegacyDhash = /^[0-9a-f]{32}$/i.test(value);
+    const isPhash = /^[0-9a-f]{16}$/i.test(value);
+    const isValidHash = isLegacyDhash || isPhash;
+    expect(isValidHash, `Hash "${value}" should be 16 or 32 hex chars`).toBe(true);
   });
+}
+
+function expectHashArray(
+  hashes: string[] | undefined,
+  algorithm: 'phash' | 'dhash'
+): asserts hashes is string[] {
+  expect(hashes, `${algorithm} array should exist`).toBeTruthy();
+  if (!hashes) {
+    throw new Error(`${algorithm} hash array missing`);
+  }
+
+  expect(Array.isArray(hashes), `${algorithm} hash should be an array`).toBe(true);
+  expect(hashes.length, `${algorithm} hash array should not be empty`).toBeGreaterThan(0);
+
+  const expectedLength = algorithm === 'phash' ? 16 : 32;
+  const regex = new RegExp(`^[0-9a-f]{${expectedLength}}$`, 'i');
+
+  hashes.forEach((value) => {
+    expect(typeof value).toBe('string');
+    expect(value).toMatch(regex);
+  });
+}
+
+function expectHashSet(hashSet: RawHashSet | undefined) {
+  expect(hashSet, 'photoHashes should be defined').toBeTruthy();
+  if (!hashSet) {
+    throw new Error('photoHashes missing');
+  }
+
+  expectHashArray(hashSet.phash, 'phash');
+  expectHashArray(hashSet.dhash, 'dhash');
 }
 
 function ensureFileExists(relativePath: string) {
@@ -58,6 +101,7 @@ describe('Data files integrity', () => {
       ensureFileExists(path.join('public', concert.audioFile.replace(/^\//, '')));
 
       expectHexHash(concert.photoHash);
+      expectHashSet(concert.photoHashes);
     });
   });
 
@@ -67,6 +111,7 @@ describe('Data files integrity', () => {
 
     concerts.forEach((concert) => {
       expectHexHash(concert.photoHash);
+      expectHashSet(concert.photoHashes);
       expect(typeof concert.audioFile).toBe('string');
       ensureFileExists(concert.audioFile);
 

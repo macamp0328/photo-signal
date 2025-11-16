@@ -89,12 +89,14 @@ const recordFailure = (
  * @param videoWidth - Width of the video in pixels
  * @param videoHeight - Height of the video in pixels
  * @param aspectRatio - Target aspect ratio ('3:2' or '2:3')
+ * @param scale - Scale factor for the frame size (default 0.8 = 80% of viewport)
  * @returns Coordinates for cropping {x, y, width, height}
  */
 export function calculateFramedRegion(
   videoWidth: number,
   videoHeight: number,
-  aspectRatio: AspectRatio
+  aspectRatio: AspectRatio,
+  scale: number = 0.8
 ): { x: number; y: number; width: number; height: number } {
   const targetRatio = aspectRatio === '3:2' ? 3 / 2 : 2 / 3;
   const videoRatio = videoWidth / videoHeight;
@@ -104,11 +106,11 @@ export function calculateFramedRegion(
 
   if (videoRatio > targetRatio) {
     // Video is wider than target - fit height, crop width
-    frameHeight = videoHeight * 0.8; // 80% of viewport
+    frameHeight = videoHeight * scale;
     frameWidth = frameHeight * targetRatio;
   } else {
     // Video is taller than target - fit width, crop height
-    frameWidth = videoWidth * 0.8;
+    frameWidth = videoWidth * scale;
     frameHeight = frameWidth / targetRatio;
   }
 
@@ -148,6 +150,8 @@ export function usePhotoRecognition(
     glareThreshold = 250,
     glarePercentageThreshold = 20,
     hashAlgorithm = 'dhash',
+    enableMultiScale = false,
+    multiScaleVariants = [0.75, 0.8, 0.85, 0.9],
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -260,6 +264,9 @@ export function usePhotoRecognition(
       console.log(`  Check interval: ${checkInterval}ms`);
       console.log(`  Aspect ratio: ${aspectRatio}`);
       console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
+      console.log(
+        `  Multi-scale recognition: ${enableMultiScale ? `ENABLED (scales: ${multiScaleVariants.map((s) => `${(s * 100).toFixed(0)}%`).join(', ')})` : 'DISABLED'}`
+      );
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
       if (concertsWithHashes.length > 0) {
         console.log('\n  Available hashes:');
@@ -456,6 +463,66 @@ export function usePhotoRecognition(
         const currentHash =
           hashAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
 
+        // Multi-scale recognition: if enabled, try additional crop scales
+        const scaleHashes: Array<{ hash: string; scale: number; region: typeof framedRegion }> = [
+          { hash: currentHash, scale: 0.8, region: framedRegion },
+        ];
+
+        if (enableMultiScale) {
+          // Try additional scales (excluding the default 0.8 which we already computed)
+          const additionalScales = multiScaleVariants.filter((s) => s !== 0.8);
+
+          for (const scale of additionalScales) {
+            const scaledRegion = calculateFramedRegion(
+              video.videoWidth,
+              video.videoHeight,
+              aspectRatio,
+              scale
+            );
+
+            // Create a temporary canvas for this scale
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = scaledRegion.width;
+            tempCanvas.height = scaledRegion.height;
+            const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+            if (tempCtx) {
+              // Draw the scaled region
+              tempCtx.drawImage(
+                video,
+                scaledRegion.x,
+                scaledRegion.y,
+                scaledRegion.width,
+                scaledRegion.height,
+                0,
+                0,
+                scaledRegion.width,
+                scaledRegion.height
+              );
+
+              const scaledImageData = tempCtx.getImageData(
+                0,
+                0,
+                tempCanvas.width,
+                tempCanvas.height
+              );
+
+              // Apply grayscale if enabled
+              if (isEnabled('grayscale-mode')) {
+                convertToGrayscale(scaledImageData);
+              }
+
+              // Compute hash for this scale
+              const scaledHash =
+                hashAlgorithm === 'phash'
+                  ? computePHash(scaledImageData)
+                  : computeDHash(scaledImageData);
+
+              scaleHashes.push({ hash: scaledHash, scale, region: scaledRegion });
+            }
+          }
+        }
+
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
         const concertsWithHashes = concerts.filter((concert) =>
@@ -471,6 +538,11 @@ export function usePhotoRecognition(
             `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
           );
           console.debug(`Aspect Ratio: ${aspectRatio}`);
+          if (enableMultiScale) {
+            console.debug(
+              `Multi-Scale: ENABLED (testing ${scaleHashes.length} scales: ${scaleHashes.map((s) => `${(s.scale * 100).toFixed(0)}%`).join(', ')})`
+            );
+          }
           console.debug(`Concerts Checked: ${concertsWithHashes.length}`);
           console.debug(
             `Threshold: ${similarityThreshold} (similarity ≥ ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%)`
@@ -481,6 +553,7 @@ export function usePhotoRecognition(
         // Find best match among concerts with photo hashes
         let bestMatch: Concert | null = null;
         let bestDistance = Infinity;
+        let bestScale = 0.8;
 
         if (import.meta.env.DEV || isTestMode) {
           console.debug('Results:');
@@ -490,15 +563,21 @@ export function usePhotoRecognition(
           // Get all hashes for this concert (handles both single and multi-exposure)
           const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
 
-          // Find best match across all exposure variants
+          // Find best match across all exposure variants and all scale variants
           let bestHashDistance = Infinity;
           let matchedHashIndex = -1;
+          let matchedScale = 0.8;
 
-          for (let i = 0; i < hashes.length; i++) {
-            const hashDistance = hammingDistance(currentHash, hashes[i]);
-            if (hashDistance < bestHashDistance) {
-              bestHashDistance = hashDistance;
-              matchedHashIndex = i;
+          // Try each scale hash
+          for (const { hash: scaleHash, scale } of scaleHashes) {
+            // Try each reference hash for this concert
+            for (let i = 0; i < hashes.length; i++) {
+              const hashDistance = hammingDistance(scaleHash, hashes[i]);
+              if (hashDistance < bestHashDistance) {
+                bestHashDistance = hashDistance;
+                matchedHashIndex = i;
+                matchedScale = scale;
+              }
             }
           }
 
@@ -512,14 +591,18 @@ export function usePhotoRecognition(
             const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
             const hashInfo =
               hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
+            const scaleInfo = enableMultiScale
+              ? ` @ ${(matchedScale * 100).toFixed(0)}% scale`
+              : '';
             console.debug(
-              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${isBest ? ' ← BEST MATCH' : ''}`
+              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${scaleInfo}${isBest ? ' ← BEST MATCH' : ''}`
             );
           }
 
           if (distance < bestDistance) {
             bestDistance = distance;
             bestMatch = concert;
+            bestScale = matchedScale;
           }
         }
 
@@ -576,6 +659,9 @@ export function usePhotoRecognition(
             console.debug(`Match Decision: POTENTIAL MATCH (${bestMatch.band})`);
             console.debug(`  Distance: ${bestDistance} / ${similarityThreshold} threshold`);
             console.debug(`  Similarity: ${similarity.toFixed(1)}%`);
+            if (enableMultiScale && bestScale !== 0.8) {
+              console.debug(`  Best Scale: ${(bestScale * 100).toFixed(0)}% (relaxed framing)`);
+            }
           }
 
           // Same concert as before?
@@ -744,6 +830,8 @@ export function usePhotoRecognition(
     glareThreshold,
     glarePercentageThreshold,
     hashAlgorithm,
+    enableMultiScale,
+    multiScaleVariants,
     isEnabled,
     restartKey,
   ]);

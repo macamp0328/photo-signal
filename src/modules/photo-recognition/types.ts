@@ -156,4 +156,8 @@ export interface PhotoRecognitionOptions {
   glarePercentageThreshold?: number;
   /** Hash algorithm to use: 'dhash' or 'phash' (default 'dhash') */
   hashAlgorithm?: HashAlgorithm;
+  /** Enable multi-scale recognition for imprecise framing (default false) */
+  enableMultiScale?: boolean;
+  /** Scale variants to try when multi-scale is enabled (default [0.75, 0.8, 0.85, 0.9]) */
+  multiScaleVariants?: number[];
 }

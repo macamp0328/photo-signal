@@ -516,12 +516,7 @@ export function usePhotoRecognition(
               scaledRegion.height
             );
 
-            const scaledImageData = tempCtx.getImageData(
-              0,
-              0,
-              tempCanvas.width,
-              tempCanvas.height
-            );
+            const scaledImageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 
             // Apply grayscale if enabled
             if (isEnabled('grayscale-mode')) {

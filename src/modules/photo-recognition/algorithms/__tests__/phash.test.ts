@@ -33,7 +33,7 @@ describe('computePHash', () => {
     it('should return a 16-character hexadecimal string', () => {
       const imageData = createSolidImage(32, 32, 128);
       const hash = computePHash(imageData);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
       expect(hash.length).toBe(16);
     });
@@ -42,7 +42,7 @@ describe('computePHash', () => {
       const imageData = createSolidImage(32, 32, 128);
       const hash1 = computePHash(imageData);
       const hash2 = computePHash(imageData);
-      
+
       expect(hash1).toBe(hash2);
     });
   });
@@ -52,16 +52,16 @@ describe('computePHash', () => {
       const black = createSolidImage(32, 32, 0);
       const white = createSolidImage(32, 32, 255);
       const gray = createSolidImage(32, 32, 128);
-      
+
       const hashBlack = computePHash(black);
       const hashWhite = computePHash(white);
       const hashGray = computePHash(gray);
-      
+
       // All should be valid hashes
       expect(hashBlack).toMatch(/^[0-9a-f]{16}$/);
       expect(hashWhite).toMatch(/^[0-9a-f]{16}$/);
       expect(hashGray).toMatch(/^[0-9a-f]{16}$/);
-      
+
       // But they should be different (solid colors have minimal structure)
       expect(hashBlack).not.toBe(hashWhite);
       expect(hashBlack).not.toBe(hashGray);
@@ -71,7 +71,7 @@ describe('computePHash', () => {
     it('should handle pure black image', () => {
       const black = createSolidImage(32, 32, 0);
       const hash = computePHash(black);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
       expect(hash.length).toBe(16);
     });
@@ -79,7 +79,7 @@ describe('computePHash', () => {
     it('should handle pure white image', () => {
       const white = createSolidImage(32, 32, 255);
       const hash = computePHash(white);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
       expect(hash.length).toBe(16);
     });
@@ -93,10 +93,10 @@ describe('computePHash', () => {
           gradient.push(Math.floor((x / 31) * 255));
         }
       }
-      
+
       const imageData = createImageData(gradient, 32, 32);
       const hash = computePHash(imageData);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
 
@@ -107,27 +107,27 @@ describe('computePHash', () => {
           gradient.push(Math.floor((y / 31) * 255));
         }
       }
-      
+
       const imageData = createImageData(gradient, 32, 32);
       const hash = computePHash(imageData);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
 
     it('should generate different hashes for horizontal vs vertical gradients', () => {
       const horizontal: number[] = [];
       const vertical: number[] = [];
-      
+
       for (let y = 0; y < 32; y++) {
         for (let x = 0; x < 32; x++) {
           horizontal.push(Math.floor((x / 31) * 255));
           vertical.push(Math.floor((y / 31) * 255));
         }
       }
-      
+
       const hashH = computePHash(createImageData(horizontal, 32, 32));
       const hashV = computePHash(createImageData(vertical, 32, 32));
-      
+
       expect(hashH).not.toBe(hashV);
     });
   });
@@ -141,10 +141,10 @@ describe('computePHash', () => {
           checkerboard.push(isBlack ? 0 : 255);
         }
       }
-      
+
       const imageData = createImageData(checkerboard, 32, 32);
       const hash = computePHash(imageData);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
 
@@ -159,10 +159,10 @@ describe('computePHash', () => {
         }
         return pattern;
       };
-      
+
       const hash4x4 = computePHash(createImageData(createCheckerboard(4), 32, 32));
       const hash8x8 = computePHash(createImageData(createCheckerboard(8), 32, 32));
-      
+
       expect(hash4x4).not.toBe(hash8x8);
     });
   });
@@ -176,15 +176,15 @@ describe('computePHash', () => {
           pattern.push(x < 16 ? 50 : 200);
         }
       }
-      
+
       // Create brightened and darkened versions
-      const brightened = pattern.map(v => Math.min(255, v + 30));
-      const darkened = pattern.map(v => Math.max(0, v - 30));
-      
+      const brightened = pattern.map((v) => Math.min(255, v + 30));
+      const darkened = pattern.map((v) => Math.max(0, v - 30));
+
       const hashOriginal = computePHash(createImageData(pattern, 32, 32));
       const hashBright = computePHash(createImageData(brightened, 32, 32));
       const hashDark = computePHash(createImageData(darkened, 32, 32));
-      
+
       // Count differing bits (simple Hamming distance check)
       const countDifferences = (h1: string, h2: string): number => {
         let diff = 0;
@@ -200,10 +200,10 @@ describe('computePHash', () => {
         }
         return diff;
       };
-      
+
       const diffBright = countDifferences(hashOriginal, hashBright);
       const diffDark = countDifferences(hashOriginal, hashDark);
-      
+
       // pHash should be robust to brightness changes
       // Allow up to 40% of bits to differ (26 out of 64 bits)
       // This is more realistic for real-world brightness variations
@@ -216,14 +216,14 @@ describe('computePHash', () => {
     it('should handle small images (resize from 8x8)', () => {
       const small = createSolidImage(8, 8, 100);
       const hash = computePHash(small);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
 
     it('should handle large images (resize from 256x256)', () => {
       const large = createSolidImage(256, 256, 150);
       const hash = computePHash(large);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
 
@@ -238,11 +238,11 @@ describe('computePHash', () => {
         }
         return createImageData(pattern, size, size);
       };
-      
+
       const hash32 = computePHash(create2Tone(32));
       const hash64 = computePHash(create2Tone(64));
       const hash128 = computePHash(create2Tone(128));
-      
+
       // After resizing to 32x32, these should produce similar (not identical) hashes
       // due to resampling artifacts, but they should be close
       const countDifferences = (h1: string, h2: string): number => {
@@ -258,10 +258,10 @@ describe('computePHash', () => {
         }
         return diff;
       };
-      
+
       const diff32to64 = countDifferences(hash32, hash64);
       const diff32to128 = countDifferences(hash32, hash128);
-      
+
       // Allow up to 50% of bits to differ due to resampling (32 out of 64 bits)
       // Canvas resampling introduces artifacts, especially for simple patterns
       expect(diff32to64).toBeLessThan(32);
@@ -273,7 +273,7 @@ describe('computePHash', () => {
     it('should handle non-square images', () => {
       const imageData = createSolidImage(64, 32, 128);
       const hash = computePHash(imageData);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
 
@@ -287,10 +287,10 @@ describe('computePHash', () => {
           varied.push(value);
         }
       }
-      
+
       const imageData = createImageData(varied, 32, 32);
       const hash = computePHash(imageData);
-      
+
       expect(hash).toMatch(/^[0-9a-f]{16}$/);
     });
   });
@@ -302,10 +302,10 @@ describe('computePHash', () => {
         createSolidImage(32, 32, 128),
         createSolidImage(32, 32, 255),
       ];
-      
-      const hashes = patterns.map(p => computePHash(p));
+
+      const hashes = patterns.map((p) => computePHash(p));
       const uniqueHashes = new Set(hashes);
-      
+
       expect(uniqueHashes.size).toBe(hashes.length);
     });
   });

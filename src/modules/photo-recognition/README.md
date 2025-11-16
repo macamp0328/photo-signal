@@ -103,6 +103,7 @@ This module supports two perceptual hashing algorithms with **functional frame c
 ### Algorithm Choice: dHash vs pHash
 
 **dHash (Default)** - Difference Hash:
+
 - ✅ **Fast**: ~6-8ms per frame on mobile
 - ✅ **Small**: ~3KB code size
 - ✅ **Good accuracy**: 85-90% under ideal conditions
@@ -111,6 +112,7 @@ This module supports two perceptual hashing algorithms with **functional frame c
 - **Best for**: Controlled environments, good lighting, frontal angles
 
 **pHash** - Perceptual Hash with DCT:
+
 - ✅ **More robust**: 15-30% better at handling angles and lighting
 - ✅ **Lower false positives**: Better discrimination between similar photos
 - ✅ **Handles perspective**: DCT-based algorithm more resilient to distortion
@@ -162,11 +164,13 @@ The photo recognition module **only analyzes pixels within the framing guide**, 
 Before computing hashes, frames are checked for quality issues:
 
 **Motion Blur Detection**:
+
 - Uses Laplacian variance to measure sharpness
 - Rejects frames below sharpness threshold (default: 100)
 - Prevents hashing blurry frames that won't match
 
 **Glare Detection**:
+
 - Detects blown-out pixels (>250 brightness)
 - Rejects frames with >20% glare coverage (configurable)
 - Prevents hashing frames with reflections
@@ -183,6 +187,7 @@ The module tracks detailed failure categories for debugging:
 - **unknown**: Unclassified failures
 
 Telemetry is available in Test Mode showing:
+
 - Failure counts by category
 - Percentage breakdown
 - Last 10 failures with timestamps and reasons
@@ -396,6 +401,7 @@ The hash generation supports both **dHash** and **pHash** algorithms:
 5. **Encode** as 32-character hexadecimal string
 
 **Characteristics**:
+
 - Fast: ~6-8ms on mobile devices
 - Compact: 32 hex characters per hash
 - Good for: Ideal conditions, frontal angles
@@ -411,12 +417,14 @@ The hash generation supports both **dHash** and **pHash** algorithms:
 7. **Encode** as 16-character hexadecimal string
 
 **Characteristics**:
+
 - Slower: ~15-25ms on mobile devices
 - More robust: Better handles angles, lighting, perspective
 - Compact: 16 hex characters per hash
 - Good for: Challenging conditions, varied environments
 
 **Algorithm Selection**:
+
 ```bash
 # Generate dHash values (default)
 node scripts/generate-photo-hashes.js --algorithm dhash assets/test-images/
@@ -466,10 +474,10 @@ function App() {
 ```typescript
 // Use pHash for better robustness to angles and lighting
 const { recognizedConcert } = usePhotoRecognition(stream, {
-  hashAlgorithm: 'phash',  // Use pHash instead of dHash
-  similarityThreshold: 40,  // Stricter matching
-  checkInterval: 500,       // Check more frequently
-  recognitionDelay: 2000,   // Faster confirmation
+  hashAlgorithm: 'phash', // Use pHash instead of dHash
+  similarityThreshold: 40, // Stricter matching
+  checkInterval: 500, // Check more frequently
+  recognitionDelay: 2000, // Faster confirmation
 });
 ```
 
@@ -478,10 +486,10 @@ const { recognizedConcert } = usePhotoRecognition(stream, {
 ```typescript
 // Optimal settings for challenging environments
 const { recognizedConcert } = usePhotoRecognition(stream, {
-  hashAlgorithm: 'phash',        // More robust algorithm
-  similarityThreshold: 35,        // Slightly stricter
-  sharpnessThreshold: 80,         // More lenient blur detection
-  glarePercentageThreshold: 25,   // More lenient glare detection
+  hashAlgorithm: 'phash', // More robust algorithm
+  similarityThreshold: 35, // Slightly stricter
+  sharpnessThreshold: 80, // More lenient blur detection
+  glarePercentageThreshold: 25, // More lenient glare detection
 });
 ```
 

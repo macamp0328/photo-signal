@@ -159,11 +159,11 @@ export function usePhotoRecognition(
     failureHistory: [],
     failureByCategory: {
       'motion-blur': 0,
-      'glare': 0,
+      glare: 0,
       'poor-quality': 0,
       'no-match': 0,
-      'collision': 0,
-      'unknown': 0,
+      collision: 0,
+      unknown: 0,
     },
   });
 
@@ -209,11 +209,11 @@ export function usePhotoRecognition(
       failureHistory: [],
       failureByCategory: {
         'motion-blur': 0,
-        'glare': 0,
+        glare: 0,
         'poor-quality': 0,
         'no-match': 0,
-        'collision': 0,
-        'unknown': 0,
+        collision: 0,
+        unknown: 0,
       },
     };
     setRestartKey((key) => key + 1);
@@ -434,9 +434,8 @@ export function usePhotoRecognition(
         }
 
         // Compute hash of current frame using selected algorithm
-        const currentHash = hashAlgorithm === 'phash' 
-          ? computePHash(imageData) 
-          : computeDHash(imageData);
+        const currentHash =
+          hashAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
 
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
@@ -604,10 +603,14 @@ export function usePhotoRecognition(
                     }
                   });
                   if (telemetryRef.current.failureHistory.length > 0) {
-                    console.log(`\n  Recent Failures (last ${telemetryRef.current.failureHistory.length}):`);
+                    console.log(
+                      `\n  Recent Failures (last ${telemetryRef.current.failureHistory.length}):`
+                    );
                     telemetryRef.current.failureHistory.slice(-5).forEach((failure, idx) => {
                       const time = new Date(failure.timestamp).toLocaleTimeString();
-                      console.log(`    ${idx + 1}. [${time}] ${failure.category}: ${failure.reason}`);
+                      console.log(
+                        `    ${idx + 1}. [${time}] ${failure.category}: ${failure.reason}`
+                      );
                     });
                   }
                 }
@@ -651,9 +654,10 @@ export function usePhotoRecognition(
           if (bestMatch) {
             const similarity = ((256 - bestDistance) / 256) * 100;
             // Determine category based on how close we were
-            const category: FailureCategory = bestDistance <= similarityThreshold + 10
-              ? 'collision' // Close call, might be similar photos
-              : 'no-match';
+            const category: FailureCategory =
+              bestDistance <= similarityThreshold + 10
+                ? 'collision' // Close call, might be similar photos
+                : 'no-match';
             recordFailure(
               telemetryRef.current,
               category,

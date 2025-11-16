@@ -288,7 +288,9 @@ async function generateHashes() {
 
   console.log('📸 Photo Hash Generator\n');
   console.log(`Algorithm: ${hashType}`);
-  console.log(`Hash size: ${algorithm === 'phash' ? '64-bit (16 hex chars)' : '128-bit (32 hex chars)'}`);
+  console.log(
+    `Hash size: ${algorithm === 'phash' ? '64-bit (16 hex chars)' : '128-bit (32 hex chars)'}`
+  );
   console.log('Targets:');
   targets.forEach((target) => console.log(`  • ${target}`));
   console.log('');
@@ -355,7 +357,9 @@ async function generateHashes() {
     console.log('   1. Copy the photoHash values from the JSON output above');
     console.log('   2. Add them to the corresponding concerts in assets/test-data/concerts.json');
     console.log(`   3. Match files to concert entries as needed`);
-    console.log(`   4. Use hashAlgorithm: '${algorithm}' option in usePhotoRecognition to enable ${hashType}\n`);
+    console.log(
+      `   4. Use hashAlgorithm: '${algorithm}' option in usePhotoRecognition to enable ${hashType}\n`
+    );
   } catch (error) {
     console.error('❌ Error:', error.message);
     process.exit(1);

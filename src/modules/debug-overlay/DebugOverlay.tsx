@@ -22,6 +22,7 @@ export function DebugOverlay({
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   const lastFrameHash = debugInfo?.lastFrameHash ?? null;
   const bestMatch = debugInfo?.bestMatch ?? null;
@@ -63,6 +64,12 @@ export function DebugOverlay({
     return () => clearInterval(interval);
   }, [enabled, lastCheckTime]);
 
+  useEffect(() => {
+    if (!enabled) {
+      setIsCollapsed(false);
+    }
+  }, [enabled]);
+
   if (!enabled) {
     return null;
   }
@@ -97,142 +104,168 @@ export function DebugOverlay({
     : '—';
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.header}>
-        <span className={styles.title}>🐛 Debug Info</span>
-        <div className={styles.headerActions}>
-          <span className={styles.badge}>TEST MODE</span>
-          {onReset && (
-            <button
-              type="button"
-              className={styles.resetButton}
-              onClick={onReset}
-              disabled={!!recognizedConcert || isRecognizing}
-              aria-label="Reset recognition"
-            >
-              Reset
-            </button>
+    <div className={`${styles.overlay} ${isCollapsed ? styles.collapsed : ''}`}>
+      {isCollapsed ? (
+        <div className={styles.collapsedContent}>
+          <span className={styles.collapsedLabel}>🐛 Debug overlay hidden</span>
+          <button
+            type="button"
+            className={styles.collapsedButton}
+            onClick={() => setIsCollapsed(false)}
+            aria-label="Show debug overlay"
+            aria-expanded={isCollapsed}
+          >
+            Show overlay
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className={styles.header}>
+            <span className={styles.title}>🐛 Debug Info</span>
+            <div className={styles.headerActions}>
+              <span className={styles.badge}>TEST MODE</span>
+              {onReset && (
+                <button
+                  type="button"
+                  className={styles.resetButton}
+                  onClick={onReset}
+                  disabled={!!recognizedConcert || isRecognizing}
+                  aria-label="Reset recognition"
+                >
+                  Reset
+                </button>
+              )}
+              <button
+                type="button"
+                className={styles.toggleButton}
+                onClick={() => setIsCollapsed(true)}
+                aria-label="Hide debug overlay"
+                aria-expanded={!isCollapsed}
+              >
+                Hide
+              </button>
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className={styles.section}>
+            <div className={styles.statusRow}>
+              <span className={`${styles.statusIndicator} ${statusColors[status]}`}>
+                {statusEmoji[status]}
+              </span>
+              <span className={styles.statusText}>{status}</span>
+            </div>
+          </div>
+
+          {/* Frame Hash */}
+          <div className={styles.section}>
+            <div className={styles.label}>Frame Hash</div>
+            <div className={styles.hash}>{displayHash}</div>
+            <div className={styles.hint}>
+              {timeSinceLastCheck < FRAME_TIMEOUT_THRESHOLD
+                ? `Updated ${timeSinceLastCheck.toFixed(1)}s ago`
+                : 'Waiting for frame...'}
+            </div>
+          </div>
+
+          {/* Best Match */}
+          {bestMatch && (
+            <div className={styles.section}>
+              <div className={styles.label}>Best Match</div>
+              <div className={styles.matchName}>{bestMatch.concert.band}</div>
+              <div className={styles.matchStats}>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>Distance:</span>
+                  <span className={styles.statValue}>{bestMatch.distance}</span>
+                </div>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>Similarity:</span>
+                  <span className={styles.statValue}>{bestMatch.similarity.toFixed(1)}%</span>
+                </div>
+              </div>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* Status */}
-      <div className={styles.section}>
-        <div className={styles.statusRow}>
-          <span className={`${styles.statusIndicator} ${statusColors[status]}`}>
-            {statusEmoji[status]}
-          </span>
-          <span className={styles.statusText}>{status}</span>
-        </div>
-      </div>
+          {/* Countdown */}
+          <div className={styles.section}>
+            <div className={styles.label}>Countdown</div>
+            {stability ? (
+              <div className={styles.timerSection}>
+                <div className={styles.timerStats}>
+                  <span>{(stability.elapsedMs / 1000).toFixed(1)}s elapsed</span>
+                  <span>{(stability.remainingMs / 1000).toFixed(1)}s remaining</span>
+                </div>
+                <div className={styles.progressTrack}>
+                  <div
+                    className={styles.progressBar}
+                    style={{ width: `${stabilityPercent}%` }}
+                    aria-valuenow={stabilityPercent}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  />
+                </div>
+                <div className={styles.timerHint}>Hold steady for {countdownText}</div>
+              </div>
+            ) : (
+              <div className={styles.timerHint}>{countdownText}</div>
+            )}
+          </div>
 
-      {/* Frame Hash */}
-      <div className={styles.section}>
-        <div className={styles.label}>Frame Hash</div>
-        <div className={styles.hash}>{displayHash}</div>
-        <div className={styles.hint}>
-          {timeSinceLastCheck < FRAME_TIMEOUT_THRESHOLD
-            ? `Updated ${timeSinceLastCheck.toFixed(1)}s ago`
-            : 'Waiting for frame...'}
-        </div>
-      </div>
-
-      {/* Best Match */}
-      {bestMatch && (
-        <div className={styles.section}>
-          <div className={styles.label}>Best Match</div>
-          <div className={styles.matchName}>{bestMatch.concert.band}</div>
-          <div className={styles.matchStats}>
-            <div className={styles.stat}>
-              <span className={styles.statLabel}>Distance:</span>
-              <span className={styles.statValue}>{bestMatch.distance}</span>
-            </div>
-            <div className={styles.stat}>
-              <span className={styles.statLabel}>Similarity:</span>
-              <span className={styles.statValue}>{bestMatch.similarity.toFixed(1)}%</span>
+          {/* Threshold */}
+          <div className={styles.section}>
+            <div className={styles.label}>Threshold</div>
+            <div className={styles.thresholdInfo}>
+              Distance ≤ {derivedThreshold} (≥ {similarityThreshold.toFixed(0)}% similarity)
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Countdown */}
-      <div className={styles.section}>
-        <div className={styles.label}>Countdown</div>
-        {stability ? (
-          <div className={styles.timerSection}>
-            <div className={styles.timerStats}>
-              <span>{(stability.elapsedMs / 1000).toFixed(1)}s elapsed</span>
-              <span>{(stability.remainingMs / 1000).toFixed(1)}s remaining</span>
+          {/* Metrics */}
+          {debugInfo && (
+            <div className={styles.section}>
+              <div className={styles.label}>Metrics</div>
+              <div className={styles.metricGrid}>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Frames</span>
+                  <span className={styles.metricValue}>{frameCount ?? '—'}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Concerts</span>
+                  <span className={styles.metricValue}>{concertCount ?? '—'}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Interval</span>
+                  <span className={styles.metricValue}>
+                    {checkInterval ? `${(checkInterval / 1000).toFixed(1)}s` : '—'}
+                  </span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Aspect</span>
+                  <span className={styles.metricValue}>{aspectRatio ?? '—'}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Frame Size</span>
+                  <span className={styles.metricValue}>
+                    {frameSize ? `${frameSize.width}×${frameSize.height}` : '—'}
+                  </span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Last Check</span>
+                  <span className={styles.metricValue}>{lastCheckFormatted}</span>
+                </div>
+              </div>
             </div>
-            <div className={styles.progressTrack}>
-              <div
-                className={styles.progressBar}
-                style={{ width: `${stabilityPercent}%` }}
-                aria-valuenow={stabilityPercent}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              />
-            </div>
-            <div className={styles.timerHint}>Hold steady for {countdownText}</div>
-          </div>
-        ) : (
-          <div className={styles.timerHint}>{countdownText}</div>
-        )}
-      </div>
+          )}
 
-      {/* Threshold */}
-      <div className={styles.section}>
-        <div className={styles.label}>Threshold</div>
-        <div className={styles.thresholdInfo}>
-          Distance ≤ {derivedThreshold} (≥ {similarityThreshold.toFixed(0)}% similarity)
-        </div>
-      </div>
-
-      {/* Metrics */}
-      {debugInfo && (
-        <div className={styles.section}>
-          <div className={styles.label}>Metrics</div>
-          <div className={styles.metricGrid}>
-            <div className={styles.metricItem}>
-              <span className={styles.metricLabel}>Frames</span>
-              <span className={styles.metricValue}>{frameCount ?? '—'}</span>
+          {/* Recognized Concert */}
+          {recognizedConcert && (
+            <div className={`${styles.section} ${styles.recognized}`}>
+              <div className={styles.label}>🎵 Recognized</div>
+              <div className={styles.concertName}>{recognizedConcert.band}</div>
+              <div className={styles.concertVenue}>{recognizedConcert.venue}</div>
+              <div className={styles.concertDate}>{recognizedConcert.date}</div>
             </div>
-            <div className={styles.metricItem}>
-              <span className={styles.metricLabel}>Concerts</span>
-              <span className={styles.metricValue}>{concertCount ?? '—'}</span>
-            </div>
-            <div className={styles.metricItem}>
-              <span className={styles.metricLabel}>Interval</span>
-              <span className={styles.metricValue}>
-                {checkInterval ? `${(checkInterval / 1000).toFixed(1)}s` : '—'}
-              </span>
-            </div>
-            <div className={styles.metricItem}>
-              <span className={styles.metricLabel}>Aspect</span>
-              <span className={styles.metricValue}>{aspectRatio ?? '—'}</span>
-            </div>
-            <div className={styles.metricItem}>
-              <span className={styles.metricLabel}>Frame Size</span>
-              <span className={styles.metricValue}>
-                {frameSize ? `${frameSize.width}×${frameSize.height}` : '—'}
-              </span>
-            </div>
-            <div className={styles.metricItem}>
-              <span className={styles.metricLabel}>Last Check</span>
-              <span className={styles.metricValue}>{lastCheckFormatted}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Recognized Concert */}
-      {recognizedConcert && (
-        <div className={`${styles.section} ${styles.recognized}`}>
-          <div className={styles.label}>🎵 Recognized</div>
-          <div className={styles.concertName}>{recognizedConcert.band}</div>
-          <div className={styles.concertVenue}>{recognizedConcert.venue}</div>
-          <div className={styles.concertDate}>{recognizedConcert.date}</div>
-        </div>
+          )}
+        </>
       )}
     </div>
   );

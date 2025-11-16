@@ -39,6 +39,29 @@
   gap: 0.5rem;
 }
 
+.toggleButton {
+  background: transparent;
+  color: #cbd5e0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.toggleButton:hover,
+.toggleButton:focus-visible {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  outline: none;
+}
+
 .title {
   font-weight: 700;
   font-size: 0.8125rem;
@@ -322,4 +345,45 @@
   .hash {
     font-size: 0.875rem;
   }
+}
+
+.collapsed {
+  padding: 0.5rem 0.75rem;
+  min-width: auto;
+  max-width: none;
+}
+
+.collapsedContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.collapsedLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #cbd5e0;
+}
+
+.collapsedButton {
+  background: rgba(99, 179, 237, 0.15);
+  color: #63b3ed;
+  border: 1px solid rgba(99, 179, 237, 0.4);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.collapsedButton:hover,
+.collapsedButton:focus-visible {
+  background: rgba(99, 179, 237, 0.35);
+  color: #fff;
+  border-color: rgba(99, 179, 237, 0.8);
+  outline: none;
 }

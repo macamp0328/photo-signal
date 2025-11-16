@@ -586,5 +586,33 @@ describe('CameraView', () => {
 
       expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
     });
+
+    it('should hide instructions when concert overlay is shown', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
+    });
+
+    it('should show instructions when concert overlay is not shown', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={mockConcert}
+          showConcertOverlay={false}
+        />
+      );
+
+      expect(screen.getByText('Point camera at a photo to play music')).toBeInTheDocument();
+    });
   });
 });

@@ -179,7 +179,7 @@ function App() {
     />
   );
 
-  // Render info display (only for side panel on desktop when no concert is playing)
+  // Render info display (not shown since showInfoSection is false, concert info is in camera overlay)
   const infoDisplay = (
     <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
   );

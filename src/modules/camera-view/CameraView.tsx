@@ -3,6 +3,20 @@ import type { CameraViewProps } from './types';
 import styles from './CameraView.module.css';
 
 /**
+ * Format date string (YYYY-MM-DD) to readable format
+ */
+const formatDate = (dateString: string): string => {
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+/**
  * Camera View Component
  *
  * Pure UI component for displaying camera feed with overlay.
@@ -19,17 +33,6 @@ export function CameraView({
   showConcertOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  const formatDate = (dateString: string): string => {
-    // Parse as local date to avoid timezone issues
-    const [year, month, day] = dateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
 
   // Update video element when stream changes
   useEffect(() => {
@@ -125,9 +128,11 @@ export function CameraView({
       )}
 
       {/* Instructions */}
-      <div className={styles.instructions}>
-        <p className={styles.instructionsText}>Point camera at a photo to play music</p>
-      </div>
+      {!showConcertOverlay && (
+        <div className={styles.instructions}>
+          <p className={styles.instructionsText}>Point camera at a photo to play music</p>
+        </div>
+      )}
     </div>
   );
 }

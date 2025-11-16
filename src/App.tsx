@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import { usePhotoRecognition, FrameQualityIndicator } from './modules/photo-recognition';
@@ -16,17 +16,29 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
-import { DebugOverlay } from './modules/debug-overlay';
 import type { AspectRatio, Concert } from './types';
 import {
   useTripleTap,
-  SecretSettings,
   useFeatureFlags,
   useCustomSettings,
   useRetroSounds,
-  PsychedelicEffect,
 } from './modules/secret-settings';
 import './index.css';
+
+const SecretSettings = lazy(async () => {
+  const module = await import('./modules/secret-settings/SecretSettings');
+  return { default: module.SecretSettings };
+});
+
+const PsychedelicEffect = lazy(async () => {
+  const module = await import('./modules/secret-settings/PsychedelicEffect');
+  return { default: module.PsychedelicEffect };
+});
+
+const DebugOverlay = lazy(async () => {
+  const module = await import('./modules/debug-overlay');
+  return { default: module.DebugOverlay };
+});
 
 const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
@@ -242,22 +254,34 @@ function App() {
         showInfoSection={false}
       />
       {frameQualityIndicator}
-      <SecretSettings
-        isVisible={showSecretSettings}
-        onClose={() => {
-          setShowSecretSettings(false);
-          // Play sound when closing secret menu
-          playRandomSound();
-        }}
-      />
-      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
-      <DebugOverlay
-        enabled={isTestModeEnabled}
-        recognizedConcert={recognizedConcert}
-        isRecognizing={isRecognizing}
-        debugInfo={debugInfo ?? undefined}
-        onReset={resetRecognition}
-      />
+      {showSecretSettings && (
+        <Suspense fallback={null}>
+          <SecretSettings
+            isVisible={showSecretSettings}
+            onClose={() => {
+              setShowSecretSettings(false);
+              // Play sound when closing secret menu
+              playRandomSound();
+            }}
+          />
+        </Suspense>
+      )}
+      {isEnabled('psychedelic-mode') && (
+        <Suspense fallback={null}>
+          <PsychedelicEffect enabled={true} />
+        </Suspense>
+      )}
+      {isTestModeEnabled && (
+        <Suspense fallback={null}>
+          <DebugOverlay
+            enabled={isTestModeEnabled}
+            recognizedConcert={recognizedConcert}
+            isRecognizing={isRecognizing}
+            debugInfo={debugInfo ?? undefined}
+            onReset={resetRecognition}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

@@ -11,6 +11,7 @@
 ## Overview
 
 Phase 2 introduces **pHash** (Perceptual Hash), a DCT-based algorithm that provides:
+
 - **15-30% better accuracy** at handling angles and lighting
 - **Lower false positive rate** (1% vs 3-5% for dHash)
 - **Better discrimination** between similar photos
@@ -23,12 +24,14 @@ This guide walks through migrating your existing dHash-based setup to pHash.
 ## When to Migrate
 
 ### Consider pHash if:
+
 ✅ You experience angle-related recognition failures (>30° tilts)
 ✅ Your photos have similar visual content (need better discrimination)
 ✅ Lighting varies significantly in your environment
 ✅ You want to maximize accuracy for challenging conditions
 
 ### Stick with dHash if:
+
 ✅ Current accuracy meets your needs (>90% success)
 ✅ Photos are always viewed frontally (0-15° angles)
 ✅ You want absolute fastest performance (~6ms vs ~15ms per hash)
@@ -66,6 +69,7 @@ node scripts/generate-photo-hashes.js --algorithm phash path/to/photo1.jpg path/
 ```
 
 **Expected Output**:
+
 ```
 📸 Photo Hash Generator
 
@@ -100,6 +104,7 @@ Found 12 image(s):
 ```
 
 **Note the differences**:
+
 - pHash produces **16 hex characters** (vs 32 for dHash)
 - Multi-exposure hashes still generate 3 variants (dark, normal, bright)
 
@@ -108,6 +113,7 @@ Found 12 image(s):
 Update your `data.json` (or production data file) with the new pHash values:
 
 **Before (dHash)**:
+
 ```json
 {
   "concerts": [
@@ -128,6 +134,7 @@ Update your `data.json` (or production data file) with the new pHash values:
 ```
 
 **After (pHash)**:
+
 ```json
 {
   "concerts": [
@@ -137,11 +144,7 @@ Update your `data.json` (or production data file) with the new pHash values:
       "venue": "The Fillmore",
       "date": "2023-08-15",
       "audioFile": "/audio/concert-1.mp3",
-      "photoHash": [
-        "a792586c63b0ccc7",
-        "a792d8cc6338c467",
-        "87b2f8e4691a6466"
-      ]
+      "photoHash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"]
     }
   ]
 }
@@ -154,31 +157,33 @@ Update your `data.json` (or production data file) with the new pHash values:
 Enable pHash in your application by setting the `hashAlgorithm` option:
 
 **Before (default dHash)**:
+
 ```typescript
 import { usePhotoRecognition } from '@/modules/photo-recognition';
 
 function App() {
   const { stream } = useCameraAccess();
-  
+
   // Uses dHash by default
   const { recognizedConcert, isRecognizing } = usePhotoRecognition(stream);
-  
+
   // ... rest of code
 }
 ```
 
 **After (pHash)**:
+
 ```typescript
 import { usePhotoRecognition } from '@/modules/photo-recognition';
 
 function App() {
   const { stream } = useCameraAccess();
-  
+
   // Explicitly use pHash
   const { recognizedConcert, isRecognizing } = usePhotoRecognition(stream, {
-    hashAlgorithm: 'phash',  // 👈 Add this option
+    hashAlgorithm: 'phash', // 👈 Add this option
   });
-  
+
   // ... rest of code
 }
 ```
@@ -188,11 +193,13 @@ function App() {
 pHash uses 64-bit hashes (vs 128-bit for dHash), so the Hamming distance scale is different:
 
 **dHash thresholds** (out of 128 bits):
+
 - Strict: 10 (~92% similarity)
 - Balanced: 40 (~84% similarity)
 - Lenient: 50 (~80% similarity)
 
 **pHash equivalent thresholds** (out of 64 bits):
+
 - Strict: 5 (~92% similarity)
 - Balanced: 10 (~84% similarity)
 - Lenient: 12 (~81% similarity)
@@ -202,7 +209,7 @@ pHash uses 64-bit hashes (vs 128-bit for dHash), so the Hamming distance scale i
 ```typescript
 const { recognizedConcert } = usePhotoRecognition(stream, {
   hashAlgorithm: 'phash',
-  similarityThreshold: 10,  // 👈 Adjust from default 40
+  similarityThreshold: 10, // 👈 Adjust from default 40
 });
 ```
 
@@ -238,6 +245,7 @@ Before deploying:
 Once testing is successful:
 
 1. **Commit changes**:
+
    ```bash
    git add data.json src/App.tsx  # or wherever you updated code
    git commit -m "chore: migrate to pHash algorithm"
@@ -262,7 +270,7 @@ If you need to revert to dHash:
 ```typescript
 // Change back to dHash
 const { recognizedConcert } = usePhotoRecognition(stream, {
-  hashAlgorithm: 'dhash',  // or remove option entirely (uses default)
+  hashAlgorithm: 'dhash', // or remove option entirely (uses default)
 });
 ```
 
@@ -297,11 +305,7 @@ Store both dHash and pHash values:
       "00000000000001600acc000000000000",
       "00000000000001600acc000000000000"
     ],
-    "phash": [
-      "a792586c63b0ccc7",
-      "a792d8cc6338c467",
-      "87b2f8e4691a6466"
-    ]
+    "phash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"]
   }
 }
 ```
@@ -313,11 +317,11 @@ Add UI to switch algorithms:
 ```typescript
 function App() {
   const [algorithm, setAlgorithm] = useState<'dhash' | 'phash'>('dhash');
-  
+
   const { recognizedConcert } = usePhotoRecognition(stream, {
     hashAlgorithm: algorithm,
   });
-  
+
   return (
     <>
       {/* Algorithm switcher in dev mode */}
@@ -339,20 +343,20 @@ function App() {
 
 ### Bundle Size Impact
 
-| Algorithm | Bundle Size (gzipped) | Increase |
-|-----------|----------------------|----------|
-| dHash only | 84.44 KB | Baseline |
-| pHash only | 85.27 KB | +0.83 KB |
-| Both (dual support) | 85.27 KB | +0.83 KB |
+| Algorithm           | Bundle Size (gzipped) | Increase |
+| ------------------- | --------------------- | -------- |
+| dHash only          | 84.44 KB              | Baseline |
+| pHash only          | 85.27 KB              | +0.83 KB |
+| Both (dual support) | 85.27 KB              | +0.83 KB |
 
 **Conclusion**: Minimal impact, well under 10 KB budget.
 
 ### Hash Computation Speed
 
 | Algorithm | iPhone 13 Pro | Pixel 7 | Desktop |
-|-----------|---------------|---------|---------|
-| dHash | 6-8ms | 8-10ms | 3-5ms |
-| pHash | 15-25ms | 20-30ms | 10-15ms |
+| --------- | ------------- | ------- | ------- |
+| dHash     | 6-8ms         | 8-10ms  | 3-5ms   |
+| pHash     | 15-25ms       | 20-30ms | 10-15ms |
 
 **Conclusion**: pHash is slower but still well under 25ms target. Acceptable for 1 FPS frame sampling.
 
@@ -363,11 +367,13 @@ function App() {
 ### Photos not being recognized after migration
 
 **Possible causes**:
+
 1. pHash values not generated correctly
 2. Similarity threshold too strict for pHash
 3. Old dHash values still in data.json
 
 **Solutions**:
+
 1. Regenerate pHash values from source images
 2. Increase threshold to 12-15 and test
 3. Verify photoHash values are 16 hex chars (pHash) not 32 (dHash)
@@ -375,11 +381,13 @@ function App() {
 ### Lower accuracy than expected
 
 **Possible causes**:
+
 1. Reference photos different from printed photos
 2. Threshold needs adjustment
 3. Source images are low quality
 
 **Solutions**:
+
 1. Generate hashes from actual printed photo (photograph the print)
 2. Adjust threshold based on test results
 3. Use higher quality source images (300+ DPI)
@@ -387,15 +395,17 @@ function App() {
 ### Performance issues on older devices
 
 **Possible causes**:
+
 1. pHash DCT computation is more intensive
 2. Device CPU limitations
 
 **Solutions**:
+
 1. Increase `checkInterval` to reduce frame sampling rate:
    ```typescript
    usePhotoRecognition(stream, {
      hashAlgorithm: 'phash',
-     checkInterval: 2000,  // Check every 2 seconds instead of 1
+     checkInterval: 2000, // Check every 2 seconds instead of 1
    });
    ```
 2. Consider reverting to dHash for older devices

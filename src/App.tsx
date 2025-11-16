@@ -14,6 +14,7 @@ import { useMotionDetection } from './modules/motion-detection';
 import {
   usePhotoRecognition,
   FrameQualityIndicator,
+  GuidanceMessage,
   TelemetryExport,
 } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
@@ -132,6 +133,7 @@ function App() {
     debugInfo,
     isRecognizing,
     frameQuality,
+    activeGuidance,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
     similarityThreshold: similarityThresholdValue,
@@ -248,6 +250,11 @@ function App() {
     <FrameQualityIndicator frameQuality={frameQuality} />
   );
 
+  // Render guidance message (only when camera is active and no concert recognized)
+  const guidanceMessage = isActive && stream && !recognizedConcert && (
+    <GuidanceMessage guidanceType={activeGuidance} />
+  );
+
   return (
     <>
       <GalleryLayout
@@ -258,6 +265,7 @@ function App() {
         showInfoSection={false}
       />
       {frameQualityIndicator}
+      {guidanceMessage}
       {showSecretSettings && (
         <Suspense fallback={null}>
           <SecretSettings

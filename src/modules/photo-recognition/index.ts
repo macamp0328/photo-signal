@@ -9,12 +9,14 @@
 export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';
 export { FrameQualityIndicator } from './FrameQualityIndicator';
 export { TelemetryExport } from './TelemetryExport';
+export { GuidanceMessage } from './GuidanceMessage';
 export type {
   PhotoRecognitionHook,
   PhotoRecognitionOptions,
   AspectRatio,
   FrameQualityInfo,
   RecognitionTelemetry,
+  GuidanceType,
   RecognitionDebugInfo,
   BestMatchInfo,
   FailureCategory,

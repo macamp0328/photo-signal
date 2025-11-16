@@ -123,6 +123,7 @@ function App() {
     enableDebugInfo: isTestModeEnabled,
     aspectRatio: aspectRatio,
     hashAlgorithm: hashAlgorithmValue,
+    enableMultiScale: isEnabled('multi-scale-recognition'),
   });
 
   // Module: Audio Playback

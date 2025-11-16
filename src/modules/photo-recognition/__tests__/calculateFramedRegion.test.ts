@@ -257,4 +257,54 @@ describe('calculateFramedRegion', () => {
       expect(result.width).toBe(Math.round(720 * 0.8));
     });
   });
+
+  describe('Custom Scale Parameter', () => {
+    it('should use custom scale (75%) instead of default 80%', () => {
+      const result = calculateFramedRegion(1920, 1080, '3:2', 0.75);
+
+      // Height should be 75% of video height
+      expect(result.height).toBe(Math.round(1080 * 0.75));
+      const expectedWidth = Math.round(result.height * 1.5);
+      expect(result.width).toBe(expectedWidth);
+    });
+
+    it('should use custom scale (90%) for larger crop region', () => {
+      const result = calculateFramedRegion(1920, 1080, '3:2', 0.9);
+
+      // Height should be 90% of video height
+      expect(result.height).toBe(Math.round(1080 * 0.9));
+      const expectedWidth = Math.round(result.height * 1.5);
+      expect(result.width).toBe(expectedWidth);
+    });
+
+    it('should still center the region with custom scale', () => {
+      const result = calculateFramedRegion(1920, 1080, '3:2', 0.85);
+
+      // Check that margins are roughly equal on opposite sides
+      const leftMargin = result.x;
+      const rightMargin = 1920 - result.x - result.width;
+      const topMargin = result.y;
+      const bottomMargin = 1080 - result.y - result.height;
+
+      // Due to rounding, margins may differ by 1 pixel
+      expect(Math.abs(leftMargin - rightMargin)).toBeLessThanOrEqual(1);
+      expect(Math.abs(topMargin - bottomMargin)).toBeLessThanOrEqual(1);
+    });
+
+    it('should work with portrait aspect ratio and custom scale', () => {
+      const result = calculateFramedRegion(720, 1280, '2:3', 0.85);
+
+      // Width should be 85% of video width
+      expect(result.width).toBe(Math.round(720 * 0.85));
+      const expectedHeight = Math.round(result.width / (2 / 3));
+      expect(result.height).toBe(expectedHeight);
+    });
+
+    it('should default to 0.8 when scale is not provided', () => {
+      const result = calculateFramedRegion(1920, 1080, '3:2');
+      const resultWithExplicitScale = calculateFramedRegion(1920, 1080, '3:2', 0.8);
+
+      expect(result).toEqual(resultWithExplicitScale);
+    });
+  });
 });

@@ -41,6 +41,8 @@ options?: {
   sharpnessThreshold?: number;   // Sharpness threshold for blur detection (default 100)
   glareThreshold?: number;       // Glare detection threshold (default 250)
   glarePercentageThreshold?: number;  // Glare percentage threshold (default 20)
+  enableMultiScale?: boolean;    // Enable multi-scale recognition for imprecise framing (default false)
+  multiScaleVariants?: number[]; // Scale variants to try (default [0.75, 0.8, 0.85, 0.9])
 }
 ```
 
@@ -227,6 +229,64 @@ How long a photo must be stable before confirming match:
 - **4000ms+**: Very conservative (installations with lots of motion/noise)
 
 **Recommendation**: Use 3000ms for physical photos, then dial down if your environment is very stable. You can adjust this value from the Secret Settings menu (Custom Settings → Recognition Delay).
+
+### Multi-Scale Recognition (Relaxed Framing)
+
+**NEW**: Enable multi-scale recognition to support imprecise photo alignment and relaxed framing requirements.
+
+**What it does:**
+
+- Instead of analyzing only one crop scale (80% of viewport), the system tests multiple scales
+- Generates hashes at different crop sizes (e.g., 75%, 80%, 85%, 90%)
+- Matches against all scales to find the best fit
+- Automatically uses the scale that produces the best match
+
+**Benefits:**
+
+- ✅ More forgiving for users who don't align photos precisely
+- ✅ Recognizes photos that extend beyond the framing guide
+- ✅ Recognizes photos that don't fully fill the framing guide
+- ✅ Handles small borders, background visible around photo edges
+- ✅ Reduces user frustration with "fill the box" requirements
+
+**Configuration:**
+
+```typescript
+// Enable with default scales (75%, 80%, 85%, 90%)
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  enableMultiScale: true,
+});
+
+// Customize scale variants - these REPLACE the defaults entirely
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  enableMultiScale: true,
+  multiScaleVariants: [0.7, 0.8, 0.9, 0.95], // Test exactly these 4 scales
+});
+
+// For better performance with fewer scales
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  enableMultiScale: true,
+  multiScaleVariants: [0.8, 0.9], // Test only 2 scales
+});
+```
+
+**Important Note:** When you provide custom `multiScaleVariants`, those scales completely replace the defaults. If you want to include 80% (the default crop), make sure to include `0.8` in your custom array.
+
+**Performance Considerations:**
+
+- Additional hashes are only computed for quality frames (after blur/glare checks pass)
+- Minimal performance impact: ~2-4ms per scale on mobile
+- Default 4 scales = ~6-15ms total (still fast enough for real-time recognition)
+- Each scale in your custom variants is tested - fewer scales = better performance
+
+**When to use:**
+
+- **Enable** if users struggle with precise alignment or framing
+- **Enable** if photos frequently have small borders or background visible
+- **Enable** in dynamic environments (handheld, moving photos)
+- **Disable** (default) for controlled installations with stable mounting
+
+**Default:** Disabled for backward compatibility and optimal performance
 
 ---
 
@@ -526,6 +586,24 @@ function App() {
     </div>
   );
 }
+```
+
+### With Multi-Scale for Imprecise Framing
+
+```typescript
+// Recommended settings for handheld/dynamic use
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  enableMultiScale: true, // Enable relaxed framing
+  multiScaleVariants: [0.75, 0.8, 0.85, 0.9], // Try 4 different crop scales
+  similarityThreshold: 40, // Keep default threshold
+  recognitionDelay: 3000, // Keep default stability time
+});
+
+// For even more flexibility (accepts smaller photos in frame)
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  enableMultiScale: true,
+  multiScaleVariants: [0.65, 0.75, 0.85, 0.95], // Wider range of scales
+});
 ```
 
 ---

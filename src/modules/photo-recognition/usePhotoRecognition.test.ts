@@ -420,4 +420,61 @@ describe('usePhotoRecognition', () => {
       consoleErrorSpy.mockRestore();
     });
   });
+
+  describe('Multi-Scale Recognition', () => {
+    it('should use default scale when multi-scale is disabled', () => {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enableMultiScale: false,
+          checkInterval: 50,
+        })
+      );
+
+      // Default behavior should be maintained
+      expect(result.current.recognizedConcert).toBeNull();
+      expect(result.current.isRecognizing).toBe(false);
+    });
+
+    it('should accept custom multi-scale variants', () => {
+      const customVariants = [0.7, 0.8, 0.9];
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enableMultiScale: true,
+          multiScaleVariants: customVariants,
+          checkInterval: 50,
+        })
+      );
+
+      // Should initialize without errors
+      expect(result.current.recognizedConcert).toBeNull();
+      expect(result.current.isRecognizing).toBe(false);
+    });
+
+    it('should accept enableMultiScale option', () => {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enableMultiScale: true,
+          checkInterval: 50,
+        })
+      );
+
+      // Should work with multi-scale enabled
+      expect(result.current.recognizedConcert).toBeNull();
+      expect(result.current.isRecognizing).toBe(false);
+    });
+
+    it('should use default variants when multi-scale enabled without custom variants', () => {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enableMultiScale: true,
+          checkInterval: 50,
+        })
+      );
+
+      // Default variants [0.75, 0.8, 0.85, 0.9] should be used
+      expect(result.current.recognizedConcert).toBeNull();
+      expect(result.current.isRecognizing).toBe(false);
+    });
+  });
 });

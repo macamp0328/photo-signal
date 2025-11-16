@@ -2,7 +2,7 @@
  * Camera View Module Types
  */
 
-import type { AspectRatio as AspectRatioType } from '../../types';
+import type { AspectRatio as AspectRatioType, Concert } from '../../types';
 
 export type AspectRatio = AspectRatioType;
 
@@ -21,4 +21,8 @@ export interface CameraViewProps {
   onAspectRatioToggle?: () => void;
   /** Apply grayscale filter to camera view */
   grayscale?: boolean;
+  /** Concert info to display as overlay (optional) */
+  concertInfo?: Concert | null;
+  /** Control visibility of concert overlay independently */
+  showConcertOverlay?: boolean;
 }

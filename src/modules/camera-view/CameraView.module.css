@@ -263,3 +263,138 @@
     padding: 0.25rem 0.5rem;
   }
 }
+
+/* Concert Info Overlay */
+.concertOverlay {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.concertCard {
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(0.5rem);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 0.625rem 0.9375rem -0.1875rem rgba(0, 0, 0, 0.3),
+    0 0.25rem 0.375rem -0.125rem rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  max-width: 24rem;
+  width: 100%;
+  color: #fff;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.concertHeader {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.concertBandName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.concertDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.concertVenue {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.concertDate {
+  font-size: 0.875rem;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.concertFooter {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.concertNowPlaying {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* Responsive: Larger screens get more padding and larger text for overlay */
+@media (min-width: 768px) {
+  .concertOverlay {
+    bottom: 2rem;
+    left: 2rem;
+    right: 2rem;
+  }
+
+  .concertCard {
+    padding: 1.5rem;
+  }
+
+  .concertBandName {
+    font-size: 1.5rem;
+  }
+
+  .concertVenue {
+    font-size: 1.125rem;
+  }
+}
+
+/* On landscape mobile, make overlay more compact */
+@media (max-height: 500px) and (orientation: landscape) {
+  .concertOverlay {
+    bottom: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .concertCard {
+    padding: 0.75rem;
+  }
+
+  .concertBandName {
+    font-size: 1rem;
+  }
+
+  .concertVenue {
+    font-size: 0.875rem;
+  }
+
+  .concertDate {
+    font-size: 0.75rem;
+  }
+
+  .concertNowPlaying {
+    font-size: 0.625rem;
+  }
+}

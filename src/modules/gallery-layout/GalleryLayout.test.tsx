@@ -63,11 +63,45 @@ describe('GalleryLayout', () => {
     expect(screen.getByText('Photo Signal')).toBeTruthy();
     expect(screen.getByText(/Point at a photo to begin/i)).toBeTruthy();
 
-    // Camera and info should be visible
+    // Camera should be visible
     expect(screen.getByTestId('camera-view')).toBeTruthy();
-    expect(screen.getByTestId('info-display')).toBeTruthy();
+
+    // Info display should not be visible by default (showInfoSection defaults to false)
+    expect(screen.queryByTestId('info-display')).toBeNull();
 
     // Begin button should not be visible
     expect(screen.queryByRole('button', { name: 'Begin' })).toBeNull();
+  });
+
+  it('renders info section when showInfoSection is true', () => {
+    render(
+      <GalleryLayout
+        isActive={true}
+        cameraView={mockCameraView}
+        infoDisplay={mockInfoDisplay}
+        onActivate={mockOnActivate}
+        showInfoSection={true}
+      />
+    );
+
+    // Both camera and info should be visible
+    expect(screen.getByTestId('camera-view')).toBeTruthy();
+    expect(screen.getByTestId('info-display')).toBeTruthy();
+  });
+
+  it('hides info section when showInfoSection is false', () => {
+    render(
+      <GalleryLayout
+        isActive={true}
+        cameraView={mockCameraView}
+        infoDisplay={mockInfoDisplay}
+        onActivate={mockOnActivate}
+        showInfoSection={false}
+      />
+    );
+
+    // Camera should be visible, but info should not
+    expect(screen.getByTestId('camera-view')).toBeTruthy();
+    expect(screen.queryByTestId('info-display')).toBeNull();
   });
 });

@@ -18,6 +18,7 @@
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, module structure, data flow, design principles, and architecture evolution history
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
+- **[MOBILE_UX_IMPROVEMENTS.md](./MOBILE_UX_IMPROVEMENTS.md)** - Mobile UX improvements for debug tools: collapsible overlays, smart positioning, and responsive design enhancements
 
 ### Research & Technical Specifications
 
@@ -331,7 +332,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (7 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER)
+- ✅ Root documentation (8 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, MOBILE_UX_IMPROVEMENTS)
 - ✅ Research & technical specifications (15 files - including exploratory analysis, Phase 2 benchmarking guide, Phase 2 angle compensation analysis, Phase 2 migration guide, grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
@@ -352,6 +353,6 @@ This index covers:
 - ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 127 documented files
+**Total**: 128 documented files
 
-Last updated: 2025-11-16
+Last updated: 2025-11-17

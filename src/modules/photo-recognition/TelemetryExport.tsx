@@ -20,7 +20,7 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
       const isMobile = window.innerWidth <= 768;
       setIsCollapsed(isMobile);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);

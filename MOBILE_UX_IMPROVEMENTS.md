@@ -15,12 +15,14 @@ The debug tools (DebugOverlay and TelemetryExport) were designed for desktop and
 **File:** `src/modules/photo-recognition/TelemetryExport.tsx`
 
 **Changes:**
+
 - Added collapsible UI with expand/collapse toggle button
 - Automatically defaults to collapsed state on mobile devices (≤768px)
 - Listens to window resize events to adapt to orientation changes
 - Collapsed view shows minimal footprint: "📊 Telemetry" + "Expand" button
 
 **Behavior:**
+
 ```
 Desktop (>768px):    Expanded by default, positioned at bottom-right
 Mobile (≤768px):     Collapsed by default, positioned at bottom-right
@@ -32,6 +34,7 @@ Mobile (expanded):   Full-width at top of screen to avoid overlap
 **File:** `src/modules/photo-recognition/TelemetryExport.module.css`
 
 **Changes:**
+
 - Added `.collapsed` class for minimal collapsed state
 - Added styles for collapse button and collapsed content
 - Enhanced mobile responsive design:
@@ -47,11 +50,13 @@ Mobile (expanded):   Full-width at top of screen to avoid overlap
 **File:** `src/modules/debug-overlay/DebugOverlay.tsx`
 
 **Changes:**
+
 - Added mobile detection logic to automatically collapse on mobile devices
 - Defaults to collapsed state on screens ≤768px wide
 - Respects window resize events for orientation changes
 
 **Behavior:**
+
 ```
 Desktop (>768px):    Not collapsed by default
 Mobile (≤768px):     Collapsed by default, user can expand if needed
@@ -62,6 +67,7 @@ Mobile (≤768px):     Collapsed by default, user can expand if needed
 **File:** `src/modules/debug-overlay/DebugOverlay.module.css`
 
 **Changes:**
+
 - Added comprehensive mobile responsive styles (≤768px):
   - Full-width when expanded (left: 10px, right: 10px)
   - Collapsed state stays at bottom-right with minimal width
@@ -77,10 +83,12 @@ Mobile (≤768px):     Collapsed by default, user can expand if needed
 ## Benefits
 
 ### Space Savings on Mobile
+
 - **Before:** Both overlays expanded, taking ~50-60% of screen space
 - **After:** Both overlays collapsed, taking ~5-10% of screen space
 
 ### Improved Usability
+
 1. **Default collapsed state** prevents clutter when app first loads on mobile
 2. **Manual expansion** available when user needs debug information
 3. **Smart positioning** - TelemetryExport moves to top when expanded to avoid overlap
@@ -88,6 +96,7 @@ Mobile (≤768px):     Collapsed by default, user can expand if needed
 5. **Touch-friendly** - buttons sized appropriately for mobile tapping
 
 ### Preserved Functionality
+
 - All debug information still accessible
 - All export features still functional
 - Desktop experience unchanged
@@ -96,14 +105,16 @@ Mobile (≤768px):     Collapsed by default, user can expand if needed
 ## Technical Details
 
 ### Mobile Detection
+
 Both components use the same pattern:
+
 ```typescript
 useEffect(() => {
   const checkMobile = () => {
     const isMobile = window.innerWidth <= 768;
     setIsCollapsed(isMobile);
   };
-  
+
   checkMobile();
   window.addEventListener('resize', checkMobile);
   return () => window.removeEventListener('resize', checkMobile);
@@ -111,11 +122,13 @@ useEffect(() => {
 ```
 
 ### Responsive Breakpoints
+
 - **Mobile:** ≤768px
 - **Extra Small:** ≤480px
 - **Tablet/Desktop:** >768px
 
 ### Z-Index Stacking
+
 - DebugOverlay: 9999 (top)
 - TelemetryExport: 9998 (below DebugOverlay)
 - Both positioned at bottom-right when collapsed
@@ -124,6 +137,7 @@ useEffect(() => {
 ## Testing Recommendations
 
 ### Manual Testing
+
 1. Test on actual mobile devices (iPhone, Android)
 2. Test in browser DevTools with mobile viewport
 3. Test orientation changes (portrait ↔ landscape)
@@ -132,6 +146,7 @@ useEffect(() => {
 6. Test overlap scenarios with both overlays expanded
 
 ### Viewport Sizes to Test
+
 - 320px (iPhone SE)
 - 375px (iPhone 12/13)
 - 390px (iPhone 14)
@@ -140,6 +155,7 @@ useEffect(() => {
 - 1024px (iPad)
 
 ### Key Scenarios
+
 1. **Both overlays collapsed:** Should show minimal footprint at bottom
 2. **DebugOverlay expanded:** Should expand from bottom, stay at bottom
 3. **TelemetryExport expanded:** Should expand from bottom → top on mobile
@@ -149,21 +165,25 @@ useEffect(() => {
 ## Accessibility
 
 ### ARIA Attributes
+
 - Toggle buttons have `aria-label` for screen readers
 - Collapse/expand state indicated with `aria-expanded`
 
 ### Keyboard Navigation
+
 - All buttons remain keyboard accessible
 - Focus states preserved
 - Tab order maintained
 
 ### Touch Targets
+
 - All buttons meet minimum 44px tap target guidelines
 - Adequate spacing between interactive elements
 
 ## Browser Compatibility
 
 Works on all modern browsers:
+
 - Chrome/Edge (latest)
 - Firefox (latest)
 - Safari (iOS 12+)
@@ -173,6 +193,7 @@ Works on all modern browsers:
 ## Future Improvements
 
 Potential enhancements for future iterations:
+
 1. Add user preference persistence (remember collapsed/expanded state)
 2. Add swipe gestures for expand/collapse on mobile
 3. Add pinch-to-resize functionality

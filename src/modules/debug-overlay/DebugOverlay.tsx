@@ -44,7 +44,7 @@ export function DebugOverlay({
         setIsCollapsed(true);
       }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);

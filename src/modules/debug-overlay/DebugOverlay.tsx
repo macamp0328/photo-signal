@@ -36,6 +36,20 @@ export function DebugOverlay({
   const recognitionDelayMs = debugInfo?.recognitionDelay;
   const lastCheckTime = debugInfo?.lastCheckTime;
 
+  // Default to collapsed on mobile screens
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile && enabled) {
+        setIsCollapsed(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [enabled]);
+
   // Determine recognition status
   useEffect(() => {
     if (recognizedConcert) {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { RecognitionTelemetry } from './types';
 import styles from './TelemetryExport.module.css';
 
@@ -12,6 +12,19 @@ interface TelemetryExportProps {
  */
 export function TelemetryExport({ telemetry }: TelemetryExportProps) {
   const [exported, setExported] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Default to collapsed on mobile screens
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth <= 768;
+      setIsCollapsed(isMobile);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const exportTelemetry = () => {
     // Create comprehensive telemetry report
@@ -176,47 +189,71 @@ ${Object.entries(telemetry.failureByCategory)
       : '0';
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>📊 Telemetry Data</h3>
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <span className={styles.label}>Total Frames:</span>
-            <span className={styles.value}>{telemetry.totalFrames}</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.label}>Quality Rate:</span>
-            <span className={styles.value}>{qualityRate}%</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.label}>Blur Rejections:</span>
-            <span className={styles.value}>{blurRate}%</span>
-          </div>
-          <div className={styles.stat}>
-            <span className={styles.label}>Glare Rejections:</span>
-            <span className={styles.value}>{glareRate}%</span>
-          </div>
+    <div className={`${styles.container} ${isCollapsed ? styles.collapsed : ''}`}>
+      {isCollapsed ? (
+        <div className={styles.collapsedContent}>
+          <span className={styles.collapsedLabel}>📊 Telemetry</span>
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className={styles.toggleButton}
+            aria-label="Expand telemetry panel"
+            aria-expanded={false}
+          >
+            Expand
+          </button>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className={styles.header}>
+            <h3 className={styles.title}>📊 Telemetry Data</h3>
+            <button
+              onClick={() => setIsCollapsed(true)}
+              className={styles.toggleButton}
+              aria-label="Collapse telemetry panel"
+              aria-expanded={true}
+            >
+              Collapse
+            </button>
+          </div>
+          <div className={styles.stats}>
+            <div className={styles.stat}>
+              <span className={styles.label}>Total Frames:</span>
+              <span className={styles.value}>{telemetry.totalFrames}</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.label}>Quality Rate:</span>
+              <span className={styles.value}>{qualityRate}%</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.label}>Blur Rejections:</span>
+              <span className={styles.value}>{blurRate}%</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.label}>Glare Rejections:</span>
+              <span className={styles.value}>{glareRate}%</span>
+            </div>
+          </div>
 
-      <div className={styles.actions}>
-        <button
-          onClick={exportTelemetry}
-          className={styles.button}
-          aria-label="Export telemetry as JSON"
-        >
-          📥 Export JSON
-        </button>
-        <button
-          onClick={exportMarkdownTable}
-          className={styles.button}
-          aria-label="Export telemetry as Markdown"
-        >
-          📝 Export Markdown Report
-        </button>
-      </div>
+          <div className={styles.actions}>
+            <button
+              onClick={exportTelemetry}
+              className={styles.button}
+              aria-label="Export telemetry as JSON"
+            >
+              📥 Export JSON
+            </button>
+            <button
+              onClick={exportMarkdownTable}
+              className={styles.button}
+              aria-label="Export telemetry as Markdown"
+            >
+              📝 Export Markdown Report
+            </button>
+          </div>
 
-      {exported && <div className={styles.success}>✓ Telemetry exported successfully!</div>}
+          {exported && <div className={styles.success}>✓ Telemetry exported successfully!</div>}
+        </>
+      )}
     </div>
   );
 }

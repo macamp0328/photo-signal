@@ -178,10 +178,17 @@ function copyTestAssetsPlugin() {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react(), copyTestAssetsPlugin()],
-  server: {
-    host: true,
-    port: 3000,
-  },
+export default defineConfig(({ mode }) => {
+  const nodeEnv = mode === 'production' ? 'production' : 'development';
+
+  return {
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(nodeEnv),
+    },
+    plugins: [react(), copyTestAssetsPlugin()],
+    server: {
+      host: true,
+      port: 3000,
+    },
+  };
 });

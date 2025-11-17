@@ -23,6 +23,7 @@
     "test:visual:report": "playwright show-report --host 0.0.0.0 --port 9323",
     "generate-hashes": "node scripts/generate-photo-hashes.js",
     "create-easy-images": "node scripts/create-easy-test-images.js",
+    "create-edge-case-images": "node scripts/create-edge-case-test-images.js",
     "migrate-audio": "node scripts/migrate-audio-to-cdn.js",
     "validate-audio": "node scripts/validate-audio-urls.js",
     "pre-commit": "npm audit --audit-level=moderate && npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh"

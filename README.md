@@ -47,7 +47,8 @@ Everything runs in the browser. No backend needed.
 - **Photo Recognition**: Placeholder logic simulates photo recognition (triggers after 3 seconds)
 - **Concert Information Display**: Shows band name, venue, and date when photo is recognized
 - **Audio Playback**: Uses Howler.js to play MP3 files
-- **Motion Detection**: Fades out audio when camera movement is detected
+- **Motion Detection**: Detects movement to trigger a fresh recognition pass when you move to a new photo
+- **Persistent Playback**: Music keeps playing through small hand shakes and only crossfades when a different photo is confidently recognized
 
 ## Tech Stack
 
@@ -173,11 +174,18 @@ Edit `public/data.json` to add your own concert data:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "2023-08-15",
-      "audioFile": "/audio/sample.mp3"
+      "audioFile": "/audio/sample.mp3",
+      "photoHashes": {
+        "phash": ["dark-hash", "normal-hash", "bright-hash"],
+        "dhash": ["dark-dhash", "normal-dhash", "bright-dhash"]
+      },
+      "photoHash": ["dark-hash", "normal-hash", "bright-hash"]
     }
   ]
 }
 ```
+
+> `photoHashes` is the canonical storage for algorithm-specific hash arrays; keep the legacy `photoHash` array mirrored until older builds are retired.
 
 ### Photo Recognition
 

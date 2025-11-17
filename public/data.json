@@ -5,96 +5,420 @@
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/audio/concert-1.mp3",
-      "photoHash": "00000000000001600acc000000000000"
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-02.mp3",
+      "imageFile": "/assets/test-images/concert-1.jpg",
+      "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+      "photoHashes": {
+        "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
+        "dhash": [
+          "00000000000001200acc000000000000",
+          "00000000000001600acc000000000000",
+          "00000000000001200acc000000000000"
+        ]
+      }
     },
     {
       "id": 2,
       "band": "Electric Dreams",
       "venue": "Red Rocks Amphitheatre",
       "date": "2023-09-22",
-      "audioFile": "/audio/concert-2.mp3",
-      "photoHash": "00000000000001200330000000000000"
+      "audioFile": "/assets/example-real-songs/06-ocelot-clip-02.mp3",
+      "imageFile": "/assets/test-images/concert-2.jpg",
+      "photoHash": ["36d9492796d86d22", "b6d8482796d86d23", "36dac82596da6d22"],
+      "photoHashes": {
+        "phash": ["36d9492796d86d22", "b6d8482796d86d23", "36dac82596da6d22"],
+        "dhash": [
+          "00000000000001200330000000000000",
+          "00000000000001200330000000000000",
+          "00000000000001200330000000000000"
+        ]
+      }
     },
     {
       "id": 3,
       "band": "Velvet Revolution",
       "venue": "Madison Square Garden",
       "date": "2023-10-10",
-      "audioFile": "/audio/concert-3.mp3",
-      "photoHash": "00000000000001200278000000000000"
+      "audioFile": "/assets/example-real-songs/13-1999-clip-02.mp3",
+      "imageFile": "/assets/test-images/concert-3.jpg",
+      "photoHash": ["3cdac2259cda6722", "3cda62259cda6722", "1cda63259cda6722"],
+      "photoHashes": {
+        "phash": ["3cdac2259cda6722", "3cda62259cda6722", "1cda63259cda6722"],
+        "dhash": [
+          "00000000000001200278000000000000",
+          "00000000000001200278000000000000",
+          "00000000000001200278000000000000"
+        ]
+      }
     },
     {
       "id": 4,
       "band": "Sunset Boulevard",
       "venue": "Hollywood Bowl",
       "date": "2023-11-05",
-      "audioFile": "/audio/concert-4.mp3",
-      "photoHash": "00000000000001200a18000000000000"
+      "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-02.mp3",
+      "imageFile": "/assets/test-images/concert-4.jpg",
+      "photoHash": ["36d9c82736d8cc23", "36dac82736d8cc23", "36dac82736d8cc23"],
+      "photoHashes": {
+        "phash": ["36d9c82736d8cc23", "36dac82736d8cc23", "36dac82736d8cc23"],
+        "dhash": [
+          "00000000000001200a18000000000000",
+          "00000000000001200a18000000000000",
+          "00000000000001200a18000000000000"
+        ]
+      }
     },
     {
       "id": 5,
       "band": "Neon Bullseye",
       "venue": "Calibration Hall",
       "date": "2024-01-05",
-      "audioFile": "/audio/concert-song-1.mp3",
-      "photoHash": "00e00078061c0d4e0d4e061c007800e0"
+      "audioFile": "/assets/example-real-songs/18-meatstick-clip-02.mp3",
+      "imageFile": "/assets/test-images/easy-target-bullseye.png",
+      "photoHash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"],
+      "photoHashes": {
+        "phash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"],
+        "dhash": [
+          "00e00078061c0d4e0d4e061c007800e0",
+          "00e00078061c0d4e0d4e061c007800e0",
+          "00e00078061c0d4e0d4e061c007800e0"
+        ]
+      }
     },
     {
       "id": 6,
       "band": "Signal Stripes",
       "venue": "Diagonal Pavilion",
       "date": "2024-01-06",
-      "audioFile": "/audio/concert-song-2.mp3",
-      "photoHash": "0c008180b060265c05d101b100d90000"
+      "audioFile": "/assets/example-real-songs/20-possum-clip-02.mp3",
+      "imageFile": "/assets/test-images/easy-target-diagonals.png",
+      "photoHash": ["89c6710bc6f07ec1", "89c6f10be4f03ec1", "8bc4f10be4f03ec1"],
+      "photoHashes": {
+        "phash": ["89c6710bc6f07ec1", "89c6f10be4f03ec1", "8bc4f10be4f03ec1"],
+        "dhash": [
+          "0c008180b060365c05d101b100d90000",
+          "0c008180b060265c05d101b100d90000",
+          "0c008180b060265c05d101b100d90000"
+        ]
+      }
     },
     {
       "id": 7,
       "band": "Monochrome Grid",
       "venue": "Pattern Plaza",
       "date": "2024-01-07",
-      "audioFile": "/audio/concert-1.mp3",
-      "photoHash": "1188c663c6632508e00b118811884662"
+      "audioFile": "/assets/example-real-songs/20-possum-clip-01.mp3",
+      "imageFile": "/assets/test-images/easy-target-checker.png",
+      "photoHash": ["8f54f3118c4473b5", "8d54f3118c44f3b5", "8d54f3118c44f3b5"],
+      "photoHashes": {
+        "phash": ["8f54f3118c4473b5", "8d54f3118c44f3b5", "8d54f3118c44f3b5"],
+        "dhash": [
+          "1188c663c6632508c00b118811884662",
+          "1188c663c6632508e00b118811884662",
+          "1188c663c6632508e00b118811884662"
+        ]
+      }
     },
     {
       "id": 8,
       "band": "Example Real Photo (R0043343)",
       "venue": "Analog Loft Stage",
       "date": "2024-02-01",
-      "audioFile": "/audio/concert-2.mp3",
-      "photoHash": "c4f53cf10ccd16675d674cd2555b4b53"
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-01.mp3",
+      "imageFile": "/assets/example-real-photos/R0043343.jpg",
+      "photoHash": ["2bcad5353ac88595", "8bc2d5b52bc88595", "83c2d5b52be88595"],
+      "photoHashes": {
+        "phash": ["2bcad5353ac88595", "8bc2d5b52bc88595", "83c2d5b52be88595"],
+        "dhash": [
+          "c4d534e10cc91467156648d241100000",
+          "c4f53cf10ccd16675d674cd2555b4b53",
+          "c4f53cf10ccd16675de74cd2555b4253"
+        ]
+      }
     },
     {
       "id": 9,
       "band": "Example Real Photo (R0055333)",
       "venue": "Downtown Rooftop",
       "date": "2024-02-02",
-      "audioFile": "/audio/concert-3.mp3",
-      "photoHash": "953f16ff30fb02db0352534504410041"
+      "audioFile": "/assets/example-real-songs/06-ocelot-clip-01.mp3",
+      "imageFile": "/assets/example-real-photos/R0055333.jpg",
+      "photoHash": ["9b92e46c733232c6", "9392646d2b3a72c6", "9392646c2b3a76c6"],
+      "photoHashes": {
+        "phash": ["9b92e46c733232c6", "9392646d2b3a72c6", "9392646c2b3a76c6"],
+        "dhash": [
+          "013016e020f202c20350000000000000",
+          "953f16ff30fb02db0352534504410041",
+          "953f16ff30fb02db0352534504410041"
+        ]
+      }
     },
     {
       "id": 10,
       "band": "Example Real Photo (R0055917)",
       "venue": "Indie Gallery",
       "date": "2024-02-03",
-      "audioFile": "/audio/concert-4.mp3",
-      "photoHash": "41bb499486698c791cfb9acddacd5538"
+      "audioFile": "/assets/example-real-songs/13-1999-clip-01.mp3",
+      "imageFile": "/assets/example-real-photos/R0055917.jpg",
+      "photoHash": ["a7144cfa13789b07", "a7144dfa13788e13", "a7144dfa13788e13"],
+      "photoHashes": {
+        "phash": ["a7144cfa13789b07", "a7144dfa13788e13", "a7144dfa13788e13"],
+        "dhash": [
+          "41bb499486698c791ce39ac9dacd0400",
+          "41bb499486698c791cfb9acddacd5538",
+          "41bb499486698c791cfb9acddacd5538"
+        ]
+      }
     },
     {
       "id": 11,
       "band": "Example Real Photo (R0060632)",
       "venue": "Harbor Warehouse",
       "date": "2024-02-04",
-      "audioFile": "/audio/concert-song-1.mp3",
-      "photoHash": "866f356722d6b4c3319d133c0ab9555a"
+      "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-01.mp3",
+      "imageFile": "/assets/example-real-photos/R0060632.jpg",
+      "photoHash": ["a1a1e9b594969786", "a9a9ebb134169782", "89a9ebb334169782"],
+      "photoHashes": {
+        "phash": ["a1a1e9b594969786", "a9a9ebb134169782", "89a9ebb334169782"],
+        "dhash": [
+          "866f356722c084822100000000010040",
+          "866f356722d6b4c3319d133c0ab9555a",
+          "866f356722d6b4cb319d13388ab9555a"
+        ]
+      }
     },
     {
       "id": 12,
       "band": "Example Real Photo (R0060861)",
       "venue": "Night Market Stage",
       "date": "2024-02-05",
-      "audioFile": "/audio/concert-song-2.mp3",
-      "photoHash": "960bc5ef462e2e8c4e6b566ec2eda7ed"
+      "audioFile": "/assets/example-real-songs/18-meatstick-clip-01.mp3",
+      "imageFile": "/assets/example-real-photos/R0060861.jpg",
+      "photoHash": ["8f84d87ba3e57011", "a74c987aa3f57011", "a74c987aa3f57011"],
+      "photoHashes": {
+        "phash": ["8f84d87ba3e57011", "a74c987aa3f57011", "a74c987aa3f57011"],
+        "dhash": [
+          "040801ee462c2c984a4b42688ac027a1",
+          "960bc5ef462e2e8c4e6b566ec2eda7ed",
+          "964bc5ef462eae9c4e6b566ec2eda7ed"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "band": "Edge Case: Motion Blur (Light)",
+      "venue": "Testing Arena - Motion Category",
+      "date": "2024-03-01",
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-03.mp3",
+      "imageFile": "/assets/test-images/edge-case-motion-blur-light.png",
+      "photoHash": ["c68ed37078938687", "4f8ad37078938627", "4f8ad37078938627"],
+      "photoHashes": {
+        "phash": ["c68ed37078938687", "4f8ad37078938627", "4f8ad37078938627"]
+      },
+      "edgeCase": {
+        "category": "motion-blur",
+        "severity": "light",
+        "description": "5px horizontal motion blur - simulates minor camera shake",
+        "expectedAccuracy": 0.8
+      }
+    },
+    {
+      "id": 14,
+      "band": "Edge Case: Motion Blur (Moderate)",
+      "venue": "Testing Arena - Motion Category",
+      "date": "2024-03-02",
+      "audioFile": "/assets/example-real-songs/06-ocelot-clip-03.mp3",
+      "imageFile": "/assets/test-images/edge-case-motion-blur-moderate.png",
+      "photoHash": ["6c86d37878b18687", "6d82d37878b1c607", "6d82d37878b1c607"],
+      "photoHashes": {
+        "phash": ["6c86d37878b18687", "6d82d37878b1c607", "6d82d37878b1c607"]
+      },
+      "edgeCase": {
+        "category": "motion-blur",
+        "severity": "moderate",
+        "description": "10px horizontal motion blur - typical handheld movement",
+        "expectedAccuracy": 0.6
+      }
+    },
+    {
+      "id": 15,
+      "band": "Edge Case: Motion Blur (Heavy)",
+      "venue": "Testing Arena - Motion Category",
+      "date": "2024-03-03",
+      "audioFile": "/assets/example-real-songs/13-1999-clip-03.mp3",
+      "imageFile": "/assets/test-images/edge-case-motion-blur-heavy.png",
+      "photoHash": ["46aef35078138e87", "4f8ad3707893c626", "4f8ad3707893c626"],
+      "photoHashes": {
+        "phash": ["46aef35078138e87", "4f8ad3707893c626", "4f8ad3707893c626"]
+      },
+      "edgeCase": {
+        "category": "motion-blur",
+        "severity": "heavy",
+        "description": "15px horizontal motion blur - walking while scanning",
+        "expectedAccuracy": 0.4
+      }
+    },
+    {
+      "id": 16,
+      "band": "Edge Case: Glare (Light)",
+      "venue": "Testing Arena - Glare Category",
+      "date": "2024-03-04",
+      "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-03.mp3",
+      "imageFile": "/assets/test-images/edge-case-glare-light.png",
+      "photoHash": ["6a94956b6a958565", "6b94956b68958764", "6b94956b68958764"],
+      "photoHashes": {
+        "phash": ["6a94956b6a958565", "6b94956b68958764", "6b94956b68958764"]
+      },
+      "edgeCase": {
+        "category": "glare",
+        "severity": "light",
+        "description": "1 specular reflection - minor glare",
+        "expectedAccuracy": 0.85
+      }
+    },
+    {
+      "id": 17,
+      "band": "Edge Case: Glare (Moderate)",
+      "venue": "Testing Arena - Glare Category",
+      "date": "2024-03-05",
+      "audioFile": "/assets/example-real-songs/18-meatstick-clip-03.mp3",
+      "imageFile": "/assets/test-images/edge-case-glare-moderate.png",
+      "photoHash": ["24dadb24d8db24c6", "24dadb24d8d326c6", "24dadb24d8d326c6"],
+      "photoHashes": {
+        "phash": ["24dadb24d8db24c6", "24dadb24d8d326c6", "24dadb24d8d326c6"]
+      },
+      "edgeCase": {
+        "category": "glare",
+        "severity": "moderate",
+        "description": "2 specular reflections - typical overhead lighting",
+        "expectedAccuracy": 0.7
+      }
+    },
+    {
+      "id": 18,
+      "band": "Edge Case: Glare (Heavy)",
+      "venue": "Testing Arena - Glare Category",
+      "date": "2024-03-06",
+      "audioFile": "/assets/example-real-songs/20-possum-clip-03.mp3",
+      "imageFile": "/assets/test-images/edge-case-glare-heavy.png",
+      "photoHash": ["c07f800e2798ffe0", "c07e801e63997fe0", "c07e801e63997fe0"],
+      "photoHashes": {
+        "phash": ["c07f800e2798ffe0", "c07e801e63997fe0", "c07e801e63997fe0"]
+      },
+      "edgeCase": {
+        "category": "glare",
+        "severity": "heavy",
+        "description": "3+ specular reflections - glossy photo in bright light",
+        "expectedAccuracy": 0.7
+      }
+    },
+    {
+      "id": 19,
+      "band": "Edge Case: Low Light",
+      "venue": "Testing Arena - Lighting Category",
+      "date": "2024-03-07",
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-01.mp3",
+      "imageFile": "/assets/test-images/edge-case-low-light.png",
+      "photoHash": ["0000000000000000", "6f8ad07a7893c606", "6f8ad07a7893c606"],
+      "photoHashes": {
+        "phash": ["0000000000000000", "6f8ad07a7893c606", "6f8ad07a7893c606"]
+      },
+      "edgeCase": {
+        "category": "poor-lighting",
+        "severity": "severe",
+        "description": "30% brightness with noise - evening indoor conditions",
+        "expectedAccuracy": 0.75
+      }
+    },
+    {
+      "id": 20,
+      "band": "Edge Case: Angle 15°",
+      "venue": "Testing Arena - Angle Category",
+      "date": "2024-03-08",
+      "audioFile": "/assets/example-real-songs/06-ocelot-clip-01.mp3",
+      "imageFile": "/assets/test-images/edge-case-angle-15deg.png",
+      "photoHash": ["6c0cf7f270b30c86", "0d00f7f270a3ce36", "0100f7fe7083ce76"],
+      "photoHashes": {
+        "phash": ["6c0cf7f270b30c86", "0d00f7f270a3ce36", "0100f7fe7083ce76"]
+      },
+      "edgeCase": {
+        "category": "angle",
+        "severity": "light",
+        "description": "15-degree viewing angle - slight perspective distortion",
+        "expectedAccuracy": 0.85
+      }
+    },
+    {
+      "id": 21,
+      "band": "Edge Case: Angle 30°",
+      "venue": "Testing Arena - Angle Category",
+      "date": "2024-03-09",
+      "audioFile": "/assets/example-real-songs/13-1999-clip-01.mp3",
+      "imageFile": "/assets/test-images/edge-case-angle-30deg.png",
+      "photoHash": ["0c08f7f2f6a30d86", "0100ffe27497cc76", "0000ff42768fcdf6"],
+      "photoHashes": {
+        "phash": ["0c08f7f2f6a30d86", "0100ffe27497cc76", "0000ff42768fcdf6"]
+      },
+      "edgeCase": {
+        "category": "angle",
+        "severity": "moderate",
+        "description": "30-degree viewing angle - moderate perspective distortion",
+        "expectedAccuracy": 0.7
+      }
+    },
+    {
+      "id": 22,
+      "band": "Edge Case: Angle 45°",
+      "venue": "Testing Arena - Angle Category",
+      "date": "2024-03-10",
+      "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-01.mp3",
+      "imageFile": "/assets/test-images/edge-case-angle-45deg.png",
+      "photoHash": ["1818ffe4e6af1814", "0102ffe466bf1874", "0006fe4476bf5c35"],
+      "photoHashes": {
+        "phash": ["1818ffe4e6af1814", "0102ffe466bf1874", "0006fe4476bf5c35"]
+      },
+      "edgeCase": {
+        "category": "angle",
+        "severity": "severe",
+        "description": "45-degree viewing angle - severe perspective distortion",
+        "expectedAccuracy": 0.5
+      }
+    },
+    {
+      "id": 23,
+      "band": "Edge Case: Combined (Blur + Glare)",
+      "venue": "Testing Arena - Combined Category",
+      "date": "2024-03-11",
+      "audioFile": "/assets/example-real-songs/18-meatstick-clip-01.mp3",
+      "imageFile": "/assets/test-images/edge-case-combined-blur-glare.png",
+      "photoHash": ["3265336733273323", "3325336733272723", "3325336733272723"],
+      "photoHashes": {
+        "phash": ["3265336733273323", "3325336733272723", "3325336733272723"]
+      },
+      "edgeCase": {
+        "category": "combined",
+        "severity": "severe",
+        "description": "10px motion blur + 2 glare reflections - realistic challenging scenario",
+        "expectedAccuracy": 0.6
+      }
+    },
+    {
+      "id": 24,
+      "band": "Edge Case: Combined (Angle + Low Light)",
+      "venue": "Testing Arena - Combined Category",
+      "date": "2024-03-12",
+      "audioFile": "/assets/example-real-songs/20-possum-clip-01.mp3",
+      "imageFile": "/assets/test-images/edge-case-combined-angle-lowlight.png",
+      "photoHash": ["0000000000000000", "0100fef076bf0c76", "0000fe02769fcdf7"],
+      "photoHashes": {
+        "phash": ["0000000000000000", "0100fef076bf0c76", "0000fe02769fcdf7"]
+      },
+      "edgeCase": {
+        "category": "combined",
+        "severity": "severe",
+        "description": "30-degree angle + low light - evening table viewing scenario",
+        "expectedAccuracy": 0.6
+      }
     }
   ]
 }

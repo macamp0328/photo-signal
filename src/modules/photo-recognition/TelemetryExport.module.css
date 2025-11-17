@@ -1,0 +1,209 @@
+.container {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #00ff00;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  z-index: 9998;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  min-width: 300px;
+  max-width: 400px;
+  transition: all 0.3s ease;
+}
+
+.collapsed {
+  min-width: auto;
+  padding: 8px 12px;
+}
+
+.collapsedContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapsedLabel {
+  font-size: 12px;
+  font-weight: bold;
+  color: #00ff00;
+  white-space: nowrap;
+}
+
+.toggleButton {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.toggleButton:hover {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.toggleButton:active {
+  transform: scale(0.98);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #00ff00;
+  flex: 1;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  color: #00ff00;
+  opacity: 0.7;
+}
+
+.value {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.button {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  color: #00ff00;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.success {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 11px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .container {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+    font-size: 11px;
+    padding: 10px 12px;
+  }
+
+  .container:not(.collapsed) {
+    /* When expanded, position above the debug overlay */
+    bottom: auto;
+    top: 10px;
+  }
+
+  .collapsed {
+    left: auto;
+    right: 10px;
+    width: auto;
+  }
+
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .title {
+    font-size: 12px;
+  }
+
+  .stats {
+    gap: 3px;
+  }
+
+  .stat {
+    font-size: 11px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .button {
+    width: 100%;
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  .collapsedLabel {
+    font-size: 11px;
+  }
+
+  .toggleButton {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+}

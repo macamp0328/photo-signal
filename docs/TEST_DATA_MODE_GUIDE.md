@@ -40,11 +40,13 @@ Alternatively, you can click the X button or click outside the modal to close th
 
 ### What Changes When Test Mode is Active?
 
-When Test Data Mode is enabled, the app uses data from these directories instead of production data:
+The underlying dataset is now identical in both modes: `/assets/test-data/concerts.json` with audio coming exclusively from `/assets/example-real-songs/*.mp3`. We still recommend enabling Test Mode during development because it unlocks extra tooling:
 
-- **Concert data**: `assets/test-data/concerts.json` (instead of `/data.json`)
-- **Audio files**: `assets/test-audio/*.mp3` **plus** the 30-second clip pack in `assets/example-real-songs/*.mp3`
-- **Photo hashes**: Links to test images in `assets/test-images/*.jpg|png` and example real photos in `assets/example-real-photos/*.jpg`
+- **Debug overlay + telemetry export** – live recognition metrics stay visible in the bottom-right corner and you can export telemetry snapshots.
+- **Verbose logging** – Photo recognition and data service logs include per-frame breakdowns, helping you reason about similarity scores.
+- **Feature flag overrides** – Experimental settings (hash algorithm switches, recognition delay slider, retro audio, etc.) remain available only while the 🧪 flag is on.
+
+> 💡 We will reintroduce a dedicated production dataset once the 100-photo drop is ready. For now, leaving Test Mode off only hides the debug UI—it no longer changes the data source.
 
 ### Testing the Photo Recognition Workflow
 
@@ -77,11 +79,11 @@ Print whichever asset set you want to exercise:
 
 - Print at 4x6" or larger for the most reliable recognition window.
 - The easy PNGs are ideal when you just need a guaranteed match while tuning settings.
-- The example real photos now ship with hashes in both production and test data, so your existing physical prints should work immediately.
+- The example real photos now ship with both `phash` and `dhash` arrays in production and test data, so you can flip the **Hash Algorithm** custom setting without editing JSON.
 
 #### Testing Steps
 
-1. **Enable Test Data Mode** (see instructions above)
+1. **Enable Test Data Mode** (optional but recommended so you get the debug overlay)
 2. **Grant camera permissions** when prompted
 3. **Point your camera at any printed asset from the lists above**
 4. **Hold steady** for 2-3 seconds
@@ -125,7 +127,7 @@ Need something even easier to match? Run `npm run create-easy-images` to regener
 
 ### Console Logging
 
-When Test Mode is enabled, detailed logs are output to the browser console.
+When Test Mode is enabled, detailed logs are output to the browser console. Because both modes now fetch `/assets/test-data/concerts.json`, the only log difference is whether the `Test mode` line says ENABLED or DISABLED.
 
 **Data Service Logs** (when test mode is toggled):
 
@@ -251,7 +253,7 @@ When testing, you may discover features that are **planned but not yet implement
 5. Hold camera steady for 3+ seconds
 6. Try adjusting distance (6-12 inches usually works best)
 7. Check that the image is printed clearly (not on a screen)
-8. Verify the test concert has a `photoHash` field in `assets/test-data/concerts.json`
+8. Verify the test concert has a `photoHashes.phash` array (or at least the legacy `photoHash` array) in `assets/test-data/concerts.json`
 
 **Example Debug Info for Successful Recognition**:
 
@@ -284,17 +286,24 @@ When testing, you may discover features that are **planned but not yet implement
    Need a guaranteed-match calibration target? Run `npm run create-easy-images` to regenerate the bullseye/diagonal/checkerboard PNGs before printing.
 
 3. **Hash Format**:
+
    ```json
    {
      "id": 5,
      "band": "New Band",
      "venue": "New Venue",
      "date": "2024-01-01",
-     "audioFile": "/assets/test-audio/new-audio.mp3",
+     "audioFile": "/assets/example-real-songs/new-track.mp3",
      "imageFile": "/assets/test-images/new-image.jpg",
-     "photoHash": "a5b3c7d9e1f20486"
+     "photoHashes": {
+       "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
+       "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
+     },
+     "photoHash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
    }
    ```
+
+   > `photoHashes` is the new canonical shape. Keep the legacy `photoHash` array in sync until older builds are retired.
 
 See `scripts/README.md` for detailed hash generation instructions.
 
@@ -307,7 +316,7 @@ See `scripts/README.md` for detailed hash generation instructions.
 1. Check device volume
 2. Ensure you've interacted with the page (browsers block autoplay until user interaction)
 3. Check browser console for audio loading errors
-4. Verify the synthetic clips exist in `assets/test-audio/` **and** the real clip pack lives in `assets/example-real-songs/`
+4. Verify the clip pack exists in `assets/example-real-songs/` (those are the files referenced in the dataset). The legacy tones in `assets/test-audio/` remain available if you want to swap them in manually.
 
 ### Mode Not Persisting
 
@@ -365,20 +374,22 @@ If you see "[DataService] Warning: No concerts have photoHash values" or test da
 
 ### Data Sources by Mode
 
-| Resource     | Production Mode          | Test Mode                                                                   |
-| ------------ | ------------------------ | --------------------------------------------------------------------------- |
-| Concert Data | `/data.json`             | `/assets/test-data/concerts.json`                                           |
-| Audio Files  | `/audio/*.mp3`           | `/assets/test-audio/*.mp3` + `/assets/example-real-songs/*.mp3` (30s clips) |
-| Photo Hashes | (stored in concert data) | (stored in test concert data)                                               |
+| Resource     | Production Mode                        | Test Mode                              |
+| ------------ | -------------------------------------- | -------------------------------------- |
+| Concert Data | `/assets/test-data/concerts.json`      | `/assets/test-data/concerts.json`      |
+| Audio Files  | `/assets/example-real-songs/*.mp3`     | `/assets/example-real-songs/*.mp3`     |
+| Photo Hashes | Embedded in the shared concert dataset | Embedded in the shared concert dataset |
+
+> Note: `/data.json` now mirrors the same entries so non-test builds still have access to hashed photos. We'll restore a dedicated production feed once new assets land.
 
 ### Test Data Contents
 
-The test dataset now includes:
+The shared dataset now includes:
 
-- **12 concerts** with complete metadata (4 gradients, 3 high-contrast targets, 5 real photos)
-- **12 assigned audio samples** (6 synthetic tones + 6 real clip references, with 18 extra clip variations available for swapping)
-- **12 photo images** with pre-computed dHash values (JPEG + PNG)
-- **Full recognition workflow** ready to test, including real-world photo hashing baselines
+- **24 concerts** with complete metadata (4 gradients, 3 high-contrast targets, 5 real photos, and 12 diagnostic edge cases)
+- **All audio references pulled from the 30-second clip pack** in `/assets/example-real-songs/`, giving every entry a realistic playback sample
+- **Photo images with pre-computed pHash + dHash values** (JPEG + PNG) so you can toggle algorithms without editing data
+- **Full recognition workflow** ready to test, including the challenging edge-case scenarios that gate future releases
 
 ## Providing Feedback
 

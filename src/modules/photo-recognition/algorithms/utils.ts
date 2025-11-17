@@ -259,3 +259,65 @@ export function adjustBrightness(imageData: ImageData, factor: number): ImageDat
 
   return adjusted;
 }
+
+/**
+ * Calculate average brightness of an image
+ *
+ * Used for detecting poor lighting conditions (underexposure/overexposure).
+ *
+ * @param imageData - Image data to analyze
+ * @returns Average brightness value (0-255)
+ */
+export function calculateAverageBrightness(imageData: ImageData): number {
+  const grayscale = toGrayscale(imageData);
+  if (grayscale.length === 0) {
+    return 0;
+  }
+
+  const sum = grayscale.reduce((acc, val) => acc + val, 0);
+  return sum / grayscale.length;
+}
+
+/**
+ * Detect poor lighting conditions
+ *
+ * Checks for underexposure (too dark) or overexposure (too bright).
+ *
+ * @param imageData - Image data to analyze
+ * @param minBrightness - Minimum acceptable average brightness (default 50)
+ * @param maxBrightness - Maximum acceptable average brightness (default 220)
+ * @returns Object indicating if lighting is poor and the type
+ */
+export function detectPoorLighting(
+  imageData: ImageData,
+  minBrightness: number = 50,
+  maxBrightness: number = 220
+): {
+  hasPoorLighting: boolean;
+  averageBrightness: number;
+  type: 'underexposed' | 'overexposed' | 'ok';
+} {
+  const averageBrightness = calculateAverageBrightness(imageData);
+
+  if (averageBrightness < minBrightness) {
+    return {
+      hasPoorLighting: true,
+      averageBrightness,
+      type: 'underexposed',
+    };
+  }
+
+  if (averageBrightness > maxBrightness) {
+    return {
+      hasPoorLighting: true,
+      averageBrightness,
+      type: 'overexposed',
+    };
+  }
+
+  return {
+    hasPoorLighting: false,
+    averageBrightness,
+    type: 'ok',
+  };
+}

@@ -13,6 +13,13 @@ export type AudioSource = 'local' | 'cdn' | 'github-release' | 'r2';
 /**
  * Concert data structure
  */
+export interface HashSet {
+  /** Optional dHash variants (dark/normal/bright) */
+  dhash?: string[];
+  /** Optional pHash variants (dark/normal/bright) */
+  phash?: string[];
+}
+
 export interface Concert {
   /** Unique identifier */
   id: number;
@@ -36,6 +43,8 @@ export interface Concert {
    * - string[]: Multi-exposure hashes [dark, normal, bright] for lighting robustness
    */
   photoHash?: string | string[];
+  /** New multi-algorithm hash storage */
+  photoHashes?: HashSet;
 }
 
 /**

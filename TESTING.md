@@ -126,7 +126,7 @@ import { mockFetch } from '../test/mocks';
 
 // In your test
 mockFetch();
-const response = await fetch('/data.json');
+const response = await fetch('/assets/test-data/concerts.json');
 // Returns mock response
 ```
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
 import type { Concert } from '../../types';
@@ -9,32 +9,85 @@ import type {
   AspectRatio,
   FrameQualityInfo,
   RecognitionTelemetry,
+  FailureCategory,
+  FailureDiagnostic,
+  HashAlgorithm,
+  GuidanceType,
 } from './types';
 import { computeDHash } from './algorithms/dhash';
+import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
-import { convertToGrayscale, computeLaplacianVariance, detectGlare } from './algorithms/utils';
+import {
+  convertToGrayscale,
+  computeLaplacianVariance,
+  detectGlare,
+  detectPoorLighting,
+} from './algorithms/utils';
 
-const hasPhotoHash = (concert: Concert): concert is Concert & { photoHash: string | string[] } => {
-  if (typeof concert.photoHash === 'string') {
-    return concert.photoHash.length > 0;
-  }
-  if (Array.isArray(concert.photoHash)) {
-    return (
-      concert.photoHash.length > 0 &&
-      concert.photoHash.every((h) => typeof h === 'string' && h.length > 0)
-    );
-  }
-  return false;
+const HASH_LENGTHS: Record<HashAlgorithm, number> = {
+  dhash: 32,
+  phash: 16,
 };
 
-/**
- * Get all hashes for a concert (handles both single hash and multi-exposure array)
- */
-const getPhotoHashes = (concert: Concert): string[] => {
-  if (!concert.photoHash) {
+const normalizeLegacyHashes = (hash: string | string[] | undefined): string[] => {
+  if (!hash) {
     return [];
   }
-  return Array.isArray(concert.photoHash) ? concert.photoHash : [concert.photoHash];
+  const hashes = Array.isArray(hash) ? hash : [hash];
+  return hashes.filter((value) => typeof value === 'string' && value.length > 0);
+};
+
+const isValidForAlgorithm = (hashes: string[], algorithm: HashAlgorithm): boolean => {
+  if (hashes.length === 0) {
+    return false;
+  }
+  const expectedLength = HASH_LENGTHS[algorithm];
+  return hashes.every((value) => value.length === expectedLength);
+};
+
+const getPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): string[] => {
+  const hashSet = concert.photoHashes?.[algorithm];
+  if (Array.isArray(hashSet) && hashSet.length > 0 && isValidForAlgorithm(hashSet, algorithm)) {
+    return hashSet;
+  }
+
+  // Legacy photoHash field fallback - currently mirrors pHash values (16 chars)
+  // This fallback only works correctly for pHash algorithm; dHash will get empty array
+  const legacyHashes = normalizeLegacyHashes(concert.photoHash);
+  if (isValidForAlgorithm(legacyHashes, algorithm)) {
+    return legacyHashes;
+  }
+
+  return [];
+};
+
+const hasPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): boolean =>
+  getPhotoHashesForAlgorithm(concert, algorithm).length > 0;
+
+/**
+ * Record a recognition failure in telemetry
+ */
+const recordFailure = (
+  telemetry: RecognitionTelemetry,
+  category: FailureCategory,
+  reason: string,
+  frameHash: string
+): void => {
+  // Increment category counter
+  telemetry.failureByCategory[category] += 1;
+
+  // Add to failure history (keep last 10)
+  const diagnostic: FailureDiagnostic = {
+    category,
+    reason,
+    frameHash,
+    timestamp: Date.now(),
+  };
+
+  telemetry.failureHistory.push(diagnostic);
+  if (telemetry.failureHistory.length > 10) {
+    telemetry.failureHistory.shift(); // Remove oldest
+  }
 };
 
 /**
@@ -42,12 +95,14 @@ const getPhotoHashes = (concert: Concert): string[] => {
  * @param videoWidth - Width of the video in pixels
  * @param videoHeight - Height of the video in pixels
  * @param aspectRatio - Target aspect ratio ('3:2' or '2:3')
+ * @param scale - Scale factor for the frame size (default 0.8 = 80% of viewport)
  * @returns Coordinates for cropping {x, y, width, height}
  */
 export function calculateFramedRegion(
   videoWidth: number,
   videoHeight: number,
-  aspectRatio: AspectRatio
+  aspectRatio: AspectRatio,
+  scale: number = 0.8
 ): { x: number; y: number; width: number; height: number } {
   const targetRatio = aspectRatio === '3:2' ? 3 / 2 : 2 / 3;
   const videoRatio = videoWidth / videoHeight;
@@ -57,11 +112,11 @@ export function calculateFramedRegion(
 
   if (videoRatio > targetRatio) {
     // Video is wider than target - fit height, crop width
-    frameHeight = videoHeight * 0.8; // 80% of viewport
+    frameHeight = videoHeight * scale;
     frameWidth = frameHeight * targetRatio;
   } else {
     // Video is taller than target - fit width, crop height
-    frameWidth = videoWidth * 0.8;
+    frameWidth = videoWidth * scale;
     frameHeight = frameWidth / targetRatio;
   }
 
@@ -100,19 +155,34 @@ export function usePhotoRecognition(
     sharpnessThreshold = 100,
     glareThreshold = 250,
     glarePercentageThreshold = 20,
+    minBrightness = 50,
+    maxBrightness = 220,
+    hashAlgorithm = 'dhash',
+    enableMultiScale = false,
+    multiScaleVariants = [0.75, 0.8, 0.85, 0.9],
   } = options;
 
   const { isEnabled } = useFeatureFlags();
+
+  // Memoize multiScaleVariants to prevent unnecessary re-renders
+  // This ensures the array reference is stable unless the actual values change
+  const stableMultiScaleVariants = useMemo(
+    () => multiScaleVariants,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [multiScaleVariants.join(',')]
+  );
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
+  const [activeGuidance, setActiveGuidance] = useState<GuidanceType>('none');
   const [restartKey, setRestartKey] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const tempCanvasRef = useRef<HTMLCanvasElement | null>(null); // Reusable temp canvas for multi-scale
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
@@ -123,10 +193,50 @@ export function usePhotoRecognition(
     totalFrames: 0,
     blurRejections: 0,
     glareRejections: 0,
+    lightingRejections: 0,
     qualityFrames: 0,
     successfulRecognitions: 0,
     failedAttempts: 0,
+    failureHistory: [],
+    failureByCategory: {
+      'motion-blur': 0,
+      glare: 0,
+      'poor-quality': 0,
+      'no-match': 0,
+      collision: 0,
+      unknown: 0,
+    },
+    guidanceTracking: {
+      shown: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+      duration: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+      lastShown: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-lighting': 0,
+        distance: 0,
+        'off-center': 0,
+        none: 0,
+      },
+    },
   });
+
+  // Track previous guidance state for duration tracking
+  const previousGuidanceRef = useRef<GuidanceType>('none');
+  const guidanceStartTimeRef = useRef<number>(Date.now());
 
   // Load concert data
   const loadConcerts = useCallback(() => {
@@ -157,16 +267,55 @@ export function usePhotoRecognition(
     setIsRecognizing(false);
     setDebugInfo(null);
     setFrameQuality(null);
+    setActiveGuidance('none');
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
+    previousGuidanceRef.current = 'none';
+    guidanceStartTimeRef.current = Date.now();
     telemetryRef.current = {
       totalFrames: 0,
       blurRejections: 0,
       glareRejections: 0,
+      lightingRejections: 0,
       qualityFrames: 0,
       successfulRecognitions: 0,
       failedAttempts: 0,
+      failureHistory: [],
+      failureByCategory: {
+        'motion-blur': 0,
+        glare: 0,
+        'poor-quality': 0,
+        'no-match': 0,
+        collision: 0,
+        unknown: 0,
+      },
+      guidanceTracking: {
+        shown: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+        duration: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+        lastShown: {
+          'motion-blur': 0,
+          glare: 0,
+          'poor-lighting': 0,
+          distance: 0,
+          'off-center': 0,
+          none: 0,
+        },
+      },
     };
     setRestartKey((key) => key + 1);
   }, []);
@@ -183,29 +332,34 @@ export function usePhotoRecognition(
       console.log('━'.repeat(60));
       console.log('[Photo Recognition] Initializing recognition system');
       console.log(`  Concerts loaded: ${concerts.length}`);
-      console.log(`  Concerts with hashes: ${concerts.filter((c) => c.photoHash).length}`);
+      const concertsWithHashes = concerts.filter((concert) =>
+        hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+      );
+      console.log(`  Concerts with hashes: ${concertsWithHashes.length}`);
       console.log(
         `  Similarity threshold: ${similarityThreshold} (≥${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}% match)`
       );
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
       console.log(`  Check interval: ${checkInterval}ms`);
       console.log(`  Aspect ratio: ${aspectRatio}`);
+      console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
+      console.log(
+        `  Multi-scale recognition: ${enableMultiScale ? `ENABLED (scales: ${stableMultiScaleVariants.map((s) => `${(s * 100).toFixed(0)}%`).join(', ')})` : 'DISABLED'}`
+      );
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
-      if (concerts.length > 0 && concerts.filter((c) => c.photoHash).length > 0) {
+      if (concertsWithHashes.length > 0) {
         console.log('\n  Available hashes:');
-        concerts.forEach((concert) => {
-          if (concert.photoHash) {
-            const hashes = getPhotoHashes(concert);
-            if (hashes.length > 1) {
-              console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
-              hashes.forEach((hash, idx) => {
-                const exposureLabels = ['dark', 'normal', 'bright'];
-                const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
-                console.log(`      [${exposureLabel}] ${hash}`);
-              });
-            } else {
-              console.log(`    ${concert.band}: ${hashes[0]}`);
-            }
+        concertsWithHashes.forEach((concert) => {
+          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
+          if (hashes.length > 1) {
+            console.log(`    ${concert.band}: ${hashes.length} exposure variants`);
+            hashes.forEach((hash, idx) => {
+              const exposureLabels = ['dark', 'normal', 'bright'];
+              const exposureLabel = exposureLabels[idx] ?? `variant ${idx + 1}`;
+              console.log(`      [${exposureLabel}] ${hash}`);
+            });
+          } else if (hashes.length === 1) {
+            console.log(`    ${concert.band}: ${hashes[0]}`);
           }
         });
       }
@@ -309,12 +463,49 @@ export function usePhotoRecognition(
         const glareDetection = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
         const { hasGlare, glarePercentage } = glareDetection;
 
+        // Check for poor lighting
+        const lightingDetection = detectPoorLighting(imageData, minBrightness, maxBrightness);
+        const { hasPoorLighting, averageBrightness, type: lightingType } = lightingDetection;
+
+        // Determine active guidance based on detected issues (priority order)
+        let currentGuidance: GuidanceType = 'none';
+        if (!isSharp) {
+          currentGuidance = 'motion-blur';
+        } else if (hasGlare) {
+          currentGuidance = 'glare';
+        } else if (hasPoorLighting) {
+          currentGuidance = 'poor-lighting';
+        }
+
+        // Track guidance telemetry
+        const now = Date.now();
+        const previousGuidance = previousGuidanceRef.current;
+
+        // If guidance changed, update duration for previous guidance
+        if (previousGuidance !== currentGuidance) {
+          const duration = now - guidanceStartTimeRef.current;
+          telemetryRef.current.guidanceTracking.duration[previousGuidance] += duration;
+          guidanceStartTimeRef.current = now;
+          previousGuidanceRef.current = currentGuidance;
+
+          // Track when guidance is shown (not 'none')
+          if (currentGuidance !== 'none') {
+            telemetryRef.current.guidanceTracking.shown[currentGuidance] += 1;
+            telemetryRef.current.guidanceTracking.lastShown[currentGuidance] = now;
+          }
+        }
+
+        setActiveGuidance(currentGuidance);
+
         // Update frame quality state for UI feedback
         const currentFrameQuality: FrameQualityInfo = {
           sharpness,
           isSharp,
           glarePercentage,
           hasGlare,
+          averageBrightness,
+          hasPoorLighting,
+          lightingType,
         };
         setFrameQuality(currentFrameQuality);
 
@@ -327,22 +518,44 @@ export function usePhotoRecognition(
             `  Glare: ${glarePercentage.toFixed(1)}% (threshold: ${glarePercentageThreshold}%)`
           );
           console.debug(`  ${hasGlare ? '✗' : '✓'} Glare detected: ${hasGlare}`);
+          console.debug(
+            `  Brightness: ${averageBrightness.toFixed(1)} (range: ${minBrightness}-${maxBrightness})`
+          );
+          console.debug(
+            `  ${hasPoorLighting ? '✗' : '✓'} Lighting: ${lightingType} ${hasPoorLighting ? '(poor)' : '(ok)'}`
+          );
+          console.debug(`  Active Guidance: ${currentGuidance}`);
         }
 
         // Skip frame if it fails quality checks
         if (!isSharp) {
           telemetryRef.current.blurRejections += 1;
+          // Record diagnostic with placeholder hash (not computed yet for blurry frames)
+          recordFailure(
+            telemetryRef.current,
+            'motion-blur',
+            `Sharpness ${sharpness.toFixed(1)} below threshold ${sharpnessThreshold}`,
+            'N/A'
+          );
           if (isTestMode) {
             console.debug(`❌ Frame REJECTED: Too blurry (motion blur detected)`);
             console.debug(
               `   Telemetry: ${telemetryRef.current.blurRejections} blur rejections / ${telemetryRef.current.totalFrames} total frames`
             );
+            console.debug(`   Failure Category: motion-blur`);
           }
           return; // Skip hashing for blurry frames
         }
 
         if (hasGlare) {
           telemetryRef.current.glareRejections += 1;
+          // Record diagnostic with placeholder hash
+          recordFailure(
+            telemetryRef.current,
+            'glare',
+            `${glarePercentage.toFixed(1)}% of frame blown out (threshold: ${glarePercentageThreshold}%)`,
+            'N/A'
+          );
           if (isTestMode) {
             console.debug(
               `❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`
@@ -350,6 +563,7 @@ export function usePhotoRecognition(
             console.debug(
               `   Telemetry: ${telemetryRef.current.glareRejections} glare rejections / ${telemetryRef.current.totalFrames} total frames`
             );
+            console.debug(`   Failure Category: glare`);
           }
           return; // Skip hashing for frames with glare
         }
@@ -368,12 +582,83 @@ export function usePhotoRecognition(
           convertToGrayscale(imageData);
         }
 
-        // Compute hash of current frame
-        const currentHash = computeDHash(imageData);
+        // Compute hash of current frame using selected algorithm
+        const currentHash =
+          hashAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
+
+        // Multi-scale recognition: determine which scales to test
+        // If multi-scale is enabled, use user's custom variants; otherwise just test default scale (0.8)
+        const scalesToTest = enableMultiScale ? stableMultiScaleVariants : [0.8];
+        const scaleHashes: Array<{ hash: string; scale: number; region: typeof framedRegion }> = [];
+
+        for (const scale of scalesToTest) {
+          // If scale is 0.8, we can reuse the current frame and hash (already computed)
+          if (scale === 0.8) {
+            scaleHashes.push({ hash: currentHash, scale, region: framedRegion });
+            continue;
+          }
+
+          // Calculate the scaled region
+          const scaledRegion = calculateFramedRegion(
+            video.videoWidth,
+            video.videoHeight,
+            aspectRatio,
+            scale
+          );
+
+          // Reuse temp canvas to avoid creating new canvas elements in every iteration
+          if (!tempCanvasRef.current) {
+            tempCanvasRef.current = document.createElement('canvas');
+          }
+          const tempCanvas = tempCanvasRef.current;
+          tempCanvas.width = scaledRegion.width;
+          tempCanvas.height = scaledRegion.height;
+
+          const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+          if (tempCtx) {
+            // Draw the scaled region
+            tempCtx.drawImage(
+              video,
+              scaledRegion.x,
+              scaledRegion.y,
+              scaledRegion.width,
+              scaledRegion.height,
+              0,
+              0,
+              scaledRegion.width,
+              scaledRegion.height
+            );
+
+            const scaledImageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+
+            // Apply grayscale if enabled
+            if (isEnabled('grayscale-mode')) {
+              convertToGrayscale(scaledImageData);
+            }
+
+            // Compute hash for this scale
+            const scaledHash =
+              hashAlgorithm === 'phash'
+                ? computePHash(scaledImageData)
+                : computeDHash(scaledImageData);
+
+            scaleHashes.push({ hash: scaledHash, scale, region: scaledRegion });
+          } else {
+            // Log when a scale is skipped due to context creation failure
+            if (import.meta.env.DEV || isTestMode) {
+              console.debug(
+                `[Photo Recognition] Skipped scale ${(scale * 100).toFixed(0)}% (region: ${scaledRegion.width}x${scaledRegion.height}) - could not create 2D context for temporary canvas`
+              );
+            }
+          }
+        }
 
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
-        const concertsWithHashes = concerts.filter(hasPhotoHash);
+        const concertsWithHashes = concerts.filter((concert) =>
+          hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+        );
 
         if (import.meta.env.DEV || isTestMode) {
           console.debug(`\n${'='.repeat(60)}`);
@@ -384,6 +669,11 @@ export function usePhotoRecognition(
             `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
           );
           console.debug(`Aspect Ratio: ${aspectRatio}`);
+          if (enableMultiScale) {
+            console.debug(
+              `Multi-Scale: ENABLED (testing ${scaleHashes.length} scales: ${scaleHashes.map((s) => `${(s.scale * 100).toFixed(0)}%`).join(', ')})`
+            );
+          }
           console.debug(`Concerts Checked: ${concertsWithHashes.length}`);
           console.debug(
             `Threshold: ${similarityThreshold} (similarity ≥ ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%)`
@@ -394,6 +684,7 @@ export function usePhotoRecognition(
         // Find best match among concerts with photo hashes
         let bestMatch: Concert | null = null;
         let bestDistance = Infinity;
+        let bestScale = 0.8;
 
         if (import.meta.env.DEV || isTestMode) {
           console.debug('Results:');
@@ -401,17 +692,23 @@ export function usePhotoRecognition(
 
         for (const concert of concertsWithHashes) {
           // Get all hashes for this concert (handles both single and multi-exposure)
-          const hashes = getPhotoHashes(concert);
+          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
 
-          // Find best match across all exposure variants
+          // Find best match across all exposure variants and all scale variants
           let bestHashDistance = Infinity;
           let matchedHashIndex = -1;
+          let matchedScale = 0.8;
 
-          for (let i = 0; i < hashes.length; i++) {
-            const hashDistance = hammingDistance(currentHash, hashes[i]);
-            if (hashDistance < bestHashDistance) {
-              bestHashDistance = hashDistance;
-              matchedHashIndex = i;
+          // Try each scale hash
+          for (const { hash: scaleHash, scale } of scaleHashes) {
+            // Try each reference hash for this concert
+            for (let i = 0; i < hashes.length; i++) {
+              const hashDistance = hammingDistance(scaleHash, hashes[i]);
+              if (hashDistance < bestHashDistance) {
+                bestHashDistance = hashDistance;
+                matchedHashIndex = i;
+                matchedScale = scale;
+              }
             }
           }
 
@@ -425,14 +722,18 @@ export function usePhotoRecognition(
             const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
             const hashInfo =
               hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
+            const scaleInfo = enableMultiScale
+              ? ` @ ${(matchedScale * 100).toFixed(0)}% scale`
+              : '';
             console.debug(
-              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${isBest ? ' ← BEST MATCH' : ''}`
+              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${scaleInfo}${isBest ? ' ← BEST MATCH' : ''}`
             );
           }
 
           if (distance < bestDistance) {
             bestDistance = distance;
             bestMatch = concert;
+            bestScale = matchedScale;
           }
         }
 
@@ -476,6 +777,7 @@ export function usePhotoRecognition(
             recognitionDelay,
             frameQuality: currentFrameQuality,
             telemetry: { ...telemetryRef.current },
+            hashAlgorithm,
           });
         }
 
@@ -488,6 +790,9 @@ export function usePhotoRecognition(
             console.debug(`Match Decision: POTENTIAL MATCH (${bestMatch.band})`);
             console.debug(`  Distance: ${bestDistance} / ${similarityThreshold} threshold`);
             console.debug(`  Similarity: ${similarity.toFixed(1)}%`);
+            if (enableMultiScale && bestScale !== 0.8) {
+              console.debug(`  Best Scale: ${(bestScale * 100).toFixed(0)}% (relaxed framing)`);
+            }
           }
 
           // Same concert as before?
@@ -527,6 +832,25 @@ export function usePhotoRecognition(
                     `  Successful Recognitions: ${telemetryRef.current.successfulRecognitions}`
                   );
                   console.log(`  Failed Attempts: ${telemetryRef.current.failedAttempts}`);
+                  console.log(`\n  Failure Categories:`);
+                  const categories = Object.entries(telemetryRef.current.failureByCategory);
+                  categories.forEach(([category, count]) => {
+                    if (count > 0) {
+                      const pct = ((count / telemetryRef.current.totalFrames) * 100).toFixed(1);
+                      console.log(`    ${category}: ${count} (${pct}%)`);
+                    }
+                  });
+                  if (telemetryRef.current.failureHistory.length > 0) {
+                    console.log(
+                      `\n  Recent Failures (last ${telemetryRef.current.failureHistory.length}):`
+                    );
+                    telemetryRef.current.failureHistory.slice(-5).forEach((failure, idx) => {
+                      const time = new Date(failure.timestamp).toLocaleTimeString();
+                      console.log(
+                        `    ${idx + 1}. [${time}] ${failure.category}: ${failure.reason}`
+                      );
+                    });
+                  }
                 }
 
                 lastMatchedConcertRef.current = null;
@@ -562,6 +886,35 @@ export function usePhotoRecognition(
               console.debug('Match Decision: NO CANDIDATES');
             }
             console.debug('━'.repeat(60));
+          }
+
+          // Record failure diagnostic
+          if (bestMatch) {
+            const similarity = ((256 - bestDistance) / 256) * 100;
+            // Determine category based on how close we were
+            const category: FailureCategory =
+              bestDistance <= similarityThreshold + 10
+                ? 'collision' // Close call, might be similar photos
+                : 'no-match';
+            recordFailure(
+              telemetryRef.current,
+              category,
+              `Best match: ${bestMatch.band}, distance ${bestDistance}, similarity ${similarity.toFixed(1)}%`,
+              currentHash
+            );
+            if (isTestMode) {
+              console.debug(`   Failure Category: ${category}`);
+            }
+          } else {
+            recordFailure(
+              telemetryRef.current,
+              'no-match',
+              'No concerts with hashes in database',
+              currentHash
+            );
+            if (isTestMode) {
+              console.debug(`   Failure Category: no-match (no candidates)`);
+            }
           }
 
           if (lastMatchedConcertRef.current) {
@@ -607,6 +960,9 @@ export function usePhotoRecognition(
     sharpnessThreshold,
     glareThreshold,
     glarePercentageThreshold,
+    hashAlgorithm,
+    enableMultiScale,
+    stableMultiScaleVariants,
     isEnabled,
     restartKey,
   ]);
@@ -617,5 +973,6 @@ export function usePhotoRecognition(
     reset,
     debugInfo,
     frameQuality,
+    activeGuidance,
   };
 }

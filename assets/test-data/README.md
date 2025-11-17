@@ -5,7 +5,7 @@ This directory contains sample structured data files for testing data service fu
 ## Files
 
 - `concerts.json` - JSON format concert data matching the structure in `public/data.json`
-- `concerts.csv` - CSV format concert data (same dataset, including `photoHash` column)
+- `concerts.csv` - CSV format concert data (same dataset, includes legacy `photoHash` column for backwards compatibility)
 
 ## License
 
@@ -21,9 +21,11 @@ These data files are used for:
 - Development and testing with consistent, version-controlled data
 - **Runtime test mode**: When "Test Data Mode" is enabled in Secret Settings, the app loads this data instead of production data
 
+> **Temporary default dataset (Nov 2025):** Until the full 100-photo production batch ships, the main app now uses this dataset even when Test Mode is OFF. The toggle still matters for unlocking debug overlays and telemetry exports, but the data source remains the same either way.
+
 ## Runtime Access
 
-**Important**: These test assets are automatically copied to `public/assets/test-data/` during build and dev server startup by a Vite plugin. This makes them accessible at runtime when test mode is enabled.
+**Important**: These test assets are automatically copied to `public/assets/test-data/` during build and dev server startup by a Vite plugin. This makes them accessible at runtime (regardless of test mode).
 
 The `public/assets/` directory is git-ignored because it's auto-generated from the source assets in this directory.
 
@@ -41,19 +43,24 @@ Standard JSON format matching the application's data structure:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "YYYY-MM-DD",
-      "audioFile": "/assets/test-audio/audio.mp3",
+      "audioFile": "/assets/example-real-songs/track-clip.mp3",
       "imageFile": "/assets/test-images/image.jpg",
-      "photoHash": "hexadecimal-hash-string"
+      "photoHashes": {
+        "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
+        "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
+      },
+      "photoHash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
     }
   ]
 }
 ```
 
-**Key differences from production data**:
+**Key characteristics**:
 
-- `audioFile` paths point to `/assets/test-audio/*` for synthetic tones **or** `/assets/example-real-songs/*` for the 30-second real clip pack
+- `audioFile` paths now standardize on `/assets/example-real-songs/*`, leveraging the 30-second real clip pack for every test entry
 - `imageFile` paths point to `/assets/test-images/*` or `/assets/example-real-photos/*`
-- `photoHash` values are included for every concert to unblock recognition testing
+- `photoHashes` provides both **pHash** (default runtime choice) and **dHash** arrays so you can toggle algorithms via Secret Settings without editing data
+- The legacy `photoHash` array mirrors the `phash` values to keep older builds functional until they can be fully migrated
 
 ### concerts.csv
 
@@ -61,7 +68,7 @@ CSV format with headers:
 
 ```csv
 id,band,venue,date,audioFile,imageFile,photoHash
-1,Band Name,Venue Name,YYYY-MM-DD,/assets/test-audio/audio.mp3,/assets/test-images/image.jpg,hexadecimal-hash-string
+1,Band Name,Venue Name,YYYY-MM-DD,/assets/example-real-songs/track-clip.mp3,/assets/test-images/image.jpg,normal-exposure-phash
 ```
 
 ## Usage in Tests
@@ -79,5 +86,5 @@ import testData from '../../../assets/test-data/concerts.json';
 1. Triple-tap the center of the screen to open Secret Settings
 2. Enable "Test Data Mode" under Feature Flags
 3. Click "Send It 🚀" to reload the app
-4. The app will now use test data with working photo hashes
+4. The app will now use test data with working photo hashes (same dataset even if you leave the toggle OFF)
 5. Point your camera at whichever printed assets you prefer (gradients, high-contrast PNGs, or example real photos)

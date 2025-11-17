@@ -18,10 +18,17 @@
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, module structure, data flow, design principles, and architecture evolution history
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
+- **[MOBILE_UX_IMPROVEMENTS.md](./MOBILE_UX_IMPROVEMENTS.md)** - Mobile UX improvements for debug tools: collapsible overlays, smart positioning, and responsive design enhancements
 
-### Project Planning & Roadmap
+### Workflow Analysis & Implementation (PR #162)
 
-- **[ROADMAP.md](./ROADMAP.md)** - Complete project roadmap with 7 milestones and 60+ issues organized for AI agent development
+- **[README_ANALYSIS_COMPLETE.md](./README_ANALYSIS_COMPLETE.md)** - Master summary and navigation guide for GitHub Actions workflow cleanup analysis
+- **[CLEANUP_EXECUTIVE_SUMMARY.md](./CLEANUP_EXECUTIVE_SUMMARY.md)** - TL;DR decision guide with recommendations for workflow cleanup
+- **[WORKFLOW_COMPARISON_TABLE.md](./WORKFLOW_COMPARISON_TABLE.md)** - Before/after metrics, cost analysis, and scenario comparisons for workflow changes
+- **[WORKFLOW_SPAM_EXAMPLES.md](./WORKFLOW_SPAM_EXAMPLES.md)** - Real-world examples demonstrating PR comment spam before and after cleanup
+- **[GITHUB_ACTIONS_ANALYSIS.md](./GITHUB_ACTIONS_ANALYSIS.md)** - Complete technical analysis of all 6 GitHub Actions workflows
+- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Implementation details and impact of workflow cleanup
+- **[AUTO_FIX_WORKFLOW.md](./AUTO_FIX_WORKFLOW.md)** - Documentation for auto-fix workflow feature that automatically resolves formatting issues
 
 ### Research & Technical Specifications
 
@@ -29,6 +36,11 @@
 - **[docs/image-recognition-exploratory-analysis.md](./docs/image-recognition-exploratory-analysis.md)** - Exploratory analysis and benchmarking of image recognition pipeline: current failure points, performance metrics, comparative analysis vs QR codes, and actionable improvement roadmap
 - **[docs/mp3-streaming-implementation-plan.md](./docs/mp3-streaming-implementation-plan.md)** - Complete implementation plan for production MP3 streaming with CDN delivery (GitHub Releases and Cloudflare R2)
 - **[docs/audio-streaming-setup.md](./docs/audio-streaming-setup.md)** - User guide for setting up and managing audio streaming from CDN with migration scripts, validation tools, and troubleshooting
+- **[docs/IMPLEMENTATION_STATUS_SUMMARY.md](./docs/IMPLEMENTATION_STATUS_SUMMARY.md)** - 🎯 **START HERE** - Quick summary confirming Phase 1 is complete with testing instructions, verification steps, and next actions for real-world validation
+- **[docs/phase-1-implementation-verification.md](./docs/phase-1-implementation-verification.md)** - ✅ Complete Phase 1 verification report: evidence of implementation, code locations, configuration guide, performance benchmarks, and real-world photo validation (18,700 char detailed reference)
+- **[docs/phase-2-benchmarking-guide.md](./docs/phase-2-benchmarking-guide.md)** - Phase 2 benchmarking guide for pHash algorithm and failure diagnostics: test protocol, performance targets, data collection templates, and validation steps
+- **[docs/phase-2-angle-compensation-analysis.md](./docs/phase-2-angle-compensation-analysis.md)** - Phase 2 angle compensation analysis: approach comparison (multi-angle hashing, OpenCV perspective correction, enhanced framing guide), recommendations, and decision matrix
+- **[docs/phase-2-migration-guide.md](./docs/phase-2-migration-guide.md)** - Migration guide for switching from dHash to pHash: step-by-step instructions, threshold adjustments, rollback plan, A/B testing, and troubleshooting
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
 - **[docs/grayscale-feature-implementation.md](./docs/grayscale-feature-implementation.md)** - Implementation details for grayscale camera feature flag, including technical specs, usage guide, and browser compatibility
 - **[docs/mobile-first-refactor-summary.md](./docs/mobile-first-refactor-summary.md)** - Comprehensive summary of mobile-first CSS refactoring with detailed before/after comparisons, touch target improvements, and responsive breakpoint documentation
@@ -41,6 +53,7 @@
 - **[docs/codecov-setup-guide.md](./docs/codecov-setup-guide.md)** - Step-by-step guide for setting up Codecov coverage tracking with screenshots and troubleshooting
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
+- **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** - Complete guide to understanding and using photo recognition telemetry data, including failure category analysis, debugging workflows, and regression testing
 
 ### User Guides
 
@@ -57,14 +70,19 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[camera-access/README.md](./src/modules/camera-access/README.md)** - Camera permission and MediaStream management
 - **[camera-view/README.md](./src/modules/camera-view/README.md)** - Video display UI component with 3:2 and 2:3 aspect ratio overlays and toggle functionality
 - **[motion-detection/README.md](./src/modules/motion-detection/README.md)** - Camera movement detection algorithm
-- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash perceptual hashing with functional frame cropping, hash generation tools, and debug API
+- **[photo-recognition/README.md](./src/modules/photo-recognition/README.md)** - Photo matching using dHash or pHash perceptual hashing with functional frame cropping, hash generation tools, and debug API
   - **Phase 1 Enhancements**: Frame sharpness detection (motion blur mitigation), glare detection with user guidance, multi-exposure hashing for lighting robustness
-  - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation
+  - **Phase 2 Enhancements**: pHash algorithm implementation (DCT-based, more robust to angles/lighting), failure-category diagnostics (motion-blur, glare, no-match, collision tracking)
+  - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation - 128-bit gradient-based hash
+  - **[photo-recognition/algorithms/phash.ts](./src/modules/photo-recognition/algorithms/phash.ts)** - pHash (Perceptual Hash) implementation - 64-bit DCT-based hash (Phase 2)
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities (Laplacian variance for blur detection, glare detection, brightness adjustment for multi-exposure hashing)
   - **[photo-recognition/FrameQualityIndicator.tsx](./src/modules/photo-recognition/FrameQualityIndicator.tsx)** - UI component for displaying frame quality warnings ("Hold steady...", "Tilt to avoid glare")
+  - **[photo-recognition/TelemetryExport.tsx](./src/modules/photo-recognition/TelemetryExport.tsx)** - Telemetry data export component for Test Mode (JSON and Markdown reports)
   - **[photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
   - **[photo-recognition/**tests**/multiExposureMatching.test.ts](./src/modules/photo-recognition/**tests**/multiExposureMatching.test.ts)** - Unit tests for multi-exposure hash matching logic (8 tests)
+  - **[photo-recognition/**tests**/edgeCaseAccuracy.test.ts](./src/modules/photo-recognition/**tests**/edgeCaseAccuracy.test.ts)** - Edge case accuracy regression tests validating recognition thresholds (17 tests)
+  - **[photo-recognition/algorithms/**tests**/phash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/phash.test.ts)** - Unit tests for pHash algorithm (17 tests, Phase 2)
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
@@ -143,9 +161,9 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
 - **[.github/workflows/visual-regression.yml](./.github/workflows/visual-regression.yml)** - Playwright visual regression testing workflow (separate from main CI)
-- **[.github/workflows/pr-checks-monitor.yml](./.github/workflows/pr-checks-monitor.yml)** - Automated PR monitoring workflow that comments on PRs with failing checks and enforces AI agent compliance
-- **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels (ci-failing, needs-fixes)
-- **[.github/workflows/close-stale-failing-prs.yml](./.github/workflows/close-stale-failing-prs.yml)** - Automated workflow to close PRs with failing checks after 7 days (enforces AI agent policy)
+- **[.github/workflows/edge-case-accuracy.yml](./.github/workflows/edge-case-accuracy.yml)** - Edge case accuracy regression testing workflow that validates photo recognition thresholds and posts PR reports (only runs when photo recognition code changes)
+- **[.github/workflows/auto-fix-copilot-pr.yml](./.github/workflows/auto-fix-copilot-pr.yml)** - Automated workflow that fixes formatting and linting issues in Copilot PRs when CI fails
+- **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels for Dependabot
 
 ### Actions
 
@@ -247,6 +265,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
 - **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
 - **[scripts/create-easy-test-images.js](./scripts/create-easy-test-images.js)** - Canvas-based generator for high-contrast calibration targets (`npm run create-easy-images`)
+- **[scripts/create-edge-case-test-images.js](./scripts/create-edge-case-test-images.js)** - Generator for edge case test images covering motion blur, glare, lighting, and angle challenges (`npm run create-edge-case-images`)
 
 ---
 
@@ -324,13 +343,13 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (8 files)
-- ✅ Research & technical specifications (12 files - including exploratory analysis, grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
+- ✅ Root documentation (8 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, MOBILE_UX_IMPROVEMENTS)
+- ✅ Research & technical specifications (15 files - including exploratory analysis, Phase 2 benchmarking guide, Phase 2 angle compensation analysis, Phase 2 migration guide, grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Module implementation files (7 files - secret-settings feature flags, custom settings, hooks, and effects)
-- ✅ Photo recognition algorithms (3 files)
+- ✅ Photo recognition algorithms (4 files - dhash, phash, hamming, utils)
 - ✅ Configuration files (15 files - including playwright.config.ts)
 - ✅ GitHub Actions & workflows (6 files - CI workflow, visual regression, PR checks monitor, label management, stale PR closure, and Dependabot config)
 - ✅ GitHub Actions - custom actions (2 files)
@@ -342,9 +361,9 @@ This index covers:
 - ✅ Helper scripts (9 files including README, easy image generator, and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (4 files - Vitest setup, mocks, Playwright config, visual test README)
-- ✅ Module tests (9 files - including secret-settings hooks tests and photo recognition frame cropping tests)
+- ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 123 documented files
+**Total**: 128 documented files
 
-Last updated: 2025-11-15
+Last updated: 2025-11-17

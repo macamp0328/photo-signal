@@ -176,7 +176,7 @@ Creates a silent MP3 file for testing.
 
 ### `generate-photo-hashes.js` - Generate Photo Hashes
 
-Node.js script to generate dHash fingerprints for reference photos.
+Node.js script to generate dHash **or** pHash fingerprints for reference photos.
 
 **Requirements:** Node.js and canvas package (installed via npm)
 
@@ -191,17 +191,48 @@ node scripts/generate-photo-hashes.js
 **What it does:**
 
 - Reads images from `assets/test-images/` by default (pass directories/files as arguments for other folders, e.g., `npm run generate-hashes assets/example-real-photos`)
-- Computes dHash for each image
-- Outputs photo hashes to console
-- Use these hashes in `concerts.json` photoHash field
+- Computes dHash (default) or pHash (`--algorithm phash`) for each image
+- Generates three exposure-adjusted hashes (dark, normal, bright) per photo
+- Outputs photo hashes to console plus a JSON block ready for `concerts.json` (already shaped as `photoHashes` with the correct algorithm key; pHash runs also include the legacy `photoHash` mirror)
 
-**Example output:**
+**Example output (`--algorithm phash assets/test-images/concert-1.jpg`):**
 
 ```
-Photo Hashes for assets/test-images/
-concert-1.jpg: 00000000000001600acc000000000000
-concert-2.jpg: 00000000000001200330000000000000
+📸 Photo Hash Generator
+
+✓ assets/test-images/concert-1.jpg
+  Hash (dark):   9853660d98d36f26
+  Hash (normal): 98d2662d98d26f26
+  Hash (bright): 98f2662c98d26f26
+
+📋 JSON Output (for concerts.json) - PHASH hashes:
+
+[
+  {
+    "file": "assets/test-images/concert-1.jpg",
+    "photoHashes": {
+      "phash": [
+        "9853660d98d36f26",
+        "98d2662d98d26f26",
+        "98f2662c98d26f26"
+      ]
+    },
+    "photoHash": [
+      "9853660d98d36f26",
+      "98d2662d98d26f26",
+      "98f2662c98d26f26"
+    ]
+  }
+]
 ```
+
+> For dHash runs, the JSON only contains `photoHashes.dhash` (no `photoHash` mirror, since that field is reserved for pHash values).
+
+**Next steps after generation**:
+
+1. Merge the JSON block into the appropriate concerts (ensure the `file` paths align).
+2. Repeat runs for both algorithms if you need dual-hash coverage.
+3. Commit the updated data files once verified.
 
 ---
 
@@ -235,7 +266,7 @@ Browser-based tool to generate dHash fingerprints for reference photos.
 1. Open `scripts/generate-photo-hashes.html` in a web browser
 2. Click "Choose Files" and select image(s)
 3. Copy the generated hash values
-4. Add to `concerts.json` photoHash field
+4. Drop the output directly into `photoHashes.dhash` (JSON already matches the schema)
 
 **What it does:**
 
@@ -243,6 +274,7 @@ Browser-based tool to generate dHash fingerprints for reference photos.
 - Processes images client-side in browser
 - No server/Node.js required
 - Useful for quick hash generation
+- JSON output already conforms to the `photoHashes` schema (dHash key only)
 
 ---
 
@@ -482,7 +514,9 @@ Found 4 image(s):
 [
   {
     "file": "concert-1.jpg",
-    "photoHash": "000000042a000000"
+    "photoHashes": {
+      "dhash": ["000000042a000000"]
+    }
   },
   ...
 ]

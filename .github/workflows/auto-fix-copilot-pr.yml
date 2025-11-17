@@ -20,12 +20,10 @@ jobs:
   auto-fix:
     runs-on: ubuntu-latest
     # Only run on failed CI runs for pull requests from Copilot branches
-    # Skip if the most recent commit was made by github-actions bot to prevent infinite loops
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'failure' &&
-      startsWith(github.event.workflow_run.head_branch, 'copilot/') &&
-      github.event.workflow_run.head_commit.author.name != 'github-actions[bot]'
+      startsWith(github.event.workflow_run.head_branch, 'copilot/')
 
     steps:
       - name: Get PR number
@@ -41,30 +39,44 @@ jobs:
             });
 
             if (pulls.data.length > 0) {
-              return pulls.data[0].number;
+              const prNumber = pulls.data[0].number.toString();
+              core.setOutput('number', prNumber);
+            } else {
+              core.setOutput('number', '');
             }
-            return null;
 
       - name: Checkout PR branch
-        if: steps.pr.outputs.result != 'null'
+        if: steps.pr.outputs.number != ''
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check last commit author
+        if: steps.pr.outputs.number != ''
+        id: guard
+        run: |
+          author="$(git log -1 --pretty=format:'%an')"
+          if [ "$author" = "github-actions[bot]" ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Latest commit authored by bot; skipping."
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node.js
-        if: steps.pr.outputs.result != 'null'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
-        if: steps.pr.outputs.result != 'null'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
         run: npm ci
 
       - name: Run lint:fix
-        if: steps.pr.outputs.result != 'null'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
         run: |
           npm run lint:fix
           status=$?
@@ -75,7 +87,7 @@ jobs:
           fi
 
       - name: Run format
-        if: steps.pr.outputs.result != 'null'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
         run: |
           npm run format
           status=$?
@@ -86,7 +98,7 @@ jobs:
           fi
 
       - name: Check for changes
-        if: steps.pr.outputs.result != 'null'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
         id: changes
         run: |
           if git diff --quiet; then
@@ -96,26 +108,22 @@ jobs:
           fi
 
       - name: Commit and push fixes
-        if: steps.pr.outputs.result != 'null' && steps.changes.outputs.has_changes == 'true'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git commit -F- <<'EOF'
-          Auto-fix: Run lint:fix and format
-
-          Automatically applied code formatting and linting fixes.
-
-          This commit was created by the auto-fix-copilot-pr workflow to reduce manual work.
-          EOF
+          git commit \
+            -m "Auto-fix: Run lint:fix and format" \
+            -m $'Automatically applied code formatting and linting fixes.\n\nThis commit was created by the auto-fix-copilot-pr workflow to reduce manual work.'
           git push
 
       - name: Comment on PR
-        if: steps.pr.outputs.result != 'null' && steps.changes.outputs.has_changes == 'true'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'true'
         uses: actions/github-script@v8
         with:
           script: |
-            const prNumber = ${{ steps.pr.outputs.result }};
+            const prNumber = ${{ steps.pr.outputs.number }};
 
             const message = [
               '## 🤖 Auto-fix Applied',
@@ -137,11 +145,11 @@ jobs:
             });
 
       - name: Comment if no changes needed
-        if: steps.pr.outputs.result != 'null' && steps.changes.outputs.has_changes == 'false'
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'false'
         uses: actions/github-script@v8
         with:
           script: |
-            const prNumber = ${{ steps.pr.outputs.result }};
+            const prNumber = ${{ steps.pr.outputs.number }};
 
             const message = [
               '## ℹ️ No Formatting Changes Needed',

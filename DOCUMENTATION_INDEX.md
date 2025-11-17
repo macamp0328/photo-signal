@@ -20,6 +20,16 @@
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 - **[MOBILE_UX_IMPROVEMENTS.md](./MOBILE_UX_IMPROVEMENTS.md)** - Mobile UX improvements for debug tools: collapsible overlays, smart positioning, and responsive design enhancements
 
+### Workflow Analysis & Implementation (PR #162)
+
+- **[README_ANALYSIS_COMPLETE.md](./README_ANALYSIS_COMPLETE.md)** - Master summary and navigation guide for GitHub Actions workflow cleanup analysis
+- **[CLEANUP_EXECUTIVE_SUMMARY.md](./CLEANUP_EXECUTIVE_SUMMARY.md)** - TL;DR decision guide with recommendations for workflow cleanup
+- **[WORKFLOW_COMPARISON_TABLE.md](./WORKFLOW_COMPARISON_TABLE.md)** - Before/after metrics, cost analysis, and scenario comparisons for workflow changes
+- **[WORKFLOW_SPAM_EXAMPLES.md](./WORKFLOW_SPAM_EXAMPLES.md)** - Real-world examples demonstrating PR comment spam before and after cleanup
+- **[GITHUB_ACTIONS_ANALYSIS.md](./GITHUB_ACTIONS_ANALYSIS.md)** - Complete technical analysis of all 6 GitHub Actions workflows
+- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Implementation details and impact of workflow cleanup
+- **[AUTO_FIX_WORKFLOW.md](./AUTO_FIX_WORKFLOW.md)** - Documentation for auto-fix workflow feature that automatically resolves formatting issues
+
 ### Research & Technical Specifications
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
@@ -149,10 +159,9 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[.github/workflows/ci.yml](./.github/workflows/ci.yml)** - GitHub Actions CI pipeline (lint, format, type-check, test with coverage, build, bundle size check, npm audit)
 - **[.github/workflows/visual-regression.yml](./.github/workflows/visual-regression.yml)** - Playwright visual regression testing workflow (separate from main CI)
-- **[.github/workflows/edge-case-accuracy.yml](./.github/workflows/edge-case-accuracy.yml)** - Edge case accuracy regression testing workflow that validates photo recognition thresholds and posts PR reports
-- **[.github/workflows/pr-checks-monitor.yml](./.github/workflows/pr-checks-monitor.yml)** - Automated PR monitoring workflow that comments on PRs with failing checks and enforces AI agent compliance
-- **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels (ci-failing, needs-fixes)
-- **[.github/workflows/close-stale-failing-prs.yml](./.github/workflows/close-stale-failing-prs.yml)** - Automated workflow to close PRs with failing checks after 7 days (enforces AI agent policy)
+- **[.github/workflows/edge-case-accuracy.yml](./.github/workflows/edge-case-accuracy.yml)** - Edge case accuracy regression testing workflow that validates photo recognition thresholds and posts PR reports (only runs when photo recognition code changes)
+- **[.github/workflows/auto-fix-copilot-pr.yml](./.github/workflows/auto-fix-copilot-pr.yml)** - Automated workflow that fixes formatting and linting issues in Copilot PRs when CI fails
+- **[.github/workflows/manage-labels.yml](./.github/workflows/manage-labels.yml)** - Label management workflow that creates and maintains required labels for Dependabot
 
 ### Actions
 

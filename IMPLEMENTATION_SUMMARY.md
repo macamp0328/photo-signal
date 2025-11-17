@@ -8,7 +8,7 @@
 
 ## Changes Implemented
 
-Per approval in [PR comment #3543479955](https://github.com/macamp0328/photo-signal/pull/XXX#issuecomment-3543479955), the following cleanup has been implemented:
+Per approval in PR comment #3543479955, the following cleanup has been implemented:
 
 ### ✅ Deleted Workflows
 

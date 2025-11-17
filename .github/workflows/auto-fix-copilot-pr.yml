@@ -19,10 +19,12 @@ jobs:
   auto-fix:
     runs-on: ubuntu-latest
     # Only run on failed CI runs for pull requests from Copilot branches
+    # Skip if the most recent commit was made by github-actions bot to prevent infinite loops
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'failure' &&
-      startsWith(github.event.workflow_run.head_branch, 'copilot/')
+      startsWith(github.event.workflow_run.head_branch, 'copilot/') &&
+      github.event.workflow_run.head_commit.author.name != 'github-actions[bot]'
 
     steps:
       - name: Get PR number

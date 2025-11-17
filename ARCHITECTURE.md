@@ -321,7 +321,7 @@ interface DataService {
 }
 ```
 
-**Current**: Static JSON from `/public/data.json`  
+**Current**: Static JSON from `/assets/test-data/concerts.json` (mirrored to `/public/data.json`)  
 **Future**: PostgreSQL via API route
 
 ---
@@ -439,7 +439,7 @@ When scaling beyond static JSON:
 
 ```typescript
 // Before
-const concerts = await fetch('/data.json');
+const concerts = await fetch('/assets/test-data/concerts.json');
 
 // After
 const concerts = await fetch('/api/concerts');

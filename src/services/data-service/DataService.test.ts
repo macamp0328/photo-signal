@@ -13,7 +13,7 @@ import type { Concert } from '../../types';
  * - clearCache(): void - clears in-memory cache
  */
 
-// Mock concert data matching the structure in public/data.json
+// Mock concert data matching the structure in the shared concerts dataset
 const mockConcerts: Concert[] = [
   {
     id: 1,
@@ -87,7 +87,7 @@ describe('DataService', () => {
 
       // Verify fetch was called with correct URL
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/assets/test-data/concerts.json');
 
       // Verify returned data structure
       expect(concerts).toEqual(mockConcerts);
@@ -143,7 +143,7 @@ describe('DataService', () => {
         expect.any(Error)
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[DataService] Attempted to load from: /data.json'
+        '[DataService] Attempted to load from: /assets/test-data/concerts.json'
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[DataService] Test mode is DISABLED. Try enabling it in Secret Settings.'
@@ -565,7 +565,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with production data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/assets/test-data/concerts.json');
       expect(dataService.getTestMode()).toBe(false);
     });
 
@@ -580,7 +580,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       expect(mockFetch1).toHaveBeenCalledTimes(1);
-      expect(mockFetch1).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch1).toHaveBeenCalledWith('/assets/test-data/concerts.json');
 
       // Switch to test mode
       dataService.setTestMode(true);

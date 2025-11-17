@@ -41,7 +41,7 @@ class DataService {
 
 **Side Effects**:
 
-- Fetches from `/data.json` on first call
+- Fetches from `/assets/test-data/concerts.json` on first call (temporarily shared across modes)
 - Caches results in memory
 - Future: Will query PostgreSQL API
 
@@ -66,7 +66,7 @@ const results = dataService.search('Fillmore');
 
 ## Data Source
 
-**Current**: Static JSON at `/public/data.json`
+**Current**: Shared JSON at `/assets/test-data/concerts.json` (mirrored to `/public/data.json` for convenience)
 
 **Future**: PostgreSQL via API route
 
@@ -79,10 +79,10 @@ When migrating to PostgreSQL:
 3. Zero changes to consuming modules!
 
 ```typescript
-// Before
-const DATA_URL = '/data.json';
+// Before (current state)
+const DATA_URL = '/assets/test-data/concerts.json';
 
-// After
+// After (PostgreSQL)
 const DATA_URL = '/api/concerts';
 ```
 

@@ -5,7 +5,7 @@
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/assets/test-audio/concert-1.mp3",
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-02.mp3",
       "imageFile": "/assets/test-images/concert-1.jpg",
       "photoHash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
       "photoHashes": {
@@ -22,7 +22,7 @@
       "band": "Electric Dreams",
       "venue": "Red Rocks Amphitheatre",
       "date": "2023-09-22",
-      "audioFile": "/assets/test-audio/concert-2.mp3",
+      "audioFile": "/assets/example-real-songs/06-ocelot-clip-02.mp3",
       "imageFile": "/assets/test-images/concert-2.jpg",
       "photoHash": ["36d9492796d86d22", "b6d8482796d86d23", "36dac82596da6d22"],
       "photoHashes": {
@@ -39,7 +39,7 @@
       "band": "Velvet Revolution",
       "venue": "Madison Square Garden",
       "date": "2023-10-10",
-      "audioFile": "/assets/test-audio/concert-3.mp3",
+      "audioFile": "/assets/example-real-songs/13-1999-clip-02.mp3",
       "imageFile": "/assets/test-images/concert-3.jpg",
       "photoHash": ["3cdac2259cda6722", "3cda62259cda6722", "1cda63259cda6722"],
       "photoHashes": {
@@ -56,7 +56,7 @@
       "band": "Sunset Boulevard",
       "venue": "Hollywood Bowl",
       "date": "2023-11-05",
-      "audioFile": "/assets/test-audio/concert-4.mp3",
+      "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-02.mp3",
       "imageFile": "/assets/test-images/concert-4.jpg",
       "photoHash": ["36d9c82736d8cc23", "36dac82736d8cc23", "36dac82736d8cc23"],
       "photoHashes": {
@@ -73,7 +73,7 @@
       "band": "Neon Bullseye",
       "venue": "Calibration Hall",
       "date": "2024-01-05",
-      "audioFile": "/assets/test-audio/concert-song-1.mp3",
+      "audioFile": "/assets/example-real-songs/18-meatstick-clip-02.mp3",
       "imageFile": "/assets/test-images/easy-target-bullseye.png",
       "photoHash": ["a792586c63b0ccc7", "a792d8cc6338c467", "87b2f8e4691a6466"],
       "photoHashes": {
@@ -90,7 +90,7 @@
       "band": "Signal Stripes",
       "venue": "Diagonal Pavilion",
       "date": "2024-01-06",
-      "audioFile": "/assets/test-audio/concert-song-2.mp3",
+      "audioFile": "/assets/example-real-songs/20-possum-clip-02.mp3",
       "imageFile": "/assets/test-images/easy-target-diagonals.png",
       "photoHash": ["89c6710bc6f07ec1", "89c6f10be4f03ec1", "8bc4f10be4f03ec1"],
       "photoHashes": {
@@ -209,7 +209,7 @@
       "band": "Edge Case: Motion Blur (Light)",
       "venue": "Testing Arena - Motion Category",
       "date": "2024-03-01",
-      "audioFile": "/assets/test-audio/concert-song-1.mp3",
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-03.mp3",
       "imageFile": "/assets/test-images/edge-case-motion-blur-light.png",
       "photoHash": ["c68ed37078938687", "4f8ad37078938627", "4f8ad37078938627"],
       "photoHashes": {
@@ -227,7 +227,7 @@
       "band": "Edge Case: Motion Blur (Moderate)",
       "venue": "Testing Arena - Motion Category",
       "date": "2024-03-02",
-      "audioFile": "/assets/test-audio/concert-song-2.mp3",
+      "audioFile": "/assets/example-real-songs/06-ocelot-clip-03.mp3",
       "imageFile": "/assets/test-images/edge-case-motion-blur-moderate.png",
       "photoHash": ["6c86d37878b18687", "6d82d37878b1c607", "6d82d37878b1c607"],
       "photoHashes": {
@@ -245,7 +245,7 @@
       "band": "Edge Case: Motion Blur (Heavy)",
       "venue": "Testing Arena - Motion Category",
       "date": "2024-03-03",
-      "audioFile": "/assets/test-audio/concert-1.mp3",
+      "audioFile": "/assets/example-real-songs/13-1999-clip-03.mp3",
       "imageFile": "/assets/test-images/edge-case-motion-blur-heavy.png",
       "photoHash": ["46aef35078138e87", "4f8ad3707893c626", "4f8ad3707893c626"],
       "photoHashes": {
@@ -263,7 +263,7 @@
       "band": "Edge Case: Glare (Light)",
       "venue": "Testing Arena - Glare Category",
       "date": "2024-03-04",
-      "audioFile": "/assets/test-audio/concert-2.mp3",
+      "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-03.mp3",
       "imageFile": "/assets/test-images/edge-case-glare-light.png",
       "photoHash": ["6a94956b6a958565", "6b94956b68958764", "6b94956b68958764"],
       "photoHashes": {
@@ -281,7 +281,7 @@
       "band": "Edge Case: Glare (Moderate)",
       "venue": "Testing Arena - Glare Category",
       "date": "2024-03-05",
-      "audioFile": "/assets/test-audio/concert-3.mp3",
+      "audioFile": "/assets/example-real-songs/18-meatstick-clip-03.mp3",
       "imageFile": "/assets/test-images/edge-case-glare-moderate.png",
       "photoHash": ["24dadb24d8db24c6", "24dadb24d8d326c6", "24dadb24d8d326c6"],
       "photoHashes": {
@@ -299,7 +299,7 @@
       "band": "Edge Case: Glare (Heavy)",
       "venue": "Testing Arena - Glare Category",
       "date": "2024-03-06",
-      "audioFile": "/assets/test-audio/concert-4.mp3",
+      "audioFile": "/assets/example-real-songs/20-possum-clip-03.mp3",
       "imageFile": "/assets/test-images/edge-case-glare-heavy.png",
       "photoHash": ["c07f800e2798ffe0", "c07e801e63997fe0", "c07e801e63997fe0"],
       "photoHashes": {

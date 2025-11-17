@@ -39,14 +39,14 @@ options?: {
 
 ```typescript
 {
-  play: (url: string) => void;         // Play audio from URL
-  pause: () => void;                   // Pause playback
-  stop: () => void;                    // Stop and unload
-  fadeOut: (duration?: number) => void; // Fade out over duration
-  crossfade: (newUrl: string, duration?: number) => void; // Crossfade to new track
-  isPlaying: boolean;                  // Current playback state
-  volume: number;                      // Current volume 0-1
-  setVolume: (v: number) => void;      // Set volume 0-1
+  play: (url: string, fallbackUrl?: string) => void;  // Play audio from URL with optional fallback
+  pause: () => void;                                  // Pause playback
+  stop: () => void;                                   // Stop and unload
+  fadeOut: (duration?: number) => void;               // Fade out over duration
+  crossfade: (newUrl: string, duration?: number, fallbackUrl?: string) => void; // Crossfade to new track with optional fallback
+  isPlaying: boolean;                                 // Current playback state
+  volume: number;                                     // Current volume 0-1
+  setVolume: (v: number) => void;                     // Set volume 0-1
 }
 ```
 
@@ -99,7 +99,8 @@ function App() {
   const { play, fadeOut, crossfade, isPlaying } = useAudioPlayback();
 
   const handlePhotoRecognized = (concert) => {
-    play(concert.audioFile);
+    // Play with CDN URL and local fallback
+    play(concert.audioFile, concert.audioFileFallback);
   };
 
   const handleMovement = () => {
@@ -107,11 +108,46 @@ function App() {
   };
 
   const handleTrackChange = (newConcert) => {
-    // Smooth transition between tracks
-    crossfade(newConcert.audioFile, 2000); // Crossfade over 2 seconds
+    // Smooth transition between tracks with fallback support
+    crossfade(newConcert.audioFile, 2000, newConcert.audioFileFallback);
   };
 }
 ```
+
+### CDN Streaming with Fallback
+
+The audio playback module supports streaming from CDN with automatic fallback to local files:
+
+```typescript
+// Concert data with CDN URL and local fallback
+const concert = {
+  id: 1,
+  band: 'The Midnight Echoes',
+  audioFile: 'https://cdn.example.com/concert-1.mp3', // Primary CDN URL
+  audioFileFallback: '/audio/concert-1.mp3', // Local fallback
+};
+
+// Play with automatic fallback
+play(concert.audioFile, concert.audioFileFallback);
+
+// If CDN URL fails, automatically tries local fallback
+// If both fail, error is logged but app continues
+```
+
+**How fallback works:**
+
+1. **Try primary URL**: Attempts to load from CDN
+2. **On error, try fallback**: If CDN fails and fallback URL provided, tries local file
+3. **Graceful degradation**: If both fail, error is logged and playback state is managed
+
+This enables:
+
+- ✅ **Offline development**: Local files work without CDN
+- ✅ **Production reliability**: CDN outages don't break the app
+- ✅ **Cost optimization**: Stream from free CDN (GitHub Releases, Cloudflare R2)
+- ✅ **Scalability**: Support 100+ tracks without bloating git repo
+
+**See also:** [docs/audio-streaming-setup.md](../../../docs/audio-streaming-setup.md) - Complete CDN setup guide
 
 ### Crossfade Example
 
@@ -171,6 +207,41 @@ When you call `crossfade()`, the module:
 - **Preloading**: Consider preloading first track
 - **Format**: MP3 (best compatibility/size ratio)
 - **Streaming**: HTML5 audio (no full download needed)
+- **CDN Delivery**: Supports streaming from GitHub Releases or Cloudflare R2
+- **Fallback**: Automatic failover to local files when CDN unavailable
+- **Multi-source**: Howler.js tries sources in order until one succeeds
+
+---
+
+## CDN Streaming Setup
+
+For production deployments with 100+ tracks:
+
+1. **Upload MP3s to CDN** (GitHub Releases or Cloudflare R2)
+2. **Update data.json** with CDN URLs and fallbacks:
+   ```json
+   {
+     "audioFile": "https://cdn.example.com/concert-1.mp3",
+     "audioFileFallback": "/audio/concert-1.mp3"
+   }
+   ```
+3. **Use migration script**:
+   ```bash
+   npm run migrate-audio -- --base-url=https://cdn.example.com
+   ```
+4. **Validate URLs**:
+   ```bash
+   npm run validate-audio
+   ```
+
+**Benefits:**
+
+- Free hosting (GitHub Releases or Cloudflare R2 free tier)
+- <1s playback start on fast wifi
+- Clean git repository (no large MP3 files)
+- Offline development still works (fallback to local files)
+
+**See:** [docs/audio-streaming-setup.md](../../../docs/audio-streaming-setup.md) for complete guide
 
 ---
 

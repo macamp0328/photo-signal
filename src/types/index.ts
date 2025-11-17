@@ -6,6 +6,11 @@
  */
 
 /**
+ * Audio source type for Concert data
+ */
+export type AudioSource = 'local' | 'cdn' | 'github-release' | 'r2';
+
+/**
  * Concert data structure
  */
 export interface HashSet {
@@ -24,8 +29,12 @@ export interface Concert {
   venue: string;
   /** ISO date string (YYYY-MM-DD) */
   date: string;
-  /** Path to audio file (MP3) */
+  /** Path or URL to audio file (MP3) - supports both local paths and remote URLs */
   audioFile: string;
+  /** Optional fallback path to local audio file (used when CDN fails or for offline mode) */
+  audioFileFallback?: string;
+  /** Optional metadata indicating the audio source type */
+  audioFileSource?: AudioSource;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
   /**

@@ -23,6 +23,11 @@ playwright-report/
 # Generated test assets (copied from assets/ to public/ by Vite plugin)
 public/assets
 
+# Production audio files (served from CDN in production)
+# Keep demo files for local development: concert-*.mp3, concert-song-*.mp3
+# Add your production MP3 files here to exclude them from git
+# Example: public/audio/my-production-track.mp3
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

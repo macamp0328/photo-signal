@@ -164,7 +164,7 @@ function App() {
 
     if (!activeConcert) {
       console.log('Photo recognized:', recognizedConcert.band);
-      play(recognizedConcert.audioFile);
+      play(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
       setActiveConcert(recognizedConcert);
       playRandomSound();
       return;
@@ -175,7 +175,7 @@ function App() {
     }
 
     console.log('Photo changed, crossfading to:', recognizedConcert.band);
-    crossfade(recognizedConcert.audioFile);
+    crossfade(recognizedConcert.audioFile, undefined, recognizedConcert.audioFileFallback);
     setActiveConcert(recognizedConcert);
     playRandomSound();
   }, [recognizedConcert, activeConcert, play, crossfade, playRandomSound]);

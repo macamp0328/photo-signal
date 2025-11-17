@@ -534,6 +534,162 @@ For a visual interface, open `scripts/generate-photo-hashes.html` in your browse
 
 ---
 
+### `migrate-audio-to-cdn.js` - Migrate Audio to CDN
+
+Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs while preserving local fallbacks.
+
+**Requirements:** Node.js (ES modules support)
+
+**Usage:**
+
+```bash
+# Using npm script (recommended)
+npm run migrate-audio -- [options]
+
+# Or run directly
+node scripts/migrate-audio-to-cdn.js [options]
+```
+
+**Options:**
+
+- `--source=<path>` - Path to data.json (default: `public/data.json`)
+- `--cdn=<provider>` - CDN provider: `github-release` | `r2` (default: `github-release`)
+- `--base-url=<url>` - Base URL for CDN files (required)
+- `--dry-run` - Preview changes without writing files
+- `--help` - Show help message
+
+**What it does:**
+
+- Updates `audioFile` field with CDN URLs
+- Adds `audioFileFallback` field with local paths
+- Sets `audioFileSource` field to indicate CDN provider
+- Creates backup of original data.json
+- Provides detailed migration summary
+
+**Example Output:**
+
+```
+🎵 Audio CDN Migration Script
+
+Configuration:
+  Source: public/data.json
+  CDN Provider: github-release
+  Base URL: https://github.com/user/repo/releases/download/audio-v1
+  Dry Run: No
+
+✓ Concert #1 (The Midnight Echoes):
+    Original: /audio/concert-1.mp3
+    CDN URL:  https://github.com/.../concert-1.mp3
+    Fallback: /audio/concert-1.mp3
+
+📊 Migration Summary:
+  Migrated: 12 concerts
+  Skipped:  0 concerts
+  Total:    12 concerts
+
+✅ Updated data.json: public/data.json
+```
+
+**Examples:**
+
+```bash
+# Dry run first (preview changes)
+npm run migrate-audio -- --dry-run --base-url=https://github.com/user/repo/releases/download/audio-v1
+
+# Migrate to GitHub Releases
+npm run migrate-audio -- --base-url=https://github.com/user/repo/releases/download/audio-v1
+
+# Migrate to Cloudflare R2
+npm run migrate-audio -- --cdn=r2 --base-url=https://audio.example.com
+```
+
+**When to use:**
+
+- Setting up CDN delivery for production
+- Migrating from local files to CDN
+- Updating CDN URLs after changing providers
+
+**See also:** [docs/audio-streaming-setup.md](../docs/audio-streaming-setup.md) - Complete audio streaming guide
+
+---
+
+### `validate-audio-urls.js` - Validate Audio URLs
+
+Validates that all audio URLs in `data.json` are accessible and reports any broken links or issues.
+
+**Requirements:** Node.js (ES modules support)
+
+**Usage:**
+
+```bash
+# Using npm script (recommended)
+npm run validate-audio -- [options]
+
+# Or run directly
+node scripts/validate-audio-urls.js [options]
+```
+
+**Options:**
+
+- `--source=<path>` - Path to data.json (default: `public/data.json`)
+- `--timeout=<ms>` - Request timeout in milliseconds (default: 10000)
+- `--check-fallback` - Also check fallback URLs
+- `--help` - Show help message
+
+**What it does:**
+
+- Checks accessibility of primary audio URLs
+- Optionally checks fallback URLs
+- Supports both local files and remote URLs
+- Reports success rate and failed URLs
+- Provides troubleshooting recommendations
+
+**Example Output:**
+
+```
+🎵 Audio URL Validation Script
+
+Configuration:
+  Source: public/data.json
+  Timeout: 10000ms
+  Check Fallback: No
+
+Checking Concert #1: The Midnight Echoes
+  ✓ Primary:  /audio/concert-1.mp3
+            Status: 200 OK (local file)
+
+📊 Validation Summary:
+  Total URLs Checked: 12
+  Successful: 12 (100.0%)
+  Failed:     0
+
+✅ All audio URLs are accessible!
+```
+
+**Examples:**
+
+```bash
+# Validate production data.json
+npm run validate-audio
+
+# Validate with fallback URLs
+npm run validate-audio -- --check-fallback
+
+# Validate test data
+npm run validate-audio -- --source=assets/test-data/concerts.json
+```
+
+**When to use:**
+
+- After migrating to CDN
+- Before deploying to production
+- Debugging audio playback issues
+- Verifying CDN configuration
+
+**See also:** [docs/audio-streaming-setup.md](../docs/audio-streaming-setup.md) - Complete audio streaming guide
+
+---
+
 ### `generate-favicons.html` - Generate Favicon Images
 
 Browser-based tool to generate all required favicon PNG files from the camera icon design.

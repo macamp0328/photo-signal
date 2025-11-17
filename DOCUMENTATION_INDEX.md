@@ -34,6 +34,8 @@
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/image-recognition-exploratory-analysis.md](./docs/image-recognition-exploratory-analysis.md)** - Exploratory analysis and benchmarking of image recognition pipeline: current failure points, performance metrics, comparative analysis vs QR codes, and actionable improvement roadmap
+- **[docs/mp3-streaming-implementation-plan.md](./docs/mp3-streaming-implementation-plan.md)** - Complete implementation plan for production MP3 streaming with CDN delivery (GitHub Releases and Cloudflare R2)
+- **[docs/audio-streaming-setup.md](./docs/audio-streaming-setup.md)** - User guide for setting up and managing audio streaming from CDN with migration scripts, validation tools, and troubleshooting
 - **[docs/IMPLEMENTATION_STATUS_SUMMARY.md](./docs/IMPLEMENTATION_STATUS_SUMMARY.md)** - 🎯 **START HERE** - Quick summary confirming Phase 1 is complete with testing instructions, verification steps, and next actions for real-world validation
 - **[docs/phase-1-implementation-verification.md](./docs/phase-1-implementation-verification.md)** - ✅ Complete Phase 1 verification report: evidence of implementation, code locations, configuration guide, performance benchmarks, and real-world photo validation (18,700 char detailed reference)
 - **[docs/phase-2-benchmarking-guide.md](./docs/phase-2-benchmarking-guide.md)** - Phase 2 benchmarking guide for pHash algorithm and failure diagnostics: test protocol, performance targets, data collection templates, and validation steps

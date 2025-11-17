@@ -86,11 +86,13 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git commit -m "Auto-fix: Run lint:fix and format
+          git commit -F- <<EOF
+Auto-fix: Run lint:fix and format
 
-          Automatically applied code formatting and linting fixes.
-          
-          This commit was created by the auto-fix-copilot-pr workflow to reduce manual work."
+Automatically applied code formatting and linting fixes.
+
+This commit was created by the auto-fix-copilot-pr workflow to reduce manual work.
+EOF
           git push
 
       - name: Comment on PR

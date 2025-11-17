@@ -289,7 +289,8 @@ function App() {
             enabled={isTestModeEnabled}
             recognizedConcert={recognizedConcert}
             isRecognizing={isRecognizing}
-            debugInfo={debugInfo ?? undefined}
+            threshold={similarityThresholdValue}
+            debugInfo={debugInfo}
             onReset={resetRecognition}
           />
         </Suspense>

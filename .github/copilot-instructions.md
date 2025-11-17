@@ -28,6 +28,10 @@ npm run build         # Create production bundle
 
 **User Expectation**: The user expects you to automatically run these checks before committing, without being asked. Make it a habit.
 
+**⚠️ CRITICAL**: Formatting failures (`npm run format:check`) are the #1 cause of CI failures in Copilot PRs. Always run `npm run format` before committing to avoid this.
+
+**Safety Net**: If you forget to format and CI fails, the `auto-fix-copilot-pr` workflow will automatically run `lint:fix` and `format` and commit the fixes. However, **you should not rely on this** - always format your code before committing to avoid extra commits and delays.
+
 ### How to Interpret Test Output
 
 **Tests PASS when you see:**

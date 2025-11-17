@@ -1,0 +1,169 @@
+# Auto-fix Copilot PR Formatting
+#
+# Automatically fixes formatting and linting issues on Copilot PRs
+# Reduces manual work by auto-committing fixes when CI fails
+#
+name: Auto-fix Copilot PR
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-fix:
+    runs-on: ubuntu-latest
+    # Only run on failed CI runs for pull requests from Copilot branches
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      startsWith(github.event.workflow_run.head_branch, 'copilot/')
+
+    steps:
+      - name: Get PR number
+        id: pr
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pulls = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${context.payload.workflow_run.head_branch}`
+            });
+
+            if (pulls.data.length > 0) {
+              const prNumber = pulls.data[0].number.toString();
+              core.setOutput('number', prNumber);
+            } else {
+              core.setOutput('number', '');
+            }
+
+      - name: Checkout PR branch
+        if: steps.pr.outputs.number != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check last commit author
+        if: steps.pr.outputs.number != ''
+        id: guard
+        run: |
+          author="$(git log -1 --pretty=format:'%an')"
+          if [ "$author" = "github-actions[bot]" ]; then
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Latest commit authored by bot; skipping."
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
+        run: npm ci
+
+      - name: Run lint:fix
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
+        run: |
+          npm run lint:fix
+          status=$?
+          echo "lint:fix exit code: $status"
+          if [ $status -ne 0 ]; then
+            echo "::error::npm run lint:fix failed with exit code $status"
+            exit $status
+          fi
+
+      - name: Run format
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
+        run: |
+          npm run format
+          status=$?
+          echo "format exit code: $status"
+          if [ $status -ne 0 ]; then
+            echo "::error::npm run format failed with exit code $status"
+            exit $status
+          fi
+
+      - name: Check for changes
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true'
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push fixes
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit \
+            -m "Auto-fix: Run lint:fix and format" \
+            -m $'Automatically applied code formatting and linting fixes.\n\nThis commit was created by the auto-fix-copilot-pr workflow to reduce manual work.'
+          git push
+
+      - name: Comment on PR
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+
+            const message = [
+              '## 🤖 Auto-fix Applied',
+              '',
+              'Formatting and linting issues have been automatically fixed.',
+              '',
+              '**Changes applied:**',
+              '- `npm run lint:fix` - Auto-fixed linting issues',
+              '- `npm run format` - Applied Prettier formatting',
+              '',
+              'CI checks should pass now. No manual intervention needed! ✨'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });
+
+      - name: Comment if no changes needed
+        if: steps.pr.outputs.number != '' && steps.guard.outputs.should_run == 'true' && steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+
+            const message = [
+              '## ℹ️ No Formatting Changes Needed',
+              '',
+              'Ran `npm run lint:fix` and `npm run format`, but no changes were needed.',
+              '',
+              'The CI failure is likely due to another issue (type errors, test failures, build errors).',
+              '',
+              'Please check the [CI logs](${{ github.event.workflow_run.html_url }}) for details.'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });

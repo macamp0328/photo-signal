@@ -7,7 +7,8 @@ name: Auto-fix Copilot PR
 
 on:
   workflow_run:
-    workflows: ['CI']
+    workflows:
+      - CI
     types:
       - completed
 
@@ -62,13 +63,25 @@ jobs:
 
       - name: Run lint:fix
         if: steps.pr.outputs.result != 'null'
-        run: npm run lint:fix
-        continue-on-error: true
+        run: |
+          npm run lint:fix
+          status=$?
+          echo "lint:fix exit code: $status"
+          if [ $status -ne 0 ]; then
+            echo "::error::npm run lint:fix failed with exit code $status"
+            exit $status
+          fi
 
       - name: Run format
         if: steps.pr.outputs.result != 'null'
-        run: npm run format
-        continue-on-error: true
+        run: |
+          npm run format
+          status=$?
+          echo "format exit code: $status"
+          if [ $status -ne 0 ]; then
+            echo "::error::npm run format failed with exit code $status"
+            exit $status
+          fi
 
       - name: Check for changes
         if: steps.pr.outputs.result != 'null'
@@ -86,11 +99,13 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git commit -m "Auto-fix: Run lint:fix and format
+          git commit -F- <<'EOF'
+          Auto-fix: Run lint:fix and format
 
           Automatically applied code formatting and linting fixes.
 
-          This commit was created by the auto-fix-copilot-pr workflow to reduce manual work."
+          This commit was created by the auto-fix-copilot-pr workflow to reduce manual work.
+          EOF
           git push
 
       - name: Comment on PR

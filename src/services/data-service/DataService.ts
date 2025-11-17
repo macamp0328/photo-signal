@@ -40,8 +40,10 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
 class DataService {
   private cache: Concert[] | null = null;
   private isTestMode = false;
-  private readonly productionDataUrl = '/data.json';
-  private readonly testDataUrl = '/assets/test-data/concerts.json';
+  // Temporary: production and test modes both point to the clip-backed dataset until the 100-photo drop ships.
+  private readonly unifiedDataUrl = '/assets/test-data/concerts.json';
+  private readonly productionDataUrl = this.unifiedDataUrl;
+  private readonly testDataUrl = this.unifiedDataUrl;
   private listeners: Array<() => void> = [];
 
   /**

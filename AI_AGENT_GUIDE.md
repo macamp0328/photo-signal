@@ -201,7 +201,7 @@ Move from static JSON to PostgreSQL database.
 // src/services/data-service/DataService.ts
 
 class DataService {
-  private readonly dataUrl = '/api/concerts'; // Changed from /data.json
+  private readonly dataUrl = '/api/concerts'; // Changed from /assets/test-data/concerts.json
 
   async getConcerts(): Promise<Concert[]> {
     if (this.cache) return this.cache;

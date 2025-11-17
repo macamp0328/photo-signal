@@ -89,8 +89,26 @@ function ensureFileExists(relativePath: string) {
   expect(existsSync(absolutePath)).toBe(true);
 }
 
+/**
+ * Maps asset paths to their repository-relative locations.
+ *
+ * Public audio files (e.g., `/audio/sample.mp3`) are stored in `public/audio/`
+ * at the repository root, while test data assets (e.g., `/assets/test-data/...`)
+ * are already repository-relative paths. This function transforms `/audio/*`
+ * paths to `public/audio/*` while leaving `/assets/*` paths unchanged.
+ *
+ * @param assetPath - The asset path from the data file (e.g., `/audio/sample.mp3` or `/assets/test-data/image.jpg`)
+ * @returns Repository-relative path to the asset file
+ */
+function getRepositoryRelativeAssetPath(assetPath: string): string {
+  if (assetPath.startsWith('/audio/')) {
+    return path.join('public', assetPath.replace(/^\//, ''));
+  }
+  return assetPath;
+}
+
 describe('Data files integrity', () => {
-  it('production data has unique ids, hashes, and local audio files', () => {
+  it('public data has unique ids, hashes, and local audio files', () => {
     const concerts = loadConcerts('public/data.json');
     expect(concerts.length).toBeGreaterThanOrEqual(4);
     const seenIds = new Set<number>();
@@ -101,10 +119,11 @@ describe('Data files integrity', () => {
       seenIds.add(concert.id);
 
       expect(typeof concert.audioFile).toBe('string');
-      ensureFileExists(path.join('public', concert.audioFile.replace(/^\//, '')));
+      ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
 
       expectHexHash(concert.photoHash);
-      expectHashSet(concert.photoHashes);
+      const isEdgeCase = Boolean(concert.id && concert.id >= 13);
+      expectHashSet(concert.photoHashes, isEdgeCase);
     });
   });
 

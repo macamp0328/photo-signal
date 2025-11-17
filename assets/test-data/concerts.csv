@@ -1,12 +1,12 @@
 id,band,venue,date,audioFile,imageFile,photoHash
 # Note: photoHash column contains pHash values (16 hex chars, normal exposure)
 # For complete multi-algorithm/multi-exposure data, see concerts.json
-1,The Midnight Echoes,The Fillmore,2023-08-15,/assets/test-audio/concert-1.mp3,/assets/test-images/concert-1.jpg,98d2662d98d26f26
-2,Electric Dreams,Red Rocks Amphitheatre,2023-09-22,/assets/test-audio/concert-2.mp3,/assets/test-images/concert-2.jpg,b6d8482796d86d23
-3,Velvet Revolution,Madison Square Garden,2023-10-10,/assets/test-audio/concert-3.mp3,/assets/test-images/concert-3.jpg,3cda62259cda6722
-4,Sunset Boulevard,Hollywood Bowl,2023-11-05,/assets/test-audio/concert-4.mp3,/assets/test-images/concert-4.jpg,36dac82736d8cc23
-5,Neon Bullseye,Calibration Hall,2024-01-05,/assets/test-audio/concert-song-1.mp3,/assets/test-images/easy-target-bullseye.png,a792d8cc6338c467
-6,Signal Stripes,Diagonal Pavilion,2024-01-06,/assets/test-audio/concert-song-2.mp3,/assets/test-images/easy-target-diagonals.png,89c6f10be4f03ec1
+1,The Midnight Echoes,The Fillmore,2023-08-15,/assets/example-real-songs/01-mass-romantic-clip-02.mp3,/assets/test-images/concert-1.jpg,98d2662d98d26f26
+2,Electric Dreams,Red Rocks Amphitheatre,2023-09-22,/assets/example-real-songs/06-ocelot-clip-02.mp3,/assets/test-images/concert-2.jpg,b6d8482796d86d23
+3,Velvet Revolution,Madison Square Garden,2023-10-10,/assets/example-real-songs/13-1999-clip-02.mp3,/assets/test-images/concert-3.jpg,3cda62259cda6722
+4,Sunset Boulevard,Hollywood Bowl,2023-11-05,/assets/example-real-songs/16-you-enjoy-myself-clip-02.mp3,/assets/test-images/concert-4.jpg,36dac82736d8cc23
+5,Neon Bullseye,Calibration Hall,2024-01-05,/assets/example-real-songs/18-meatstick-clip-02.mp3,/assets/test-images/easy-target-bullseye.png,a792d8cc6338c467
+6,Signal Stripes,Diagonal Pavilion,2024-01-06,/assets/example-real-songs/20-possum-clip-02.mp3,/assets/test-images/easy-target-diagonals.png,89c6f10be4f03ec1
 7,Monochrome Grid,Pattern Plaza,2024-01-07,/assets/example-real-songs/20-possum-clip-01.mp3,/assets/test-images/easy-target-checker.png,8d54f3118c44f3b5
 8,"Example Real Photo (R0043343)",Analog Loft Stage,2024-02-01,/assets/example-real-songs/01-mass-romantic-clip-01.mp3,/assets/example-real-photos/R0043343.jpg,8bc2d5b52bc88595
 9,"Example Real Photo (R0055333)",Downtown Rooftop,2024-02-02,/assets/example-real-songs/06-ocelot-clip-01.mp3,/assets/example-real-photos/R0055333.jpg,9392646d2b3a72c6

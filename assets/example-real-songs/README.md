@@ -1,6 +1,6 @@
 # Example Real Songs Library
 
-This directory now stores a lightweight library of **30-second MP3 clips**
+This directory now stores a lightweight library of **30-second Opus clips**
 trimmed from user-provided concert recordings. The clips pair with the example
 photo set whenever Test Data Mode is enabled, giving you realistic audio cues
 without shipping 170 MB worth of full-length tracks.

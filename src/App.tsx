@@ -290,7 +290,7 @@ function App() {
             recognizedConcert={recognizedConcert}
             isRecognizing={isRecognizing}
             threshold={similarityThresholdValue}
-            debugInfo={debugInfo ?? undefined}
+            debugInfo={debugInfo}
             onReset={resetRecognition}
           />
         </Suspense>

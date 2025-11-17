@@ -39,6 +39,7 @@ Key features:
 - Emits `.metadata.json` index files next to every downloaded track that capture playlist context, yt-dlp `.info.json` data, codec details, and filesystem paths
 - Supports cookies, proxies, retries, throttling, and `--update-yt-dlp`
 - Loads defaults from `download/download-yt-song.config.json` (edit this file to set playlist URL, output dir, archive path, etc.)
+- Uses the `webremix` YouTube client by default; when forcing the `android` or `tv` clients you must also provide `--po-token` (or set it in the config) to satisfy yt-dlp's new PO token requirement
 
 See the [helper script docs](../README.md#audio-workflowdownloaddownload-yt-songjs---download-one-track-with-yt-dlp) for the full option list.
 

@@ -196,8 +196,8 @@ npm run download-song -- --playlist-url "<playlist-url>" --item 5
 # Download by direct track URL (skips playlist indexing)
 npm run download-song -- --track-url "https://music.youtube.com/watch?v=..."
 
-# Force a specific YouTube player client (android bypasses most HTTP 403 errors)
-npm run download-song -- --item 1 --player-client android
+# Force a specific YouTube player client (android now requires a PO token)
+npm run download-song -- --item 1 --player-client android --po-token "android.gvs+XXXX"
 
 # Use authenticated cookies and throttle to 3 MB/s for long sessions
 npm run download-song -- \
@@ -213,6 +213,8 @@ npm run download-song -- --format mp3
 
 # Provide a custom priority order (Opus → WAV → MP3)
 npm run download-song -- --format-order opus,wav,mp3
+
+The downloader now defaults to the `webremix` client because YouTube's android and tv clients require a signed PO token. If you explicitly pick one of those clients, pass `--po-token` (or set it in your config file). Without the token yt-dlp will skip most HTTPS formats due to 403 responses.
 ```
 
 **What it does:**

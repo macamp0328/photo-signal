@@ -41,7 +41,8 @@ if (!targetUrl) {
 const playlistItem = trackUrl ? null : validateIndex(options.index ?? options.item ?? 1);
 const outputDir = resolvePath(options['output-dir'] ?? DEFAULT_OUTPUT_DIR);
 const fileTemplate = options.template ?? options['file-template'] ?? DEFAULT_TEMPLATE;
-const playerClient = normalizeValue(options['player-client'], 'android');
+const playerClient = normalizeValue(options['player-client'], 'webremix');
+const poToken = normalizeValue(options['po-token'], null);
 const keepVideo = toBoolean(options['keep-video'], false);
 const writeIndexFiles = options['no-index'] ? false : toBoolean(options['write-index'], true);
 
@@ -80,10 +81,22 @@ if (downloadArchive) {
   mkdirSync(dirname(downloadArchive), { recursive: true });
 }
 
+if (playerClient === 'android' && !poToken) {
+  console.warn(
+    '⚠️  The android client now requires a PO token. Provide --po-token=<token> or switch to the default webremix client.'
+  );
+}
+
 const sleepRequests = toNumber(options['sleep-requests'], 0.5);
+const minSleepInterval = toNumber(
+  options['min-sleep-interval'],
+  typeof sleepRequests === 'number' && sleepRequests > 0 ? sleepRequests : undefined
+);
 const maxSleepInterval = toNumber(
   options['max-sleep-interval'],
-  sleepRequests ? Math.max(sleepRequests * 2, 1.5) : undefined
+  typeof sleepRequests === 'number' && sleepRequests > 0
+    ? Math.max(sleepRequests * 2, 1.5)
+    : undefined
 );
 const rateLimit = options['rate-limit'] ?? options['limit-rate'];
 const retries = toInt(options.retries, 15);
@@ -201,6 +214,7 @@ function buildDownloadPlans() {
     playlistItem,
     outputPathTemplate,
     playerClient,
+    poToken,
     keepVideo,
     writeInfoJson,
     writeThumbnail,
@@ -208,6 +222,7 @@ function buildDownloadPlans() {
     addMetadata,
     downloadArchive,
     sleepRequests,
+    minSleepInterval,
     maxSleepInterval,
     rateLimit,
     retries,
@@ -299,6 +314,7 @@ function buildYtArgs({
   formatSelector,
   outputPathTemplate,
   playerClient,
+  poToken,
   keepVideo,
   writeInfoJson,
   writeThumbnail,
@@ -306,6 +322,7 @@ function buildYtArgs({
   addMetadata,
   downloadArchive,
   sleepRequests,
+  minSleepInterval,
   maxSleepInterval,
   rateLimit,
   retries,
@@ -340,8 +357,18 @@ function buildYtArgs({
     argsList.push('--extract-audio');
   }
 
+  const extractorArgs = [];
+
   if (playerClient && playerClient !== 'none') {
-    argsList.push('--extractor-args', `youtube:player_client=${playerClient}`);
+    extractorArgs.push(`player_client=${playerClient}`);
+  }
+
+  if (poToken) {
+    extractorArgs.push(`po_token=${poToken}`);
+  }
+
+  if (extractorArgs.length) {
+    argsList.push('--extractor-args', `youtube:${extractorArgs.join('&')}`);
   }
 
   argsList.push('--format', formatSelector ?? 'bestaudio[ext=m4a]/bestaudio/best');
@@ -367,11 +394,15 @@ function buildYtArgs({
     argsList.push('--download-archive', downloadArchive);
   }
 
-  if (sleepRequests) {
+  if (typeof sleepRequests === 'number' && sleepRequests > 0) {
     argsList.push('--sleep-requests', String(sleepRequests));
   }
 
-  if (maxSleepInterval) {
+  if (typeof minSleepInterval === 'number' && minSleepInterval >= 0) {
+    argsList.push('--min-sleep-interval', String(minSleepInterval));
+  }
+
+  if (typeof maxSleepInterval === 'number' && maxSleepInterval > 0) {
     argsList.push('--max-sleep-interval', String(maxSleepInterval));
   }
 
@@ -646,7 +677,8 @@ Options:
   --format-order <list>        Alternate way to set comma-separated audio priority
 	--file-template <tpl>        yt-dlp output template (default: ${DEFAULT_TEMPLATE})
 	--keep-video                 Skip audio extraction and keep original container
-	--player-client <client>     Force specific YouTube client (default: android)
+  --player-client <client>     Force specific YouTube client (default: webremix)
+  --po-token <token>           Provide required PO token when using android or tv clients
 	--cookies-from-browser <b>   Use authenticated cookies from a local browser profile
 	--cookies <path>             Use cookies from a Netscape-format file
 	--netrc                      Use credentials from ~/.netrc
@@ -657,7 +689,9 @@ Options:
 	--no-info-json               Skip writing the .info.json metadata file
 	--no-thumbnails              Skip thumbnail download/embedding
   --write-index / --no-index   Toggle machine-readable per-track metadata index files (default: on)
-	--sleep-requests <seconds>   Friendly throttle between requests (default: 0.5)
+  --sleep-requests <seconds>   Friendly throttle between requests (default: 0.5)
+  --min-sleep-interval <sec>   Minimum random delay when throttling (default: --sleep-requests)
+  --max-sleep-interval <sec>   Maximum random delay when throttling (default: 2x min, >=1.5s)
 	--rate-limit <value>         Limit download rate, e.g. 3M for 3 megabytes/sec
 	--retries <n>                Overall retry attempts (default: 15)
 	--fragment-retries <n>       Fragment retry attempts (default: 15)

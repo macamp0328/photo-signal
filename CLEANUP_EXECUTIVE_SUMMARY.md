@@ -8,10 +8,11 @@
 
 ## TL;DR - What You Asked For
 
-**Your Request**: 
+**Your Request**:
+
 > "Please review all of the github actions that run for every commit on a PR. I want confirmation that they are actually testing things and providing a valuable impact. The number of actions has increased, but I am not confident they are doing anything besides spamming the PR threads."
 
-**My Answer**: 
+**My Answer**:
 **You are 100% correct.** One workflow (`pr-checks-monitor.yml`) is pure spam that provides zero value, and another (`edge-case-accuracy.yml`) runs on every PR even when completely irrelevant.
 
 ---
@@ -19,6 +20,7 @@
 ## The Problem in Numbers
 
 ### Current State (Before Cleanup)
+
 - **7 automated comments** per typical 3-commit PR
 - **586 lines** of automated text
 - **3 duplicate comments** (same accuracy report posted 3 times)
@@ -26,6 +28,7 @@
 - **0-1 useful comments** (only visual regression if UI changed)
 
 ### Proposed State (After Cleanup)
+
 - **0-1 automated comments** per PR
 - **0-30 lines** of automated text (only if visual regression detected)
 - **0 duplicates**
@@ -33,6 +36,7 @@
 - **0-1 useful comments** (visual regression when relevant)
 
 ### Improvement
+
 **86-100% reduction in PR comment spam**
 
 ---
@@ -88,21 +92,25 @@ I analyzed all 6 GitHub Actions workflows. Here's what they're actually doing:
 ### Immediate Actions (High Value, Low Risk)
 
 **1. Delete pr-checks-monitor.yml**
+
 - **Why**: Provides zero information beyond GitHub's native UI
 - **Risk**: None - GitHub UI shows everything this workflow does
 - **Impact**: Eliminates ~60% of PR comment spam
 
 **2. Add path filter to edge-case-accuracy.yml**
+
 - **Why**: Photo recognition tests shouldn't run on CSS/doc changes
 - **Risk**: Minimal - can always trigger manually if needed
 - **Impact**: Eliminates ~30% of PR comment spam, speeds up unrelated PRs
 
 **3. Update manage-labels.yml**
+
 - **Why**: Remove labels only used by pr-checks-monitor
 - **Risk**: None - labels aren't being used for anything important
 - **Impact**: Cleaner label list
 
 **4. Update close-stale-failing-prs.yml**
+
 - **Why**: Currently relies on labels from pr-checks-monitor
 - **Risk**: Low - use GitHub API to check status directly (more reliable)
 - **Impact**: Makes automation more robust
@@ -112,6 +120,7 @@ I analyzed all 6 GitHub Actions workflows. Here's what they're actually doing:
 ## What You Get from This Cleanup
 
 ### ✅ Benefits
+
 - **Cleaner PR threads** - Human review feedback not buried under automated spam
 - **Faster CI** - Tests only run when relevant code changes
 - **Same quality enforcement** - All essential checks remain
@@ -119,6 +128,7 @@ I analyzed all 6 GitHub Actions workflows. Here's what they're actually doing:
 - **Lower GitHub Actions costs** - Fewer unnecessary runs
 
 ### ❌ What You DON'T Lose
+
 - All quality checks remain (lint, test, build, bundle size)
 - Visual regression testing stays
 - Stale PR cleanup automation stays
@@ -129,6 +139,7 @@ I analyzed all 6 GitHub Actions workflows. Here's what they're actually doing:
 ## Why pr-checks-monitor.yml is Pure Spam
 
 GitHub's PR UI **already prominently shows**:
+
 - ✅/❌ Check status at top of PR
 - List of all checks with pass/fail
 - "Details" link to full logs
@@ -165,6 +176,7 @@ Here's what a developer sees on a simple CSS fix PR with 3 commits:
 ```
 
 **After cleanup**:
+
 ```
 👤 Reviewer: "Looks good!"
 ```
@@ -175,14 +187,14 @@ Clean. Simple. **What PR threads should look like.**
 
 ## Decision Matrix
 
-| Action | Testing Value | Spam Reduction | Risk | Recommendation |
-|--------|---------------|----------------|------|----------------|
-| Delete pr-checks-monitor.yml | None (doesn't test) | 60% | None | ✅ DO IT |
-| Filter edge-case-accuracy.yml | High (real tests) | 30% | Low | ✅ DO IT |
-| Update manage-labels.yml | N/A (support) | 0% | None | ✅ DO IT |
-| Update close-stale-failing-prs.yml | N/A (hygiene) | 0% | Low | ✅ DO IT |
-| Keep ci.yml | Critical | N/A | N/A | ✅ KEEP |
-| Keep visual-regression.yml | High | N/A | N/A | ✅ KEEP |
+| Action                             | Testing Value       | Spam Reduction | Risk | Recommendation |
+| ---------------------------------- | ------------------- | -------------- | ---- | -------------- |
+| Delete pr-checks-monitor.yml       | None (doesn't test) | 60%            | None | ✅ DO IT       |
+| Filter edge-case-accuracy.yml      | High (real tests)   | 30%            | Low  | ✅ DO IT       |
+| Update manage-labels.yml           | N/A (support)       | 0%             | None | ✅ DO IT       |
+| Update close-stale-failing-prs.yml | N/A (hygiene)       | 0%             | Low  | ✅ DO IT       |
+| Keep ci.yml                        | Critical            | N/A            | N/A  | ✅ KEEP        |
+| Keep visual-regression.yml         | High                | N/A            | N/A  | ✅ KEEP        |
 
 ---
 
@@ -214,13 +226,15 @@ I've created comprehensive documentation:
 **Proceed with all 4 cleanup actions immediately.**
 
 The changes are:
+
 - ✅ **Safe** - No loss of quality enforcement
 - ✅ **Well-justified** - Clear spam reduction
 - ✅ **Low-risk** - GitHub UI provides all the same information
 - ✅ **High-impact** - Immediate improvement to PR experience
 - ✅ **Reversible** - Can always restore if needed (but you won't want to)
 
-**Expected timeline**: 
+**Expected timeline**:
+
 - Phase 1 implementation: ~30 minutes
 - Monitor for issues: 1-2 weeks
 - Phase 2 optimizations (if needed): ~15 minutes
@@ -230,17 +244,20 @@ The changes are:
 ## Next Steps
 
 **Option 1 - Full Approval**: "Yes, proceed with all recommendations"
+
 - I'll implement Phase 1 (delete spam, update dependencies)
 - Update documentation
 - Monitor for any issues
 - Report back with results
 
 **Option 2 - Cautious Approval**: "Start with pr-checks-monitor only"
+
 - I'll delete just pr-checks-monitor.yml
 - We can evaluate the impact
 - Proceed with other changes later
 
 **Option 3 - Request Changes**: "I have concerns about X"
+
 - Let me know what concerns you
 - I can adjust the recommendations
 - We can iterate on the plan
@@ -268,6 +285,7 @@ A: No. I've analyzed all dependencies. The changes are isolated and safe. All qu
 Your instinct was correct: **The workflows are spamming PR threads.**
 
 Specifically:
+
 - **pr-checks-monitor.yml** is 100% spam (posts info GitHub already shows)
 - **edge-case-accuracy.yml** is 75% spam (posts to irrelevant PRs)
 

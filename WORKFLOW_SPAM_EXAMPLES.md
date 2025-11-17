@@ -7,6 +7,7 @@ This document shows real examples of how the current workflows create noise in P
 ## Example Scenario: Simple Bug Fix PR
 
 **Setup**: Developer makes a PR to fix a CSS bug. They push 3 commits:
+
 1. First attempt (has a typo)
 2. Second attempt (fixes typo but breaks test)
 3. Third attempt (everything works)
@@ -22,7 +23,8 @@ This document shows real examples of how the current workflows create noise in P
 **PR Comments Posted**:
 
 1. **From pr-checks-monitor.yml** (218 lines):
-```markdown
+
+````markdown
 ## ⚠️ GitHub Actions Checks Failed
 
 <!-- ci-failure-123456 -->
@@ -41,6 +43,8 @@ This document shows real examples of how the current workflows create noise in P
    npm run build
    npm run test:run
    ```
+````
+
 4. Push your fixes
 5. Verify all checks pass
 
@@ -57,7 +61,8 @@ See CONTRIBUTING.md for complete guidelines.
 ---
 
 **Note**: This PR will not be reviewed until all checks pass.
-```
+
+````
 
 2. **From edge-case-accuracy.yml** (45 lines):
 ```markdown
@@ -69,24 +74,26 @@ See CONTRIBUTING.md for complete guidelines.
 <details>
 <summary>📈 Detailed Performance Breakdown</summary>
 
-```
+````
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Edge Case Performance Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Category            │ Severity   │ Accuracy │ Threshold │ Status
+Category │ Severity │ Accuracy │ Threshold │ Status
 ────────────────────┼────────────┼──────────┼───────────┼────────
-Motion Blur         │ Light      │   92.5%  │    80%    │   ✅
-Motion Blur         │ Moderate   │   78.3%  │    60%    │   ✅
-Motion Blur         │ Heavy      │   45.2%  │    40%    │   ✅
-Glare               │ Light      │   94.8%  │    85%    │   ✅
-Glare               │ Moderate   │   82.1%  │    70%    │   ✅
-Glare               │ Heavy      │   76.9%  │    70%    │   ✅
-Poor Lighting       │ -          │   81.4%  │    75%    │   ✅
-Angle               │ 15°        │   91.2%  │    85%    │   ✅
-Angle               │ 30°        │   79.6%  │    70%    │   ✅
-Angle               │ 45°        │   58.3%  │    50%    │   ✅
-Combined Challenges │ -          │   67.8%  │    60%    │   ✅
+Motion Blur │ Light │ 92.5% │ 80% │ ✅
+Motion Blur │ Moderate │ 78.3% │ 60% │ ✅
+Motion Blur │ Heavy │ 45.2% │ 40% │ ✅
+Glare │ Light │ 94.8% │ 85% │ ✅
+Glare │ Moderate │ 82.1% │ 70% │ ✅
+Glare │ Heavy │ 76.9% │ 70% │ ✅
+Poor Lighting │ - │ 81.4% │ 75% │ ✅
+Angle │ 15° │ 91.2% │ 85% │ ✅
+Angle │ 30° │ 79.6% │ 70% │ ✅
+Angle │ 45° │ 58.3% │ 50% │ ✅
+Combined Challenges │ - │ 67.8% │ 60% │ ✅
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ```
 
 </details>
@@ -102,6 +109,7 @@ Combined Challenges │ -          │   67.8%  │    60%    │   ✅
 **Issue**: This CSS PR doesn't touch photo recognition at all, but we still get a full accuracy report!
 
 3. **From visual-regression.yml** (only if visual changed):
+
 ```markdown
 ## ⚠️ Visual Regression Test Failures
 
@@ -111,6 +119,7 @@ Visual differences were detected in this PR...
 **Total**: 2-3 automated comments (263+ lines of text)
 
 **What developer sees**:
+
 - ❌ Check failed (already visible in GitHub UI)
 - 💬 Long comment telling them to check logs (redundant)
 - 💬 Long comment about photo recognition accuracy (irrelevant to CSS fix)
@@ -125,6 +134,7 @@ Visual differences were detected in this PR...
 **PR Comments Posted**:
 
 4. **From pr-checks-monitor.yml** (218 lines):
+
 ```markdown
 ## ⚠️ GitHub Actions Checks Failed
 
@@ -135,6 +145,7 @@ Visual differences were detected in this PR...
 ```
 
 5. **From edge-case-accuracy.yml** (45 lines):
+
 ```markdown
 ## 📊 Edge Case Accuracy Report
 
@@ -146,6 +157,7 @@ Visual differences were detected in this PR...
 **Total**: 2 more automated comments (263+ lines of text, DUPLICATE of previous)
 
 **What developer sees**:
+
 - ❌ Check failed (GitHub UI updated)
 - 💬 Exact same failure comment as before
 - 💬 Exact same accuracy report as before
@@ -160,6 +172,7 @@ Visual differences were detected in this PR...
 **PR Comments Posted**:
 
 6. **From pr-checks-monitor.yml** (15 lines):
+
 ```markdown
 ## ✅ All Checks Passing
 
@@ -175,6 +188,7 @@ Thank you for fixing the issues promptly! 🎉
 ```
 
 7. **From edge-case-accuracy.yml** (45 lines):
+
 ```markdown
 ## 📊 Edge Case Accuracy Report
 
@@ -186,6 +200,7 @@ Thank you for fixing the issues promptly! 🎉
 **Total**: 2 more automated comments (60+ lines of text)
 
 **What developer sees**:
+
 - ✅ Checks passed (GitHub UI shows green)
 - 💬 "All checks passing" (thanks, I can see that)
 - 💬 Third identical accuracy report for a CSS fix
@@ -202,6 +217,7 @@ Thank you for fixing the issues promptly! 🎉
 **Redundant Comments**: 3 (pr-checks-monitor telling them what GitHub UI already shows)
 
 **PR Thread**:
+
 ```
 🤖 pr-checks-monitor: ⚠️ Checks failed (218 lines)
 🤖 edge-case-accuracy: 📊 Accuracy report (45 lines)
@@ -225,6 +241,7 @@ The actual human review feedback is buried under 586 lines of automated spam!
 **PR Comments Posted**: None
 
 **What developer sees**:
+
 - ❌ Check failed (GitHub UI)
 - Click "Details" to see logs
 - Fix the issue
@@ -238,6 +255,7 @@ The actual human review feedback is buried under 586 lines of automated spam!
 **PR Comments Posted**: None
 
 **What developer sees**:
+
 - ❌ Check failed (GitHub UI updated)
 - Click "Details" to see new logs
 - Fix the issue
@@ -248,10 +266,12 @@ The actual human review feedback is buried under 586 lines of automated spam!
 
 **GitHub Check Status**: ✅ CI / lint-format-type-check-build - Passed
 
-**PR Comments Posted**: 
+**PR Comments Posted**:
+
 - **visual-regression.yml** - Only if visual changes detected (relevant!)
 
 **What developer sees**:
+
 - ✅ Checks passed (GitHub UI shows green)
 - 💬 Visual regression warning if needed (useful!)
 - Ready for review
@@ -267,6 +287,7 @@ The actual human review feedback is buried under 586 lines of automated spam!
 **Redundant Comments**: 0
 
 **PR Thread**:
+
 ```
 🤖 visual-regression: ⚠️ Visual diff detected (if relevant)
 👤 Reviewer: "LGTM! Just one minor suggestion..."
@@ -280,36 +301,36 @@ Clean, focused, and easy to review!
 
 ### Current (Before Cleanup)
 
-| Metric | Value |
-|--------|-------|
-| Comments per 3-commit PR | 7 |
-| Lines of automated text | ~586 |
-| Duplicate comments | 3 |
-| Redundant comments | 3 |
-| Relevant comments | 0-1 |
-| Developer experience | 😫 Frustrated |
-| Maintainer experience | 😫 Buried in noise |
+| Metric                   | Value              |
+| ------------------------ | ------------------ |
+| Comments per 3-commit PR | 7                  |
+| Lines of automated text  | ~586               |
+| Duplicate comments       | 3                  |
+| Redundant comments       | 3                  |
+| Relevant comments        | 0-1                |
+| Developer experience     | 😫 Frustrated      |
+| Maintainer experience    | 😫 Buried in noise |
 
 ### Proposed (After Cleanup)
 
-| Metric | Value |
-|--------|-------|
-| Comments per 3-commit PR | 0-1 |
-| Lines of automated text | ~0-30 |
-| Duplicate comments | 0 |
-| Redundant comments | 0 |
-| Relevant comments | 0-1 |
-| Developer experience | 😊 Clean |
-| Maintainer experience | 😊 Easy to review |
+| Metric                   | Value             |
+| ------------------------ | ----------------- |
+| Comments per 3-commit PR | 0-1               |
+| Lines of automated text  | ~0-30             |
+| Duplicate comments       | 0                 |
+| Redundant comments       | 0                 |
+| Relevant comments        | 0-1               |
+| Developer experience     | 😊 Clean          |
+| Maintainer experience    | 😊 Easy to review |
 
 ### Improvement
 
-| Metric | Change |
-|--------|--------|
+| Metric            | Change        |
+| ----------------- | ------------- |
 | Comment reduction | -86% to -100% |
-| Text reduction | -95% to -100% |
-| Noise reduction | -100% |
-| Review clarity | +100% |
+| Text reduction    | -95% to -100% |
+| Noise reduction   | -100%         |
+| Review clarity    | +100%         |
 
 ---
 
@@ -330,6 +351,7 @@ GitHub's pull request UI **already prominently displays**:
 ## Conclusion
 
 The current workflow setup creates **massive PR thread spam** by:
+
 1. Posting information that GitHub already shows in the UI
 2. Posting duplicate comments on every commit
 3. Posting irrelevant test results to every PR

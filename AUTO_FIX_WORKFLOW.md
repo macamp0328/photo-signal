@@ -3,6 +3,7 @@
 ## Problem
 
 Copilot PRs frequently fail CI checks due to formatting issues. The repository owner has to manually:
+
 1. Pull the PR branch
 2. Run `npm run pre-commit`
 3. Push the fixes
@@ -35,11 +36,13 @@ Created a new GitHub Actions workflow: `auto-fix-copilot-pr.yml`
 **File**: `.github/workflows/auto-fix-copilot-pr.yml`
 
 **Triggers on**:
+
 - CI workflow completion
 - Only when CI fails
 - Only for PRs from `copilot/*` branches
 
 **What it does**:
+
 1. Checks out the PR branch
 2. Runs `npm run lint:fix` (auto-fix linting issues)
 3. Runs `npm run format` (apply Prettier formatting)
@@ -47,6 +50,7 @@ Created a new GitHub Actions workflow: `auto-fix-copilot-pr.yml`
 5. Posts a comment on the PR
 
 **Permissions needed**:
+
 - `contents: write` - To commit fixes
 - `pull-requests: write` - To comment on PR
 
@@ -81,6 +85,7 @@ Please check the CI logs for details.
 ## Updated Copilot Instructions
 
 Also updated `.github/copilot-instructions.md` to:
+
 - Emphasize that formatting failures are the #1 cause of CI failures
 - Mention the auto-fix workflow as a safety net
 - Remind AI agents to always format before committing
@@ -88,6 +93,7 @@ Also updated `.github/copilot-instructions.md` to:
 ## Impact
 
 **Before**:
+
 - Copilot PR fails CI due to formatting
 - User pulls branch manually
 - User runs `npm run pre-commit`
@@ -96,6 +102,7 @@ Also updated `.github/copilot-instructions.md` to:
 - **Time**: ~5-10 minutes of manual work
 
 **After**:
+
 - Copilot PR fails CI due to formatting
 - Auto-fix workflow runs automatically
 - Fixes are committed to PR
@@ -115,6 +122,7 @@ Also updated `.github/copilot-instructions.md` to:
 ## Testing
 
 The workflow will be tested on the next Copilot PR that has formatting issues. Expected behavior:
+
 1. CI fails due to formatting
 2. Auto-fix workflow triggers
 3. Fixes are committed automatically
@@ -124,6 +132,7 @@ The workflow will be tested on the next Copilot PR that has formatting issues. E
 ## Future Improvements (Optional)
 
 Could potentially:
+
 - Run on all PRs, not just Copilot branches (if desired)
 - Auto-fix type errors (if there's a `type-check:fix` command)
 - Run bundle size optimization

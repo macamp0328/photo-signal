@@ -89,7 +89,7 @@ jobs:
           git commit -m "Auto-fix: Run lint:fix and format
 
           Automatically applied code formatting and linting fixes.
-          
+
           This commit was created by the auto-fix-copilot-pr workflow to reduce manual work."
           git push
 
@@ -99,7 +99,7 @@ jobs:
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.result }};
-            
+
             const message = [
               '## 🤖 Auto-fix Applied',
               '',
@@ -125,7 +125,7 @@ jobs:
         with:
           script: |
             const prNumber = ${{ steps.pr.outputs.result }};
-            
+
             const message = [
               '## ℹ️ No Formatting Changes Needed',
               '',

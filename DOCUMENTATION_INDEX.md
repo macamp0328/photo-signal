@@ -255,6 +255,11 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Helper Scripts
 
 - **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts, including hash generation tools
+- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** - Overview of the download -> organize -> encode -> update pipeline with links to each stage
+- **[scripts/audio-workflow/organize/README.md](./scripts/audio-workflow/organize/README.md)** - Placeholder plan for the future organize step (manifests, alignment tools)
+- **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** - Placeholder plan for the future encode step (transcoding, mastering)
+- **[scripts/audio-workflow/download/download-yt-song.config.example.json](./scripts/audio-workflow/download/download-yt-song.config.example.json)** - Sample configuration for the yt-dlp download helper (copy to `download-yt-song.config.json` and customize defaults)
+- **[scripts/audio-workflow/download/download-yt-song.config.json](./scripts/audio-workflow/download/download-yt-song.config.json)** - Local default configuration pointing to the Photo Signal playlist and `../downloads` output folder
 - **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)
 - **[scripts/build.sh](./scripts/build.sh)** - Build for production (local or Docker)
 - **[scripts/test.sh](./scripts/test.sh)** - Run tests (local or Docker)

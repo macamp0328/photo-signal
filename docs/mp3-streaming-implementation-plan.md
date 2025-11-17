@@ -217,7 +217,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 **Tasks:**
 
-1. **Create migration script: `scripts/migrate-audio-to-cdn.js`** 🔧 Medium
+1. **Create migration script: `scripts/audio-workflow/update/migrate-audio-to-cdn.js`** 🔧 Medium
    - **Purpose**: Upload MP3s to GitHub Releases and update data.json
    - **Features**:
      - Scan `/public/audio/*.mp3` files
@@ -235,7 +235,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
    - **File**: `package.json`
    - **Lines changed**: ~2 lines
 
-3. **Create validation script: `scripts/validate-audio-urls.js`** 🔧 Small
+3. **Create validation script: `scripts/audio-workflow/update/validate-audio-urls.js`** 🔧 Small
    - **Purpose**: Verify all audio URLs in data.json are accessible
    - **Features**:
      - Load `data.json`
@@ -258,8 +258,8 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 **Deliverables:**
 
-- ✅ `scripts/migrate-audio-to-cdn.js` - Automated migration script
-- ✅ `scripts/validate-audio-urls.js` - URL validation script
+- ✅ `scripts/audio-workflow/update/migrate-audio-to-cdn.js` - Automated migration script
+- ✅ `scripts/audio-workflow/update/validate-audio-urls.js` - URL validation script
 - ✅ `docs/audio-cdn-migration-guide.md` - Migration documentation
 - ✅ Updated `.gitignore` to prevent future MP3 commits
 - ✅ npm scripts for easy execution
@@ -424,7 +424,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 ## Migration Script Specification
 
-### `scripts/migrate-audio-to-cdn.js`
+### `scripts/audio-workflow/update/migrate-audio-to-cdn.js`
 
 **Purpose**: Automate MP3 upload to CDN and update data.json.
 
@@ -531,7 +531,7 @@ Next steps:
 
 ---
 
-### `scripts/validate-audio-urls.js`
+### `scripts/audio-workflow/update/validate-audio-urls.js`
 
 **Purpose**: Verify all audio URLs in data.json are accessible.
 

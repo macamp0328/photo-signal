@@ -11,7 +11,7 @@ describe('DebugOverlay', () => {
     band: 'Test Band',
     venue: 'Test Venue',
     date: '2023-08-15',
-    audioFile: '/audio/test.mp3',
+    audioFile: '/audio/test.opus',
   };
 
   const mockDebugInfo: RecognitionDebugInfo = {

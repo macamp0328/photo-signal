@@ -43,9 +43,9 @@ See [DOCKER.md](./DOCKER.md) for complete Docker documentation.
    npm install
    ```
 
-2. **Add an MP3 file:**
+2. **Add an Opus audio file:**
 
-   Place your MP3 file at `public/audio/sample.mp3` or update the `audioFile` paths in `public/data.json`
+   Place your Opus file at `public/audio/sample.opus` or update the `audioFile` paths in `public/data.json`
 
 3. **Start development server:**
 
@@ -339,7 +339,7 @@ The GitHub Actions CI workflow still runs on all PRs to catch issues before merg
 ```
 photo-signal/
 ├── public/
-│   ├── audio/           # MP3 files
+│   ├── audio/           # Opus audio files
 │   ├── data.json        # Concert data
 │   └── vite.svg         # Favicon
 ├── src/
@@ -519,7 +519,7 @@ Edit `public/data.json` to add your own concert data:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "2023-08-15",
-      "audioFile": "/audio/sample.mp3"
+      "audioFile": "/audio/sample.opus"
     }
   ]
 }

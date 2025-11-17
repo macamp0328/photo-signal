@@ -1,7 +1,7 @@
 ---
-name: Optimize MP3 Storage Strategy
-about: Find the most sustainable way to ship and stream 100+ MP3 tracks without bloating the repo
-title: 'chore(audio): design scalable MP3 storage plan'
+name: Optimize Opus Storage Strategy
+about: Find the most sustainable way to ship and stream 100+ Opus audio tracks without bloating the repo
+title: 'chore(audio): design scalable Opus storage plan'
 labels: ['audio', 'storage', 'performance', 'ai-agent-ready']
 assignees: ''
 ---
@@ -11,7 +11,7 @@ assignees: ''
 Test Mode now includes a pack of real 30-second clips under `assets/example-real-songs/`. The current approach works for a handful of files (~12 MB total) but does **not** scale once we add full-length takes or dozens more clips:
 
 - Git history balloons quickly when committing large binaries
-- Vite copies every MP3 into `public/assets/example-real-songs/`, increasing build times and preview startup
+- Vite copies every Opus file into `public/assets/example-real-songs/`, increasing build times and preview startup
 - GitHub clones/downloads pull the entire audio archive even when engineers just want the code
 - Future roadmap calls for ~100 tracks, so the repository could easily exceed multiple gigabytes
 
@@ -19,7 +19,7 @@ We need a sustainable storage + delivery model before adding more real songs.
 
 ## Context
 
-- Audio playback today expects static URLs (e.g., `/assets/example-real-songs/01-mass-romantic-clip-01.mp3`)
+- Audio playback today expects static URLs (e.g., `/assets/example-real-songs/01-mass-romantic-clip-01.opus`)
 - Build pipeline runs in Vercel + GitHub Actions with default disk quotas
 - Some contributors work offline, so we still need an easy path for local testing
 - Licensing rules differ between synthetic tones (CC0) and user-provided recordings (internal-use only)
@@ -34,12 +34,12 @@ We need a sustainable storage + delivery model before adding more real songs.
 ## Possible Approaches
 
 1. **External Object Storage** (S3, R2, Supabase, etc.)
-   - Store MP3s outside the repo, expose signed URLs or public bucket paths
+   - Store Opus files outside the repo, expose signed URLs or public bucket paths
    - Pros: Small repo, infinite scale
    - Cons: Requires credentials/config, offline dev may suffer
 
 2. **Git LFS**
-   - Keep MP3s versioned via LFS pointers
+   - Keep Opus files versioned via LFS pointers
    - Pros: Minimal code changes, still "git clone" friendly
    - Cons: Requires LFS setup, still pushes data through GitHub quotas
 
@@ -48,7 +48,7 @@ We need a sustainable storage + delivery model before adding more real songs.
    - Pros: Onboarding stays lightweight; advanced users fetch more files as needed
 
 4. **App-Level Streaming**
-   - Host MP3s on a streaming/CDN service and reference them directly from the dataset
+   - Host Opus files on a streaming/CDN service and reference them directly from the dataset
    - Pros: No build impact; production-ready for end users
    - Cons: Requires resilient hosting + caching strategy
 
@@ -64,7 +64,7 @@ We need a sustainable storage + delivery model before adding more real songs.
 
 - Decision document outlining the recommended approach and tradeoffs
 - Implementation plan (code + infra + migration steps)
-- Updated documentation (Test Mode guide, ASSET_LICENSES, SETUP) describing how contributors obtain the MP3 library
+- Updated documentation (Test Mode guide, ASSET_LICENSES, SETUP) describing how contributors obtain the Opus audio library
 - Automation/scripts to sync or fetch audio if the source is outside the repo
 
 ## Acceptance Criteria

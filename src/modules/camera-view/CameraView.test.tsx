@@ -469,7 +469,7 @@ describe('CameraView', () => {
       band: 'The Beatles',
       venue: 'Shea Stadium',
       date: '1965-08-15',
-      audioFile: '/audio/beatles.mp3',
+      audioFile: '/audio/beatles.opus',
     };
 
     beforeEach(() => {

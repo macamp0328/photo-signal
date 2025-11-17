@@ -1,16 +1,13 @@
 # Manage Labels - Ensure required labels exist
 #
 # This workflow creates and maintains standard labels for the repository,
-# especially those required by the PR checks monitor workflow and Dependabot.
+# especially those used by Dependabot for automated dependency updates.
 #
 # Labels created:
-# - ci-failing: Indicates PR has failing CI checks
-# - needs-fixes: Indicates PR needs fixes before review
 # - automated: Indicates automated PRs (e.g., Dependabot)
 # - dependencies: Indicates dependency updates
 # - npm: Indicates npm package updates
 # - github-actions: Indicates GitHub Actions updates
-# - ci: Indicates CI/CD related changes
 #
 name: Manage Labels
 
@@ -37,16 +34,6 @@ jobs:
           script: |
             const labels = [
               {
-                name: 'ci-failing',
-                color: 'd73a4a',
-                description: 'GitHub Actions CI checks are failing'
-              },
-              {
-                name: 'needs-fixes',
-                color: 'fbca04',
-                description: 'PR requires fixes before review'
-              },
-              {
                 name: 'automated',
                 color: '0e8a16',
                 description: 'Automated pull requests (e.g., Dependabot)'
@@ -65,11 +52,6 @@ jobs:
                 name: 'github-actions',
                 color: '2088ff',
                 description: 'GitHub Actions updates'
-              },
-              {
-                name: 'ci',
-                color: '1d76db',
-                description: 'CI/CD related changes'
               }
             ];
 

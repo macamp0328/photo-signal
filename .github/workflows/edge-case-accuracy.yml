@@ -2,12 +2,19 @@
 #
 # Runs edge case accuracy regression tests and posts results to PR
 # Ensures accuracy targets are maintained across changes
+# Only runs when photo recognition code changes
 #
 name: Edge Case Accuracy Report
 
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'src/modules/photo-recognition/**'
+      - 'src/services/photo-recognition-service/**'
+      - 'assets/test-data/**'
+      - 'scripts/generate-photo-hashes.js'
+      - 'scripts/create-edge-case-test-images.js'
   workflow_dispatch:
 
 jobs:

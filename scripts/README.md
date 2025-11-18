@@ -213,9 +213,9 @@ npm run download-song -- --format mp3
 
 # Provide a custom priority order (Opus → WAV → MP3)
 npm run download-song -- --format-order opus,wav,mp3
+```
 
 The downloader now defaults to the `webremix` client because YouTube's android and tv clients require a signed PO token. If you explicitly pick one of those clients, pass `--po-token` (or set it in your config file). Without the token yt-dlp will skip most HTTPS formats due to 403 responses.
-```
 
 **What it does:**
 

@@ -707,7 +707,9 @@ Options:
 
 function printVersion() {
   try {
-    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
+    const pkg = JSON.parse(
+      readFileSync(new URL('../../../package.json', import.meta.url), 'utf-8')
+    );
     console.log(`download-yt-song v${pkg.version}`);
   } catch {
     console.log('download-yt-song');

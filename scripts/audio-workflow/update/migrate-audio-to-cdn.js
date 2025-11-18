@@ -170,7 +170,7 @@ async function migrateAudioFiles() {
       continue;
     }
 
-    // Extract filename from path (e.g., "/audio/concert-1.mp3" -> "concert-1.mp3")
+    // Extract filename from path (e.g., "/audio/concert-1.opus" -> "concert-1.opus")
     const filename = path.basename(originalAudioFile);
 
     // Build CDN URL
@@ -229,7 +229,7 @@ async function migrateAudioFiles() {
     if (options.cdn === 'github-release') {
       console.log('   - Go to: https://github.com/username/repo/releases');
       console.log('   - Create a new release (e.g., "audio-v1")');
-      console.log('   - Upload MP3 files from public/audio/ directory');
+      console.log('   - Upload Opus files from public/audio/ directory');
     } else if (options.cdn === 'r2') {
       console.log('   - Use Cloudflare dashboard or wrangler CLI');
       console.log('   - Upload files to your R2 bucket');
@@ -240,12 +240,12 @@ async function migrateAudioFiles() {
     console.log('   Open the app and verify audio plays from CDN');
     console.log('\n3. Validate all URLs:');
     console.log('   node scripts/audio-workflow/update/validate-audio-urls.js');
-    console.log('\n4. Once confirmed, remove local MP3s from git:');
-    console.log('   git rm public/audio/*.mp3');
+    console.log('\n4. Once confirmed, remove local Opus files from git:');
+    console.log('   git rm public/audio/*.opus');
     console.log('   git commit -m "chore: remove production audio files (now on CDN)"');
     console.log('\n5. Update .gitignore to exclude future production audio files:');
     console.log(
-      '   # ⚠️ Review your .gitignore manually. Do NOT ignore all MP3s if you want to keep demo files.'
+      '   # ⚠️ Review your .gitignore manually. Do NOT ignore all Opus files if you want to keep demo files.'
     );
     console.log(
       '   # For example, you can add a pattern for production files only, or follow the existing .gitignore comments.'

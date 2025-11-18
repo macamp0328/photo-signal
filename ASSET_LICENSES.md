@@ -6,7 +6,7 @@ This document provides attribution and licensing information for all test assets
 
 - All synthetic test assets (images, audio files, data files) in the `assets/` directory are **generated files** created specifically for this project and released under CC0.
 - The `assets/example-real-photos/` directory contains user-provided photos that ship with the repository for recognition testing. These images remain the property of the contributor and are licensed for Photo Signal development use only (see section below).
-- The `assets/example-real-songs/` directory contains user-provided MP3 recordings that may contain copyrighted material. These tracks are licensed for internal Photo Signal development/testing only.
+- The `assets/example-real-songs/` directory contains user-provided Opus recordings that may contain copyrighted material. These tracks are licensed for internal Photo Signal development/testing only.
 
 ## License
 
@@ -53,14 +53,14 @@ These photos are owned by the contributor and included solely for internal testi
 
 ### Example Real Songs (`assets/example-real-songs/`)
 
-| Clip Pattern                      | Description                               | Source                              | License                   |
-| --------------------------------- | ----------------------------------------- | ----------------------------------- | ------------------------- |
-| `01-mass-romantic-clip-0X.mp3`    | 30s stems from "Mass Romantic" live take  | Provided by Photo Signal maintainer | Internal testing use only |
-| `06-ocelot-clip-0X.mp3`           | 30s stems from "Ocelot" jam-band cut      | Provided by Photo Signal maintainer | Internal testing use only |
-| `13-1999-clip-0X.mp3`             | 30s stems from a "1999" synth-heavy cover | Provided by Photo Signal maintainer | Internal testing use only |
-| `16-you-enjoy-myself-clip-0X.mp3` | 30s stems from "You Enjoy Myself"         | Provided by Photo Signal maintainer | Internal testing use only |
-| `18-meatstick-clip-0X.mp3`        | 30s stems from "Meatstick" crowd favorite | Provided by Photo Signal maintainer | Internal testing use only |
-| `20-possum-clip-0X.mp3`           | 30s stems from "Possum" blues-rock closer | Provided by Photo Signal maintainer | Internal testing use only |
+| Clip Pattern                       | Description                               | Source                              | License                   |
+| ---------------------------------- | ----------------------------------------- | ----------------------------------- | ------------------------- |
+| `01-mass-romantic-clip-0X.opus`    | 30s stems from "Mass Romantic" live take  | Provided by Photo Signal maintainer | Internal testing use only |
+| `06-ocelot-clip-0X.opus`           | 30s stems from "Ocelot" jam-band cut      | Provided by Photo Signal maintainer | Internal testing use only |
+| `13-1999-clip-0X.opus`             | 30s stems from a "1999" synth-heavy cover | Provided by Photo Signal maintainer | Internal testing use only |
+| `16-you-enjoy-myself-clip-0X.opus` | 30s stems from "You Enjoy Myself"         | Provided by Photo Signal maintainer | Internal testing use only |
+| `18-meatstick-clip-0X.opus`        | 30s stems from "Meatstick" crowd favorite | Provided by Photo Signal maintainer | Internal testing use only |
+| `20-possum-clip-0X.opus`           | 30s stems from "Possum" blues-rock closer | Provided by Photo Signal maintainer | Internal testing use only |
 
 Each pattern currently expands to four clips (X = 1…4) encoded at 128 kbps. The
 clips dramatically cut repository size while preserving the realism of the
@@ -70,16 +70,16 @@ repository.
 
 ### Test Audio Files (`assets/test-audio/`)
 
-| File                 | Description                 | Generation Method     | License |
-| -------------------- | --------------------------- | --------------------- | ------- |
-| `concert-1.mp3`      | 220Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
-| `concert-2.mp3`      | 440Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
-| `concert-3.mp3`      | 880Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
-| `concert-4.mp3`      | C-E-G chord (5s)            | Generated with FFmpeg | CC0     |
-| `concert-song-1.mp3` | Layered composition (2 min) | Generated with FFmpeg | CC0     |
-| `concert-song-2.mp3` | Chord progression (2 min)   | Generated with FFmpeg | CC0     |
+| File                  | Description                 | Generation Method     | License |
+| --------------------- | --------------------------- | --------------------- | ------- |
+| `concert-1.opus`      | 220Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
+| `concert-2.opus`      | 440Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
+| `concert-3.opus`      | 880Hz sine wave (5s)        | Generated with FFmpeg | CC0     |
+| `concert-4.opus`      | C-E-G chord (5s)            | Generated with FFmpeg | CC0     |
+| `concert-song-1.opus` | Layered composition (2 min) | Generated with FFmpeg | CC0     |
+| `concert-song-2.opus` | Chord progression (2 min)   | Generated with FFmpeg | CC0     |
 
-**Short Files Creation Command**: `ffmpeg -f lavfi -i "sine=frequency=XXX:duration=5" -b:a 64k [filename].mp3`
+**Short Files Creation Command**: `ffmpeg -f lavfi -i "sine=frequency=XXX:duration=5" -b:a 64k [filename].opus`
 
 **Full-Length Files Creation Commands**:
 
@@ -89,7 +89,7 @@ ffmpeg -f lavfi -i "sine=frequency=220:duration=120" \
        -f lavfi -i "sine=frequency=330:duration=120" \
        -f lavfi -i "sine=frequency=440:duration=120" \
        -filter_complex "[0:a]volume=0.3[a0];[1:a]volume=0.2[a1];[2:a]volume=0.5[a2];[a0][a1][a2]amix=inputs=3:duration=first:dropout_transition=2" \
-       -b:a 128k concert-song-1.mp3
+       -b:a 128k concert-song-1.opus
 
 # Song 2: Chord progression (2 minutes)
 ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
@@ -97,7 +97,7 @@ ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
        -f lavfi -i "sine=frequency=392:duration=120" \
        -f lavfi -i "sine=frequency=523:duration=120" \
        -filter_complex "[0:a]volume=0.25[a0];[1:a]volume=0.25[a1];[2:a]volume=0.25[a2];[3:a]volume=0.25[a3];[a0][a1][a2][a3]amix=inputs=4:duration=first" \
-       -b:a 128k concert-song-2.mp3
+       -b:a 128k concert-song-2.opus
 ```
 
 These audio files are simple sine wave tones, chords, and layered compositions generated programmatically using FFmpeg's audio synthesis capabilities. They contain no copyrighted music or samples. The full-length files (2 minutes) simulate realistic song file sizes for performance testing.
@@ -139,7 +139,7 @@ convert concert-1.jpg -pointsize 40 -fill white -gravity center -annotate +0+0 "
 
 ```bash
 cd assets/test-audio
-ffmpeg -f lavfi -i "sine=frequency=220:duration=5" -b:a 64k concert-1.mp3 -y
+ffmpeg -f lavfi -i "sine=frequency=220:duration=5" -b:a 64k concert-1.opus -y
 # Repeat for other concerts with different frequencies
 ```
 
@@ -152,7 +152,7 @@ ffmpeg -f lavfi -i "sine=frequency=220:duration=120" \
        -f lavfi -i "sine=frequency=330:duration=120" \
        -f lavfi -i "sine=frequency=440:duration=120" \
        -filter_complex "[0:a]volume=0.3[a0];[1:a]volume=0.2[a1];[2:a]volume=0.5[a2];[a0][a1][a2]amix=inputs=3:duration=first:dropout_transition=2" \
-       -b:a 128k concert-song-1.mp3 -y
+       -b:a 128k concert-song-1.opus -y
 
 # Song 2: Chord progression
 ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
@@ -160,7 +160,7 @@ ffmpeg -f lavfi -i "sine=frequency=262:duration=120" \
        -f lavfi -i "sine=frequency=392:duration=120" \
        -f lavfi -i "sine=frequency=523:duration=120" \
        -filter_complex "[0:a]volume=0.25[a0];[1:a]volume=0.25[a1];[2:a]volume=0.25[a2];[3:a]volume=0.25[a3];[a0][a1][a2][a3]amix=inputs=4:duration=first" \
-       -b:a 128k concert-song-2.mp3 -y
+       -b:a 128k concert-song-2.opus -y
 ```
 
 ### Data

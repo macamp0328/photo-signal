@@ -9,7 +9,7 @@ describe('InfoDisplay', () => {
     band: 'The Beatles',
     venue: 'Abbey Road Studios',
     date: '2023-08-15',
-    audioFile: '/audio/beatles.mp3',
+    audioFile: '/audio/beatles.opus',
   };
 
   describe('Visibility', () => {

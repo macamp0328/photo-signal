@@ -73,7 +73,7 @@ function copyTestAssetsPlugin() {
 
         // Copy example real songs if directory exists
         if (await exists(exampleSongsSrc)) {
-          const songFiles = (await readdir(exampleSongsSrc)).filter((f) => f.endsWith('.mp3'));
+          const songFiles = (await readdir(exampleSongsSrc)).filter((f) => f.endsWith('.opus'));
           if (songFiles.length > 0) {
             await Promise.all(
               songFiles.map(async (file) => {
@@ -94,7 +94,7 @@ function copyTestAssetsPlugin() {
 
         // Copy test audio if directory exists
         if (await exists(testAudioSrc)) {
-          const audioFiles = (await readdir(testAudioSrc)).filter((f) => f.endsWith('.mp3'));
+          const audioFiles = (await readdir(testAudioSrc)).filter((f) => f.endsWith('.opus'));
           if (audioFiles.length > 0) {
             await Promise.all(
               audioFiles.map(async (file) => {

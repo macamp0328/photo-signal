@@ -104,7 +104,7 @@ function checkUrl(url, timeout) {
     // Handle local file paths
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       // For local paths starting with '/', treat them as relative to 'public/' directory
-      // e.g., '/audio/concert-1.mp3' -> 'public/audio/concert-1.mp3'
+      // e.g., '/audio/concert-1.opus' -> 'public/audio/concert-1.opus'
       const relativePath = url.startsWith('/') ? url.substring(1) : url;
       const localPath = path.resolve(projectRoot, 'public', relativePath);
       const exists = fs.existsSync(localPath);

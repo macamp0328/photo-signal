@@ -129,7 +129,7 @@ Update your `data.json` (or production data file) with the new pHash values:
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/audio/concert-1.mp3",
+      "audioFile": "/audio/concert-1.opus",
       "photoHash": [
         "00000000000001600acc000000000000",
         "00000000000001600acc000000000000",
@@ -150,7 +150,7 @@ Update your `data.json` (or production data file) with the new pHash values:
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/audio/concert-1.mp3",
+      "audioFile": "/audio/concert-1.opus",
       "photoHashes": {
         "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
         "dhash": [

@@ -123,8 +123,8 @@ The audio playback module supports streaming from CDN with automatic fallback to
 const concert = {
   id: 1,
   band: 'The Midnight Echoes',
-  audioFile: 'https://cdn.example.com/concert-1.mp3', // Primary CDN URL
-  audioFileFallback: '/audio/concert-1.mp3', // Local fallback
+  audioFile: 'https://cdn.example.com/concert-1.opus', // Primary CDN URL
+  audioFileFallback: '/audio/concert-1.opus', // Local fallback
 };
 
 // Play with automatic fallback
@@ -158,16 +158,16 @@ const { crossfade } = useAudioPlayback({
 });
 
 // Crossfade with default duration
-crossfade('/audio/new-track.mp3');
+crossfade('/audio/new-track.opus');
 
 // Crossfade with custom duration
-crossfade('/audio/new-track.mp3', 1500);
+crossfade('/audio/new-track.opus', 1500);
 
 // Disable crossfade for immediate switching
 const { crossfade: switchTrack } = useAudioPlayback({
   crossfadeEnabled: false,
 });
-switchTrack('/audio/new-track.mp3'); // Acts like play()
+switchTrack('/audio/new-track.opus'); // Acts like play()
 ```
 
 ---
@@ -205,7 +205,7 @@ When you call `crossfade()`, the module:
 ## Performance
 
 - **Preloading**: Consider preloading first track
-- **Format**: MP3 (best compatibility/size ratio)
+- **Format**: Opus (best compatibility/size ratio)
 - **Streaming**: HTML5 audio (no full download needed)
 - **CDN Delivery**: Supports streaming from GitHub Releases or Cloudflare R2
 - **Fallback**: Automatic failover to local files when CDN unavailable
@@ -217,12 +217,12 @@ When you call `crossfade()`, the module:
 
 For production deployments with 100+ tracks:
 
-1. **Upload MP3s to CDN** (GitHub Releases or Cloudflare R2)
+1. **Upload Opuss to CDN** (GitHub Releases or Cloudflare R2)
 2. **Update data.json** with CDN URLs and fallbacks:
    ```json
    {
-     "audioFile": "https://cdn.example.com/concert-1.mp3",
-     "audioFileFallback": "/audio/concert-1.mp3"
+     "audioFile": "https://cdn.example.com/concert-1.opus",
+     "audioFileFallback": "/audio/concert-1.opus"
    }
    ```
 3. **Use migration script**:
@@ -238,7 +238,7 @@ For production deployments with 100+ tracks:
 
 - Free hosting (GitHub Releases or Cloudflare R2 free tier)
 - <1s playback start on fast wifi
-- Clean git repository (no large MP3 files)
+- Clean git repository (no large Opus files)
 - Offline development still works (fallback to local files)
 
 **See:** [docs/audio-streaming-setup.md](../../../docs/audio-streaming-setup.md) for complete guide

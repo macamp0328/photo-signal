@@ -156,7 +156,7 @@ USE_DOCKER=true ./scripts/format.sh --check
 
 ### `create-sample-audio.sh` - Generate Sample Audio
 
-Creates a silent MP3 file for testing.
+Creates a silent Opus file for testing.
 
 **Requirements:** ffmpeg must be installed
 
@@ -168,9 +168,9 @@ Creates a silent MP3 file for testing.
 
 **What it does:**
 
-- Creates `public/audio/sample.mp3`
+- Creates `public/audio/sample.opus`
 - 5 seconds of silence
-- MP3 format for compatibility
+- Opus format for superior quality and compression
 
 ---
 
@@ -355,7 +355,7 @@ Manually copies test assets from `assets/` to `public/assets/`.
 
 - Creates `public/assets/test-data/`, `test-audio/`, and `test-images/` directories
 - Copies `concerts.json` from `assets/test-data/`
-- Copies all MP3 files from `assets/test-audio/`
+- Copies all Opus audio files from `assets/test-audio/`
 - Copies all JPG files from `assets/test-images/`
 
 **Normal workflow:**
@@ -578,9 +578,9 @@ Configuration:
   Dry Run: No
 
 ✓ Concert #1 (The Midnight Echoes):
-    Original: /audio/concert-1.mp3
-    CDN URL:  https://github.com/.../concert-1.mp3
-    Fallback: /audio/concert-1.mp3
+    Original: /audio/concert-1.opus
+    CDN URL:  https://github.com/.../concert-1.opus
+    Fallback: /audio/concert-1.opus
 
 📊 Migration Summary:
   Migrated: 12 concerts
@@ -655,7 +655,7 @@ Configuration:
   Check Fallback: No
 
 Checking Concert #1: The Midnight Echoes
-  ✓ Primary:  /audio/concert-1.mp3
+  ✓ Primary:  /audio/concert-1.opus
             Status: 200 OK (local file)
 
 📊 Validation Summary:

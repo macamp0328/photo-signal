@@ -1,4 +1,4 @@
-# Production MP3 Streaming - Implementation Plan
+# Production Opus Streaming - Implementation Plan
 
 > **Created**: 2025-11-15  
 > **Status**: Ready for Implementation  
@@ -10,7 +10,7 @@
 
 ### Problem Statement
 
-Photo Signal currently stores all MP3 audio files in the `/public/audio/` directory, which works well for the 6-file demo (~4MB total) but does not scale to a production library of 100+ tracks. Committing large binary files to the git repository causes:
+Photo Signal currently stores all Opus audio files in the `/public/audio/` directory, which works well for the 6-file demo (~4MB total) but does not scale to a production library of 100+ tracks. Committing large binary files to the git repository causes:
 
 - **Repository bloat**: Slows down clone/pull operations
 - **Git LFS costs**: GitHub LFS has limited free quota (1GB storage, 1GB bandwidth/month)
@@ -21,9 +21,9 @@ Photo Signal currently stores all MP3 audio files in the `/public/audio/` direct
 
 **✅ Done looks like:**
 
-1. **Fast playback**: MP3 streaming starts in <1 second on fast wifi (same as current local files)
+1. **Fast playback**: Opus streaming starts in <1 second on fast wifi (same as current local files)
 2. **Full library access**: Test Mode supports 100+ tracks with instant switching
-3. **Clean repository**: Production MP3s removed from git; only demo starter pack remains
+3. **Clean repository**: Production Opuss removed from git; only demo starter pack remains
 4. **Dual-mode support**:
    - **Production mode**: Streams from CDN
    - **Local/offline mode**: Falls back to `/public/audio/` for development
@@ -34,7 +34,7 @@ Photo Signal currently stores all MP3 audio files in the `/public/audio/` direct
 
 - **End users**: Will stream audio from CDN (transparent to them)
 - **Developers**: Will use local audio files for development
-- **AI agents**: Will run migration scripts to upload/sync MP3s
+- **AI agents**: Will run migration scripts to upload/sync Opuss
 - **Maintainers**: Will manage CDN uploads and data.json updates
 
 ---
@@ -78,7 +78,7 @@ export interface Concert {
   band: string;
   venue: string;
   date: string;
-  audioFile: string; // "/audio/concert-1.mp3"
+  audioFile: string; // "/audio/concert-1.opus"
   imageFile?: string;
   photoHash?: string;
 }
@@ -102,19 +102,19 @@ export interface Concert {
 
 **Migration path:**
 
-1. **Local development**: `audioFile: "/audio/concert-1.mp3"`
+1. **Local development**: `audioFile: "/audio/concert-1.opus"`
 2. **Production (GitHub Releases)**:
    ```json
    {
-     "audioFile": "https://github.com/username/photo-signal/releases/download/audio-v1/concert-1.mp3",
-     "audioFileFallback": "/audio/concert-1.mp3"
+     "audioFile": "https://github.com/username/photo-signal/releases/download/audio-v1/concert-1.opus",
+     "audioFileFallback": "/audio/concert-1.opus"
    }
    ```
 3. **Production (R2)**:
    ```json
    {
-     "audioFile": "https://audio.photo-signal.example.com/concert-1.mp3",
-     "audioFileFallback": "/audio/concert-1.mp3"
+     "audioFile": "https://audio.photo-signal.example.com/concert-1.opus",
+     "audioFileFallback": "/audio/concert-1.opus"
    }
    ```
 
@@ -161,7 +161,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 ### Phase 1: Foundation (1 day)
 
-**Objective**: Set up GitHub Releases for MP3 storage and update data model.
+**Objective**: Set up GitHub Releases for Opus storage and update data model.
 
 **Tasks:**
 
@@ -180,7 +180,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 3. **Create GitHub Release for audio assets** ⚡ Small (Manual)
    - Create new release: `audio-v1.0`
-   - Upload existing 6 MP3 files from `/public/audio/`
+   - Upload existing 6 Opus files from `/public/audio/`
    - Document release in `public/audio/README.md`
    - **Manual step**: Via GitHub UI or GitHub CLI
 
@@ -198,7 +198,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 **Deliverables:**
 
-- ✅ GitHub Release `audio-v1.0` created with 6 demo MP3s
+- ✅ GitHub Release `audio-v1.0` created with 6 demo Opuss
 - ✅ Updated `Concert` interface with fallback support
 - ✅ Updated `useAudioPlayback` with fallback logic
 - ✅ Updated `data.json` pointing to GitHub Release URLs
@@ -213,14 +213,14 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 ### Phase 2: Automation & Migration (1 day)
 
-**Objective**: Create scripts to automate MP3 uploads and data.json updates.
+**Objective**: Create scripts to automate Opus uploads and data.json updates.
 
 **Tasks:**
 
 1. **Create migration script: `scripts/migrate-audio-to-cdn.js`** 🔧 Medium
-   - **Purpose**: Upload MP3s to GitHub Releases and update data.json
+   - **Purpose**: Upload Opuss to GitHub Releases and update data.json
    - **Features**:
-     - Scan `/public/audio/*.mp3` files
+     - Scan `/public/audio/*.opus` files
      - Upload to GitHub Release via API
      - Update `data.json` with new URLs
      - Backup original `data.json`
@@ -250,9 +250,9 @@ const loadAudioWithFallback = async (concert: Concert) => {
    - Troubleshooting common issues
    - **Lines**: ~100 lines markdown
 
-5. **Add `.mp3` to `.gitignore` (production files only)** ⚡ Small
-   - Keep `/public/audio/concert-*.mp3` tracked (demo files)
-   - Ignore `/public/audio/production-*.mp3` (future production files)
+5. **Add `.opus` to `.gitignore` (production files only)** ⚡ Small
+   - Keep `/public/audio/concert-*.opus` tracked (demo files)
+   - Ignore `/public/audio/production-*.opus` (future production files)
    - **File**: `.gitignore`
    - **Lines changed**: ~3 lines
 
@@ -261,7 +261,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 - ✅ `scripts/migrate-audio-to-cdn.js` - Automated migration script
 - ✅ `scripts/validate-audio-urls.js` - URL validation script
 - ✅ `docs/audio-cdn-migration-guide.md` - Migration documentation
-- ✅ Updated `.gitignore` to prevent future MP3 commits
+- ✅ Updated `.gitignore` to prevent future Opus commits
 - ✅ npm scripts for easy execution
 
 **Risks:**
@@ -273,11 +273,11 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 ### Phase 3: Optimization & Documentation (0.5 days)
 
-**Objective**: Optimize MP3 files for streaming and document the new system.
+**Objective**: Optimize Opus files for streaming and document the new system.
 
 **Tasks:**
 
-1. **Audit MP3 compression settings** 🔧 Medium
+1. **Audit Opus compression settings** 🔧 Medium
    - Check bitrate of existing files (`ffprobe`)
    - Recommend optimal bitrate (128kbps for voice, 192-256kbps for music)
    - Create compression script if needed
@@ -292,7 +292,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 3. **Update DOCUMENTATION_INDEX.md** 📝 Small
    - Add link to `docs/audio-cdn-migration-guide.md`
-   - Add link to `docs/mp3-streaming-implementation-plan.md` (this file)
+   - Add link to `docs/opus-streaming-implementation-plan.md` (this file)
    - **File**: `DOCUMENTATION_INDEX.md`
    - **Lines changed**: ~2 lines
 
@@ -312,7 +312,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 **Deliverables:**
 
-- ✅ MP3 compression recommendations and/or script
+- ✅ Opus compression recommendations and/or script
 - ✅ Updated architecture documentation
 - ✅ Updated DOCUMENTATION_INDEX.md
 - ✅ Updated public/audio/README.md
@@ -426,11 +426,11 @@ const loadAudioWithFallback = async (concert: Concert) => {
 
 ### `scripts/migrate-audio-to-cdn.js`
 
-**Purpose**: Automate MP3 upload to CDN and update data.json.
+**Purpose**: Automate Opus upload to CDN and update data.json.
 
 **Features:**
 
-- ✅ Scan `/public/audio/*.mp3` files
+- ✅ Scan `/public/audio/*.opus` files
 - ✅ Upload to GitHub Release via Octokit API
 - ✅ Update `data.json` with new CDN URLs
 - ✅ Preserve `audioFileFallback` for local development
@@ -456,8 +456,8 @@ npm run migrate:audio -- --release-tag=audio-v2.0
 
 ```
 1. Load data.json
-2. Scan /public/audio/ for MP3 files
-3. For each MP3:
+2. Scan /public/audio/ for Opus files
+3. For each Opus:
    a. Check if already uploaded (compare filename in release)
    b. If not uploaded:
       - Upload to GitHub Release via API
@@ -502,16 +502,16 @@ GITHUB_REPO=username/photo-signal
 =====================================
 
 Scanning /public/audio/ ...
-Found 6 MP3 files
+Found 6 Opus files
 
 Checking GitHub Release: audio-v1.0
 Release exists, checking uploaded files...
 
 Uploading files:
-✅ concert-1.mp3 (already uploaded)
-✅ concert-2.mp3 (already uploaded)
-⬆️  concert-3.mp3 (uploading...) 100% [1.9MB]
-✅ concert-3.mp3 (uploaded)
+✅ concert-1.opus (already uploaded)
+✅ concert-2.opus (already uploaded)
+⬆️  concert-3.opus (uploading...) 100% [1.9MB]
+✅ concert-3.opus (uploaded)
 
 Updating data.json:
 ✅ Backup created: data.json.backup
@@ -526,7 +526,7 @@ Summary:
 Next steps:
 1. Commit updated data.json
 2. Verify audio playback in production
-3. Remove MP3 files from git (optional)
+3. Remove Opus files from git (optional)
 ```
 
 ---
@@ -559,16 +559,16 @@ npm run validate:audio
 Testing 6 concerts...
 
 ✅ Concert 1: The Midnight Echoes
-   Primary: https://github.com/.../concert-1.mp3 (200 OK, 1.9MB)
-   Fallback: /audio/concert-1.mp3 (exists)
+   Primary: https://github.com/.../concert-1.opus (200 OK, 1.9MB)
+   Fallback: /audio/concert-1.opus (exists)
 
 ✅ Concert 2: Electric Dreams
-   Primary: https://github.com/.../concert-2.mp3 (200 OK, 1.9MB)
-   Fallback: /audio/concert-2.mp3 (exists)
+   Primary: https://github.com/.../concert-2.opus (200 OK, 1.9MB)
+   Fallback: /audio/concert-2.opus (exists)
 
 ❌ Concert 3: Velvet Revolution
-   Primary: https://github.com/.../concert-3.mp3 (404 Not Found)
-   Fallback: /audio/concert-3.mp3 (exists)
+   Primary: https://github.com/.../concert-3.opus (404 Not Found)
+   Fallback: /audio/concert-3.opus (exists)
 
 Summary:
 - 6 concerts tested
@@ -576,7 +576,7 @@ Summary:
 - 1 failed (17%)
 
 Failed URLs:
-- Concert 3: https://github.com/.../concert-3.mp3
+- Concert 3: https://github.com/.../concert-3.opus
 ```
 
 ---
@@ -585,7 +585,7 @@ Failed URLs:
 
 ### New Documentation Files
 
-1. **`docs/mp3-streaming-implementation-plan.md`** (this file)
+1. **`docs/opus-streaming-implementation-plan.md`** (this file)
    - Complete implementation plan
    - Architecture decisions
    - Testing strategy
@@ -651,7 +651,7 @@ git checkout data.json  # Or restore from backup
 **Solution**:
 
 1. Switch to Cloudflare R2 (has configurable CORS)
-2. Or use local files for production (keep MP3s in repo)
+2. Or use local files for production (keep Opuss in repo)
 
 **Prevention**: Test CORS in Phase 1 before full migration
 
@@ -694,7 +694,7 @@ git checkout HEAD -- data.json
 ### Rollback Checklist
 
 - [ ] Keep backup of `data.json` before migration
-- [ ] Keep demo MP3 files in `/public/audio/` for fallback
+- [ ] Keep demo Opus files in `/public/audio/` for fallback
 - [ ] Test fallback logic works before removing local files
 - [ ] Document revert process in migration guide
 
@@ -724,7 +724,7 @@ git checkout HEAD -- data.json
 | CORS errors prevent streaming      | Low         | High   | Test early, switch to R2 if needed                 |
 | Slow CDN response (>3s)            | Low         | Medium | Use fallback to local files                        |
 | Migration script data corruption   | Medium      | High   | Always backup data.json, use dry-run mode          |
-| MP3 files too large for free tier  | Low         | Low    | Compress audio to 128-192kbps                      |
+| Opus files too large for free tier | Low         | Low    | Compress audio to 128-192kbps                      |
 | GitHub deletes old releases        | Very Low    | High   | Keep backups, use R2 as secondary storage          |
 
 ### Operational Risks & Mitigations
@@ -732,7 +732,7 @@ git checkout HEAD -- data.json
 | Risk                                  | Probability | Impact | Mitigation                                          |
 | ------------------------------------- | ----------- | ------ | --------------------------------------------------- |
 | Developer forgets to update data.json | Medium      | Low    | Validation script catches broken URLs               |
-| New MP3s added to repo by mistake     | Medium      | Low    | `.gitignore` prevents commits, CI checks file sizes |
+| New Opuss added to repo by mistake    | Medium      | Low    | `.gitignore` prevents commits, CI checks file sizes |
 | CDN goes down                         | Very Low    | High   | Fallback to local files, monitor uptime             |
 | Cost increases unexpectedly           | Low         | Medium | Set up billing alerts, use free tier providers      |
 
@@ -748,7 +748,7 @@ git checkout HEAD -- data.json
    - **Reason**: Adds complexity, not needed for wifi-only use case
 
 2. **Progressive download with caching**
-   - Service Worker to cache MP3s in browser
+   - Service Worker to cache Opuss in browser
    - Offline playback after first load
    - **Reason**: Good for PWA, but MVP focuses on streaming
 
@@ -757,7 +757,7 @@ git checkout HEAD -- data.json
    - **Reason**: Single CDN with local fallback is sufficient
 
 4. **Audio transcoding pipeline**
-   - Automatically convert WAV/FLAC to MP3
+   - Automatically convert WAV/FLAC to Opus
    - Generate multiple bitrates
    - **Reason**: Manual conversion sufficient for now
 
@@ -837,14 +837,14 @@ git checkout HEAD -- data.json
 
 ### Phase 2 Success Metrics
 
-- ✅ Migration script successfully uploads 6 demo MP3s
+- ✅ Migration script successfully uploads 6 demo Opuss
 - ✅ Validation script confirms all URLs accessible
 - ✅ AI agent can run migration script without human intervention
 - ✅ data.json correctly updated with CDN URLs
 
 ### Phase 3 Success Metrics
 
-- ✅ MP3 files optimized (128-192kbps bitrate)
+- ✅ Opus files optimized (128-192kbps bitrate)
 - ✅ Architecture documentation reflects new CDN design
 - ✅ Privacy/compliance documentation complete
 
@@ -883,7 +883,7 @@ git checkout HEAD -- data.json
 
 **Agent 3: Documentation & Optimization**
 
-- Phase 3, all tasks (docs + MP3 optimization)
+- Phase 3, all tasks (docs + Opus optimization)
 - **Time**: 0.5 days
 
 **Dependencies:**
@@ -897,7 +897,7 @@ git checkout HEAD -- data.json
 
 ## Open Questions & Decisions Needed
 
-### Question 1: Keep demo MP3s in repo?
+### Question 1: Keep demo Opuss in repo?
 
 **Options:**
 
@@ -906,7 +906,7 @@ A. **Keep 6 demo files in `/public/audio/`** (recommended)
 - Pros: Instant local development, no setup required
 - Cons: 4MB repo size
 
-B. **Remove all MP3s, require developers to download**
+B. **Remove all Opuss, require developers to download**
 
 - Pros: Smaller repo
 - Cons: Extra setup step for new developers
@@ -933,7 +933,7 @@ B. **Jump to Cloudflare R2 immediately**
 
 ---
 
-### Question 3: Compression settings for MP3s?
+### Question 3: Compression settings for Opuss?
 
 **Options:**
 
@@ -967,7 +967,7 @@ C. **Re-encode to 128kbps CBR**
 
 ### Phase 1 Kickoff
 
-1. Create feature branch: `feat/mp3-streaming`
+1. Create feature branch: `feat/opus-streaming`
 2. Create GitHub Release: `audio-v1.0`
 3. Update TypeScript types
 4. Implement fallback logic
@@ -983,7 +983,7 @@ C. **Re-encode to 128kbps CBR**
 
 ### Phase 3 Kickoff (After Phase 2 Complete)
 
-1. Audit MP3 bitrates
+1. Audit Opus bitrates
 2. Create compression script (optional)
 3. Update all documentation
 4. Write privacy/compliance docs
@@ -995,7 +995,7 @@ C. **Re-encode to 128kbps CBR**
 This implementation plan provides a **phased, low-risk approach** to migrating Photo Signal's audio storage from local files to CDN streaming. By starting with GitHub Releases (zero cost, zero config) and providing a clear migration path to Cloudflare R2 (if needed), we achieve:
 
 ✅ **Fast streaming**: <1s latency on fast wifi  
-✅ **Clean repository**: Production MP3s removed from git  
+✅ **Clean repository**: Production Opuss removed from git  
 ✅ **Developer-friendly**: Local files still work for development  
 ✅ **Cost-effective**: $0/month for realistic usage  
 ✅ **Automation-ready**: Scripts can be run by AI agents
@@ -1019,13 +1019,13 @@ Environment check:
 ✅ Repository: campmiles/photo-signal
 
 Scanning /public/audio/ ...
-Found 6 MP3 files:
-  - concert-1.mp3 (1.9MB)
-  - concert-2.mp3 (1.9MB)
-  - concert-3.mp3 (40KB)
-  - concert-4.mp3 (40KB)
-  - concert-song-1.mp3 (1.9MB)
-  - concert-song-2.mp3 (1.9MB)
+Found 6 Opus files:
+  - concert-1.opus (1.9MB)
+  - concert-2.opus (1.9MB)
+  - concert-3.opus (40KB)
+  - concert-4.opus (40KB)
+  - concert-song-1.opus (1.9MB)
+  - concert-song-2.opus (1.9MB)
 
 Checking GitHub Release: audio-v1.0
 ✅ Release exists
@@ -1034,24 +1034,24 @@ Checking uploaded files...
 Found 2 existing files in release
 
 Uploading files:
-✅ concert-1.mp3 (already uploaded)
-✅ concert-2.mp3 (already uploaded)
-⬆️  concert-3.mp3 ... ████████████████████ 100% (40KB)
-✅ concert-3.mp3 uploaded
-⬆️  concert-4.mp3 ... ████████████████████ 100% (40KB)
-✅ concert-4.mp3 uploaded
-⬆️  concert-song-1.mp3 ... ████████████████████ 100% (1.9MB)
-✅ concert-song-1.mp3 uploaded
-⬆️  concert-song-2.mp3 ... ████████████████████ 100% (1.9MB)
-✅ concert-song-2.mp3 uploaded
+✅ concert-1.opus (already uploaded)
+✅ concert-2.opus (already uploaded)
+⬆️  concert-3.opus ... ████████████████████ 100% (40KB)
+✅ concert-3.opus uploaded
+⬆️  concert-4.opus ... ████████████████████ 100% (40KB)
+✅ concert-4.opus uploaded
+⬆️  concert-song-1.opus ... ████████████████████ 100% (1.9MB)
+✅ concert-song-1.opus uploaded
+⬆️  concert-song-2.opus ... ████████████████████ 100% (1.9MB)
+✅ concert-song-2.opus uploaded
 
 Updating data.json:
 ✅ Backup created: data.json.backup
 ✅ Updated 12 concerts with CDN URLs
 
 Changes:
-  - Concert 1: /audio/concert-1.mp3 → https://github.com/.../concert-1.mp3
-  - Concert 2: /audio/concert-2.mp3 → https://github.com/.../concert-2.mp3
+  - Concert 1: /audio/concert-1.opus → https://github.com/.../concert-1.opus
+  - Concert 2: /audio/concert-2.opus → https://github.com/.../concert-2.opus
   - ... (10 more)
 
 ✅ data.json saved
@@ -1087,7 +1087,7 @@ Migration complete! 🎉
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/audio/concert-1.mp3",
+      "audioFile": "/audio/concert-1.opus",
       "photoHash": "00000000000001600acc000000000000"
     }
   ]
@@ -1104,8 +1104,8 @@ Migration complete! 🎉
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "https://github.com/campmiles/photo-signal/releases/download/audio-v1.0/concert-1.mp3",
-      "audioFileFallback": "/audio/concert-1.mp3",
+      "audioFile": "https://github.com/campmiles/photo-signal/releases/download/audio-v1.0/concert-1.opus",
+      "audioFileFallback": "/audio/concert-1.opus",
       "audioFileSource": "github-release",
       "photoHash": "00000000000001600acc000000000000"
     }

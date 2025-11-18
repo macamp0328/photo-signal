@@ -22,7 +22,7 @@ The issue is that the test data in `assets/test-data/concerts.json` **does NOT i
   "band": "The Midnight Echoes",
   "venue": "The Fillmore",
   "date": "2023-08-15",
-  "audioFile": "/assets/test-audio/concert-1.mp3",
+  "audioFile": "/assets/test-audio/concert-1.opus",
   "imageFile": "/assets/test-images/concert-1.jpg"
   // ❌ NO photoHashes/photoHash fields!
 }
@@ -36,7 +36,7 @@ The issue is that the test data in `assets/test-data/concerts.json` **does NOT i
   "band": "The Midnight Echoes",
   "venue": "The Fillmore",
   "date": "2023-08-15",
-  "audioFile": "/assets/test-audio/concert-1.mp3",
+  "audioFile": "/assets/test-audio/concert-1.opus",
   "imageFile": "/assets/test-images/concert-1.jpg",
   "photoHashes": {
     "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],
@@ -451,7 +451,7 @@ Before:
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/assets/test-audio/concert-1.mp3",
+      "audioFile": "/assets/test-audio/concert-1.opus",
       "imageFile": "/assets/test-images/concert-1.jpg"
     }
   ]
@@ -468,7 +468,7 @@ After:
       "band": "The Midnight Echoes",
       "venue": "The Fillmore",
       "date": "2023-08-15",
-      "audioFile": "/assets/test-audio/concert-1.mp3",
+      "audioFile": "/assets/test-audio/concert-1.opus",
       "imageFile": "/assets/test-images/concert-1.jpg",
       "photoHashes": {
         "phash": ["9853660d98d36f26", "98d2662d98d26f26", "98f2662c98d26f26"],

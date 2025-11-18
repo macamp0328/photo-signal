@@ -1260,7 +1260,7 @@ if (candidates.length > 0) {
 
 4. **Photo Management**
    - UI to add new photos
-   - Upload reference image + MP3
+   - Upload reference image + Opus audio file
    - Compute hash automatically
    - Update data.json
 

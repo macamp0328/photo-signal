@@ -32,7 +32,7 @@ Inspired by [campmiles.com](https://www.campmiles.com), this project explores ho
 | Layer           | Role                                    | Tech                                      |
 | --------------- | --------------------------------------- | ----------------------------------------- |
 | **Frontend**    | Camera view, hash recognition, playback | React (Vite), Howler.js, TypeScript       |
-| **Storage**     | Photos, MP3s, metadata                  | Local JSON (expandable to Supabase or S3) |
+| **Storage**     | Photos, Opus audio, metadata            | Local JSON (expandable to Supabase or S3) |
 | **Hosting**     | Static site                             | Vercel                                    |
 | **Recognition** | Placeholder logic (3s delay)            | Client-side only                          |
 
@@ -46,7 +46,7 @@ Everything runs in the browser. No backend needed.
 - **Rear Camera Access**: Opens device's rear camera with 3:2 aspect ratio overlay
 - **Photo Recognition**: Placeholder logic simulates photo recognition (triggers after 3 seconds)
 - **Concert Information Display**: Shows band name, venue, and date when photo is recognized
-- **Audio Playback**: Uses Howler.js to play MP3 files
+- **Audio Playback**: Uses Howler.js to play Opus audio files
 - **Motion Detection**: Detects movement to trigger a fresh recognition pass when you move to a new photo
 - **Persistent Playback**: Music keeps playing through small hand shakes and only crossfades when a different photo is confidently recognized
 
@@ -99,8 +99,8 @@ Visit [http://localhost:5173](http://localhost:5173) on your phone and allow cam
    npm install
    ```
 
-3. **Add an MP3 file**
-   - Place your MP3 file at `public/audio/sample.mp3`
+3. **Add an Opus audio file**
+   - Place your Opus file at `public/audio/sample.opus`
    - Or update the `audioFile` paths in `public/data.json`
 
 ### Development
@@ -174,7 +174,7 @@ Edit `public/data.json` to add your own concert data:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "2023-08-15",
-      "audioFile": "/audio/sample.mp3",
+      "audioFile": "/audio/sample.opus",
       "photoHashes": {
         "phash": ["dark-hash", "normal-hash", "bright-hash"],
         "dhash": ["dark-dhash", "normal-dhash", "bright-dhash"]
@@ -217,11 +217,11 @@ Key docs:
 photo-signal/
 ├── assets/              # Test assets (CC0 unless noted)
 │   ├── test-images/     # Gradient + high-contrast PNG targets for testing
-│   ├── test-audio/      # Sample MP3 files for testing
+│   ├── test-audio/      # Sample Opus audio files for testing
 │   ├── test-data/       # Sample JSON/CSV data files
 │   └── example-real-photos/ # Contributor-provided photos for real-world testing
 ├── public/
-│   ├── audio/           # MP3 files
+│   ├── audio/           # Opus audio files
 │   ├── images/          # Photo storage (future)
 │   ├── data.json        # Concert data
 │   └── vite.svg         # Favicon
@@ -250,7 +250,7 @@ The repository includes sample test assets to facilitate development and testing
 ### Test Assets Location
 
 - **Images**: `assets/test-images/` - 4 gradient JPEGs + 3 high-contrast PNG targets (all ~30KB)
-- **Audio**: `assets/test-audio/` - 4 sample MP3 files (~40KB each, 5 seconds)
+- **Audio**: `assets/test-audio/` - 4 sample Opus audio files (5 seconds each)
 - **Data**: `assets/test-data/` - Sample JSON and CSV data files
 - **Real Photos**: `assets/example-real-photos/` - 5 contributor-provided concert shots (internal testing)
 

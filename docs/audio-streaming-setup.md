@@ -43,8 +43,8 @@ Photo Signal supports streaming audio from a CDN while maintaining local file fa
    # Title: Audio Files v1
    ```
 
-2. Upload MP3 files:
-   - Drag and drop MP3 files from `public/audio/` directory
+2. Upload Opus files:
+   - Drag and drop Opus files from `public/audio/` directory
    - Or upload via GitHub API (see [Automation](#automation) below)
 
 3. Note the download URL pattern:
@@ -65,7 +65,7 @@ Photo Signal supports streaming audio from a CDN while maintaining local file fa
 
    ```bash
    # Using wrangler
-   wrangler r2 object put photo-signal-audio/concert-1.mp3 --file=public/audio/concert-1.mp3
+   wrangler r2 object put photo-signal-audio/concert-1.opus --file=public/audio/concert-1.opus
 
    # Or use the migration script (see below)
    ```
@@ -123,8 +123,8 @@ npm run dev
 Once CDN migration is confirmed working:
 
 ```bash
-# Remove production MP3s from git (keep demo files)
-git rm public/audio/my-production-track-*.mp3
+# Remove production Opuss from git (keep demo files)
+git rm public/audio/my-production-track-*.opus
 
 # Commit changes
 git commit -m "chore: remove production audio files (now on CDN)"
@@ -166,7 +166,7 @@ interface Concert {
   "band": "The Midnight Echoes",
   "venue": "The Fillmore",
   "date": "2023-08-15",
-  "audioFile": "/audio/concert-1.mp3",
+  "audioFile": "/audio/concert-1.opus",
   "photoHash": "00000000000001600acc000000000000"
 }
 ```
@@ -179,8 +179,8 @@ interface Concert {
   "band": "The Midnight Echoes",
   "venue": "The Fillmore",
   "date": "2023-08-15",
-  "audioFile": "https://github.com/username/repo/releases/download/audio-v1/concert-1.mp3",
-  "audioFileFallback": "/audio/concert-1.mp3",
+  "audioFile": "https://github.com/username/repo/releases/download/audio-v1/concert-1.opus",
+  "audioFileFallback": "/audio/concert-1.opus",
   "audioFileSource": "github-release",
   "photoHash": "00000000000001600acc000000000000"
 }
@@ -288,7 +288,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./public/audio/*.mp3
+          asset_path: ./public/audio/*.opus
           asset_name: audio-files
           asset_content_type: audio/mpeg
 ```
@@ -304,7 +304,7 @@ Bulk upload to Cloudflare R2:
 BUCKET_NAME="photo-signal-audio"
 AUDIO_DIR="public/audio"
 
-for file in $AUDIO_DIR/*.mp3; do
+for file in $AUDIO_DIR/*.opus; do
   filename=$(basename "$file")
   echo "Uploading $filename..."
   wrangler r2 object put "$BUCKET_NAME/$filename" --file="$file"
@@ -363,7 +363,7 @@ echo "Upload complete!"
 
 3. **Test CDN accessibility**:
    ```bash
-   curl -I https://github.com/username/repo/releases/download/audio-v1/concert-1.mp3
+   curl -I https://github.com/username/repo/releases/download/audio-v1/concert-1.opus
    ```
 
 ### CORS Errors
@@ -420,7 +420,7 @@ Preview changes before applying them.
 
 ### 2. Keep Local Files for Development
 
-Don't delete demo MP3 files (concert-1.mp3, concert-song-1.mp3, etc.) - these are useful for local development and testing.
+Don't delete demo Opus files (concert-1.opus, concert-song-1.opus, etc.) - these are useful for local development and testing.
 
 ### 3. Validate After Migration
 
@@ -438,16 +438,16 @@ For GitHub Releases:
 - ✅ `audio-2024-11` (date-based)
 - ❌ `latest` (not recommended - hard to track)
 
-### 5. Optimize MP3 Files
+### 5. Optimize Opus Files
 
 Before uploading to CDN:
 
 ```bash
 # Convert to 192kbps VBR (good quality, reasonable size)
-ffmpeg -i input.mp3 -codec:a libmp3lame -q:a 2 output.mp3
+ffmpeg -i input.opus -codec:a libmp3lame -q:a 2 output.opus
 
 # Or batch process
-for file in public/audio/*.mp3; do
+for file in public/audio/*.opus; do
   ffmpeg -i "$file" -codec:a libmp3lame -q:a 2 "optimized/$(basename "$file")"
 done
 ```
@@ -487,7 +487,7 @@ Use this checklist when migrating to CDN:
 - [ ] Verify audio plays in browser
 - [ ] Check browser console for errors
 - [ ] Test fallback (temporarily disable CDN URL)
-- [ ] Remove production MP3s from git (optional)
+- [ ] Remove production Opuss from git (optional)
 - [ ] Update .gitignore (already done)
 - [ ] Commit changes
 - [ ] Deploy to production

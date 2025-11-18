@@ -482,7 +482,7 @@ photo-signal/
 │
 ├── public/
 │   ├── data.json           # Concert metadata
-│   └── audio/              # MP3 files
+│   └── audio/              # Opus audio files
 │
 └── src/
     ├── App.tsx             # Orchestrator

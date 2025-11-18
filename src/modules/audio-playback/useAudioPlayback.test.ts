@@ -135,7 +135,7 @@ describe('useAudioPlayback', () => {
   describe('Play Functionality', () => {
     it('should create Howl instance and call play', () => {
       const { result } = renderHook(() => useAudioPlayback());
-      const testUrl = '/audio/test.mp3';
+      const testUrl = '/audio/test.opus';
 
       act(() => {
         result.current.play(testUrl);
@@ -147,7 +147,7 @@ describe('useAudioPlayback', () => {
 
     it('should use correct volume when playing', () => {
       const { result } = renderHook(() => useAudioPlayback({ volume: 0.6 }));
-      const testUrl = '/audio/test.mp3';
+      const testUrl = '/audio/test.opus';
 
       act(() => {
         result.current.play(testUrl);
@@ -163,14 +163,14 @@ describe('useAudioPlayback', () => {
 
       // Play first audio
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
 
       // Play second audio
       act(() => {
-        result.current.play('/audio/second.mp3');
+        result.current.play('/audio/second.opus');
       });
 
       // Should still be playing (new audio)
@@ -184,7 +184,7 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -217,7 +217,7 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -250,7 +250,7 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -274,7 +274,7 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -343,7 +343,7 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -365,7 +365,7 @@ describe('useAudioPlayback', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       act(() => {
-        result.current.play('/audio/nonexistent.mp3');
+        result.current.play('/audio/nonexistent.opus');
       });
 
       // The hook sets isPlaying to true even on load error
@@ -383,7 +383,7 @@ describe('useAudioPlayback', () => {
 
       // Start playing (this should succeed in the mock)
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -398,7 +398,7 @@ describe('useAudioPlayback', () => {
 
       // Play audio
       act(() => {
-        result.current.play('/audio/test.mp3');
+        result.current.play('/audio/test.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -445,14 +445,14 @@ describe('useAudioPlayback', () => {
 
       // Start playing first audio
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
 
       // Crossfade to second audio
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 1000);
+        result.current.crossfade('/audio/second.opus', 1000);
       });
 
       // Should still be playing during crossfade
@@ -464,12 +464,12 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       // Crossfade without specifying duration
       act(() => {
-        result.current.crossfade('/audio/second.mp3');
+        result.current.crossfade('/audio/second.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -488,12 +488,12 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       // Crossfade with custom duration
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 500);
+        result.current.crossfade('/audio/second.opus', 500);
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -512,12 +512,12 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       // Crossfade
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 1000);
+        result.current.crossfade('/audio/second.opus', 1000);
       });
 
       // Fast-forward past crossfade duration to trigger cleanup
@@ -536,7 +536,7 @@ describe('useAudioPlayback', () => {
 
       // Crossfade when nothing is playing (should just play)
       act(() => {
-        result.current.crossfade('/audio/test.mp3', 1000);
+        result.current.crossfade('/audio/test.opus', 1000);
       });
 
       // Should start playing the new track
@@ -545,7 +545,7 @@ describe('useAudioPlayback', () => {
 
     it('should handle crossfade with same URL (no-op)', () => {
       const { result } = renderHook(() => useAudioPlayback());
-      const sameUrl = '/audio/test.mp3';
+      const sameUrl = '/audio/test.opus';
 
       // Start playing
       act(() => {
@@ -568,12 +568,12 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       // Start first crossfade
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 2000);
+        result.current.crossfade('/audio/second.opus', 2000);
       });
 
       // Advance time partially
@@ -583,7 +583,7 @@ describe('useAudioPlayback', () => {
 
       // Start second crossfade before first completes
       act(() => {
-        result.current.crossfade('/audio/third.mp3', 1000);
+        result.current.crossfade('/audio/third.opus', 1000);
       });
 
       expect(result.current.isPlaying).toBe(true);
@@ -602,14 +602,14 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
 
       // Crossfade when disabled (should just play normally)
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 1000);
+        result.current.crossfade('/audio/second.opus', 1000);
       });
 
       // Should be playing the new track (no crossfade, just immediate switch)
@@ -621,12 +621,12 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       // Start crossfade
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 2000);
+        result.current.crossfade('/audio/second.opus', 2000);
       });
 
       // Unmount before crossfade completes
@@ -640,12 +640,12 @@ describe('useAudioPlayback', () => {
 
       // Start playing
       act(() => {
-        result.current.play('/audio/first.mp3');
+        result.current.play('/audio/first.opus');
       });
 
       // Crossfade
       act(() => {
-        result.current.crossfade('/audio/second.mp3', 1000);
+        result.current.crossfade('/audio/second.opus', 1000);
       });
 
       // Volume should remain at initial level

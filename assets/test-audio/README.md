@@ -1,20 +1,20 @@
 # Test Audio Files
 
-This directory contains sample MP3 audio files for testing audio playback functionality.
+This directory contains sample Opus audio files for testing audio playback functionality.
 
 ## Files
 
 ### Short Test Files (Quick Testing)
 
-- `concert-1.mp3` - Test audio for "The Midnight Echoes" (220Hz tone, 5 seconds, 40KB)
-- `concert-2.mp3` - Test audio for "Electric Dreams" (440Hz tone, 5 seconds, 40KB)
-- `concert-3.mp3` - Test audio for "Velvet Revolution" (880Hz tone, 5 seconds, 40KB)
-- `concert-4.mp3` - Test audio for "Sunset Boulevard" (chord C-E-G, 5 seconds, 40KB)
+- `concert-1.opus` - Test audio for "The Midnight Echoes" (220Hz tone, 5 seconds)
+- `concert-2.opus` - Test audio for "Electric Dreams" (440Hz tone, 5 seconds)
+- `concert-3.opus` - Test audio for "Velvet Revolution" (880Hz tone, 5 seconds)
+- `concert-4.opus` - Test audio for "Sunset Boulevard" (chord C-E-G, 5 seconds)
 
 ### Full-Length Song Files (Performance Testing)
 
-- `concert-song-1.mp3` - Full-length layered composition (2 minutes, 1.9MB)
-- `concert-song-2.mp3` - Full-length chord progression (2 minutes, 1.9MB)
+- `concert-song-1.opus` - Full-length layered composition (2 minutes)
+- `concert-song-2.opus` - Full-length chord progression (2 minutes)
 
 ## License
 
@@ -33,25 +33,23 @@ These audio files are used for:
 
 Looking for full concert recordings for the real example photos? See
 [`assets/example-real-songs`](../example-real-songs/README.md) for the
-user-provided MP3 library that now ships with test mode.
+user-provided Opus audio library that now ships with test mode.
 
 ## Specifications
 
 ### Short Test Files
 
-- **Format**: MP3
+- **Format**: Opus
 - **Duration**: 5 seconds each
-- **Bitrate**: 64 kbps
-- **Sample Rate**: 44.1 kHz
-- **Size**: ~40KB per file
+- **Bitrate**: 128 kbps
+- **Sample Rate**: 48 kHz
 
 ### Full-Length Song Files
 
-- **Format**: MP3
+- **Format**: Opus
 - **Duration**: 2 minutes each
 - **Bitrate**: 128 kbps
-- **Sample Rate**: 44.1 kHz
-- **Size**: ~1.9MB per file
+- **Sample Rate**: 48 kHz
 
 ## Notes
 

@@ -34,7 +34,7 @@
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/image-recognition-exploratory-analysis.md](./docs/image-recognition-exploratory-analysis.md)** - Exploratory analysis and benchmarking of image recognition pipeline: current failure points, performance metrics, comparative analysis vs QR codes, and actionable improvement roadmap
-- **[docs/mp3-streaming-implementation-plan.md](./docs/mp3-streaming-implementation-plan.md)** - Complete implementation plan for production MP3 streaming with CDN delivery (GitHub Releases and Cloudflare R2)
+- **[docs/opus-streaming-implementation-plan.md](./docs/opus-streaming-implementation-plan.md)** - Complete implementation plan for production Opus streaming with CDN delivery (GitHub Releases and Cloudflare R2)
 - **[docs/audio-streaming-setup.md](./docs/audio-streaming-setup.md)** - User guide for setting up and managing audio streaming from CDN with migration scripts, validation tools, and troubleshooting
 - **[docs/IMPLEMENTATION_STATUS_SUMMARY.md](./docs/IMPLEMENTATION_STATUS_SUMMARY.md)** - 🎯 **START HERE** - Quick summary confirming Phase 1 is complete with testing instructions, verification steps, and next actions for real-world validation
 - **[docs/phase-1-implementation-verification.md](./docs/phase-1-implementation-verification.md)** - ✅ Complete Phase 1 verification report: evidence of implementation, code locations, configuration guide, performance benchmarks, and real-world photo validation (18,700 char detailed reference)
@@ -186,7 +186,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[fix-test-mode-photo-recognition.md](./.github/ISSUE_TEMPLATE/fix-test-mode-photo-recognition.md)** - Bug: Fix test mode photo recognition
 - **[digital-gallery-mode.md](./.github/ISSUE_TEMPLATE/digital-gallery-mode.md)** - Feature: Enable remote gallery viewing
 - **[cleanup-outdated-docs.md](./.github/ISSUE_TEMPLATE/cleanup-outdated-docs.md)** - Cleanup: Remove outdated documentation
-- **[optimize-mp3-storage.md](./.github/ISSUE_TEMPLATE/optimize-mp3-storage.md)** - Chore: Design a scalable MP3 storage strategy
+- **[optimize-opus-storage.md](./.github/ISSUE_TEMPLATE/optimize-opus-storage.md)** - Chore: Design a scalable Opus storage strategy
 
 ### Custom Agents
 
@@ -281,7 +281,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[assets/test-images/README.md](./assets/test-images/README.md)** - Test images (synthetic, calibration, and sample photos) for development and automated testing
 - **[assets/test-audio/README.md](./assets/test-audio/README.md)** - Test audio files (CC0 music, tones, and noise) for playback and audio pipeline validation
 - **[assets/test-data/README.md](./assets/test-data/README.md)** - Test data files (JSON, CSV, etc.) for data service and integration tests
-- **[assets/example-real-songs/README.md](./assets/example-real-songs/README.md)** - Real-world MP3 library paired with example photos for immersive test mode sessions
+- **[assets/example-real-songs/README.md](./assets/example-real-songs/README.md)** - Real-world Opus library paired with example photos for immersive test mode sessions
 
 ### Example Real Photos
 

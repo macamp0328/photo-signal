@@ -343,7 +343,7 @@ Edit `public/data.json`:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "2023-08-15",
-      "audioFile": "/audio/sample.mp3"
+      "audioFile": "/audio/sample.opus"
     }
   ]
 }
@@ -351,7 +351,7 @@ Edit `public/data.json`:
 
 ### Adding Audio Files
 
-Place MP3 files in `public/audio/` directory
+Place Opus audio files in `public/audio/` directory
 
 ### Updating Dependencies
 
@@ -513,7 +513,7 @@ export function detectMotion(currentFrame: ImageData, threshold: number = 10): b
 
 - Check browser console for loading errors
 - Verify audio file exists in `public/audio/`
-- Check audio file format (MP3 supported)
+- Check audio file format (Opus supported)
 - Ensure user has interacted with page (browser autoplay policy)
 
 ## Best Practices

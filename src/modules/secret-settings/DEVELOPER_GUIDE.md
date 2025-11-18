@@ -1057,7 +1057,7 @@ it('should reload page after clicking Send It', async () => {
 
 1. **Lazy Loading**: Effects only activate when flags are enabled
 2. **CSS Animations**: Hardware-accelerated transforms and opacity
-3. **Audio Synthesis**: Web Audio API is more efficient than loading MP3 files
+3. **Audio Synthesis**: Web Audio API is more efficient than loading Opus files
 4. **State Updates**: Batched with React's state management
 5. **Bundle Size**: No external dependencies for features (~0KB added to bundle)
 

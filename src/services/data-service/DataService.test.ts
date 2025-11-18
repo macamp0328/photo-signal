@@ -20,21 +20,21 @@ const mockConcerts: Concert[] = [
     band: 'The Midnight Echoes',
     venue: 'The Fillmore',
     date: '2023-08-15',
-    audioFile: '/audio/sample.mp3',
+    audioFile: '/audio/sample.opus',
   },
   {
     id: 2,
     band: 'Electric Dreams',
     venue: 'Red Rocks Amphitheatre',
     date: '2023-09-22',
-    audioFile: '/audio/sample.mp3',
+    audioFile: '/audio/sample.opus',
   },
   {
     id: 3,
     band: 'Velvet Revolution',
     venue: 'Madison Square Garden',
     date: '2023-10-10',
-    audioFile: '/audio/sample.mp3',
+    audioFile: '/audio/sample.opus',
   },
 ];
 

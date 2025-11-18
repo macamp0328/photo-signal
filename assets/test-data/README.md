@@ -43,7 +43,7 @@ Standard JSON format matching the application's data structure:
       "band": "Band Name",
       "venue": "Venue Name",
       "date": "YYYY-MM-DD",
-      "audioFile": "/assets/example-real-songs/track-clip.mp3",
+      "audioFile": "/assets/example-real-songs/track-clip.opus",
       "imageFile": "/assets/test-images/image.jpg",
       "photoHashes": {
         "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
@@ -68,7 +68,7 @@ CSV format with headers:
 
 ```csv
 id,band,venue,date,audioFile,imageFile,photoHash
-1,Band Name,Venue Name,YYYY-MM-DD,/assets/example-real-songs/track-clip.mp3,/assets/test-images/image.jpg,normal-exposure-phash
+1,Band Name,Venue Name,YYYY-MM-DD,/assets/example-real-songs/track-clip.opus,/assets/test-images/image.jpg,normal-exposure-phash
 ```
 
 ## Usage in Tests

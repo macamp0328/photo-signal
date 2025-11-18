@@ -41,10 +41,10 @@ Audio files are stored in the `audio/` subdirectory. See [audio/README.md](./aud
 The `assets/` subdirectory is **auto-generated** and should not be committed:
 
 - **`assets/test-data/`** - Test concert data JSON (copied from `assets/test-data/`)
-- **`assets/test-audio/`** - Test audio MP3 files (copied from `assets/test-audio/`)
+- **`assets/test-audio/`** - Test audio Opus files (copied from `assets/test-audio/`)
 - **`assets/test-images/`** - Test images (copied from `assets/test-images/`)
 - **`assets/example-real-photos/`** - Real photo references (copied from `assets/example-real-photos/`)
-- **`assets/example-real-songs/`** - Real MP3 library for immersive test sessions (copied from `assets/example-real-songs/`)
+- **`assets/example-real-songs/`** - Real Opus library for immersive test sessions (copied from `assets/example-real-songs/`)
 
 These directories are created by a Vite plugin during build and dev server startup, making test assets accessible at runtime when Test Mode is enabled in Secret Settings.
 
@@ -60,7 +60,7 @@ To maintain fast load times:
 
 - **Favicons**: PNGs should be compressed (use TinyPNG or similar)
 - **Open Graph image**: Should be < 300 KB for social media compatibility
-- **Audio files**: MP3 format, target < 5 MB per file
+- **Audio files**: Opus format, target < 5 MB per file
 - **Background images**: WebP format preferred, < 500 KB
 
 ## Notes

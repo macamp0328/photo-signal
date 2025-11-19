@@ -241,7 +241,7 @@ function buildDownloadPlans() {
         params: {
           ...baseParams,
           audioFormat: null,
-          formatSelector: normalizeValue(options['yt-format'], 'bestaudio[ext=m4a]/bestaudio/best'),
+          formatSelector: formatPreference[0] ?? 'best',
         },
       },
     ];

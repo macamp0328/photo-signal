@@ -1,11 +1,10 @@
 # Audio Workflow
 
-The Photo Signal audio workflow bundles every step required to take a YouTube Music playlist and ship production-ready audio. The process spans four stages:
+The Photo Signal audio workflow bundles every step required to take a YouTube Music playlist and ship production-ready audio. The process spans three stages:
 
 1. **Download** - pull source audio, metadata, and thumbnails with yt-dlp
-2. **Organize** - normalize filenames, tag assets, and prepare folders (planned)
-3. **Encode** - convert to final codecs/bitrates and package source masters (planned)
-4. **Update** - publish audio to the CDN and validate the resulting URLs
+2. **Organize + Encode** - normalize filenames, link gallery assets, convert to final codecs/bitrates, and package source masters
+3. **Update** - publish audio to the CDN and validate the resulting URLs
 
 All related scripts live under `scripts/audio-workflow/` so the end-to-end process stays isolated from the rest of the project.
 
@@ -18,8 +17,7 @@ scripts/audio-workflow/
 │   ├── download-yt-song.js
 │   ├── download-yt-song.config.example.json
 │   └── download-yt-song.config.json
-├── organize/                  # Future workspace for file cataloging tools
-├── encode/                    # Future workspace for transcoding/packaging tools
+├── encode/                    # Catalog + transcoding/packaging tools
 └── update/                    # CDN migration + validation scripts
     ├── migrate-audio-to-cdn.js
     └── validate-audio-urls.js
@@ -44,23 +42,17 @@ Key features:
 
 See the [helper script docs](../README.md#audio-workflowdownloaddownload-yt-songjs---download-one-track-with-yt-dlp) for the full option list.
 
-## Stage 2: Organize (Planned)
+## Stage 2: Organize + Encode (Planned)
 
-Placeholder workspace for upcoming utilities that will:
+All cataloging and mastering now happen inside `encode/`. See [`encode/README.md`](./encode/README.md) for the detailed playbook covering:
 
-- Inspect newly downloaded metadata indexes
-- Normalize filenames/folders for printing sessions
-- Generate manifests that tie photo IDs to audio IDs
+- Inspecting newly downloaded metadata indexes and normalizing filenames/folders
+- Linking gallery photo IDs + QR codes to each track
+- Emitting readiness checklists/CSV before encoding
+- Transcoding raw downloads into Opus with loudness normalization, fades, and tagging
+- Producing manifests/report files (`audio-index.json`, `photo-audio-map.json`)
 
-## Stage 3: Encode (Planned)
-
-Future scripts will live here to:
-
-- Transcode raw downloads into archival and playback-friendly formats
-- Apply loudness normalization/limiter chains
-- Package assets for long-term storage
-
-## Stage 4: Update (Ready)
+## Stage 3: Update (Ready)
 
 Two scripts ship today:
 

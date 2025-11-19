@@ -307,16 +307,14 @@ async function processAudioFile(download, config, options) {
   const band = sanitizeString(track.artist ?? 'Unknown Artist');
   const title = sanitizeString(track.title ?? 'Unknown Title');
   const date = extractDate(metadata);
-  const venue = extractVenue(metadata);
 
   // Generate slug and filenames
-  const slug = generateSlug(date, band, venue);
+  const slug = generateSlug(date, band);
   const outputFileName = `ps-${slug}.opus`;
 
   console.log(`  Band:  ${band}`);
   console.log(`  Title: ${title}`);
   console.log(`  Date:  ${date}`);
-  console.log(`  Venue: ${venue}`);
   console.log(`  Slug:  ${slug}`);
   console.log('');
 
@@ -358,8 +356,7 @@ async function processAudioFile(download, config, options) {
   console.log('  5. Encoding to Opus...');
   await encodeToOpus(fadedWavPath, outputPath, config, {
     band,
-    title: `${band} — ${venue} (${date})`,
-    venue,
+    title: `${band} — ${date}`,
     date,
   });
 
@@ -381,7 +378,6 @@ async function processAudioFile(download, config, options) {
     outputPath,
     band,
     title,
-    venue,
     date,
     durationMs: Math.round(duration * 1000),
     lufsIntegrated: loudnessStats.input_i,
@@ -412,7 +408,6 @@ function convertToWav(inputPath, outputPath) {
 
     const ffmpeg = spawn('ffmpeg', args, { stdio: 'pipe' });
     let stderr = '';
-
     ffmpeg.stderr.on('data', (data) => {
       stderr += data.toString();
     });
@@ -454,7 +449,6 @@ function measureLoudness(inputPath, config) {
         reject(new Error(`ffmpeg exited with code ${code}`));
         return;
       }
-
       // Extract JSON from stderr
       const jsonMatch = stderr.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
@@ -484,7 +478,6 @@ function coerceLoudnessStats(stats) {
     'output_thresh',
     'target_offset',
   ];
-
   for (const key of numericKeys) {
     if (stats[key] !== undefined && stats[key] !== null) {
       const parsed = Number(stats[key]);
@@ -639,10 +632,6 @@ function encodeToOpus(inputPath, outputPath, config, metadata) {
       `website=${defaults.website}`,
     ];
 
-    if (metadata.venue) {
-      args.push('-metadata', `location=${metadata.venue}`);
-    }
-
     args.push('-y', outputPath);
 
     const ffmpeg = spawn('ffmpeg', args, { stdio: 'pipe' });
@@ -689,7 +678,6 @@ function generateAudioIndex(results, outputDir, config) {
       .map((r) => ({
         id: r.slug,
         band: r.band,
-        venue: r.venue,
         date: r.date,
         durationMs: r.durationMs,
         bitrateKbps: r.bitrateKbps,
@@ -723,7 +711,6 @@ function generatePhotoAudioMap(results, outputDir) {
         audioId: r.slug,
         photoId: null, // To be linked with photo manifest
         band: r.band,
-        venue: r.venue,
         date: r.date,
       })),
   };
@@ -749,13 +736,13 @@ function generateReport(results, outputDir) {
 
   if (successful.length > 0) {
     report += '## Successful Encodings\n\n';
-    report += '| Slug | Band | Venue | Date | LUFS | Duration |\n';
-    report += '|------|------|-------|------|------|----------|\n';
+    report += '| Slug | Band | Date | LUFS | Duration |\n';
+    report += '|------|------|------|------|----------|\n';
 
     for (const r of successful) {
       const mins = Math.floor(r.durationMs / 60000);
       const secs = Math.floor((r.durationMs % 60000) / 1000);
-      report += `| ${r.slug} | ${r.band} | ${r.venue} | ${r.date} | ${r.lufsIntegrated.toFixed(1)} | ${mins}:${secs.toString().padStart(2, '0')} |\n`;
+      report += `| ${r.slug} | ${r.band} | ${r.date} | ${r.lufsIntegrated.toFixed(1)} | ${mins}:${secs.toString().padStart(2, '0')} |\n`;
     }
     report += '\n';
   }
@@ -863,7 +850,7 @@ function normalizeOverrideObject(override) {
   }
 
   if (typeof override === 'string') {
-    return { track: { venue: override } };
+    return { track: { artist: override } };
   }
 
   if (typeof override !== 'object') {
@@ -872,11 +859,6 @@ function normalizeOverrideObject(override) {
 
   const clone = { ...override };
   const track = { ...(clone.track ?? {}) };
-
-  if (clone.venue) {
-    track.venue = clone.venue;
-    delete clone.venue;
-  }
 
   if (clone.date) {
     track.performanceDate = clone.date;
@@ -989,11 +971,10 @@ function sanitizeString(str) {
   return str.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
 }
 
-function generateSlug(date, band, venue) {
+function generateSlug(date, band) {
   const dateSlug = date.replace(/-/g, '');
   const bandSlug = slugify(band);
-  const venueSlug = slugify(venue);
-  return `${dateSlug}-${bandSlug}-${venueSlug}`;
+  return `${dateSlug}-${bandSlug}`;
 }
 
 function slugify(str) {
@@ -1161,93 +1142,6 @@ function formatDateParts(year, month, day) {
   return `${y}-${m}-${d}`;
 }
 
-function extractVenue(metadata) {
-  const track = metadata?.track ?? {};
-  const playlist = metadata?.playlist ?? {};
-  const ytInfo = metadata?.ytInfo ?? {};
-
-  const directCandidates = [
-    track.venue,
-    track.location,
-    track.performanceVenue,
-    track.recordedAt,
-    playlist.venue,
-  ];
-
-  for (const candidate of directCandidates) {
-    const normalized = sanitizeVenue(candidate);
-    if (normalized) {
-      return normalized;
-    }
-  }
-
-  const textSources = [
-    track.title,
-    track.album,
-    track.description,
-    ytInfo.title,
-    ytInfo.description,
-  ];
-
-  for (const source of textSources) {
-    const venueFromText = findVenueInText(source);
-    if (venueFromText) {
-      return venueFromText;
-    }
-  }
-
-  return 'Unknown Venue';
-}
-
-function sanitizeVenue(value) {
-  if (!value) {
-    return null;
-  }
-
-  const cleaned = sanitizeString(String(value));
-  if (!cleaned || !/[a-z]/i.test(cleaned)) {
-    return null;
-  }
-  const truncated = cleaned.length > 80 ? cleaned.slice(0, 80).trim() : cleaned;
-  return truncated;
-}
-
-function findVenueInText(text) {
-  if (!text) {
-    return null;
-  }
-
-  const normalized = text.replace(/\s+/g, ' ');
-
-  const liveMatch = normalized.match(/(?:live|recorded)\s+(?:at|from)\s+([^,|()\-\n]+)/i);
-  if (liveMatch) {
-    const cleaned = sanitizeVenue(liveMatch[1]);
-    if (cleaned) {
-      return cleaned;
-    }
-  }
-
-  const atMatch = normalized.match(/@\s*([^,|()\-\n]+)/);
-  if (atMatch) {
-    const cleaned = sanitizeVenue(atMatch[1]);
-    if (cleaned) {
-      return cleaned;
-    }
-  }
-
-  if (normalized.length <= 120) {
-    const dashMatch = normalized.match(/-\s*([^()\n]+?)(?:\(|$)/);
-    if (dashMatch) {
-      const cleaned = sanitizeVenue(dashMatch[1]);
-      if (cleaned) {
-        return cleaned;
-      }
-    }
-  }
-
-  return null;
-}
-
 function printHelp() {
   console.log(`
 Usage: npm run encode-audio -- [options]
@@ -1257,7 +1151,7 @@ Options:
   --output-dir <path>      Directory for encoded output (default: from config)
   --work-dir <path>        Directory for temporary files (default: from config)
   --config <path>          Path to config file (default: encode.config.json)
-  --metadata-overrides <path>  JSON file with manual date/venue overrides
+  --metadata-overrides <path>  JSON file with manual metadata overrides
   --skip-prereq-check      Skip ffmpeg availability check
   --dry-run                Preview without encoding
   --help                   Show this help message

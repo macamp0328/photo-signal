@@ -1,13 +1,6 @@
 #!/usr/bin/env node
 import { spawn, spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-  rmSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { basename, join, resolve } from 'node:path';
 

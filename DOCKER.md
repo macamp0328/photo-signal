@@ -194,7 +194,7 @@ The dev server will be accessible at http://localhost:5173 on your host machine.
 
 - Based on `node:20-bookworm`
 - Includes GitHub CLI for GitHub integration
-- Ships Python 3.11 with `yt-dlp` and `mutagen` preinstalled for the audio workflow
+- Ships Python 3.x (Debian Bookworm default) with `yt-dlp` and `mutagen` preinstalled for the audio workflow
 - Includes all dev dependencies
 - Optimized for hot reload
 - Uses volume mounts for source code

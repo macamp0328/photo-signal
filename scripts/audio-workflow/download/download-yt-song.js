@@ -5,7 +5,7 @@ import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path';
 
 const DEFAULT_PLAYLIST_URL =
-  'https://music.youtube.com/playlist?list=PLqTokna7EJXfBg0o2c629Bmnxk21-G_Dg&si=K-yByXHQODxFRNBp';
+  'https://music.youtube.com/playlist?list=PLqTokna7EJXfBg0o2c629Bmnxk21-G_Dg';
 const DEFAULT_OUTPUT_DIR = 'downloads/yt-music';
 const DEFAULT_TEMPLATE = '%(playlist_index)02d - %(title)s.%(ext)s';
 const DEFAULT_ARCHIVE_NAME = '.yt-dlp-archive.txt';

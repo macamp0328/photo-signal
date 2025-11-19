@@ -756,7 +756,7 @@ Usage: npm run download-song -- [options]
 Options:
 	--playlist-url <url>         YouTube Music playlist URL (default: Photo Signal playlist)
 	--track-url <url>            Download a single track URL (skips playlist indexing)
-  --item <n|all>              Playlist index (1-based) to download (omit or pass "all" for full playlist)
+	--item <n|all>              Playlist index (1-based) to download (omit or pass "all" for full playlist)
 	--output-dir <path>          Directory for downloads (default: ${DEFAULT_OUTPUT_DIR})
   --format <ext>               Audio format (comma-separated list for priority; default: opus,mp3)
   --format-order <list>        Alternate way to set comma-separated audio priority

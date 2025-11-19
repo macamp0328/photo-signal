@@ -764,7 +764,7 @@ Options:
 	--keep-video                 Skip audio extraction and keep original container
   --player-client <client>     Force specific YouTube client (default: webremix)
   --po-token <token>           Provide required PO token when using android or tv clients
-  --js-runtime <spec>          Pass custom --js-runtimes to yt-dlp (e.g. node:/usr/local/bin/node)
+  --js-runtime[s] <spec>       Pass custom --js-runtime or --js-runtimes to yt-dlp (e.g. node:/usr/local/bin/node)
   --no-js-runtime              Disable automatic JS runtime detection
 	--cookies-from-browser <b>   Use authenticated cookies from a local browser profile
 	--cookies <path>             Use cookies from a Netscape-format file

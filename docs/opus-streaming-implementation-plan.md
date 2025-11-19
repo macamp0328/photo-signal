@@ -218,7 +218,7 @@ const loadAudioWithFallback = async (concert: Concert) => {
 **Tasks:**
 
 1. **Create migration script: `scripts/audio-workflow/update/migrate-audio-to-cdn.js`** 🔧 Medium
-   - **Purpose**: Upload Opuss to GitHub Releases and update data.json
+   - **Purpose**: Upload Opus files to GitHub Releases and update data.json
    - **Features**:
      - Scan `/public/audio/*.opus` files
      - Upload to GitHub Release via API

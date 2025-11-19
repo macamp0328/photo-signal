@@ -1,4 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+
+const extendedImportMeta = import.meta as ImportMeta & {
+  vitest?: unknown;
+  env?: {
+    MODE?: string;
+  };
+};
+
+const isVitestEnvironment =
+  Boolean(extendedImportMeta.vitest) ||
+  (typeof process !== 'undefined' && process.env?.VITEST === 'true');
+
+const resolvedMode = extendedImportMeta.env?.MODE ?? process.env?.NODE_ENV ?? 'development';
+
+const shouldLogCameraSettings = resolvedMode === 'development' && !isVitestEnvironment;
 import type { CameraAccessHook, CameraAccessOptions } from './types';
 
 /**
@@ -29,7 +44,7 @@ const getCameraConstraints = (): MediaStreamConstraints => ({
  * @param mediaStream - The media stream to log settings for
  */
 const logCameraSettings = (mediaStream: MediaStream) => {
-  if (process.env.NODE_ENV === 'development') {
+  if (shouldLogCameraSettings) {
     const track = mediaStream.getVideoTracks()[0];
     const settings = track?.getSettings();
     console.log('Camera settings applied:', settings);

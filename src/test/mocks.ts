@@ -6,7 +6,25 @@
  * by the test setup file.
  */
 
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { vi } from 'vitest';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const concertsFixturePath = resolve(__dirname, '../../assets/test-data/concerts.json');
+const concertsFixture = JSON.parse(readFileSync(concertsFixturePath, 'utf-8')) as Record<
+  string,
+  unknown
+>;
+
+const cloneFixture = <T>(value: T): T => {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value)) as T;
+};
 
 /**
  * Mock MediaDevices API (navigator.mediaDevices.getUserMedia)
@@ -196,17 +214,14 @@ export function mockFetch() {
   global.fetch = vi.fn((url: string | URL | Request) => {
     const urlString = typeof url === 'string' ? url : url.toString();
 
-    // Mock response for data.json
-    if (urlString.includes('data.json')) {
+    // Mock response for concert data files so tests exercise real fixtures
+    if (urlString.includes('concerts.json') || urlString.includes('data.json')) {
       return Promise.resolve({
         ok: true,
         status: 200,
         statusText: 'OK',
-        json: () =>
-          Promise.resolve({
-            concerts: [],
-          }),
-        text: () => Promise.resolve('{}'),
+        json: () => Promise.resolve(cloneFixture(concertsFixture)),
+        text: () => Promise.resolve(JSON.stringify(concertsFixture)),
         blob: () => Promise.resolve(new Blob()),
         arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
         headers: new Headers(),
@@ -248,6 +263,67 @@ export function mockRequestAnimationFrame() {
 }
 
 /**
+ * Mock Web Audio API (AudioContext)
+ *
+ * Used by: secret-settings retro sounds hook
+ */
+export function mockAudioContext() {
+  class TestGainNode {
+    public readonly gain = {
+      value: 1,
+      setValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+    };
+
+    connect = vi.fn();
+    disconnect = vi.fn();
+  }
+
+  class TestOscillatorNode {
+    public type: OscillatorType = 'sine';
+    public readonly frequency = {
+      value: 0,
+      setValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+    };
+
+    connect = vi.fn();
+    disconnect = vi.fn();
+    start = vi.fn();
+    stop = vi.fn();
+  }
+
+  class TestAudioContext {
+    public readonly destination = {};
+    public currentTime = 0;
+
+    createGain() {
+      return new TestGainNode();
+    }
+
+    createOscillator() {
+      return new TestOscillatorNode();
+    }
+
+    resume = vi.fn().mockResolvedValue(undefined);
+    close = vi.fn().mockResolvedValue(undefined);
+  }
+
+  Object.defineProperty(globalThis, 'AudioContext', {
+    configurable: true,
+    writable: true,
+    value: TestAudioContext,
+  });
+
+  Object.defineProperty(globalThis, 'webkitAudioContext', {
+    configurable: true,
+    writable: true,
+    value: TestAudioContext,
+  });
+}
+
+/**
  * Initialize all global mocks
  *
  * Call this function in your test setup file to enable all mocks
@@ -257,6 +333,7 @@ export function setupGlobalMocks() {
   mockMediaDevices();
   mockHTMLMediaElement();
   mockCanvasRenderingContext2D();
+  mockAudioContext();
   mockFetch();
   mockRequestAnimationFrame();
 }

@@ -149,7 +149,13 @@ function findDownloads(inputDir) {
   for (const file of files) {
     if (file.endsWith('.metadata.json')) {
       const metadataPath = join(inputDir, file);
-      const metadata = JSON.parse(readFileSync(metadataPath, 'utf-8'));
+      let metadata;
+      try {
+        metadata = JSON.parse(readFileSync(metadataPath, 'utf-8'));
+      } catch (err) {
+        console.warn(`⚠️  Failed to parse JSON in ${file}: ${err.message}`);
+        continue;
+      }
 
       const audioPath = metadata.download?.filePath;
       if (!audioPath || !existsSync(audioPath)) {
@@ -698,7 +704,7 @@ function getDefaultConfig() {
 }
 
 function resolvePath(path) {
-  if (!path) return null;
+  if (!path) return undefined;
   return path.startsWith('/') ? path : resolve(process.cwd(), path);
 }
 

@@ -1,0 +1,13 @@
+{
+  // NOTE: Paths are resolved relative to the location of this config file.
+  "playlist-url": "https://music.youtube.com/playlist?list=PLqTokna7EJXfBg0o2c629Bmnxk21-G_Dg",
+  "output-dir": "./downloads",
+  "file-template": "%(playlist_index)02d - %(title)s.%(ext)s",
+  "download-archive": "./downloads/.yt-dlp-archive.txt",
+  "format-order": "opus,mp3",
+  "sleep-requests": 0.5,
+  "rate-limit": "3M",
+  "metadata": true,
+  "write-info-json": true,
+  "write-thumbnail": true
+}

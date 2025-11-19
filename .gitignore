@@ -23,6 +23,9 @@ playwright-report/
 # Generated test assets (copied from assets/ to public/ by Vite plugin)
 public/assets
 
+# Local audio downloads (yt-dlp output)
+downloads/
+
 # Production audio files (served from CDN in production)
 # Keep demo files for local development: concert-*.mp3, concert-song-*.mp3
 # Add your production MP3 files here to exclude them from git

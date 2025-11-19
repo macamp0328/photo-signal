@@ -7,7 +7,7 @@
  * and updates data.json with the new URLs while preserving local fallbacks.
  *
  * Usage:
- *   node scripts/migrate-audio-to-cdn.js [options]
+ *   node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
  *
  * Options:
  *   --source=<path>       Path to source data.json (default: public/data.json)
@@ -18,13 +18,13 @@
  *
  * Examples:
  *   # Dry run with GitHub Releases
- *   node scripts/migrate-audio-to-cdn.js --dry-run --base-url=https://github.com/username/repo/releases/download/audio-v1
+ *   node scripts/audio-workflow/update/migrate-audio-to-cdn.js --dry-run --base-url=https://github.com/username/repo/releases/download/audio-v1
  *
  *   # Migrate to GitHub Releases
- *   node scripts/migrate-audio-to-cdn.js --base-url=https://github.com/username/repo/releases/download/audio-v1
+ *   node scripts/audio-workflow/update/migrate-audio-to-cdn.js --base-url=https://github.com/username/repo/releases/download/audio-v1
  *
  *   # Migrate to Cloudflare R2
- *   node scripts/migrate-audio-to-cdn.js --cdn=r2 --base-url=https://audio.example.com
+ *   node scripts/audio-workflow/update/migrate-audio-to-cdn.js --cdn=r2 --base-url=https://audio.example.com
  */
 
 import fs from 'fs';
@@ -33,7 +33,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = path.resolve(__dirname, '../../..');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -82,7 +82,7 @@ Audio CDN Migration Script
 This script migrates audio files to a CDN and updates data.json with the new URLs.
 
 Usage:
-  node scripts/migrate-audio-to-cdn.js [options]
+  node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 
 Options:
   --source=<path>       Path to source data.json (default: public/data.json)
@@ -93,13 +93,13 @@ Options:
 
 Examples:
   # Dry run with GitHub Releases
-  node scripts/migrate-audio-to-cdn.js --dry-run --base-url=https://github.com/username/repo/releases/download/audio-v1
+  node scripts/audio-workflow/update/migrate-audio-to-cdn.js --dry-run --base-url=https://github.com/username/repo/releases/download/audio-v1
 
   # Migrate to GitHub Releases
-  node scripts/migrate-audio-to-cdn.js --base-url=https://github.com/username/repo/releases/download/audio-v1
+  node scripts/audio-workflow/update/migrate-audio-to-cdn.js --base-url=https://github.com/username/repo/releases/download/audio-v1
 
   # Migrate to Cloudflare R2
-  node scripts/migrate-audio-to-cdn.js --cdn=r2 --base-url=https://audio.example.com
+  node scripts/audio-workflow/update/migrate-audio-to-cdn.js --cdn=r2 --base-url=https://audio.example.com
 `);
   process.exit(0);
 }
@@ -239,7 +239,7 @@ async function migrateAudioFiles() {
     console.log('   npm run dev');
     console.log('   Open the app and verify audio plays from CDN');
     console.log('\n3. Validate all URLs:');
-    console.log('   node scripts/validate-audio-urls.js');
+    console.log('   node scripts/audio-workflow/update/validate-audio-urls.js');
     console.log('\n4. Once confirmed, remove local Opus files from git:');
     console.log('   git rm public/audio/*.opus');
     console.log('   git commit -m "chore: remove production audio files (now on CDN)"');

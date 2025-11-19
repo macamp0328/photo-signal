@@ -188,7 +188,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), copyTestAssetsPlugin()],
     server: {
       host: true,
-      port: 3000,
+      port: 5173,
     },
   };
 });

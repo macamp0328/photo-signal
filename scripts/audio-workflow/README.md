@@ -42,15 +42,42 @@ Key features:
 
 See the [helper script docs](../README.md#audio-workflowdownloaddownload-yt-songjs---download-one-track-with-yt-dlp) for the full option list.
 
-## Stage 2: Organize + Encode (Planned)
+## Stage 2: Organize + Encode (Ready)
 
-All cataloging and mastering now happen inside `encode/`. See [`encode/README.md`](./encode/README.md) for the detailed playbook covering:
+The encoding stage is now implemented in `encode/encode-audio.js`. Run it with:
 
-- Inspecting newly downloaded metadata indexes and normalizing filenames/folders
-- Linking gallery photo IDs + QR codes to each track
-- Emitting readiness checklists/CSV before encoding
-- Transcoding raw downloads into Opus with loudness normalization, fades, and tagging
-- Producing manifests/report files (`audio-index.json`, `photo-audio-map.json`)
+```bash
+npm run encode-audio
+```
+
+**What it does:**
+
+- Reads `.metadata.json` files from the download stage
+- Converts audio to normalized 48kHz stereo WAV
+- Applies two-pass loudness normalization (EBU R128 to -14 LUFS)
+- Adds configurable fade-in/fade-out effects
+- Encodes to Opus format with metadata tags
+- Generates manifests: `audio-index.json`, `photo-audio-map.json`, `encode-report.md`
+- Calculates SHA256 checksums for integrity verification
+
+See [`encode/README.md`](./encode/README.md) for complete documentation covering:
+
+- Configuration options (LUFS target, bitrate, fades, metadata defaults)
+- Command-line usage and examples
+- Output file structure and manifests
+- Metadata extraction patterns
+- Quality assurance guidelines
+- Troubleshooting common issues
+
+**Current implementation:**
+
+- ✅ WAV conversion and normalization
+- ✅ Loudness measurement and normalization
+- ✅ Opus encoding with metadata
+- ✅ Manifest generation
+- ✅ Checksum calculation
+- 🚧 Photo ID linking (placeholder mappings generated, awaiting photo manifest integration)
+- 🚧 Gallery-aware folder organization (currently flat output directory)
 
 ## Stage 3: Update (Ready)
 

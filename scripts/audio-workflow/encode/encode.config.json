@@ -1,0 +1,24 @@
+{
+  "targetLUFS": -14,
+  "truePeakLimit": -1.5,
+  "lraTarget": 11,
+  "opus": {
+    "bitrateKbps": 160,
+    "complexity": 10,
+    "frameSizeMs": 20
+  },
+  "fades": {
+    "fadeInSeconds": 0.5,
+    "fadeOutSeconds": 1.0
+  },
+  "metadataDefaults": {
+    "album": "Photo Signal Playlist",
+    "genre": "Live Recording",
+    "copyright": "Photo Signal",
+    "website": "https://photosignal.app"
+  },
+  "inputDir": "../download/output",
+  "workDir": "./work",
+  "outputDir": "./output",
+  "photoMapPath": "../../../assets/example-real-photos/index.json"
+}

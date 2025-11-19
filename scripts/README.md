@@ -215,6 +215,8 @@ npm run download-song -- --format mp3
 npm run download-song -- --format-order opus,wav,mp3
 ```
 
+> Tip: Omit `--item` (or pass `--item all`) to download the entire playlist once you're satisfied with your metadata output.
+
 The downloader now defaults to the `webremix` client because YouTube's android and tv clients require a signed PO token. If you explicitly pick one of those clients, pass `--po-token` (or set it in your config file). Without the token yt-dlp will skip most HTTPS formats due to 403 responses.
 
 **What it does:**
@@ -223,6 +225,7 @@ The downloader now defaults to the `webremix` client because YouTube's android a
 - Extracts audio with ffmpeg (or keeps the original container via `--keep-video`)
 - Prefers `.opus` output automatically and retries with `.mp3` if Opus is missing (pass `--format` or `--format-order` to override the priority list)
 - Adds `--download-archive` automatically so you never pull the same track twice
+- Auto-detects the Node.js runtime that launched the script and forwards it to yt-dlp via `--js-runtimes` so the modern `webremix` client keeps working (pass `--js-runtime` or `--no-js-runtime` for manual control)
 - Applies gentle throttling (`--sleep-requests 0.5`, configurable) plus higher retry counts to avoid HTTP 429/403 responses
 - Supports authenticated sessions via `--cookies-from-browser`, `--cookies`, `--netrc`, and `--proxy`
 - Provides `--update-yt-dlp`, `--yt-dlp-path`, `--skip-prereq-check`, and `--dry-run` for advanced workflows

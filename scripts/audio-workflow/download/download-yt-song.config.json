@@ -1,6 +1,5 @@
 {
-  // NOTE: Paths are resolved relative to the location of this config file.
-  "playlist-url": "https://music.youtube.com/playlist?list=PLqTokna7EJXfBg0o2c629Bmnxk21-G_Dg",
+  "playlist-url": "https://music.youtube.com/playlist?list=PLqTokna7EJXeh7ZRpEkMSXkOZxW06PrW-",
   "output-dir": "./downloads",
   "file-template": "%(playlist_index)02d - %(title)s.%(ext)s",
   "download-archive": "./downloads/.yt-dlp-archive.txt",

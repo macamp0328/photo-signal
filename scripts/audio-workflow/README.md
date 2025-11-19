@@ -40,6 +40,7 @@ Key features:
 - Supports cookies, proxies, retries, throttling, and `--update-yt-dlp`
 - Loads defaults from `download/download-yt-song.config.json` (edit this file to set playlist URL, output dir, archive path, etc.)
 - Uses the `webremix` YouTube client by default; when forcing the `android` or `tv` clients you must also provide `--po-token` (or set it in the config) to satisfy yt-dlp's new PO token requirement
+- Automatically detects the local Node.js 20+ runtime and passes `--js-runtimes` to yt-dlp so modern YouTube clients (like `webremix`) stay unlocked; override with `--js-runtime` or disable with `--no-js-runtime`
 
 See the [helper script docs](../README.md#audio-workflowdownloaddownload-yt-songjs---download-one-track-with-yt-dlp) for the full option list.
 

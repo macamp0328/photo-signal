@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path';
 
@@ -38,11 +46,14 @@ if (!targetUrl) {
   process.exit(1);
 }
 
-const playlistItem = trackUrl ? null : validateIndex(options.index ?? options.item ?? 1);
+const playlistItem = trackUrl ? null : normalizePlaylistSelection(options.index ?? options.item);
 const outputDir = resolvePath(options['output-dir'] ?? DEFAULT_OUTPUT_DIR);
 const fileTemplate = options.template ?? options['file-template'] ?? DEFAULT_TEMPLATE;
 const playerClient = normalizeValue(options['player-client'], 'webremix');
 const poToken = normalizeValue(options['po-token'], null);
+const disableJsRuntime = toBoolean(options['no-js-runtime'], false);
+const explicitJsRuntime = normalizeValue(options['js-runtimes'] ?? options['js-runtime'], null);
+const jsRuntimes = disableJsRuntime ? null : (explicitJsRuntime ?? detectDefaultJsRuntime());
 const keepVideo = toBoolean(options['keep-video'], false);
 const writeIndexFiles = options['no-index'] ? false : toBoolean(options['write-index'], true);
 
@@ -215,6 +226,7 @@ function buildDownloadPlans() {
     outputPathTemplate,
     playerClient,
     poToken,
+    jsRuntimes,
     keepVideo,
     writeInfoJson,
     writeThumbnail,
@@ -307,6 +319,18 @@ function validateIndex(rawIndex) {
   return Math.floor(parsed);
 }
 
+function normalizePlaylistSelection(rawIndex) {
+  if (rawIndex === undefined || rawIndex === null || rawIndex === '') {
+    return null;
+  }
+
+  if (typeof rawIndex === 'string' && rawIndex.trim().toLowerCase() === 'all') {
+    return null;
+  }
+
+  return validateIndex(rawIndex);
+}
+
 function buildYtArgs({
   targetUrl,
   playlistItem,
@@ -315,6 +339,7 @@ function buildYtArgs({
   outputPathTemplate,
   playerClient,
   poToken,
+  jsRuntimes,
   keepVideo,
   writeInfoJson,
   writeThumbnail,
@@ -369,6 +394,10 @@ function buildYtArgs({
 
   if (extractorArgs.length) {
     argsList.push('--extractor-args', `youtube:${extractorArgs.join('&')}`);
+  }
+
+  if (jsRuntimes) {
+    argsList.push('--js-runtimes', jsRuntimes);
   }
 
   argsList.push('--format', formatSelector ?? 'bestaudio[ext=m4a]/bestaudio/best');
@@ -578,16 +607,17 @@ function cleanupTempPath(tempPath) {
 
 function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
   const metadataPath = `${downloadedFilePath}.metadata.json`;
-  const infoJsonPath = `${downloadedFilePath}.info.json`;
+  const infoJsonPath = resolveInfoJsonPath(downloadedFilePath);
+  const infoJsonExists = infoJsonPath ? existsSync(infoJsonPath) : false;
   let infoData = null;
 
-  if (existsSync(infoJsonPath)) {
+  if (infoJsonExists) {
     try {
       infoData = JSON.parse(readFileSync(infoJsonPath, 'utf-8'));
     } catch (error) {
       console.warn(`⚠️  Could not parse ${infoJsonPath}: ${error.message}`);
     }
-  } else if (writeInfoJson) {
+  } else if (writeInfoJson && infoJsonPath) {
     console.warn('⚠️  Expected .info.json file not found; metadata index will be partial.');
   }
 
@@ -625,7 +655,7 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
       trackUrl,
       requestedUrl: targetUrl,
     },
-    infoJsonPath: existsSync(infoJsonPath) ? infoJsonPath : null,
+    infoJsonPath: infoJsonExists ? infoJsonPath : null,
   };
 
   if (infoData) {
@@ -642,6 +672,61 @@ function detectExtension(filePath) {
     return null;
   }
   return ext.replace('.', '');
+}
+
+function resolveInfoJsonPath(downloadedFilePath) {
+  const candidates = [];
+  const ext = extname(downloadedFilePath ?? '');
+  const baseWithoutExt = ext ? downloadedFilePath.slice(0, -ext.length) : downloadedFilePath;
+
+  candidates.push(`${downloadedFilePath}.info.json`);
+
+  if (baseWithoutExt && baseWithoutExt !== downloadedFilePath) {
+    candidates.push(`${baseWithoutExt}.info.json`);
+  }
+
+  for (const candidate of candidates) {
+    if (candidate && existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  try {
+    const directory = dirname(downloadedFilePath);
+    const baseName = basename(baseWithoutExt);
+    const infoFiles = readdirSync(directory).filter((file) => file.endsWith('.info.json'));
+    const fuzzyMatch = infoFiles.find((file) => file.startsWith(baseName));
+    if (fuzzyMatch) {
+      return join(directory, fuzzyMatch);
+    }
+  } catch {
+    // ignore directory read errors
+  }
+
+  if (baseWithoutExt) {
+    return `${baseWithoutExt}.info.json`;
+  }
+
+  return downloadedFilePath ? `${downloadedFilePath}.info.json` : null;
+}
+
+function detectDefaultJsRuntime() {
+  const execPath = process.execPath;
+  if (!execPath) {
+    return null;
+  }
+
+  const execName = basename(execPath).toLowerCase();
+  const majorVersion = parseInt(process.versions?.node?.split('.')?.[0] ?? '0', 10);
+  if (majorVersion < 20) {
+    return null;
+  }
+
+  if (execName === 'node' || execName === 'node.exe') {
+    return `node:${execPath}`;
+  }
+
+  return null;
 }
 
 function loadConfig(explicitPath) {
@@ -671,7 +756,7 @@ Usage: npm run download-song -- [options]
 Options:
 	--playlist-url <url>         YouTube Music playlist URL (default: Photo Signal playlist)
 	--track-url <url>            Download a single track URL (skips playlist indexing)
-	--item <n>                   Playlist index (1-based) to download
+	--item <n|all>              Playlist index (1-based) to download (omit or pass "all" for full playlist)
 	--output-dir <path>          Directory for downloads (default: ${DEFAULT_OUTPUT_DIR})
   --format <ext>               Audio format (comma-separated list for priority; default: opus,mp3)
   --format-order <list>        Alternate way to set comma-separated audio priority
@@ -679,6 +764,8 @@ Options:
 	--keep-video                 Skip audio extraction and keep original container
   --player-client <client>     Force specific YouTube client (default: webremix)
   --po-token <token>           Provide required PO token when using android or tv clients
+  --js-runtime[s] <spec>       Pass custom --js-runtime or --js-runtimes to yt-dlp (e.g. node:/usr/local/bin/node)
+  --no-js-runtime              Disable automatic JS runtime detection
 	--cookies-from-browser <b>   Use authenticated cookies from a local browser profile
 	--cookies <path>             Use cookies from a Netscape-format file
 	--netrc                      Use credentials from ~/.netrc

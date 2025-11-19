@@ -683,7 +683,7 @@ Options:
 	--cookies <path>             Use cookies from a Netscape-format file
 	--netrc                      Use credentials from ~/.netrc
 	--proxy <url>                Route traffic through a proxy
-	--archive <path>             Download archive file (default: <output>/${DEFAULT_ARCHIVE_NAME})
+	--archive <path>             Download archive file (default: <output-dir>/${DEFAULT_ARCHIVE_NAME})
 	--no-archive                 Disable duplicate protection archive
 	--metadata / --no-metadata   Toggle metadata sidecars, tags, and thumbnails
 	--no-info-json               Skip writing the .info.json metadata file

@@ -2,7 +2,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { basename, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 
 const DEFAULT_CONFIG_PATH = resolve(
   process.cwd(),
@@ -33,6 +33,11 @@ async function main() {
   // Load configuration
   const configPath = args.config ?? DEFAULT_CONFIG_PATH;
   const config = loadConfig(configPath);
+
+  const metadataOverridesPath = resolvePath(
+    args['metadata-overrides'] ?? config.metadataOverridesPath ?? null
+  );
+  const metadataOverrides = loadMetadataOverrides(metadataOverridesPath);
 
   // Resolve paths
   const inputDir = resolvePath(args['input-dir'] ?? config.inputDir ?? '../download/output');
@@ -85,6 +90,7 @@ async function main() {
         outputDir,
         workDir,
         dryRun,
+        metadataOverrides,
       });
       results.push(result);
 
@@ -145,49 +151,163 @@ async function main() {
 function findDownloads(inputDir) {
   const downloads = [];
   const files = readdirSync(inputDir);
+  const metadataFiles = files.filter((file) => file.endsWith('.metadata.json'));
+  const infoFiles = files.filter((file) => file.endsWith('.info.json'));
 
-  for (const file of files) {
+  const useInfoFallback = metadataFiles.length === 0 && infoFiles.length > 0;
+  if (useInfoFallback) {
+    console.warn(
+      '⚠️  No .metadata.json files found; attempting to parse .info.json files directly.'
+    );
+  }
+
+  const filesToProcess = metadataFiles.length > 0 ? metadataFiles : infoFiles;
+
+  for (const file of filesToProcess) {
+    const fullPath = join(inputDir, file);
+    let metadata;
+
     if (file.endsWith('.metadata.json')) {
-      const metadataPath = join(inputDir, file);
-      let metadata;
       try {
-        metadata = JSON.parse(readFileSync(metadataPath, 'utf-8'));
+        metadata = JSON.parse(readFileSync(fullPath, 'utf-8'));
       } catch (err) {
         console.warn(`⚠️  Failed to parse JSON in ${file}: ${err.message}`);
         continue;
       }
-
-      const audioPath = metadata.download?.filePath;
-      if (!audioPath || !existsSync(audioPath)) {
-        console.warn(`⚠️  Audio file not found for ${file}: ${audioPath}`);
+    } else {
+      metadata = buildMetadataFromInfo(fullPath);
+      if (!metadata) {
         continue;
       }
-
-      downloads.push({
-        metadataPath,
-        audioPath,
-        fileName: basename(audioPath),
-        metadata,
-      });
     }
+
+    const audioPath = metadata.download?.filePath;
+    if (!audioPath || !existsSync(audioPath)) {
+      console.warn(`⚠️  Audio file not found for ${file}: ${audioPath ?? 'unknown path'}`);
+      continue;
+    }
+
+    downloads.push({
+      metadataPath: fullPath,
+      audioPath,
+      fileName: basename(audioPath),
+      metadata,
+    });
+  }
+
+  if (downloads.length === 0 && filesToProcess.length === 0) {
+    console.warn('⚠️  No metadata or info files found in the input directory.');
   }
 
   return downloads;
+}
+
+const AUDIO_EXTENSIONS = ['opus', 'webm', 'm4a', 'mp3', 'wav', 'flac', 'ogg', 'oga', 'aac'];
+
+function buildMetadataFromInfo(infoPath) {
+  let info;
+  try {
+    info = JSON.parse(readFileSync(infoPath, 'utf-8'));
+  } catch (error) {
+    console.warn(`⚠️  Failed to parse info JSON ${basename(infoPath)}: ${error.message}`);
+    return null;
+  }
+
+  const audioPath = resolveAudioPathFromInfo(infoPath);
+  if (!audioPath) {
+    console.warn(
+      `⚠️  Could not locate a downloaded audio file for ${basename(infoPath)}. Expected one of: ${AUDIO_EXTENSIONS.join(', ')}`
+    );
+    return null;
+  }
+
+  const artist =
+    info.artist ??
+    (Array.isArray(info.artists) ? info.artists.join(', ') : undefined) ??
+    info.uploader ??
+    info.channel ??
+    'Unknown Artist';
+
+  const title = info.title ?? info.fulltitle ?? basename(audioPath);
+  const album = info.album ?? info.playlist_title ?? info.track ?? undefined;
+
+  return {
+    track: {
+      id: info.id ?? info.display_id ?? null,
+      title,
+      album,
+      artist,
+      description: info.description ?? null,
+      releaseDate: info.release_date ?? null,
+      uploadDate: info.upload_date ?? null,
+      uploader: info.uploader ?? null,
+      playlistIndex: info.playlist_index ?? null,
+      durationSeconds: info.duration ?? null,
+      thumbnails: info.thumbnails ?? [],
+      webpageUrl: info.webpage_url ?? info.original_url ?? null,
+      tags: info.tags ?? null,
+      categories: info.categories ?? null,
+    },
+    download: {
+      filePath: audioPath,
+      fileName: basename(audioPath),
+      ext: audioPath.split('.').pop() ?? null,
+      codec: info.acodec ?? null,
+      bitrateKbps: info.abr ?? null,
+    },
+    playlist: {
+      url: info.playlist_webpage_url ?? info.playlist_url ?? null,
+      id: info.playlist_id ?? null,
+      title: info.playlist_title ?? info.playlist ?? null,
+      index: info.playlist_index ?? null,
+    },
+    infoSource: {
+      path: infoPath,
+    },
+  };
+}
+
+function resolveAudioPathFromInfo(infoPath) {
+  const basePath = infoPath.replace(/\.info\.json$/, '');
+
+  for (const ext of AUDIO_EXTENSIONS) {
+    const candidate = `${basePath}.${ext}`;
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  // Fallback: search directory for a file that shares the base name but different extension
+  const dir = dirname(infoPath);
+  const baseName = basename(basePath);
+  try {
+    const siblings = readdirSync(dir);
+    const match = siblings.find(
+      (file) => file.startsWith(`${baseName}.`) && !file.endsWith('.info.json')
+    );
+    if (match) {
+      return join(dir, match);
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
 }
 
 /**
  * Process a single audio file
  */
 async function processAudioFile(download, config, options) {
-  const { outputDir, workDir, dryRun } = options;
+  const { outputDir, workDir, dryRun, metadataOverrides } = options;
 
-  // Extract metadata
-  const track = download.metadata.track ?? {};
+  const metadata = applyMetadataOverrides(download.metadata, download, metadataOverrides);
+  const track = metadata.track ?? {};
 
   const band = sanitizeString(track.artist ?? 'Unknown Artist');
   const title = sanitizeString(track.title ?? 'Unknown Title');
-  const date = extractDate(track);
-  const venue = extractVenue(track);
+  const date = extractDate(metadata);
+  const venue = extractVenue(metadata);
 
   // Generate slug and filenames
   const slug = generateSlug(date, band, venue);
@@ -284,8 +404,8 @@ function convertToWav(inputPath, outputPath) {
       '48000', // 48kHz sample rate
       '-ac',
       '2', // stereo
-      '-sample_fmt',
-      's32', // 32-bit signed integer
+      '-c:a',
+      'pcm_s32le',
       '-y',
       outputPath,
     ];
@@ -344,12 +464,35 @@ function measureLoudness(inputPath, config) {
 
       try {
         const stats = JSON.parse(jsonMatch[0]);
-        resolve(stats);
+        resolve(coerceLoudnessStats(stats));
       } catch (error) {
         reject(new Error(`Failed to parse loudness stats: ${error.message}`));
       }
     });
   });
+}
+
+function coerceLoudnessStats(stats) {
+  const numericKeys = [
+    'input_i',
+    'input_tp',
+    'input_lra',
+    'input_thresh',
+    'output_i',
+    'output_tp',
+    'output_lra',
+    'output_thresh',
+    'target_offset',
+  ];
+
+  for (const key of numericKeys) {
+    if (stats[key] !== undefined && stats[key] !== null) {
+      const parsed = Number(stats[key]);
+      stats[key] = Number.isNaN(parsed) ? stats[key] : parsed;
+    }
+  }
+
+  return stats;
 }
 
 /**
@@ -639,6 +782,124 @@ function generateReport(results, outputDir) {
   console.log(`  ✓ Report: ${reportPath}`);
 }
 
+function loadMetadataOverrides(path) {
+  if (!path) {
+    return null;
+  }
+
+  if (!existsSync(path)) {
+    return null;
+  }
+
+  try {
+    const contents = readFileSync(path, 'utf-8');
+    const parsed = JSON.parse(contents);
+    console.log(`🧩 Loaded metadata overrides from ${path}`);
+    return {
+      byTrackId: parsed.byTrackId ?? {},
+      byFileName: parsed.byFileName ?? {},
+    };
+  } catch (error) {
+    console.warn(`⚠️  Could not read metadata overrides from ${path}: ${error.message}`);
+    return null;
+  }
+}
+
+function applyMetadataOverrides(metadata, download, overrides) {
+  if (!overrides) {
+    return metadata;
+  }
+
+  const trackId = metadata?.track?.id;
+  const override = normalizeOverrideObject(
+    (trackId && overrides.byTrackId?.[trackId]) ?? overrides.byFileName?.[download.fileName] ?? null
+  );
+
+  if (!override) {
+    return metadata;
+  }
+
+  return mergeMetadataObjects(metadata, override);
+}
+
+function mergeMetadataObjects(base = {}, override = {}) {
+  const merged = {
+    ...base,
+    track: { ...(base.track ?? {}) },
+    download: { ...(base.download ?? {}) },
+    playlist: { ...(base.playlist ?? {}) },
+  };
+
+  if (override.track) {
+    merged.track = { ...merged.track, ...override.track };
+  }
+
+  if (override.download) {
+    merged.download = { ...merged.download, ...override.download };
+  }
+
+  if (override.playlist) {
+    merged.playlist = { ...merged.playlist, ...override.playlist };
+  }
+
+  const reserved = new Set(['track', 'download', 'playlist']);
+  for (const [key, value] of Object.entries(override)) {
+    if (reserved.has(key)) {
+      continue;
+    }
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      merged[key] = { ...(merged[key] ?? {}), ...value };
+    } else {
+      merged[key] = value;
+    }
+  }
+
+  return merged;
+}
+
+function normalizeOverrideObject(override) {
+  if (!override) {
+    return null;
+  }
+
+  if (typeof override === 'string') {
+    return { track: { venue: override } };
+  }
+
+  if (typeof override !== 'object') {
+    return null;
+  }
+
+  const clone = { ...override };
+  const track = { ...(clone.track ?? {}) };
+
+  if (clone.venue) {
+    track.venue = clone.venue;
+    delete clone.venue;
+  }
+
+  if (clone.date) {
+    track.performanceDate = clone.date;
+    delete clone.date;
+  }
+
+  if (clone.band) {
+    track.artist = clone.band;
+    delete clone.band;
+  }
+
+  if (clone.title) {
+    track.title = clone.title;
+    delete clone.title;
+  }
+
+  if (Object.keys(track).length > 0) {
+    clone.track = track;
+  }
+
+  return clone;
+}
+
 /**
  * Helper functions
  */
@@ -744,36 +1005,247 @@ function slugify(str) {
     .replace(/^-|-$/g, '');
 }
 
-function extractDate(track) {
-  // Try to extract from title or description
-  const text = `${track.title} ${track.album || ''}`;
-  const dateMatch = text.match(/(\d{4})[/-](\d{2})[/-](\d{2})/);
-  if (dateMatch) {
-    return `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`;
+function extractDate(metadata) {
+  const track = metadata?.track ?? {};
+  const ytInfo = metadata?.ytInfo ?? {};
+
+  const directCandidates = [
+    track.date,
+    track.performanceDate,
+    track.recordedDate,
+    track.releaseDate,
+    track.uploadDate,
+    ytInfo.release_date,
+    ytInfo.upload_date,
+  ];
+
+  for (const candidate of directCandidates) {
+    const normalized = normalizeDateString(candidate);
+    if (normalized) {
+      return normalized;
+    }
   }
 
-  // Fallback to unknown
+  const textFields = [
+    track.title,
+    track.album,
+    track.description,
+    ytInfo.title,
+    ytInfo.description,
+  ];
+
+  for (const field of textFields) {
+    const fromText = findDateInText(field);
+    if (fromText) {
+      return fromText;
+    }
+  }
+
   return 'unknown';
 }
 
-function extractVenue(track) {
-  // Try to extract venue from title
-  // Common pattern: "Artist - Venue (Date)" or "Artist @ Venue"
-  const title = track.title || '';
-
-  // Try @ pattern
-  const atMatch = title.match(/@\s*([^()\d]+)/);
-  if (atMatch) {
-    return sanitizeString(atMatch[1]);
+function normalizeDateString(value) {
+  if (value === undefined || value === null) {
+    return null;
   }
 
-  // Try - pattern
-  const dashMatch = title.match(/-\s*([^()\d]+)/);
-  if (dashMatch) {
-    return sanitizeString(dashMatch[1]);
+  const raw = String(value).trim();
+  if (!raw) {
+    return null;
+  }
+
+  const isoMatch = raw.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (isoMatch) {
+    return formatDateParts(isoMatch[1], isoMatch[2], isoMatch[3]);
+  }
+
+  const compactMatch = raw.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (compactMatch) {
+    return formatDateParts(compactMatch[1], compactMatch[2], compactMatch[3]);
+  }
+
+  const textualMatch = raw.match(
+    /^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})$/i
+  );
+  if (textualMatch) {
+    const month = monthNameToNumber(textualMatch[1]);
+    return formatDateParts(textualMatch[3], month, textualMatch[2]);
+  }
+
+  return null;
+}
+
+function findDateInText(text) {
+  if (!text) {
+    return null;
+  }
+
+  const normalized = text.replace(/\s+/g, ' ');
+  const isoPattern = /(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/;
+  const isoMatch = normalized.match(isoPattern);
+  if (isoMatch) {
+    return formatDateParts(isoMatch[1], isoMatch[2], isoMatch[3]);
+  }
+
+  const compactPattern = /(\d{4})(\d{2})(\d{2})/;
+  const compactMatch = normalized.match(compactPattern);
+  if (compactMatch) {
+    return formatDateParts(compactMatch[1], compactMatch[2], compactMatch[3]);
+  }
+
+  const textPattern =
+    /(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})/i;
+  const textMatch = normalized.match(textPattern);
+  if (textMatch) {
+    const month = monthNameToNumber(textMatch[1]);
+    return formatDateParts(textMatch[3], month, textMatch[2]);
+  }
+
+  return null;
+}
+
+function monthNameToNumber(name) {
+  if (!name) {
+    return null;
+  }
+  const lookup = {
+    january: '01',
+    february: '02',
+    march: '03',
+    april: '04',
+    may: '05',
+    june: '06',
+    july: '07',
+    august: '08',
+    september: '09',
+    sept: '09',
+    october: '10',
+    november: '11',
+    december: '12',
+    jan: '01',
+    feb: '02',
+    mar: '03',
+    apr: '04',
+    jun: '06',
+    jul: '07',
+    aug: '08',
+    sep: '09',
+    oct: '10',
+    nov: '11',
+    dec: '12',
+  };
+
+  return lookup[name.toLowerCase()] ?? null;
+}
+
+function formatDateParts(year, month, day) {
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const y = String(year);
+  const m = String(month).padStart(2, '0');
+  const d = String(day).padStart(2, '0');
+
+  if (!/^\d{4}$/.test(y)) {
+    return null;
+  }
+
+  const monthNum = parseInt(m, 10);
+  const dayNum = parseInt(d, 10);
+
+  if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31) {
+    return null;
+  }
+
+  return `${y}-${m}-${d}`;
+}
+
+function extractVenue(metadata) {
+  const track = metadata?.track ?? {};
+  const playlist = metadata?.playlist ?? {};
+  const ytInfo = metadata?.ytInfo ?? {};
+
+  const directCandidates = [
+    track.venue,
+    track.location,
+    track.performanceVenue,
+    track.recordedAt,
+    playlist.venue,
+  ];
+
+  for (const candidate of directCandidates) {
+    const normalized = sanitizeVenue(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  const textSources = [
+    track.title,
+    track.album,
+    track.description,
+    ytInfo.title,
+    ytInfo.description,
+  ];
+
+  for (const source of textSources) {
+    const venueFromText = findVenueInText(source);
+    if (venueFromText) {
+      return venueFromText;
+    }
   }
 
   return 'Unknown Venue';
+}
+
+function sanitizeVenue(value) {
+  if (!value) {
+    return null;
+  }
+
+  const cleaned = sanitizeString(String(value));
+  if (!cleaned || !/[a-z]/i.test(cleaned)) {
+    return null;
+  }
+  const truncated = cleaned.length > 80 ? cleaned.slice(0, 80).trim() : cleaned;
+  return truncated;
+}
+
+function findVenueInText(text) {
+  if (!text) {
+    return null;
+  }
+
+  const normalized = text.replace(/\s+/g, ' ');
+
+  const liveMatch = normalized.match(/(?:live|recorded)\s+(?:at|from)\s+([^,|()\-\n]+)/i);
+  if (liveMatch) {
+    const cleaned = sanitizeVenue(liveMatch[1]);
+    if (cleaned) {
+      return cleaned;
+    }
+  }
+
+  const atMatch = normalized.match(/@\s*([^,|()\-\n]+)/);
+  if (atMatch) {
+    const cleaned = sanitizeVenue(atMatch[1]);
+    if (cleaned) {
+      return cleaned;
+    }
+  }
+
+  if (normalized.length <= 120) {
+    const dashMatch = normalized.match(/-\s*([^()\n]+?)(?:\(|$)/);
+    if (dashMatch) {
+      const cleaned = sanitizeVenue(dashMatch[1]);
+      if (cleaned) {
+        return cleaned;
+      }
+    }
+  }
+
+  return null;
 }
 
 function printHelp() {
@@ -785,6 +1257,7 @@ Options:
   --output-dir <path>      Directory for encoded output (default: from config)
   --work-dir <path>        Directory for temporary files (default: from config)
   --config <path>          Path to config file (default: encode.config.json)
+  --metadata-overrides <path>  JSON file with manual date/venue overrides
   --skip-prereq-check      Skip ffmpeg availability check
   --dry-run                Preview without encoding
   --help                   Show this help message

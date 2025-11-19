@@ -7,6 +7,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -610,6 +611,7 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
   const infoJsonPath = resolveInfoJsonPath(downloadedFilePath);
   const infoJsonExists = infoJsonPath ? existsSync(infoJsonPath) : false;
   let infoData = null;
+  let fileStats = null;
 
   if (infoJsonExists) {
     try {
@@ -620,6 +622,14 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
   } else if (writeInfoJson && infoJsonPath) {
     console.warn('⚠️  Expected .info.json file not found; metadata index will be partial.');
   }
+
+  try {
+    fileStats = statSync(downloadedFilePath);
+  } catch (error) {
+    console.warn(`⚠️  Could not stat ${downloadedFilePath}: ${error.message}`);
+  }
+
+  const resolvedExtension = detectExtension(downloadedFilePath);
 
   const metadata = {
     schemaVersion: 1,
@@ -635,17 +645,24 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
       title: infoData?.title ?? null,
       album: infoData?.album ?? infoData?.track ?? null,
       artist: infoData?.artist ?? infoData?.uploader ?? null,
+      description: infoData?.description ?? null,
+      releaseDate: infoData?.release_date ?? null,
+      uploadDate: infoData?.upload_date ?? null,
       channelId: infoData?.channel_id ?? null,
       durationSeconds: infoData?.duration ?? null,
       thumbnails: infoData?.thumbnails ?? [],
       webpageUrl: infoData?.webpage_url ?? infoData?.original_url ?? targetUrl,
+      tags: infoData?.tags ?? null,
+      categories: infoData?.categories ?? null,
     },
     download: {
       filePath: downloadedFilePath,
       fileName: basename(downloadedFilePath),
-      ext: infoData?.ext ?? detectExtension(downloadedFilePath),
+      ext: resolvedExtension ?? infoData?.ext ?? null,
+      originalExt: infoData?.ext ?? resolvedExtension ?? null,
       codec: infoData?.acodec ?? null,
       bitrateKbps: infoData?.abr ?? null,
+      fileSizeBytes: fileStats?.size ?? null,
       formatAttempted: planLabel ?? audioFormat ?? null,
       formatPreference,
       archivePath: downloadArchive,

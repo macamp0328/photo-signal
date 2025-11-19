@@ -297,6 +297,16 @@ For best results, ensure your YouTube track titles follow standard concert namin
 - `Artist @ Venue (YYYY-MM-DD)`
 - `Artist - Venue, Date`
 
+### Metadata Overrides
+
+If heuristics still can’t find the right date or venue, provide a small override file and point the script at it:
+
+```bash
+npm run encode-audio -- --metadata-overrides ./scripts/audio-workflow/encode/metadata-overrides.json
+```
+
+The JSON supports lookup by YouTube `track.id` or by downloaded filename. Copy `metadata-overrides.example.json`, drop it next to the script, and fill in fields like `venue`, `date`, `band`, or a nested `track` object. Overrides merge into the parsed metadata before slug generation, so the encode stage—and the resulting manifests—pick up your curated values automatically.
+
 ### Quality Assurance
 
 The generated `encode-report.md` includes:

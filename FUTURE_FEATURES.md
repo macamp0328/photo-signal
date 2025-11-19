@@ -31,17 +31,20 @@ This document consolidates ideas and plans for features that haven't been implem
 **Solution**: Hybrid CDN approach
 
 **Phase 1 (MVP)**: GitHub Releases
+
 - Free, unlimited bandwidth
 - Integrated with GitHub workflow
 - Manual upload via API
 
 **Phase 2 (Scale)**: Cloudflare R2
+
 - 10GB free storage
 - No egress fees
 - Scriptable uploads with S3 API
 - Best for libraries >50 tracks
 
 **Implementation Needs**:
+
 - Migration script to upload files
 - Update `data.json` to use CDN URLs
 - Add fallback to local files for development
@@ -52,18 +55,23 @@ This document consolidates ideas and plans for features that haven't been implem
 ## UX & Interface Ideas
 
 ### Story Mode
+
 Written reflections fade in after the song ends - connect memories to photos.
 
 ### Audio-Reactive Visual Overlays
+
 Visual effects that respond to audio frequency/amplitude.
 
 ### Offline PWA Experience
+
 Service worker caching for offline use.
 
 ### Favorites System
+
 Allow users to save and revisit favorite concerts.
 
 ### User Settings Panel
+
 Customize volume, crossfade duration, motion sensitivity, etc.
 
 ---
@@ -71,9 +79,11 @@ Customize volume, crossfade duration, motion sensitivity, etc.
 ## Hardware Integration
 
 ### External Playback via ESP32
+
 Send audio to physical speakers via WiFi.
 
 ### Google Home Integration
+
 Cast audio to Google Home devices.
 
 ---
@@ -81,9 +91,11 @@ Cast audio to Google Home devices.
 ## Advanced Photo Recognition
 
 ### Real ML-Based Recognition
+
 Replace perceptual hashing with TensorFlow.js model for better accuracy.
 
 ### QR Code Fallback
+
 Support QR codes as backup recognition method.
 
 ---
@@ -97,12 +109,15 @@ Add internationalization (i18n) for interface text.
 ## Technical Improvements
 
 ### PostgreSQL Backend
+
 Migrate from static JSON to database for concert data.
 
 ### User Accounts
+
 Allow users to save preferences, favorites, custom galleries.
 
 ### Analytics & Telemetry
+
 Track recognition success rates, most played songs, etc.
 
 ---
@@ -110,6 +125,7 @@ Track recognition success rates, most played songs, etc.
 ## Notes
 
 This list is living documentation. When implementing a feature:
+
 1. Move the relevant section to appropriate docs (README, module docs, etc.)
 2. Delete the section from this file
 3. Update DOCUMENTATION_INDEX.md accordingly

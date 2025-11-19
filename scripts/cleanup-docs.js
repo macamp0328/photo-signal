@@ -21,21 +21,21 @@ const filesToDelete = [
   'AUTO_FIX_WORKFLOW.md',
   'MOBILE_UX_IMPROVEMENTS.md',
   'FAVICON_SETUP.md',
-  
+
   // docs/ directory - Completed work and implementation summaries
   'docs/test-mode-fix-summary.md',
   'docs/grayscale-feature-implementation.md',
   'docs/mobile-first-refactor-summary.md',
   'docs/phase-1-implementation-verification.md',
   'docs/IMPLEMENTATION_STATUS_SUMMARY.md',
-  
+
   // docs/ directory - Research that's been consolidated into FUTURE_FEATURES.md
   'docs/phase-2-angle-compensation-analysis.md',
   'docs/phase-2-benchmarking-guide.md',
   'docs/phase-2-migration-guide.md',
   'docs/opus-streaming-implementation-plan.md',
   'docs/audio-streaming-setup.md',
-  
+
   // docs/ directory - Redundant documentation
   'docs/code-analysis-examples.md',
   'docs/code-analysis-tooling-research.md',
@@ -60,10 +60,10 @@ async function deleteFile(filepath) {
 
 async function main() {
   console.log('Starting documentation cleanup...\n');
-  
+
   let deletedCount = 0;
   let errorCount = 0;
-  
+
   for (const file of filesToDelete) {
     const success = await deleteFile(file);
     if (success) {
@@ -72,14 +72,14 @@ async function main() {
       errorCount++;
     }
   }
-  
+
   console.log('\n' + '='.repeat(50));
   console.log('Cleanup Summary:');
   console.log(`  Total files processed: ${filesToDelete.length}`);
   console.log(`  Successfully deleted: ${deletedCount}`);
   console.log(`  Errors: ${errorCount}`);
   console.log('='.repeat(50));
-  
+
   if (errorCount === 0) {
     console.log('\n✓ Documentation cleanup complete!');
     console.log('\nNext steps:');

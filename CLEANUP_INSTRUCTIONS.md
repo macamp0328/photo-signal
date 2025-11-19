@@ -21,6 +21,7 @@ npm run cleanup-docs
 ```
 
 This will delete 21 documentation files that no longer provide value:
+
 - 7 root-level files (workflow analysis docs, implementation summaries)
 - 14 docs/ directory files (completed work, redundant research)
 
@@ -35,6 +36,7 @@ git push
 ## Files That Will Be Deleted
 
 ### Root Level (7 files)
+
 - `CLEANUP_EXECUTIVE_SUMMARY.md`
 - `README_ANALYSIS_COMPLETE.md`
 - `WORKFLOW_COMPARISON_TABLE.md`
@@ -44,6 +46,7 @@ git push
 - `FAVICON_SETUP.md`
 
 ### Docs Directory (14 files)
+
 - `docs/test-mode-fix-summary.md`
 - `docs/grayscale-feature-implementation.md`
 - `docs/mobile-first-refactor-summary.md`
@@ -61,6 +64,7 @@ git push
 ## Files That Will Be Kept
 
 All essential documentation remains:
+
 - Core docs: README.md, CONTRIBUTING.md, ARCHITECTURE.md, SETUP.md, TESTING.md, DOCKER.md
 - New: FUTURE_FEATURES.md (consolidated unimplemented features)
 - Guides: All accessibility docs, TEST_DATA_MODE_GUIDE.md, setup guides
@@ -70,9 +74,11 @@ All essential documentation remains:
 ## Why This Cleanup?
 
 Per the issue request:
+
 > "review every documentation file in the repo. Decides if it needs to exist, and delete when in doubt. It seems like AI agents like to create tons of documents that don't help anything."
 
 This cleanup removes:
+
 - **Historical records** (PR #162 workflow analysis - work is done, keep in git history)
 - **Implementation summaries** (features are implemented, covered in module docs)
 - **Redundant research** (consolidated into FUTURE_FEATURES.md)
@@ -85,11 +91,13 @@ Result: **16% reduction** in documentation files (128 → 107), keeping only wha
 After running the cleanup script:
 
 1. Verify deletions:
+
    ```bash
    git status
    ```
 
 2. Check for broken links:
+
    ```bash
    grep -r "CLEANUP_EXECUTIVE_SUMMARY\|README_ANALYSIS_COMPLETE\|WORKFLOW_" *.md docs/*.md
    ```

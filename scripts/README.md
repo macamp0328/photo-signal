@@ -846,6 +846,7 @@ node scripts/cleanup-docs.js
 **Files Removed:**
 
 Root Level:
+
 - `CLEANUP_EXECUTIVE_SUMMARY.md`
 - `README_ANALYSIS_COMPLETE.md`
 - `WORKFLOW_COMPARISON_TABLE.md`
@@ -855,6 +856,7 @@ Root Level:
 - `FAVICON_SETUP.md`
 
 Docs Directory:
+
 - `docs/test-mode-fix-summary.md`
 - `docs/grayscale-feature-implementation.md`
 - `docs/mobile-first-refactor-summary.md`

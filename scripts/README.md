@@ -16,6 +16,10 @@ Set `USE_DOCKER=true` to run commands in Docker containers instead of locally:
 USE_DOCKER=true ./scripts/dev.sh
 ```
 
+## Audio Workflow Directory
+
+The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run validate-audio`) still invoke the scripts in this directory directly.
+
 ## Available Scripts
 
 ### `dev.sh` - Development Server
@@ -171,6 +175,85 @@ Creates a silent Opus file for testing.
 - Creates `public/audio/sample.opus`
 - 5 seconds of silence
 - Opus format for superior quality and compression
+
+---
+
+### `audio-workflow/download/download-yt-song.js` - Download One Track with yt-dlp
+
+Downloads audio from YouTube Music playlists (or direct track URLs) using [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) with duplicate protection, metadata capture, gentle throttling, and authenticated session support. By default it grabs the best native Opus stream; if Opus is unavailable it automatically retries and falls back to MP3 conversion (configurable via `--format` or `--format-order`).
+
+**Requirements:** `yt-dlp` and `ffmpeg`. They are now baked into the dev container/Docker image. When running on your host machine, install them via Homebrew/winget (`brew install ffmpeg`, `pip install -U yt-dlp`).
+
+**Common usage:**
+
+```bash
+# Download the first track from the default Photo Signal playlist
+npm run download-song -- --item 1 --output-dir ~/Music/photo-signal
+
+# Download a specific playlist item from a custom playlist
+npm run download-song -- --playlist-url "<playlist-url>" --item 5
+
+# Download by direct track URL (skips playlist indexing)
+npm run download-song -- --track-url "https://music.youtube.com/watch?v=..."
+
+# Force a specific YouTube player client (android now requires a PO token)
+npm run download-song -- --item 1 --player-client android --po-token "android.gvs+XXXX"
+
+# Use authenticated cookies and throttle to 3 MB/s for long sessions
+npm run download-song -- \
+  --cookies-from-browser chrome \
+  --rate-limit 3M \
+  --item 12
+
+# Dry-run to inspect the underlying yt-dlp command
+npm run download-song -- --item 1 --dry-run
+
+# Force MP3 output only
+npm run download-song -- --format mp3
+
+# Provide a custom priority order (Opus → WAV → MP3)
+npm run download-song -- --format-order opus,wav,mp3
+```
+
+The downloader now defaults to the `webremix` client because YouTube's android and tv clients require a signed PO token. If you explicitly pick one of those clients, pass `--po-token` (or set it in your config file). Without the token yt-dlp will skip most HTTPS formats due to 403 responses.
+
+**What it does:**
+
+- Creates the output directory if it does not exist (default: `downloads/yt-music`)
+- Extracts audio with ffmpeg (or keeps the original container via `--keep-video`)
+- Prefers `.opus` output automatically and retries with `.mp3` if Opus is missing (pass `--format` or `--format-order` to override the priority list)
+- Adds `--download-archive` automatically so you never pull the same track twice
+- Applies gentle throttling (`--sleep-requests 0.5`, configurable) plus higher retry counts to avoid HTTP 429/403 responses
+- Supports authenticated sessions via `--cookies-from-browser`, `--cookies`, `--netrc`, and `--proxy`
+- Provides `--update-yt-dlp`, `--yt-dlp-path`, `--skip-prereq-check`, and `--dry-run` for advanced workflows
+- Generates a machine-readable `*.metadata.json` file for every downloaded song that captures playlist info, YouTube metadata (`.info.json` contents), chosen audio format, and filesystem paths for downstream photo-to-song alignment
+
+> Tip: `downloads/` is already in `.gitignore` so large audio files never end up in git—feel free to use subfolders inside it.
+
+**Persistent defaults:**
+
+- Copy `scripts/audio-workflow/download/download-yt-song.config.example.json` to `scripts/audio-workflow/download/download-yt-song.config.json` (a ready-made config is already checked in for the Photo Signal playlist and `../downloads` output folder - adjust paths if your machine needs different locations) and edit the values to store your playlist URL, preferred output path, archive location, throttling values, and format priority (e.g., `"format-order": "opus,mp3"`).
+- The script auto-loads `scripts/audio-workflow/download/download-yt-song.config.json` on every run; CLI flags always win if you need a temporary override.
+
+**Advanced example:**
+
+```bash
+npm run download-song -- \
+  --playlist-url "https://music.youtube.com/playlist?list=..." \
+  --item 27 \
+  --output-dir ~/Music/photo-signal/raw \
+  --rate-limit 2.5M \
+  --sleep-requests 1 \
+  --cookies-from-browser firefox \
+  --download-archive ~/Music/photo-signal/.archive.txt \
+  --metadata --write-info-json
+```
+
+**Metadata index files:**
+
+- Every successful download drops `Track.ext.metadata.json` next to the audio file.
+- Each index merges playlist context, yt-dlp's `.info.json` payload, detected codec/bitrate, filesystem paths, download-archive identifiers, and the timestamp the file landed on disk.
+- Disable this behavior with `--no-index` (or set `"write-index": false` inside your config) when you need a minimal download-only session.
 
 ---
 
@@ -534,7 +617,7 @@ For a visual interface, open `scripts/generate-photo-hashes.html` in your browse
 
 ---
 
-### `migrate-audio-to-cdn.js` - Migrate Audio to CDN
+### `audio-workflow/update/migrate-audio-to-cdn.js` - Migrate Audio to CDN
 
 Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs while preserving local fallbacks.
 
@@ -547,7 +630,7 @@ Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `da
 npm run migrate-audio -- [options]
 
 # Or run directly
-node scripts/migrate-audio-to-cdn.js [options]
+node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 ```
 
 **Options:**
@@ -613,7 +696,7 @@ npm run migrate-audio -- --cdn=r2 --base-url=https://audio.example.com
 
 ---
 
-### `validate-audio-urls.js` - Validate Audio URLs
+### `audio-workflow/update/validate-audio-urls.js` - Validate Audio URLs
 
 Validates that all audio URLs in `data.json` are accessible and reports any broken links or issues.
 
@@ -626,7 +709,7 @@ Validates that all audio URLs in `data.json` are accessible and reports any brok
 npm run validate-audio -- [options]
 
 # Or run directly
-node scripts/validate-audio-urls.js [options]
+node scripts/audio-workflow/update/validate-audio-urls.js [options]
 ```
 
 **Options:**

@@ -192,8 +192,9 @@ The dev server will be accessible at http://localhost:5173 on your host machine.
 
 ### Development Image (`Dockerfile`)
 
-- Based on `node:20-bullseye`
+- Based on `node:20-bookworm`
 - Includes GitHub CLI for GitHub integration
+- Ships Python 3.x (Debian Bookworm default) with `yt-dlp` and `mutagen` preinstalled for the audio workflow
 - Includes all dev dependencies
 - Optimized for hot reload
 - Uses volume mounts for source code
@@ -201,7 +202,7 @@ The dev server will be accessible at http://localhost:5173 on your host machine.
 ### Production Image (`Dockerfile.prod`)
 
 - Multi-stage build
-- Builder stage compiles the app
+- Builder stage uses `node:20-bookworm` to stay aligned with dev container toolchains
 - Production stage uses `nginx:alpine`
 - Optimized for size and performance
 - Serves static files with gzip compression

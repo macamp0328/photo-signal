@@ -7,7 +7,7 @@
  * and reports any broken links or issues.
  *
  * Usage:
- *   node scripts/validate-audio-urls.js [options]
+ *   node scripts/audio-workflow/update/validate-audio-urls.js [options]
  *
  * Options:
  *   --source=<path>       Path to data.json (default: public/data.json)
@@ -17,13 +17,13 @@
  *
  * Examples:
  *   # Validate production data.json
- *   node scripts/validate-audio-urls.js
+ *   node scripts/audio-workflow/update/validate-audio-urls.js
  *
  *   # Validate with fallback URLs
- *   node scripts/validate-audio-urls.js --check-fallback
+ *   node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
  *
  *   # Validate test data
- *   node scripts/validate-audio-urls.js --source=assets/test-data/concerts.json
+ *   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
  */
 
 import fs from 'fs';
@@ -34,7 +34,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = path.resolve(__dirname, '../../..');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -75,7 +75,7 @@ Audio URL Validation Script
 This script validates that all audio URLs in data.json are accessible.
 
 Usage:
-  node scripts/validate-audio-urls.js [options]
+  node scripts/audio-workflow/update/validate-audio-urls.js [options]
 
 Options:
   --source=<path>       Path to data.json (default: public/data.json)
@@ -85,13 +85,13 @@ Options:
 
 Examples:
   # Validate production data.json
-  node scripts/validate-audio-urls.js
+  node scripts/audio-workflow/update/validate-audio-urls.js
 
   # Validate with fallback URLs
-  node scripts/validate-audio-urls.js --check-fallback
+  node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
 
   # Validate test data
-  node scripts/validate-audio-urls.js --source=assets/test-data/concerts.json
+  node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
 `);
   process.exit(0);
 }

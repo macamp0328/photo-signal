@@ -202,7 +202,7 @@ This ensures:
 
 ## Scripts Reference
 
-### migrate-audio-to-cdn.js
+### audio-workflow/update/migrate-audio-to-cdn.js
 
 Migrates audio files to CDN and updates `data.json`.
 
@@ -233,7 +233,7 @@ npm run migrate-audio -- --base-url=https://github.com/username/repo/releases/do
 npm run migrate-audio -- --cdn=r2 --base-url=https://audio.example.com
 ```
 
-### validate-audio-urls.js
+### audio-workflow/update/validate-audio-urls.js
 
 Validates that all audio URLs in `data.json` are accessible.
 

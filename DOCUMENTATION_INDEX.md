@@ -18,42 +18,23 @@
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, module structure, data flow, design principles, and architecture evolution history
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
-- **[MOBILE_UX_IMPROVEMENTS.md](./MOBILE_UX_IMPROVEMENTS.md)** - Mobile UX improvements for debug tools: collapsible overlays, smart positioning, and responsive design enhancements
+- **[FUTURE_FEATURES.md](./FUTURE_FEATURES.md)** - Consolidated list of unimplemented features and enhancement ideas
 
-### Workflow Analysis & Implementation (PR #162)
-
-- **[README_ANALYSIS_COMPLETE.md](./README_ANALYSIS_COMPLETE.md)** - Master summary and navigation guide for GitHub Actions workflow cleanup analysis
-- **[CLEANUP_EXECUTIVE_SUMMARY.md](./CLEANUP_EXECUTIVE_SUMMARY.md)** - TL;DR decision guide with recommendations for workflow cleanup
-- **[WORKFLOW_COMPARISON_TABLE.md](./WORKFLOW_COMPARISON_TABLE.md)** - Before/after metrics, cost analysis, and scenario comparisons for workflow changes
-- **[WORKFLOW_SPAM_EXAMPLES.md](./WORKFLOW_SPAM_EXAMPLES.md)** - Real-world examples demonstrating PR comment spam before and after cleanup
-- **[GITHUB_ACTIONS_ANALYSIS.md](./GITHUB_ACTIONS_ANALYSIS.md)** - Complete technical analysis of all 6 GitHub Actions workflows
-- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Implementation details and impact of workflow cleanup
-- **[AUTO_FIX_WORKFLOW.md](./AUTO_FIX_WORKFLOW.md)** - Documentation for auto-fix workflow feature that automatically resolves formatting issues
-
-### Research & Technical Specifications
+### Research & Technical Guides
 
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
-- **[docs/image-recognition-exploratory-analysis.md](./docs/image-recognition-exploratory-analysis.md)** - Exploratory analysis and benchmarking of image recognition pipeline: current failure points, performance metrics, comparative analysis vs QR codes, and actionable improvement roadmap
-- **[docs/opus-streaming-implementation-plan.md](./docs/opus-streaming-implementation-plan.md)** - Complete implementation plan for production Opus streaming with CDN delivery (GitHub Releases and Cloudflare R2)
-- **[docs/audio-streaming-setup.md](./docs/audio-streaming-setup.md)** - User guide for setting up and managing audio streaming from CDN with migration scripts, validation tools, and troubleshooting
-- **[docs/IMPLEMENTATION_STATUS_SUMMARY.md](./docs/IMPLEMENTATION_STATUS_SUMMARY.md)** - 🎯 **START HERE** - Quick summary confirming Phase 1 is complete with testing instructions, verification steps, and next actions for real-world validation
-- **[docs/phase-1-implementation-verification.md](./docs/phase-1-implementation-verification.md)** - ✅ Complete Phase 1 verification report: evidence of implementation, code locations, configuration guide, performance benchmarks, and real-world photo validation (18,700 char detailed reference)
-- **[docs/phase-2-benchmarking-guide.md](./docs/phase-2-benchmarking-guide.md)** - Phase 2 benchmarking guide for pHash algorithm and failure diagnostics: test protocol, performance targets, data collection templates, and validation steps
-- **[docs/phase-2-angle-compensation-analysis.md](./docs/phase-2-angle-compensation-analysis.md)** - Phase 2 angle compensation analysis: approach comparison (multi-angle hashing, OpenCV perspective correction, enhanced framing guide), recommendations, and decision matrix
-- **[docs/phase-2-migration-guide.md](./docs/phase-2-migration-guide.md)** - Migration guide for switching from dHash to pHash: step-by-step instructions, threshold adjustments, rollback plan, A/B testing, and troubleshooting
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
-- **[docs/grayscale-feature-implementation.md](./docs/grayscale-feature-implementation.md)** - Implementation details for grayscale camera feature flag, including technical specs, usage guide, and browser compatibility
-- **[docs/mobile-first-refactor-summary.md](./docs/mobile-first-refactor-summary.md)** - Comprehensive summary of mobile-first CSS refactoring with detailed before/after comparisons, touch target improvements, and responsive breakpoint documentation
-- **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** - Unified WCAG 2.1 Level AA standards, contrast ratios, focus indicators, and component-level guidance
-- **[docs/ACCESSIBILITY_QUICK_REFERENCE.md](./docs/ACCESSIBILITY_QUICK_REFERENCE.md)** - Developer checklist and color reference for day-to-day accessibility work
-- **[docs/ACCESSIBILITY_VERIFICATION.md](./docs/ACCESSIBILITY_VERIFICATION.md)** - Formal verification report covering contrast audits, focus review, keyboard navigation, and testing status
-- **[docs/code-analysis-tooling-research.md](./docs/code-analysis-tooling-research.md)** - Research and evaluation of tracing, logging, and code analysis tools for AI agent development
+- **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** - Complete guide to understanding and using photo recognition telemetry data, including failure category analysis, debugging workflows, and regression testing
 - **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Comprehensive guide to using and interpreting automated code analysis tools (CodeQL, Codecov, npm audit, etc.)
-- **[docs/code-analysis-examples.md](./docs/code-analysis-examples.md)** - Real-world examples showing what each automated tool looks like when it runs
 - **[docs/codecov-setup-guide.md](./docs/codecov-setup-guide.md)** - Step-by-step guide for setting up Codecov coverage tracking with screenshots and troubleshooting
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
-- **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** - Complete guide to understanding and using photo recognition telemetry data, including failure category analysis, debugging workflows, and regression testing
+
+### Accessibility
+
+- **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** - Unified WCAG 2.1 Level AA standards, contrast ratios, focus indicators, and component-level guidance
+- **[docs/ACCESSIBILITY_QUICK_REFERENCE.md](./docs/ACCESSIBILITY_QUICK_REFERENCE.md)** - Developer checklist and color reference for day-to-day accessibility work
+- **[docs/ACCESSIBILITY_VERIFICATION.md](./docs/ACCESSIBILITY_VERIFICATION.md)** - Formal verification report covering contrast audits, focus review, keyboard navigation, and testing status
 
 ### User Guides
 
@@ -343,27 +324,28 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (8 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, MOBILE_UX_IMPROVEMENTS)
-- ✅ Research & technical specifications (15 files - including exploratory analysis, Phase 2 benchmarking guide, Phase 2 angle compensation analysis, Phase 2 migration guide, grayscale feature implementation, mobile-first refactor summary, accessibility guide, camera settings guide, CodeQL, Codecov, and Vercel setup guides)
+- ✅ Root documentation (8 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, FUTURE_FEATURES, ASSET_LICENSES)
+- ✅ Technical guides & research (10 files - photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides)
+- ✅ Accessibility (3 files - standards, quick reference, verification report)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (8 files - including secret-settings)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Module implementation files (7 files - secret-settings feature flags, custom settings, hooks, and effects)
 - ✅ Photo recognition algorithms (4 files - dhash, phash, hamming, utils)
 - ✅ Configuration files (15 files - including playwright.config.ts)
-- ✅ GitHub Actions & workflows (6 files - CI workflow, visual regression, PR checks monitor, label management, stale PR closure, and Dependabot config)
+- ✅ GitHub Actions & workflows (5 files - CI workflow, visual regression, edge case accuracy, auto-fix Copilot PR, manage labels)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)
 - ✅ GitHub Copilot custom agents (4 files - README, implementation planner, bug fix teammate, cleanup specialist)
 - ✅ Issue templates (22 files - includes all issue templates)
 - ✅ Development environment configs (3 files)
 - ✅ Docker configuration (4 files)
-- ✅ Helper scripts (9 files including README, easy image generator, and bundle size checker)
+- ✅ Helper scripts (10 files including README, cleanup-docs, easy image generator, and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (4 files - Vitest setup, mocks, Playwright config, visual test README)
 - ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 128 documented files
+**Total**: 107 documented files (21 historical/redundant docs removed)
 
-Last updated: 2025-11-17
+Last updated: 2025-11-19

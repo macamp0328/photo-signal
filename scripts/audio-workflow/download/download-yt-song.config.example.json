@@ -9,5 +9,7 @@
   "metadata": true,
   "write-info-json": true,
   "write-thumbnail": true,
+  "embed-thumbnail": false,
+  "add-metadata": false,
   "cookies-from-browser": "chrome"
 }

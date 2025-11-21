@@ -233,7 +233,7 @@ export class RectangleDetectionService {
     startX: number,
     startY: number
   ): Contour {
-    const contour: Contour[] = [];
+    const contour: Point[] = [];
     const stack: Point[] = [{ x: startX, y: startY }];
 
     while (stack.length > 0) {

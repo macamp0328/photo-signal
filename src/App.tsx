@@ -134,6 +134,8 @@ function App() {
     isRecognizing,
     frameQuality,
     activeGuidance,
+    detectedRectangle,
+    rectangleConfidence,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
     similarityThreshold: similarityThresholdValue,
@@ -145,6 +147,7 @@ function App() {
     aspectRatio: aspectRatio,
     hashAlgorithm: hashAlgorithmValue,
     enableMultiScale: isEnabled('multi-scale-recognition'),
+    enableRectangleDetection: isEnabled('rectangle-detection'),
   });
 
   // Module: Audio Playback
@@ -237,6 +240,9 @@ function App() {
       grayscale={isEnabled('grayscale-mode')}
       concertInfo={displayedConcert}
       showConcertOverlay={!!displayedConcert && isPlaying}
+      detectedRectangle={detectedRectangle}
+      rectangleConfidence={rectangleConfidence}
+      showRectangleOverlay={isEnabled('rectangle-detection')}
     />
   );
 

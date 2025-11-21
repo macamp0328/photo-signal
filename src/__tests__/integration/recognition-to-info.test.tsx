@@ -70,7 +70,8 @@ describe('Photo Recognition → Concert Info Integration', () => {
     render(<App />);
 
     // Info display should not be visible without recognition
-    const infoElements = screen.queryAllByText(/test band/i);
-    expect(infoElements.length === 0 || !infoElements[0].parentElement?.style.opacity).toBeTruthy();
+    // Check if band names from test data are not visible
+    expect(screen.queryByText('Test Band 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Test Band 2')).not.toBeInTheDocument();
   });
 });

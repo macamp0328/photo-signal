@@ -99,6 +99,7 @@ export const createMockMediaStream = () => {
 
 /**
  * Setup common browser API mocks for integration tests
+ * @returns Object containing mockStream for use in tests
  */
 export const setupBrowserMocks = () => {
   // Mock navigator.mediaDevices
@@ -130,5 +131,6 @@ export const setupBrowserMocks = () => {
     }),
   });
 
+  // Return mockStream for tests that need to customize camera behavior
   return { mockStream };
 };

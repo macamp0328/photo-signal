@@ -240,7 +240,7 @@ describe('SecretSettings', () => {
       }
     });
 
-    it('should clean up timeout on unmount', async () => {
+    it('should reload page even if component unmounts after Send It is clicked', async () => {
       const user = userEvent.setup();
       const reloadSpy = vi.fn();
       const originalLocation = window.location;
@@ -254,14 +254,15 @@ describe('SecretSettings', () => {
         const button = screen.getByText(/Send It/i);
         await user.click(button);
 
-        // Unmount immediately after clicking (before timeout completes)
+        // Unmount immediately after clicking (simulates parent setting isVisible={false})
         unmount();
 
         // Wait longer than timeout
         await new Promise((resolve) => setTimeout(resolve, 150));
 
-        // Reload should not have been called because component was unmounted and timeout was cleared
-        expect(reloadSpy).not.toHaveBeenCalled();
+        // Reload should still be called even though component was unmounted
+        // This is the fix for the bug - reload must happen regardless of unmount
+        expect(reloadSpy).toHaveBeenCalled();
       } finally {
         (window as { location: unknown }).location = originalLocation;
       }
@@ -419,6 +420,43 @@ describe('SecretSettings', () => {
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         expect(reloadSpy).not.toHaveBeenCalled();
+      } finally {
+        (window as { location: unknown }).location = originalLocation;
+      }
+    });
+
+    it('should reload page in real-world scenario: parent sets isVisible=false after onClose', async () => {
+      const user = userEvent.setup();
+      const reloadSpy = vi.fn();
+      const originalLocation = window.location;
+
+      try {
+        delete (window as { location?: unknown }).location;
+        (window as { location: unknown }).location = { ...originalLocation, reload: reloadSpy };
+
+        // Simulate real-world usage with parent component
+        let isVisible = true;
+        const handleClose = () => {
+          isVisible = false; // Parent sets isVisible to false
+        };
+
+        const { rerender } = render(<SecretSettings isVisible={isVisible} onClose={handleClose} />);
+
+        const button = screen.getByText(/Send It/i);
+        await user.click(button);
+
+        // Simulate parent re-render after onClose sets isVisible=false
+        // This is what happens in real App.tsx when setShowSecretSettings(false) is called
+        rerender(<SecretSettings isVisible={false} onClose={handleClose} />);
+
+        // Component is now unmounted (returns null when isVisible=false)
+        expect(screen.queryByText(/Secret Settings/i)).not.toBeInTheDocument();
+
+        // Wait for reload timeout
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        // Reload should still happen despite component being unmounted
+        expect(reloadSpy).toHaveBeenCalledTimes(1);
       } finally {
         (window as { location: unknown }).location = originalLocation;
       }

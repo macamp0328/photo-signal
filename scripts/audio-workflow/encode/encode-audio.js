@@ -304,17 +304,32 @@ async function processAudioFile(download, config, options) {
   const metadata = applyMetadataOverrides(download.metadata, download, metadataOverrides);
   const track = metadata.track ?? {};
 
-  const band = sanitizeString(track.artist ?? 'Unknown Artist');
+  const band = determineBandName(metadata);
   const title = sanitizeString(track.title ?? 'Unknown Title');
   const date = extractDate(metadata);
+  const albumSource = track.album ?? metadata.playlist?.title ?? metadata.playlist?.album;
+  const album = sanitizeString(albumSource ?? 'Unknown Album') || 'Unknown Album';
+  const releaseDate = extractReleaseDate(metadata);
+  const musicDetails = extractMusicDetails(metadata, config.metadataDefaults);
+  const genre = musicDetails.genre ?? config.metadataDefaults?.genre ?? null;
 
   // Generate slug and filenames
-  const slug = generateSlug(date, band);
+  const slug = generateSlug(band, album);
   const outputFileName = `ps-${slug}.opus`;
 
   console.log(`  Band:  ${band}`);
   console.log(`  Title: ${title}`);
   console.log(`  Date:  ${date}`);
+  console.log(`  Album: ${album}`);
+  console.log(`  Release Date: ${releaseDate ?? 'unknown'}`);
+  console.log(`  Genre: ${genre ?? 'unknown'}`);
+  if (musicDetails.recordLabel || musicDetails.distributor) {
+    console.log(
+      `  Label: ${musicDetails.recordLabel ?? 'unknown'}${
+        musicDetails.distributor ? ` via ${musicDetails.distributor}` : ''
+      }`
+    );
+  }
   console.log(`  Slug:  ${slug}`);
   console.log('');
 
@@ -358,6 +373,11 @@ async function processAudioFile(download, config, options) {
     band,
     title: `${band} — ${date}`,
     date,
+    album,
+    releaseDate,
+    genre,
+    recordLabel: musicDetails.recordLabel,
+    distributor: musicDetails.distributor,
   });
 
   // Step 6: Calculate checksum
@@ -378,13 +398,21 @@ async function processAudioFile(download, config, options) {
     outputPath,
     band,
     title,
+    album,
     date,
+    releaseDate,
     durationMs: Math.round(duration * 1000),
     lufsIntegrated: loudnessStats.input_i,
     truePeakDb: loudnessStats.input_tp,
     lra: loudnessStats.input_lra,
     checksum,
     bitrateKbps: config.opus.bitrateKbps,
+    genre,
+    recordLabel: musicDetails.recordLabel,
+    distributor: musicDetails.distributor,
+    tags: musicDetails.tags,
+    categories: musicDetails.categories,
+    credits: musicDetails.credits,
   };
 }
 
@@ -600,6 +628,9 @@ function applyFades(inputPath, outputPath, config, duration) {
 function encodeToOpus(inputPath, outputPath, config, metadata) {
   return new Promise((resolve, reject) => {
     const defaults = config.metadataDefaults;
+    const albumTag =
+      metadata.album && metadata.album !== 'Unknown Album' ? metadata.album : defaults.album;
+    const genreTag = metadata.genre ?? defaults.genre;
 
     const args = [
       '-i',
@@ -619,18 +650,26 @@ function encodeToOpus(inputPath, outputPath, config, metadata) {
       '-metadata',
       `artist=${metadata.band}`,
       '-metadata',
-      `album=${defaults.album}`,
+      `album=${albumTag}`,
       '-metadata',
       `date=${metadata.date}`,
-      '-metadata',
-      `genre=${defaults.genre}`,
-      '-metadata',
-      `copyright=${defaults.copyright}`,
-      '-metadata',
-      `comment=Encoded for Photo Signal`,
-      '-metadata',
-      `website=${defaults.website}`,
     ];
+
+    if (genreTag) {
+      args.push('-metadata', `genre=${genreTag}`);
+    }
+
+    args.push('-metadata', `copyright=${defaults.copyright}`);
+    args.push('-metadata', `comment=Encoded for Photo Signal`);
+    args.push('-metadata', `website=${defaults.website}`);
+
+    if (metadata.recordLabel) {
+      args.push('-metadata', `publisher=${metadata.recordLabel}`);
+    }
+
+    if (metadata.distributor) {
+      args.push('-metadata', `label=${metadata.distributor}`);
+    }
 
     args.push('-y', outputPath);
 
@@ -678,7 +717,15 @@ function generateAudioIndex(results, outputDir, config) {
       .map((r) => ({
         id: r.slug,
         band: r.band,
+        album: r.album,
         date: r.date,
+        releaseDate: r.releaseDate,
+        genre: r.genre,
+        recordLabel: r.recordLabel,
+        distributor: r.distributor,
+        tags: r.tags ?? [],
+        categories: r.categories ?? [],
+        credits: r.credits ?? {},
         durationMs: r.durationMs,
         bitrateKbps: r.bitrateKbps,
         sampleRate: 48000,
@@ -711,7 +758,11 @@ function generatePhotoAudioMap(results, outputDir) {
         audioId: r.slug,
         photoId: null, // To be linked with photo manifest
         band: r.band,
+        album: r.album,
         date: r.date,
+        releaseDate: r.releaseDate,
+        genre: r.genre,
+        recordLabel: r.recordLabel,
       })),
   };
 
@@ -875,6 +926,11 @@ function normalizeOverrideObject(override) {
     delete clone.title;
   }
 
+  if (clone.album) {
+    track.album = clone.album;
+    delete clone.album;
+  }
+
   if (Object.keys(track).length > 0) {
     clone.track = track;
   }
@@ -968,13 +1024,259 @@ function checkPrerequisites() {
 }
 
 function sanitizeString(str) {
-  return str.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+  return str
+    .replace(/&/g, ' and ')
+    .replace(/[^a-zA-Z0-9\s-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-function generateSlug(date, band) {
-  const dateSlug = date.replace(/-/g, '');
+const GENRE_KEYWORDS = [
+  { pattern: /\bindie\b/i, label: 'Indie' },
+  { pattern: /\bpsychedelic\b/i, label: 'Psychedelic' },
+  { pattern: /\bshoegaze\b/i, label: 'Shoegaze' },
+  { pattern: /\bgarage\b/i, label: 'Garage' },
+  { pattern: /\bfunk\b/i, label: 'Funk' },
+  { pattern: /\bsoul\b/i, label: 'Soul' },
+  { pattern: /\br&b\b/i, label: 'R&B' },
+  { pattern: /\bhip\s*hop\b/i, label: 'Hip Hop' },
+  { pattern: /\brap\b/i, label: 'Rap' },
+  { pattern: /\bjazz\b/i, label: 'Jazz' },
+  { pattern: /\bblues\b/i, label: 'Blues' },
+  { pattern: /\bfolk\b/i, label: 'Folk' },
+  { pattern: /\bcountry\b/i, label: 'Country' },
+  { pattern: /\bamericana\b/i, label: 'Americana' },
+  { pattern: /\balt\.?\s*rock\b/i, label: 'Alternative Rock' },
+  { pattern: /\brock\b/i, label: 'Rock' },
+  { pattern: /\bmetal\b/i, label: 'Metal' },
+  { pattern: /\bpost[-\s]?punk\b/i, label: 'Post-punk' },
+  { pattern: /\bpost[-\s]?rock\b/i, label: 'Post-rock' },
+  { pattern: /\belectronic\b/i, label: 'Electronic' },
+  { pattern: /\bhouse\b/i, label: 'House' },
+  { pattern: /\btechno\b/i, label: 'Techno' },
+  { pattern: /\bambient\b/i, label: 'Ambient' },
+  { pattern: /\bnoise\b/i, label: 'Noise' },
+  { pattern: /\bexperimental\b/i, label: 'Experimental' },
+  { pattern: /\bLatin\b/i, label: 'Latin' },
+  { pattern: /\bcumbia\b/i, label: 'Cumbia' },
+  { pattern: /\breggae\b/i, label: 'Reggae' },
+];
+
+function determineBandName(metadata) {
+  const track = metadata?.track ?? {};
+  const ytInfo = metadata?.ytInfo ?? {};
+
+  const candidates = [
+    ...(Array.isArray(ytInfo.artists) ? ytInfo.artists : []),
+    ...(Array.isArray(track.artists) ? track.artists : []),
+    track.artist,
+    ytInfo.artist,
+    ytInfo.channel,
+    track.uploader,
+    ytInfo.uploader,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const cleaned = cleanBandCandidate(candidate);
+    if (cleaned) {
+      return cleaned;
+    }
+  }
+
+  return 'Unknown Artist';
+}
+
+function cleanBandCandidate(name) {
+  if (!name) {
+    return null;
+  }
+
+  let normalized = name
+    .replace(/[\u200b-\u200d\ufeff]/g, '')
+    .replace(/ - Topic$/i, '')
+    .replace(/\s+Official$/i, '')
+    .replace(/\s*\(Official.*?\)$/i, '')
+    .replace(/\s+\(feat\..*$/i, '')
+    .replace(/\s+feat\..*$/i, '')
+    .replace(/\s+ft\..*$/i, '')
+    .replace(/\s+with\s+.+$/i, '')
+    .replace(/\s+x\s+.+$/i, '')
+    .replace(/·.+$/, '')
+    .replace(/\|.+$/, '')
+    .trim();
+
+  if (normalized.includes(',')) {
+    const [first] = normalized.split(',');
+    if (first) {
+      normalized = first.trim();
+    }
+  }
+
+  if (!normalized) {
+    return null;
+  }
+
+  const sanitized = sanitizeString(normalized);
+  return sanitized || null;
+}
+
+function extractMusicDetails(metadata, defaults = {}) {
+  const track = metadata?.track ?? {};
+  const ytInfo = metadata?.ytInfo ?? {};
+  const description = track.description ?? ytInfo.description ?? '';
+  const parsed = parseDescriptionForCredits(description);
+
+  const trackTags = Array.isArray(track.tags) ? track.tags : track.tags ? [track.tags] : [];
+  const ytTags = Array.isArray(ytInfo.tags) ? ytInfo.tags : ytInfo.tags ? [ytInfo.tags] : [];
+  const trackCategories = Array.isArray(track.categories)
+    ? track.categories
+    : track.categories
+      ? [track.categories]
+      : [];
+  const ytCategories = Array.isArray(ytInfo.categories)
+    ? ytInfo.categories
+    : ytInfo.categories
+      ? [ytInfo.categories]
+      : [];
+
+  const tags = dedupeStrings([...trackTags, ...ytTags]);
+  const categories = dedupeStrings([...trackCategories, ...ytCategories]);
+
+  const genreFromMetadata =
+    track.genre ??
+    ytInfo.genre ??
+    parsed.genre ??
+    findGenreFromSources({
+      tags,
+      categories,
+      description,
+    });
+
+  return {
+    genre: genreFromMetadata ?? defaults.genre ?? null,
+    recordLabel: parsed.recordLabel ?? null,
+    distributor: parsed.distributor ?? null,
+    tags,
+    categories,
+    credits: parsed.credits,
+  };
+}
+
+function parseDescriptionForCredits(description) {
+  const result = {
+    distributor: null,
+    recordLabel: null,
+    genre: null,
+    credits: {},
+  };
+
+  if (!description) {
+    return result;
+  }
+
+  const lines = description
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    if (!result.distributor) {
+      const distributorMatch = line.match(/^Provided to YouTube by\s+(.+)$/i);
+      if (distributorMatch) {
+        result.distributor = distributorMatch[1].trim();
+        continue;
+      }
+    }
+
+    if (!result.recordLabel) {
+      const labelMatch = line.match(/^℗\s*(.+)$/);
+      if (labelMatch) {
+        result.recordLabel = labelMatch[1].trim();
+        continue;
+      }
+    }
+
+    if (!result.genre) {
+      const genreMatch = line.match(/^Genre:\s*(.+)$/i);
+      if (genreMatch) {
+        result.genre = genreMatch[1].trim();
+        continue;
+      }
+    }
+
+    const colonIndex = line.indexOf(':');
+    if (colonIndex > 0) {
+      const key = line.slice(0, colonIndex).replace(/\s+/g, ' ').trim();
+      const value = line.slice(colonIndex + 1).trim();
+      if (key && value) {
+        if (!result.credits[key]) {
+          result.credits[key] = [];
+        }
+        if (!result.credits[key].includes(value)) {
+          result.credits[key].push(value);
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+function dedupeStrings(values = []) {
+  const seen = new Set();
+  const cleaned = [];
+
+  for (const value of values) {
+    if (!value && value !== 0) {
+      continue;
+    }
+    const normalized = value.toString().trim();
+    if (!normalized) {
+      continue;
+    }
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    cleaned.push(normalized);
+  }
+
+  return cleaned;
+}
+
+function findGenreFromSources({ tags = [], categories = [], description = '' }) {
+  const category = categories.find((cat) => cat && cat.toLowerCase() !== 'music');
+  if (category) {
+    return toTitleCase(category);
+  }
+
+  const haystack = `${tags.join(' ')} ${description}`;
+  for (const { pattern, label } of GENRE_KEYWORDS) {
+    if (pattern.test(haystack)) {
+      return label;
+    }
+  }
+
+  return null;
+}
+
+function toTitleCase(value) {
+  if (!value) {
+    return value;
+  }
+
+  return value
+    .split(/\s+/)
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ''))
+    .join(' ')
+    .trim();
+}
+
+function generateSlug(band, album) {
   const bandSlug = slugify(band);
-  return `${dateSlug}-${bandSlug}`;
+  const albumSlug = slugify(album);
+  return `${bandSlug}-${albumSlug}`;
 }
 
 function slugify(str) {
@@ -1023,6 +1325,28 @@ function extractDate(metadata) {
   }
 
   return 'unknown';
+}
+
+function extractReleaseDate(metadata) {
+  const track = metadata?.track ?? {};
+  const ytInfo = metadata?.ytInfo ?? {};
+
+  const candidates = [
+    track.releaseDate,
+    track.originalReleaseDate,
+    track.publishedDate,
+    ytInfo.release_date,
+    ytInfo.upload_date,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeDateString(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
 }
 
 function normalizeDateString(value) {

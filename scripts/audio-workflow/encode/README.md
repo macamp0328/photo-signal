@@ -148,6 +148,13 @@ Example: `ps-20190814-car-seat-headrest-bowery-ballroom.opus`
 
 Apply tags directly during ffmpeg encode or via `opusinfo --set-...` equivalent.
 
+### Music Metadata Enrichment
+
+- The encoder inspects YouTube Music descriptions for `Provided to YouTube by ...` and `℗ ...` lines so each manifest entry now exposes the **distributor** and **record label** when available.
+- Auto-generated credits (Producer, Composer, Main Artist, etc.) are captured under a `credits` object in `audio-index.json` for downstream UIs.
+- `genre` is derived from explicit metadata, playlist categories, or recognizable keywords (indie, funk, cumbia, etc.) with a fallback to the config default, and is also written into the Opus Vorbis comments.
+- Manifest entries now include `tags` and `categories` arrays sourced from the download metadata so curators can build filters without re-scraping the source files.
+
 ## Report / Index Contents
 
 Each entry in `audio-index.json` should include:

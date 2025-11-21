@@ -240,7 +240,7 @@ describe('SecretSettings', () => {
       }
     });
 
-    it('should clean up timeout on unmount', async () => {
+    it('should reload page even if component unmounts after Send It is clicked', async () => {
       const user = userEvent.setup();
       const reloadSpy = vi.fn();
       const originalLocation = window.location;
@@ -254,14 +254,15 @@ describe('SecretSettings', () => {
         const button = screen.getByText(/Send It/i);
         await user.click(button);
 
-        // Unmount immediately after clicking (before timeout completes)
+        // Unmount immediately after clicking (simulates parent setting isVisible={false})
         unmount();
 
         // Wait longer than timeout
         await new Promise((resolve) => setTimeout(resolve, 150));
 
-        // Reload should not have been called because component was unmounted and timeout was cleared
-        expect(reloadSpy).not.toHaveBeenCalled();
+        // Reload should still be called even though component was unmounted
+        // This is the fix for the bug - reload must happen regardless of unmount
+        expect(reloadSpy).toHaveBeenCalled();
       } finally {
         (window as { location: unknown }).location = originalLocation;
       }

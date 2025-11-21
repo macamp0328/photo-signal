@@ -675,9 +675,7 @@ describe('guidanceConfig', () => {
       expect(thresholds.maxBrightness).toBeLessThanOrEqual(255);
       expect(thresholds.minBrightness).toBeLessThan(thresholds.maxBrightness);
       expect(thresholds.minFrameFillPercentage).toBeGreaterThan(0);
-      expect(thresholds.minFrameFillPercentage).toBeLessThan(
-        thresholds.maxFrameFillPercentage
-      );
+      expect(thresholds.minFrameFillPercentage).toBeLessThan(thresholds.maxFrameFillPercentage);
       expect(thresholds.maxHorizontalOffsetPercentage).toBeGreaterThan(0);
       expect(thresholds.maxVerticalOffsetPercentage).toBeGreaterThan(0);
     });
@@ -753,27 +751,18 @@ describe('guidanceConfig', () => {
     });
 
     it('should prioritize glare over poor-lighting', () => {
-      const result = selectGuidanceToShow(
-        ['poor-lighting', 'glare'],
-        defaultGuidanceConfig
-      );
+      const result = selectGuidanceToShow(['poor-lighting', 'glare'], defaultGuidanceConfig);
       expect(result).toBe('glare');
     });
 
     it('should prioritize poor-lighting over off-center', () => {
-      const result = selectGuidanceToShow(
-        ['off-center', 'poor-lighting'],
-        defaultGuidanceConfig
-      );
+      const result = selectGuidanceToShow(['off-center', 'poor-lighting'], defaultGuidanceConfig);
       expect(result).toBe('poor-lighting');
     });
 
     it('should handle multiple guidance types at same priority', () => {
       // poor-lighting and distance both have priority 3
-      const result = selectGuidanceToShow(
-        ['distance', 'poor-lighting'],
-        defaultGuidanceConfig
-      );
+      const result = selectGuidanceToShow(['distance', 'poor-lighting'], defaultGuidanceConfig);
       // Either is acceptable (same priority)
       expect(['distance', 'poor-lighting']).toContain(result);
     });
@@ -790,18 +779,12 @@ describe('guidanceConfig', () => {
         },
       };
 
-      const result = selectGuidanceToShow(
-        ['motion-blur', 'glare', 'off-center'],
-        customConfig
-      );
+      const result = selectGuidanceToShow(['motion-blur', 'glare', 'off-center'], customConfig);
       expect(result).toBe('off-center');
     });
 
     it('should ignore none in selection', () => {
-      const result = selectGuidanceToShow(
-        ['none', 'motion-blur'],
-        defaultGuidanceConfig
-      );
+      const result = selectGuidanceToShow(['none', 'motion-blur'], defaultGuidanceConfig);
       expect(result).toBe('motion-blur');
     });
 
@@ -825,8 +808,8 @@ describe('guidanceConfig', () => {
 Add to "Test Coverage Status" section:
 
 ```markdown
-| utils/telemetryUtils  | 12    | ✅ Pass | Formatting & calculations |
-| config/guidanceConfig | 15    | ✅ Pass | Config validation & logic |
+| utils/telemetryUtils | 12 | ✅ Pass | Formatting & calculations |
+| config/guidanceConfig | 15 | ✅ Pass | Config validation & logic |
 ```
 
 ---

@@ -122,89 +122,89 @@ import { test, expect } from '@playwright/test';
 test.describe('Secret Settings Menu', () => {
   test('closed state - should be invisible', async ({ page }) => {
     await page.goto('/');
-    
+
     // Verify secret settings not visible
     const secretSettings = page.locator('[data-testid="secret-settings"]');
     await expect(secretSettings).not.toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('secret-settings-closed.png');
   });
 
   test('open state - should display all sections', async ({ page }) => {
     await page.goto('/');
-    
+
     // Triple-tap to open (simulate)
     const body = page.locator('body');
     await body.click({ clickCount: 3 });
-    
+
     // Wait for menu to open
     const secretSettings = page.locator('[data-testid="secret-settings"]');
     await expect(secretSettings).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('secret-settings-open.png');
   });
 
   test('feature flags - test mode enabled', async ({ page }) => {
     await page.goto('/');
-    
+
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
-    
+
     // Enable Test Mode
     const testModeToggle = page.locator('[data-testid="flag-test-mode"]');
     await testModeToggle.click();
-    
+
     // Verify toggle state changed
     await expect(testModeToggle).toBeChecked();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('secret-settings-test-mode-on.png');
   });
 
   test('feature flags - psychedelic mode enabled', async ({ page }) => {
     await page.goto('/');
-    
+
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
-    
+
     // Enable Psychedelic Mode
     const psychedelicToggle = page.locator('[data-testid="flag-psychedelic-mode"]');
     await psychedelicToggle.click();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('secret-settings-psychedelic-on.png');
   });
 
   test('custom settings - motion threshold slider', async ({ page }) => {
     await page.goto('/');
-    
+
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
-    
+
     // Adjust motion threshold slider
     const slider = page.locator('[data-testid="setting-motion-threshold"]');
     await slider.fill('50'); // Set to 50%
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('secret-settings-slider-50.png');
   });
 
   test('retro sounds - visual feedback', async ({ page }) => {
     await page.goto('/');
-    
+
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
-    
+
     // Enable retro sounds
     const retroToggle = page.locator('[data-testid="flag-retro-sounds"]');
     await retroToggle.click();
-    
+
     // Click a button to trigger sound (visual feedback)
     const resetButton = page.locator('[data-testid="reset-flags"]');
     await resetButton.click();
-    
+
     // Take snapshot during sound playback
     await expect(page).toHaveScreenshot('secret-settings-retro-sound.png');
   });
@@ -225,11 +225,11 @@ import { test, expect } from '@playwright/test';
 test.describe('Concert Info Display', () => {
   test('empty state - no concert selected', async ({ page }) => {
     await page.goto('/');
-    
+
     // Verify no concert info displayed
     const concertInfo = page.locator('[data-testid="concert-info"]');
     await expect(concertInfo).not.toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('concert-info-empty.png');
   });
@@ -247,22 +247,22 @@ test.describe('Concert Info Display', () => {
               band: 'The Midnight Echoes',
               venue: 'The Fillmore',
               date: '2023-08-15',
-              audioFile: '/audio/test.opus'
-            }
-          ]
-        })
+              audioFile: '/audio/test.opus',
+            },
+          ],
+        }),
       });
     });
 
     await page.goto('/');
-    
+
     // Trigger photo recognition (simulate)
     // ... trigger recognition
 
     // Verify concert info displayed
     const concertInfo = page.locator('[data-testid="concert-info"]');
     await expect(concertInfo).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('concert-info-displayed.png');
   });
@@ -279,15 +279,15 @@ test.describe('Concert Info Display', () => {
               id: 1,
               band: 'The Incredibly Long Band Name That Should Wrap or Truncate Properly',
               venue: 'Venue',
-              date: '2023-01-01'
-            }
-          ]
-        })
+              date: '2023-01-01',
+            },
+          ],
+        }),
       });
     });
 
     await page.goto('/');
-    
+
     // Trigger recognition
     // ...
 
@@ -307,15 +307,15 @@ test.describe('Concert Info Display', () => {
               id: 1,
               band: 'Band',
               venue: 'The Incredibly Long Venue Name With Many Words That Should Handle Overflow',
-              date: '2023-01-01'
-            }
-          ]
-        })
+              date: '2023-01-01',
+            },
+          ],
+        }),
       });
     });
 
     await page.goto('/');
-    
+
     // Trigger recognition
     // ...
 
@@ -340,17 +340,17 @@ test.describe('Error States', () => {
   test('camera permission denied', async ({ page, context }) => {
     // Deny camera permission
     await context.grantPermissions([], { permissions: ['camera'] });
-    
+
     await page.goto('/');
-    
+
     // Click start camera
     const startButton = page.locator('button:has-text("Start Camera")');
     await startButton.click();
-    
+
     // Wait for error message
     const errorMessage = page.locator('[role="alert"]');
     await expect(errorMessage).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('error-camera-denied.png');
   });
@@ -360,12 +360,12 @@ test.describe('Error States', () => {
     await page.route('**/data.json', (route) => {
       route.abort('failed');
     });
-    
+
     await page.goto('/');
-    
+
     // Wait for error state
     await page.waitForTimeout(1000); // Give time for fetch to fail
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('error-network-failed.png');
   });
@@ -376,12 +376,12 @@ test.describe('Error States', () => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ concerts: [] })
+        body: JSON.stringify({ concerts: [] }),
       });
     });
-    
+
     await page.goto('/');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('error-no-concerts.png');
   });
@@ -391,15 +391,15 @@ test.describe('Error States', () => {
     await page.route('**/audio/*.opus', (route) => {
       route.abort('failed');
     });
-    
+
     await page.goto('/');
-    
+
     // Trigger audio playback (simulate recognition)
     // ...
 
     // Wait for error
     await page.waitForTimeout(1000);
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('error-audio-failed.png');
   });
@@ -421,7 +421,7 @@ test.describe('Responsive Design', () => {
   test('desktop viewport', async ({ page }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto('/');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('responsive-desktop.png');
   });
@@ -429,7 +429,7 @@ test.describe('Responsive Design', () => {
   test('tablet viewport', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('responsive-tablet.png');
   });
@@ -437,7 +437,7 @@ test.describe('Responsive Design', () => {
   test('mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('responsive-mobile.png');
   });
@@ -445,7 +445,7 @@ test.describe('Responsive Design', () => {
   test('mobile landscape', async ({ page }) => {
     await page.setViewportSize({ width: 667, height: 375 });
     await page.goto('/');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('responsive-mobile-landscape.png');
   });
@@ -453,21 +453,21 @@ test.describe('Responsive Design', () => {
   test('secret settings menu - mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/');
-    
+
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
-    
+
     // Verify menu fits viewport
     const secretSettings = page.locator('[data-testid="secret-settings"]');
     await expect(secretSettings).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('responsive-secret-settings-mobile.png');
   });
 
   test('concert info - mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     // Mock concert data
     await page.route('**/data.json', (route) => {
       route.fulfill({
@@ -479,15 +479,15 @@ test.describe('Responsive Design', () => {
               id: 1,
               band: 'Band Name',
               venue: 'Venue Name',
-              date: '2023-01-01'
-            }
-          ]
-        })
+              date: '2023-01-01',
+            },
+          ],
+        }),
       });
     });
-    
+
     await page.goto('/');
-    
+
     // Trigger recognition
     // ...
 
@@ -512,73 +512,71 @@ import { injectAxe, checkA11y } from 'axe-playwright';
 test.describe('Accessibility', () => {
   test('focus states - keyboard navigation', async ({ page }) => {
     await page.goto('/');
-    
+
     // Tab to first focusable element
     await page.keyboard.press('Tab');
-    
+
     // Take snapshot showing focus ring
     await expect(page).toHaveScreenshot('a11y-focus-first-element.png');
-    
+
     // Tab to next element
     await page.keyboard.press('Tab');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('a11y-focus-second-element.png');
   });
 
   test('color contrast - WCAG AA compliance', async ({ page }) => {
     await page.goto('/');
-    
+
     // Inject axe for automated accessibility testing
     await injectAxe(page);
-    
+
     // Check color contrast
     await checkA11y(page, null, {
       rules: {
-        'color-contrast': { enabled: true }
-      }
+        'color-contrast': { enabled: true },
+      },
     });
   });
 
   test('screen reader - aria labels', async ({ page }) => {
     await page.goto('/');
-    
+
     // Check for aria-label on important elements
     const startButton = page.locator('button:has-text("Start Camera")');
     const ariaLabel = await startButton.getAttribute('aria-label');
-    
+
     expect(ariaLabel).toBeTruthy();
     expect(ariaLabel).toContain('camera');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('a11y-aria-labels.png');
   });
 
   test('high contrast mode', async ({ page }) => {
     await page.goto('/');
-    
+
     // Enable high contrast mode (via CSS media query)
     await page.emulateMedia({ forcedColors: 'active' });
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('a11y-high-contrast.png');
   });
 
   test('focus visible - all interactive elements', async ({ page }) => {
     await page.goto('/');
-    
+
     // Open secret settings to test all interactive elements
     await page.locator('body').click({ clickCount: 3 });
-    
+
     // Tab through all elements
-    const interactiveElements = page.locator(
-      'button, input, [role="button"], [role="checkbox"]'
-    );
+    const interactiveElements = page.locator('button, input, [role="button"], [role="checkbox"]');
     const count = await interactiveElements.count();
-    
+
     for (let i = 0; i < count; i++) {
       await page.keyboard.press('Tab');
-      
+
       // Take snapshot of each focus state
       await expect(page).toHaveScreenshot(`a11y-focus-element-${i}.png`);
     }
@@ -601,62 +599,74 @@ test.describe('Feature Flag Variations', () => {
   test('debug overlay enabled', async ({ page }) => {
     // Set feature flag in localStorage
     await page.addInitScript(() => {
-      localStorage.setItem('feature-flags', JSON.stringify({
-        'debug-overlay': true
-      }));
+      localStorage.setItem(
+        'feature-flags',
+        JSON.stringify({
+          'debug-overlay': true,
+        })
+      );
     });
-    
+
     await page.goto('/');
-    
+
     // Verify debug overlay visible
     const debugOverlay = page.locator('[data-testid="debug-overlay"]');
     await expect(debugOverlay).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('feature-debug-overlay.png');
   });
 
   test('psychedelic mode enabled', async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem('feature-flags', JSON.stringify({
-        'psychedelic-mode': true
-      }));
+      localStorage.setItem(
+        'feature-flags',
+        JSON.stringify({
+          'psychedelic-mode': true,
+        })
+      );
     });
-    
+
     await page.goto('/');
-    
+
     // Verify psychedelic effect applied
     const psychedelicEffect = page.locator('[data-testid="psychedelic-effect"]');
     await expect(psychedelicEffect).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('feature-psychedelic-mode.png');
   });
 
   test('gallery layout enabled', async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem('feature-flags', JSON.stringify({
-        'gallery-layout': true
-      }));
+      localStorage.setItem(
+        'feature-flags',
+        JSON.stringify({
+          'gallery-layout': true,
+        })
+      );
     });
-    
+
     await page.goto('/');
-    
+
     // Verify gallery layout applied
     const galleryLayout = page.locator('[data-testid="gallery-layout"]');
     await expect(galleryLayout).toBeVisible();
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('feature-gallery-layout.png');
   });
 
   test('test mode enabled', async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem('feature-flags', JSON.stringify({
-        'test-mode': true
-      }));
+      localStorage.setItem(
+        'feature-flags',
+        JSON.stringify({
+          'test-mode': true,
+        })
+      );
     });
-    
+
     // Mock test data
     await page.route('**/assets/test-data/concerts.json', (route) => {
       route.fulfill({
@@ -668,15 +678,15 @@ test.describe('Feature Flag Variations', () => {
               id: 1,
               band: 'Test Band',
               venue: 'Test Venue',
-              date: '2023-01-01'
-            }
-          ]
-        })
+              date: '2023-01-01',
+            },
+          ],
+        }),
       });
     });
-    
+
     await page.goto('/');
-    
+
     // Take snapshot
     await expect(page).toHaveScreenshot('feature-test-mode.png');
   });
@@ -743,22 +753,22 @@ export default defineConfig({
 
 **TESTING.md Addition:**
 
-```markdown
+````markdown
 ### Visual Regression Tests
 
 Visual regression tests use Playwright to capture screenshots and detect UI changes:
 
-| Test Suite          | Scenarios | Coverage                              |
-| ------------------- | --------- | ------------------------------------- |
-| landing-page        | 3         | Initial app state                     |
-| camera-view         | 5         | Camera UI, permissions, errors        |
-| ui-components       | 4         | Buttons, overlays, info display       |
-| secret-settings     | 6         | Settings menu, flags, sliders         |
-| concert-info        | 4         | Concert display, overflow handling    |
-| error-states        | 4         | Permission, network, empty data       |
-| responsive          | 6         | Desktop, tablet, mobile viewports     |
-| accessibility       | 5         | Focus states, contrast, ARIA labels   |
-| feature-flags       | 4         | Flag variations, visual effects       |
+| Test Suite      | Scenarios | Coverage                            |
+| --------------- | --------- | ----------------------------------- |
+| landing-page    | 3         | Initial app state                   |
+| camera-view     | 5         | Camera UI, permissions, errors      |
+| ui-components   | 4         | Buttons, overlays, info display     |
+| secret-settings | 6         | Settings menu, flags, sliders       |
+| concert-info    | 4         | Concert display, overflow handling  |
+| error-states    | 4         | Permission, network, empty data     |
+| responsive      | 6         | Desktop, tablet, mobile viewports   |
+| accessibility   | 5         | Focus states, contrast, ARIA labels |
+| feature-flags   | 4         | Flag variations, visual effects     |
 
 **Running Visual Tests:**
 
@@ -775,6 +785,7 @@ npm run test:visual:update
 # View test report
 npm run test:visual:report
 ```
+````
 
 **When to Update Snapshots:**
 
@@ -783,6 +794,7 @@ npm run test:visual:report
 - After fixing visual bugs (verify fix looks correct first)
 
 **Never update snapshots blindly** - always review changes in the Playwright UI first!
+
 ```
 
 ---
@@ -887,6 +899,7 @@ This issue is **AI agent-ready** and follows the project's testing standards.
 ### Commit Messages
 
 ```
+
 test(visual): add secret settings visual regression tests
 test(visual): add concert info display visual tests
 test(visual): add error state visual tests
@@ -894,8 +907,10 @@ test(visual): add responsive design visual tests
 test(visual): add accessibility visual tests
 test(visual): add feature flag variation visual tests
 docs(testing): update TESTING.md with visual test coverage
+
 ```
 
 ---
 
 **Last Updated**: 2025-11-21
+```

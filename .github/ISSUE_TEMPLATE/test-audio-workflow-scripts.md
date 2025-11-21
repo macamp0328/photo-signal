@@ -173,6 +173,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 **Functions to Extract:**
 
 **download-yt-song.js:**
+
 - `parseArgs(argv)` - Parse command line arguments
 - `loadConfig(configPath)` - Load and merge configuration
 - `resolvePath(path)` - Resolve relative paths
@@ -181,6 +182,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 - `createMetadataIndex(trackInfo, options)` - Create metadata JSON
 
 **encode-audio.js:**
+
 - `loadConfig(configPath)` - Load encode configuration
 - `findDownloads(inputDir)` - Find .metadata.json files
 - `generateOutputFilename(metadata, config)` - Generate ps-YYYYMMDD-artist-venue.opus
@@ -189,6 +191,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 - `createPhotoAudioMap(results)` - Generate photo-audio-map.json
 
 **migrate-audio-to-cdn.js:**
+
 - `loadDataJson(dataPath)` - Load and parse data.json
 - `generateCdnUrl(audioFile, baseUrl, provider)` - Generate CDN URL
 - `updateConcert(concert, baseUrl, provider)` - Update concert object
@@ -196,6 +199,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 - `validateMigration(original, updated)` - Ensure no data loss
 
 **validate-audio-urls.js:**
+
 - `loadDataJson(dataPath)` - Load and parse data.json
 - `checkUrl(url, timeout)` - Check URL accessibility (with timeout)
 - `checkLocalFile(path)` - Check local file existence
@@ -228,9 +232,7 @@ describe('migrate-audio-to-cdn', () => {
   describe('loadDataJson', () => {
     it('should load and parse valid data.json', () => {
       const testData = {
-        concerts: [
-          { id: 1, audioFile: '/audio/test.opus' }
-        ]
+        concerts: [{ id: 1, audioFile: '/audio/test.opus' }],
       };
       const tempFile = '/tmp/test-data.json';
       writeFileSync(tempFile, JSON.stringify(testData));
@@ -300,8 +302,9 @@ describe('migrate-audio-to-cdn', () => {
     });
 
     it('should throw error for invalid provider', () => {
-      expect(() => generateCdnUrl('/audio/test.opus', 'https://cdn.com', 'invalid-provider'))
-        .toThrow(/provider/i);
+      expect(() =>
+        generateCdnUrl('/audio/test.opus', 'https://cdn.com', 'invalid-provider')
+      ).toThrow(/provider/i);
     });
   });
 
@@ -310,7 +313,7 @@ describe('migrate-audio-to-cdn', () => {
       const concert = {
         id: 1,
         band: 'Test Band',
-        audioFile: '/audio/test.opus'
+        audioFile: '/audio/test.opus',
       };
       const baseUrl = 'https://cdn.example.com';
 
@@ -324,7 +327,7 @@ describe('migrate-audio-to-cdn', () => {
     it('should not modify concerts without audioFile', () => {
       const concert = {
         id: 1,
-        band: 'Test Band'
+        band: 'Test Band',
       };
 
       const updated = updateConcert(concert, 'https://cdn.com', 'r2');
@@ -340,7 +343,7 @@ describe('migrate-audio-to-cdn', () => {
         venue: 'Test Venue',
         date: '2023-01-01',
         audioFile: '/audio/test.opus',
-        customField: 'custom value'
+        customField: 'custom value',
       };
 
       const updated = updateConcert(concert, 'https://cdn.com', 'r2');
@@ -356,7 +359,7 @@ describe('migrate-audio-to-cdn', () => {
         id: 1,
         audioFile: 'https://cdn.example.com/test.opus',
         audioFileFallback: '/audio/test.opus',
-        audioFileSource: 'r2'
+        audioFileSource: 'r2',
       };
 
       const updated = updateConcert(concert, 'https://cdn.example.com', 'r2');
@@ -399,8 +402,8 @@ describe('migrate-audio-to-cdn', () => {
       const original = {
         concerts: [
           { id: 1, band: 'Band A', audioFile: '/audio/a.opus' },
-          { id: 2, band: 'Band B', audioFile: '/audio/b.opus' }
-        ]
+          { id: 2, band: 'Band B', audioFile: '/audio/b.opus' },
+        ],
       };
 
       const updated = {
@@ -410,16 +413,16 @@ describe('migrate-audio-to-cdn', () => {
             band: 'Band A',
             audioFile: 'https://cdn.com/a.opus',
             audioFileFallback: '/audio/a.opus',
-            audioFileSource: 'r2'
+            audioFileSource: 'r2',
           },
           {
             id: 2,
             band: 'Band B',
             audioFile: 'https://cdn.com/b.opus',
             audioFileFallback: '/audio/b.opus',
-            audioFileSource: 'r2'
-          }
-        ]
+            audioFileSource: 'r2',
+          },
+        ],
       };
 
       expect(() => validateMigration(original, updated)).not.toThrow();
@@ -429,42 +432,34 @@ describe('migrate-audio-to-cdn', () => {
       const original = {
         concerts: [
           { id: 1, audioFile: '/audio/a.opus' },
-          { id: 2, audioFile: '/audio/b.opus' }
-        ]
+          { id: 2, audioFile: '/audio/b.opus' },
+        ],
       };
 
       const updated = {
-        concerts: [
-          { id: 1, audioFile: 'https://cdn.com/a.opus' }
-        ]
+        concerts: [{ id: 1, audioFile: 'https://cdn.com/a.opus' }],
       };
 
-      expect(() => validateMigration(original, updated))
-        .toThrow(/concert count/i);
+      expect(() => validateMigration(original, updated)).toThrow(/concert count/i);
     });
 
     it('should throw error if required fields are removed', () => {
       const original = {
-        concerts: [
-          { id: 1, band: 'Band A', venue: 'Venue A', audioFile: '/audio/a.opus' }
-        ]
+        concerts: [{ id: 1, band: 'Band A', venue: 'Venue A', audioFile: '/audio/a.opus' }],
       };
 
       const updated = {
         concerts: [
-          { id: 1, audioFile: 'https://cdn.com/a.opus' } // Missing band and venue
-        ]
+          { id: 1, audioFile: 'https://cdn.com/a.opus' }, // Missing band and venue
+        ],
       };
 
-      expect(() => validateMigration(original, updated))
-        .toThrow(/field/i);
+      expect(() => validateMigration(original, updated)).toThrow(/field/i);
     });
 
     it('should allow adding new fields', () => {
       const original = {
-        concerts: [
-          { id: 1, audioFile: '/audio/a.opus' }
-        ]
+        concerts: [{ id: 1, audioFile: '/audio/a.opus' }],
       };
 
       const updated = {
@@ -473,9 +468,9 @@ describe('migrate-audio-to-cdn', () => {
             id: 1,
             audioFile: 'https://cdn.com/a.opus',
             audioFileFallback: '/audio/a.opus',
-            audioFileSource: 'r2'
-          }
-        ]
+            audioFileSource: 'r2',
+          },
+        ],
       };
 
       expect(() => validateMigration(original, updated)).not.toThrow();
@@ -530,9 +525,9 @@ describe('validate-audio-urls', () => {
     });
 
     it('should handle timeout', async () => {
-      global.fetch = vi.fn().mockImplementation(() =>
-        new Promise((resolve) => setTimeout(resolve, 10000))
-      );
+      global.fetch = vi
+        .fn()
+        .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 10000)));
 
       const result = await checkUrl('https://slow.example.com/audio.opus', 100);
 
@@ -577,7 +572,9 @@ describe('validate-audio-urls', () => {
 
     it('should handle file system errors', () => {
       vi.mock('node:fs', () => ({
-        existsSync: vi.fn(() => { throw new Error('Permission denied'); }),
+        existsSync: vi.fn(() => {
+          throw new Error('Permission denied');
+        }),
       }));
 
       const result = checkLocalFile('/forbidden/audio.opus');
@@ -606,10 +603,7 @@ describe('validate-audio-urls', () => {
     });
 
     it('should handle all successes', () => {
-      const results = [
-        { success: true },
-        { success: true },
-      ];
+      const results = [{ success: true }, { success: true }];
 
       const stats = calculateStats(results);
 
@@ -617,10 +611,7 @@ describe('validate-audio-urls', () => {
     });
 
     it('should handle all failures', () => {
-      const results = [
-        { success: false },
-        { success: false },
-      ];
+      const results = [{ success: false }, { success: false }];
 
       const stats = calculateStats(results);
 
@@ -709,7 +700,7 @@ describe('encode-audio', () => {
       const metadata = {
         date: '2023-08-15',
         band: 'The Midnight Echoes',
-        venue: 'The Fillmore'
+        venue: 'The Fillmore',
       };
 
       const result = generateOutputFilename(metadata);
@@ -721,7 +712,7 @@ describe('encode-audio', () => {
       const metadata = {
         date: '2023-01-01',
         band: 'Electric Dreams',
-        venue: 'Red Rocks Amphitheatre'
+        venue: 'Red Rocks Amphitheatre',
       };
 
       const result = generateOutputFilename(metadata);
@@ -734,7 +725,7 @@ describe('encode-audio', () => {
       const metadata = {
         date: '2023-05-20',
         band: 'LOUD BAND',
-        venue: 'BIG VENUE'
+        venue: 'BIG VENUE',
       };
 
       const result = generateOutputFilename(metadata);
@@ -746,7 +737,7 @@ describe('encode-audio', () => {
       const metadata = {
         date: '2023-03-10',
         band: "The Band's Name!",
-        venue: 'Venue @#$% Place'
+        venue: 'Venue @#$% Place',
       };
 
       const result = generateOutputFilename(metadata);
@@ -758,7 +749,7 @@ describe('encode-audio', () => {
     it('should handle missing date gracefully', () => {
       const metadata = {
         band: 'Test Band',
-        venue: 'Test Venue'
+        venue: 'Test Venue',
       };
 
       const result = generateOutputFilename(metadata);
@@ -813,15 +804,15 @@ describe('encode-audio', () => {
           metadata: { band: 'Band A', venue: 'Venue A', date: '2023-08-15' },
           lufs: { integrated: -14.0, lra: 8.5 },
           duration: 185.3,
-          checksum: 'abc123'
+          checksum: 'abc123',
         },
         {
           fileName: 'ps-20230920-band-b-venue-b.opus',
           metadata: { band: 'Band B', venue: 'Venue B', date: '2023-09-20' },
           lufs: { integrated: -13.5, lra: 7.2 },
           duration: 210.7,
-          checksum: 'def456'
-        }
+          checksum: 'def456',
+        },
       ];
 
       const index = createAudioIndex(results);
@@ -851,9 +842,7 @@ describe('encode-audio', () => {
 
   describe('createPhotoAudioMap', () => {
     it('should create placeholder mapping structure', () => {
-      const results = [
-        { fileName: 'ps-20230815-band-venue.opus' }
-      ];
+      const results = [{ fileName: 'ps-20230815-band-venue.opus' }];
 
       const map = createPhotoAudioMap(results);
 
@@ -1017,23 +1006,25 @@ export default defineConfig({
 
 **TESTING.md Addition:**
 
-```markdown
+````markdown
 ### Script Test Coverage
 
 Scripts in `scripts/audio-workflow/` have unit tests for critical functions:
 
-| Script                 | Tests | Status  | Focus Areas                          |
-| ---------------------- | ----- | ------- | ------------------------------------ |
-| migrate-audio-to-cdn   | 15+   | ✅ Pass | data.json updates, validation        |
-| validate-audio-urls    | 10+   | ✅ Pass | URL checking, stats calculation      |
-| encode-audio           | 12+   | ✅ Pass | Filename generation, manifest        |
-| download-yt-song       | 8+    | ✅ Pass | Argument parsing, config loading     |
+| Script               | Tests | Status  | Focus Areas                      |
+| -------------------- | ----- | ------- | -------------------------------- |
+| migrate-audio-to-cdn | 15+   | ✅ Pass | data.json updates, validation    |
+| validate-audio-urls  | 10+   | ✅ Pass | URL checking, stats calculation  |
+| encode-audio         | 12+   | ✅ Pass | Filename generation, manifest    |
+| download-yt-song     | 8+    | ✅ Pass | Argument parsing, config loading |
 
 **Running Script Tests:**
 
 ```bash
 npm run test:run -- scripts/
 ```
+````
+
 ```
 
 ---
@@ -1161,13 +1152,16 @@ This issue is **AI agent-ready** and follows the project's testing standards.
 ### Commit Messages
 
 ```
+
 refactor(scripts): extract testable functions from migrate-audio-to-cdn
 test(scripts): add tests for migrate-audio-to-cdn data updates
 refactor(scripts): extract testable functions from encode-audio
 test(scripts): add tests for encode-audio filename generation
 docs(testing): update TESTING.md with script test coverage
+
 ```
 
 ---
 
 **Last Updated**: 2025-11-21
+```

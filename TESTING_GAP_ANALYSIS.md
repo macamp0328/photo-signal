@@ -26,6 +26,7 @@ Each issue follows the established template format with detailed implementation 
 The repository has **excellent unit test coverage**:
 
 ### Modules (All Well Tested)
+
 - **camera-access** (28 tests) - Camera permissions, stream management
 - **camera-view** (26 tests) - Video display UI
 - **motion-detection** (27 tests) - Motion algorithm validation
@@ -39,6 +40,7 @@ The repository has **excellent unit test coverage**:
 - **App** (2 tests) - Basic integration tests
 
 ### Visual/E2E Tests
+
 - **landing-page.spec.ts** - Initial app state
 - **camera-view.spec.ts** - Camera UI with snapshots
 - **ui-components.spec.ts** - Component visual tests
@@ -52,23 +54,25 @@ The repository has **excellent unit test coverage**:
 ### 1. Utility Functions & Configuration (Issue #1)
 
 **Missing Tests:**
+
 - `src/utils/telemetryUtils.ts` (3 exported functions)
   - `formatGuidanceTelemetry()` - Console output formatting
   - `exportGuidanceTelemetry()` - JSON export for analysis
   - `calculateGuidanceEffectiveness()` - Before/after metrics
-  
 - `src/config/guidanceConfig.ts` (2 exported functions + config object)
   - `getGuidancePriority()` - Get priority for guidance type
   - `selectGuidanceToShow()` - Select highest priority guidance
   - `defaultGuidanceConfig` - Configuration validation
 
 **Why This Matters:**
+
 - These functions handle critical telemetry tracking and guidance selection logic
 - Math errors in effectiveness calculation could give wrong metrics
 - Wrong priority logic could show unhelpful guidance to users
 - Currently no tests catch bugs in these pure functions
 
 **Issue Created**: `test-utility-functions.md`
+
 - 27+ test cases covering all functions and edge cases
 - Focus on divide-by-zero, empty data, negative values, percentages
 - Validates configuration structure and threshold ranges
@@ -78,6 +82,7 @@ The repository has **excellent unit test coverage**:
 ### 2. Audio Workflow Scripts (Issue #2)
 
 **Missing Tests:**
+
 - `scripts/audio-workflow/download/download-yt-song.js`
 - `scripts/audio-workflow/encode/encode-audio.js`
 - `scripts/audio-workflow/update/migrate-audio-to-cdn.js`
@@ -86,6 +91,7 @@ The repository has **excellent unit test coverage**:
 **Why These Scripts Need Testing:**
 
 Unlike one-time helper scripts, these are **production tools** that:
+
 - Run repeatedly in the audio production workflow
 - Modify critical data files (`data.json`, `concerts.json`)
 - Process expensive assets (downloaded audio files)
@@ -93,6 +99,7 @@ Unlike one-time helper scripts, these are **production tools** that:
 - Have complex error handling and retry logic
 
 **Real Risks:**
+
 1. **Data Corruption** - Malformed JSON could break the entire app
 2. **File Loss** - Download failures could lose track metadata
 3. **Silent Failures** - Encoding errors might go unnoticed
@@ -100,12 +107,14 @@ Unlike one-time helper scripts, these are **production tools** that:
 5. **Configuration Errors** - Invalid config could crash workflows
 
 **Issue Created**: `test-audio-workflow-scripts.md`
+
 - 45+ test cases across 4 scripts
 - Includes refactoring strategy (extract functions for testability)
 - Mocks external dependencies (fs, fetch, child_process)
 - Focus on data integrity, error handling, edge cases
 
 **Scripts Explicitly Excluded** (one-time/trivial, don't need tests):
+
 - `create-easy-test-images.js` - One-time test asset generation
 - `create-edge-case-test-images.js` - One-time test asset generation
 - Shell scripts (`dev.sh`, `build.sh`, `test.sh`, etc.) - Simple wrappers
@@ -116,6 +125,7 @@ Unlike one-time helper scripts, these are **production tools** that:
 ### 3. Integration Tests (Issue #3)
 
 **Missing Tests:**
+
 - No tests for complete user workflows spanning multiple modules
 - No tests for module interactions and state synchronization
 - No tests for event propagation across modules
@@ -123,6 +133,7 @@ Unlike one-time helper scripts, these are **production tools** that:
 **Why This Matters:**
 
 Unit tests ensure each module works in isolation, but don't catch:
+
 - **State Synchronization** - Audio playback might not sync with photo recognition
 - **Event Timing** - Motion detection might not trigger audio fade correctly
 - **Data Flow** - Concert data might not propagate to info display
@@ -130,12 +141,14 @@ Unit tests ensure each module works in isolation, but don't catch:
 - **User Experience** - Complete workflows might break even if modules work individually
 
 **Real-World Integration Issues:**
+
 - Photo recognized, but audio doesn't play (event not received)
 - Motion detected, but audio doesn't fade (handler not connected)
 - Camera permission granted, but video doesn't appear (stream not passed)
 - Concert info displayed, but wrong song plays (data mismatch)
 
 **Issue Created**: `test-integration-workflows.md`
+
 - 6+ integration test files covering critical user workflows
 - Photo Recognition → Audio Playback
 - Motion Detection → Audio Fade
@@ -149,6 +162,7 @@ Unit tests ensure each module works in isolation, but don't catch:
 ### 4. Visual Regression Tests (Issue #4)
 
 **Missing Visual Coverage:**
+
 - Secret settings menu (only unit tested, not visually)
 - Concert info display (various states, overflow handling)
 - Error states (permission denied, network errors, etc.)
@@ -157,6 +171,7 @@ Unit tests ensure each module works in isolation, but don't catch:
 - Feature flag variations (debug overlay, psychedelic mode, etc.)
 
 **Current Visual Tests** (only 3 files):
+
 - ✅ Landing page
 - ✅ Camera view
 - ✅ UI components (basic)
@@ -164,6 +179,7 @@ Unit tests ensure each module works in isolation, but don't catch:
 **Why Visual Tests Matter:**
 
 Prevent regressions in:
+
 - **CSS Changes** - Layout shifts, broken styles
 - **Responsive Design** - Mobile viewport issues
 - **Accessibility** - Color contrast, focus indicators
@@ -172,6 +188,7 @@ Prevent regressions in:
 - **Feature Flags** - Visual effects not applying
 
 **Issue Created**: `test-visual-regression.md`
+
 - 6+ new Playwright test files
 - 40+ visual test scenarios
 - Multiple viewport sizes (desktop, tablet, mobile, landscape)
@@ -218,39 +235,47 @@ Prevent regressions in:
 All 4 issues follow the established template format and include:
 
 ✅ **Clear Problem Statement**
+
 - Current state vs. desired state
 - Specific risks without tests
 - Real-world examples of potential bugs
 
 ✅ **Detailed Implementation Plan**
+
 - Phase-by-phase breakdown
 - Code examples showing test structure
 - Specific functions/scenarios to test
 
 ✅ **Comprehensive Acceptance Criteria**
+
 - Specific deliverables
 - Quality gates (coverage %, tests passing, etc.)
 - Edge cases to cover
 
 ✅ **Code Quality Requirements**
+
 - Type safety, ESLint, Prettier, type-check
 - Fast tests, isolated tests, clean output
 
 ✅ **Testing Checklists**
+
 - Manual verification steps
 - Edge cases to cover
 - Quality checks to run
 
 ✅ **AI Agent Guidelines**
+
 - Workflow steps (read, write, test, commit)
 - Testing patterns to follow
 - Commit message examples
 
 ✅ **Future Enhancements**
+
 - Optional improvements for later
 - Ideas for expanding test coverage
 
 ✅ **Relevant References**
+
 - Links to existing tests (for patterns)
 - Documentation links
 - External tool docs
@@ -280,6 +305,7 @@ All 4 issues follow the established template format and include:
 ## Metrics
 
 ### Current State
+
 - **Unit Tests**: 296 passing (17 test files)
 - **Visual Tests**: 3 passing (3 Playwright files)
 - **Integration Tests**: 0 (none exist)
@@ -287,6 +313,7 @@ All 4 issues follow the established template format and include:
 - **Coverage**: ~80% for modules, 0% for scripts and utils
 
 ### Target State (After All Issues Complete)
+
 - **Unit Tests**: 350+ passing (21+ test files)
 - **Visual Tests**: 50+ scenarios (9+ Playwright files)
 - **Integration Tests**: 20+ scenarios (6+ test files)
@@ -300,12 +327,14 @@ All 4 issues follow the established template format and include:
 ### Scripts That NEED Testing (Production Critical)
 
 **Audio Workflow Scripts** (Complex, Production-Critical):
+
 - ✅ `download-yt-song.js` - Downloads from YouTube, creates metadata
 - ✅ `encode-audio.js` - Normalizes audio, generates manifests
 - ✅ `migrate-audio-to-cdn.js` - Updates data.json with CDN URLs
 - ✅ `validate-audio-urls.js` - Validates URL accessibility
 
 **Photo Hash Script** (Production Tool):
+
 - ✅ `generate-photo-hashes.js` - Generates hashes for production photos
 
 **Why**: These run repeatedly, modify data files, process expensive assets
@@ -313,10 +342,12 @@ All 4 issues follow the established template format and include:
 ### Scripts That DON'T Need Testing (One-Time/Trivial)
 
 **One-Time Asset Generators**:
+
 - ❌ `create-easy-test-images.js` - Creates test assets once
 - ❌ `create-edge-case-test-images.js` - Creates test assets once
 
 **Simple Shell Wrappers**:
+
 - ❌ `dev.sh` - Runs `vite` (trivial wrapper)
 - ❌ `build.sh` - Runs `vite build` (trivial wrapper)
 - ❌ `test.sh` - Runs `vitest` (trivial wrapper)
@@ -326,6 +357,7 @@ All 4 issues follow the established template format and include:
 - ❌ `check-bundle-size.sh` - CI script (covered by CI tests)
 
 **Browser-Based Tools**:
+
 - ❌ `generate-photo-hashes.html` - Browser tool (manual use)
 - ❌ `generate-favicons.html` - Browser tool (manual use)
 
@@ -348,6 +380,7 @@ All 4 issues follow the established template format and include:
 If you need clarification on any issue or want to adjust priorities, let me know!
 
 **Files to Review:**
+
 - `.github/ISSUE_TEMPLATE/test-utility-functions.md`
 - `.github/ISSUE_TEMPLATE/test-audio-workflow-scripts.md`
 - `.github/ISSUE_TEMPLATE/test-integration-workflows.md`

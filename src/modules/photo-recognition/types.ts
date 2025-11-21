@@ -1,4 +1,5 @@
 import type { Concert, AspectRatio as AspectRatioType } from '../../types';
+import type { DetectedRectangle } from '../photo-rectangle-detection';
 
 /**
  * Photo Recognition Module Types
@@ -152,6 +153,10 @@ export interface PhotoRecognitionHook {
   frameQuality: FrameQualityInfo | null;
   /** Active guidance type (for real-time user feedback) */
   activeGuidance: GuidanceType;
+  /** Detected rectangle (when rectangle detection is enabled) */
+  detectedRectangle: DetectedRectangle | null;
+  /** Rectangle detection confidence (0-1) */
+  rectangleConfidence: number;
 }
 
 /**
@@ -194,4 +199,6 @@ export interface PhotoRecognitionOptions {
   enableMultiScale?: boolean;
   /** Scale variants to try when multi-scale is enabled (default [0.75, 0.8, 0.85, 0.9]) */
   multiScaleVariants?: number[];
+  /** Enable dynamic rectangle detection (default false) */
+  enableRectangleDetection?: boolean;
 }

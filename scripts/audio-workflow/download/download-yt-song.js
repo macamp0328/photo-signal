@@ -79,12 +79,12 @@ const writeInfoJson = options['no-info-json']
 const writeThumbnail = options['no-thumbnails']
   ? false
   : toBoolean(options['write-thumbnail'] ?? options.thumbnails, metadataEnabled);
-const embedThumbnail = options['no-embed-thumbnail']
-  ? false
-  : toBoolean(options['embed-thumbnail'], metadataEnabled);
-const addMetadata = options['no-add-metadata']
-  ? false
-  : toBoolean(options['add-metadata'], metadataEnabled);
+const embedThumbnail =
+  metadataEnabled &&
+  (options['no-embed-thumbnail'] ? false : toBoolean(options['embed-thumbnail'], false));
+const addMetadata =
+  metadataEnabled &&
+  (options['no-add-metadata'] ? false : toBoolean(options['add-metadata'], false));
 
 const archiveDisabled = toBoolean(options['no-archive'], false);
 const downloadArchive = archiveDisabled
@@ -885,6 +885,8 @@ Options:
 	--metadata / --no-metadata   Toggle metadata sidecars, tags, and thumbnails
 	--no-info-json               Skip writing the .info.json metadata file
 	--no-thumbnails              Skip thumbnail download/embedding
+  --embed-thumbnail            Embed inline thumbnail art (default: off)
+  --add-metadata               Write tags into the container (default: off)
   --write-index / --no-index   Toggle machine-readable per-track metadata index files (default: on)
   --sleep-requests <seconds>   Friendly throttle between requests (default: 0.5)
   --min-sleep-interval <sec>   Minimum random delay when throttling (default: --sleep-requests)

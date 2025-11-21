@@ -8,5 +8,7 @@
   "rate-limit": "3M",
   "metadata": true,
   "write-info-json": true,
-  "write-thumbnail": true
+  "write-thumbnail": true,
+  "embed-thumbnail": false,
+  "add-metadata": false
 }

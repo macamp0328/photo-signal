@@ -122,4 +122,17 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     unit: '%',
     category: 'recognition',
   },
+  {
+    id: 'rectangle-detection-confidence-threshold',
+    name: 'Rectangle Detection Confidence',
+    description:
+      'Minimum confidence (0-1) for rectangle detection to be considered valid. Higher = stricter.',
+    type: 'number',
+    value: 0.6,
+    min: 0.3,
+    max: 0.9,
+    step: 0.05,
+    unit: '',
+    category: 'recognition',
+  },
 ];

@@ -19,7 +19,6 @@ const DEFAULT_OPTIONS: Required<RectangleDetectionOptions> = {
   maxArea: 0.9, // 90% of frame
   minAspectRatio: 0.5, // 1:2 portrait
   maxAspectRatio: 2.5, // 5:2 landscape
-  cannyLowThreshold: 50,
   cannyHighThreshold: 150,
   minConfidence: 0.6,
 };
@@ -318,30 +317,35 @@ export class RectangleDetectionService {
   private approximatePolygon(contour: Contour): Contour {
     if (contour.length <= 4) return contour;
 
-    // Find convex hull (simplified - just get extreme points)
-    let minX = Infinity,
-      minY = Infinity;
-    let maxX = -Infinity;
+    // Find corners by extreme values
+    let minSum = Infinity,
+      maxSum = -Infinity;
+    let minDiff = Infinity,
+      maxDiff = -Infinity;
     let topLeft: Point = { x: 0, y: 0 };
     let topRight: Point = { x: 0, y: 0 };
     let bottomLeft: Point = { x: 0, y: 0 };
     let bottomRight: Point = { x: 0, y: 0 };
 
     for (const point of contour) {
-      if (point.x + point.y < minX + minY) {
-        minX = point.x;
-        minY = point.y;
+      const sum = point.x + point.y;
+      const diff = point.x - point.y;
+
+      if (sum < minSum) {
+        minSum = sum;
         topLeft = point;
       }
-      if (point.x - point.y > maxX - bottomRight.y) {
-        maxX = point.x;
+      if (diff > maxDiff) {
+        maxDiff = diff;
         topRight = point;
       }
-      if (point.y - point.x > bottomLeft.y - minX) {
-        bottomLeft = point;
-      }
-      if (point.x + point.y > bottomRight.x + bottomRight.y) {
+      if (sum > maxSum) {
+        maxSum = sum;
         bottomRight = point;
+      }
+      if (diff < minDiff) {
+        minDiff = diff;
+        bottomLeft = point;
       }
     }
 
@@ -362,6 +366,19 @@ export class RectangleDetectionService {
 
     const width = maxX - minX;
     const height = maxY - minY;
+
+    // Guard against division by zero (degenerate rectangle)
+    if (height === 0) {
+      return {
+        topLeft: { x: minX, y: minY },
+        topRight: { x: maxX, y: minY },
+        bottomRight: { x: maxX, y: maxY },
+        bottomLeft: { x: minX, y: maxY },
+        width,
+        height,
+        aspectRatio: 0,
+      };
+    }
 
     return {
       topLeft: { x: minX, y: minY },

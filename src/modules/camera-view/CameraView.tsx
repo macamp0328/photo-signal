@@ -34,6 +34,7 @@ export function CameraView({
   showConcertOverlay = false,
   detectedRectangle = null,
   rectangleConfidence = 0,
+  rectangleDetectionConfidenceThreshold = 0.6,
   showRectangleOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -125,7 +126,7 @@ export function CameraView({
         <RectangleOverlay
           rectangle={detectedRectangle}
           state={
-            detectedRectangle && rectangleConfidence >= 0.6
+            detectedRectangle && rectangleConfidence >= rectangleDetectionConfidenceThreshold
               ? 'detected'
               : detectedRectangle
                 ? 'detecting'

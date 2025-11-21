@@ -33,7 +33,6 @@ const detector = new RectangleDetectionService({
   maxArea?: number;              // Maximum area (0-1, default: 0.9)
   minAspectRatio?: number;       // Min aspect ratio (default: 0.5)
   maxAspectRatio?: number;       // Max aspect ratio (default: 2.5)
-  cannyLowThreshold?: number;    // Edge detection low (default: 50)
   cannyHighThreshold?: number;   // Edge detection high (default: 150)
   minConfidence?: number;        // Min confidence (default: 0.6)
 });
@@ -361,7 +360,6 @@ if (result.detected && result.rectangle) {
 - [ ] Automatic orientation detection
 - [ ] Border detection and removal
 - [ ] Improve corner detection algorithm for better accuracy
-- [ ] Make detection confidence threshold configurable
 
 ## Known Limitations
 
@@ -369,7 +367,6 @@ if (result.detected && result.rectangle) {
 - Detection accuracy depends on lighting conditions and photo contrast
 - Works best with photos that have clear edges and distinct boundaries
 - May not detect very small or very large photos reliably
-- Detection confidence threshold (0.6) is currently hardcoded in the UI integration
 
 ---
 

@@ -481,7 +481,7 @@ export function usePhotoRecognition(
           }
         }
 
-        // Calculate framed region based on aspect ratio or detected rectangle
+        // Use detected rectangle region or fallback to fixed aspect ratio
         const framedRegion = finalFramedRegion;
 
         // Set canvas to cropped region size

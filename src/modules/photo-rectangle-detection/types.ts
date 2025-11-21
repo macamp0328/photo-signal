@@ -51,8 +51,6 @@ export interface RectangleDetectionOptions {
   minAspectRatio?: number;
   /** Maximum aspect ratio for valid rectangles (default: 2.5) */
   maxAspectRatio?: number;
-  /** Canny edge detection low threshold (default: 50) */
-  cannyLowThreshold?: number;
   /** Canny edge detection high threshold (default: 150) */
   cannyHighThreshold?: number;
   /** Minimum confidence score to accept detection (default: 0.6) */

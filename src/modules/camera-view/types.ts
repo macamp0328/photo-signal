@@ -30,6 +30,8 @@ export interface CameraViewProps {
   detectedRectangle?: DetectedRectangle | null;
   /** Rectangle detection confidence (0-1) */
   rectangleConfidence?: number;
+  /** Confidence threshold for rectangle detection (default 0.6) */
+  rectangleDetectionConfidenceThreshold?: number;
   /** Show rectangle detection overlay */
   showRectangleOverlay?: boolean;
 }

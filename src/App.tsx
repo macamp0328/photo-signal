@@ -123,6 +123,10 @@ function App() {
     getSetting<number>('glare-percentage-threshold'),
     20
   );
+  const rectangleDetectionConfidenceThresholdValue = coerceNumberSetting(
+    getSetting<number>('rectangle-detection-confidence-threshold'),
+    0.6
+  );
   const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
   const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
 
@@ -242,6 +246,7 @@ function App() {
       showConcertOverlay={!!displayedConcert && isPlaying}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
+      rectangleDetectionConfidenceThreshold={rectangleDetectionConfidenceThresholdValue}
       showRectangleOverlay={isEnabled('rectangle-detection')}
     />
   );

@@ -1,0 +1,111 @@
+/* Rectangle Overlay Styles */
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.rectangle {
+  position: absolute;
+  border: 3px solid transparent;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Detection states */
+.rectangle.detecting {
+  border-color: var(--color-warning, #fbbf24);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.rectangle.detected {
+  border-color: var(--color-success, #10b981);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+}
+
+.rectangle.error {
+  border-color: var(--color-error, #ef4444);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* Corner markers */
+.corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid inherit;
+}
+
+.corner.topLeft {
+  top: -3px;
+  left: -3px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.corner.topRight {
+  top: -3px;
+  right: -3px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.corner.bottomRight {
+  bottom: -3px;
+  right: -3px;
+  border-left: none;
+  border-top: none;
+}
+
+.corner.bottomLeft {
+  bottom: -3px;
+  left: -3px;
+  border-right: none;
+  border-top: none;
+}
+
+/* Status message */
+.statusMessage {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+/* Pulse animation for detecting state */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .statusMessage {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .corner {
+    width: 15px;
+    height: 15px;
+  }
+}

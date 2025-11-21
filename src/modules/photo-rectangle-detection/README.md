@@ -360,6 +360,16 @@ if (result.detected && result.rectangle) {
 - [ ] Machine learning-based detection (TensorFlow.js)
 - [ ] Automatic orientation detection
 - [ ] Border detection and removal
+- [ ] Improve corner detection algorithm for better accuracy
+- [ ] Make detection confidence threshold configurable
+
+## Known Limitations
+
+- The polygon approximation algorithm is simplified and may not work perfectly for all cases
+- Detection accuracy depends on lighting conditions and photo contrast
+- Works best with photos that have clear edges and distinct boundaries
+- May not detect very small or very large photos reliably
+- Detection confidence threshold (0.6) is currently hardcoded in the UI integration
 
 ---
 

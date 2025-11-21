@@ -440,9 +440,7 @@ describe('SecretSettings', () => {
           isVisible = false; // Parent sets isVisible to false
         };
 
-        const { rerender } = render(
-          <SecretSettings isVisible={isVisible} onClose={handleClose} />
-        );
+        const { rerender } = render(<SecretSettings isVisible={isVisible} onClose={handleClose} />);
 
         const button = screen.getByText(/Send It/i);
         await user.click(button);

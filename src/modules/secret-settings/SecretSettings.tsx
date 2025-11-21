@@ -47,7 +47,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
     // Reload page after short delay (100ms) to show close animation
     // Note: We don't track this timeout because we want it to execute
     // even if the component unmounts (which happens when onClose is called)
-    setTimeout(() => {
+    window.setTimeout(() => {
       window.location.reload();
     }, 100);
   }, [isEnabled, playRandomSound, onClose]);

@@ -62,7 +62,10 @@ async function main() {
   console.log(`  Output: ${outputDir}`);
   console.log(`  Work:   ${workDir}`);
   console.log(`  Target LUFS: ${config.targetLUFS}`);
-  console.log(`  Opus bitrate: ${config.opus.bitrateKbps} kbps`);
+  console.log(`  Opus bitrate ceiling: ${config.opus.bitrateKbps} kbps`);
+  if (config?.opus?.minBitrateFloorKbps) {
+    console.log(`  Opus bitrate floor: ${config.opus.minBitrateFloorKbps} kbps`);
+  }
   console.log('');
 
   // Find all downloaded files
@@ -333,6 +336,18 @@ async function processAudioFile(download, config, options) {
   console.log(`  Slug:  ${slug}`);
   console.log('');
 
+  const bitrateInfo = await determineTargetBitrate(download, config);
+  if (bitrateInfo.sourceBitrateKbps) {
+    const label = bitrateInfo.sourceBitrateSource ?? 'metadata';
+    console.log(`  Source bitrate: ~${bitrateInfo.sourceBitrateKbps} kbps (${label})`);
+  } else {
+    console.log('  Source bitrate: unknown (defaulting to ceiling)');
+  }
+  console.log(
+    `  Target Opus bitrate: ${bitrateInfo.targetBitrateKbps} kbps (≤ ${config.opus.bitrateKbps} kbps)`
+  );
+  console.log('');
+
   if (dryRun) {
     console.log('  [DRY RUN] Would process this file');
     return {
@@ -340,6 +355,8 @@ async function processAudioFile(download, config, options) {
       success: true,
       slug,
       outputFile: outputFileName,
+      bitrateKbps: bitrateInfo.targetBitrateKbps,
+      sourceBitrateKbps: bitrateInfo.sourceBitrateKbps,
       dryRun: true,
     };
   }
@@ -369,16 +386,22 @@ async function processAudioFile(download, config, options) {
   // Step 5: Encode to Opus
   const outputPath = join(outputDir, outputFileName);
   console.log('  5. Encoding to Opus...');
-  await encodeToOpus(fadedWavPath, outputPath, config, {
-    band,
-    title: `${band} — ${date}`,
-    date,
-    album,
-    releaseDate,
-    genre,
-    recordLabel: musicDetails.recordLabel,
-    distributor: musicDetails.distributor,
-  });
+  await encodeToOpus(
+    fadedWavPath,
+    outputPath,
+    config,
+    {
+      band,
+      title: `${band} — ${date}`,
+      date,
+      album,
+      releaseDate,
+      genre,
+      recordLabel: musicDetails.recordLabel,
+      distributor: musicDetails.distributor,
+    },
+    bitrateInfo.targetBitrateKbps
+  );
 
   // Step 6: Calculate checksum
   console.log('  6. Calculating checksum...');
@@ -406,7 +429,9 @@ async function processAudioFile(download, config, options) {
     truePeakDb: loudnessStats.input_tp,
     lra: loudnessStats.input_lra,
     checksum,
-    bitrateKbps: config.opus.bitrateKbps,
+    bitrateKbps: bitrateInfo.targetBitrateKbps,
+    sourceBitrateKbps: bitrateInfo.sourceBitrateKbps,
+    bitrateSource: bitrateInfo.sourceBitrateSource,
     genre,
     recordLabel: musicDetails.recordLabel,
     distributor: musicDetails.distributor,
@@ -625,12 +650,13 @@ function applyFades(inputPath, outputPath, config, duration) {
 /**
  * Encode to Opus format with metadata
  */
-function encodeToOpus(inputPath, outputPath, config, metadata) {
+function encodeToOpus(inputPath, outputPath, config, metadata, targetBitrateKbps) {
   return new Promise((resolve, reject) => {
     const defaults = config.metadataDefaults;
     const albumTag =
       metadata.album && metadata.album !== 'Unknown Album' ? metadata.album : defaults.album;
     const genreTag = metadata.genre ?? defaults.genre;
+    const bitrate = targetBitrateKbps ?? config.opus.bitrateKbps;
 
     const args = [
       '-i',
@@ -638,7 +664,7 @@ function encodeToOpus(inputPath, outputPath, config, metadata) {
       '-c:a',
       'libopus',
       '-b:a',
-      `${config.opus.bitrateKbps}k`,
+      `${bitrate}k`,
       '-vbr',
       'on',
       '-compression_level',
@@ -700,6 +726,98 @@ function calculateChecksum(filePath) {
   return hash.digest('hex');
 }
 
+async function determineTargetBitrate(download, config) {
+  const maxBitrate = config?.opus?.bitrateKbps ?? 160;
+  const minFloor = config?.opus?.minBitrateFloorKbps ?? 96;
+
+  const metadataBitrate = coerceBitrate(download?.metadata?.download?.bitrateKbps);
+  let sourceBitrateKbps = metadataBitrate;
+  let sourceBitrateSource = metadataBitrate ? 'metadata' : null;
+
+  if (!sourceBitrateKbps) {
+    sourceBitrateKbps = await probeBitrateKbps(download?.audioPath);
+    sourceBitrateSource = sourceBitrateKbps ? 'ffprobe' : null;
+  }
+
+  const roundedSource = sourceBitrateKbps ? Math.round(sourceBitrateKbps) : null;
+
+  let targetBitrateKbps = maxBitrate;
+  if (roundedSource && roundedSource > 0) {
+    targetBitrateKbps = Math.min(maxBitrate, roundedSource);
+    if (roundedSource < minFloor) {
+      targetBitrateKbps = roundedSource;
+    } else if (targetBitrateKbps < minFloor) {
+      targetBitrateKbps = minFloor;
+    }
+  } else if (targetBitrateKbps < minFloor) {
+    targetBitrateKbps = minFloor;
+  }
+
+  return {
+    sourceBitrateKbps: roundedSource,
+    sourceBitrateSource,
+    targetBitrateKbps,
+  };
+}
+
+function coerceBitrate(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+}
+
+function probeBitrateKbps(filePath) {
+  if (!filePath) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    const args = [
+      '-v',
+      'error',
+      '-select_streams',
+      'a:0',
+      '-show_entries',
+      'stream=bit_rate',
+      '-of',
+      'default=noprint_wrappers=1:nokey=1',
+      filePath,
+    ];
+
+    const ffprobe = spawn('ffprobe', args, { stdio: 'pipe' });
+    let stdout = '';
+    let stderr = '';
+
+    ffprobe.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    ffprobe.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    ffprobe.on('close', (code) => {
+      if (code !== 0) {
+        console.warn(
+          `⚠️  ffprobe failed to read bitrate for ${basename(filePath)}: ${stderr.trim()}`
+        );
+        resolve(null);
+        return;
+      }
+
+      const bitsPerSecond = Number(stdout.trim());
+      if (!Number.isFinite(bitsPerSecond) || bitsPerSecond <= 0) {
+        resolve(null);
+        return;
+      }
+
+      resolve(bitsPerSecond / 1000);
+    });
+  });
+}
+
 /**
  * Generate audio index manifest
  */
@@ -711,6 +829,7 @@ function generateAudioIndex(results, outputDir, config) {
       targetLUFS: config.targetLUFS,
       truePeakLimit: config.truePeakLimit,
       opusBitrate: config.opus.bitrateKbps,
+      opusBitrateFloor: config.opus.minBitrateFloorKbps ?? null,
     },
     tracks: results
       .filter((r) => r.success && !r.dryRun)
@@ -728,6 +847,8 @@ function generateAudioIndex(results, outputDir, config) {
         credits: r.credits ?? {},
         durationMs: r.durationMs,
         bitrateKbps: r.bitrateKbps,
+        sourceBitrateKbps: r.sourceBitrateKbps ?? null,
+        sourceBitrateSource: r.bitrateSource ?? null,
         sampleRate: 48000,
         lufsIntegrated: r.lufsIntegrated,
         truePeakDb: r.truePeakDb,
@@ -787,13 +908,14 @@ function generateReport(results, outputDir) {
 
   if (successful.length > 0) {
     report += '## Successful Encodings\n\n';
-    report += '| Slug | Band | Date | LUFS | Duration |\n';
-    report += '|------|------|------|------|----------|\n';
+    report += '| Slug | Band | Date | Bitrate | LUFS | Duration |\n';
+    report += '|------|------|------|---------|------|----------|\n';
 
     for (const r of successful) {
       const mins = Math.floor(r.durationMs / 60000);
       const secs = Math.floor((r.durationMs % 60000) / 1000);
-      report += `| ${r.slug} | ${r.band} | ${r.date} | ${r.lufsIntegrated.toFixed(1)} | ${mins}:${secs.toString().padStart(2, '0')} |\n`;
+      const bitrateLabel = r.bitrateKbps ? `${r.bitrateKbps} kbps` : 'n/a';
+      report += `| ${r.slug} | ${r.band} | ${r.date} | ${bitrateLabel} | ${r.lufsIntegrated.toFixed(1)} | ${mins}:${secs.toString().padStart(2, '0')} |\n`;
     }
     report += '\n';
   }
@@ -812,6 +934,7 @@ function generateReport(results, outputDir) {
   report += '- [ ] True peak below -1.5 dB\n';
   report += '- [ ] Metadata fields populated\n';
   report += '- [ ] Filenames follow naming convention\n';
+  report += '- [ ] Spot-check ffprobe bitrate matches audio-index\n';
   report += '- [ ] Checksums calculated\n';
   report += '- [ ] Photo ID mapping pending\n';
 

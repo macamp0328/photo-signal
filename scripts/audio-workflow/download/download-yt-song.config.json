@@ -3,7 +3,7 @@
   "output-dir": "./downloads",
   "file-template": "%(playlist_index)02d - %(title)s.%(ext)s",
   "download-archive": "./downloads/.yt-dlp-archive.txt",
-  "format-order": "opus,mp3",
+  "format-order": "opus,webm,m4a,mp3",
   "sleep-requests": 0.5,
   "rate-limit": "3M",
   "metadata": true,

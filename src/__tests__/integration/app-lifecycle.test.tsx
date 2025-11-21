@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
 
@@ -65,7 +65,7 @@ describe('App Lifecycle Integration', () => {
   });
 
   it('should clean up camera stream on unmount', () => {
-    const { mockStream, mockTrack } = createMockMediaStream();
+    const { mockStream } = createMockMediaStream();
     navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(mockStream);
 
     const { unmount } = render(<App />);

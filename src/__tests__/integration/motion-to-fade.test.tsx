@@ -39,7 +39,7 @@ describe('Motion Detection → Audio Fade Integration', () => {
 
   it('should have motion detection configured with default sensitivity', () => {
     const { container } = render(<App />);
-    
+
     // Verify app renders - motion detection is configured internally
     expect(container).toBeDefined();
   });

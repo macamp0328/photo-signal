@@ -103,9 +103,7 @@ describe('Photo Recognition → Audio Playback Integration', () => {
 
   it('should handle camera permission denied gracefully', async () => {
     // Mock permission denied
-    navigator.mediaDevices.getUserMedia = vi
-      .fn()
-      .mockRejectedValue(new Error('Permission denied'));
+    navigator.mediaDevices.getUserMedia = vi.fn().mockRejectedValue(new Error('Permission denied'));
 
     render(<App />);
 

@@ -119,10 +119,21 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/modules/secret-settings/SecretSettings.test.tsx](./src/modules/secret-settings/SecretSettings.test.tsx)** - Unit tests for secret settings component
 - **[src/modules/secret-settings/useFeatureFlags.test.ts](./src/modules/secret-settings/useFeatureFlags.test.ts)** - Unit tests for feature flags hook
 - **[src/modules/secret-settings/useCustomSettings.test.ts](./src/modules/secret-settings/useCustomSettings.test.ts)** - Unit tests for custom settings hook
-- **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
-- **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
-- **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
-- **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/dhash.test.ts](./src/modules/photo-recognition/algorithms/__tests__/dhash.test.ts)** - Unit tests for dHash algorithm (17 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/hamming.test.ts](./src/modules/photo-recognition/algorithms/__tests__/hamming.test.ts)** - Unit tests for Hamming distance (20 tests)
+- **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/__tests__/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
+- **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/__tests__/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
+
+#### Integration Tests
+
+- **[src/**tests**/integration/README.md](./src/__tests__/integration/README.md)** - Integration test documentation, patterns, and examples
+- **[src/**tests**/integration/setup.ts](./src/__tests__/integration/setup.ts)** - Shared test utilities and mocks for integration tests
+- **[src/**tests**/integration/photo-to-audio.test.tsx](./src/__tests__/integration/photo-to-audio.test.tsx)** - Photo recognition → audio playback workflow tests (7 tests)
+- **[src/**tests**/integration/motion-to-fade.test.tsx](./src/__tests__/integration/motion-to-fade.test.tsx)** - Motion detection → audio fade workflow tests (3 tests)
+- **[src/**tests**/integration/camera-to-recognition.test.tsx](./src/__tests__/integration/camera-to-recognition.test.tsx)** - Camera access → photo recognition workflow tests (7 tests)
+- **[src/**tests**/integration/recognition-to-info.test.tsx](./src/__tests__/integration/recognition-to-info.test.tsx)** - Recognition → concert info display workflow tests (5 tests)
+- **[src/**tests**/integration/feature-flags.test.tsx](./src/__tests__/integration/feature-flags.test.tsx)** - Feature flags → module behavior workflow tests (10 tests)
+- **[src/**tests**/integration/app-lifecycle.test.tsx](./src/__tests__/integration/app-lifecycle.test.tsx)** - App lifecycle (initialization, cleanup) tests (13 tests)
 
 #### Visual Regression Tests
 

@@ -40,6 +40,12 @@
 
 - **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** - Complete user guide for testing the app with test data mode, including setup, workflow testing, feature identification, troubleshooting, and technical details on the auto-copy mechanism
 
+### Issue Drafts
+
+- **[docs/issues/download-strip-embedded-metadata.md](./docs/issues/download-strip-embedded-metadata.md)** - Draft issue describing how to disable embedded thumbnails/metadata in downloaded Opus files while keeping standalone cover art
+- **[docs/issues/audio-metadata-export.md](./docs/issues/audio-metadata-export.md)** - Draft issue for capturing full source metadata once in `.metadata.json` so encoded Opus files stay lean
+- **[docs/issues/opus-bitrate-guardrails.md](./docs/issues/opus-bitrate-guardrails.md)** - Draft issue outlining bitrate guardrails that prevent upscaling beyond 160 kbps and log the chosen bitrate per track
+
 ---
 
 ## 🧩 Module Documentation

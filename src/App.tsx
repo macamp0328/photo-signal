@@ -123,6 +123,10 @@ function App() {
     getSetting<number>('glare-percentage-threshold'),
     20
   );
+  const rectangleDetectionConfidenceThresholdValue = coerceNumberSetting(
+    getSetting<number>('rectangle-detection-confidence-threshold'),
+    0.6
+  );
   const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
   const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
 
@@ -134,6 +138,8 @@ function App() {
     isRecognizing,
     frameQuality,
     activeGuidance,
+    detectedRectangle,
+    rectangleConfidence,
   } = usePhotoRecognition(stream, {
     recognitionDelay: recognitionDelayValue,
     similarityThreshold: similarityThresholdValue,
@@ -145,6 +151,7 @@ function App() {
     aspectRatio: aspectRatio,
     hashAlgorithm: hashAlgorithmValue,
     enableMultiScale: isEnabled('multi-scale-recognition'),
+    enableRectangleDetection: isEnabled('rectangle-detection'),
   });
 
   // Module: Audio Playback
@@ -237,6 +244,10 @@ function App() {
       grayscale={isEnabled('grayscale-mode')}
       concertInfo={displayedConcert}
       showConcertOverlay={!!displayedConcert && isPlaying}
+      detectedRectangle={detectedRectangle}
+      rectangleConfidence={rectangleConfidence}
+      rectangleDetectionConfidenceThreshold={rectangleDetectionConfidenceThresholdValue}
+      showRectangleOverlay={isEnabled('rectangle-detection')}
     />
   );
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { CameraViewProps } from './types';
+import { RectangleOverlay } from '../photo-rectangle-detection';
 import styles from './CameraView.module.css';
 
 /**
@@ -31,6 +32,10 @@ export function CameraView({
   grayscale = false,
   concertInfo = null,
   showConcertOverlay = false,
+  detectedRectangle = null,
+  rectangleConfidence = 0,
+  rectangleDetectionConfidenceThreshold = 0.6,
+  showRectangleOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -114,6 +119,22 @@ export function CameraView({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Rectangle Detection Overlay */}
+      {showRectangleOverlay && videoRef.current && (
+        <RectangleOverlay
+          rectangle={detectedRectangle}
+          state={
+            detectedRectangle && rectangleConfidence >= rectangleDetectionConfidenceThreshold
+              ? 'detected'
+              : detectedRectangle
+                ? 'detecting'
+                : 'idle'
+          }
+          videoWidth={videoRef.current.videoWidth || 0}
+          videoHeight={videoRef.current.videoHeight || 0}
+        />
       )}
 
       {/* Aspect Ratio Toggle Button */}

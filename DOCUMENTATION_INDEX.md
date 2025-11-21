@@ -64,13 +64,17 @@ Each module has its own README defining its API contract, usage, and examples.
   - **[photo-recognition/**tests**/multiExposureMatching.test.ts](./src/modules/photo-recognition/**tests**/multiExposureMatching.test.ts)** - Unit tests for multi-exposure hash matching logic (8 tests)
   - **[photo-recognition/**tests**/edgeCaseAccuracy.test.ts](./src/modules/photo-recognition/**tests**/edgeCaseAccuracy.test.ts)** - Edge case accuracy regression tests validating recognition thresholds (17 tests)
   - **[photo-recognition/algorithms/**tests**/phash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/phash.test.ts)** - Unit tests for pHash algorithm (17 tests, Phase 2)
+- **[photo-rectangle-detection/README.md](./src/modules/photo-rectangle-detection/README.md)** - Dynamic rectangle detection for printed photographs using edge detection and contour analysis
+  - **[photo-rectangle-detection/RectangleDetectionService.ts](./src/modules/photo-rectangle-detection/RectangleDetectionService.ts)** - Core detection algorithm with Sobel edge detection, Gaussian blur, and contour tracing
+  - **[photo-rectangle-detection/RectangleOverlay.tsx](./src/modules/photo-rectangle-detection/RectangleOverlay.tsx)** - Visual feedback component showing detected rectangle with state-based styling
+  - **[photo-rectangle-detection/types.ts](./src/modules/photo-rectangle-detection/types.ts)** - TypeScript interfaces for detection results and configuration
 - **[audio-playback/README.md](./src/modules/audio-playback/README.md)** - Audio control, playback, and fading
 - **[concert-info/README.md](./src/modules/concert-info/README.md)** - Concert information display overlay
 - **[gallery-layout/README.md](./src/modules/gallery-layout/README.md)** - Zine-like gallery UI layout with landing view and integrated camera
 - **[debug-overlay/README.md](./src/modules/debug-overlay/README.md)** - Real-time photo recognition debugging overlay (Test Mode only)
 - **[secret-settings/README.md](./src/modules/secret-settings/README.md)** - Hidden settings menu activated by triple-tap/click for feature flags and custom settings
   - **[secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** - Comprehensive guide for adding feature flags and custom settings
-  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds, Test Mode)
+  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Psychedelic Mode, Retro Sounds, Test Mode, Rectangle Detection)
   - **[secret-settings/customSettingsConfig.ts](./src/modules/secret-settings/customSettingsConfig.ts)** - Custom settings definitions (Theme Mode, UI Style)
   - **[secret-settings/useFeatureFlags.ts](./src/modules/secret-settings/useFeatureFlags.ts)** - Feature flags state management hook
   - **[secret-settings/useCustomSettings.ts](./src/modules/secret-settings/useCustomSettings.ts)** - Custom settings state management hook
@@ -334,9 +338,9 @@ This index covers:
 - ✅ Technical guides & research (10 files - photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides)
 - ✅ Accessibility (3 files - standards, quick reference, verification report)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
-- ✅ Module READMEs (8 files - including secret-settings)
+- ✅ Module READMEs (9 files - including secret-settings and photo-rectangle-detection)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
-- ✅ Module implementation files (7 files - secret-settings feature flags, custom settings, hooks, and effects)
+- ✅ Module implementation files (11 files - secret-settings feature flags, custom settings, hooks, effects, and photo-rectangle-detection service and overlay)
 - ✅ Photo recognition algorithms (4 files - dhash, phash, hamming, utils)
 - ✅ Configuration files (15 files - including playwright.config.ts)
 - ✅ GitHub Actions & workflows (5 files - CI workflow, visual regression, edge case accuracy, auto-fix Copilot PR, manage labels)
@@ -352,6 +356,6 @@ This index covers:
 - ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 107 documented files (21 historical/redundant docs removed)
+**Total**: 111 documented files (21 historical/redundant docs removed)
 
-Last updated: 2025-11-19
+Last updated: 2025-11-21

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
+import { RectangleDetectionService } from '../photo-rectangle-detection';
+import type { DetectedRectangle } from '../photo-rectangle-detection';
 import type { Concert } from '../../types';
 import type {
   PhotoRecognitionHook,
@@ -160,6 +162,7 @@ export function usePhotoRecognition(
     hashAlgorithm = 'dhash',
     enableMultiScale = false,
     multiScaleVariants = [0.75, 0.8, 0.85, 0.9],
+    enableRectangleDetection = false,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -179,10 +182,13 @@ export function usePhotoRecognition(
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
   const [activeGuidance, setActiveGuidance] = useState<GuidanceType>('none');
   const [restartKey, setRestartKey] = useState(0);
+  const [detectedRectangle, setDetectedRectangle] = useState<DetectedRectangle | null>(null);
+  const [rectangleConfidence, setRectangleConfidence] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const tempCanvasRef = useRef<HTMLCanvasElement | null>(null); // Reusable temp canvas for multi-scale
+  const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null); // Rectangle detection service
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
@@ -399,6 +405,17 @@ export function usePhotoRecognition(
     const canvas = document.createElement('canvas');
     canvasRef.current = canvas;
 
+    // Initialize rectangle detector if enabled
+    if (enableRectangleDetection && !rectangleDetectorRef.current) {
+      rectangleDetectorRef.current = new RectangleDetectionService({
+        minArea: 0.1,
+        maxArea: 0.9,
+        minAspectRatio: 0.5,
+        maxAspectRatio: 2.5,
+        minConfidence: 0.6,
+      });
+    }
+
     /**
      * Check current video frame for photo match
      */
@@ -426,12 +443,46 @@ export function usePhotoRecognition(
           return;
         }
 
-        // Calculate framed region based on aspect ratio
-        const framedRegion = calculateFramedRegion(
+        // Optional: Detect rectangle in frame (when enabled)
+        let finalFramedRegion = calculateFramedRegion(
           video.videoWidth,
           video.videoHeight,
           aspectRatio
         );
+
+        if (enableRectangleDetection && rectangleDetectorRef.current) {
+          // First, capture the full frame for rectangle detection
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const fullFrameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+          // Detect rectangle in full frame
+          const detectionResult = rectangleDetectorRef.current.detectRectangle(fullFrameData);
+
+          // Update detection state for UI
+          setDetectedRectangle(detectionResult.rectangle);
+          setRectangleConfidence(detectionResult.confidence);
+
+          // If rectangle detected with good confidence, use it instead of fixed aspect ratio
+          if (detectionResult.detected && detectionResult.rectangle) {
+            const rect = detectionResult.rectangle;
+            // Convert normalized coordinates to pixel coordinates
+            finalFramedRegion = {
+              x: Math.round(rect.topLeft.x * video.videoWidth),
+              y: Math.round(rect.topLeft.y * video.videoHeight),
+              width: Math.round(rect.width * video.videoWidth),
+              height: Math.round(rect.height * video.videoHeight),
+            };
+          } else {
+            // No rectangle detected, use fixed aspect ratio framing
+            setDetectedRectangle(null);
+            setRectangleConfidence(0);
+          }
+        }
+
+        // Use detected rectangle region or fallback to fixed aspect ratio
+        const framedRegion = finalFramedRegion;
 
         // Set canvas to cropped region size
         canvas.width = framedRegion.width;
@@ -974,5 +1025,7 @@ export function usePhotoRecognition(
     debugInfo,
     frameQuality,
     activeGuidance,
+    detectedRectangle,
+    rectangleConfidence,
   };
 }

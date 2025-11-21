@@ -2,6 +2,30 @@
 
 This combined stage ingests the raw downloads gathered in `scripts/audio-workflow/download/`, organizes them into gallery-aware folders, and produces production-ready audio masters for the `update/` phase. The guiding intent is to make every track behave identically in the browser—levels, tags, filenames, manifests, and photo IDs should be deterministic so the site can stream ~100 songs without surprises.
 
+## Quick Start
+
+```bash
+# Encode all downloads in the default directory
+npm run encode-audio
+
+# Encode with custom input directory
+npm run encode-audio -- --input-dir ~/Downloads/music
+
+# Preview what would be encoded (dry run)
+npm run encode-audio -- --dry-run
+
+# Show all options
+npm run encode-audio -- --help
+```
+
+## Prerequisites
+
+- **ffmpeg** ≥ 6.0 (includes ffprobe and libopus)
+- **Node.js** 20+ (project requirement)
+- Downloaded audio files from the download stage with `.metadata.json` files
+
+The script will check for ffmpeg/ffprobe automatically and exit with instructions if not found. Use `--skip-prereq-check` to bypass this check.
+
 ## Goals
 
 - All files exported as **Opus (.opus)** using a shared bitrate/complexity profile
@@ -124,6 +148,13 @@ Example: `ps-20190814-car-seat-headrest-bowery-ballroom.opus`
 
 Apply tags directly during ffmpeg encode or via `opusinfo --set-...` equivalent.
 
+### Music Metadata Enrichment
+
+- The encoder inspects YouTube Music descriptions for `Provided to YouTube by ...` and `℗ ...` lines so each manifest entry now exposes the **distributor** and **record label** when available.
+- Auto-generated credits (Producer, Composer, Main Artist, etc.) are captured under a `credits` object in `audio-index.json` for downstream UIs.
+- `genre` is derived from explicit metadata, playlist categories, or recognizable keywords (indie, funk, cumbia, etc.) with a fallback to the config default, and is also written into the Opus Vorbis comments.
+- Manifest entries now include `tags` and `categories` arrays sourced from the download metadata so curators can build filters without re-scraping the source files.
+
 ## Report / Index Contents
 
 Each entry in `audio-index.json` should include:
@@ -157,3 +188,260 @@ Keep the manifest sorted by date so consumers can diff easily. Consider generati
 - Visual LUFS trend graphs per track to spot outliers before deployment
 
 Once this stage completes, the `update/` scripts can trust that every asset is ready for CDN upload with zero additional processing.
+
+## Implementation Status
+
+✅ **Implemented** (Current Version)
+
+The `encode-audio.js` script implements the core encoding pipeline:
+
+1. **✅ File Discovery**: Scans download directory for `.metadata.json` files
+2. **✅ WAV Conversion**: Converts source audio to 48kHz stereo WAV
+3. **✅ Loudness Measurement**: Two-pass loudnorm analysis (EBU R128)
+4. **✅ Loudness Normalization**: Applies measured values for accurate normalization
+5. **✅ Fade Effects**: Configurable fade-in/fade-out
+6. **✅ Opus Encoding**: High-quality Opus output with configurable bitrate
+7. **✅ Metadata Tagging**: Artist, title, album, date, venue, copyright, website
+8. **✅ Checksums**: SHA256 hashing for file integrity
+9. **✅ Manifests**: Generates `audio-index.json`, `photo-audio-map.json`, and `encode-report.md`
+
+🚧 **Partial / Future Work**
+
+- **Photo ID Linking**: Currently generates placeholder mappings. Requires photo manifest integration.
+- **Gallery Organization**: Files are currently flat in output directory. Future: organize by photoId subdirectories.
+- **Advanced Metadata Extraction**: Date/venue extraction uses heuristics. Consider structured metadata input.
+- **Parallel Processing**: Currently sequential. Consider worker pool for batch jobs.
+
+## Usage Guide
+
+### Basic Usage
+
+```bash
+# Process all downloads in default location
+npm run encode-audio
+```
+
+The script will:
+
+1. Look for `.metadata.json` files in the input directory (default: `../download/output`)
+2. Process each audio file through the full pipeline
+3. Save encoded `.opus` files to output directory (default: `./output`)
+4. Generate manifests and reports
+
+### Configuration
+
+Edit `scripts/audio-workflow/encode/encode.config.json`:
+
+```json
+{
+  "targetLUFS": -14, // Target integrated loudness
+  "truePeakLimit": -1.5, // Maximum true peak (dB)
+  "lraTarget": 11, // Loudness range target
+  "opus": {
+    "bitrateKbps": 160, // Opus bitrate
+    "complexity": 10, // Encoding complexity (0-10)
+    "frameSizeMs": 20 // Frame duration
+  },
+  "fades": {
+    "fadeInSeconds": 0.5, // Fade-in duration
+    "fadeOutSeconds": 1.0 // Fade-out duration
+  },
+  "metadataDefaults": {
+    "album": "Photo Signal Playlist",
+    "genre": "Live Recording",
+    "copyright": "Photo Signal",
+    "website": "https://photosignal.app"
+  }
+}
+```
+
+### Command-Line Options
+
+```bash
+# Custom input directory
+npm run encode-audio -- --input-dir ~/Music/downloads
+
+# Custom output directory
+npm run encode-audio -- --output-dir ~/Music/encoded
+
+# Custom work directory (for temporary files)
+npm run encode-audio -- --work-dir /tmp/audio-work
+
+# Custom config file
+npm run encode-audio -- --config ./my-encode-config.json
+
+# Dry run (preview without encoding)
+npm run encode-audio -- --dry-run
+
+# Skip prerequisite checks
+npm run encode-audio -- --skip-prereq-check
+```
+
+### Output Files
+
+After encoding, you'll find:
+
+```
+scripts/audio-workflow/encode/output/
+├── ps-20230815-the-midnight-echoes-the-fillmore.opus
+├── ps-20230922-electric-dreams-red-rocks-amphitheatre.opus
+├── audio-index.json          # Machine-readable track index
+├── photo-audio-map.json      # Photo-to-audio mapping (placeholder)
+└── encode-report.md          # Human-readable summary
+```
+
+### Metadata Extraction
+
+The script extracts metadata from the download `.metadata.json` files:
+
+- **Band/Artist**: From `track.artist` or `track.uploader`
+- **Title**: From `track.title`
+- **Date**: Extracted from title/description (heuristic pattern matching)
+- **Venue**: Extracted from title (common patterns: "@ Venue" or "- Venue")
+
+For best results, ensure your YouTube track titles follow standard concert naming:
+
+- `Artist @ Venue (YYYY-MM-DD)`
+- `Artist - Venue, Date`
+
+### Metadata Overrides
+
+If heuristics still can’t find the right date or venue, provide a small override file and point the script at it:
+
+```bash
+npm run encode-audio -- --metadata-overrides ./scripts/audio-workflow/encode/metadata-overrides.json
+```
+
+The JSON supports lookup by YouTube `track.id` or by downloaded filename. Copy `metadata-overrides.example.json`, drop it next to the script, and fill in fields like `venue`, `date`, `band`, or a nested `track` object. Overrides merge into the parsed metadata before slug generation, so the encode stage—and the resulting manifests—pick up your curated values automatically.
+
+### Quality Assurance
+
+The generated `encode-report.md` includes:
+
+- Summary statistics (total, successful, failed)
+- Per-track details (LUFS, duration, checksum)
+- Quality checklist for manual verification
+
+The `audio-index.json` provides programmatic access:
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2024-...",
+  "config": {
+    "targetLUFS": -14,
+    "truePeakLimit": -1.5,
+    "opusBitrate": 160
+  },
+  "tracks": [
+    {
+      "id": "20230815-the-midnight-echoes-the-fillmore",
+      "band": "The Midnight Echoes",
+      "venue": "The Fillmore",
+      "date": "2023-08-15",
+      "durationMs": 245000,
+      "bitrateKbps": 160,
+      "sampleRate": 48000,
+      "lufsIntegrated": -14.1,
+      "truePeakDb": -1.3,
+      "lra": 10.8,
+      "checksum": "a1b2c3...",
+      "fileName": "ps-20230815-the-midnight-echoes-the-fillmore.opus",
+      "cdnPath": null
+    }
+  ]
+}
+```
+
+### Workflow Integration
+
+Complete audio workflow:
+
+```bash
+# 1. Download audio from YouTube Music
+npm run download-song -- --item 1
+
+# 2. Encode downloaded audio
+npm run encode-audio
+
+# 3. Upload to CDN (future: will read from audio-index.json)
+npm run upload-audio  # Not yet implemented
+
+# 4. Validate uploaded URLs
+npm run validate-audio
+```
+
+### Troubleshooting
+
+**"ffmpeg is not installed"**
+
+- Install ffmpeg: `brew install ffmpeg` (Mac), `apt install ffmpeg` (Ubuntu)
+- Verify: `ffmpeg -version`
+
+**"No downloads found in input directory"**
+
+- Run download script first: `npm run download-song`
+- Check input directory path in config or use `--input-dir`
+- Ensure `.metadata.json` files exist alongside audio files
+
+**"Failed to extract loudness stats"**
+
+- Check that input audio file is valid (not corrupted)
+- Verify ffmpeg has libopus support: `ffmpeg -codecs | grep opus`
+
+**Processing is slow**
+
+- Normal for high-quality encoding (2-pass loudnorm + Opus complexity 10)
+- Future enhancement: parallel processing
+- Consider reducing `complexity` in config for faster encoding
+
+### Example Output
+
+```
+🎵 Audio Encode Script
+
+Configuration:
+  Input:  /path/to/downloads
+  Output: /path/to/output
+  Work:   /path/to/work
+  Target LUFS: -14
+  Opus bitrate: 160 kbps
+
+Found 3 download(s) to process
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Processing: 01 - The Midnight Echoes @ The Fillmore.opus
+
+  Band:  The Midnight Echoes
+  Title: The Midnight Echoes @ The Fillmore
+  Date:  2023-08-15
+  Venue: The Fillmore
+  Slug:  20230815-the-midnight-echoes-the-fillmore
+
+  1. Converting to WAV...
+  2. Measuring loudness...
+     Integrated: -16.2 LUFS
+     True Peak:  -0.8 dB
+  3. Normalizing loudness...
+  4. Applying fades...
+  5. Encoding to Opus...
+  6. Calculating checksum...
+  7. Cleaning up...
+✅ Successfully processed: ps-20230815-the-midnight-echoes-the-fillmore.opus
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Generating manifests...
+
+  ✓ Audio index: /path/to/output/audio-index.json
+  ✓ Photo-audio map: /path/to/output/photo-audio-map.json
+  ✓ Report: /path/to/output/encode-report.md
+✅ Manifests generated
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Summary:
+  Total:      3
+  Successful: 3
+  Failed:     0
+
+✅ All files processed successfully!
+```

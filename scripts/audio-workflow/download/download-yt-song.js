@@ -7,6 +7,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -48,6 +49,10 @@ if (!targetUrl) {
 
 const playlistItem = trackUrl ? null : normalizePlaylistSelection(options.index ?? options.item);
 const outputDir = resolvePath(options['output-dir'] ?? DEFAULT_OUTPUT_DIR);
+const unavailableLogDisabled = toBoolean(options['no-unavailable-log'], false);
+const unavailableLogPath = unavailableLogDisabled
+  ? null
+  : resolvePath(options['unavailable-log'] ?? join(outputDir, 'download-unavailable.log'));
 const fileTemplate = options.template ?? options['file-template'] ?? DEFAULT_TEMPLATE;
 const playerClient = normalizeValue(options['player-client'], 'webremix');
 const poToken = normalizeValue(options['po-token'], null);
@@ -166,7 +171,25 @@ function runDownloadPlan(planIndex) {
   const tempDir = mkdtempSync(join(tmpdir(), 'photo-signal-yt-'));
   const filepathLog = join(tempDir, 'filepath.log');
   const args = buildYtArgs({ ...plan.params, printFilePath: filepathLog });
-  const ytProcess = spawn(ytBinary, args, { stdio: 'inherit' });
+  const ytProcess = spawn(ytBinary, args, { stdio: ['inherit', 'pipe', 'pipe'] });
+  let stdoutBuffer = '';
+  let stderrBuffer = '';
+
+  if (ytProcess.stdout) {
+    ytProcess.stdout.on('data', (chunk) => {
+      const text = chunk.toString();
+      stdoutBuffer += text;
+      process.stdout.write(chunk);
+    });
+  }
+
+  if (ytProcess.stderr) {
+    ytProcess.stderr.on('data', (chunk) => {
+      const text = chunk.toString();
+      stderrBuffer += text;
+      process.stderr.write(chunk);
+    });
+  }
 
   ytProcess.on('error', (error) => {
     cleanupTempPath(tempDir);
@@ -181,21 +204,42 @@ function runDownloadPlan(planIndex) {
   });
 
   ytProcess.on('close', (code) => {
-    const downloadedFilePath = readPrintedFile(filepathLog);
+    const downloadedFilePaths = readPrintedFilePaths(filepathLog);
     cleanupTempPath(tempDir);
+    const combinedOutput = `${stdoutBuffer}\n${stderrBuffer}`;
+    const allowPartialErrors = toBoolean(options['allow-partial-errors'], true);
+    const hasUnavailableError = detectUnavailableError(combinedOutput);
+    const treatAsPartialSuccess = allowPartialErrors && hasUnavailableError;
 
-    if (code === 0) {
-      if (writeIndexFiles && downloadedFilePath) {
+    if (code === 0 || treatAsPartialSuccess) {
+      const unavailableEntries = treatAsPartialSuccess
+        ? parseUnavailableEntries(combinedOutput)
+        : [];
+      if (unavailableEntries.length && unavailableLogPath) {
         try {
-          createMetadataIndex({
-            downloadedFilePath,
-            audioFormat: plan.audioFormat,
-            planLabel: plan.label,
-          });
+          writeUnavailableLog(unavailableEntries, unavailableLogPath, playlistUrl);
         } catch (error) {
-          console.warn(`⚠️  Unable to write metadata index: ${error.message}`);
+          console.warn(`⚠️  Unable to write unavailable log: ${error.message}`);
         }
-      } else if (writeIndexFiles && !downloadedFilePath) {
+      }
+
+      if (code !== 0) {
+        console.warn('⚠️  Some playlist items were unavailable and were skipped.');
+      }
+
+      if (writeIndexFiles && downloadedFilePaths.length) {
+        for (const filePath of downloadedFilePaths) {
+          try {
+            createMetadataIndex({
+              downloadedFilePath: filePath,
+              audioFormat: plan.audioFormat,
+              planLabel: plan.label,
+            });
+          } catch (error) {
+            console.warn(`⚠️  Unable to write metadata index: ${error.message}`);
+          }
+        }
+      } else if (writeIndexFiles && !downloadedFilePaths.length) {
         console.warn('⚠️  Could not determine downloaded file path for metadata indexing.');
       }
 
@@ -581,20 +625,68 @@ function resolveAudioFormatSelector(audioFormat) {
   }
 }
 
-function readPrintedFile(filePath) {
+function readPrintedFilePaths(filePath) {
   try {
     if (!existsSync(filePath)) {
-      return null;
+      return [];
     }
     const raw = readFileSync(filePath, 'utf-8').trim();
     if (!raw) {
-      return null;
+      return [];
     }
-    const lines = raw.split(/\r?\n/).filter(Boolean);
-    return lines.at(-1) ?? null;
+    return raw.split(/\r?\n/).filter(Boolean);
   } catch {
-    return null;
+    return [];
   }
+}
+
+const UNAVAILABLE_PATTERNS = [
+  /video (is )?not available/i,
+  /video unavailable/i,
+  /this video is unavailable/i,
+  /private video/i,
+];
+
+function detectUnavailableError(output) {
+  if (!output) {
+    return false;
+  }
+  return UNAVAILABLE_PATTERNS.some((pattern) => pattern.test(output));
+}
+
+const UNAVAILABLE_ENTRY_REGEX =
+  /ERROR:\s+\[(?:youtube(?::(?:music|tab))?)\]\s+([A-Za-z0-9_-]+):\s+([^\n]+)/gi;
+
+function parseUnavailableEntries(output) {
+  if (!output) {
+    return [];
+  }
+
+  const entries = [];
+  let match;
+  while ((match = UNAVAILABLE_ENTRY_REGEX.exec(output)) !== null) {
+    const [, videoId, message] = match;
+    if (UNAVAILABLE_PATTERNS.some((pattern) => pattern.test(message))) {
+      entries.push({
+        videoId,
+        message: message.trim(),
+      });
+    }
+  }
+  return entries;
+}
+
+function writeUnavailableLog(entries, logPath, playlistUrlValue) {
+  if (!entries.length || !logPath) {
+    return;
+  }
+
+  mkdirSync(dirname(logPath), { recursive: true });
+  const timestamp = new Date().toISOString();
+  const lines = entries.map((entry) =>
+    [timestamp, entry.videoId, entry.message, `playlist=${playlistUrlValue}`].join('\t')
+  );
+  writeFileSync(logPath, `${lines.join('\n')}\n`, { flag: 'a' });
 }
 
 function cleanupTempPath(tempPath) {
@@ -610,6 +702,7 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
   const infoJsonPath = resolveInfoJsonPath(downloadedFilePath);
   const infoJsonExists = infoJsonPath ? existsSync(infoJsonPath) : false;
   let infoData = null;
+  let fileStats = null;
 
   if (infoJsonExists) {
     try {
@@ -620,6 +713,14 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
   } else if (writeInfoJson && infoJsonPath) {
     console.warn('⚠️  Expected .info.json file not found; metadata index will be partial.');
   }
+
+  try {
+    fileStats = statSync(downloadedFilePath);
+  } catch (error) {
+    console.warn(`⚠️  Could not stat ${downloadedFilePath}: ${error.message}`);
+  }
+
+  const resolvedExtension = detectExtension(downloadedFilePath);
 
   const metadata = {
     schemaVersion: 1,
@@ -635,17 +736,24 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
       title: infoData?.title ?? null,
       album: infoData?.album ?? infoData?.track ?? null,
       artist: infoData?.artist ?? infoData?.uploader ?? null,
+      description: infoData?.description ?? null,
+      releaseDate: infoData?.release_date ?? null,
+      uploadDate: infoData?.upload_date ?? null,
       channelId: infoData?.channel_id ?? null,
       durationSeconds: infoData?.duration ?? null,
       thumbnails: infoData?.thumbnails ?? [],
       webpageUrl: infoData?.webpage_url ?? infoData?.original_url ?? targetUrl,
+      tags: infoData?.tags ?? null,
+      categories: infoData?.categories ?? null,
     },
     download: {
       filePath: downloadedFilePath,
       fileName: basename(downloadedFilePath),
-      ext: infoData?.ext ?? detectExtension(downloadedFilePath),
+      ext: resolvedExtension ?? infoData?.ext ?? null,
+      originalExt: infoData?.ext ?? resolvedExtension ?? null,
       codec: infoData?.acodec ?? null,
       bitrateKbps: infoData?.abr ?? null,
+      fileSizeBytes: fileStats?.size ?? null,
       formatAttempted: planLabel ?? audioFormat ?? null,
       formatPreference,
       archivePath: downloadArchive,
@@ -770,8 +878,10 @@ Options:
 	--cookies <path>             Use cookies from a Netscape-format file
 	--netrc                      Use credentials from ~/.netrc
 	--proxy <url>                Route traffic through a proxy
-	--archive <path>             Download archive file (default: <output-dir>/${DEFAULT_ARCHIVE_NAME})
-	--no-archive                 Disable duplicate protection archive
+  --archive <path>             Download archive file (default: <output-dir>/${DEFAULT_ARCHIVE_NAME})
+  --no-archive                 Disable duplicate protection archive
+  --unavailable-log <path>     Append skipped video info to this log (default: <output-dir>/download-unavailable.log)
+  --no-unavailable-log         Disable unavailable video logging
 	--metadata / --no-metadata   Toggle metadata sidecars, tags, and thumbnails
 	--no-info-json               Skip writing the .info.json metadata file
 	--no-thumbnails              Skip thumbnail download/embedding
@@ -782,6 +892,7 @@ Options:
 	--rate-limit <value>         Limit download rate, e.g. 3M for 3 megabytes/sec
 	--retries <n>                Overall retry attempts (default: 15)
 	--fragment-retries <n>       Fragment retry attempts (default: 15)
+  --allow-partial-errors       Exit successfully when some playlist items are unavailable (default: on)
 	--yt-dlp-path <path>         Custom yt-dlp binary path
 	--update-yt-dlp              Run "yt-dlp -U" before downloading
 	--skip-prereq-check          Skip ffmpeg/yt-dlp availability checks

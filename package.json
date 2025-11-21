@@ -27,6 +27,7 @@
     "migrate-audio": "node scripts/audio-workflow/update/migrate-audio-to-cdn.js",
     "validate-audio": "node scripts/audio-workflow/update/validate-audio-urls.js",
     "download-song": "node scripts/audio-workflow/download/download-yt-song.js",
+    "encode-audio": "node scripts/audio-workflow/encode/encode-audio.js",
     "pre-commit": "npm audit --audit-level=moderate && npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh"
   },
   "keywords": [],

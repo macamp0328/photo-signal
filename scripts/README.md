@@ -260,6 +260,104 @@ npm run download-song -- \
 
 ---
 
+### `audio-workflow/encode/encode-audio.js` - Encode and Normalize Audio
+
+Converts downloaded audio files into production-ready Opus format with loudness normalization, metadata tagging, and manifest generation. Implements the complete encoding pipeline described in `scripts/audio-workflow/encode/README.md`.
+
+**Requirements:** `ffmpeg` (with libopus support) and `ffprobe`. Already included in the dev container. For local development, install via Homebrew/apt (`brew install ffmpeg`, `apt install ffmpeg`).
+
+**Common usage:**
+
+```bash
+# Encode all downloads in the default directory
+npm run encode-audio
+
+# Encode with custom input directory
+npm run encode-audio -- --input-dir ~/Music/downloads
+
+# Preview what would be encoded (dry run)
+npm run encode-audio -- --dry-run
+
+# Custom output directory
+npm run encode-audio -- --output-dir ~/Music/encoded
+
+# Show all options
+npm run encode-audio -- --help
+```
+
+**What it does:**
+
+- Scans the download output directory for `.metadata.json` files
+- Converts source audio to 48kHz stereo WAV
+- Measures loudness using two-pass EBU R128 analysis
+- Normalizes to target LUFS (-14.0 by default) with true peak limiting
+- Applies configurable fade-in/fade-out effects
+- Encodes to Opus format (160 kbps, complexity 10 by default)
+- Tags metadata: artist, title, album, date, venue, copyright, website
+- Calculates SHA256 checksums for file integrity
+- Generates manifests:
+  - `audio-index.json` - Machine-readable track index with LUFS stats
+  - `photo-audio-map.json` - Photo-to-audio mapping (placeholder for future photo integration)
+  - `encode-report.md` - Human-readable summary with quality checklist
+
+**Configuration:**
+
+Edit `scripts/audio-workflow/encode/encode.config.json` to customize:
+
+```json
+{
+  "targetLUFS": -14,
+  "truePeakLimit": -1.5,
+  "lraTarget": 11,
+  "opus": {
+    "bitrateKbps": 160,
+    "complexity": 10,
+    "frameSizeMs": 20
+  },
+  "fades": {
+    "fadeInSeconds": 0.5,
+    "fadeOutSeconds": 1.0
+  },
+  "metadataDefaults": {
+    "album": "Photo Signal Playlist",
+    "genre": "Live Recording",
+    "copyright": "Photo Signal",
+    "website": "https://photosignal.app"
+  }
+}
+```
+
+**Output files:**
+
+```
+scripts/audio-workflow/encode/output/
+├── ps-20230815-the-midnight-echoes-the-fillmore.opus
+├── ps-20230922-electric-dreams-red-rocks-amphitheatre.opus
+├── audio-index.json          # Track index with LUFS, duration, checksums
+├── photo-audio-map.json      # Photo-to-audio mapping (placeholder)
+└── encode-report.md          # Human-readable summary
+```
+
+**Workflow integration:**
+
+```bash
+# 1. Download audio
+npm run download-song -- --item 1
+
+# 2. Encode downloaded audio
+npm run encode-audio
+
+# 3. Upload to CDN (future)
+# npm run upload-audio
+
+# 4. Validate URLs
+npm run validate-audio
+```
+
+See the [encode README](./audio-workflow/encode/README.md) for complete documentation, configuration details, and troubleshooting.
+
+---
+
 ### `generate-photo-hashes.js` - Generate Photo Hashes
 
 Node.js script to generate dHash **or** pHash fingerprints for reference photos.

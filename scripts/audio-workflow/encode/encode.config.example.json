@@ -4,6 +4,7 @@
   "lraTarget": 11,
   "opus": {
     "bitrateKbps": 160,
+    "minBitrateFloorKbps": 96,
     "complexity": 10,
     "frameSizeMs": 20
   },

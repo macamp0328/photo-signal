@@ -39,7 +39,7 @@ Defaults live in `download-yt-song.config.json` (copyable from the `.example` fi
 
 - `playlist-url` – primary playlist to monitor
 - `output-dir` – local folder for downloaded assets (default `downloads/yt-music`)
-- `format-order` – preference list such as `opus,wav,mp3`
+- `format-order` – preference list (default `opus,webm,m4a,mp3`) so yt-dlp grabs the best native Opus/WebM audio before falling back
 - `write-thumbnail` – keep a `.webp` cover next to the audio (default: on)
 - `embed-thumbnail` – attach artwork to the container (default: off to keep Opus lean)
 - `add-metadata` – inject tags into the container (default: off; metadata lives in JSON)
@@ -47,6 +47,10 @@ Defaults live in `download-yt-song.config.json` (copyable from the `.example` fi
 - `archive` – path to the `.yt-dlp-archive.txt` file for duplicate protection
 
 CLI flags always override config values, so you can keep long-term defaults committed and tweak per run.
+
+### Format Priority
+
+The default config forces yt-dlp to try `opus` (and the Opus-in-WebM container) before touching lossy fallbacks. That keeps the pipeline lossless up to the encode stage. Pair this with the encode guardrail—which caps output at 160 kbps and refuses to upsample past the detected source bitrate—and every track stays lean without sacrificing fidelity.
 
 ## Metadata and Artwork Defaults
 

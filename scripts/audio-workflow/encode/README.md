@@ -29,6 +29,7 @@ The script will check for ffmpeg/ffprobe automatically and exit with instruction
 ## Goals
 
 - All files exported as **Opus (.opus)** using a shared bitrate/complexity profile
+- Honor the **source bitrate** so encodes never exceed the configured ceiling (160 kbps) and never dip below 96 kbps unless the source truly is that low
 - Consistent **perceived loudness** so back-to-back playback never forces the listener to adjust volume
 - Predictable **filenames, metadata tags, and directory layout** for direct use by the website
 - Automated **report/index** describing every encoded asset (duration, LUFS, checksum, CDN path, etc.)
@@ -95,6 +96,23 @@ Retiring the standalone `organize/` scripts keeps the workflow linear—run one 
     - Emit `photo-audio-map.json` summarizing 1:1 relationships for gallery UI.
     - Generate Markdown report summarizing stats, warnings, and TODOs for re-runs.
 
+## Bitrate Guardrails
+
+- `opus.bitrateKbps` in `encode.config.json` is treated as a **ceiling** (default 160 kbps).
+- Each track inspects the source bitrate from `.metadata.json` (and falls back to `ffprobe`) to avoid upsampling.
+- A configurable `opus.minBitrateFloorKbps` (default 96) prevents the encoder from dipping below transparent bitrates unless the source truly is lower.
+- The CLI now prints both the detected source bitrate and the chosen target per track, and `audio-index.json` stores both values for auditing.
+
+### Verifying a Track
+
+After encoding, confirm the manifest and the file agree:
+
+```bash
+ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 scripts/audio-workflow/encode/output/ps-<slug>.opus
+```
+
+Divide the printed value by 1000 to get kbps (e.g. `124500` → `124.5 kbps`) and compare it to `audio-index.json -> tracks[].bitrateKbps`. Record these spot checks in PR notes for manual verification.
+
 ## Configuration Sketch
 
 ```json
@@ -104,6 +122,7 @@ Retiring the standalone `organize/` scripts keeps the workflow linear—run one 
   "lraTarget": 11,
   "opus": {
     "bitrateKbps": 160,
+    "minBitrateFloorKbps": 96,
     "complexity": 10,
     "frameSizeMs": 20
   },
@@ -162,7 +181,7 @@ Each entry in `audio-index.json` should include:
 - `id`: slugified identifier matching filename
 - `band`, `venue`, `date`
 - `photoId`, `photoPanel`, `galleryPosition`
-- `durationMs`, `bitrateKbps`, `sampleRate`
+- `durationMs`, `bitrateKbps` (actual encode), `sourceBitrateKbps` (detected), `sampleRate`
 - `lufsIntegrated`, `truePeakDb`, `lra`
 - `checksum` (SHA256 of final `.opus`)
 - `cdnPath` (future upload destination)
@@ -176,6 +195,7 @@ Keep the manifest sorted by date so consumers can diff easily. Consider generati
 - [ ] LUFS within ±0.3 of configured target
 - [ ] Metadata fields populated (no `unknown` unless truly missing) and include `PHOTO_ID`
 - [ ] Filename matches naming spec and is unique + stored under correct photo folder
+- [ ] Spot-check encode bitrate via `ffprobe` and confirm it matches `audio-index.json`
 - [ ] Opus file size + duration stored in manifest
 - [ ] Checksums verified
 - [ ] Report generated with zero "blocking" warnings
@@ -239,6 +259,7 @@ Edit `scripts/audio-workflow/encode/encode.config.json`:
   "lraTarget": 11, // Loudness range target
   "opus": {
     "bitrateKbps": 160, // Opus bitrate
+    "minBitrateFloorKbps": 96, // Lowest bitrate we’ll use unless the source is lower
     "complexity": 10, // Encoding complexity (0-10)
     "frameSizeMs": 20 // Frame duration
   },
@@ -341,6 +362,7 @@ The `audio-index.json` provides programmatic access:
       "date": "2023-08-15",
       "durationMs": 245000,
       "bitrateKbps": 160,
+      "sourceBitrateKbps": 125,
       "sampleRate": 48000,
       "lufsIntegrated": -14.1,
       "truePeakDb": -1.3,

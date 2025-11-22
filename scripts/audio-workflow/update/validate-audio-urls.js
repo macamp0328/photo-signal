@@ -98,23 +98,16 @@ Examples:
 
 /**
  * Check if a URL is accessible
+ * @param {string} url - URL to check
+ * @param {number} timeout - Request timeout in milliseconds
+ * @returns {Promise<object>} Result object with accessibility info
  */
-function checkUrl(url, timeout) {
+export function checkUrl(url, timeout) {
   return new Promise((resolve) => {
     // Handle local file paths
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      // For local paths starting with '/', treat them as relative to 'public/' directory
-      // e.g., '/audio/concert-1.opus' -> 'public/audio/concert-1.opus'
-      const relativePath = url.startsWith('/') ? url.substring(1) : url;
-      const localPath = path.resolve(projectRoot, 'public', relativePath);
-      const exists = fs.existsSync(localPath);
-      resolve({
-        url,
-        status: exists ? 200 : 404,
-        statusText: exists ? 'OK (local file)' : 'Not Found (local file)',
-        accessible: exists,
-        isLocal: true,
-      });
+      const result = checkLocalFile(url);
+      resolve(result);
       return;
     }
 
@@ -140,6 +133,7 @@ function checkUrl(url, timeout) {
         statusText: error.message,
         accessible: false,
         isLocal: false,
+        error: error.message,
       });
     });
 
@@ -151,10 +145,161 @@ function checkUrl(url, timeout) {
         statusText: 'Request timeout',
         accessible: false,
         isLocal: false,
+        error: 'Request timeout',
       });
     });
   });
 }
+
+/**
+ * Check if a local file exists
+ * @param {string} url - Local file path or URL-style path
+ * @returns {object} Result object with file existence info
+ */
+export function checkLocalFile(url) {
+  try {
+    // For local paths starting with '/', treat them as relative to 'public/' directory
+    // e.g., '/audio/concert-1.opus' -> 'public/audio/concert-1.opus'
+    const relativePath = url.startsWith('/') ? url.substring(1) : url;
+    const localPath = path.resolve(projectRoot, 'public', relativePath);
+    const exists = fs.existsSync(localPath);
+    return {
+      url,
+      status: exists ? 200 : 404,
+      statusText: exists ? 'OK (local file)' : 'Not Found (local file)',
+      accessible: exists,
+      isLocal: true,
+      ...(exists ? {} : { error: 'File not found' }),
+    };
+  } catch (error) {
+    return {
+      url,
+      status: 0,
+      statusText: error.message,
+      accessible: false,
+      isLocal: true,
+      error: error.message,
+    };
+  }
+}
+
+/**
+ * Calculate statistics from validation results
+ * @param {Array} results - Array of validation results
+ * @returns {object} Statistics object
+ */
+export function calculateStats(results) {
+  if (results.length === 0) {
+    return {
+      total: 0,
+      successful: 0,
+      failed: 0,
+      successRate: 0,
+    };
+  }
+
+  const successful = results.filter((r) => r.accessible).length;
+  const failed = results.length - successful;
+  const successRate = (successful / results.length) * 100;
+
+  return {
+    total: results.length,
+    successful,
+    failed,
+    successRate: Math.round(successRate * 10) / 10, // Round to 1 decimal place
+  };
+}
+
+/**
+ * Generate a report from validation statistics
+ * @param {object} stats - Statistics object from calculateStats
+ * @returns {string} Formatted report
+ */
+export function generateReport(stats) {
+  const { total, successful, failed, successRate } = stats;
+
+  if (successRate === 100) {
+    return `✅ All audio URLs are accessible!\n\nSuccess Rate: ${successRate.toFixed(1)}%\nTotal: ${total}\nSuccessful: ${successful}\nFailed: ${failed}`;
+  }
+
+  let report = `⚠️  Validation Report\n\n`;
+  report += `Success Rate: ${successRate.toFixed(1)}%\n`;
+  report += `Total URLs Checked: ${total}\n`;
+  report += `Successful: ${successful}\n`;
+  report += `Failed: ${failed}\n\n`;
+
+  if (failed > 0) {
+    report += `Recommendations:\n`;
+    report += `1. Check that audio files are uploaded to the CDN\n`;
+    report += `2. Verify CDN URLs are correct in data.json\n`;
+    report += `3. Ensure CDN allows public access (CORS enabled)\n`;
+    report += `4. Check network connectivity\n`;
+  }
+
+  return report;
+}
+
+// Only run CLI logic when executed directly (not when imported as a module)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // Parse command line arguments
+  const args = process.argv.slice(2);
+  const options = {
+    source: 'public/data.json',
+    timeout: 10000,
+    checkFallback: false,
+    help: false,
+  };
+
+  for (const arg of args) {
+    if (arg === '--help') {
+      options.help = true;
+    } else if (arg === '--check-fallback') {
+      options.checkFallback = true;
+    } else if (arg.startsWith('--source=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --source requires a value');
+        process.exit(1);
+      }
+      options.source = value;
+    } else if (arg.startsWith('--timeout=')) {
+      const value = arg.split('=')[1];
+      if (!value || isNaN(parseInt(value, 10)) || parseInt(value, 10) <= 0) {
+        console.error('❌ Error: --timeout requires a positive integer value');
+        process.exit(1);
+      }
+      options.timeout = parseInt(value, 10);
+    }
+  }
+
+  // Show help
+  if (options.help) {
+    console.log(`
+Audio URL Validation Script
+
+This script validates that all audio URLs in data.json are accessible.
+
+Usage:
+  node scripts/audio-workflow/update/validate-audio-urls.js [options]
+
+Options:
+  --source=<path>       Path to data.json (default: public/data.json)
+  --timeout=<ms>        Request timeout in milliseconds (default: 10000)
+  --check-fallback      Also check fallback URLs
+  --help                Show this help message
+
+Examples:
+  # Validate production data.json
+  node scripts/audio-workflow/update/validate-audio-urls.js
+
+  # Validate with fallback URLs
+  node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
+
+  # Validate test data
+  node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+`);
+    process.exit(0);
+  }
 
 // Main validation logic
 async function validateAudioUrls() {
@@ -227,7 +372,7 @@ async function validateAudioUrls() {
       });
 
       const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
-      console.log(`  ${fallbackIcon} Fallback: ${concert.audioFileFallback}`);
+        console.log(`  ${fallbackIcon} Fallback: ${concert.audioFileFallback}`);
       console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
     }
 
@@ -272,8 +417,9 @@ async function validateAudioUrls() {
   }
 }
 
-// Run validation
-validateAudioUrls().catch((error) => {
-  console.error('❌ Validation failed:', error);
-  process.exit(1);
-});
+  // Run validation
+  validateAudioUrls().catch((error) => {
+    console.error('❌ Validation failed:', error);
+    process.exit(1);
+  });
+}

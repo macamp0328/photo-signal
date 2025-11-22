@@ -26,30 +26,100 @@ const cloneFixture = <T>(value: T): T => {
   return JSON.parse(JSON.stringify(value)) as T;
 };
 
+type TrackKind = 'audio' | 'video';
+
+const createMockTrack = (kind: TrackKind): MediaStreamTrack => {
+  return {
+    kind,
+    enabled: true,
+    muted: false,
+    label: kind === 'video' ? 'Mock Camera' : 'Mock Mic',
+    readyState: 'live',
+    id: `${kind}-track`,
+    stop: vi.fn(),
+    clone: vi.fn(() => createMockTrack(kind)),
+    getSettings: vi.fn(() => ({
+      width: 1280,
+      height: 720,
+      frameRate: 30,
+      deviceId: `${kind}-device`,
+    })),
+    getConstraints: vi.fn(() => ({})),
+    applyConstraints: vi.fn().mockResolvedValue(undefined),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+    onended: null,
+    onmute: null,
+    onunmute: null,
+    contentHint: '',
+    context: null,
+    idBase: undefined,
+    isolated: false,
+    mutedInternal: false,
+    processors: [],
+  } as unknown as MediaStreamTrack;
+};
+
+class TestMediaStream extends EventTarget {
+  private tracks: MediaStreamTrack[];
+
+  constructor(initialTracks?: MediaStreamTrack[]) {
+    super();
+    this.tracks = initialTracks ? [...initialTracks] : [createMockTrack('video')];
+  }
+
+  get active() {
+    return true;
+  }
+
+  get id() {
+    return 'mock-stream';
+  }
+
+  addTrack = vi.fn((track: MediaStreamTrack) => {
+    this.tracks.push(track);
+    this.dispatchEvent(new Event('addtrack'));
+  });
+
+  removeTrack = vi.fn((track: MediaStreamTrack) => {
+    this.tracks = this.tracks.filter((item) => item !== track);
+    this.dispatchEvent(new Event('removetrack'));
+  });
+
+  getTracks = vi.fn(() => [...this.tracks]);
+
+  getVideoTracks = vi.fn(() => this.tracks.filter((track) => track.kind === 'video'));
+
+  getAudioTracks = vi.fn(() => this.tracks.filter((track) => track.kind === 'audio'));
+
+  clone = vi.fn(() => new TestMediaStream(this.tracks));
+
+  onaddtrack: ((this: MediaStream, ev: MediaStreamTrackEvent) => unknown) | null = null;
+
+  onremovetrack: ((this: MediaStream, ev: MediaStreamTrackEvent) => unknown) | null = null;
+}
+
+const ensureMediaStream = () => {
+  if (typeof MediaStream === 'function' && MediaStream.name === 'TestMediaStream') {
+    return;
+  }
+
+  Object.defineProperty(globalThis, 'MediaStream', {
+    configurable: true,
+    writable: true,
+    value: TestMediaStream as unknown as typeof MediaStream,
+  });
+};
+
 /**
  * Mock MediaDevices API (navigator.mediaDevices.getUserMedia)
  *
  * Used by: camera-access module
  */
 export function mockMediaDevices() {
-  const mockStream = {
-    getTracks: vi.fn(() => []),
-    getVideoTracks: vi.fn(() => [
-      {
-        stop: vi.fn(),
-        getSettings: vi.fn(() => ({
-          width: 1280,
-          height: 720,
-          frameRate: 30,
-        })),
-      },
-    ]),
-    getAudioTracks: vi.fn(() => []),
-    addTrack: vi.fn(),
-    removeTrack: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  };
+  ensureMediaStream();
+  const mockStream = new MediaStream();
 
   Object.defineProperty(navigator, 'mediaDevices', {
     writable: true,
@@ -121,6 +191,21 @@ export function mockHTMLMediaElement() {
   Object.defineProperty(HTMLMediaElement.prototype, 'duration', {
     writable: true,
     value: NaN,
+  });
+
+  const srcObjectKey = Symbol('mockSrcObject');
+
+  Object.defineProperty(HTMLMediaElement.prototype, 'srcObject', {
+    configurable: true,
+    get() {
+      return (this as Record<symbol, unknown>)[srcObjectKey] ?? null;
+    },
+    set(value: MediaStream | null) {
+      if (value !== null && !(value instanceof MediaStream)) {
+        throw new TypeError('HTMLMediaElement.srcObject expects a MediaStream or null.');
+      }
+      (this as Record<symbol, unknown>)[srcObjectKey] = value;
+    },
   });
 }
 

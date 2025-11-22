@@ -124,6 +124,17 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[src/modules/photo-recognition/algorithms/**tests**/utils.test.ts](./src/modules/photo-recognition/algorithms/**tests**/utils.test.ts)** - Unit tests for image processing utilities (22 tests)
 - **[src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
 
+#### Integration Tests
+
+- **[src/**tests**/integration/README.md](./src/**tests**/integration/README.md)** - Integration test documentation, patterns, and examples
+- **[src/**tests**/integration/setup.ts](./src/**tests**/integration/setup.ts)** - Shared test utilities and mocks for integration tests
+- **[src/**tests**/integration/photo-to-audio.test.tsx](./src/**tests**/integration/photo-to-audio.test.tsx)** - Photo recognition → audio playback workflow tests (7 tests)
+- **[src/**tests**/integration/motion-to-fade.test.tsx](./src/**tests**/integration/motion-to-fade.test.tsx)** - Motion detection → audio fade workflow tests (3 tests)
+- **[src/**tests**/integration/camera-to-recognition.test.tsx](./src/**tests**/integration/camera-to-recognition.test.tsx)** - Camera access → photo recognition workflow tests (7 tests)
+- **[src/**tests**/integration/recognition-to-info.test.tsx](./src/**tests**/integration/recognition-to-info.test.tsx)** - Recognition → concert info display workflow tests (5 tests)
+- **[src/**tests**/integration/feature-flags.test.tsx](./src/**tests**/integration/feature-flags.test.tsx)** - Feature flags → module behavior workflow tests (10 tests)
+- **[src/**tests**/integration/app-lifecycle.test.tsx](./src/**tests**/integration/app-lifecycle.test.tsx)** - App lifecycle (initialization, cleanup) tests (13 tests)
+
 #### Visual Regression Tests
 
 - **[tests/visual/landing-page.spec.ts](./tests/visual/landing-page.spec.ts)** - Visual regression tests for landing page at multiple viewports

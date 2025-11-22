@@ -420,6 +420,29 @@ node scripts/generate-photo-hashes.js
 
 ---
 
+### `rebuild-concert-hashes.js` - Refresh All Concert Hashes
+
+Automates re-generating both dHash **and** pHash values for every concert entry by reading the canonical `assets/test-data/concerts.json` file.
+
+**Usage:**
+
+```bash
+npm run rebuild-hashes
+# or run directly with options
+node scripts/rebuild-concert-hashes.js [--input <path>] [--public <path>] [--dry-run]
+```
+
+**What it does:**
+
+- Loads each concert, resolves its `imageFile` path, and recomputes the three exposure variants (dark/normal/bright) for both algorithms
+- Writes the refreshed hashes back to the test data file and mirrors the matching entries in `public/data.json`
+- Keeps the legacy `photoHash` field in sync with the pHash array for backward compatibility
+- Supports `--dry-run` for verification and `--skip-public` when you only want to update the test dataset
+
+Use this script whenever new reference photos land or when the hashing pipeline changes (e.g., tweaks to exposure offsets). It guarantees internal consistency across both data files with a single command.
+
+---
+
 ### `create-easy-test-images.js` - Generate High-Contrast Targets
 
 Creates bold, high-contrast PNG images that are easy for the recognition system to match.

@@ -22,6 +22,7 @@
     "test:visual:update": "playwright test --update-snapshots",
     "test:visual:report": "playwright show-report --host 0.0.0.0 --port 9323",
     "generate-hashes": "node scripts/generate-photo-hashes.js",
+    "rebuild-hashes": "node scripts/rebuild-concert-hashes.js",
     "create-easy-images": "node scripts/create-easy-test-images.js",
     "create-edge-case-images": "node scripts/create-edge-case-test-images.js",
     "migrate-audio": "node scripts/audio-workflow/update/migrate-audio-to-cdn.js",

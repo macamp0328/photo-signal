@@ -213,7 +213,12 @@
       "imageFile": "/assets/test-images/edge-case-motion-blur-light.png",
       "photoHash": ["c68ed37078938687", "4f8ad37078938627", "4f8ad37078938627"],
       "photoHashes": {
-        "phash": ["c68ed37078938687", "4f8ad37078938627", "4f8ad37078938627"]
+        "phash": ["c68ed37078938687", "4f8ad37078938627", "4f8ad37078938627"],
+        "dhash": [
+          "00000000041810002000014088888844",
+          "00000408061c000020400340cccccccc",
+          "00000408061c000020400340cccccccc"
+        ]
       },
       "edgeCase": {
         "category": "motion-blur",
@@ -231,7 +236,12 @@
       "imageFile": "/assets/test-images/edge-case-motion-blur-moderate.png",
       "photoHash": ["6c86d37878b18687", "6d82d37878b1c607", "6d82d37878b1c607"],
       "photoHashes": {
-        "phash": ["6c86d37878b18687", "6d82d37878b1c607", "6d82d37878b1c607"]
+        "phash": ["6c86d37878b18687", "6d82d37878b1c607", "6d82d37878b1c607"],
+        "dhash": [
+          "00000000041810002000014000008000",
+          "00000408061c000020400340cccccccc",
+          "00000408061c000020400340cccccccc"
+        ]
       },
       "edgeCase": {
         "category": "motion-blur",
@@ -249,7 +259,12 @@
       "imageFile": "/assets/test-images/edge-case-motion-blur-heavy.png",
       "photoHash": ["46aef35078138e87", "4f8ad3707893c626", "4f8ad3707893c626"],
       "photoHashes": {
-        "phash": ["46aef35078138e87", "4f8ad3707893c626", "4f8ad3707893c626"]
+        "phash": ["46aef35078138e87", "4f8ad3707893c626", "4f8ad3707893c626"],
+        "dhash": [
+          "00000000041810402000010000000000",
+          "00000408061c00402040034080008000",
+          "00000408061c00402040034080008000"
+        ]
       },
       "edgeCase": {
         "category": "motion-blur",
@@ -267,7 +282,12 @@
       "imageFile": "/assets/test-images/edge-case-glare-light.png",
       "photoHash": ["6a94956b6a958565", "6b94956b68958764", "6b94956b68958764"],
       "photoHashes": {
-        "phash": ["6a94956b6a958565", "6b94956b68958764", "6b94956b68958764"]
+        "phash": ["6a94956b6a958565", "6b94956b68958764", "6b94956b68958764"],
+        "dhash": [
+          "00000000041810062007010788cc8cc4",
+          "00000448061c000620470347cccccccc",
+          "00000448061c000620470347cccccccc"
+        ]
       },
       "edgeCase": {
         "category": "glare",
@@ -285,7 +305,12 @@
       "imageFile": "/assets/test-images/edge-case-glare-moderate.png",
       "photoHash": ["24dadb24d8db24c6", "24dadb24d8d326c6", "24dadb24d8d326c6"],
       "photoHashes": {
-        "phash": ["24dadb24d8db24c6", "24dadb24d8d326c6", "24dadb24d8d326c6"]
+        "phash": ["24dadb24d8db24c6", "24dadb24d8d326c6", "24dadb24d8d326c6"],
+        "dhash": [
+          "0000000004181000200c003c882c8cc4",
+          "00000448061c0000200c023ecc2ccccc",
+          "00000448061c0000200c023ecc2ccccc"
+        ]
       },
       "edgeCase": {
         "category": "glare",
@@ -303,7 +328,12 @@
       "imageFile": "/assets/test-images/edge-case-glare-heavy.png",
       "photoHash": ["c07f800e2798ffe0", "c07e801e63997fe0", "c07e801e63997fe0"],
       "photoHashes": {
-        "phash": ["c07f800e2798ffe0", "c07e801e63997fe0", "c07e801e63997fe0"]
+        "phash": ["c07f800e2798ffe0", "c07e801e63997fe0", "c07e801e63997fe0"],
+        "dhash": [
+          "0000600074187000200003003bcc3cc4",
+          "00006448761c60002040234033cc3ccc",
+          "00006448761c60002040234033cc3ccc"
+        ]
       },
       "edgeCase": {
         "category": "glare",
@@ -321,7 +351,12 @@
       "imageFile": "/assets/test-images/edge-case-low-light.png",
       "photoHash": ["0000000000000000", "6f8ad07a7893c606", "6f8ad07a7893c606"],
       "photoHashes": {
-        "phash": ["0000000000000000", "6f8ad07a7893c606", "6f8ad07a7893c606"]
+        "phash": ["0000000000000000", "6f8ad07a7893c606", "6f8ad07a7893c606"],
+        "dhash": [
+          "00000000000000000000000000000000",
+          "01200489061a5040604201408ccc8ccc",
+          "01200489061a5040604201408ccc8ccc"
+        ]
       },
       "edgeCase": {
         "category": "poor-lighting",
@@ -339,7 +374,12 @@
       "imageFile": "/assets/test-images/edge-case-angle-15deg.png",
       "photoHash": ["6c0cf7f270b30c86", "0d00f7f270a3ce36", "0100f7fe7083ce76"],
       "photoHashes": {
-        "phash": ["6c0cf7f270b30c86", "0d00f7f270a3ce36", "0100f7fe7083ce76"]
+        "phash": ["6c0cf7f270b30c86", "0d00f7f270a3ce36", "0100f7fe7083ce76"],
+        "dhash": [
+          "00000000060c082010000100c466cc44",
+          "00000228870c002010000500e666ccc6",
+          "00000228870c002010000500e666ccc6"
+        ]
       },
       "edgeCase": {
         "category": "angle",
@@ -357,7 +397,12 @@
       "imageFile": "/assets/test-images/edge-case-angle-30deg.png",
       "photoHash": ["0c08f7f2f6a30d86", "0100ffe27497cc76", "0000ff42768fcdf6"],
       "photoHashes": {
-        "phash": ["0c08f7f2f6a30d86", "0100ffe27497cc76", "0000ff42768fcdf6"]
+        "phash": ["0c08f7f2f6a30d86", "0100ffe27497cc76", "0000ff42768fcdf6"],
+        "dhash": [
+          "000000000206040010000100b331c466",
+          "000003140306001010200180b333ce66",
+          "000003140306001010200180b333ce66"
+        ]
       },
       "edgeCase": {
         "category": "angle",
@@ -375,7 +420,12 @@
       "imageFile": "/assets/test-images/edge-case-angle-45deg.png",
       "photoHash": ["1818ffe4e6af1814", "0102ffe466bf1874", "0006fe4476bf5c35"],
       "photoHashes": {
-        "phash": ["1818ffe4e6af1814", "0102ffe466bf1874", "0006fe4476bf5c35"]
+        "phash": ["1818ffe4e6af1814", "0102ffe466bf1874", "0006fe4476bf5c35"],
+        "dhash": [
+          "0000000001830200480000809888e622",
+          "00000081018300080810008098cce663",
+          "00000081018300080810008098cce663"
+        ]
       },
       "edgeCase": {
         "category": "angle",
@@ -393,7 +443,12 @@
       "imageFile": "/assets/test-images/edge-case-combined-blur-glare.png",
       "photoHash": ["3265336733273323", "3325336733272723", "3325336733272723"],
       "photoHashes": {
-        "phash": ["3265336733273323", "3325336733272723", "3325336733272723"]
+        "phash": ["3265336733273323", "3325336733272723", "3325336733272723"],
+        "dhash": [
+          "003000000418100020000140000080c0",
+          "00380408061c000020400340cccccccc",
+          "00380408061c000020400340cccccccc"
+        ]
       },
       "edgeCase": {
         "category": "combined",
@@ -411,7 +466,12 @@
       "imageFile": "/assets/test-images/edge-case-combined-angle-lowlight.png",
       "photoHash": ["0000000000000000", "0100fef076bf0c76", "0000fe02769fcdf7"],
       "photoHashes": {
-        "phash": ["0000000000000000", "0100fef076bf0c76", "0000fe02769fcdf7"]
+        "phash": ["0000000000000000", "0100fef076bf0c76", "0000fe02769fcdf7"],
+        "dhash": [
+          "00000000000000000000000000000000",
+          "200001400307002450220580b333cc66",
+          "200001400307002450228580b333cc66"
+        ]
       },
       "edgeCase": {
         "category": "combined",

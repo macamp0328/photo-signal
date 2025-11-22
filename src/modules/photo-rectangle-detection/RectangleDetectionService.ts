@@ -15,13 +15,39 @@ import type {
  * Default configuration for rectangle detection
  */
 const DEFAULT_OPTIONS: Required<RectangleDetectionOptions> = {
-  minArea: 0.1, // 10% of frame
+  minArea: 0.05, // 5% of frame (reduced to detect smaller photos)
   maxArea: 0.9, // 90% of frame
-  minAspectRatio: 0.5, // 1:2 portrait
-  maxAspectRatio: 2.5, // 5:2 landscape
-  cannyHighThreshold: 150,
-  minConfidence: 0.6,
+  minAspectRatio: 0.4, // More lenient for portrait photos
+  maxAspectRatio: 3.0, // More lenient for landscape photos
+  cannyHighThreshold: 100, // Reduced for better edge detection in varied lighting
+  minConfidence: 0.4, // Reduced to allow more detections
 };
+
+/**
+ * Confidence scoring constants
+ * These values were empirically tuned for real-world printed photo detection.
+ */
+// Weight given to area-based confidence. Set to 0.4 after testing to balance detection of both small and large photos.
+const CONFIDENCE_BASE_WEIGHT = 0.4;
+// Minimum confidence for any detection. Set to 0.3 to filter out most false positives while allowing edge cases.
+const CONFIDENCE_BASE_OFFSET = 0.3;
+// Weight given to aspect ratio matching. Set to 0.5 to prioritize rectangular shapes typical of printed photos.
+const CONFIDENCE_ASPECT_WEIGHT = 0.5;
+// Minimum rectangularity contribution. Set to 0.7 to require strong rectangularity for high confidence.
+const CONFIDENCE_RECTANGULARITY_MIN = 0.7;
+// Range for rectangularity scoring. Set to 0.3 to allow some tolerance for imperfect edges in real photos.
+const CONFIDENCE_RECTANGULARITY_RANGE = 0.3;
+
+/**
+ * Rectangularity measurement constants
+ *
+ * A perfect rectangle has all interior angles at 90° (total deviation = 0).
+ * To accommodate perspective distortion from camera angles, we allow up to
+ * 30° average deviation per corner (4 corners × 30° = 120° total).
+ * This threshold rejects severely non-rectangular shapes while accepting
+ * rectangles that may appear skewed due to camera perspective.
+ */
+const MAX_ANGLE_DEVIATION_DEGREES = 120;
 
 /**
  * Point in 2D space
@@ -60,14 +86,20 @@ export class RectangleDetectionService {
       // Convert to grayscale
       const grayData = this.toGrayscale(imageData);
 
+      // Enhance contrast to make edges more prominent
+      const enhanced = this.enhanceContrast(grayData);
+
       // Apply Gaussian blur to reduce noise
-      const blurred = this.gaussianBlur(grayData, imageData.width, imageData.height);
+      const blurred = this.gaussianBlur(enhanced, imageData.width, imageData.height);
 
       // Detect edges using Sobel operator (simplified Canny)
       const edges = this.detectEdges(blurred, imageData.width, imageData.height);
 
+      // Apply morphological closing to connect broken edges
+      const closed = this.morphologicalClose(edges, imageData.width, imageData.height);
+
       // Find contours in edge-detected image
-      const contours = this.findContours(edges, imageData.width, imageData.height);
+      const contours = this.findContours(closed, imageData.width, imageData.height);
 
       // Filter and score contours
       const candidates = this.filterRectangularContours(
@@ -125,6 +157,35 @@ export class RectangleDetectionService {
     }
 
     return gray;
+  }
+
+  /**
+   * Enhance contrast using histogram stretching
+   */
+  private enhanceContrast(gray: Uint8ClampedArray): Uint8ClampedArray {
+    // Find min and max values
+    let min = 255;
+    let max = 0;
+
+    for (let i = 0; i < gray.length; i++) {
+      if (gray[i] < min) min = gray[i];
+      if (gray[i] > max) max = gray[i];
+    }
+
+    // Avoid division by zero
+    if (max === min) {
+      return gray;
+    }
+
+    // Stretch histogram to full range
+    const enhanced = new Uint8ClampedArray(gray.length);
+    const range = max - min;
+
+    for (let i = 0; i < gray.length; i++) {
+      enhanced[i] = ((gray[i] - min) * 255) / range;
+    }
+
+    return enhanced;
   }
 
   /**
@@ -193,6 +254,77 @@ export class RectangleDetectionService {
     }
 
     return edges;
+  }
+
+  /**
+   * Apply morphological closing to connect broken edges
+   * Uses 3x3 kernel for dilation followed by erosion
+   * This is a basic morphological closing operation
+   */
+  private morphologicalClose(
+    edges: Uint8ClampedArray,
+    width: number,
+    height: number
+  ): Uint8ClampedArray {
+    // Dilate to connect nearby edges
+    const dilated = this.dilate(edges, width, height);
+    // Erode to restore approximate size
+    const eroded = this.erode(dilated, width, height);
+    return eroded;
+  }
+
+  /**
+   * Dilation operation - expand white regions
+   */
+  private dilate(edges: Uint8ClampedArray, width: number, height: number): Uint8ClampedArray {
+    const result = new Uint8ClampedArray(width * height);
+
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        let max = 0;
+
+        // Check 3x3 neighborhood
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const idx = (y + dy) * width + (x + dx);
+            if (edges[idx] > max) {
+              max = edges[idx];
+            }
+          }
+        }
+
+        result[y * width + x] = max;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Erosion operation - shrink white regions
+   */
+  private erode(edges: Uint8ClampedArray, width: number, height: number): Uint8ClampedArray {
+    const result = new Uint8ClampedArray(width * height);
+
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        let min = 255;
+
+        // Check 3x3 neighborhood
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const idx = (y + dy) * width + (x + dx);
+            if (edges[idx] < min) {
+              min = edges[idx];
+            }
+          }
+        }
+
+        result[y * width + x] = min;
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -312,12 +444,37 @@ export class RectangleDetectionService {
   }
 
   /**
-   * Approximate polygon using Douglas-Peucker algorithm (simplified)
+   * Approximate polygon using improved corner detection
+   * Finds the 4 corners that best represent a rectangle
    */
   private approximatePolygon(contour: Contour): Contour {
     if (contour.length <= 4) return contour;
 
-    // Find corners by extreme values
+    // Method 1: Find extreme points (fastest, works well for axis-aligned rectangles)
+    const extremeCorners = this.findExtremeCorners(contour);
+
+    // Method 2: Use convex hull + Douglas-Peucker for better accuracy
+    const hull = this.convexHull(contour);
+    if (hull.length === 4) {
+      return hull;
+    }
+
+    // If hull has more than 4 points, simplify it
+    if (hull.length > 4) {
+      const simplified = this.douglasPeucker(hull, this.calculatePerimeter(hull) * 0.02);
+      if (simplified.length === 4) {
+        return simplified;
+      }
+      // If simplification didn't give us 4 points, fall back to extreme corners
+    }
+
+    return extremeCorners;
+  }
+
+  /**
+   * Find the 4 extreme corner points
+   */
+  private findExtremeCorners(contour: Contour): Contour {
     let minSum = Infinity,
       maxSum = -Infinity;
     let minDiff = Infinity,
@@ -350,6 +507,129 @@ export class RectangleDetectionService {
     }
 
     return [topLeft, topRight, bottomRight, bottomLeft];
+  }
+
+  /**
+   * Calculate perimeter of a polygon
+   */
+  private calculatePerimeter(points: Contour): number {
+    let perimeter = 0;
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i];
+      const p2 = points[(i + 1) % points.length];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      perimeter += Math.sqrt(dx * dx + dy * dy);
+    }
+    return perimeter;
+  }
+
+  /**
+   * Compute convex hull using Graham scan
+   */
+  private convexHull(points: Contour): Contour {
+    if (points.length < 3) return points;
+
+    // Find the point with the lowest y-coordinate (and leftmost if tie)
+    let lowest = points[0];
+    for (const p of points) {
+      if (p.y < lowest.y || (p.y === lowest.y && p.x < lowest.x)) {
+        lowest = p;
+      }
+    }
+
+    // Sort points by polar angle with respect to lowest point
+    const sorted = points.slice().sort((a, b) => {
+      if (a === lowest) return -1;
+      if (b === lowest) return 1;
+
+      const angleA = Math.atan2(a.y - lowest.y, a.x - lowest.x);
+      const angleB = Math.atan2(b.y - lowest.y, b.x - lowest.x);
+
+      if (angleA !== angleB) {
+        return angleA - angleB;
+      }
+
+      // If angles are equal, sort by distance
+      const distA = (a.x - lowest.x) ** 2 + (a.y - lowest.y) ** 2;
+      const distB = (b.x - lowest.x) ** 2 + (b.y - lowest.y) ** 2;
+      return distA - distB;
+    });
+
+    const hull: Contour = [sorted[0]];
+
+    for (let i = 1; i < sorted.length; i++) {
+      // Remove points that make clockwise turn
+      while (
+        hull.length > 1 &&
+        this.crossProduct(hull[hull.length - 2], hull[hull.length - 1], sorted[i]) <= 0
+      ) {
+        hull.pop();
+      }
+      hull.push(sorted[i]);
+    }
+
+    return hull;
+  }
+
+  /**
+   * Cross product of vectors (p1->p2) and (p1->p3)
+   * Positive if counter-clockwise, negative if clockwise
+   */
+  private crossProduct(p1: Point, p2: Point, p3: Point): number {
+    return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+  }
+
+  /**
+   * Douglas-Peucker algorithm for polygon simplification
+   */
+  private douglasPeucker(points: Contour, epsilon: number): Contour {
+    if (points.length < 3) return points;
+
+    // Find the point with maximum distance from line between first and last points
+    let maxDist = 0;
+    let maxIndex = 0;
+
+    for (let i = 1; i < points.length - 1; i++) {
+      const dist = this.perpendicularDistance(points[i], points[0], points[points.length - 1]);
+      if (dist > maxDist) {
+        maxDist = dist;
+        maxIndex = i;
+      }
+    }
+
+    // If max distance is greater than epsilon, recursively simplify
+    if (maxDist > epsilon) {
+      const left = this.douglasPeucker(points.slice(0, maxIndex + 1), epsilon);
+      const right = this.douglasPeucker(points.slice(maxIndex), epsilon);
+
+      // Concatenate results, removing duplicate point at junction
+      return left.slice(0, -1).concat(right);
+    } else {
+      // If no point is far enough, return just the endpoints
+      return [points[0], points[points.length - 1]];
+    }
+  }
+
+  /**
+   * Calculate perpendicular distance from point to line
+   */
+  private perpendicularDistance(point: Point, lineStart: Point, lineEnd: Point): number {
+    const dx = lineEnd.x - lineStart.x;
+    const dy = lineEnd.y - lineStart.y;
+
+    // If line is a point, return distance to that point
+    if (dx === 0 && dy === 0) {
+      return Math.sqrt((point.x - lineStart.x) ** 2 + (point.y - lineStart.y) ** 2);
+    }
+
+    // Calculate perpendicular distance using cross product formula
+    const numerator = Math.abs(
+      dy * point.x - dx * point.y + lineEnd.x * lineStart.y - lineEnd.y * lineStart.x
+    );
+    const denominator = Math.sqrt(dx * dx + dy * dy);
+
+    return numerator / denominator;
   }
 
   /**
@@ -399,22 +679,34 @@ export class RectangleDetectionService {
     rect: DetectedRectangle,
     normalizedArea: number
   ): number {
-    // Base confidence on area (prefer larger rectangles)
-    let confidence = Math.min(normalizedArea / 0.5, 1.0);
+    // Base confidence on area (prefer medium to large rectangles)
+    // Use a gentler curve that doesn't penalize smaller photos as much
+    let confidence =
+      Math.min(normalizedArea / 0.3, 1.0) * CONFIDENCE_BASE_WEIGHT + CONFIDENCE_BASE_OFFSET;
 
-    // Penalize extreme aspect ratios
-    const aspectRatioDev = Math.abs(rect.aspectRatio - 1.5);
-    confidence *= Math.max(0, 1 - aspectRatioDev / 2);
+    // Penalize extreme aspect ratios, but be more lenient
+    // Common photo aspect ratios: 3:2 (1.5), 4:3 (1.33), 16:9 (1.78), 1:1 (1.0)
+    const aspectRatioDev = Math.min(
+      Math.abs(rect.aspectRatio - 1.5), // Distance from 3:2
+      Math.abs(rect.aspectRatio - 1.33), // Distance from 4:3
+      Math.abs(rect.aspectRatio - 1.0) // Distance from square
+    );
+
+    // Floor aspect ratio contribution at CONFIDENCE_ASPECT_WEIGHT (0.5)
+    // This means even worst-case aspect ratio reduces confidence by max 50%
+    const aspectContribution = Math.max(CONFIDENCE_ASPECT_WEIGHT, 1 - aspectRatioDev / 3);
+    confidence *= aspectContribution;
 
     // Bonus for rectangularity (check if angles are close to 90 degrees)
     const rectangularity = this.measureRectangularity(approx);
-    confidence *= rectangularity;
+    confidence *= CONFIDENCE_RECTANGULARITY_MIN + rectangularity * CONFIDENCE_RECTANGULARITY_RANGE;
 
     return Math.max(0, Math.min(1, confidence));
   }
 
   /**
    * Measure how rectangular the shape is (0-1)
+   * More lenient scoring for real-world photos
    */
   private measureRectangularity(points: Contour): number {
     if (points.length !== 4) return 0;
@@ -433,9 +725,10 @@ export class RectangleDetectionService {
     }
 
     // Perfect rectangle has angleSum = 0, worst case ~360
-    const rectangularity = 1 - Math.min(angleSum / 180, 1);
+    // Use a more lenient scoring: allow up to MAX_ANGLE_DEVIATION_DEGREES total deviation
+    const rectangularity = 1 - Math.min(angleSum / MAX_ANGLE_DEVIATION_DEGREES, 1);
 
-    return rectangularity;
+    return Math.max(0, rectangularity);
   }
 
   /**

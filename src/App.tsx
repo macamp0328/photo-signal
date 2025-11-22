@@ -92,16 +92,22 @@ function App() {
     rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
       ? 1000
       : coerceNumberSetting(rawRecognitionDelay, 1000);
+  const recognitionModeSetting = getSetting<'perceptual' | 'orb'>('recognition-mode');
+  const recognitionMode = recognitionModeSetting === 'orb' ? 'orb' : 'perceptual';
   const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
-  const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
-  const defaultSimilarityThreshold = hashAlgorithmValue === 'phash' ? 12 : 24;
+  const perceptualAlgorithm = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
+  const hashAlgorithmValue = recognitionMode === 'orb' ? 'orb' : perceptualAlgorithm;
+  const defaultSimilarityThreshold =
+    hashAlgorithmValue === 'phash' ? 12 : hashAlgorithmValue === 'orb' ? 0 : 24;
   const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
   const similarityThresholdValue = coerceNumberSetting(
-    rawSimilarityThreshold === undefined ||
-      rawSimilarityThreshold === 40 ||
-      rawSimilarityThreshold === 24
-      ? defaultSimilarityThreshold
-      : rawSimilarityThreshold,
+    hashAlgorithmValue === 'orb'
+      ? 0
+      : rawSimilarityThreshold === undefined ||
+          rawSimilarityThreshold === 40 ||
+          rawSimilarityThreshold === 24
+        ? defaultSimilarityThreshold
+        : rawSimilarityThreshold,
     defaultSimilarityThreshold
   );
   const rawFrameScanInterval = getSetting<number>('recognition-check-interval');
@@ -120,10 +126,10 @@ function App() {
   );
   const rectangleDetectionConfidenceThresholdValue = coerceNumberSetting(
     getSetting<number>('rectangle-detection-confidence-threshold'),
-    0.6
+    0.3 // Reduced from 0.6 to 0.3 for better real-world detection
   );
   const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
-  const secondarySimilarityThreshold = hashAlgorithmValue === 'dhash' ? 12 : undefined;
+  const secondarySimilarityThreshold = secondaryHashAlgorithm ? 12 : undefined;
 
   // Module: Photo Recognition
   const {

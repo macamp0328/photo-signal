@@ -19,6 +19,8 @@ import type {
 import { computeDHash } from './algorithms/dhash';
 import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
+import { extractORBFeatures, matchORBFeatures } from './algorithms/orb';
+import type { ORBFeatures, ORBMatchResult, ORBConfig } from './algorithms/orb';
 import {
   convertToGrayscale,
   computeLaplacianVariance,
@@ -26,19 +28,73 @@ import {
   detectPoorLighting,
 } from './algorithms/utils';
 
-const HASH_LENGTHS: Record<HashAlgorithm, number> = {
+type PerceptualHashAlgorithm = Extract<HashAlgorithm, 'dhash' | 'phash'>;
+
+const HASH_LENGTHS: Record<PerceptualHashAlgorithm, number> = {
   dhash: 32,
   phash: 16,
 };
 
-const DEFAULT_THRESHOLDS: Record<HashAlgorithm, number> = {
+const DEFAULT_THRESHOLDS: Record<PerceptualHashAlgorithm, number> = {
   dhash: 24,
   phash: 12,
 };
 
-const maxDistanceForAlgorithm = (algorithm: HashAlgorithm): number => HASH_LENGTHS[algorithm] * 4;
+const DEFAULT_ORB_HOOK_CONFIG: ORBConfig = {
+  maxFeatures: 500,
+  fastThreshold: 20,
+  minMatchCount: 20,
+  matchRatioThreshold: 0.7,
+};
 
-const similarityPercent = (distance: number, algorithm: HashAlgorithm): number => {
+const ORB_FRAME_PLACEHOLDER = 'ORB';
+
+const loadImageData = (src: string): Promise<ImageData> => {
+  return new Promise((resolve, reject) => {
+    if (typeof Image === 'undefined') {
+      reject(new Error('Image API is not available in this environment'));
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+
+    img.onload = () => {
+      const width = img.naturalWidth || img.width;
+      const height = img.naturalHeight || img.height;
+
+      if (width === 0 || height === 0) {
+        reject(new Error(`Image ${src} has invalid dimensions`));
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('Failed to get 2D context for ORB reference image'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0);
+      resolve(ctx.getImageData(0, 0, width, height));
+    };
+
+    img.onerror = () => {
+      reject(new Error(`Failed to load ORB reference image: ${src}`));
+    };
+
+    img.src = src;
+  });
+};
+
+const maxDistanceForAlgorithm = (algorithm: PerceptualHashAlgorithm): number =>
+  HASH_LENGTHS[algorithm] * 4;
+
+const similarityPercent = (distance: number, algorithm: PerceptualHashAlgorithm): number => {
   const max = maxDistanceForAlgorithm(algorithm);
   return ((max - distance) / max) * 100;
 };
@@ -51,7 +107,7 @@ const normalizeLegacyHashes = (hash: string | string[] | undefined): string[] =>
   return hashes.filter((value) => typeof value === 'string' && value.length > 0);
 };
 
-const isValidForAlgorithm = (hashes: string[], algorithm: HashAlgorithm): boolean => {
+const isValidForAlgorithm = (hashes: string[], algorithm: PerceptualHashAlgorithm): boolean => {
   if (hashes.length === 0) {
     return false;
   }
@@ -59,7 +115,10 @@ const isValidForAlgorithm = (hashes: string[], algorithm: HashAlgorithm): boolea
   return hashes.every((value) => value.length === expectedLength);
 };
 
-const getPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): string[] => {
+const getPhotoHashesForAlgorithm = (
+  concert: Concert,
+  algorithm: PerceptualHashAlgorithm
+): string[] => {
   const hashSet = concert.photoHashes?.[algorithm];
   if (Array.isArray(hashSet) && hashSet.length > 0 && isValidForAlgorithm(hashSet, algorithm)) {
     return hashSet;
@@ -75,8 +134,13 @@ const getPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm):
   return [];
 };
 
-const hasPhotoHashesForAlgorithm = (concert: Concert, algorithm: HashAlgorithm): boolean =>
-  getPhotoHashesForAlgorithm(concert, algorithm).length > 0;
+const hasPhotoHashesForAlgorithm = (
+  concert: Concert,
+  algorithm: PerceptualHashAlgorithm
+): boolean => getPhotoHashesForAlgorithm(concert, algorithm).length > 0;
+
+const isPerceptualAlgorithm = (algorithm: HashAlgorithm): algorithm is PerceptualHashAlgorithm =>
+  algorithm === 'dhash' || algorithm === 'phash';
 
 /**
  * Record a recognition failure in telemetry
@@ -178,6 +242,7 @@ export function usePhotoRecognition(
     rectangleConfidenceThreshold = 0.6,
     secondaryHashAlgorithm = null,
     secondarySimilarityThreshold,
+    orbConfig,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -200,6 +265,13 @@ export function usePhotoRecognition(
       ? (secondarySimilarityThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm])
       : secondarySimilarityThreshold;
 
+  const resolvedOrbConfig = useMemo(
+    () => ({ ...DEFAULT_ORB_HOOK_CONFIG, ...(orbConfig ?? {}) }),
+    [orbConfig]
+  );
+  const orbMinMatchThreshold =
+    resolvedOrbConfig.minMatchCount ?? DEFAULT_ORB_HOOK_CONFIG.minMatchCount ?? 15;
+
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -214,6 +286,8 @@ export function usePhotoRecognition(
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const tempCanvasRef = useRef<HTMLCanvasElement | null>(null); // Reusable temp canvas for multi-scale
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null); // Rectangle detection service
+  const orbReferenceFeaturesRef = useRef<Map<number, ORBFeatures>>(new Map());
+  const orbReferencesReadyRef = useRef(false);
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
@@ -343,6 +417,71 @@ export function usePhotoRecognition(
     return unsubscribe;
   }, [loadConcerts]);
 
+  // Preload ORB reference features when ORB mode is enabled
+  useEffect(() => {
+    if (hashAlgorithm !== 'orb') {
+      orbReferenceFeaturesRef.current.clear();
+      orbReferencesReadyRef.current = false;
+      return;
+    }
+
+    if (concerts.length === 0) {
+      orbReferenceFeaturesRef.current.clear();
+      orbReferencesReadyRef.current = false;
+      return;
+    }
+
+    let cancelled = false;
+    orbReferencesReadyRef.current = false;
+    const referenceMap = orbReferenceFeaturesRef.current;
+    referenceMap.clear();
+
+    const prepareReferences = async () => {
+      for (const concert of concerts) {
+        if (!concert.imageFile) {
+          if (import.meta.env.DEV || isEnabled('test-mode')) {
+            console.warn(
+              `[Photo Recognition][ORB] Missing imageFile for concert ${concert.band} (${concert.id})`
+            );
+          }
+          continue;
+        }
+
+        try {
+          const imageData = await loadImageData(concert.imageFile);
+          if (cancelled) {
+            return;
+          }
+
+          const features = extractORBFeatures(imageData, resolvedOrbConfig);
+          referenceMap.set(concert.id, features);
+        } catch (error) {
+          if (import.meta.env.DEV || isEnabled('test-mode')) {
+            console.error(
+              `[Photo Recognition][ORB] Failed to prep features for ${concert.band} (${concert.imageFile})`,
+              error
+            );
+          }
+        }
+      }
+
+      if (!cancelled) {
+        orbReferencesReadyRef.current = referenceMap.size > 0;
+        if (import.meta.env.DEV || isEnabled('test-mode')) {
+          console.log(
+            `[Photo Recognition][ORB] Reference warmup complete (${referenceMap.size} concerts cached)`
+          );
+        }
+      }
+    };
+
+    prepareReferences();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [concerts, hashAlgorithm, resolvedOrbConfig, isEnabled]);
+
   // Reset recognition state
   const reset = useCallback(() => {
     setRecognizedConcert(null);
@@ -415,18 +554,28 @@ export function usePhotoRecognition(
       console.log('━'.repeat(60));
       console.log('[Photo Recognition] Initializing recognition system');
       console.log(`  Concerts loaded: ${concerts.length}`);
-      const concertsWithHashes = concerts.filter((concert) =>
-        hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
-      );
-      console.log(`  Concerts with hashes: ${concertsWithHashes.length}`);
-      console.log(
-        `  Similarity threshold (${hashAlgorithm}): ${similarityThreshold} (≥${similarityPercent(similarityThreshold, hashAlgorithm).toFixed(1)}% match)`
-      );
-      if (resolvedSecondaryHashAlgorithm) {
-        const secondaryThresholdValue =
-          resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm];
+      const primaryIsPerceptual = isPerceptualAlgorithm(hashAlgorithm);
+      const concertsWithHashes = primaryIsPerceptual
+        ? concerts.filter((concert) => hasPhotoHashesForAlgorithm(concert, hashAlgorithm))
+        : [];
+      if (primaryIsPerceptual) {
+        console.log(`  Concerts with hashes: ${concertsWithHashes.length}`);
         console.log(
-          `  Secondary threshold (${resolvedSecondaryHashAlgorithm}): ${secondaryThresholdValue} (≥${similarityPercent(secondaryThresholdValue, resolvedSecondaryHashAlgorithm).toFixed(1)}% match)`
+          `  Similarity threshold (${hashAlgorithm}): ${similarityThreshold} (≥${similarityPercent(similarityThreshold, hashAlgorithm).toFixed(1)}% match)`
+        );
+        if (resolvedSecondaryHashAlgorithm) {
+          const secondaryThresholdValue =
+            resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm];
+          console.log(
+            `  Secondary threshold (${resolvedSecondaryHashAlgorithm}): ${secondaryThresholdValue} (≥${similarityPercent(secondaryThresholdValue, resolvedSecondaryHashAlgorithm).toFixed(1)}% match)`
+          );
+        }
+      } else {
+        console.log(
+          `  ORB min matches: ${orbMinMatchThreshold} (ratio threshold ${(resolvedOrbConfig.matchRatioThreshold ?? DEFAULT_ORB_HOOK_CONFIG.matchRatioThreshold ?? 0.7) * 100}%)`
+        );
+        console.log(
+          `  ORB reference cache: ${orbReferenceFeaturesRef.current.size > 0 ? 'WARM' : 'WARMING UP'}`
         );
       }
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
@@ -439,7 +588,7 @@ export function usePhotoRecognition(
         `  Multi-scale recognition: ${enableMultiScale ? `ENABLED (scales: ${stableMultiScaleVariants.map((s) => `${(s * 100).toFixed(0)}%`).join(', ')})` : 'DISABLED'}`
       );
       console.log(`  Test Mode: ${isTestMode ? 'ON' : 'OFF'}`);
-      if (concertsWithHashes.length > 0) {
+      if (primaryIsPerceptual && concertsWithHashes.length > 0) {
         console.log('\n  Available hashes:');
         concertsWithHashes.forEach((concert) => {
           const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
@@ -494,11 +643,12 @@ export function usePhotoRecognition(
     // Initialize rectangle detector if enabled
     if (enableRectangleDetection && !rectangleDetectorRef.current) {
       rectangleDetectorRef.current = new RectangleDetectionService({
-        minArea: 0.1,
+        minArea: 0.05, // Detect smaller photos
         maxArea: 0.9,
-        minAspectRatio: 0.5,
-        maxAspectRatio: 2.5,
-        minConfidence: 0.6,
+        minAspectRatio: 0.4, // More lenient for portrait
+        maxAspectRatio: 3.0, // More lenient for landscape
+        cannyHighThreshold: 100, // Lower threshold for better edge detection
+        minConfidence: 0.3, // Very lenient to catch more candidates
       });
     }
 
@@ -741,13 +891,182 @@ export function usePhotoRecognition(
           convertToGrayscale(imageData);
         }
 
+        if (hashAlgorithm === 'orb') {
+          if (!orbReferencesReadyRef.current) {
+            if (import.meta.env.DEV || isTestMode) {
+              console.debug('[Photo Recognition][ORB] Reference features not ready yet, skipping');
+            }
+            return;
+          }
+
+          const referenceMap = orbReferenceFeaturesRef.current;
+          if (referenceMap.size === 0) {
+            if (import.meta.env.DEV || isTestMode) {
+              console.warn('[Photo Recognition][ORB] Reference cache is empty');
+            }
+            recordFailure(
+              telemetryRef.current,
+              'no-match',
+              'ORB reference cache is empty',
+              ORB_FRAME_PLACEHOLDER
+            );
+            emitTelemetrySnapshot();
+            return;
+          }
+
+          let frameFeatures: ORBFeatures | null = null;
+          try {
+            frameFeatures = extractORBFeatures(imageData, resolvedOrbConfig);
+          } catch (error) {
+            console.error('[Photo Recognition][ORB] Failed to extract features from frame', error);
+            recordFailure(
+              telemetryRef.current,
+              'poor-quality',
+              `ORB extraction failed: ${(error as Error)?.message ?? 'Unknown error'}`,
+              ORB_FRAME_PLACEHOLDER
+            );
+            emitTelemetrySnapshot();
+            return;
+          }
+
+          let bestOrbResult: { concert: Concert; result: ORBMatchResult } | null = null;
+          for (const concert of concerts) {
+            const refFeatures = referenceMap.get(concert.id);
+            if (!refFeatures) {
+              continue;
+            }
+
+            const result = matchORBFeatures(frameFeatures, refFeatures, resolvedOrbConfig);
+            if (!bestOrbResult || result.confidence > bestOrbResult.result.confidence) {
+              bestOrbResult = { concert, result };
+            }
+          }
+
+          if (!bestOrbResult) {
+            recordFailure(
+              telemetryRef.current,
+              'no-match',
+              'No ORB matches available for current frame',
+              ORB_FRAME_PLACEHOLDER
+            );
+            emitTelemetrySnapshot();
+            return;
+          }
+
+          const { concert: bestConcert, result: orbResult } = bestOrbResult;
+          const orbMatch = orbResult.isMatch;
+          const confidencePct = (orbResult.confidence * 100).toFixed(1);
+          const ratioPct = (orbResult.matchRatio * 100).toFixed(1);
+
+          if (import.meta.env.DEV || isTestMode) {
+            console.debug(
+              `\n[Photo Recognition][ORB] FRAME ${frameCountRef.current} @ ${timestamp}`
+            );
+            console.debug(
+              `  Best match: ${bestConcert.band} | matches=${orbResult.matchCount} | ratio=${ratioPct}% | confidence=${confidencePct}%`
+            );
+            console.debug(`  Threshold: ${orbMinMatchThreshold} matches`);
+            console.debug(`  Decision: ${orbMatch ? 'POTENTIAL MATCH' : 'NO MATCH'}`);
+          }
+
+          const matchedConcert = orbMatch ? bestConcert : null;
+          const stabilityInfo =
+            matchStartTimeRef.current &&
+            matchedConcert &&
+            lastMatchedConcertRef.current?.id === matchedConcert.id
+              ? (() => {
+                  const elapsedMs = currentTime - (matchStartTimeRef.current ?? currentTime);
+                  return {
+                    concert: matchedConcert,
+                    elapsedMs,
+                    remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
+                    requiredMs: recognitionDelay,
+                    progress: Math.min(elapsedMs / recognitionDelay, 1),
+                  };
+                })()
+              : null;
+
+          if (enableDebugInfo || isTestMode) {
+            setDebugInfo({
+              lastFrameHash: ORB_FRAME_PLACEHOLDER,
+              bestMatch: {
+                concert: bestConcert,
+                distance: orbResult.matchCount,
+                similarity: orbResult.confidence * 100,
+                algorithm: 'orb',
+                scale: 1,
+              },
+              lastCheckTime: currentTime,
+              concertCount: referenceMap.size,
+              frameCount: frameCountRef.current,
+              checkInterval,
+              aspectRatio: chosenAspectRatio,
+              frameSize: { width: canvas.width, height: canvas.height },
+              stability: stabilityInfo,
+              similarityThreshold: orbMinMatchThreshold,
+              recognitionDelay,
+              frameQuality: currentFrameQuality,
+              telemetry: { ...telemetryRef.current },
+              hashAlgorithm: 'orb',
+            });
+          }
+
+          if (matchedConcert) {
+            if (lastMatchedConcertRef.current?.id === matchedConcert.id) {
+              if (matchStartTimeRef.current) {
+                const elapsed = Date.now() - matchStartTimeRef.current;
+                if (import.meta.env.DEV || isTestMode) {
+                  console.debug(
+                    `  Stability Timer: ${(elapsed / 1000).toFixed(1)}s / ${(recognitionDelay / 1000).toFixed(1)}s required`
+                  );
+                }
+
+                if (elapsed >= recognitionDelay) {
+                  setRecognizedConcert(matchedConcert);
+                  setIsRecognizing(false);
+                  telemetryRef.current.successfulRecognitions += 1;
+                  lastMatchedConcertRef.current = null;
+                  matchStartTimeRef.current = null;
+                } else {
+                  setIsRecognizing(true);
+                }
+              }
+            } else {
+              lastMatchedConcertRef.current = matchedConcert;
+              matchStartTimeRef.current = Date.now();
+              setIsRecognizing(true);
+              if (import.meta.env.DEV || isTestMode) {
+                console.debug('  Starting ORB stability timer...');
+              }
+            }
+          } else {
+            const failureReason = `Best ORB match ${bestConcert.band} with ${orbResult.matchCount} matches (${confidencePct}% confidence)`;
+            recordFailure(telemetryRef.current, 'no-match', failureReason, ORB_FRAME_PLACEHOLDER);
+            if (lastMatchedConcertRef.current) {
+              telemetryRef.current.failedAttempts += 1;
+              lastMatchedConcertRef.current = null;
+              matchStartTimeRef.current = null;
+              setIsRecognizing(false);
+            }
+          }
+
+          emitTelemetrySnapshot();
+          return;
+        }
+
+        if (!isPerceptualAlgorithm(hashAlgorithm)) {
+          return;
+        }
+
+        const perceptualAlgorithm = hashAlgorithm;
+
         // Cache primary scale image data/region for potential secondary hashing
         scaleImageDataMap.set(0.8, imageData);
         scaleRegionMap.set(0.8, framedRegion);
 
         // Compute hash of current frame using selected algorithm
         const currentHash =
-          hashAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
+          perceptualAlgorithm === 'phash' ? computePHash(imageData) : computeDHash(imageData);
 
         // Multi-scale recognition: determine which scales to test
         // If multi-scale is enabled, use user's custom variants; otherwise just test default scale (0.8)
@@ -806,7 +1125,7 @@ export function usePhotoRecognition(
 
             // Compute hash for this scale
             const scaledHash =
-              hashAlgorithm === 'phash'
+              perceptualAlgorithm === 'phash'
                 ? computePHash(scaledImageData)
                 : computeDHash(scaledImageData);
 
@@ -824,7 +1143,7 @@ export function usePhotoRecognition(
         // Enhanced logging in dev mode or Test Mode
         // Using console.debug() for frame-level logs (can be filtered in DevTools)
         const concertsWithHashes = concerts.filter((concert) =>
-          hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
+          hasPhotoHashesForAlgorithm(concert, perceptualAlgorithm)
         );
         const concertsWithSecondaryHashes =
           resolvedSecondaryHashAlgorithm && resolvedSecondaryHashAlgorithm !== hashAlgorithm
@@ -838,7 +1157,10 @@ export function usePhotoRecognition(
             ? (resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm])
             : resolvedSecondaryThreshold;
 
-        const logThreshold = (algorithm: HashAlgorithm, threshold: number | undefined) => {
+        const logThreshold = (
+          algorithm: PerceptualHashAlgorithm,
+          threshold: number | undefined
+        ) => {
           if (threshold === undefined) {
             return 'n/a';
           }
@@ -862,14 +1184,14 @@ export function usePhotoRecognition(
               `Multi-Scale: ENABLED (testing ${scaleHashes.length} scales: ${scaleHashes.map((s) => `${(s.scale * 100).toFixed(0)}%`).join(', ')})`
             );
           }
-          console.debug(`Concerts Checked (${hashAlgorithm}): ${concertsWithHashes.length}`);
+          console.debug(`Concerts Checked (${perceptualAlgorithm}): ${concertsWithHashes.length}`);
           if (resolvedSecondaryHashAlgorithm) {
             console.debug(
               `Concerts Checked (${resolvedSecondaryHashAlgorithm}): ${concertsWithSecondaryHashes.length}`
             );
           }
           console.debug(
-            `Threshold (${hashAlgorithm}): ${logThreshold(hashAlgorithm, similarityThreshold)}`
+            `Threshold (${perceptualAlgorithm}): ${logThreshold(perceptualAlgorithm, similarityThreshold)}`
           );
           if (resolvedSecondaryHashAlgorithm) {
             console.debug(
@@ -883,11 +1205,11 @@ export function usePhotoRecognition(
           match: Concert | null;
           distance: number;
           scale: number;
-          algorithm: HashAlgorithm;
+          algorithm: PerceptualHashAlgorithm;
         };
 
         const evaluateMatches = (
-          algorithm: HashAlgorithm,
+          algorithm: PerceptualHashAlgorithm,
           threshold: number | undefined,
           scaleHashesForAlgorithm: Array<{
             hash: string;
@@ -951,7 +1273,7 @@ export function usePhotoRecognition(
         };
 
         const primaryResult = evaluateMatches(
-          hashAlgorithm,
+          perceptualAlgorithm,
           similarityThreshold,
           scaleHashes,
           concertsWithHashes
@@ -985,8 +1307,8 @@ export function usePhotoRecognition(
               )
             : null;
 
-        const getThresholdForAlgorithm = (algorithm: HashAlgorithm): number => {
-          if (algorithm === hashAlgorithm) {
+        const getThresholdForAlgorithm = (algorithm: PerceptualHashAlgorithm): number => {
+          if (algorithm === perceptualAlgorithm) {
             return similarityThreshold;
           }
           if (resolvedSecondaryHashAlgorithm && algorithm === resolvedSecondaryHashAlgorithm) {
@@ -1052,12 +1374,12 @@ export function usePhotoRecognition(
             frameSize: { width: canvas.width, height: canvas.height },
             stability: stabilityInfo,
             similarityThreshold: getThresholdForAlgorithm(
-              matchedResult ? matchedResult.algorithm : hashAlgorithm
+              matchedResult ? matchedResult.algorithm : perceptualAlgorithm
             ),
             recognitionDelay,
             frameQuality: currentFrameQuality,
             telemetry: { ...telemetryRef.current },
-            hashAlgorithm: matchedResult ? matchedResult.algorithm : hashAlgorithm,
+            hashAlgorithm: matchedResult ? matchedResult.algorithm : perceptualAlgorithm,
           });
         }
 

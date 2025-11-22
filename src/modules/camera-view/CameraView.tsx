@@ -27,8 +27,6 @@ export function CameraView({
   error,
   hasPermission,
   onRetry,
-  aspectRatio = '3:2',
-  onAspectRatioToggle,
   grayscale = false,
   concertInfo = null,
   showConcertOverlay = false,
@@ -84,25 +82,6 @@ export function CameraView({
         className={`${styles.video} ${grayscale ? styles.grayscale : ''}`}
       />
 
-      {/* Aspect Ratio Overlay */}
-      <div className={styles.overlay}>
-        <div className={styles.overlayWrapper}>
-          <div
-            className={
-              aspectRatio === '3:2' ? styles.overlayAspectRatio32 : styles.overlayAspectRatio23
-            }
-          >
-            <div className={styles.overlayFrame}>
-              {/* Corner markers */}
-              <div className={styles.cornerTopLeft} />
-              <div className={styles.cornerTopRight} />
-              <div className={styles.cornerBottomLeft} />
-              <div className={styles.cornerBottomRight} />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Concert Info Overlay */}
       {concertInfo && showConcertOverlay && (
         <div className={styles.concertOverlay}>
@@ -135,17 +114,6 @@ export function CameraView({
           videoWidth={videoRef.current.videoWidth || 0}
           videoHeight={videoRef.current.videoHeight || 0}
         />
-      )}
-
-      {/* Aspect Ratio Toggle Button */}
-      {onAspectRatioToggle && (
-        <button
-          onClick={onAspectRatioToggle}
-          className={styles.aspectToggle}
-          aria-label={`Switch to ${aspectRatio === '3:2' ? 'portrait' : 'landscape'} mode`}
-        >
-          {aspectRatio === '3:2' ? '⤾ Portrait' : '⤿ Landscape'}
-        </button>
       )}
 
       {/* Instructions */}

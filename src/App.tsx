@@ -21,7 +21,7 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
-import type { AspectRatio, Concert } from './types';
+import type { Concert } from './types';
 import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
 import './index.css';
 
@@ -45,9 +45,6 @@ function App() {
 
   // State for secret settings menu
   const [showSecretSettings, setShowSecretSettings] = useState(false);
-
-  // State for aspect ratio
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
@@ -147,7 +144,7 @@ function App() {
     glareThreshold: glareThresholdValue,
     glarePercentageThreshold: glarePercentageThresholdValue,
     enableDebugInfo: isTestModeEnabled,
-    aspectRatio: aspectRatio,
+    aspectRatio: 'auto',
     hashAlgorithm: hashAlgorithmValue,
     secondaryHashAlgorithm,
     secondarySimilarityThreshold,
@@ -237,8 +234,6 @@ function App() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      aspectRatio={aspectRatio}
-      onAspectRatioToggle={() => setAspectRatio((prev) => (prev === '3:2' ? '2:3' : '3:2'))}
       grayscale={isEnabled('grayscale-mode')}
       concertInfo={displayedConcert}
       showConcertOverlay={!!displayedConcert && isPlaying}

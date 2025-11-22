@@ -2,16 +2,13 @@
 
 ## Purpose
 
-Render camera video feed with UI overlay.
+Render camera video feed with optional grayscale and info overlays.
 
 ## Responsibility
 
 **ONLY** handles:
 
 - Displaying video stream in viewport
-- Rendering 3:2 aspect ratio frame overlay (landscape)
-- Rendering 2:3 aspect ratio frame overlay (portrait)
-- Providing aspect ratio toggle functionality
 - Showing instructions to user
 - Displaying permission errors
 - **Rendering concert info overlay (when provided)**
@@ -37,8 +34,6 @@ Render camera video feed with UI overlay.
   error: string | null;               // Error message to show
   hasPermission: boolean | null;      // Permission state
   onRetry?: () => void;               // Retry callback for errors
-  aspectRatio?: '3:2' | '2:3';        // Aspect ratio for framing guide (default '3:2')
-  onAspectRatioToggle?: () => void;   // Callback when aspect ratio toggle is clicked
   grayscale?: boolean;                // Apply grayscale filter to camera view (default false)
   concertInfo?: Concert | null;       // Concert info to display as overlay (optional)
   showConcertOverlay?: boolean;       // Control visibility of concert overlay (default false)
@@ -52,12 +47,9 @@ Render camera video feed with UI overlay.
 ## Features
 
 - Full viewport video display
-- **3:2 aspect ratio guide overlay (landscape)**
-- **2:3 aspect ratio guide overlay (portrait)**
-- **Aspect ratio toggle button**
 - **Grayscale filter support**
 - **Concert info overlay** (semi-transparent, positioned absolutely)
-- Corner markers for alignment
+- Rectangle detection overlay (when provided)
 - Instruction text
 - Permission error handling
 
@@ -80,52 +72,6 @@ function App() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-    />
-  );
-}
-```
-
-### With Aspect Ratio Toggle
-
-```typescript
-import { useState } from 'react';
-import { useCameraAccess } from '@/modules/camera-access';
-import { CameraView } from '@/modules/camera-view';
-import type { AspectRatio } from '@/modules/camera-view';
-
-function App() {
-  const { stream, error, hasPermission, retry } = useCameraAccess();
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
-
-  return (
-    <CameraView
-      stream={stream}
-      error={error}
-      hasPermission={hasPermission}
-      onRetry={retry}
-      aspectRatio={aspectRatio}
-      onAspectRatioToggle={() => setAspectRatio(prev => prev === '3:2' ? '2:3' : '3:2')}
-    />
-  );
-}
-```
-
-### Portrait Mode (2:3)
-
-```typescript
-import { useCameraAccess } from '@/modules/camera-access';
-import { CameraView } from '@/modules/camera-view';
-
-function App() {
-  const { stream, error, hasPermission, retry } = useCameraAccess();
-
-  return (
-    <CameraView
-      stream={stream}
-      error={error}
-      hasPermission={hasPermission}
-      onRetry={retry}
-      aspectRatio="2:3"
     />
   );
 }

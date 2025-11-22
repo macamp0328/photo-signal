@@ -64,7 +64,7 @@ interface RecognitionDebugInfo {
   concertCount: number;               // Number of concerts checked
   frameCount: number;                 // Frames processed since start
   checkInterval: number;              // Active frame sampling interval
-  aspectRatio: AspectRatio;           // Current framing aspect ratio
+  aspectRatio: AspectRatio;           // Active framing aspect ratio
   frameSize: { width: number; height: number } | null; // Cropped frame size
   stability: StabilityDebugInfo | null; // Countdown info for active candidate
   similarityThreshold: number;        // Active matching threshold (distance)
@@ -140,26 +140,12 @@ This module supports two perceptual hashing algorithms with **functional frame c
 
 ### Functional Framing
 
-The photo recognition module **only analyzes pixels within the framing guide**, not the entire camera frame. This eliminates background noise and improves accuracy.
+The photo recognition module **focuses on the region most likely to contain the photo**:
 
-**Benefits**:
-
-- ✅ Eliminates background noise and clutter
-- ✅ Reduces false positives from unrelated objects
-- ✅ Improves recognition accuracy
-- ✅ Makes framing guide intuitive and trustworthy
-- ✅ Supports both landscape (3:2) and portrait (2:3) photos
-
-**Aspect Ratios**:
-
-- **3:2 (Landscape)**: Default, for horizontal photos
-- **2:3 (Portrait)**: For vertical photos
-
-**Cropping Behavior**:
-
-- Framed region uses ~80% of available viewport space
-- Region is centered in the camera feed
-- GPU-accelerated canvas cropping (no performance impact)
+- ✅ Auto aspect ratio: picks 3:2 when the video feed is wider, 2:3 when taller
+- ✅ Rectangle detection (default on): uses detected photo bounds when confidence is high
+- ✅ Falls back to a centered crop (~80% of viewport) when detection is unavailable
+- ✅ Reduces background noise and false positives
 
 ### Quality Filtering (Phase 1)
 

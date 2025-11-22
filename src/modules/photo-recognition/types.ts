@@ -183,7 +183,7 @@ export interface PhotoRecognitionOptions {
   checkInterval?: number;
   /** Enable debug information output, default false */
   enableDebugInfo?: boolean;
-  /** Aspect ratio for frame cropping (default '3:2') */
+  /** Aspect ratio for frame cropping (default 'auto' chooses based on video orientation) */
   aspectRatio?: AspectRatio;
   /** Sharpness threshold for blur detection (default 100) */
   sharpnessThreshold?: number;

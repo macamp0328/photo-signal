@@ -108,7 +108,7 @@ const recordFailure = (
  * Calculate the framed region coordinates based on aspect ratio
  * @param videoWidth - Width of the video in pixels
  * @param videoHeight - Height of the video in pixels
- * @param aspectRatio - Target aspect ratio ('3:2' or '2:3')
+ * @param aspectRatio - Target aspect ratio ('3:2', '2:3', or 'auto')
  * @param scale - Scale factor for the frame size (default 0.8 = 80% of viewport)
  * @returns Coordinates for cropping {x, y, width, height}
  */
@@ -165,7 +165,7 @@ export function usePhotoRecognition(
     similarityThreshold = 40,
     checkInterval = 1000,
     enableDebugInfo = false,
-    aspectRatio = '3:2',
+    aspectRatio = 'auto',
     sharpnessThreshold = 100,
     glareThreshold = 250,
     glarePercentageThreshold = 20,
@@ -534,11 +534,18 @@ export function usePhotoRecognition(
           return;
         }
 
+        const activeAspectRatio: AspectRatio =
+          aspectRatio === 'auto'
+            ? video.videoWidth >= video.videoHeight
+              ? '3:2'
+              : '2:3'
+            : aspectRatio;
+
         // Optional: Detect rectangle in frame (when enabled)
         let finalFramedRegion = calculateFramedRegion(
           video.videoWidth,
           video.videoHeight,
-          aspectRatio
+          activeAspectRatio
         );
 
         if (enableRectangleDetection && rectangleDetectorRef.current) {
@@ -751,7 +758,7 @@ export function usePhotoRecognition(
           const scaledRegion = calculateFramedRegion(
             video.videoWidth,
             video.videoHeight,
-            aspectRatio,
+            activeAspectRatio,
             scale
           );
 
@@ -840,7 +847,9 @@ export function usePhotoRecognition(
           console.debug(
             `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
           );
-          console.debug(`Aspect Ratio: ${aspectRatio}`);
+          console.debug(
+            `Aspect Ratio: ${activeAspectRatio}${aspectRatio === 'auto' ? ' (auto)' : ''}`
+          );
           if (enableMultiScale) {
             console.debug(
               `Multi-Scale: ENABLED (testing ${scaleHashes.length} scales: ${scaleHashes.map((s) => `${(s.scale * 100).toFixed(0)}%`).join(', ')})`
@@ -1032,7 +1041,7 @@ export function usePhotoRecognition(
             concertCount: concertsWithHashes.length,
             frameCount: frameCountRef.current,
             checkInterval,
-            aspectRatio,
+            aspectRatio: activeAspectRatio,
             frameSize: { width: canvas.width, height: canvas.height },
             stability: stabilityInfo,
             similarityThreshold: getThresholdForAlgorithm(

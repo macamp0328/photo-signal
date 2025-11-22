@@ -8,7 +8,6 @@ import { CameraView } from './CameraView';
  *
  * Tests validate the module contract defined in README.md:
  * - Display video stream in viewport
- * - Render 3:2 aspect ratio frame overlay
  * - Show instructions to user
  * - Display permission errors
  */
@@ -184,50 +183,13 @@ describe('CameraView', () => {
       expect(screen.getByText('Point camera at a photo to play music')).toBeInTheDocument();
     });
 
-    it('should render guide rectangle overlay', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} />
-      );
-
-      // Find the main overlay border element by checking for the overlayFrame class
-      const overlayBorder = container.querySelector('[class*="overlayFrame"]');
-      expect(overlayBorder).toBeInTheDocument();
-    });
-
-    it('should render all four corner markers', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} />
-      );
-
-      // Find corner markers by their CSS module class names
-      const topLeft = container.querySelector('[class*="cornerTopLeft"]');
-      const topRight = container.querySelector('[class*="cornerTopRight"]');
-      const bottomLeft = container.querySelector('[class*="cornerBottomLeft"]');
-      const bottomRight = container.querySelector('[class*="cornerBottomRight"]');
-
-      expect(topLeft).toBeInTheDocument();
-      expect(topRight).toBeInTheDocument();
-      expect(bottomLeft).toBeInTheDocument();
-      expect(bottomRight).toBeInTheDocument();
-    });
-
-    it('should maintain 3:2 aspect ratio for guide overlay', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} />
-      );
-
-      // The 3:2 aspect ratio is maintained via padding-bottom: 66.67% in CSS Module
-      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio"]');
-      expect(aspectRatioContainer).toBeInTheDocument();
-    });
-
-    it('should not render overlay when in error state', () => {
+    it('should hide instructions when error state is shown', () => {
       render(<CameraView stream={null} error="Camera access denied" hasPermission={false} />);
 
       expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });
 
-    it('should not render overlay when in loading state', () => {
+    it('should hide instructions when loading', () => {
       render(<CameraView stream={null} error={null} hasPermission={null} />);
 
       expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
@@ -258,16 +220,6 @@ describe('CameraView', () => {
       const video = container.querySelector('video');
       // Verify video element has the CSS Module class applied
       expect(video?.className).toContain('video');
-    });
-
-    it('should set overlay guide to 90% width with max-width constraint', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} />
-      );
-
-      // Find the overlay container with width constraints using CSS Module class
-      const overlayGuide = container.querySelector('[class*="overlayWrapper"]');
-      expect(overlayGuide).toBeInTheDocument();
     });
   });
 
@@ -356,109 +308,13 @@ describe('CameraView', () => {
       mockStream = new MediaStream();
     });
 
-    it('should render 3:2 aspect ratio overlay by default', () => {
+    it('should render without aspect ratio guides', () => {
       const { container } = render(
         <CameraView stream={mockStream} error={null} hasPermission={true} />
       );
 
-      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio32"]');
-      expect(aspectRatioContainer).toBeInTheDocument();
-    });
-
-    it('should render 3:2 aspect ratio overlay when aspectRatio is "3:2"', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} aspectRatio="3:2" />
-      );
-
-      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio32"]');
-      expect(aspectRatioContainer).toBeInTheDocument();
-    });
-
-    it('should render 2:3 aspect ratio overlay when aspectRatio is "2:3"', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} aspectRatio="2:3" />
-      );
-
-      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio23"]');
-      expect(aspectRatioContainer).toBeInTheDocument();
-    });
-
-    it('should render aspect ratio toggle button when onAspectRatioToggle is provided', () => {
-      const mockToggle = vi.fn();
-
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          onAspectRatioToggle={mockToggle}
-        />
-      );
-
-      const toggleButton = screen.getByRole('button', { name: /switch to portrait mode/i });
-      expect(toggleButton).toBeInTheDocument();
-    });
-
-    it('should not render aspect ratio toggle button when onAspectRatioToggle is not provided', () => {
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} />
-      );
-
-      const toggleButtons = container.querySelectorAll('button');
-      expect(toggleButtons).toHaveLength(0);
-    });
-
-    it('should call onAspectRatioToggle when toggle button is clicked', async () => {
-      const user = userEvent.setup();
-      const mockToggle = vi.fn();
-
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          onAspectRatioToggle={mockToggle}
-        />
-      );
-
-      const toggleButton = screen.getByRole('button', { name: /switch to portrait mode/i });
-      await user.click(toggleButton);
-
-      expect(mockToggle).toHaveBeenCalledTimes(1);
-    });
-
-    it('should show "Portrait" label when in landscape (3:2) mode', () => {
-      const mockToggle = vi.fn();
-
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          aspectRatio="3:2"
-          onAspectRatioToggle={mockToggle}
-        />
-      );
-
-      const toggleButton = screen.getByRole('button', { name: /switch to portrait mode/i });
-      expect(toggleButton.textContent).toContain('Portrait');
-    });
-
-    it('should show "Landscape" label when in portrait (2:3) mode', () => {
-      const mockToggle = vi.fn();
-
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          aspectRatio="2:3"
-          onAspectRatioToggle={mockToggle}
-        />
-      );
-
-      const toggleButton = screen.getByRole('button', { name: /switch to landscape mode/i });
-      expect(toggleButton.textContent).toContain('Landscape');
+      const aspectRatioContainer = container.querySelector('[class*="overlayAspectRatio"]');
+      expect(aspectRatioContainer).not.toBeInTheDocument();
     });
   });
 

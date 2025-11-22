@@ -70,5 +70,6 @@ export interface AppError {
 
 /**
  * Aspect ratio for framing guides and cropping
+ * - 'auto' picks landscape (3:2) when video is wider, portrait (2:3) when taller
  */
-export type AspectRatio = '3:2' | '2:3';
+export type AspectRatio = '3:2' | '2:3' | 'auto';

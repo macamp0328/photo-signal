@@ -95,7 +95,17 @@ const DEFAULT_ORB_CONFIG: Required<ORBConfig> = {
 };
 
 /**
- * FAST corner detection
+ * FAST (Features from Accelerated Segment Test) corner detection
+ *
+ * Detects corners by examining a circle of 16 pixels around each candidate point.
+ * A point is considered a corner if at least 12 contiguous pixels are all brighter
+ * or all darker than the center pixel by more than the threshold.
+ *
+ * @param gray - Grayscale image data
+ * @param width - Image width
+ * @param height - Image height
+ * @param threshold - Intensity difference threshold for corner detection
+ * @returns Array of detected keypoints with position and response strength
  */
 function detectFASTCorners(
   gray: Uint8ClampedArray,
@@ -169,15 +179,26 @@ function detectFASTCorners(
 }
 
 /**
- * Compute orientation for keypoint
+ * Compute orientation for keypoint using intensity centroid method
+ *
+ * Calculates the orientation by computing the intensity-weighted centroid
+ * of a circular patch around the keypoint. The orientation is the angle
+ * from the keypoint to this centroid.
+ *
+ * @param keypoint - Keypoint to compute orientation for
+ * @param gray - Grayscale image data
+ * @param width - Image width
+ * @param height - Image height
+ * @param radius - Radius of the patch to examine (default: 15 pixels)
+ * @returns Orientation angle in radians (-π to π)
  */
 function computeKeypointOrientation(
   keypoint: ORBKeypoint,
   gray: Uint8ClampedArray,
   width: number,
-  height: number
+  height: number,
+  radius = 15
 ): number {
-  const radius = 15;
   let mx = 0;
   let my = 0;
 
@@ -200,6 +221,13 @@ function computeKeypointOrientation(
 }
 
 /**
+ * Linear congruential generator constants (POSIX standard)
+ */
+const LCG_MULTIPLIER = 1103515245;
+const LCG_INCREMENT = 12345;
+const LCG_MODULUS = 0x7fffffff;
+
+/**
  * Extract BRIEF descriptor for a keypoint
  * Uses fixed test pattern for repeatability
  */
@@ -220,8 +248,8 @@ function extractBRIEFDescriptor(
   // Generate fixed test pairs using a seeded pseudo-random generator
   let seed = 12345;
   const seededRandom = () => {
-    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-    return seed / 0x7fffffff;
+    seed = (seed * LCG_MULTIPLIER + LCG_INCREMENT) & LCG_MODULUS;
+    return seed / LCG_MODULUS;
   };
 
   for (let i = 0; i < numTests; i++) {
@@ -312,8 +340,18 @@ export function extractORBFeatures(imageData: ImageData, config: ORBConfig = {})
 
 /**
  * Compute Hamming distance between two binary descriptors
+ *
+ * @param desc1 - First descriptor
+ * @param desc2 - Second descriptor
+ * @returns Hamming distance (number of differing bits)
  */
 function hammingDistance(desc1: ORBDescriptor, desc2: ORBDescriptor): number {
+  // Validate descriptor lengths match
+  if (desc1.length !== desc2.length) {
+    console.warn(`Descriptor length mismatch: ${desc1.length} vs ${desc2.length}`);
+    return Infinity; // Return max distance for incompatible descriptors
+  }
+
   let distance = 0;
 
   for (let i = 0; i < desc1.length; i++) {

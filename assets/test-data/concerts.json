@@ -121,7 +121,7 @@
     },
     {
       "id": 8,
-      "band": "Example Real Photo (R0043343)",
+      "band": "Ringo Deathstar (R0043343)",
       "venue": "Analog Loft Stage",
       "date": "2024-02-01",
       "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-01.opus",
@@ -138,7 +138,7 @@
     },
     {
       "id": 9,
-      "band": "Example Real Photo (R0055333)",
+      "band": "FANTAAZMA (R0055333)",
       "venue": "Downtown Rooftop",
       "date": "2024-02-02",
       "audioFile": "/assets/example-real-songs/06-ocelot-clip-01.opus",
@@ -155,7 +155,7 @@
     },
     {
       "id": 10,
-      "band": "Example Real Photo (R0055917)",
+      "band": "The Tender Things (R0055917)",
       "venue": "Indie Gallery",
       "date": "2024-02-03",
       "audioFile": "/assets/example-real-songs/13-1999-clip-01.opus",
@@ -172,8 +172,8 @@
     },
     {
       "id": 11,
-      "band": "Example Real Photo (R0060632)",
-      "venue": "Harbor Warehouse",
+      "band": "Random Band (R0060632)",
+      "venue": "Hotel Vegas",
       "date": "2024-02-04",
       "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-01.opus",
       "imageFile": "/assets/example-real-photos/R0060632.jpg",
@@ -189,7 +189,7 @@
     },
     {
       "id": 12,
-      "band": "Example Real Photo (R0060861)",
+      "band": "RankyDank (R0060861)",
       "venue": "Night Market Stage",
       "date": "2024-02-05",
       "audioFile": "/assets/example-real-songs/18-meatstick-clip-01.opus",
@@ -418,6 +418,40 @@
         "severity": "severe",
         "description": "30-degree angle + low light - evening table viewing scenario",
         "expectedAccuracy": 0.6
+      }
+    },
+    {
+      "id": 25,
+      "band": "White Denim (R0043815)",
+      "venue": "Canal Street Balcony",
+      "date": "2024-02-06",
+      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-02.opus",
+      "imageFile": "/assets/example-real-photos/R0043815.jpg",
+      "photoHash": ["273e36c2cd945d22", "273e36c3cf845922", "2f3e26c3cf945122"],
+      "photoHashes": {
+        "phash": ["273e36c2cd945d22", "273e36c3cf845922", "2f3e26c3cf945122"],
+        "dhash": [
+          "23a7027303358aae48970cc50c9a4778",
+          "23a7a2732335c2ae4c970ee50c9a477e",
+          "23a7a2732335c2aa4c970ee50c9a477e"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "band": "Jo Alice (P3150466)",
+      "venue": "Skyline Overlook",
+      "date": "2024-02-07",
+      "audioFile": "/assets/example-real-songs/13-1999-clip-02.opus",
+      "imageFile": "/assets/example-real-photos/P3150466.jpg",
+      "photoHash": ["0a9ce56333cf9924", "029ce56333cf9964", "021ce56b33cf9964"],
+      "photoHashes": {
+        "phash": ["0a9ce56333cf9924", "029ce56333cf9964", "021ce56b33cf9964"],
+        "dhash": [
+          "12550c0009a005a304d35a8a7c239810",
+          "52554edc49ac45ab44d35aca7c23d912",
+          "52554efc49ac45ab44d35aca7c03d916"
+        ]
       }
     }
   ]

@@ -8,7 +8,6 @@
 import type { SecretSettingsProps } from './types';
 import { useFeatureFlags } from './useFeatureFlags';
 import { useCustomSettings } from './useCustomSettings';
-import { useRetroSounds } from './useRetroSounds';
 import { useCallback } from 'react';
 import styles from './SecretSettings.module.css';
 
@@ -33,14 +32,8 @@ import styles from './SecretSettings.module.css';
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
   const { settings, updateSetting, resetSettings } = useCustomSettings();
-  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
 
   const handleSendIt = useCallback(() => {
-    // Play sound if retro sounds enabled
-    if (isEnabled('retro-sounds')) {
-      playRandomSound();
-    }
-
     // Close the menu first (provides immediate feedback)
     onClose();
 
@@ -50,7 +43,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
     window.setTimeout(() => {
       window.location.reload();
     }, 100);
-  }, [isEnabled, playRandomSound, onClose]);
+  }, [onClose]);
 
   if (!isVisible) {
     return null;

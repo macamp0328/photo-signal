@@ -22,22 +22,12 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import type { AspectRatio, Concert } from './types';
-import {
-  useTripleTap,
-  useFeatureFlags,
-  useCustomSettings,
-  useRetroSounds,
-} from './modules/secret-settings';
+import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
 import './index.css';
 
 const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
   return { default: module.SecretSettings };
-});
-
-const PsychedelicEffect = lazy(async () => {
-  const module = await import('./modules/secret-settings/PsychedelicEffect');
-  return { default: module.PsychedelicEffect };
 });
 
 const DebugOverlay = lazy(async () => {
@@ -70,15 +60,10 @@ function App() {
   const { getSetting, settings } = useCustomSettings();
   const isTestModeEnabled = isEnabled('test-mode');
 
-  // Module: Retro Sounds
-  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
-
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({
     onTripleTap: () => {
       setShowSecretSettings(true);
-      // Play sound when opening secret menu
-      playRandomSound();
     },
   });
 
@@ -173,7 +158,6 @@ function App() {
       console.log('Photo recognized:', recognizedConcert.band);
       play(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
       setActiveConcert(recognizedConcert);
-      playRandomSound();
       return;
     }
 
@@ -184,8 +168,7 @@ function App() {
     console.log('Photo changed, crossfading to:', recognizedConcert.band);
     crossfade(recognizedConcert.audioFile, undefined, recognizedConcert.audioFileFallback);
     setActiveConcert(recognizedConcert);
-    playRandomSound();
-  }, [recognizedConcert, activeConcert, play, crossfade, playRandomSound]);
+  }, [recognizedConcert, activeConcert, play, crossfade]);
 
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {
@@ -226,8 +209,6 @@ function App() {
   // Handle activation from landing view
   const handleActivate = () => {
     setIsActive(true);
-    // Play sound on activation
-    playRandomSound();
   };
 
   // Render camera view
@@ -283,15 +264,8 @@ function App() {
             isVisible={showSecretSettings}
             onClose={() => {
               setShowSecretSettings(false);
-              // Play sound when closing secret menu
-              playRandomSound();
             }}
           />
-        </Suspense>
-      )}
-      {isEnabled('psychedelic-mode') && (
-        <Suspense fallback={null}>
-          <PsychedelicEffect enabled={true} />
         </Suspense>
       )}
       {isTestModeEnabled && (

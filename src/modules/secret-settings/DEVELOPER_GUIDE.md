@@ -35,11 +35,8 @@ src/modules/secret-settings/
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
 ├── useCustomSettings.ts           # Custom settings state management
-├── useRetroSounds.ts              # Retro sound effects hook
 ├── SecretSettings.tsx             # Settings UI component
-├── PsychedelicEffect.tsx          # Psychedelic visual effect
 ├── SecretSettings.module.css      # Component styles
-├── PsychedelicEffect.module.css   # Effect styles
 ├── index.ts                        # Public API exports
 ├── useTripleTap.test.ts           # Hook tests
 └── SecretSettings.test.tsx        # Component tests
@@ -51,17 +48,23 @@ src/modules/secret-settings/
 
 ### Feature Flags
 
-1. **Psychedelic Color Cycle Mode** (`psychedelic-mode`)
-   - Enables vibrant gradient overlays and liquid light show effects
-   - Creates instant "party vibes" atmosphere
+1. **Test Data Mode** (`test-mode`)
+   - Use test concert data with working photo hashes
+   - Enable debug overlay for development
    - Toggles on/off from Feature Flags section
-   - Implementation: `PsychedelicEffect.tsx` component
 
-2. **Old-School Easter Egg Sounds** (`retro-sounds`)
-   - Plays random retro system sounds (beeps, clicks, whooshes, modem)
-   - Sounds synthesized using Web Audio API (no external files needed)
-   - Plays on menu toggle, activation, and photo recognition
-   - Implementation: `useRetroSounds.ts` hook
+2. **Multi-Scale Recognition** (`multi-scale-recognition`)
+   - Support imprecise photo alignment
+   - Test multiple crop scales for better matching
+   - More forgiving for handheld use
+
+3. **Dynamic Rectangle Detection** (`rectangle-detection`)
+   - Automatically detect photo boundaries
+   - Visual feedback when rectangle detected
+
+4. **Grayscale Conversion** (`grayscale-mode`)
+   - Convert frames to black and white before recognition
+   - May improve accuracy with monochrome prints
 
 ### Custom Settings
 
@@ -662,95 +665,13 @@ When adding new flags or settings:
 
 ## Detailed Feature Implementation Guide
 
-### Feature 1: Psychedelic Color Cycle Mode
+This section previously contained detailed implementation examples for feature flags that have been removed from the codebase. For current feature flag implementations, refer to the actual code in:
 
-**Purpose**: Create instant "party vibes" with vibrant, animated gradient overlays.
+- **Photo Recognition Module**: Multi-scale recognition, rectangle detection, grayscale conversion
+- **Data Service**: Test mode implementation
+- **Debug Overlay**: Debug visualization for test mode
 
-**Implementation**:
-
-- **Component**: `PsychedelicEffect.tsx`
-- **Styling**: `PsychedelicEffect.module.css`
-- **Feature Flag**: `psychedelic-mode` in `featureFlagConfig.ts`
-
-**How it works**:
-
-1. When enabled, renders a full-screen overlay with `z-index: 200`
-2. Uses `mix-blend-mode: screen` to overlay colors without blocking interaction
-3. Uses pure CSS `hue-rotate` filter animations cycling over 20-25 seconds for smooth color transitions
-4. Creates multiple gradient layers rotating at different speeds
-5. Adds pulsing radial gradients for depth
-
-**Integration**:
-
-```tsx
-import { useFeatureFlags, PsychedelicEffect } from './modules/secret-settings';
-
-function App() {
-  const { isEnabled } = useFeatureFlags();
-
-  return (
-    <>
-      {/* Your app content */}
-      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
-    </>
-  );
-}
-```
-
-**Performance**: Minimal - uses pure CSS animations (hardware-accelerated) for smooth 60fps rendering.
-
----
-
-### Feature 2: Old-School Easter Egg Sounds
-
-**Purpose**: Add playful retro system sounds to encourage exploration.
-
-**Implementation**:
-
-- **Hook**: `useRetroSounds.ts`
-- **Feature Flag**: `retro-sounds` in `featureFlagConfig.ts`
-- **Sound Generation**: Web Audio API (no external files)
-
-**Sound Types**:
-
-1. **Beeps**: Square wave oscillators at different frequencies (A4, A5, C5)
-2. **Click**: Short 800Hz square wave burst
-3. **Whoosh**: Sawtooth wave descending from 2000Hz to 200Hz
-4. **Modem**: Dual oscillators creating warbling dial-up modem effect
-
-**How it works**:
-
-1. Uses Web Audio API `OscillatorNode` and `GainNode` for synthesis
-2. Uses a singleton `AudioContext` shared across all sounds for efficient resource usage
-3. Applies exponential gain ramps for natural sound envelopes
-4. Randomly selects from 6 different sound variations
-
-**Integration**:
-
-```tsx
-import { useFeatureFlags, useRetroSounds } from './modules/secret-settings';
-
-function App() {
-  const { isEnabled } = useFeatureFlags();
-  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
-
-  // Play sound on button click
-  const handleClick = () => {
-    playRandomSound();
-    // ... other logic
-  };
-}
-```
-
-**Best Practices**:
-
-- Play sounds on user-initiated actions (clicks, toggles)
-- Don't play sounds continuously or too frequently
-- Sounds are short (50-500ms) to avoid annoyance
-
----
-
-### Feature 3: Light/Dark Theme Switch
+### Theme Mode Implementation Example
 
 **Purpose**: Enable instant visual theme switching for A/B comparison and accessibility.
 
@@ -894,28 +815,24 @@ Some feature flags and settings require a full page reload to take effect proper
 **Code**:
 
 ```typescript
-import { useRetroSounds } from './useRetroSounds';
+import { useFeatureFlags } from './useFeatureFlags';
+import { useCustomSettings } from './useCustomSettings';
 import { useCallback } from 'react';
 
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
   const { settings, updateSetting, resetSettings } = useCustomSettings();
-  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
 
   const handleSendIt = useCallback(() => {
-    // Play sound if retro sounds enabled
-    if (isEnabled('retro-sounds')) {
-      playRandomSound();
-    }
-
     // Close the menu first (provides immediate feedback)
     onClose();
 
     // Reload page after short delay (100ms) to show close animation
-    setTimeout(() => {
+    // setTimeout is intentional so the reload still fires after unmount
+    window.setTimeout(() => {
       window.location.reload();
     }, 100);
-  }, [isEnabled, playRandomSound, onClose]);
+  }, [onClose]);
 
   return (
     // ... in the JSX, before Developer Info section
@@ -971,10 +888,9 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
 2. User toggles feature flags or adjusts settings
 3. Changes preview immediately (saved to localStorage)
 4. User clicks **"Send It 🚀"** button
-5. Retro sound plays (if enabled)
-6. Menu closes smoothly
-7. Page reloads after 100ms (ensures all changes take effect)
-8. All settings persist via localStorage
+5. Menu closes smoothly
+6. Page reloads after 100ms (ensures all changes take effect)
+7. All settings persist via localStorage
 
 ### Why 100ms Delay?
 
@@ -990,12 +906,11 @@ The 100ms delay between closing the menu and reloading the page:
 **Manual Testing**:
 
 1. Open secret settings
-2. Toggle a feature flag (e.g., Psychedelic Mode)
+2. Toggle a feature flag (e.g., Test Mode)
 3. Click "Send It"
-4. Verify sound plays (if retro sounds enabled)
-5. Verify menu closes
-6. Verify page reloads
-7. Verify feature flag is still enabled after reload
+4. Verify menu closes
+5. Verify page reloads
+6. Verify feature flag is still enabled after reload
 
 **Automated Testing** (see `SecretSettings.test.tsx`):
 
@@ -1049,17 +964,15 @@ it('should reload page after clicking Send It', async () => {
 2. **Focus Indicators**: Clear visual focus states on all controls
 3. **Screen Readers**: Semantic HTML with proper labels
 4. **Color Contrast**: Both themes meet WCAG AA standards (4.5:1)
-5. **Motion**: Psychedelic effect respects user preference (future: prefers-reduced-motion)
 
 ---
 
 ## Performance Optimization
 
-1. **Lazy Loading**: Effects only activate when flags are enabled
+1. **Lazy Loading**: Components only load when needed
 2. **CSS Animations**: Hardware-accelerated transforms and opacity
-3. **Audio Synthesis**: Web Audio API is more efficient than loading Opus files
-4. **State Updates**: Batched with React's state management
-5. **Bundle Size**: No external dependencies for features (~0KB added to bundle)
+3. **State Updates**: Batched with React's state management
+4. **Bundle Size**: Minimal overhead for feature flag system
 
 ---
 

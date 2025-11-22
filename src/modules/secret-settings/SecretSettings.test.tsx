@@ -35,8 +35,6 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(screen.getByText(/Test Data Mode/i)).toBeInTheDocument();
-      expect(screen.getByText(/Psychedelic Color Cycle Mode/i)).toBeInTheDocument();
-      expect(screen.getByText(/Old-School Easter Egg Sounds/i)).toBeInTheDocument();
     });
 
     it('should display custom settings from config', () => {
@@ -266,47 +264,6 @@ describe('SecretSettings', () => {
       } finally {
         (window as { location: unknown }).location = originalLocation;
       }
-    });
-
-    it('should play retro sound when retro-sounds flag is enabled', async () => {
-      const user = userEvent.setup();
-
-      // Enable retro-sounds flag
-      localStorage.setItem(
-        'photo-signal-feature-flags',
-        JSON.stringify([
-          { id: 'retro-sounds', name: 'Retro Sounds', enabled: true, description: 'Test' },
-        ])
-      );
-
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      const button = screen.getByText(/Send It/i);
-      await user.click(button);
-
-      // Retro sound should have been triggered (mock implementation plays silently)
-      // This is verified by code coverage - the playRandomSound is called
-      expect(true).toBe(true);
-    });
-
-    it('should not play retro sound when retro-sounds flag is disabled', async () => {
-      const user = userEvent.setup();
-
-      // Ensure retro-sounds flag is disabled
-      localStorage.setItem(
-        'photo-signal-feature-flags',
-        JSON.stringify([
-          { id: 'retro-sounds', name: 'Retro Sounds', enabled: false, description: 'Test' },
-        ])
-      );
-
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      const button = screen.getByText(/Send It/i);
-      await user.click(button);
-
-      // No sound should be played - verified by code coverage
-      expect(true).toBe(true);
     });
 
     it('should persist feature flag changes before reload', async () => {

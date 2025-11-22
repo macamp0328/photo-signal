@@ -69,7 +69,7 @@ Expand Playwright visual regression test coverage to include all major UI states
 
 5. **Feature Flag Variations**
    - Debug overlay enabled
-   - Psychedelic mode enabled
+   - Grayscale mode enabled
    - Gallery layout vs normal layout
    - Test mode vs production mode
 
@@ -104,7 +104,6 @@ Expand Playwright visual regression test coverage to include all major UI states
     - Secret settings menu slide-in
     - Concert info fade-in
     - Audio crossfade visual feedback
-    - Psychedelic effect animation
 
 ---
 

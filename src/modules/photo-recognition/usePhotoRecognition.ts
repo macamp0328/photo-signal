@@ -118,7 +118,7 @@ export function calculateFramedRegion(
   aspectRatio: AspectRatio,
   scale: number = 0.8
 ): { x: number; y: number; width: number; height: number } {
-  const targetRatio = aspectRatio === '3:2' ? 3 / 2 : 2 / 3;
+  const targetRatio = aspectRatio === '3:2' ? 3 / 2 : aspectRatio === '2:3' ? 2 / 3 : 1;
   const videoRatio = videoWidth / videoHeight;
 
   let frameWidth: number;
@@ -534,18 +534,23 @@ export function usePhotoRecognition(
           return;
         }
 
-        const activeAspectRatio: AspectRatio =
+        // Determine base aspect ratio before detection
+        const normalizedAspectRatio: AspectRatio =
+          aspectRatio === '3:2' ||
+          aspectRatio === '2:3' ||
+          aspectRatio === '1:1' ||
           aspectRatio === 'auto'
-            ? video.videoWidth >= video.videoHeight
-              ? '3:2'
-              : '2:3'
-            : aspectRatio;
+            ? aspectRatio
+            : 'auto';
+
+        let chosenAspectRatio: AspectRatio =
+          normalizedAspectRatio === 'auto' ? '1:1' : normalizedAspectRatio;
 
         // Optional: Detect rectangle in frame (when enabled)
         let finalFramedRegion = calculateFramedRegion(
           video.videoWidth,
           video.videoHeight,
-          activeAspectRatio
+          chosenAspectRatio
         );
 
         if (enableRectangleDetection && rectangleDetectorRef.current) {
@@ -566,6 +571,8 @@ export function usePhotoRecognition(
           // If rectangle detected with good confidence, use it instead of fixed aspect ratio
           if (detectionResult.detected && detectionResult.rectangle && meetsConfidence) {
             const rect = detectionResult.rectangle;
+            // Use detected rectangle aspect to influence subsequent scaling/metrics
+            chosenAspectRatio = rect.width >= rect.height ? '3:2' : '2:3';
             // Convert normalized coordinates to pixel coordinates
             finalFramedRegion = {
               x: Math.round(rect.topLeft.x * video.videoWidth),
@@ -758,7 +765,7 @@ export function usePhotoRecognition(
           const scaledRegion = calculateFramedRegion(
             video.videoWidth,
             video.videoHeight,
-            activeAspectRatio,
+            chosenAspectRatio,
             scale
           );
 
@@ -848,7 +855,7 @@ export function usePhotoRecognition(
             `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
           );
           console.debug(
-            `Aspect Ratio: ${activeAspectRatio}${aspectRatio === 'auto' ? ' (auto)' : ''}`
+            `Aspect Ratio: ${chosenAspectRatio}${normalizedAspectRatio === 'auto' ? ' (auto)' : ''}`
           );
           if (enableMultiScale) {
             console.debug(
@@ -1041,7 +1048,7 @@ export function usePhotoRecognition(
             concertCount: concertsWithHashes.length,
             frameCount: frameCountRef.current,
             checkInterval,
-            aspectRatio: activeAspectRatio,
+            aspectRatio: chosenAspectRatio,
             frameSize: { width: canvas.width, height: canvas.height },
             stability: stabilityInfo,
             similarityThreshold: getThresholdForAlgorithm(

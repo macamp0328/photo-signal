@@ -70,6 +70,6 @@ export interface AppError {
 
 /**
  * Aspect ratio for framing guides and cropping
- * - 'auto' picks landscape (3:2) when video is wider, portrait (2:3) when taller
+ * - 'auto' is resolved by the photo-recognition module
  */
-export type AspectRatio = '3:2' | '2:3' | 'auto';
+export type AspectRatio = '3:2' | '2:3' | '1:1' | 'auto';

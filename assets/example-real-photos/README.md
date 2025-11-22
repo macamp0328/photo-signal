@@ -5,12 +5,14 @@ This directory contains real concert/event photos for testing the Photo Signal g
 ## Contents
 
 - `R0043343.jpg` - Concert photo
+- `R0043815.jpg` - Concert photo
 - `R0055333.jpg` - Concert photo
 - `R0055917.jpg` - Concert photo
 - `R0060632.jpg` - Concert photo
 - `R0060861.jpg` - Concert photo
+- `P3150466.jpg` - Concert photo
 
-**Total**: 5 JPEG images
+**Total**: 7 JPEG images
 
 # Example Real Photos
 
@@ -30,10 +32,12 @@ These photos are used for:
 | File           | Photo Hash                         |
 | -------------- | ---------------------------------- |
 | `R0043343.jpg` | `c4f53cf10ccd16675d674cd2555b4b53` |
+| `R0043815.jpg` | `23a7a2732335c2ae4c970ee50c9a477e` |
 | `R0055333.jpg` | `953f16ff30fb02db0352534504410041` |
 | `R0055917.jpg` | `41bb499486698c791cfb9acddacd5538` |
 | `R0060632.jpg` | `866f356722d6b4c3319d133c0ab9555a` |
 | `R0060861.jpg` | `960bc5ef462e2e8c4e6b566ec2eda7ed` |
+| `P3150466.jpg` | `52554edc49ac45ab44d35aca7c23d912` |
 
 Regenerate hashes anytime with `npm run generate-hashes assets/example-real-photos` if the files change.
 
@@ -41,13 +45,15 @@ Regenerate hashes anytime with `npm run generate-hashes assets/example-real-phot
 
 These photos now ship in both production and test data sets:
 
-| Concert ID | Band Label                    | Image File Path                            |
-| ---------- | ----------------------------- | ------------------------------------------ |
-| 8          | Example Real Photo (R0043343) | `/assets/example-real-photos/R0043343.jpg` |
-| 9          | Example Real Photo (R0055333) | `/assets/example-real-photos/R0055333.jpg` |
-| 10         | Example Real Photo (R0055917) | `/assets/example-real-photos/R0055917.jpg` |
-| 11         | Example Real Photo (R0060632) | `/assets/example-real-photos/R0060632.jpg` |
-| 12         | Example Real Photo (R0060861) | `/assets/example-real-photos/R0060861.jpg` |
+| Concert ID | Band Label                   | Image File Path                            |
+| ---------- | ---------------------------- | ------------------------------------------ |
+| 8          | Ringo Deathstar (R0043343)   | `/assets/example-real-photos/R0043343.jpg` |
+| 9          | FANTAAZMA (R0055333)         | `/assets/example-real-photos/R0055333.jpg` |
+| 10         | The Tender Things (R0055917) | `/assets/example-real-photos/R0055917.jpg` |
+| 11         | Random Band (R0060632)       | `/assets/example-real-photos/R0060632.jpg` |
+| 12         | RankyDank (R0060861)         | `/assets/example-real-photos/R0060861.jpg` |
+| 25         | White Denim (R0043815)       | `/assets/example-real-photos/R0043815.jpg` |
+| 26         | Jo Alice (P3150466)          | `/assets/example-real-photos/P3150466.jpg` |
 
 - **Production**: `public/data.json` now contains the hashes above so the main experience recognizes your printed copies.
 - **Test Mode**: `assets/test-data/concerts.json` and `.csv` include the same entries with `/assets/example-real-photos/...` image paths for on-device previews.

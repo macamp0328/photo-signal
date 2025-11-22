@@ -83,7 +83,7 @@ src/modules/secret-settings/
 5. **Recognition Delay** (`recognition-delay`)
 
 - Adjust how long a photo must stay steady before we confirm a match
-- Range: 1000–5000ms (default 3000ms)
+- Range: 500–5000ms (default 1000ms)
 - Longer delays reduce false positives; shorter delays feel more responsive
 
 6. **Hash Algorithm** (`hash-algorithm`)
@@ -95,11 +95,13 @@ src/modules/secret-settings/
 
 - Tweak the maximum Hamming distance allowed for a match
 - Lower numbers demand closer matches; higher numbers tolerate more noise
+- Recommended: dHash 24–28, pHash 10–14 (default auto-tunes per algorithm)
 
 8. **Frame Scan Interval** (`recognition-check-interval`)
 
 - Controls how often we hash frames (in ms)
 - Lower values improve responsiveness but increase CPU/battery usage
+- Default 250ms for faster recognition
 
 9. **Sharpness Threshold** (`sharpness-threshold`)
 
@@ -385,9 +387,9 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     name: 'Recognition Delay',
     description: 'Delay before triggering recognition (milliseconds)',
     type: 'number',
-    value: 3000,
+    value: 1000,
     min: 500,
-    max: 10000,
+    max: 5000,
     category: 'camera',
   },
   {

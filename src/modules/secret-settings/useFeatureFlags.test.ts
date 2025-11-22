@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFeatureFlags } from './useFeatureFlags';
+import { FEATURE_FLAGS } from './featureFlagConfig';
 
 describe('useFeatureFlags', () => {
   beforeEach(() => {
@@ -26,11 +27,12 @@ describe('useFeatureFlags', () => {
       expect(result.current.flags[0]).toHaveProperty('enabled');
     });
 
-    it('should load default flags with enabled=false', () => {
+    it('should load default flags matching config', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
       result.current.flags.forEach((flag) => {
-        expect(flag.enabled).toBe(false);
+        const configFlag = FEATURE_FLAGS.find((f) => f.id === flag.id);
+        expect(flag.enabled).toBe(configFlag?.enabled ?? false);
       });
     });
 
@@ -137,16 +139,17 @@ describe('useFeatureFlags', () => {
     it('should reset all flags to default values', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
-      // Enable all flags
+      // Flip all flags away from their defaults
       act(() => {
         result.current.flags.forEach((flag) => {
           result.current.toggleFlag(flag.id);
         });
       });
 
-      // Verify all are enabled
+      // Verify all are flipped from defaults
       result.current.flags.forEach((flag) => {
-        expect(flag.enabled).toBe(true);
+        const configFlag = FEATURE_FLAGS.find((f) => f.id === flag.id);
+        expect(flag.enabled).toBe(!(configFlag?.enabled ?? false));
       });
 
       // Reset
@@ -154,9 +157,10 @@ describe('useFeatureFlags', () => {
         result.current.resetFlags();
       });
 
-      // Verify all are back to default (false)
+      // Verify all are back to defaults from config
       result.current.flags.forEach((flag) => {
-        expect(flag.enabled).toBe(false);
+        const configFlag = FEATURE_FLAGS.find((f) => f.id === flag.id);
+        expect(flag.enabled).toBe(configFlag?.enabled ?? false);
       });
     });
   });

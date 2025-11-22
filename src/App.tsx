@@ -90,15 +90,29 @@ function App() {
     checkInterval: 500,
   });
 
-  const recognitionDelayValue = coerceNumberSetting(getSetting<number>('recognition-delay'), 3000);
+  const rawRecognitionDelay = getSetting<number>('recognition-delay');
+  const recognitionDelayValue =
+    rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
+      ? 1000
+      : coerceNumberSetting(rawRecognitionDelay, 1000);
+  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
+  const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
+  const defaultSimilarityThreshold = hashAlgorithmValue === 'phash' ? 12 : 24;
+  const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
   const similarityThresholdValue = coerceNumberSetting(
-    getSetting<number>('similarity-threshold'),
-    40
+    hashAlgorithmValue === 'phash' &&
+      (rawSimilarityThreshold === undefined ||
+        rawSimilarityThreshold === 40 ||
+        rawSimilarityThreshold === 24)
+      ? defaultSimilarityThreshold
+      : rawSimilarityThreshold,
+    defaultSimilarityThreshold
   );
-  const frameScanIntervalValue = coerceNumberSetting(
-    getSetting<number>('recognition-check-interval'),
-    1000
-  );
+  const rawFrameScanInterval = getSetting<number>('recognition-check-interval');
+  const frameScanIntervalValue =
+    rawFrameScanInterval === undefined || rawFrameScanInterval === 1000
+      ? 250
+      : coerceNumberSetting(rawFrameScanInterval, 250);
   const sharpnessThresholdValue = coerceNumberSetting(
     getSetting<number>('sharpness-threshold'),
     100
@@ -112,8 +126,8 @@ function App() {
     getSetting<number>('rectangle-detection-confidence-threshold'),
     0.6
   );
-  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
-  const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
+  const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
+  const secondarySimilarityThreshold = hashAlgorithmValue === 'dhash' ? 12 : undefined;
 
   // Module: Photo Recognition
   const {
@@ -135,8 +149,11 @@ function App() {
     enableDebugInfo: isTestModeEnabled,
     aspectRatio: aspectRatio,
     hashAlgorithm: hashAlgorithmValue,
+    secondaryHashAlgorithm,
+    secondarySimilarityThreshold,
     enableMultiScale: isEnabled('multi-scale-recognition'),
     enableRectangleDetection: isEnabled('rectangle-detection'),
+    rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
   });
 
   // Module: Audio Playback

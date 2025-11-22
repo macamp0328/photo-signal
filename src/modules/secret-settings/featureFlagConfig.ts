@@ -25,7 +25,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     name: 'Multi-Scale Recognition (Relaxed Framing)',
     description:
       "Enable multi-scale photo recognition to support imprecise alignment. Tests multiple crop scales (75%, 80%, 85%, 90%) to match photos that don't perfectly fill the framing guide. More forgiving for handheld use and photos with small borders or background visible.",
-    enabled: false,
+    enabled: true,
     category: 'experimental',
   },
   {
@@ -33,7 +33,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     name: 'Dynamic Rectangle Detection',
     description:
       'Use computer vision to automatically detect the rectangular boundaries of printed photos in the camera feed. When enabled, the system will dynamically crop to the detected photo edges instead of using fixed aspect ratio guides. Shows visual feedback when a rectangle is detected.',
-    enabled: false,
+    enabled: true,
     category: 'experimental',
   },
   {

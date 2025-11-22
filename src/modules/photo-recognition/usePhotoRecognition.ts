@@ -31,6 +31,18 @@ const HASH_LENGTHS: Record<HashAlgorithm, number> = {
   phash: 16,
 };
 
+const DEFAULT_THRESHOLDS: Record<HashAlgorithm, number> = {
+  dhash: 24,
+  phash: 12,
+};
+
+const maxDistanceForAlgorithm = (algorithm: HashAlgorithm): number => HASH_LENGTHS[algorithm] * 4;
+
+const similarityPercent = (distance: number, algorithm: HashAlgorithm): number => {
+  const max = maxDistanceForAlgorithm(algorithm);
+  return ((max - distance) / max) * 100;
+};
+
 const normalizeLegacyHashes = (hash: string | string[] | undefined): string[] => {
   if (!hash) {
     return [];
@@ -163,6 +175,9 @@ export function usePhotoRecognition(
     enableMultiScale = false,
     multiScaleVariants = [0.75, 0.8, 0.85, 0.9],
     enableRectangleDetection = false,
+    rectangleConfidenceThreshold = 0.6,
+    secondaryHashAlgorithm = null,
+    secondarySimilarityThreshold,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -174,6 +189,16 @@ export function usePhotoRecognition(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [multiScaleVariants.join(',')]
   );
+
+  const resolvedSecondaryHashAlgorithm =
+    secondaryHashAlgorithm && secondaryHashAlgorithm !== hashAlgorithm
+      ? secondaryHashAlgorithm
+      : null;
+
+  const resolvedSecondaryThreshold =
+    resolvedSecondaryHashAlgorithm && resolvedSecondaryHashAlgorithm in DEFAULT_THRESHOLDS
+      ? (secondarySimilarityThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm])
+      : secondarySimilarityThreshold;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -193,6 +218,7 @@ export function usePhotoRecognition(
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef<number>(0);
+  const telemetryDispatchRef = useRef<number>(0);
 
   // Telemetry tracking
   const telemetryRef = useRef<RecognitionTelemetry>({
@@ -244,6 +270,56 @@ export function usePhotoRecognition(
   const previousGuidanceRef = useRef<GuidanceType>('none');
   const guidanceStartTimeRef = useRef<number>(Date.now());
 
+  // Emit lightweight on-device telemetry so we can monitor blur/glare rejection rates in real time
+  const emitTelemetrySnapshot = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const now = Date.now();
+    // Avoid spamming; emit at most once per second
+    if (now - telemetryDispatchRef.current < 1000) {
+      return;
+    }
+
+    const { totalFrames, blurRejections, glareRejections } = telemetryRef.current;
+    if (totalFrames === 0) {
+      return;
+    }
+
+    const blurRate = blurRejections / totalFrames;
+    const glareRate = glareRejections / totalFrames;
+
+    telemetryDispatchRef.current = now;
+
+    try {
+      window.dispatchEvent(
+        new CustomEvent('photo-recognition-telemetry', {
+          detail: {
+            totalFrames,
+            blurRejections,
+            glareRejections,
+            blurRate,
+            glareRate,
+            timestamp: now,
+          },
+        })
+      );
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('[Photo Recognition] Failed to dispatch telemetry event', error);
+      }
+    }
+
+    if (import.meta.env.DEV || isEnabled('test-mode')) {
+      const blurPct = (blurRate * 100).toFixed(1);
+      const glarePct = (glareRate * 100).toFixed(1);
+      console.debug(
+        `[Photo Recognition][Telemetry] Frames=${totalFrames} Blur=${blurRejections} (${blurPct}%) Glare=${glareRejections} (${glarePct}%)`
+      );
+    }
+  }, [isEnabled]);
+
   // Load concert data
   const loadConcerts = useCallback(() => {
     dataService
@@ -277,6 +353,7 @@ export function usePhotoRecognition(
     lastMatchedConcertRef.current = null;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
+    telemetryDispatchRef.current = 0;
     previousGuidanceRef.current = 'none';
     guidanceStartTimeRef.current = Date.now();
     telemetryRef.current = {
@@ -343,12 +420,21 @@ export function usePhotoRecognition(
       );
       console.log(`  Concerts with hashes: ${concertsWithHashes.length}`);
       console.log(
-        `  Similarity threshold: ${similarityThreshold} (≥${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}% match)`
+        `  Similarity threshold (${hashAlgorithm}): ${similarityThreshold} (≥${similarityPercent(similarityThreshold, hashAlgorithm).toFixed(1)}% match)`
       );
+      if (resolvedSecondaryHashAlgorithm) {
+        const secondaryThresholdValue =
+          resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm];
+        console.log(
+          `  Secondary threshold (${resolvedSecondaryHashAlgorithm}): ${secondaryThresholdValue} (≥${similarityPercent(secondaryThresholdValue, resolvedSecondaryHashAlgorithm).toFixed(1)}% match)`
+        );
+      }
       console.log(`  Recognition delay: ${recognitionDelay}ms`);
       console.log(`  Check interval: ${checkInterval}ms`);
       console.log(`  Aspect ratio: ${aspectRatio}`);
-      console.log(`  Hash algorithm: ${hashAlgorithm.toUpperCase()}`);
+      console.log(
+        `  Hash algorithm: ${hashAlgorithm.toUpperCase()}${resolvedSecondaryHashAlgorithm ? ` (secondary: ${resolvedSecondaryHashAlgorithm.toUpperCase()})` : ''}`
+      );
       console.log(
         `  Multi-scale recognition: ${enableMultiScale ? `ENABLED (scales: ${stableMultiScaleVariants.map((s) => `${(s * 100).toFixed(0)}%`).join(', ')})` : 'DISABLED'}`
       );
@@ -435,6 +521,11 @@ export function usePhotoRecognition(
         const currentTime = Date.now();
         const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
         const isTestMode = isEnabled('test-mode');
+        const scaleImageDataMap = new Map<number, ImageData>();
+        const scaleRegionMap = new Map<
+          number,
+          { x: number; y: number; width: number; height: number }
+        >();
 
         // Extract current frame
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -459,13 +550,14 @@ export function usePhotoRecognition(
 
           // Detect rectangle in full frame
           const detectionResult = rectangleDetectorRef.current.detectRectangle(fullFrameData);
+          const meetsConfidence = detectionResult.confidence >= rectangleConfidenceThreshold;
 
           // Update detection state for UI
           setDetectedRectangle(detectionResult.rectangle);
           setRectangleConfidence(detectionResult.confidence);
 
           // If rectangle detected with good confidence, use it instead of fixed aspect ratio
-          if (detectionResult.detected && detectionResult.rectangle) {
+          if (detectionResult.detected && detectionResult.rectangle && meetsConfidence) {
             const rect = detectionResult.rectangle;
             // Convert normalized coordinates to pixel coordinates
             finalFramedRegion = {
@@ -595,6 +687,7 @@ export function usePhotoRecognition(
             );
             console.debug(`   Failure Category: motion-blur`);
           }
+          emitTelemetrySnapshot();
           return; // Skip hashing for blurry frames
         }
 
@@ -616,6 +709,7 @@ export function usePhotoRecognition(
             );
             console.debug(`   Failure Category: glare`);
           }
+          emitTelemetrySnapshot();
           return; // Skip hashing for frames with glare
         }
 
@@ -632,6 +726,10 @@ export function usePhotoRecognition(
         if (isEnabled('grayscale-mode')) {
           convertToGrayscale(imageData);
         }
+
+        // Cache primary scale image data/region for potential secondary hashing
+        scaleImageDataMap.set(0.8, imageData);
+        scaleRegionMap.set(0.8, framedRegion);
 
         // Compute hash of current frame using selected algorithm
         const currentHash =
@@ -688,6 +786,10 @@ export function usePhotoRecognition(
               convertToGrayscale(scaledImageData);
             }
 
+            // Cache scaled image data/region for potential secondary hashing
+            scaleImageDataMap.set(scale, scaledImageData);
+            scaleRegionMap.set(scale, scaledRegion);
+
             // Compute hash for this scale
             const scaledHash =
               hashAlgorithm === 'phash'
@@ -710,11 +812,30 @@ export function usePhotoRecognition(
         const concertsWithHashes = concerts.filter((concert) =>
           hasPhotoHashesForAlgorithm(concert, hashAlgorithm)
         );
+        const concertsWithSecondaryHashes =
+          resolvedSecondaryHashAlgorithm && resolvedSecondaryHashAlgorithm !== hashAlgorithm
+            ? concerts.filter((concert) =>
+                hasPhotoHashesForAlgorithm(concert, resolvedSecondaryHashAlgorithm)
+              )
+            : [];
+
+        const secondaryThreshold =
+          resolvedSecondaryHashAlgorithm && resolvedSecondaryHashAlgorithm in DEFAULT_THRESHOLDS
+            ? (resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm])
+            : resolvedSecondaryThreshold;
+
+        const logThreshold = (algorithm: HashAlgorithm, threshold: number | undefined) => {
+          if (threshold === undefined) {
+            return 'n/a';
+          }
+          const similarity = similarityPercent(threshold, algorithm).toFixed(1);
+          return `${threshold} (similarity ≥ ${similarity}%)`;
+        };
 
         if (import.meta.env.DEV || isTestMode) {
           console.debug(`\n${'='.repeat(60)}`);
           console.debug(`[Photo Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
-          console.debug(`Frame Hash: ${currentHash}`);
+          console.debug(`Frame Hash (${hashAlgorithm}): ${currentHash}`);
           console.debug(`Frame Size: ${canvas.width} × ${canvas.height} px (cropped)`);
           console.debug(
             `Cropped Region: x=${framedRegion.x}, y=${framedRegion.y}, w=${framedRegion.width}, h=${framedRegion.height}`
@@ -725,82 +846,166 @@ export function usePhotoRecognition(
               `Multi-Scale: ENABLED (testing ${scaleHashes.length} scales: ${scaleHashes.map((s) => `${(s.scale * 100).toFixed(0)}%`).join(', ')})`
             );
           }
-          console.debug(`Concerts Checked: ${concertsWithHashes.length}`);
+          console.debug(`Concerts Checked (${hashAlgorithm}): ${concertsWithHashes.length}`);
+          if (resolvedSecondaryHashAlgorithm) {
+            console.debug(
+              `Concerts Checked (${resolvedSecondaryHashAlgorithm}): ${concertsWithSecondaryHashes.length}`
+            );
+          }
           console.debug(
-            `Threshold: ${similarityThreshold} (similarity ≥ ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%)`
+            `Threshold (${hashAlgorithm}): ${logThreshold(hashAlgorithm, similarityThreshold)}`
           );
+          if (resolvedSecondaryHashAlgorithm) {
+            console.debug(
+              `Threshold (${resolvedSecondaryHashAlgorithm}): ${logThreshold(resolvedSecondaryHashAlgorithm, secondaryThreshold)}`
+            );
+          }
           console.debug('');
         }
 
-        // Find best match among concerts with photo hashes
-        let bestMatch: Concert | null = null;
-        let bestDistance = Infinity;
-        let bestScale = 0.8;
+        type MatchResult = {
+          match: Concert | null;
+          distance: number;
+          scale: number;
+          algorithm: HashAlgorithm;
+        };
 
-        if (import.meta.env.DEV || isTestMode) {
-          console.debug('Results:');
-        }
+        const evaluateMatches = (
+          algorithm: HashAlgorithm,
+          threshold: number | undefined,
+          scaleHashesForAlgorithm: Array<{
+            hash: string;
+            scale: number;
+            region: typeof framedRegion;
+          }>,
+          concertsForAlgorithm: Concert[]
+        ): MatchResult => {
+          let best: MatchResult = { match: null, distance: Infinity, scale: 0.8, algorithm };
 
-        for (const concert of concertsWithHashes) {
-          // Get all hashes for this concert (handles both single and multi-exposure)
-          const hashes = getPhotoHashesForAlgorithm(concert, hashAlgorithm);
+          if (import.meta.env.DEV || isTestMode) {
+            console.debug(`Results (${algorithm}):`);
+          }
 
-          // Find best match across all exposure variants and all scale variants
-          let bestHashDistance = Infinity;
-          let matchedHashIndex = -1;
-          let matchedScale = 0.8;
+          for (const concert of concertsForAlgorithm) {
+            const hashes = getPhotoHashesForAlgorithm(concert, algorithm);
 
-          // Try each scale hash
-          for (const { hash: scaleHash, scale } of scaleHashes) {
-            // Try each reference hash for this concert
-            for (let i = 0; i < hashes.length; i++) {
-              const hashDistance = hammingDistance(scaleHash, hashes[i]);
-              if (hashDistance < bestHashDistance) {
-                bestHashDistance = hashDistance;
-                matchedHashIndex = i;
-                matchedScale = scale;
+            let bestHashDistance = Infinity;
+            let matchedHashIndex = -1;
+            let matchedScale = 0.8;
+
+            for (const { hash: scaleHash, scale } of scaleHashesForAlgorithm) {
+              for (let i = 0; i < hashes.length; i++) {
+                const hashDistance = hammingDistance(scaleHash, hashes[i]);
+                if (hashDistance < bestHashDistance) {
+                  bestHashDistance = hashDistance;
+                  matchedHashIndex = i;
+                  matchedScale = scale;
+                }
               }
+            }
+
+            const distance = bestHashDistance;
+            const similarity = similarityPercent(distance, algorithm);
+
+            if (import.meta.env.DEV || isTestMode) {
+              const isBest = distance < best.distance;
+              const meetsThreshold = threshold !== undefined ? distance <= threshold : false;
+              const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
+              const hashInfo =
+                hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
+              const scaleInfo = enableMultiScale
+                ? ` @ ${(matchedScale * 100).toFixed(0)}% scale`
+                : '';
+              console.debug(
+                `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${scaleInfo}${isBest ? ' ← BEST MATCH' : ''}`
+              );
+            }
+
+            if (distance < best.distance) {
+              best = {
+                match: concert,
+                distance,
+                scale: matchedScale,
+                algorithm,
+              };
             }
           }
 
-          const distance = bestHashDistance;
-          const similarity = ((256 - distance) / 256) * 100;
+          return best;
+        };
 
-          // Enhanced logging in dev mode or Test Mode
-          if (import.meta.env.DEV || isTestMode) {
-            const isBest = distance < bestDistance;
-            const meetsThreshold = distance <= similarityThreshold;
-            const status = meetsThreshold ? (isBest ? '✓' : '~') : '✗';
-            const hashInfo =
-              hashes.length > 1 ? ` (hash ${matchedHashIndex + 1}/${hashes.length})` : '';
-            const scaleInfo = enableMultiScale
-              ? ` @ ${(matchedScale * 100).toFixed(0)}% scale`
-              : '';
-            console.debug(
-              `  ${status} ${concert.band}: distance=${distance}, similarity=${similarity.toFixed(1)}%${hashInfo}${scaleInfo}${isBest ? ' ← BEST MATCH' : ''}`
-            );
-          }
+        const primaryResult = evaluateMatches(
+          hashAlgorithm,
+          similarityThreshold,
+          scaleHashes,
+          concertsWithHashes
+        );
 
-          if (distance < bestDistance) {
-            bestDistance = distance;
-            bestMatch = concert;
-            bestScale = matchedScale;
+        const secondaryHashes: Array<{ hash: string; scale: number; region: typeof framedRegion }> =
+          [];
+        if (resolvedSecondaryHashAlgorithm) {
+          const sortedScales = Array.from(scaleImageDataMap.keys()).sort((a, b) => a - b);
+          for (const scale of sortedScales) {
+            const imageDataForScale = scaleImageDataMap.get(scale);
+            const regionForScale = scaleRegionMap.get(scale) ?? framedRegion;
+            if (!imageDataForScale) continue;
+            const hashForScale =
+              resolvedSecondaryHashAlgorithm === 'phash'
+                ? computePHash(imageDataForScale)
+                : computeDHash(imageDataForScale);
+            secondaryHashes.push({ hash: hashForScale, scale, region: regionForScale });
           }
         }
+
+        const secondaryResult =
+          resolvedSecondaryHashAlgorithm &&
+          secondaryHashes.length > 0 &&
+          secondaryThreshold !== undefined
+            ? evaluateMatches(
+                resolvedSecondaryHashAlgorithm,
+                secondaryThreshold,
+                secondaryHashes,
+                concertsWithSecondaryHashes
+              )
+            : null;
+
+        const getThresholdForAlgorithm = (algorithm: HashAlgorithm): number => {
+          if (algorithm === hashAlgorithm) {
+            return similarityThreshold;
+          }
+          if (resolvedSecondaryHashAlgorithm && algorithm === resolvedSecondaryHashAlgorithm) {
+            return secondaryThreshold ?? DEFAULT_THRESHOLDS[resolvedSecondaryHashAlgorithm];
+          }
+          return similarityThreshold;
+        };
+
+        const meetsThreshold = (result: MatchResult | null): boolean => {
+          if (!result) return false;
+          return result.distance <= getThresholdForAlgorithm(result.algorithm);
+        };
+
+        const matchedResult = meetsThreshold(primaryResult)
+          ? primaryResult
+          : meetsThreshold(secondaryResult)
+            ? secondaryResult
+            : null;
+
+        const bestDisplayResult =
+          matchedResult ??
+          (secondaryResult && secondaryResult.distance < primaryResult.distance
+            ? secondaryResult
+            : primaryResult);
 
         // Update debug info if enabled
         if (enableDebugInfo || isTestMode) {
           const elapsedMs =
-            matchStartTimeRef.current && bestMatch && bestDistance <= similarityThreshold
-              ? currentTime - matchStartTimeRef.current
+            matchStartTimeRef.current && matchedResult
+              ? currentTime - (matchStartTimeRef.current ?? currentTime)
               : 0;
           const stabilityInfo =
-            matchStartTimeRef.current &&
-            bestMatch &&
-            bestDistance <= similarityThreshold &&
-            elapsedMs > 0
+            matchStartTimeRef.current && matchedResult && elapsedMs > 0
               ? {
-                  concert: bestMatch,
+                  concert: matchedResult.match as Concert,
                   elapsedMs,
                   remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
                   requiredMs: recognitionDelay,
@@ -810,13 +1015,19 @@ export function usePhotoRecognition(
 
           setDebugInfo({
             lastFrameHash: currentHash,
-            bestMatch: bestMatch
-              ? {
-                  concert: bestMatch,
-                  distance: bestDistance,
-                  similarity: ((256 - bestDistance) / 256) * 100,
-                }
-              : null,
+            bestMatch:
+              bestDisplayResult.match && bestDisplayResult.match !== null
+                ? {
+                    concert: bestDisplayResult.match,
+                    distance: bestDisplayResult.distance,
+                    similarity: similarityPercent(
+                      bestDisplayResult.distance,
+                      bestDisplayResult.algorithm
+                    ),
+                    algorithm: bestDisplayResult.algorithm,
+                    scale: bestDisplayResult.scale,
+                  }
+                : null,
             lastCheckTime: currentTime,
             concertCount: concertsWithHashes.length,
             frameCount: frameCountRef.current,
@@ -824,30 +1035,38 @@ export function usePhotoRecognition(
             aspectRatio,
             frameSize: { width: canvas.width, height: canvas.height },
             stability: stabilityInfo,
-            similarityThreshold,
+            similarityThreshold: getThresholdForAlgorithm(
+              matchedResult ? matchedResult.algorithm : hashAlgorithm
+            ),
             recognitionDelay,
             frameQuality: currentFrameQuality,
             telemetry: { ...telemetryRef.current },
-            hashAlgorithm,
+            hashAlgorithm: matchedResult ? matchedResult.algorithm : hashAlgorithm,
           });
         }
 
+        const activeResult = matchedResult;
+
         // Check if best match meets threshold
-        if (bestMatch && bestDistance <= similarityThreshold) {
-          const similarity = ((256 - bestDistance) / 256) * 100;
+        if (activeResult && activeResult.match) {
+          const activeThreshold = getThresholdForAlgorithm(activeResult.algorithm);
+          const similarity = similarityPercent(activeResult.distance, activeResult.algorithm);
 
           if (import.meta.env.DEV || isTestMode) {
             console.debug('');
-            console.debug(`Match Decision: POTENTIAL MATCH (${bestMatch.band})`);
-            console.debug(`  Distance: ${bestDistance} / ${similarityThreshold} threshold`);
+            console.debug(
+              `Match Decision: POTENTIAL MATCH (${activeResult.match.band}) via ${activeResult.algorithm}`
+            );
+            console.debug(`  Distance: ${activeResult.distance} / ${activeThreshold} threshold`);
             console.debug(`  Similarity: ${similarity.toFixed(1)}%`);
-            if (enableMultiScale && bestScale !== 0.8) {
-              console.debug(`  Best Scale: ${(bestScale * 100).toFixed(0)}% (relaxed framing)`);
+            if (enableMultiScale && activeResult.scale !== 0.8) {
+              console.debug(
+                `  Best Scale: ${(activeResult.scale * 100).toFixed(0)}% (relaxed framing)`
+              );
             }
           }
 
-          // Same concert as before?
-          if (lastMatchedConcertRef.current?.id === bestMatch.id) {
+          if (lastMatchedConcertRef.current?.id === activeResult.match.id) {
             // Continue timing
             if (matchStartTimeRef.current) {
               const elapsed = Date.now() - matchStartTimeRef.current;
@@ -860,13 +1079,13 @@ export function usePhotoRecognition(
 
               if (elapsed >= recognitionDelay) {
                 // Stable match confirmed!
-                setRecognizedConcert(bestMatch);
+                setRecognizedConcert(activeResult.match);
                 setIsRecognizing(false);
                 telemetryRef.current.successfulRecognitions += 1;
 
                 if (import.meta.env.DEV || isTestMode) {
                   console.log('');
-                  console.log('🎵 RECOGNIZED!', bestMatch.band);
+                  console.log('🎵 RECOGNIZED!', activeResult.match.band);
                   console.log('━'.repeat(60));
                   console.log(`📊 Telemetry Summary:`);
                   console.log(`  Total Frames: ${telemetryRef.current.totalFrames}`);
@@ -912,7 +1131,7 @@ export function usePhotoRecognition(
             }
           } else {
             // New match, start timing
-            lastMatchedConcertRef.current = bestMatch;
+            lastMatchedConcertRef.current = activeResult.match;
             matchStartTimeRef.current = Date.now();
             setIsRecognizing(true);
 
@@ -924,13 +1143,20 @@ export function usePhotoRecognition(
         } else {
           // No match, reset
           if (import.meta.env.DEV || isTestMode) {
-            if (bestMatch) {
-              const similarity = ((256 - bestDistance) / 256) * 100;
+            if (bestDisplayResult.match) {
+              const similarity = similarityPercent(
+                bestDisplayResult.distance,
+                bestDisplayResult.algorithm
+              );
+              const threshold = getThresholdForAlgorithm(bestDisplayResult.algorithm);
+              const requiredSimilarity = similarityPercent(threshold, bestDisplayResult.algorithm);
               console.debug('');
-              console.debug(`Match Decision: NO MATCH (best was ${bestMatch.band})`);
-              console.debug(`  Distance: ${bestDistance} > ${similarityThreshold} threshold`);
               console.debug(
-                `  Similarity: ${similarity.toFixed(1)}% < required ${(((256 - similarityThreshold) / 256) * 100).toFixed(1)}%`
+                `Match Decision: NO MATCH (best was ${bestDisplayResult.match.band} via ${bestDisplayResult.algorithm})`
+              );
+              console.debug(`  Distance: ${bestDisplayResult.distance} > ${threshold} threshold`);
+              console.debug(
+                `  Similarity: ${similarity.toFixed(1)}% < required ${requiredSimilarity.toFixed(1)}%`
               );
             } else {
               console.debug('');
@@ -940,17 +1166,18 @@ export function usePhotoRecognition(
           }
 
           // Record failure diagnostic
-          if (bestMatch) {
-            const similarity = ((256 - bestDistance) / 256) * 100;
-            // Determine category based on how close we were
+          if (bestDisplayResult.match) {
+            const similarity = similarityPercent(
+              bestDisplayResult.distance,
+              bestDisplayResult.algorithm
+            );
+            const threshold = getThresholdForAlgorithm(bestDisplayResult.algorithm);
             const category: FailureCategory =
-              bestDistance <= similarityThreshold + 10
-                ? 'collision' // Close call, might be similar photos
-                : 'no-match';
+              bestDisplayResult.distance <= threshold + 10 ? 'collision' : 'no-match';
             recordFailure(
               telemetryRef.current,
               category,
-              `Best match: ${bestMatch.band}, distance ${bestDistance}, similarity ${similarity.toFixed(1)}%`,
+              `Best match (${bestDisplayResult.algorithm}): ${bestDisplayResult.match.band}, distance ${bestDisplayResult.distance}, similarity ${similarity.toFixed(1)}%`,
               currentHash
             );
             if (isTestMode) {
@@ -975,6 +1202,8 @@ export function usePhotoRecognition(
             setIsRecognizing(false);
           }
         }
+
+        emitTelemetrySnapshot();
       } catch (error) {
         console.error('Photo recognition error:', error);
       }
@@ -1012,9 +1241,13 @@ export function usePhotoRecognition(
     glareThreshold,
     glarePercentageThreshold,
     hashAlgorithm,
+    resolvedSecondaryHashAlgorithm,
+    resolvedSecondaryThreshold,
     enableMultiScale,
     stableMultiScaleVariants,
     isEnabled,
+    rectangleConfidenceThreshold,
+    emitTelemetrySnapshot,
     restartKey,
   ]);
 

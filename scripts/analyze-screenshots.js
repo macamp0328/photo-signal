@@ -11,6 +11,7 @@ import { createCanvas, loadImage } from 'canvas';
 import { existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { ImageProcessor } from './lib/image-utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,105 +19,21 @@ const __dirname = dirname(__filename);
 const SCREENSHOTS_DIR = join(__dirname, '..', 'src', 'test', 'test_real_screenshots');
 
 // Simplified rectangle detection for analysis
+// Uses shared ImageProcessor utilities
 class RectangleAnalyzer {
-  toGrayscale(imageData) {
-    const gray = new Uint8ClampedArray(imageData.width * imageData.height);
-    const data = imageData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
-      gray[i / 4] = luma;
-    }
-
-    return gray;
+  constructor() {
+    this.processor = new ImageProcessor();
   }
 
-  enhanceContrast(gray) {
-    let min = 255;
-    let max = 0;
+  analyzeImage(imageData) {
+    const gray = this.processor.toGrayscale(imageData);
+    const stats = this.processor.calculateStats(gray);
+    const enhanced = this.processor.enhanceContrast(gray);
+    const edges = this.processor.detectEdges(enhanced, imageData.width, imageData.height);
+    const edgeCount = this.processor.countEdgePixels(edges);
+    const edgePercentage = (edgeCount / (imageData.width * imageData.height)) * 100;
 
-    for (let i = 0; i < gray.length; i++) {
-      if (gray[i] < min) min = gray[i];
-      if (gray[i] > max) max = gray[i];
-    }
-
-    const enhanced = new Uint8ClampedArray(gray.length);
-    if (max === min) return gray;
-
-    const range = max - min;
-    for (let i = 0; i < gray.length; i++) {
-      enhanced[i] = ((gray[i] - min) * 255) / range;
-    }
-
-    return enhanced;
-  }
-
-  detectEdges(gray, width, height, threshold = 100) {
-    const edges = new Uint8ClampedArray(width * height);
-    const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-    const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        let gx = 0;
-        let gy = 0;
-
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const idx = (y + ky) * width + (x + kx);
-            const kernelIdx = (ky + 1) * 3 + (kx + 1);
-            const pixel = gray[idx];
-
-            gx += pixel * sobelX[kernelIdx];
-            gy += pixel * sobelY[kernelIdx];
-          }
-        }
-
-        const magnitude = Math.sqrt(gx * gx + gy * gy);
-        edges[y * width + x] = magnitude > threshold ? 255 : 0;
-      }
-    }
-
-    return edges;
-  }
-
-  analyzeImageQuality(imageData) {
-    const gray = this.toGrayscale(imageData);
-
-    // Calculate average brightness
-    let totalBrightness = 0;
-    for (let i = 0; i < gray.length; i++) {
-      totalBrightness += gray[i];
-    }
-    const avgBrightness = totalBrightness / gray.length;
-
-    // Calculate contrast (standard deviation)
-    let variance = 0;
-    for (let i = 0; i < gray.length; i++) {
-      variance += Math.pow(gray[i] - avgBrightness, 2);
-    }
-    const stdDev = Math.sqrt(variance / gray.length);
-
-    // Enhance and detect edges
-    const enhanced = this.enhanceContrast(gray);
-    const edges = this.detectEdges(enhanced, imageData.width, imageData.height, 100);
-
-    // Count edge pixels
-    let edgeCount = 0;
-    for (let i = 0; i < edges.length; i++) {
-      if (edges[i] === 255) edgeCount++;
-    }
-    const edgePercentage = (edgeCount / edges.length) * 100;
-
-    return {
-      avgBrightness: avgBrightness.toFixed(1),
-      contrast: stdDev.toFixed(1),
-      edgePercentage: edgePercentage.toFixed(2),
-      quality: this.assessQuality(avgBrightness, stdDev, edgePercentage),
-    };
+    return { stats, edgePercentage };
   }
 
   assessQuality(brightness, contrast, edgePercentage) {
@@ -155,15 +72,22 @@ async function analyzeScreenshot(imagePath, filename) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     const analyzer = new RectangleAnalyzer();
-    const analysis = analyzer.analyzeImageQuality(imageData);
+    const { stats, edgePercentage } = analyzer.analyzeImage(imageData);
 
     console.log(`  Resolution: ${image.width}×${image.height}px`);
-    console.log(`  Brightness: ${analysis.avgBrightness} / 255 (optimal: 80-180)`);
-    console.log(`  Contrast:   ${analysis.contrast} (optimal: >40)`);
-    console.log(`  Edges:      ${analysis.edgePercentage}% (optimal: 2-10%)`);
-    console.log(`  Quality:    ${analysis.quality}`);
+    console.log(`  Brightness: ${stats.mean.toFixed(1)} / 255 (optimal: 80-180)`);
+    console.log(`  Contrast:   ${stats.stdDev.toFixed(1)} (optimal: >40)`);
+    console.log(`  Edges:      ${edgePercentage.toFixed(2)}% (optimal: 2-10%)`);
 
-    return analysis;
+    const quality = analyzer.assessQuality(stats.mean, stats.stdDev, edgePercentage);
+    console.log(`  Quality:    ${quality}`);
+
+    return {
+      avgBrightness: stats.mean.toFixed(1),
+      contrast: stats.stdDev.toFixed(1),
+      edgePercentage: edgePercentage.toFixed(2),
+      quality,
+    };
   } catch (error) {
     console.error(`  ✗ Error: ${error.message}`);
     return null;

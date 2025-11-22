@@ -3,7 +3,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { extractORBFeatures, matchImages } from '../orb';
+import {
+  extractORBFeatures,
+  matchImages,
+  LCG_MULTIPLIER,
+  LCG_INCREMENT,
+  LCG_MODULUS,
+} from '../orb';
 
 /**
  * Helper to create a test image
@@ -40,14 +46,10 @@ function createTestImage(
 
 /**
  * Helper to create an image with random noise using seeded PRNG
+ * Uses same LCG constants as ORB implementation for consistency
  */
 function createNoisyImage(width: number, height: number, seed = 12345): ImageData {
   const data = new Uint8ClampedArray(width * height * 4);
-
-  // Simple pseudo-random number generator (same constants as in ORB implementation)
-  const LCG_MULTIPLIER = 1103515245;
-  const LCG_INCREMENT = 12345;
-  const LCG_MODULUS = 0x7fffffff;
 
   let random = seed;
   const nextRandom = () => {

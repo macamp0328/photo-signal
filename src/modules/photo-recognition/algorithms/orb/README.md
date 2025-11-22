@@ -7,11 +7,12 @@ This module implements feature-based photo matching using ORB (Oriented FAST and
 Unlike perceptual hashing which compares overall image structure, ORB extracts distinctive feature points (corners, edges) and creates binary descriptors for each. These features are:
 
 - **Rotation invariant**: Photo can be tilted
-- **Scale invariant**: Photo can be closer/farther from camera
 - **Lighting invariant**: Handles different lighting conditions
 - **Robust to distortion**: Tolerates perspective changes from camera angle
 
-This makes ORB ideal for matching camera photos of printed photos against original digital images.
+⚠️ **Note**: Multi-scale detection (scale invariance) is not yet implemented in this version. The algorithm currently processes images at a single scale.
+
+This makes ORB more robust than perceptual hashing for matching camera photos of printed photos against original digital images.
 
 ## Performance Comparison
 
@@ -63,13 +64,20 @@ const result = matchORBFeatures(queryFeatures, refFeatures, config);
 
 ### `ORBConfig`
 
+**Active Configuration Options:**
+
 - **`maxFeatures`** (default: 500): Maximum number of keypoints to detect. Higher = more accurate but slower.
-- **`scaleFactor`** (default: 1.2): Scale factor between pyramid levels (for multi-scale detection).
-- **`nLevels`** (default: 8): Number of pyramid levels.
-- **`edgeThreshold`** (default: 31): Size of border where features are not detected.
-- **`fastThreshold`** (default: 20): Threshold for FAST corner detection. Lower = more corners.
+- **`fastThreshold`** (default: 20): Threshold for FAST corner detection. Lower = more corners detected.
 - **`minMatchCount`** (default: 15): Minimum number of good matches to consider a valid match.
-- **`matchRatioThreshold`** (default: 0.7): Lowe's ratio test threshold. Lower = stricter matching.
+- **`matchRatioThreshold`** (default: 0.7): Lowe's ratio test threshold for filtering good matches. Lower = stricter matching (fewer false positives).
+
+**Not Yet Implemented:**
+
+The following options are defined in the interface but not yet implemented. They are reserved for future multi-scale pyramid implementation:
+
+- `scaleFactor` – Scale factor between pyramid levels (planned for multi-scale detection)
+- `nLevels` – Number of pyramid levels (planned for multi-scale detection)
+- `edgeThreshold` – Size of border where features are not detected (planned feature)
 
 ## Return Values
 

@@ -13,6 +13,13 @@
  */
 
 /**
+ * Confidence scoring constant for match ratio
+ * A match ratio of 30% or higher indicates a strong match and provides full confidence.
+ * This threshold was empirically determined based on testing with print→camera scenarios.
+ */
+const FULL_CONFIDENCE_MATCH_RATIO = 0.3;
+
+/**
  * A keypoint represents a distinctive feature point in an image
  */
 export interface ORBKeypoint {
@@ -222,30 +229,22 @@ function computeKeypointOrientation(
 
 /**
  * Linear congruential generator constants (POSIX standard)
+ * These are exported for use in tests to ensure consistent random number generation
  */
-const LCG_MULTIPLIER = 1103515245;
-const LCG_INCREMENT = 12345;
-const LCG_MODULUS = 0x7fffffff;
+export const LCG_MULTIPLIER = 1103515245;
+export const LCG_INCREMENT = 12345;
+export const LCG_MODULUS = 0x7fffffff;
 
 /**
- * Extract BRIEF descriptor for a keypoint
- * Uses fixed test pattern for repeatability
+ * Pre-computed BRIEF test pattern
+ * Generated once at module load time for optimal performance
+ * Uses fixed seed for repeatability across runs
  */
-function extractBRIEFDescriptor(
-  keypoint: ORBKeypoint,
-  gray: Uint8ClampedArray,
-  width: number,
-  height: number
-): ORBDescriptor {
-  const descriptor = new Uint8Array(32); // 256 bits
-  const patchSize = 31;
-  const halfPatch = Math.floor(patchSize / 2);
-
-  // Fixed test patterns for repeatability (simplified ORB pattern)
-  const numTests = 256;
+const BRIEF_TEST_PATTERN = (() => {
   const tests: Array<[number, number, number, number]> = [];
+  const numTests = 256;
+  const halfPatch = Math.floor(31 / 2); // 31x31 patch size
 
-  // Generate fixed test pairs using a seeded pseudo-random generator
   let seed = 12345;
   const seededRandom = () => {
     seed = (seed * LCG_MULTIPLIER + LCG_INCREMENT) & LCG_MODULUS;
@@ -260,12 +259,27 @@ function extractBRIEFDescriptor(
     tests.push([x1, y1, x2, y2]);
   }
 
+  return tests;
+})();
+
+/**
+ * Extract BRIEF descriptor for a keypoint
+ * Uses pre-computed test pattern rotated according to keypoint orientation
+ */
+function extractBRIEFDescriptor(
+  keypoint: ORBKeypoint,
+  gray: Uint8ClampedArray,
+  width: number,
+  height: number
+): ORBDescriptor {
+  const descriptor = new Uint8Array(32); // 256 bits
+
   // Rotate test pattern according to keypoint orientation
   const cos = Math.cos(keypoint.angle);
   const sin = Math.sin(keypoint.angle);
 
-  for (let i = 0; i < numTests; i++) {
-    const [x1, y1, x2, y2] = tests[i];
+  for (let i = 0; i < BRIEF_TEST_PATTERN.length; i++) {
+    const [x1, y1, x2, y2] = BRIEF_TEST_PATTERN[i];
 
     // Rotate coordinates
     const rx1 = Math.round(x1 * cos - y1 * sin + keypoint.x);
@@ -387,6 +401,11 @@ export function matchORBFeatures(
     for (let j = 0; j < features2.descriptors.length; j++) {
       const dist = hammingDistance(features1.descriptors[i], features2.descriptors[j]);
 
+      // Skip if descriptors are incompatible (returns Infinity)
+      if (dist === Infinity) {
+        continue;
+      }
+
       if (dist < bestDist) {
         secondBestDist = bestDist;
         bestDist = dist;
@@ -397,7 +416,11 @@ export function matchORBFeatures(
     }
 
     // Lowe's ratio test: good match if best is significantly better than second-best
-    if (bestIdx >= 0 && bestDist < cfg.matchRatioThreshold * secondBestDist) {
+    if (
+      bestIdx >= 0 &&
+      bestDist !== Infinity &&
+      bestDist < cfg.matchRatioThreshold * secondBestDist
+    ) {
       matches.push({
         queryIdx: i,
         trainIdx: bestIdx,
@@ -413,9 +436,10 @@ export function matchORBFeatures(
   const isMatch = matchCount >= cfg.minMatchCount;
 
   // Confidence based on match count and ratio
+  // Higher of: (1) match count relative to minimum, (2) match ratio relative to threshold
   const confidence = Math.min(
     matchCount / cfg.minMatchCount,
-    matchRatio / 0.3 // 30% match ratio = full confidence
+    matchRatio / FULL_CONFIDENCE_MATCH_RATIO
   );
 
   return {

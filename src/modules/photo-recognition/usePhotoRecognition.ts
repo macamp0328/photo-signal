@@ -108,7 +108,7 @@ const recordFailure = (
  * Calculate the framed region coordinates based on aspect ratio
  * @param videoWidth - Width of the video in pixels
  * @param videoHeight - Height of the video in pixels
- * @param aspectRatio - Target aspect ratio ('3:2', '2:3', or 'auto')
+ * @param aspectRatio - Target aspect ratio ('3:2' or '2:3'). 'auto' must be resolved before calling.
  * @param scale - Scale factor for the frame size (default 0.8 = 80% of viewport)
  * @returns Coordinates for cropping {x, y, width, height}
  */

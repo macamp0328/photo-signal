@@ -97,10 +97,9 @@ function App() {
   const defaultSimilarityThreshold = hashAlgorithmValue === 'phash' ? 12 : 24;
   const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
   const similarityThresholdValue = coerceNumberSetting(
-    hashAlgorithmValue === 'phash' &&
-      (rawSimilarityThreshold === undefined ||
-        rawSimilarityThreshold === 40 ||
-        rawSimilarityThreshold === 24)
+    rawSimilarityThreshold === undefined ||
+      rawSimilarityThreshold === 40 ||
+      rawSimilarityThreshold === 24
       ? defaultSimilarityThreshold
       : rawSimilarityThreshold,
     defaultSimilarityThreshold

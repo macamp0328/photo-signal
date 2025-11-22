@@ -49,18 +49,6 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     category: 'recognition',
   },
   {
-    id: 'hash-algorithm',
-    name: 'Hash Algorithm',
-    description: 'Switch between dHash (fast) and pHash (more robust to lighting/angles)',
-    type: 'select',
-    value: 'dhash',
-    options: [
-      { label: 'dHash – Fast', value: 'dhash' },
-      { label: 'pHash – Robust', value: 'phash' },
-    ],
-    category: 'recognition',
-  },
-  {
     id: 'similarity-threshold',
     name: 'Similarity Threshold',
     description:

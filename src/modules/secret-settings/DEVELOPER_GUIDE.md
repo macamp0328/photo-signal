@@ -86,18 +86,13 @@ src/modules/secret-settings/
 - Range: 500–5000ms (default 1000ms)
 - Longer delays reduce false positives; shorter delays feel more responsive
 
-6. **Hash Algorithm** (`hash-algorithm`)
-
-- Switch between dHash (fast) and pHash (more robust to lighting/angles)
-- Useful for A/B testing the new hashing path on real devices
-
-7. **Similarity Threshold** (`similarity-threshold`)
+6. **Similarity Threshold** (`similarity-threshold`)
 
 - Tweak the maximum Hamming distance allowed for a match
 - Lower numbers demand closer matches; higher numbers tolerate more noise
 - Recommended: dHash 24–28, pHash 10–14 (default auto-tunes per algorithm)
 
-8. **Frame Scan Interval** (`recognition-check-interval`)
+7. **Frame Scan Interval** (`recognition-check-interval`)
 
 - Controls how often we hash frames (in ms)
 - Lower values improve responsiveness but increase CPU/battery usage

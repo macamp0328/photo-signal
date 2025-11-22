@@ -24,6 +24,20 @@ const DEFAULT_OPTIONS: Required<RectangleDetectionOptions> = {
 };
 
 /**
+ * Confidence scoring constants
+ */
+const CONFIDENCE_BASE_WEIGHT = 0.4;
+const CONFIDENCE_BASE_OFFSET = 0.3;
+const CONFIDENCE_ASPECT_WEIGHT = 0.5;
+const CONFIDENCE_RECTANGULARITY_MIN = 0.7;
+const CONFIDENCE_RECTANGULARITY_RANGE = 0.3;
+
+/**
+ * Rectangularity measurement constants
+ */
+const MAX_ANGLE_DEVIATION_DEGREES = 120; // Maximum total angle deviation (30 deg per corner avg)
+
+/**
  * Point in 2D space
  */
 interface Point {
@@ -232,7 +246,8 @@ export class RectangleDetectionService {
 
   /**
    * Apply morphological closing to connect broken edges
-   * Uses dilation followed by erosion
+   * Uses 3x3 kernel for dilation followed by erosion
+   * This is a basic morphological closing operation
    */
   private morphologicalClose(
     edges: Uint8ClampedArray,
@@ -654,7 +669,8 @@ export class RectangleDetectionService {
   ): number {
     // Base confidence on area (prefer medium to large rectangles)
     // Use a gentler curve that doesn't penalize smaller photos as much
-    let confidence = Math.min(normalizedArea / 0.3, 1.0) * 0.4 + 0.3;
+    let confidence =
+      Math.min(normalizedArea / 0.3, 1.0) * CONFIDENCE_BASE_WEIGHT + CONFIDENCE_BASE_OFFSET;
 
     // Penalize extreme aspect ratios, but be more lenient
     // Common photo aspect ratios: 3:2 (1.5), 4:3 (1.33), 16:9 (1.78), 1:1 (1.0)
@@ -663,11 +679,11 @@ export class RectangleDetectionService {
       Math.abs(rect.aspectRatio - 1.33), // Distance from 4:3
       Math.abs(rect.aspectRatio - 1.0) // Distance from square
     );
-    confidence *= Math.max(0.5, 1 - aspectRatioDev / 3);
+    confidence *= Math.max(CONFIDENCE_ASPECT_WEIGHT, 1 - aspectRatioDev / 3);
 
     // Bonus for rectangularity (check if angles are close to 90 degrees)
     const rectangularity = this.measureRectangularity(approx);
-    confidence *= 0.7 + rectangularity * 0.3;
+    confidence *= CONFIDENCE_RECTANGULARITY_MIN + rectangularity * CONFIDENCE_RECTANGULARITY_RANGE;
 
     return Math.max(0, Math.min(1, confidence));
   }
@@ -693,8 +709,8 @@ export class RectangleDetectionService {
     }
 
     // Perfect rectangle has angleSum = 0, worst case ~360
-    // Use a more lenient scoring: allow up to 60 degrees total deviation (15 deg per corner avg)
-    const rectangularity = 1 - Math.min(angleSum / 120, 1);
+    // Use a more lenient scoring: allow up to MAX_ANGLE_DEVIATION_DEGREES total deviation
+    const rectangularity = 1 - Math.min(angleSum / MAX_ANGLE_DEVIATION_DEGREES, 1);
 
     return Math.max(0, rectangularity);
   }

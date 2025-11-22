@@ -14,8 +14,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Import the rectangle detection service (simulated - we'll need to adapt)
-// For now, let's just create a test to validate the approach
+// NOTE: This is a simplified version of the rectangle detection algorithm
+// for quick testing purposes. It doesn't include all the improvements made
+// to the actual RectangleDetectionService (convex hull, Douglas-Peucker, etc.)
+// but serves to validate the basic edge detection approach.
 
 const SCREENSHOTS_DIR = join(__dirname, '..', 'src', 'test', 'test_real_screenshots');
 

@@ -20,6 +20,28 @@ export interface HashSet {
   phash?: string[];
 }
 
+export type ORBKeypointTuple = [number, number, number, number, number, number];
+
+export interface ORBFeaturePayload {
+  /** Serialization format version */
+  version: number;
+  /** Original reference image dimensions */
+  imageSize: [number, number];
+  /** Length of each descriptor (bytes) */
+  descriptorLength: number;
+  /** Packed keypoint tuples: [x, y, angle, response, octave, size] */
+  keypoints: ORBKeypointTuple[];
+  /** Descriptors encoded as base64 strings */
+  descriptors: string[];
+  /** Extraction configuration metadata */
+  config: {
+    maxFeatures: number;
+    fastThreshold: number;
+    minMatchCount: number;
+    matchRatioThreshold: number;
+  };
+}
+
 export interface Concert {
   /** Unique identifier */
   id: number;
@@ -45,6 +67,8 @@ export interface Concert {
   photoHash?: string | string[];
   /** New multi-algorithm hash storage */
   photoHashes?: HashSet;
+  /** Pre-computed ORB keypoints/descriptors for feature matching */
+  orbFeatures?: ORBFeaturePayload;
 }
 
 /**

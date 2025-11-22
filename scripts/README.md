@@ -443,6 +443,38 @@ Use this script whenever new reference photos land or when the hashing pipeline 
 
 ---
 
+### `generate-orb-features.js` - Precompute ORB Feature Payloads
+
+Builds the serialized keypoint + descriptor data required by the ORB recognition path and writes it directly into the concert data files.
+
+**Requirements:** Node.js and the `canvas` package (already installed via dev dependencies)
+
+**Usage:**
+
+```bash
+npm run generate-orb-features
+# options mirror rebuild-concert-hashes
+npm run generate-orb-features -- \
+  --input assets/test-data/concerts.json \
+  --public public/data.json \
+  --dry-run \
+  --skip-public \
+  --max-features 400
+```
+
+**What it does:**
+
+- Loads the canonical concerts file (default: `assets/test-data/concerts.json`)
+- Resolves each `imageFile`, loads it with `canvas`, and extracts ORB keypoints/descriptors
+- Serializes the payload into the `orbFeatures` field (versioned structure with packed keypoints and base64 descriptors)
+- Mirrors the freshly generated payloads into `public/data.json` so the primary build stays in sync
+- Supports `--dry-run` for verification and `--skip-public` to limit updates to the test dataset
+- Exposes config overrides for `--max-features`, `--fast-threshold`, `--min-match-count`, and `--match-ratio-threshold`
+
+Use this script any time you add/replace reference photos or adjust the ORB extractor. Cached payloads keep the runtime from re-loading every photo in the browser, dramatically reducing warm-up time in ORB mode.
+
+---
+
 ### `create-easy-test-images.js` - Generate High-Contrast Targets
 
 Creates bold, high-contrast PNG images that are easy for the recognition system to match.

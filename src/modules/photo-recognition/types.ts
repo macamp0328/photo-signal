@@ -1,5 +1,6 @@
 import type { Concert, AspectRatio as AspectRatioType } from '../../types';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
+import type { ORBConfig } from './algorithms/orb';
 
 /**
  * Photo Recognition Module Types
@@ -107,9 +108,10 @@ export interface RecognitionTelemetry {
 }
 
 /**
- * Debug information from photo recognition
+ * Supported hash/feature extraction algorithms
  */
-export type HashAlgorithm = 'dhash' | 'phash';
+export type PerceptualHashAlgorithm = 'dhash' | 'phash';
+export type HashAlgorithm = PerceptualHashAlgorithm | 'orb';
 
 export interface RecognitionDebugInfo {
   /** Last computed frame hash */
@@ -195,7 +197,7 @@ export interface PhotoRecognitionOptions {
   minBrightness?: number;
   /** Maximum brightness for overexposure detection (default 220) */
   maxBrightness?: number;
-  /** Hash algorithm to use: 'dhash' or 'phash' (default 'dhash') */
+  /** Hash/feature algorithm to use (default 'dhash') */
   hashAlgorithm?: HashAlgorithm;
   /** Enable multi-scale recognition for imprecise framing (default false) */
   enableMultiScale?: boolean;
@@ -206,7 +208,9 @@ export interface PhotoRecognitionOptions {
   /** Minimum confidence (0-1) before using detected rectangle for cropping (default 0.6) */
   rectangleConfidenceThreshold?: number;
   /** Optional secondary hash algorithm to run as a fallback (e.g., pHash after dHash) */
-  secondaryHashAlgorithm?: HashAlgorithm | null;
+  secondaryHashAlgorithm?: PerceptualHashAlgorithm | null;
   /** Similarity threshold to use for the secondary algorithm (defaults to algorithm-appropriate value) */
   secondarySimilarityThreshold?: number;
+  /** Optional overrides for the ORB recognition pipeline */
+  orbConfig?: Partial<ORBConfig>;
 }

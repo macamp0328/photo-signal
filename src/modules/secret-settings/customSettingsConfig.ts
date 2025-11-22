@@ -62,6 +62,18 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     category: 'recognition',
   },
   {
+    id: 'recognition-mode',
+    name: 'Recognition Engine',
+    description: 'Choose between dHash/pHash combo or ORB feature matching.',
+    type: 'select',
+    value: 'perceptual',
+    options: [
+      { label: 'Perceptual Hash (dHash + pHash)', value: 'perceptual' },
+      { label: 'ORB Feature Matching', value: 'orb' },
+    ],
+    category: 'recognition',
+  },
+  {
     id: 'recognition-check-interval',
     name: 'Frame Scan Interval',
     description: 'How often frames are hashed (lower = more responsive, higher = lower CPU use).',

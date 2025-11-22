@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Identify photos from camera stream using perceptual hashing (dHash or pHash algorithms) and match to concert data.
+Identify photos from camera stream using perceptual hashing (dHash or pHash) or ORB feature matching and map them to concert data.
 
 ## Responsibility
 
 **ONLY** handles:
 
-- Analyzing video frames for photo detection using perceptual hashing (dHash or pHash)
+- Analyzing video frames for photo detection using perceptual hashing (dHash/pHash) or ORB features
 - Matching photos to concert data using Hamming distance
 - Providing recognition results with confidence scoring
 - Tracking failure diagnostics for debugging and optimization
@@ -37,12 +37,13 @@ options?: {
   checkInterval?: number;        // Interval for checking frames (ms), default 1000
   enableDebugInfo?: boolean;     // Enable debug information output, default false
   aspectRatio?: '3:2' | '2:3';   // Aspect ratio for frame cropping (default '3:2')
-  hashAlgorithm?: 'dhash' | 'phash';  // Hash algorithm to use (default 'dhash')
+  hashAlgorithm?: 'dhash' | 'phash' | 'orb';  // Algorithm to use (default 'dhash')
   sharpnessThreshold?: number;   // Sharpness threshold for blur detection (default 100)
   glareThreshold?: number;       // Glare detection threshold (default 250)
   glarePercentageThreshold?: number;  // Glare percentage threshold (default 20)
   enableMultiScale?: boolean;    // Enable multi-scale recognition for imprecise framing (default false)
   multiScaleVariants?: number[]; // Scale variants to try (default [0.75, 0.8, 0.85, 0.9])
+  orbConfig?: Partial<ORBConfig>; // Optional overrides when hashAlgorithm === 'orb'
 }
 ```
 
@@ -122,6 +123,18 @@ This module supports two perceptual hashing algorithms with **functional frame c
 - ⚠️ **Larger**: +8KB code size
 - 📊 **Hash size**: 64-bit (16 hex characters)
 - **Best for**: Challenging conditions, varied angles, larger galleries
+
+### ORB Feature Matching (Experimental)
+
+For printed zines or highly distorted angles, enable the **ORB recognition engine** from Secret Settings (`Recognition Engine → ORB Feature Matching`). ORB extracts FAST keypoints + BRIEF descriptors and compares raw features instead of hashes.
+
+- ✅ **Very robust** to rotation, scale, glare, and perspective changes
+- ✅ **Near-zero false positives** thanks to feature matching with Lowe's ratio test
+- ⚠️ **Heavier CPU usage** (~50-100ms per frame depending on device)
+- ⚠️ **Requires reference images** (`concert.imageFile`) to precompute descriptors
+- 🔧 Configurable via `orbConfig` (see API options) for advanced tuning
+
+Use ORB when pointing at printed photos under varying lighting or when perceptual hashing struggles to stay under threshold.
 
 ### Recognition Pipeline
 
@@ -546,6 +559,20 @@ const { recognizedConcert } = usePhotoRecognition(stream, {
   similarityThreshold: 35, // Slightly stricter
   sharpnessThreshold: 80, // More lenient blur detection
   glarePercentageThreshold: 25, // More lenient glare detection
+});
+```
+
+### ORB Feature Matching (Printed Photos)
+
+```typescript
+// Enable ORB to handle printed photos with rotation/lighting changes
+const { recognizedConcert } = usePhotoRecognition(stream, {
+  hashAlgorithm: 'orb',
+  recognitionDelay: 1500,
+  orbConfig: {
+    minMatchCount: 22, // Require at least 22 good matches
+    matchRatioThreshold: 0.7, // Lowe's ratio threshold (lower = stricter)
+  },
 });
 ```
 

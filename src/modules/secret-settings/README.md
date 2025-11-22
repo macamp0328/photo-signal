@@ -30,6 +30,7 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 8. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
 9. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
 10. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
+11. **Recognition Engine** - Switch between perceptual hashing (dHash + pHash) or ORB feature matching
 
 ---
 

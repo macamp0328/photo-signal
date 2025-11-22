@@ -25,19 +25,12 @@ describe('validate-audio-urls', () => {
         if (existsSync(file)) {
           unlinkSync(file);
         }
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     }
     vi.restoreAllMocks();
   });
-
-  const createTestFile = (filename, content = '') => {
-    const filepath = join(testDir, filename);
-    writeFileSync(filepath, content);
-    testFiles.push(filepath);
-    return filepath;
-  };
 
   describe('checkUrl', () => {
     it('should detect local file paths and delegate to checkLocalFile', async () => {
@@ -52,8 +45,7 @@ describe('validate-audio-urls', () => {
     it('should handle HTTP URLs', async () => {
       // Note: This test would require network access or mocking
       // For a unit test, we'll just verify the structure
-      const url = 'http://example.com/audio.opus';
-      
+
       // We can't easily test actual HTTP requests in unit tests
       // without mocking, so we'll skip this or mock it
       expect(checkUrl).toBeDefined();
@@ -61,8 +53,7 @@ describe('validate-audio-urls', () => {
 
     it('should handle HTTPS URLs', async () => {
       // Similar to HTTP - would need mocking for proper testing
-      const url = 'https://example.com/audio.opus';
-      
+
       expect(checkUrl).toBeDefined();
     });
   });
@@ -156,11 +147,7 @@ describe('validate-audio-urls', () => {
     });
 
     it('should round success rate to 1 decimal place', () => {
-      const results = [
-        { accessible: true },
-        { accessible: true },
-        { accessible: false },
-      ];
+      const results = [{ accessible: true }, { accessible: true }, { accessible: false }];
 
       const stats = calculateStats(results);
 

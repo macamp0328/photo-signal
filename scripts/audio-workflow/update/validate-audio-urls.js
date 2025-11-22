@@ -301,121 +301,121 @@ Examples:
     process.exit(0);
   }
 
-// Main validation logic
-async function validateAudioUrls() {
-  console.log('🎵 Audio URL Validation Script\n');
-  console.log('Configuration:');
-  console.log(`  Source: ${options.source}`);
-  console.log(`  Timeout: ${options.timeout}ms`);
-  console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}\n`);
+  // Main validation logic
+  async function validateAudioUrls() {
+    console.log('🎵 Audio URL Validation Script\n');
+    console.log('Configuration:');
+    console.log(`  Source: ${options.source}`);
+    console.log(`  Timeout: ${options.timeout}ms`);
+    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}\n`);
 
-  // Read source data.json
-  const sourcePath = path.resolve(projectRoot, options.source);
+    // Read source data.json
+    const sourcePath = path.resolve(projectRoot, options.source);
 
-  if (!fs.existsSync(sourcePath)) {
-    console.error(`❌ Error: Source file not found: ${sourcePath}`);
-    process.exit(1);
-  }
-
-  console.log(`📂 Reading source file: ${sourcePath}`);
-  const sourceContent = fs.readFileSync(sourcePath, 'utf8');
-
-  let data;
-  try {
-    data = JSON.parse(sourceContent);
-  } catch (error) {
-    console.error(`❌ Error: Invalid JSON in ${sourcePath}`);
-    console.error(`   ${error.message}`);
-    process.exit(1);
-  }
-
-  if (!data.concerts || !Array.isArray(data.concerts)) {
-    console.error('❌ Error: Invalid data.json format (missing concerts array)');
-    process.exit(1);
-  }
-
-  console.log(`✓ Found ${data.concerts.length} concerts\n`);
-
-  // Validate each concert's audio URL
-  const results = [];
-  let successCount = 0;
-  let failureCount = 0;
-
-  for (const concert of data.concerts) {
-    console.log(`Checking Concert #${concert.id}: ${concert.band}`);
-
-    // Check primary URL
-    const primaryResult = await checkUrl(concert.audioFile, options.timeout);
-    results.push({
-      concert,
-      type: 'primary',
-      result: primaryResult,
-    });
-
-    const primaryIcon = primaryResult.accessible ? '✓' : '✗';
-    console.log(`  ${primaryIcon} Primary:  ${concert.audioFile}`);
-    console.log(`            Status: ${primaryResult.status} ${primaryResult.statusText}`);
-
-    if (primaryResult.accessible) {
-      successCount++;
-    } else {
-      failureCount++;
+    if (!fs.existsSync(sourcePath)) {
+      console.error(`❌ Error: Source file not found: ${sourcePath}`);
+      process.exit(1);
     }
 
-    // Check fallback URL if requested
-    if (options.checkFallback && concert.audioFileFallback) {
-      const fallbackResult = await checkUrl(concert.audioFileFallback, options.timeout);
+    console.log(`📂 Reading source file: ${sourcePath}`);
+    const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+
+    let data;
+    try {
+      data = JSON.parse(sourceContent);
+    } catch (error) {
+      console.error(`❌ Error: Invalid JSON in ${sourcePath}`);
+      console.error(`   ${error.message}`);
+      process.exit(1);
+    }
+
+    if (!data.concerts || !Array.isArray(data.concerts)) {
+      console.error('❌ Error: Invalid data.json format (missing concerts array)');
+      process.exit(1);
+    }
+
+    console.log(`✓ Found ${data.concerts.length} concerts\n`);
+
+    // Validate each concert's audio URL
+    const results = [];
+    let successCount = 0;
+    let failureCount = 0;
+
+    for (const concert of data.concerts) {
+      console.log(`Checking Concert #${concert.id}: ${concert.band}`);
+
+      // Check primary URL
+      const primaryResult = await checkUrl(concert.audioFile, options.timeout);
       results.push({
         concert,
-        type: 'fallback',
-        result: fallbackResult,
+        type: 'primary',
+        result: primaryResult,
       });
 
-      const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
+      const primaryIcon = primaryResult.accessible ? '✓' : '✗';
+      console.log(`  ${primaryIcon} Primary:  ${concert.audioFile}`);
+      console.log(`            Status: ${primaryResult.status} ${primaryResult.statusText}`);
+
+      if (primaryResult.accessible) {
+        successCount++;
+      } else {
+        failureCount++;
+      }
+
+      // Check fallback URL if requested
+      if (options.checkFallback && concert.audioFileFallback) {
+        const fallbackResult = await checkUrl(concert.audioFileFallback, options.timeout);
+        results.push({
+          concert,
+          type: 'fallback',
+          result: fallbackResult,
+        });
+
+        const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
         console.log(`  ${fallbackIcon} Fallback: ${concert.audioFileFallback}`);
-      console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
-    }
+        console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
+      }
 
-    console.log();
-  }
-
-  // Summary
-  console.log('═'.repeat(70));
-  console.log('📊 Validation Summary:\n');
-
-  const totalChecked = successCount + failureCount;
-  const successRate = totalChecked > 0 ? ((successCount / totalChecked) * 100).toFixed(1) : 0;
-
-  console.log(`  Total URLs Checked: ${totalChecked}`);
-  console.log(`  Successful: ${successCount} (${successRate}%)`);
-  console.log(`  Failed:     ${failureCount}`);
-  console.log();
-
-  // Show failed URLs
-  const failures = results.filter((r) => !r.result.accessible);
-  if (failures.length > 0) {
-    console.log('❌ Failed URLs:\n');
-    for (const failure of failures) {
-      console.log(`  Concert #${failure.concert.id}: ${failure.concert.band}`);
-      console.log(`    URL: ${failure.result.url}`);
-      console.log(`    Status: ${failure.result.status} ${failure.result.statusText}`);
       console.log();
     }
 
-    console.log('Recommendations:');
-    console.log('1. Check that audio files are uploaded to the CDN');
-    console.log('2. Verify CDN URLs are correct in data.json');
-    console.log('3. Ensure CDN allows public access (CORS enabled)');
-    console.log('4. Check network connectivity');
+    // Summary
+    console.log('═'.repeat(70));
+    console.log('📊 Validation Summary:\n');
+
+    const totalChecked = successCount + failureCount;
+    const successRate = totalChecked > 0 ? ((successCount / totalChecked) * 100).toFixed(1) : 0;
+
+    console.log(`  Total URLs Checked: ${totalChecked}`);
+    console.log(`  Successful: ${successCount} (${successRate}%)`);
+    console.log(`  Failed:     ${failureCount}`);
     console.log();
 
-    process.exit(1);
-  } else {
-    console.log('✅ All audio URLs are accessible!');
-    console.log();
-    process.exit(0);
+    // Show failed URLs
+    const failures = results.filter((r) => !r.result.accessible);
+    if (failures.length > 0) {
+      console.log('❌ Failed URLs:\n');
+      for (const failure of failures) {
+        console.log(`  Concert #${failure.concert.id}: ${failure.concert.band}`);
+        console.log(`    URL: ${failure.result.url}`);
+        console.log(`    Status: ${failure.result.status} ${failure.result.statusText}`);
+        console.log();
+      }
+
+      console.log('Recommendations:');
+      console.log('1. Check that audio files are uploaded to the CDN');
+      console.log('2. Verify CDN URLs are correct in data.json');
+      console.log('3. Ensure CDN allows public access (CORS enabled)');
+      console.log('4. Check network connectivity');
+      console.log();
+
+      process.exit(1);
+    } else {
+      console.log('✅ All audio URLs are accessible!');
+      console.log();
+      process.exit(0);
+    }
   }
-}
 
   // Run validation
   validateAudioUrls().catch((error) => {

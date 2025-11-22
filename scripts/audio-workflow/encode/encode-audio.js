@@ -534,7 +534,7 @@ export function parseLUFS(ffmpegOutput) {
   try {
     const stats = JSON.parse(jsonMatch[0]);
     return coerceLoudnessStats(stats);
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -839,9 +839,6 @@ function probeBitrateKbps(filePath) {
 }
 
 /**
- * Generate audio index manifest
- */
-/**
  * Generate audio index manifest from processing results
  * @param {Array} results - Array of processing results
  * @param {object} config - Encoding configuration
@@ -893,9 +890,6 @@ function generateAudioIndex(results, outputDir, config) {
   console.log(`  ✓ Audio index: ${indexPath}`);
 }
 
-/**
- * Generate photo-audio map
- */
 /**
  * Generate photo-audio mapping manifest from processing results
  * @param {Array} results - Array of processing results
@@ -1678,7 +1672,7 @@ function printVersion() {
       readFileSync(new URL('../../../package.json', import.meta.url), 'utf-8')
     );
     console.log(`encode-audio v${pkg.version}`);
-    } catch {
+  } catch {
     console.log('encode-audio');
   }
 }

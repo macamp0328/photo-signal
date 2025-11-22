@@ -26,7 +26,7 @@ describe('migrate-audio-to-cdn', () => {
         if (existsSync(file)) {
           unlinkSync(file);
         }
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     }

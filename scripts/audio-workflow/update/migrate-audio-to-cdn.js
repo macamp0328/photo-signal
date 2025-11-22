@@ -278,97 +278,97 @@ Examples:
 
     for (let i = 0; i < data.concerts.length; i++) {
       const concert = data.concerts[i];
-    const originalAudioFile = concert.audioFile;
+      const originalAudioFile = concert.audioFile;
 
-    // Check if already migrated
-    if (originalAudioFile.startsWith('http://') || originalAudioFile.startsWith('https://')) {
+      // Check if already migrated
+      if (originalAudioFile.startsWith('http://') || originalAudioFile.startsWith('https://')) {
+        console.log(
+          `⏭️  Concert #${concert.id} (${concert.band}): Already using remote URL, skipping`
+        );
+        skippedCount++;
+        continue;
+      }
+
+      // Update concert using extracted function
+      const updatedConcert = updateConcert(concert, options.baseUrl, options.cdn);
+
+      // Replace concert in array
+      data.concerts[i] = updatedConcert;
+
+      changes.push({
+        id: concert.id,
+        band: concert.band,
+        original: originalAudioFile,
+        cdn: updatedConcert.audioFile,
+        fallback: updatedConcert.audioFileFallback,
+      });
+
+      console.log(`✓ Concert #${concert.id} (${concert.band}):`);
+      console.log(`    Original: ${originalAudioFile}`);
+      console.log(`    CDN URL:  ${updatedConcert.audioFile}`);
+      console.log(`    Fallback: ${updatedConcert.audioFileFallback}`);
+      console.log();
+
+      migratedCount++;
+    }
+
+    // Summary
+    console.log('═'.repeat(70));
+    console.log('📊 Migration Summary:\n');
+    console.log(`  Migrated: ${migratedCount} concerts`);
+    console.log(`  Skipped:  ${skippedCount} concerts (already using remote URLs)`);
+    console.log(`  Total:    ${data.concerts.length} concerts\n`);
+
+    // Write output
+    if (options.dryRun) {
+      console.log('⚠️  DRY RUN MODE: No files were modified\n');
+      console.log('To apply these changes, run without --dry-run flag\n');
+    } else {
+      // Validate migration before writing
+      try {
+        validateMigration(originalData, data);
+      } catch (error) {
+        console.error(`❌ Validation failed: ${error.message}`);
+        console.error('   Migration aborted to prevent data loss');
+        process.exit(1);
+      }
+
+      // Create backup using extracted function
+      try {
+        const backupPath = createBackup(sourcePath);
+        console.log(`💾 Creating backup: ${backupPath}`);
+      } catch (error) {
+        console.error(`❌ Backup failed: ${error.message}`);
+        process.exit(1);
+      }
+
+      // Write updated data.json
+      const outputContent = JSON.stringify(data, null, 2) + '\n';
+      fs.writeFileSync(sourcePath, outputContent, 'utf8');
+      console.log(`✅ Updated data.json: ${sourcePath}\n`);
+
+      console.log('Next Steps:');
+      console.log('1. Upload audio files to your CDN:');
+      if (options.cdn === 'github-release') {
+        console.log('   - Go to: https://github.com/username/repo/releases');
+        console.log('   - Create a new release (e.g., "audio-v1")');
+        console.log('   - Upload Opus files from public/audio/ directory');
+      } else if (options.cdn === 'r2') {
+        console.log('   - Use Cloudflare dashboard or wrangler CLI');
+        console.log('   - Upload files to your R2 bucket');
+        console.log('   - Configure public access and CORS');
+      }
+      console.log('\n2. Test the migration:');
+      console.log('   npm run dev');
+      console.log('   Open the app and verify audio plays from CDN');
+      console.log('\n3. Validate all URLs:');
+      console.log('   node scripts/audio-workflow/update/validate-audio-urls.js');
+      console.log('\n4. Once confirmed, remove local Opus files from git:');
+      console.log('   git rm public/audio/*.opus');
+      console.log('   git commit -m "chore: remove production audio files (now on CDN)"');
+      console.log('\n5. Update .gitignore to exclude future production audio files:');
       console.log(
-        `⏭️  Concert #${concert.id} (${concert.band}): Already using remote URL, skipping`
-      );
-      skippedCount++;
-      continue;
-    }
-
-    // Update concert using extracted function
-    const updatedConcert = updateConcert(concert, options.baseUrl, options.cdn);
-
-    // Replace concert in array
-    data.concerts[i] = updatedConcert;
-
-    changes.push({
-      id: concert.id,
-      band: concert.band,
-      original: originalAudioFile,
-      cdn: updatedConcert.audioFile,
-      fallback: updatedConcert.audioFileFallback,
-    });
-
-    console.log(`✓ Concert #${concert.id} (${concert.band}):`);
-    console.log(`    Original: ${originalAudioFile}`);
-    console.log(`    CDN URL:  ${updatedConcert.audioFile}`);
-    console.log(`    Fallback: ${updatedConcert.audioFileFallback}`);
-    console.log();
-
-    migratedCount++;
-  }
-
-  // Summary
-  console.log('═'.repeat(70));
-  console.log('📊 Migration Summary:\n');
-  console.log(`  Migrated: ${migratedCount} concerts`);
-  console.log(`  Skipped:  ${skippedCount} concerts (already using remote URLs)`);
-  console.log(`  Total:    ${data.concerts.length} concerts\n`);
-
-  // Write output
-  if (options.dryRun) {
-    console.log('⚠️  DRY RUN MODE: No files were modified\n');
-    console.log('To apply these changes, run without --dry-run flag\n');
-  } else {
-    // Validate migration before writing
-    try {
-      validateMigration(originalData, data);
-    } catch (error) {
-      console.error(`❌ Validation failed: ${error.message}`);
-      console.error('   Migration aborted to prevent data loss');
-      process.exit(1);
-    }
-
-    // Create backup using extracted function
-    try {
-      const backupPath = createBackup(sourcePath);
-      console.log(`💾 Creating backup: ${backupPath}`);
-    } catch (error) {
-      console.error(`❌ Backup failed: ${error.message}`);
-      process.exit(1);
-    }
-
-    // Write updated data.json
-    const outputContent = JSON.stringify(data, null, 2) + '\n';
-    fs.writeFileSync(sourcePath, outputContent, 'utf8');
-    console.log(`✅ Updated data.json: ${sourcePath}\n`);
-
-    console.log('Next Steps:');
-    console.log('1. Upload audio files to your CDN:');
-    if (options.cdn === 'github-release') {
-      console.log('   - Go to: https://github.com/username/repo/releases');
-      console.log('   - Create a new release (e.g., "audio-v1")');
-      console.log('   - Upload Opus files from public/audio/ directory');
-    } else if (options.cdn === 'r2') {
-      console.log('   - Use Cloudflare dashboard or wrangler CLI');
-      console.log('   - Upload files to your R2 bucket');
-      console.log('   - Configure public access and CORS');
-    }
-    console.log('\n2. Test the migration:');
-    console.log('   npm run dev');
-    console.log('   Open the app and verify audio plays from CDN');
-    console.log('\n3. Validate all URLs:');
-    console.log('   node scripts/audio-workflow/update/validate-audio-urls.js');
-    console.log('\n4. Once confirmed, remove local Opus files from git:');
-    console.log('   git rm public/audio/*.opus');
-    console.log('   git commit -m "chore: remove production audio files (now on CDN)"');
-    console.log('\n5. Update .gitignore to exclude future production audio files:');
-    console.log(
-      '   # ⚠️ Review your .gitignore manually. Do NOT ignore all Opus files if you want to keep demo files.'
+        '   # ⚠️ Review your .gitignore manually. Do NOT ignore all Opus files if you want to keep demo files.'
       );
       console.log(
         '   # For example, you can add a pattern for production files only, or follow the existing .gitignore comments.'

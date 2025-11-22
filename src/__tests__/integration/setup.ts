@@ -78,21 +78,19 @@ export const mockConcertData = {
  * Create a mock MediaStream for camera tests
  */
 export const createMockMediaStream = () => {
-  const mockTrack = {
+  const mockStream = new MediaStream();
+  const [firstVideoTrack] = mockStream.getVideoTracks();
+  const fallbackTrack = {
     stop: vi.fn(),
     enabled: true,
     kind: 'video',
     label: 'Mock Video Track',
-  };
+  } as unknown as MediaStreamTrack;
+  const mockTrack = firstVideoTrack ?? fallbackTrack;
 
-  const mockStream = {
-    getTracks: vi.fn(() => [mockTrack]),
-    getVideoTracks: vi.fn(() => [mockTrack]),
-    getAudioTracks: vi.fn(() => []),
-    addTrack: vi.fn(),
-    removeTrack: vi.fn(),
-    active: true,
-  } as unknown as MediaStream;
+  if (!firstVideoTrack) {
+    mockStream.addTrack(mockTrack);
+  }
 
   return { mockStream, mockTrack };
 };

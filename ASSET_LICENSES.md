@@ -44,10 +44,12 @@ These images are simple gradients and programmatically generated graphics (via I
 | File           | Description              | Source                              | License                   |
 | -------------- | ------------------------ | ----------------------------------- | ------------------------- |
 | `R0043343.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+| `R0043815.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
 | `R0055333.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
 | `R0055917.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
 | `R0060632.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
 | `R0060861.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
+| `P3150466.jpg` | Real-world concert photo | Provided by Photo Signal maintainer | Internal testing use only |
 
 These photos are owned by the contributor and included solely for internal testing and manual recognition exercises. Do not redistribute outside this repository without explicit permission.
 

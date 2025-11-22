@@ -291,7 +291,7 @@ Each module has its own README defining its API contract, usage, and examples.
 
 ### Example Real Photos
 
-- **[assets/example-real-photos/README.md](./assets/example-real-photos/README.md)** - Real concert photos for gallery testing and photo recognition validation (5 JPEG files)
+- **[assets/example-real-photos/README.md](./assets/example-real-photos/README.md)** - Real concert photos for gallery testing and photo recognition validation (7 JPEG files)
 
 ---
 

@@ -47,7 +47,8 @@ Expand Playwright visual regression test coverage to include all major UI states
    - Open state (visible with all sections)
    - Feature flags toggled on/off
    - Custom settings sliders at various positions
-   - Retro sounds enabled visual feedback
+
+- Rectangle detection overlay active
 
 2. **Concert Info Display**
    - No concert selected (empty state)
@@ -162,18 +163,21 @@ test.describe('Secret Settings Menu', () => {
     await expect(page).toHaveScreenshot('secret-settings-test-mode-on.png');
   });
 
-  test('feature flags - psychedelic mode enabled', async ({ page }) => {
+  test('feature flags - rectangle detection enabled', async ({ page }) => {
     await page.goto('/');
 
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
 
-    // Enable Psychedelic Mode
-    const psychedelicToggle = page.locator('[data-testid="flag-psychedelic-mode"]');
-    await psychedelicToggle.click();
+    // Enable rectangle detection
+    const rectangleToggle = page.locator('[data-testid="flag-rectangle-detection"]');
+    await rectangleToggle.click();
+
+    // Verify toggle state changed
+    await expect(rectangleToggle).toBeChecked();
 
     // Take snapshot
-    await expect(page).toHaveScreenshot('secret-settings-psychedelic-on.png');
+    await expect(page).toHaveScreenshot('secret-settings-rectangle-detection-on.png');
   });
 
   test('custom settings - motion threshold slider', async ({ page }) => {
@@ -190,22 +194,21 @@ test.describe('Secret Settings Menu', () => {
     await expect(page).toHaveScreenshot('secret-settings-slider-50.png');
   });
 
-  test('retro sounds - visual feedback', async ({ page }) => {
+  test('feature flags - grayscale mode preview', async ({ page }) => {
     await page.goto('/');
 
     // Open secret settings
     await page.locator('body').click({ clickCount: 3 });
 
-    // Enable retro sounds
-    const retroToggle = page.locator('[data-testid="flag-retro-sounds"]');
-    await retroToggle.click();
+    // Enable grayscale mode
+    const grayscaleToggle = page.locator('[data-testid="flag-grayscale-mode"]');
+    await grayscaleToggle.click();
 
-    // Click a button to trigger sound (visual feedback)
-    const resetButton = page.locator('[data-testid="reset-flags"]');
-    await resetButton.click();
+    // Verify toggle state changed
+    await expect(grayscaleToggle).toBeChecked();
 
-    // Take snapshot during sound playback
-    await expect(page).toHaveScreenshot('secret-settings-retro-sound.png');
+    // Take snapshot to capture grayscale UI changes
+    await expect(page).toHaveScreenshot('secret-settings-grayscale-mode.png');
   });
 });
 ```
@@ -616,24 +619,29 @@ test.describe('Feature Flag Variations', () => {
     await expect(page).toHaveScreenshot('feature-debug-overlay.png');
   });
 
-  test('psychedelic mode enabled', async ({ page }) => {
+  test('multi-scale recognition enabled', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem(
         'feature-flags',
         JSON.stringify({
-          'psychedelic-mode': true,
+          'multi-scale-recognition': true,
         })
       );
     });
 
     await page.goto('/');
 
-    // Verify psychedelic effect applied
-    const psychedelicEffect = page.locator('[data-testid="psychedelic-effect"]');
-    await expect(psychedelicEffect).toBeVisible();
+    // Verify flag persisted in localStorage
+    const isEnabled = await page.evaluate(() => {
+      const stored = localStorage.getItem('feature-flags');
+      if (!stored) return false;
+      const flags = JSON.parse(stored);
+      return Boolean(flags['multi-scale-recognition']);
+    });
+    expect(isEnabled).toBe(true);
 
     // Take snapshot
-    await expect(page).toHaveScreenshot('feature-psychedelic-mode.png');
+    await expect(page).toHaveScreenshot('feature-multi-scale-recognition.png');
   });
 
   test('gallery layout enabled', async ({ page }) => {
@@ -846,7 +854,7 @@ npm run test:visual:report
 - [ ] Error states (permission, network, empty)
 - [ ] Responsive (desktop, tablet, mobile, landscape)
 - [ ] Accessibility (focus, contrast, ARIA)
-- [ ] Feature flags (debug, psychedelic, gallery, test mode)
+- [ ] Feature flags (debug, rectangle detection, gallery, test mode)
 
 ---
 

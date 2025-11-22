@@ -815,7 +815,8 @@ Some feature flags and settings require a full page reload to take effect proper
 **Code**:
 
 ```typescript
-import { useRetroSounds } from './useRetroSounds';
+import { useFeatureFlags } from './useFeatureFlags';
+import { useCustomSettings } from './useCustomSettings';
 import { useCallback } from 'react';
 
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
@@ -827,10 +828,11 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
     onClose();
 
     // Reload page after short delay (100ms) to show close animation
-    setTimeout(() => {
+    // setTimeout is intentional so the reload still fires after unmount
+    window.setTimeout(() => {
       window.location.reload();
     }, 100);
-  }, [isEnabled, playRandomSound, onClose]);
+  }, [onClose]);
 
   return (
     // ... in the JSX, before Developer Info section
@@ -886,10 +888,9 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
 2. User toggles feature flags or adjusts settings
 3. Changes preview immediately (saved to localStorage)
 4. User clicks **"Send It 🚀"** button
-5. Retro sound plays (if enabled)
-6. Menu closes smoothly
-7. Page reloads after 100ms (ensures all changes take effect)
-8. All settings persist via localStorage
+5. Menu closes smoothly
+6. Page reloads after 100ms (ensures all changes take effect)
+7. All settings persist via localStorage
 
 ### Why 100ms Delay?
 

@@ -39,7 +39,7 @@ describe('Camera Access → Photo Recognition Integration', () => {
     );
   });
 
-  it('should show error message when camera permission denied', async () => {
+  it('should show error message and retry button when camera permission denied', async () => {
     const permissionError = new Error('Permission denied');
     navigator.mediaDevices.getUserMedia = vi.fn().mockRejectedValue(permissionError);
 
@@ -52,34 +52,13 @@ describe('Camera Access → Photo Recognition Integration', () => {
     const user = userEvent.setup();
     await user.click(activateButton);
 
-    // Wait for error message (Camera Access Required)
+    // Wait for error message and retry button
     await waitFor(
       () => {
         expect(screen.getByText(/Camera Access Required/i)).toBeInTheDocument();
-      },
-      { timeout: 5000 }
-    );
-  });
-
-  it('should show retry button when camera permission denied', async () => {
-    const permissionError = new Error('Permission denied');
-    navigator.mediaDevices.getUserMedia = vi.fn().mockRejectedValue(permissionError);
-
-    render(<App />);
-
-    const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
-    });
-
-    const user = userEvent.setup();
-    await user.click(activateButton);
-
-    // Wait for retry button
-    await waitFor(
-      () => {
         expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
       },
-      { timeout: 3000 }
+      { timeout: 5000 }
     );
   });
 
@@ -127,24 +106,5 @@ describe('Camera Access → Photo Recognition Integration', () => {
 
     // Before activation, camera should not be requested
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
-  });
-
-  it('should initialize camera access module when activated', async () => {
-    render(<App />);
-
-    const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
-    });
-
-    const user = userEvent.setup();
-    await user.click(activateButton);
-
-    // Verify camera access module initialized
-    await waitFor(
-      () => {
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
-      },
-      { timeout: 5000 }
-    );
   });
 });

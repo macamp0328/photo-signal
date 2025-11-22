@@ -46,10 +46,14 @@ describe('Photo Recognition → Audio Playback Integration', () => {
     const user = userEvent.setup();
     await user.click(activateButton);
 
-    // Wait for camera to be requested
+    // Verify camera permission is requested with correct parameters
     await waitFor(
       () => {
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith(
+          expect.objectContaining({
+            video: expect.any(Object),
+          })
+        );
       },
       { timeout: 5000 }
     );
@@ -78,29 +82,6 @@ describe('Photo Recognition → Audio Playback Integration', () => {
     expect(Howl).toBeDefined();
   });
 
-  it('should request camera permission when activated', async () => {
-    render(<App />);
-
-    const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
-    });
-
-    const user = userEvent.setup();
-    await user.click(activateButton);
-
-    // Verify camera permission is requested
-    await waitFor(
-      () => {
-        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith(
-          expect.objectContaining({
-            video: expect.any(Object),
-          })
-        );
-      },
-      { timeout: 5000 }
-    );
-  });
-
   it('should handle camera permission denied gracefully', async () => {
     // Mock permission denied
     navigator.mediaDevices.getUserMedia = vi.fn().mockRejectedValue(new Error('Permission denied'));
@@ -124,13 +105,5 @@ describe('Photo Recognition → Audio Playback Integration', () => {
 
     // Verify retry button is present
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
-  });
-
-  it('should render landing page on mount', () => {
-    render(<App />);
-
-    // App renders landing page without loading data yet
-    // Data is loaded when camera activates and photo recognition starts
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 });

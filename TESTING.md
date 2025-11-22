@@ -417,8 +417,8 @@ describe('useCameraAccess', () => {
 ### Current Coverage (2024-11)
 
 ✅ **29 Test Files** covering all major modules and workflows  
-✅ **526 Tests** passing with zero warnings  
-✅ **5,764 Lines** of test code (estimated)
+✅ **513 Tests** passing with zero warnings  
+✅ **5,500 Lines** of test code (estimated)
 
 **Coverage Breakdown:**
 
@@ -435,18 +435,18 @@ describe('useCameraAccess', () => {
 | data-service      | 66     | ✅ Pass | API and caching            |
 | algorithms        | 104    | ✅ Pass | dHash, pHash, hamming      |
 | App               | 2      | ✅ Pass | Basic smoke tests          |
-| **Integration**   | **44** | ✅ Pass | **Cross-module workflows** |
+| **Integration**   | **31** | ✅ Pass | **Cross-module workflows** |
 
 **Integration Test Coverage:**
 
 | Workflow                           | Tests | Status  | Notes                          |
 | ---------------------------------- | ----- | ------- | ------------------------------ |
-| Photo Recognition → Audio Playback | 7     | ✅ Pass | Camera activation, permissions |
+| Photo Recognition → Audio Playback | 5     | ✅ Pass | Camera activation, permissions |
 | Motion Detection → Audio Fade      | 3     | ✅ Pass | Module initialization          |
-| Camera Access → Photo Recognition  | 7     | ✅ Pass | Stream flow, error handling    |
-| Photo Recognition → Concert Info   | 5     | ✅ Pass | Data display, error handling   |
+| Camera Access → Photo Recognition  | 5     | ✅ Pass | Stream flow, error handling    |
+| Photo Recognition → Concert Info   | 2     | ✅ Pass | Data display                   |
 | Feature Flags → Module Behavior    | 10    | ✅ Pass | Settings persistence, themes   |
-| App Lifecycle                      | 13    | ✅ Pass | Initialization, cleanup, state |
+| App Lifecycle                      | 7     | ✅ Pass | Initialization, cleanup, state |
 
 **Test Quality Improvements (2024-11):**
 
@@ -455,8 +455,9 @@ describe('useCameraAccess', () => {
 - ✅ Added console suppression for expected error scenarios
 - ✅ Clean CI output for better debugging
 - ✅ Documented test patterns for contributors
-- ✅ **Added 44 integration tests for cross-module workflows**
+- ✅ **Added 31 integration tests for cross-module workflows**
 - ✅ **Validated complete user journeys end-to-end**
+- ✅ **Removed 13 duplicate/weak tests for clarity**
 
 ### Quality Gates
 

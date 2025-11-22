@@ -30,48 +30,4 @@ describe('Photo Recognition → Concert Info Integration', () => {
     expect(screen.queryByText('Test Band 1')).not.toBeInTheDocument();
     expect(screen.queryByText('Test Band 2')).not.toBeInTheDocument();
   });
-
-  it('should handle errors gracefully without crashing', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-
-    // App should still render even if data loading will fail later
-    const { container } = render(<App />);
-    expect(container).toBeDefined();
-
-    consoleSpy.mockRestore();
-  });
-
-  it('should accept custom concert data via fetch mock', () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        concerts: [
-          {
-            id: 1,
-            band: 'Integration Test Band',
-            venue: 'Integration Test Venue',
-            date: '2023-01-01',
-            audioFile: '/audio/test.opus',
-            photoHashes: { dhash: ['abc123'] },
-          },
-        ],
-      }),
-    });
-
-    global.fetch = mockFetch;
-
-    // App should render - data will be loaded when modules initialize
-    const { container } = render(<App />);
-    expect(container).toBeDefined();
-  });
-
-  it('should not show info display when no concert is recognized', () => {
-    render(<App />);
-
-    // Info display should not be visible without recognition
-    // Check if band names from test data are not visible
-    expect(screen.queryByText('Test Band 1')).not.toBeInTheDocument();
-    expect(screen.queryByText('Test Band 2')).not.toBeInTheDocument();
-  });
 });

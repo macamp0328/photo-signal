@@ -19,14 +19,11 @@ describe('App Lifecycle Integration', () => {
   it('should render app structure on mount', () => {
     render(<App />);
 
-    // Verify app renders successfully - modules initialize when needed
+    // Verify app renders successfully with landing page
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
-  });
-
-  it('should render without errors', () => {
-    const { container } = render(<App />);
-    expect(container).toBeDefined();
-    expect(container.querySelector('div')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+    ).toBeInTheDocument();
   });
 
   it('should accept concert data from mocked fetch', () => {
@@ -48,9 +45,10 @@ describe('App Lifecycle Integration', () => {
 
     global.fetch = mockFetch;
 
-    // App renders - data will be loaded when modules initialize
-    const { container } = render(<App />);
-    expect(container).toBeDefined();
+    render(<App />);
+
+    // Verify app renders successfully with custom data
+    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 
   it('should handle network errors gracefully', () => {
@@ -58,8 +56,8 @@ describe('App Lifecycle Integration', () => {
     global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     // App should still render even if data loading will fail later
-    const { container } = render(<App />);
-    expect(container).toBeDefined();
+    render(<App />);
+    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });
@@ -78,13 +76,6 @@ describe('App Lifecycle Integration', () => {
     expect(unmount).toBeDefined();
   });
 
-  it('should initialize with default state', () => {
-    const { container } = render(<App />);
-
-    // Verify landing page is shown (not active camera view)
-    expect(container).toBeDefined();
-  });
-
   it('should not request camera permission on initial load', () => {
     render(<App />);
 
@@ -92,21 +83,13 @@ describe('App Lifecycle Integration', () => {
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
   });
 
-  it('should initialize feature flags from localStorage', () => {
+  it('should initialize with localStorage data when available', () => {
     localStorage.setItem(
       'feature-flags',
       JSON.stringify({
         'test-mode': true,
       })
     );
-
-    const { container } = render(<App />);
-
-    // App should load with feature flags
-    expect(container).toBeDefined();
-  });
-
-  it('should initialize custom settings from localStorage', () => {
     localStorage.setItem(
       'custom-settings',
       JSON.stringify({
@@ -114,36 +97,24 @@ describe('App Lifecycle Integration', () => {
       })
     );
 
-    const { container } = render(<App />);
+    render(<App />);
 
-    // App should load with custom settings
-    expect(container).toBeDefined();
+    // App should load with feature flags and custom settings
+    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+
+    // Verify localStorage was accessed (data loaded)
+    const flags = localStorage.getItem('feature-flags');
+    const settings = localStorage.getItem('custom-settings');
+    expect(flags).toBeTruthy();
+    expect(settings).toBeTruthy();
   });
 
-  it('should handle missing localStorage data gracefully', () => {
+  it('should initialize with defaults when localStorage is empty', () => {
     localStorage.clear();
 
-    const { container } = render(<App />);
+    render(<App />);
 
     // App should load with defaults when localStorage is empty
-    expect(container).toBeDefined();
-  });
-
-  it('should not throw errors during render', () => {
-    expect(() => render(<App />)).not.toThrow();
-  });
-
-  it('should initialize aspect ratio to default value', () => {
-    const { container } = render(<App />);
-
-    // App initializes with 3:2 aspect ratio (default)
-    expect(container).toBeDefined();
-  });
-
-  it('should initialize with no active concert', () => {
-    const { container } = render(<App />);
-
-    // No concert should be active on initial load
-    expect(container).toBeDefined();
+    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 });

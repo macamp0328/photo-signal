@@ -120,7 +120,7 @@ function App() {
   );
   const rectangleDetectionConfidenceThresholdValue = coerceNumberSetting(
     getSetting<number>('rectangle-detection-confidence-threshold'),
-    0.6
+    0.3 // Reduced from 0.6 to 0.3 for better real-world detection
   );
   const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
   const secondarySimilarityThreshold = hashAlgorithmValue === 'dhash' ? 12 : undefined;

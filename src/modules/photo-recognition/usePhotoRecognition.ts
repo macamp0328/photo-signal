@@ -494,11 +494,12 @@ export function usePhotoRecognition(
     // Initialize rectangle detector if enabled
     if (enableRectangleDetection && !rectangleDetectorRef.current) {
       rectangleDetectorRef.current = new RectangleDetectionService({
-        minArea: 0.1,
+        minArea: 0.05, // Detect smaller photos
         maxArea: 0.9,
-        minAspectRatio: 0.5,
-        maxAspectRatio: 2.5,
-        minConfidence: 0.6,
+        minAspectRatio: 0.4, // More lenient for portrait
+        maxAspectRatio: 3.0, // More lenient for landscape
+        cannyHighThreshold: 100, // Lower threshold for better edge detection
+        minConfidence: 0.3, // Very lenient to catch more candidates
       });
     }
 

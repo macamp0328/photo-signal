@@ -21,7 +21,7 @@ import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
-import type { AspectRatio, Concert } from './types';
+import type { Concert } from './types';
 import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
 import './index.css';
 
@@ -45,9 +45,6 @@ function App() {
 
   // State for secret settings menu
   const [showSecretSettings, setShowSecretSettings] = useState(false);
-
-  // State for aspect ratio
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('3:2');
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
@@ -90,15 +87,28 @@ function App() {
     checkInterval: 500,
   });
 
-  const recognitionDelayValue = coerceNumberSetting(getSetting<number>('recognition-delay'), 3000);
+  const rawRecognitionDelay = getSetting<number>('recognition-delay');
+  const recognitionDelayValue =
+    rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
+      ? 1000
+      : coerceNumberSetting(rawRecognitionDelay, 1000);
+  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
+  const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
+  const defaultSimilarityThreshold = hashAlgorithmValue === 'phash' ? 12 : 24;
+  const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
   const similarityThresholdValue = coerceNumberSetting(
-    getSetting<number>('similarity-threshold'),
-    40
+    rawSimilarityThreshold === undefined ||
+      rawSimilarityThreshold === 40 ||
+      rawSimilarityThreshold === 24
+      ? defaultSimilarityThreshold
+      : rawSimilarityThreshold,
+    defaultSimilarityThreshold
   );
-  const frameScanIntervalValue = coerceNumberSetting(
-    getSetting<number>('recognition-check-interval'),
-    1000
-  );
+  const rawFrameScanInterval = getSetting<number>('recognition-check-interval');
+  const frameScanIntervalValue =
+    rawFrameScanInterval === undefined || rawFrameScanInterval === 1000
+      ? 250
+      : coerceNumberSetting(rawFrameScanInterval, 250);
   const sharpnessThresholdValue = coerceNumberSetting(
     getSetting<number>('sharpness-threshold'),
     100
@@ -112,8 +122,8 @@ function App() {
     getSetting<number>('rectangle-detection-confidence-threshold'),
     0.6
   );
-  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
-  const hashAlgorithmValue = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
+  const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
+  const secondarySimilarityThreshold = hashAlgorithmValue === 'dhash' ? 12 : undefined;
 
   // Module: Photo Recognition
   const {
@@ -133,10 +143,13 @@ function App() {
     glareThreshold: glareThresholdValue,
     glarePercentageThreshold: glarePercentageThresholdValue,
     enableDebugInfo: isTestModeEnabled,
-    aspectRatio: aspectRatio,
+    aspectRatio: 'auto',
     hashAlgorithm: hashAlgorithmValue,
+    secondaryHashAlgorithm,
+    secondarySimilarityThreshold,
     enableMultiScale: isEnabled('multi-scale-recognition'),
     enableRectangleDetection: isEnabled('rectangle-detection'),
+    rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
   });
 
   // Module: Audio Playback
@@ -220,8 +233,6 @@ function App() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      aspectRatio={aspectRatio}
-      onAspectRatioToggle={() => setAspectRatio((prev) => (prev === '3:2' ? '2:3' : '3:2'))}
       grayscale={isEnabled('grayscale-mode')}
       concertInfo={displayedConcert}
       showConcertOverlay={!!displayedConcert && isPlaying}

@@ -14,6 +14,8 @@ export interface BestMatchInfo {
   concert: Concert;
   distance: number;
   similarity: number;
+  algorithm?: HashAlgorithm;
+  scale?: number;
 }
 
 export interface StabilityDebugInfo {
@@ -181,7 +183,7 @@ export interface PhotoRecognitionOptions {
   checkInterval?: number;
   /** Enable debug information output, default false */
   enableDebugInfo?: boolean;
-  /** Aspect ratio for frame cropping (default '3:2') */
+  /** Aspect ratio for frame cropping (default 'auto' chooses based on video orientation) */
   aspectRatio?: AspectRatio;
   /** Sharpness threshold for blur detection (default 100) */
   sharpnessThreshold?: number;
@@ -201,4 +203,10 @@ export interface PhotoRecognitionOptions {
   multiScaleVariants?: number[];
   /** Enable dynamic rectangle detection (default false) */
   enableRectangleDetection?: boolean;
+  /** Minimum confidence (0-1) before using detected rectangle for cropping (default 0.6) */
+  rectangleConfidenceThreshold?: number;
+  /** Optional secondary hash algorithm to run as a fallback (e.g., pHash after dHash) */
+  secondaryHashAlgorithm?: HashAlgorithm | null;
+  /** Similarity threshold to use for the secondary algorithm (defaults to algorithm-appropriate value) */
+  secondarySimilarityThreshold?: number;
 }

@@ -16,10 +16,6 @@ export interface CameraViewProps {
   hasPermission: boolean | null;
   /** Retry callback */
   onRetry?: () => void;
-  /** Aspect ratio for framing guide (default '3:2') */
-  aspectRatio?: AspectRatio;
-  /** Callback when aspect ratio toggle is clicked */
-  onAspectRatioToggle?: () => void;
   /** Apply grayscale filter to camera view */
   grayscale?: boolean;
   /** Concert info to display as overlay (optional) */

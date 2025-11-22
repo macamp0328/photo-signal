@@ -155,7 +155,9 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                               max={setting.max}
                               step={setting.step ?? 100}
                               value={setting.value as number}
-                              onChange={(e) => updateSetting(setting.id, parseInt(e.target.value))}
+                              onChange={(e) =>
+                                updateSetting(setting.id, parseFloat(e.target.value))
+                              }
                               className={styles.settingRange}
                             />
                             <div className={styles.settingValueGroup}>

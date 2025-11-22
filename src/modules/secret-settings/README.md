@@ -25,12 +25,11 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 3. **Theme Mode** - Switch between light and dark visual themes
 4. **UI Style** - Toggle between modern and classic retro gallery experience
 5. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
-6. **Hash Algorithm** - Choose between dHash (fast) and pHash (more robust) for on-device testing
-7. **Similarity Threshold** - Tune the required hash distance to declare a match
-8. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
-9. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
-10. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
-11. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
+6. **Similarity Threshold** - Tune the required hash distance to declare a match
+7. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
+8. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
+9. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
+10. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
 
 ---
 

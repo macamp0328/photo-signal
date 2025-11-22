@@ -70,5 +70,6 @@ export interface AppError {
 
 /**
  * Aspect ratio for framing guides and cropping
+ * - 'auto' is resolved by the photo-recognition module
  */
-export type AspectRatio = '3:2' | '2:3';
+export type AspectRatio = '3:2' | '2:3' | '1:1' | 'auto';

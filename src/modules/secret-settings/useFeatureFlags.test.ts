@@ -37,11 +37,11 @@ describe('useFeatureFlags', () => {
     it('should load saved flags from localStorage', () => {
       const savedFlags = [
         {
-          id: 'psychedelic-mode',
-          name: 'Psychedelic Color Cycle Mode',
+          id: 'test-mode',
+          name: 'Test Data Mode',
           description: 'Test description',
           enabled: true,
-          category: 'ui' as const,
+          category: 'development' as const,
         },
       ];
 
@@ -49,8 +49,8 @@ describe('useFeatureFlags', () => {
 
       const { result } = renderHook(() => useFeatureFlags());
 
-      const psychedelicFlag = result.current.flags.find((f) => f.id === 'psychedelic-mode');
-      expect(psychedelicFlag?.enabled).toBe(true);
+      const testModeFlag = result.current.flags.find((f) => f.id === 'test-mode');
+      expect(testModeFlag?.enabled).toBe(true);
     });
   });
 

@@ -44,20 +44,4 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     enabled: false,
     category: 'experimental',
   },
-  {
-    id: 'psychedelic-mode',
-    name: 'Psychedelic Color Cycle Mode',
-    description:
-      'Enable vibrant gradient overlays and liquid light show effects for instant party vibes',
-    enabled: false,
-    category: 'ui',
-  },
-  {
-    id: 'retro-sounds',
-    name: 'Old-School Easter Egg Sounds',
-    description:
-      'Play random retro system sounds (modem noise, video-game beeps) when interacting with the app',
-    enabled: false,
-    category: 'ui',
-  },
 ];

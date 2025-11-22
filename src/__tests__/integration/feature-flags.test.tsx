@@ -145,7 +145,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
       JSON.stringify({
         'test-mode': true,
         'grayscale-mode': true,
-        'retro-sounds': true,
+        'multi-scale-recognition': true,
       })
     );
 

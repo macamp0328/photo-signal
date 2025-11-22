@@ -25,12 +25,12 @@ const STORAGE_KEY = 'photo-signal-feature-flags';
  * const { flags, toggleFlag, isEnabled } = useFeatureFlags();
  *
  * // Check if a flag is enabled
- * if (isEnabled('psychedelic-mode')) {
- *   // Enable psychedelic effects
+ * if (isEnabled('test-mode')) {
+ *   // Enable test data
  * }
  *
  * // Toggle a flag
- * toggleFlag('psychedelic-mode');
+ * toggleFlag('test-mode');
  * ```
  */
 export function useFeatureFlags() {

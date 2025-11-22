@@ -15,8 +15,10 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 
 **Feature Flags:**
 
-1. **Psychedelic Color Cycle Mode** - Vibrant gradient overlays with liquid light show effects
-2. **Old-School Easter Egg Sounds** - Retro system sounds (beeps, clicks, whooshes, modem synthesized via Web Audio API)
+1. **Test Data Mode** - Use test concert data with working photo hashes and sample assets
+2. **Multi-Scale Recognition** - Support imprecise photo alignment with multiple crop scales
+3. **Dynamic Rectangle Detection** - Automatically detect photo boundaries in camera feed
+4. **Grayscale Conversion** - Convert frames to black and white before recognition
 
 **Custom Settings:**
 
@@ -45,11 +47,8 @@ src/modules/secret-settings/
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
 ├── useCustomSettings.ts           # Custom settings state management
-├── useRetroSounds.ts              # Retro sound effects hook
 ├── SecretSettings.tsx             # Settings UI component
-├── PsychedelicEffect.tsx          # Psychedelic visual effect component
 ├── SecretSettings.module.css      # Component styles
-├── PsychedelicEffect.module.css   # Effect styles
 └── *.test.ts(x)                   # Test files
 ```
 
@@ -216,8 +215,8 @@ import { useFeatureFlags } from './modules/secret-settings';
 function MyComponent() {
   const { isEnabled } = useFeatureFlags();
 
-  if (isEnabled('psychedelic-mode')) {
-    // Enable psychedelic visual effects
+  if (isEnabled('test-mode')) {
+    // Enable test data mode
   }
 
   return <div>...</div>;
@@ -265,83 +264,6 @@ function App() {
 
 ---
 
-### `useRetroSounds` Hook
-
-Provides retro sound effect playback using Web Audio API.
-
-**Type Signature:**
-
-```typescript
-function useRetroSounds(enabled: boolean): {
-  playRandomSound: () => void;
-};
-```
-
-**Parameters:**
-
-- `enabled`: Whether retro sounds should be active
-
-**Returns:**
-
-- `playRandomSound()`: Play a random retro sound effect
-
-**Example:**
-
-```typescript
-import { useFeatureFlags, useRetroSounds } from './modules/secret-settings';
-
-function MyButton() {
-  const { isEnabled } = useFeatureFlags();
-  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
-
-  const handleClick = () => {
-    playRandomSound();
-    // ... other logic
-  };
-
-  return <button onClick={handleClick}>Click me</button>;
-}
-```
-
----
-
-### `PsychedelicEffect` Component
-
-Visual effect component that displays animated gradient overlays.
-
-**Type Signature:**
-
-```typescript
-function PsychedelicEffect(props: PsychedelicEffectProps): JSX.Element | null;
-
-interface PsychedelicEffectProps {
-  enabled: boolean;
-}
-```
-
-**Props:**
-
-- `enabled`: Whether the psychedelic effect is active
-
-**Example:**
-
-```typescript
-import { useFeatureFlags, PsychedelicEffect } from './modules/secret-settings';
-
-function App() {
-  const { isEnabled } = useFeatureFlags();
-
-  return (
-    <>
-      {/* Your app content */}
-      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
-    </>
-  );
-}
-```
-
----
-
 ## Integration Guide
 
 ### Complete Integration Example
@@ -354,8 +276,6 @@ import {
   SecretSettings,
   useFeatureFlags,
   useCustomSettings,
-  useRetroSounds,
-  PsychedelicEffect,
 } from './modules/secret-settings';
 
 function App() {
@@ -364,9 +284,6 @@ function App() {
   // Feature flags & custom settings
   const { isEnabled } = useFeatureFlags();
   const { getSetting } = useCustomSettings();
-
-  // Retro sounds (when enabled)
-  const { playRandomSound } = useRetroSounds(isEnabled('retro-sounds'));
 
   // Detect triple-tap to open settings
   useTripleTap({
@@ -392,14 +309,8 @@ function App() {
       {/* Secret settings menu */}
       <SecretSettings
         isVisible={showSettings}
-        onClose={() => {
-          setShowSettings(false);
-          playRandomSound(); // Play sound when menu closes
-        }}
+        onClose={() => setShowSettings(false)}
       />
-
-      {/* Psychedelic effect overlay (when enabled) */}
-      <PsychedelicEffect enabled={isEnabled('psychedelic-mode')} />
     </>
   );
 }
@@ -446,8 +357,10 @@ body {
 2. Triple-click rapidly in the center of the screen
 3. The secret settings menu should appear
 4. Try toggling each feature:
-   - **Psychedelic Mode**: Enables vibrant color overlays
-   - **Retro Sounds**: Plays beeps/clicks on interactions
+   - **Test Data Mode**: Use test concert data
+   - **Multi-Scale Recognition**: Relaxed photo framing
+   - **Rectangle Detection**: Auto-detect photo boundaries
+   - **Grayscale Mode**: Convert frames to black and white
    - **Theme Mode**: Switch between dark/light
    - **UI Style**: Switch between modern/classic
 5. Click **"Send It 🚀"** to apply changes and reload the page
@@ -463,10 +376,9 @@ Some feature flags require a full page reload to take effect properly:
 
 The "Send It" button ensures all changes are guaranteed to work by:
 
-1. Playing a retro sound (if enabled)
-2. Closing the menu
-3. Waiting 100ms for close animation
-4. Reloading the page with all new settings active
+1. Closing the menu
+2. Waiting 100ms for close animation
+3. Reloading the page with all new settings active
 
 ---
 
@@ -478,7 +390,6 @@ The guide includes:
 
 - Step-by-step instructions for adding feature flags
 - Step-by-step instructions for adding custom settings
-- Implementation details for all four current features
 - Best practices and patterns
 - Testing guidelines
 - Complete code examples
@@ -489,16 +400,22 @@ The guide includes:
 
 ### Feature Flags
 
-1. **Psychedelic Color Cycle Mode** (`psychedelic-mode`)
-   - Vibrant gradient overlays with animated color cycling
-   - Multiple rotating gradient layers
-   - Pulsing radial effects
-   - Mix-blend-mode for non-intrusive overlay
-2. **Old-School Easter Egg Sounds** (`retro-sounds`)
-   - Synthesized retro system sounds using Web Audio API
-   - No external audio files required
-   - 6 different sound variations (beeps, clicks, whooshes, modem)
-   - Plays on user interactions
+1. **Test Data Mode** (`test-mode`)
+   - Use test concert data with working photo hashes
+   - Enable debug overlay for development
+   - Automatically reset recognition after matches
+2. **Multi-Scale Recognition** (`multi-scale-recognition`)
+   - Support imprecise photo alignment
+   - Test multiple crop scales (75%, 80%, 85%, 90%)
+   - More forgiving for handheld use
+3. **Dynamic Rectangle Detection** (`rectangle-detection`)
+   - Automatically detect photo boundaries
+   - Visual feedback when rectangle detected
+   - Dynamic cropping instead of fixed guides
+4. **Grayscale Conversion** (`grayscale-mode`)
+   - Convert frames to black and white
+   - May improve accuracy with monochrome prints
+   - Reduce noise in low-light conditions
 
 ### Custom Settings
 
@@ -521,7 +438,6 @@ The guide includes:
 - ARIA attributes for screen readers (`role="dialog"`, `aria-modal="true"`)
 - Clear visual focus indicators
 - Both themes meet WCAG AA contrast standards (4.5:1)
-- Psychedelic effect uses `pointer-events: none` to avoid blocking interaction
 
 ---
 
@@ -530,7 +446,6 @@ The guide includes:
 - **Triple-tap detection**: Minimal overhead, only monitors events
 - **Modal rendering**: Conditional rendering (only when visible)
 - **CSS animations**: Hardware-accelerated transforms
-- **Audio synthesis**: Web Audio API (more efficient than loading files)
 - **localStorage**: Automatic state persistence with error handling
 - **No external dependencies**: Uses only React and native browser APIs
 
@@ -544,7 +459,6 @@ All hooks and components have comprehensive test coverage:
 - `useFeatureFlags.test.ts` - Feature flag state management
 - `useCustomSettings.test.ts` - Custom settings state management
 - `SecretSettings.test.tsx` - Component rendering and interactions
-- `PsychedelicEffect.test.tsx` - Visual effect component
 
 Run tests with:
 
@@ -562,8 +476,6 @@ npm test
 - [ ] Add search/filter for settings
 - [ ] Add import/export settings functionality
 - [ ] Add settings categories/tabs
-- [x] Respect `prefers-reduced-motion` for psychedelic effect (✅ implemented)
-- [ ] Add more retro sound variations
 - [ ] Add motion sensitivity setting
 
 ---
@@ -573,9 +485,8 @@ npm test
 - **React**: UI framework
 - **TypeScript**: Type safety
 - **CSS Modules**: Scoped styling
-- **Web Audio API**: Sound synthesis (native browser API)
 
-**No new npm dependencies added.** Features use only React built-in hooks and native browser APIs (Web Audio API).
+**No new npm dependencies added.** Features use only React built-in hooks and native browser APIs.
 
 ---
 

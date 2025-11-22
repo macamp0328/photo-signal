@@ -8,7 +8,8 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: './src/test/setup.ts',
     css: true,
-    // Exclude Playwright tests from Vitest
+    // Include script tests and exclude Playwright tests from Vitest
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/__tests__/**/*.test.{js,ts}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/visual/**'],
     coverage: {
       provider: 'v8',

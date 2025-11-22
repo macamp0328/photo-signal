@@ -519,6 +519,26 @@ function measureLoudness(inputPath, config) {
   });
 }
 
+/**
+ * Parse LUFS values from ffmpeg loudnorm output
+ * @param {string} ffmpegOutput - Raw ffmpeg output containing JSON stats
+ * @returns {object|null} Parsed LUFS statistics or null if parsing fails
+ */
+export function parseLUFS(ffmpegOutput) {
+  // Extract JSON from output
+  const jsonMatch = ffmpegOutput.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    return null;
+  }
+
+  try {
+    const stats = JSON.parse(jsonMatch[0]);
+    return coerceLoudnessStats(stats);
+  } catch {
+    return null;
+  }
+}
+
 function coerceLoudnessStats(stats) {
   const numericKeys = [
     'input_i',
@@ -819,17 +839,20 @@ function probeBitrateKbps(filePath) {
 }
 
 /**
- * Generate audio index manifest
+ * Generate audio index manifest from processing results
+ * @param {Array} results - Array of processing results
+ * @param {object} config - Encoding configuration
+ * @returns {object} Audio index manifest
  */
-function generateAudioIndex(results, outputDir, config) {
-  const index = {
+export function createAudioIndex(results, config = {}) {
+  return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     config: {
-      targetLUFS: config.targetLUFS,
-      truePeakLimit: config.truePeakLimit,
-      opusBitrate: config.opus.bitrateKbps,
-      opusBitrateFloor: config.opus.minBitrateFloorKbps ?? null,
+      targetLUFS: config.targetLUFS ?? null,
+      truePeakLimit: config.truePeakLimit ?? null,
+      opusBitrate: config.opus?.bitrateKbps ?? null,
+      opusBitrateFloor: config.opus?.minBitrateFloorKbps ?? null,
     },
     tracks: results
       .filter((r) => r.success && !r.dryRun)
@@ -853,12 +876,14 @@ function generateAudioIndex(results, outputDir, config) {
         lufsIntegrated: r.lufsIntegrated,
         truePeakDb: r.truePeakDb,
         lra: r.lra,
-        checksum: r.checksum,
         fileName: r.outputFile,
-        cdnPath: null, // To be filled by upload script
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date)),
+        checksum: r.checksum,
+      })),
   };
+}
+
+function generateAudioIndex(results, outputDir, config) {
+  const index = createAudioIndex(results, config);
 
   const indexPath = join(outputDir, 'audio-index.json');
   writeFileSync(indexPath, JSON.stringify(index, null, 2));
@@ -866,10 +891,12 @@ function generateAudioIndex(results, outputDir, config) {
 }
 
 /**
- * Generate photo-audio map
+ * Generate photo-audio mapping manifest from processing results
+ * @param {Array} results - Array of processing results
+ * @returns {object} Photo-audio mapping manifest
  */
-function generatePhotoAudioMap(results, outputDir) {
-  const map = {
+export function createPhotoAudioMap(results) {
+  return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     note: 'Photo ID mapping to be implemented when photo manifest is available',
@@ -886,6 +913,10 @@ function generatePhotoAudioMap(results, outputDir) {
         recordLabel: r.recordLabel,
       })),
   };
+}
+
+function generatePhotoAudioMap(results, outputDir) {
+  const map = createPhotoAudioMap(results);
 
   const mapPath = join(outputDir, 'photo-audio-map.json');
   writeFileSync(mapPath, JSON.stringify(map, null, 2));
@@ -1396,6 +1427,17 @@ function toTitleCase(value) {
     .trim();
 }
 
+/**
+ * Generate output filename slug from band and album
+ * @param {string} band - Band name
+ * @param {string} album - Album name
+ * @returns {string} Generated filename slug (e.g., "band-name-album-name")
+ */
+export function generateOutputFilename(band, album) {
+  const slug = generateSlug(band, album);
+  return `ps-${slug}.opus`;
+}
+
 function generateSlug(band, album) {
   const bandSlug = slugify(band);
   const albumSlug = slugify(album);
@@ -1635,8 +1677,10 @@ function printVersion() {
   }
 }
 
-// Run main function
-main().catch((error) => {
-  console.error(`Fatal error: ${error.message}`);
-  process.exit(1);
-});
+// Only run main function when executed directly (not when imported as a module)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    console.error(`Fatal error: ${error.message}`);
+    process.exit(1);
+  });
+}

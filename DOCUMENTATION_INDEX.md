@@ -22,6 +22,8 @@
 
 ### Research & Technical Guides
 
+- **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** - **⭐ ESSENTIAL**: Comprehensive deep-dive guide to achieving successful photo recognition with printed photographs, including internal mechanics, configuration guidance, hash generation workflow, systematic testing, and troubleshooting (START HERE)
+- **[docs/PHOTO_RECOGNITION_QUICK_REF.md](./docs/PHOTO_RECOGNITION_QUICK_REF.md)** - **Quick reference card** for photo recognition configuration, troubleshooting, and common tasks
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations
 - **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** - Complete guide to understanding and using photo recognition telemetry data, including failure category analysis, debugging workflows, and regression testing
@@ -352,7 +354,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (8 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, FUTURE_FEATURES, ASSET_LICENSES)
-- ✅ Technical guides & research (10 files - photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides)
+- ✅ Technical guides & research (12 files - **photo recognition deep dive**, **quick reference**, photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides)
 - ✅ Accessibility (3 files - standards, quick reference, verification report)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (9 files - including secret-settings and photo-rectangle-detection)
@@ -373,6 +375,6 @@ This index covers:
 - ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 111 documented files (21 historical/redundant docs removed)
+**Total**: 113 documented files (21 historical/redundant docs removed)
 
-Last updated: 2025-11-21
+Last updated: 2025-11-23

@@ -8,11 +8,11 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 
 ## Algorithm Quick Comparison
 
-| Algorithm | Speed      | Accuracy | Rotation | Lighting | Use Case                    |
-| --------- | ---------- | -------- | -------- | -------- | --------------------------- |
-| **dHash** | ⚡⚡⚡     | ⭐⭐     | ❌       | ⚠️      | Controlled env, performance |
-| **pHash** | ⚡⚡       | ⭐⭐⭐   | ⚠️      | ✅       | **Default - best balance**  |
-| **ORB**   | ⚡         | ⭐⭐⭐⭐ | ✅       | ✅       | Extreme conditions          |
+| Algorithm | Speed  | Accuracy | Rotation | Lighting | Use Case                    |
+| --------- | ------ | -------- | -------- | -------- | --------------------------- |
+| **dHash** | ⚡⚡⚡ | ⭐⭐     | ❌       | ⚠️       | Controlled env, performance |
+| **pHash** | ⚡⚡   | ⭐⭐⭐   | ⚠️       | ✅       | **Default - best balance**  |
+| **ORB**   | ⚡     | ⭐⭐⭐⭐ | ✅       | ✅       | Extreme conditions          |
 
 **Default Recommendation**: pHash
 
@@ -21,6 +21,7 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 ## Baseline Configurations
 
 ### pHash (Recommended)
+
 ```json
 {
   "hashAlgorithm": "phash",
@@ -34,6 +35,7 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 ```
 
 ### dHash (Performance)
+
 ```json
 {
   "hashAlgorithm": "dhash",
@@ -47,6 +49,7 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 ```
 
 ### ORB (Robustness)
+
 ```json
 {
   "hashAlgorithm": "orb",
@@ -69,34 +72,38 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 ## Environment-Specific Tweaks
 
 ### Bathroom (Variable Lighting)
+
 ```json
 {
-  "similarityThreshold": 14,        // +2 from baseline
-  "glarePercentageThreshold": 25,   // +5 from baseline
-  "sharpnessThreshold": 90,         // -10 from baseline
-  "recognitionDelay": 1500          // +500ms from baseline
+  "similarityThreshold": 14, // +2 from baseline
+  "glarePercentageThreshold": 25, // +5 from baseline
+  "sharpnessThreshold": 90, // -10 from baseline
+  "recognitionDelay": 1500 // +500ms from baseline
 }
 ```
+
 **Note**: Use multi-exposure hashing (3 variants)
 
 ### Handheld Scanning
+
 ```json
 {
-  "similarityThreshold": 14,        // +2 from baseline
-  "sharpnessThreshold": 80,         // -20 from baseline
-  "glarePercentageThreshold": 25,   // +5 from baseline
-  "recognitionDelay": 1500,         // +500ms from baseline
+  "similarityThreshold": 14, // +2 from baseline
+  "sharpnessThreshold": 80, // -20 from baseline
+  "glarePercentageThreshold": 25, // +5 from baseline
+  "recognitionDelay": 1500, // +500ms from baseline
   "enableMultiScale": true,
   "multiScaleVariants": [0.7, 0.8, 0.9, 0.95]
 }
 ```
 
 ### Gallery Wall (Mounted)
+
 ```json
 {
-  "similarityThreshold": 12,        // Standard
-  "recognitionDelay": 800,          // -200ms (stable mount)
-  "rectangleDetectionConfidenceThreshold": 0.4  // +0.1 (cleaner detection)
+  "similarityThreshold": 12, // Standard
+  "recognitionDelay": 800, // -200ms (stable mount)
+  "rectangleDetectionConfidenceThreshold": 0.4 // +0.1 (cleaner detection)
 }
 ```
 
@@ -113,12 +120,14 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 5. Add to data.json
 
 **Example**:
+
 ```
 Debug Overlay shows:
 Frame Hash: a5b3c7d9e1f20486
 ```
 
 Add to data.json:
+
 ```json
 {
   "id": 1,
@@ -140,6 +149,7 @@ npm run generate-hashes
 ### Multi-Exposure Strategy
 
 Capture 3 hashes per photo:
+
 1. Bright lighting → hash 1
 2. Normal lighting → hash 2
 3. Dim lighting → hash 3
@@ -148,9 +158,9 @@ Capture 3 hashes per photo:
 {
   "photoHashes": {
     "phash": [
-      "a5b3c7d9e1f20486",  // bright
-      "a5b3c7d9e1f20487",  // normal
-      "a5b3c7d9e1f20488"   // dim
+      "a5b3c7d9e1f20486", // bright
+      "a5b3c7d9e1f20487", // normal
+      "a5b3c7d9e1f20488" // dim
     ]
   }
 }
@@ -178,9 +188,10 @@ Capture 3 hashes per photo:
 **Check**: Telemetry shows >30% blur rejections
 
 **Fix**:
+
 ```json
 {
-  "sharpnessThreshold": 80  // Decrease from 100
+  "sharpnessThreshold": 80 // Decrease from 100
 }
 ```
 
@@ -191,9 +202,10 @@ Capture 3 hashes per photo:
 **Check**: Telemetry shows >25% glare rejections
 
 **Fix**:
+
 ```json
 {
-  "glarePercentageThreshold": 30  // Increase from 20
+  "glarePercentageThreshold": 30 // Increase from 20
 }
 ```
 
@@ -204,9 +216,10 @@ Capture 3 hashes per photo:
 **Check**: Debug overlay shows wrong concert
 
 **Fix**: Decrease threshold (stricter)
+
 ```json
 {
-  "similarityThreshold": 10  // Decrease from 12
+  "similarityThreshold": 10 // Decrease from 12
 }
 ```
 
@@ -217,9 +230,10 @@ Capture 3 hashes per photo:
 **Check**: Recognition delay setting
 
 **Fix**:
+
 ```json
 {
-  "recognitionDelay": 800  // Decrease from 1000ms
+  "recognitionDelay": 800 // Decrease from 1000ms
 }
 ```
 
@@ -232,6 +246,7 @@ Capture 3 hashes per photo:
 ### Hamming Distance to Similarity %
 
 **pHash (64-bit)**:
+
 - 0 bits = 100% match
 - 6 bits = 90.6% match
 - 12 bits = 81.3% match (default)
@@ -240,6 +255,7 @@ Capture 3 hashes per photo:
 - 32 bits = 50.0% match
 
 **dHash (128-bit)**:
+
 - 0 bits = 100% match
 - 12 bits = 90.6% match
 - 24 bits = 81.3% match (default)
@@ -274,6 +290,7 @@ Capture 3 hashes per photo:
 ### Export Telemetry
 
 In Test Mode:
+
 1. Click "📥 Export JSON" for raw data
 2. Or "📝 Export Markdown Report" for formatted report
 3. Review failure categories and recent failures
@@ -282,32 +299,36 @@ In Test Mode:
 
 ## Common Failure Categories
 
-| Category         | Cause                           | Solution                                    |
-| ---------------- | ------------------------------- | ------------------------------------------- |
-| **motion-blur**  | Camera shake, movement          | Lower sharpness threshold, hold steadier    |
-| **glare**        | Specular reflections            | Adjust lighting, tilt photo, increase glare threshold |
-| **no-match**     | Hash not in database            | Regenerate hash, increase similarity threshold |
-| **collision**    | Multiple similar matches        | Decrease threshold, use more distinctive references |
-| **poor-quality** | Low-quality frame               | Improve lighting, check camera              |
+| Category         | Cause                    | Solution                                              |
+| ---------------- | ------------------------ | ----------------------------------------------------- |
+| **motion-blur**  | Camera shake, movement   | Lower sharpness threshold, hold steadier              |
+| **glare**        | Specular reflections     | Adjust lighting, tilt photo, increase glare threshold |
+| **no-match**     | Hash not in database     | Regenerate hash, increase similarity threshold        |
+| **collision**    | Multiple similar matches | Decrease threshold, use more distinctive references   |
+| **poor-quality** | Low-quality frame        | Improve lighting, check camera                        |
 
 ---
 
 ## Quick Commands
 
 ### Enable Test Mode
+
 Triple-tap/click anywhere → Secret Settings → Enable "Test Data Mode"
 
 ### Generate Hashes
+
 ```bash
 npm run generate-hashes
 ```
 
 ### Rebuild All Hashes
+
 ```bash
 npm run rebuild-hashes
 ```
 
 ### Check Data Structure
+
 ```bash
 cat public/data.json | jq '.concerts[0].photoHashes'
 ```

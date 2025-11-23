@@ -194,12 +194,14 @@ Photo Signal implements **real photo recognition** using perceptual hashing (dHa
 **🎯 Getting Started with Photo Recognition:**
 
 See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** for a comprehensive guide covering:
+
 - How each recognition algorithm works internally
 - Step-by-step hash generation workflow
 - Configuration recommendations for your environment
 - Systematic testing and troubleshooting procedures
 
 **Quick Setup:**
+
 1. Enable Test Mode (triple-tap/click → "Test Data Mode")
 2. Point camera at printed photo
 3. Copy hash from debug overlay
@@ -207,6 +209,7 @@ See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.m
 5. Test recognition
 
 For automated hash generation from photo files:
+
 ```bash
 npm run generate-hashes
 ```

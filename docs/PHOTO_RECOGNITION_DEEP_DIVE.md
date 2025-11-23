@@ -15,6 +15,7 @@ Photo Signal currently implements **three photo recognition algorithms**:
 **Current Challenge**: The system has all the pieces but needs proper configuration and workflow guidance to achieve reliable recognition of printed photographs.
 
 **This Guide Provides**:
+
 - Deep understanding of how each algorithm works internally
 - Systematic workflow for hash generation
 - Environment-specific configuration recommendations
@@ -46,6 +47,7 @@ Camera Frame → Quality Check → Crop Region → Compute Hash/Features → Com
 ### Detailed Pipeline Steps
 
 #### Step 1: Frame Capture
+
 ```typescript
 // Every checkInterval ms (default: 250ms)
 const video = document.querySelector('video');
@@ -58,6 +60,7 @@ const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 **What happens**: Extract current video frame as ImageData (raw pixel array)
 
 **Key Points**:
+
 - Frame rate independent of video FPS
 - Lower checkInterval = more CPU, faster response
 - Higher checkInterval = less CPU, slower response
@@ -65,6 +68,7 @@ const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 #### Step 2: Quality Filtering
 
 **Blur Detection** (Laplacian Variance):
+
 ```typescript
 // Convert to grayscale
 const gray = convertToGrayscale(imageData);
@@ -82,16 +86,19 @@ if (variance < sharpnessThreshold) {
 ```
 
 **What this measures**: High-frequency content (edges and detail)
+
 - Sharp image: High variance (lots of edges)
 - Blurry image: Low variance (fuzzy edges)
 - Default threshold: 100
 
 **Glare Detection** (Brightness Analysis):
+
 ```typescript
 // Count pixels above glare threshold (250 = very bright)
-const brightPixels = imageData.data.filter((_, i) => 
-  i % 4 === 0 && // R channel
-  imageData.data[i] > glareThreshold
+const brightPixels = imageData.data.filter(
+  (_, i) =>
+    i % 4 === 0 && // R channel
+    imageData.data[i] > glareThreshold
 ).length;
 
 const glarePercentage = (brightPixels / totalPixels) * 100;
@@ -102,6 +109,7 @@ if (glarePercentage > glarePercentageThreshold) {
 ```
 
 **What this measures**: Specular reflections (hot spots)
+
 - Matte photo: <5% glare
 - Some reflection: 5-20% glare
 - Heavy glare: >20% glare
@@ -112,6 +120,7 @@ if (glarePercentage > glarePercentageThreshold) {
 The system crops to the region most likely to contain the photo:
 
 **Option A: Rectangle Detection** (default: enabled)
+
 ```typescript
 // Detect photo edges using Sobel edge detection
 const edges = detectEdges(imageData);
@@ -127,17 +136,19 @@ if (rectangle.confidence > confidenceThreshold) {
 ```
 
 **Option B: Static Centered Crop** (if rectangle detection disabled)
+
 ```typescript
 // Crop to centered region (80% of viewport by default)
 cropRegion = {
   x: width * 0.1,
   y: height * 0.1,
   width: width * 0.8,
-  height: height * 0.8
+  height: height * 0.8,
 };
 ```
 
 **Why crop?**
+
 - Reduces background noise
 - Focuses on photo content
 - Improves recognition accuracy
@@ -146,6 +157,7 @@ cropRegion = {
 #### Step 4: Hash/Feature Computation
 
 **For dHash:**
+
 ```typescript
 // 1. Resize cropped region to 17×8 pixels
 const small = resizeImage(croppedData, 17, 8);
@@ -168,6 +180,7 @@ return binaryToHex(hash.join('')); // 32 hex characters
 ```
 
 **For pHash:**
+
 ```typescript
 // 1. Resize to 32×32 pixels
 const small = resizeImage(croppedData, 32, 32);
@@ -185,18 +198,19 @@ const coeffs = extractLowFreq(dct, 8, 8);
 const median = calculateMedian(coeffs);
 
 // 6. Generate binary hash
-const hash = coeffs.map(c => c > median ? '1' : '0').join('');
+const hash = coeffs.map((c) => (c > median ? '1' : '0')).join('');
 
 // 7. Convert to hex
 return binaryToHex(hash); // 16 hex characters
 ```
 
 **For ORB:**
+
 ```typescript
 // 1. Extract FAST keypoints
 const keypoints = detectFASTKeypoints(imageData, {
   threshold: 20,
-  maxFeatures: 500
+  maxFeatures: 500,
 });
 
 // 2. Compute BRIEF descriptors for each keypoint
@@ -208,41 +222,38 @@ return { keypoints, descriptors };
 #### Step 5: Similarity Comparison
 
 **For Perceptual Hashing (dHash/pHash):**
+
 ```typescript
 function hammingDistance(hash1: string, hash2: string): number {
   let distance = 0;
-  
+
   // Convert hex to binary
   const bin1 = hexToBinary(hash1);
   const bin2 = hexToBinary(hash2);
-  
+
   // Count differing bits
   for (let i = 0; i < bin1.length; i++) {
     if (bin1[i] !== bin2[i]) distance++;
   }
-  
+
   return distance;
 }
 
 // Compare with all stored hashes
-const matches = concerts.map(concert => {
-  const distances = concert.photoHashes.phash.map(hash =>
-    hammingDistance(frameHash, hash)
-  );
-  
+const matches = concerts.map((concert) => {
+  const distances = concert.photoHashes.phash.map((hash) => hammingDistance(frameHash, hash));
+
   const bestDistance = Math.min(...distances);
-  
+
   return {
     concert,
     distance: bestDistance,
-    similarity: ((64 - bestDistance) / 64) * 100
+    similarity: ((64 - bestDistance) / 64) * 100,
   };
 });
 
 // Find best match
-const bestMatch = matches.reduce((best, curr) => 
-  curr.distance < best.distance ? curr : best
-);
+const bestMatch = matches.reduce((best, curr) => (curr.distance < best.distance ? curr : best));
 
 if (bestMatch.distance <= similarityThreshold) {
   return bestMatch.concert; // Recognized!
@@ -250,6 +261,7 @@ if (bestMatch.distance <= similarityThreshold) {
 ```
 
 **What Hamming distance means**:
+
 - 0 bits different = Identical (100% match)
 - 8 bits different = Very similar (~87% match)
 - 16 bits different = Similar (~75% match)
@@ -257,6 +269,7 @@ if (bestMatch.distance <= similarityThreshold) {
 - 64 bits different = Completely different (0% match)
 
 **For ORB Feature Matching:**
+
 ```typescript
 // Match descriptors using Lowe's ratio test
 const goodMatches = [];
@@ -265,10 +278,10 @@ for (const queryDesc of frameDescriptors) {
   const matches = referenceDescriptors
     .map((refDesc, idx) => ({
       idx,
-      distance: hammingDistance(queryDesc, refDesc)
+      distance: hammingDistance(queryDesc, refDesc),
     }))
     .sort((a, b) => a.distance - b.distance);
-  
+
   // Lowe's ratio test: best match much better than second best?
   if (matches[0].distance < matchRatioThreshold * matches[1].distance) {
     goodMatches.push(matches[0]);
@@ -286,7 +299,7 @@ if (goodMatches.length >= minMatchCount) {
 // Match must be stable for recognitionDelay ms
 if (currentMatch === previousMatch) {
   stabilityTimer += checkInterval;
-  
+
   if (stabilityTimer >= recognitionDelay) {
     // Confirmed match!
     setRecognizedConcert(currentMatch);
@@ -299,6 +312,7 @@ if (currentMatch === previousMatch) {
 ```
 
 **Why stability check?**
+
 - Prevents false positives from transient matches
 - Requires user to hold photo steady
 - Default: 1000ms (1 second)
@@ -313,23 +327,27 @@ if (currentMatch === previousMatch) {
 **How it works**: Computes horizontal gradient differences between adjacent pixels
 
 **Strengths**:
+
 - ⚡ Very fast (~6-8ms on mobile)
 - 📦 Tiny code size (~3KB)
 - 🎯 Good accuracy under ideal conditions (85-90%)
 - 🔢 128-bit hash (32 hex chars)
 
 **Weaknesses**:
+
 - 📐 Sensitive to rotation (>15° degrades accuracy)
 - 🔆 Sensitive to lighting changes
 - 📏 Less robust to perspective distortion
 
 **Best for**:
+
 - Controlled environments (good lighting, stable mounting)
 - Frontal photos (0-15° angle)
 - Distinct images (different concerts, not similar shots)
 - Performance-critical applications
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'dhash',
@@ -344,6 +362,7 @@ if (currentMatch === previousMatch) {
 **How it works**: Extracts low-frequency DCT coefficients to capture overall structure
 
 **Strengths**:
+
 - 🎯 High accuracy (90-95% under varied conditions)
 - 📐 Handles rotation better (up to 30°)
 - 🔆 Robust to lighting variations
@@ -351,17 +370,20 @@ if (currentMatch === previousMatch) {
 - 🔢 64-bit hash (16 hex chars) - smaller storage
 
 **Weaknesses**:
+
 - 🐢 Slower (~15-25ms on mobile)
 - 📦 Larger code size (~10KB with DCT)
 - Still struggles with severe distortion (>45° angle)
 
 **Best for**:
+
 - Challenging environments (varied lighting, handheld)
 - Similar photos (same venue, similar composition)
 - Wider angle tolerance (0-30°)
 - When accuracy > speed
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'phash',
@@ -376,6 +398,7 @@ if (currentMatch === previousMatch) {
 **How it works**: Detects keypoints and compares local feature descriptors
 
 **Strengths**:
+
 - 🎯 Excellent accuracy (95%+ under extreme conditions)
 - 📐 Handles rotation, scale, perspective distortion
 - 🔆 Robust to lighting, glare, shadows
@@ -383,6 +406,7 @@ if (currentMatch === previousMatch) {
 - ⚠️ Near-zero false positives
 
 **Weaknesses**:
+
 - 🐌 Slowest (~50-100ms on mobile)
 - 📦 Largest code size (~20KB)
 - 🖼️ Requires reference image file (not just hash)
@@ -390,12 +414,14 @@ if (currentMatch === previousMatch) {
 - 🔧 More complex configuration
 
 **Best for**:
+
 - Extreme conditions (poor lighting, varied angles)
 - Printed zines or booklets (rotation, perspective)
 - When false positives are unacceptable
 - When performance is not critical
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'orb',
@@ -479,9 +505,9 @@ Your reference hashes must represent how the photo actually looks when scanned b
      "id": 1,
      "photoHashes": {
        "phash": [
-         "a5b3c7d9e1f20486",  // bright
-         "a5b3c7d9e1f20487",  // normal
-         "a5b3c7d9e1f20488"   // dim
+         "a5b3c7d9e1f20486", // bright
+         "a5b3c7d9e1f20487", // normal
+         "a5b3c7d9e1f20488" // dim
        ],
        "dhash": [
          "00000000000001600acc000000000000",
@@ -494,6 +520,7 @@ Your reference hashes must represent how the photo actually looks when scanned b
    ```
 
 **Advantages**:
+
 - Hashes represent actual camera view
 - Accounts for camera characteristics
 - Accounts for photo surface (matte vs glossy)
@@ -501,6 +528,7 @@ Your reference hashes must represent how the photo actually looks when scanned b
 - Most reliable method
 
 **Disadvantages**:
+
 - Manual process
 - Requires physical setup
 - Time-consuming for large galleries
@@ -518,16 +546,18 @@ Your reference hashes must represent how the photo actually looks when scanned b
    - Save as JPEG in `assets/reference-photos/`
 
 2. **Run Hash Generation Script**
+
    ```bash
    npm run generate-hashes
    ```
 
 3. **Review Output**
+
    ```
    Processing assets/reference-photos/concert-1.jpg
    dHash: 00000000000001600acc000000000000
    pHash: a5b3c7d9e1f20486
-   
+
    Processing assets/reference-photos/concert-2.jpg
    dHash: 00000000000001601acc000000000000
    pHash: b6c4d8e2f3a10597
@@ -536,12 +566,14 @@ Your reference hashes must represent how the photo actually looks when scanned b
 4. **Copy Hashes to data.json**
 
 **Advantages**:
+
 - Faster for multiple photos
 - Consistent process
 - Easy to regenerate
 - Can version control reference photos
 
 **Disadvantages**:
+
 - Reference photo quality affects accuracy
 - May not match live camera exactly
 - Requires separate photo capture step
@@ -568,12 +600,14 @@ Your reference hashes must represent how the photo actually looks when scanned b
 4. **Copy to data.json**
 
 **Advantages**:
+
 - No command line needed
 - Visual confirmation
 - Works on any device with browser
 - Easy to share with others
 
 **Disadvantages**:
+
 - Still requires reference photos
 - Manual copy-paste to data.json
 
@@ -584,19 +618,21 @@ Your reference hashes must represent how the photo actually looks when scanned b
 **Solution**: Store 3 hashes per photo representing different lighting conditions
 
 **Implementation**:
+
 ```json
 {
   "photoHashes": {
     "phash": [
-      "89c6710bc6f07ec1",  // Bright exposure (direct sunlight)
-      "89c6f10be4f03ec1",  // Normal exposure (room lighting)
-      "8bc4f10be4f03ec1"   // Dark exposure (dim lighting)
+      "89c6710bc6f07ec1", // Bright exposure (direct sunlight)
+      "89c6f10be4f03ec1", // Normal exposure (room lighting)
+      "8bc4f10be4f03ec1" // Dark exposure (dim lighting)
     ]
   }
 }
 ```
 
 **How to capture**:
+
 1. Position photo under bright light
 2. Capture hash from debug overlay
 3. Reduce lighting to normal level
@@ -605,22 +641,23 @@ Your reference hashes must represent how the photo actually looks when scanned b
 6. Capture third hash
 
 **Matching logic** (automatically handled):
+
 ```typescript
 // System checks all exposure variants
-const distances = concert.photoHashes.phash.map(hash =>
-  hammingDistance(frameHash, hash)
-);
+const distances = concert.photoHashes.phash.map((hash) => hammingDistance(frameHash, hash));
 
 // Uses best (closest) match
 const bestDistance = Math.min(...distances);
 ```
 
 **Benefits**:
+
 - Works in varied lighting without threshold adjustment
 - More reliable recognition
 - Handles time-of-day variations
 
 **When to use**:
+
 - Installation lighting changes throughout day
 - Near windows (sunlight varies)
 - Bathroom with variable natural light
@@ -633,6 +670,7 @@ const bestDistance = Math.min(...distances);
 ### Baseline Configuration (Start Here)
 
 **For pHash (Recommended Default)**:
+
 ```typescript
 {
   hashAlgorithm: 'phash',
@@ -648,6 +686,7 @@ const bestDistance = Math.min(...distances);
 ```
 
 **For dHash (Performance Priority)**:
+
 ```typescript
 {
   hashAlgorithm: 'dhash',
@@ -663,6 +702,7 @@ const bestDistance = Math.min(...distances);
 ```
 
 **For ORB (Robustness Priority)**:
+
 ```typescript
 {
   hashAlgorithm: 'orb',
@@ -687,11 +727,13 @@ const bestDistance = Math.min(...distances);
 #### Bathroom Installation (Variable Lighting)
 
 **Challenges**:
+
 - Natural light varies throughout day
 - Overhead lights may cause glare
 - Tile/mirror reflections
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'phash',       // Handles lighting changes
@@ -703,6 +745,7 @@ const bestDistance = Math.min(...distances);
 ```
 
 **Hash Generation**:
+
 - Capture 3 exposure variants (bright/normal/dim)
 - Test at different times of day
 - Use matte photo surface if possible
@@ -710,10 +753,12 @@ const bestDistance = Math.min(...distances);
 #### Living Room (Stable Lighting)
 
 **Challenges**:
+
 - Consistent lighting
 - May have window glare during day
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'dhash',       // Can use faster algorithm
@@ -725,6 +770,7 @@ const bestDistance = Math.min(...distances);
 ```
 
 **Hash Generation**:
+
 - Single hash per photo sufficient
 - Test with blinds open and closed
 - Adjust if window glare causes issues
@@ -732,11 +778,13 @@ const bestDistance = Math.min(...distances);
 #### Gallery Wall (Mounted Photos)
 
 **Challenges**:
+
 - Photos at various angles
 - Different photo sizes
 - Consistent distance
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'pHash',       // Better angle tolerance
@@ -750,11 +798,13 @@ const bestDistance = Math.min(...distances);
 #### Handheld Scanning (User Holds Photo)
 
 **Challenges**:
+
 - Hand shake and movement
 - Variable angles
 - Inconsistent distance
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'phash',
@@ -770,11 +820,13 @@ const bestDistance = Math.min(...distances);
 ### Threshold Tuning Methodology
 
 **Step 1: Baseline Test**
+
 1. Set threshold to default (12 for pHash, 24 for dHash)
 2. Scan each photo 10 times
 3. Record recognition rate
 
 **Step 2: Analyze Failures**
+
 1. Enable Test Mode
 2. Export telemetry
 3. Check failure categories:
@@ -784,6 +836,7 @@ const bestDistance = Math.min(...distances);
    - `glare` → Glare threshold issues, increase percentage threshold by 5
 
 **Step 3: Incremental Adjustment**
+
 ```
 Current: 12, Recognition: 60% → Try 14
 Current: 14, Recognition: 80% → Try 16
@@ -791,11 +844,13 @@ Current: 16, Recognition: 90% → Keep at 16 ✓
 ```
 
 **Step 4: Validate**
+
 1. Test all photos 20 times each
 2. Target: >85% recognition rate
 3. Check for false positives (wrong concert matched)
 
 **Step 5: Document**
+
 ```json
 {
   "environment": "bathroom-morning-light",
@@ -815,6 +870,7 @@ Current: 16, Recognition: 90% → Keep at 16 ✓
 **Purpose**: Debug recognition without affecting production UX
 
 **Setup**:
+
 1. Triple-tap to open Secret Settings
 2. Enable "Test Data Mode"
 3. Debug overlay appears showing:
@@ -825,6 +881,7 @@ Current: 16, Recognition: 90% → Keep at 16 ✓
    - Telemetry stats
 
 **What to observe**:
+
 - Frame hash changes with each capture
 - Similarity scores for each concert
 - Quality rejections (blur, glare)
@@ -847,6 +904,7 @@ Current: 16, Recognition: 90% → Keep at 16 ✓
    - Note best match
 
 3. **Record Results**
+
    ```
    Photo ID: 1
    Expected: The Midnight Echoes
@@ -882,6 +940,7 @@ Current: 16, Recognition: 90% → Keep at 16 ✓
 5. Analyze failure patterns
 
 **Metrics to track**:
+
 ```
 Total Scans: 50 (5 photos × 10 scans each)
 Successful: 43
@@ -932,6 +991,7 @@ Failure Breakdown:
    - Or "📝 Export Markdown Report"
 
 2. **Review Summary Metrics**
+
    ```json
    {
      "totalFrames": 500,
@@ -955,12 +1015,14 @@ Failure Breakdown:
 ### Automated Testing (Future)
 
 **Visual Regression Tests**:
+
 - Capture reference frames for each photo
 - Automated hash comparison
 - CI/CD integration
 - Regression detection
 
 **Performance Tests**:
+
 - Frame processing time benchmarks
 - Memory usage tracking
 - Battery impact measurement
@@ -993,10 +1055,11 @@ Failure Breakdown:
    - If all distances >30 → Reference hash is wrong
 
 4. **Verify Data**
+
    ```bash
    # Check data.json has correct concert entry
    cat public/data.json | grep -A 10 "concert-1"
-   
+
    # Verify hash format
    # pHash should be 16 hex chars: a5b3c7d9e1f20486
    # dHash should be 32 hex chars: 00000000000001600acc000000000000
@@ -1005,6 +1068,7 @@ Failure Breakdown:
 **Solutions**:
 
 **Solution 1: Regenerate Reference Hash**
+
 ```typescript
 // In Test Mode, point camera at photo
 // Wait for "Good" quality indicator
@@ -1013,15 +1077,17 @@ Failure Breakdown:
 ```
 
 **Solution 2: Adjust Threshold**
+
 ```typescript
 // If best match is 16 but threshold is 12
 // Update settings
 {
-  similarityThreshold: 18 // Increased from 12
+  similarityThreshold: 18; // Increased from 12
 }
 ```
 
 **Solution 3: Switch Algorithm**
+
 ```typescript
 // If dHash not working, try pHash
 {
@@ -1053,6 +1119,7 @@ Failure Breakdown:
 **Solutions**:
 
 **Solution 1: Use More Distinctive Photos**
+
 ```
 Before: Two photos of same stage, different shows
 After: One photo of stage, one photo of crowd
@@ -1060,13 +1127,15 @@ Result: More distinctive hashes
 ```
 
 **Solution 2: Decrease Threshold**
+
 ```typescript
 {
-  similarityThreshold: 10 // Decreased from 12 (stricter)
+  similarityThreshold: 10; // Decreased from 12 (stricter)
 }
 ```
 
 **Solution 3: Use pHash Instead of dHash**
+
 ```typescript
 // pHash has better discrimination
 {
@@ -1076,6 +1145,7 @@ Result: More distinctive hashes
 ```
 
 **Solution 4: Regenerate Hashes with Better Lighting**
+
 ```
 // Ensure reference captures have:
 // - Good contrast
@@ -1108,13 +1178,15 @@ Result: More distinctive hashes
 **Solutions**:
 
 **Solution 1: Lower Sharpness Threshold**
+
 ```typescript
 {
-  sharpnessThreshold: 80 // Decreased from 100
+  sharpnessThreshold: 80; // Decreased from 100
 }
 ```
 
 **Solution 2: Add Visual Feedback**
+
 ```typescript
 // Already implemented: FrameQualityIndicator
 // Shows "Hold steady..." when blur detected
@@ -1122,6 +1194,7 @@ Result: More distinctive hashes
 ```
 
 **Solution 3: Test Different Device**
+
 ```
 // Some phone cameras have:
 // - Better autofocus
@@ -1153,6 +1226,7 @@ Result: More distinctive hashes
 **Solutions**:
 
 **Solution 1: Adjust Photo Angle**
+
 ```
 // Tilt photo to deflect reflection
 // Move photo away from direct light
@@ -1160,13 +1234,15 @@ Result: More distinctive hashes
 ```
 
 **Solution 2: Increase Glare Tolerance**
+
 ```typescript
 {
-  glarePercentageThreshold: 30 // Increased from 20
+  glarePercentageThreshold: 30; // Increased from 20
 }
 ```
 
 **Solution 3: Add User Guidance**
+
 ```typescript
 // Already implemented: GuidanceMessage
 // Shows "Tilt to avoid glare" when glare detected
@@ -1174,6 +1250,7 @@ Result: More distinctive hashes
 ```
 
 **Solution 4: Change Lighting**
+
 ```
 // Use diffused lighting (lampshade, indirect)
 // Avoid direct overhead lights
@@ -1204,13 +1281,15 @@ Result: More distinctive hashes
 **Solutions**:
 
 **Solution 1: Reduce Recognition Delay**
+
 ```typescript
 {
-  recognitionDelay: 800 // Decreased from 1000ms
+  recognitionDelay: 800; // Decreased from 1000ms
 }
 ```
 
 **Solution 2: Improve Frame Quality**
+
 ```
 // Better lighting
 // Hold camera steadier
@@ -1218,16 +1297,18 @@ Result: More distinctive hashes
 ```
 
 **Solution 3: Switch to Faster Algorithm**
+
 ```typescript
 {
-  hashAlgorithm: 'dhash' // Faster than pHash
+  hashAlgorithm: 'dhash'; // Faster than pHash
 }
 ```
 
 **Solution 4: Reduce Check Interval** (More CPU)
+
 ```typescript
 {
-  checkInterval: 200 // Decreased from 250ms
+  checkInterval: 200; // Decreased from 250ms
   // Checks 5x per second instead of 4x
 }
 ```
@@ -1256,6 +1337,7 @@ Result: More distinctive hashes
 **Solutions**:
 
 **Solution 1: Enable Rectangle Detection**
+
 ```typescript
 {
   enableRectangleDetection: true,
@@ -1264,13 +1346,15 @@ Result: More distinctive hashes
 ```
 
 **Solution 2: Disable Multi-Scale** (if causing issues)
+
 ```typescript
 {
-  enableMultiScale: false
+  enableMultiScale: false;
 }
 ```
 
 **Solution 3: Regenerate Hashes at Correct Distance**
+
 ```
 // Capture reference hashes at:
 // - 12 inches (normal viewing distance)
@@ -1286,6 +1370,7 @@ Result: More distinctive hashes
 **Concept**: Use multiple algorithms in sequence
 
 **Implementation**:
+
 ```typescript
 // Primary: Fast dHash for initial screening
 const dHashMatch = findMatch(frameHash, concerts, { algorithm: 'dhash' });
@@ -1315,11 +1400,13 @@ return null; // No match
 ```
 
 **Benefits**:
+
 - Fast path for easy matches (90% of cases)
 - Accurate path for challenging matches (9% of cases)
 - Robust path for edge cases (1% of cases)
 
 **Configuration**:
+
 ```typescript
 {
   hashAlgorithm: 'dhash',
@@ -1335,6 +1422,7 @@ return null; // No match
 **Concept**: Adjust threshold based on environment
 
 **Implementation**:
+
 ```typescript
 // Measure ambient light level
 const brightness = calculateAverageBrightness(frameData);
@@ -1355,6 +1443,7 @@ const match = findMatch(frameHash, concerts, { threshold });
 ```
 
 **Benefits**:
+
 - Adapts to changing conditions
 - No manual reconfiguration
 - Better recognition across time-of-day
@@ -1362,17 +1451,18 @@ const match = findMatch(frameHash, concerts, { threshold });
 ### Performance Optimization
 
 **Frame Skipping**:
+
 ```typescript
 // Don't process every frame if performance suffers
 let frameCount = 0;
 
 function processFrame() {
   frameCount++;
-  
+
   if (frameCount % 3 !== 0) {
     return; // Skip 2 out of 3 frames
   }
-  
+
   // Process every 3rd frame
   const hash = computeHash(frameData);
   const match = findMatch(hash, concerts);
@@ -1380,6 +1470,7 @@ function processFrame() {
 ```
 
 **Canvas Reuse**:
+
 ```typescript
 // Reuse canvas instead of creating new ones
 const canvas = document.createElement('canvas');
@@ -1390,12 +1481,13 @@ function processFrame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(video, 0, 0);
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  
+
   // Process...
 }
 ```
 
 **Worker Threads** (Future):
+
 ```typescript
 // Offload hash computation to Web Worker
 const worker = new Worker('hash-worker.js');
@@ -1413,11 +1505,13 @@ worker.onmessage = (e) => {
 **Concept**: Train ML model on your specific photos
 
 **Benefits**:
+
 - Higher accuracy (>95%)
 - Learns your specific photo characteristics
 - Handles unique challenges in your environment
 
 **Implementation Path**:
+
 1. Collect 100+ reference images per photo
 2. Train TensorFlow.js model
 3. Export model to ONNX
@@ -1425,6 +1519,7 @@ worker.onmessage = (e) => {
 5. Use as primary or secondary matcher
 
 **Resources**:
+
 - TensorFlow.js: https://www.tensorflow.org/js
 - ONNX Runtime Web: https://onnxruntime.ai/docs/tutorials/web/
 
@@ -1457,6 +1552,7 @@ worker.onmessage = (e) => {
 ### Getting Help
 
 **If still struggling**:
+
 1. Export telemetry (JSON and Markdown)
 2. Document your configuration
 3. Note your environment (lighting, photo surface, camera)
@@ -1464,6 +1560,7 @@ worker.onmessage = (e) => {
 5. Open GitHub issue with details
 
 **Resources**:
+
 - Module README: `src/modules/photo-recognition/README.md`
 - Telemetry Guide: `docs/telemetry-interpretation-guide.md`
 - Camera Settings: `docs/camera-settings-guide.md`

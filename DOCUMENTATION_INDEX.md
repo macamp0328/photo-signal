@@ -82,8 +82,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[debug-overlay/README.md](./src/modules/debug-overlay/README.md)** - Real-time photo recognition debugging overlay (Test Mode only)
 - **[secret-settings/README.md](./src/modules/secret-settings/README.md)** - Hidden settings menu activated by triple-tap/click for feature flags and custom settings
   - **[secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** - Comprehensive guide for adding feature flags and custom settings
-  - **[secret-settings/featureFlagConfig.ts](./src/modules/secret-settings/featureFlagConfig.ts)** - Feature flag definitions (Test Mode, Multi-Scale Recognition, Rectangle Detection, Grayscale Mode)
-  - **[secret-settings/customSettingsConfig.ts](./src/modules/secret-settings/customSettingsConfig.ts)** - Custom settings definitions (Theme Mode, UI Style)
+  - **[secret-settings/config.ts](./src/modules/secret-settings/config.ts)** - Unified configuration file containing feature flags and custom settings definitions
   - **[secret-settings/useFeatureFlags.ts](./src/modules/secret-settings/useFeatureFlags.ts)** - Feature flags state management hook
   - **[secret-settings/useCustomSettings.ts](./src/modules/secret-settings/useCustomSettings.ts)** - Custom settings state management hook
 

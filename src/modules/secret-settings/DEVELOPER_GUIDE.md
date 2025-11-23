@@ -30,8 +30,7 @@ src/modules/secret-settings/
 ├── README.md                       # API contract and usage
 ├── DEVELOPER_GUIDE.md             # This file
 ├── types.ts                        # TypeScript interfaces
-├── featureFlagConfig.ts           # Feature flag definitions
-├── customSettingsConfig.ts        # Custom settings definitions
+├── config.ts                       # Unified configuration (feature flags + custom settings)
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
 ├── useCustomSettings.ts           # Custom settings state management
@@ -121,14 +120,18 @@ Feature flags are boolean toggles that enable/disable experimental features.
 
 ### Step 1: Define Flag Configuration
 
-Create a new file: `src/modules/secret-settings/featureFlagConfig.ts`
+Edit the file: `src/modules/secret-settings/config.ts`
+
+Add your new flag to the `FEATURE_FLAGS` array:
 
 ```typescript
 import type { FeatureFlag } from './types';
 
 /**
- * Feature flag configuration
- * Add new flags to this array to make them available in the UI
+ * Feature Flags Configuration
+ *
+ * Boolean toggles that enable/disable experimental and creative features.
+ * These appear in the "Feature Flags" section of the secret settings menu.
  */
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
@@ -164,12 +167,14 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
 
 ### Step 2: Create State Management Hook
 
-Create a new file: `src/modules/secret-settings/useFeatureFlags.ts`
+The state management hook already exists at: `src/modules/secret-settings/useFeatureFlags.ts`
+
+It automatically loads flags from `config.ts`:
 
 ```typescript
 import { useState, useEffect } from 'react';
 import type { FeatureFlag } from './types';
-import { FEATURE_FLAGS } from './featureFlagConfig';
+import { FEATURE_FLAGS } from './config';
 
 const STORAGE_KEY = 'photo-signal-feature-flags';
 
@@ -351,11 +356,19 @@ Custom settings allow users to adjust numeric, string, or select values.
 
 ### Step 1: Define Settings Configuration
 
-Create a new file: `src/modules/secret-settings/customSettingsConfig.ts`
+Edit the file: `src/modules/secret-settings/config.ts`
+
+Add your new setting to the `CUSTOM_SETTINGS` array (in the same file as feature flags):
 
 ```typescript
 import type { CustomSetting } from './types';
 
+/**
+ * Custom Settings Configuration
+ *
+ * Adjustable parameters that allow fine-tuning of app behavior.
+ * These appear in the "Custom Settings" section of the secret settings menu.
+ */
 export const CUSTOM_SETTINGS: CustomSetting[] = [
   {
     id: 'motion-sensitivity',
@@ -405,12 +418,14 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
 
 ### Step 2: Create State Management Hook
 
-Create a new file: `src/modules/secret-settings/useCustomSettings.ts`
+The state management hook already exists at: `src/modules/secret-settings/useCustomSettings.ts`
+
+It automatically loads settings from `config.ts`:
 
 ```typescript
 import { useState, useEffect } from 'react';
 import type { CustomSetting } from './types';
-import { CUSTOM_SETTINGS } from './customSettingsConfig';
+import { CUSTOM_SETTINGS } from './config';
 
 const STORAGE_KEY = 'photo-signal-custom-settings';
 
@@ -562,7 +577,7 @@ describe('useFeatureFlags', () => {
 ### Example 1: Debug Logging Flag
 
 ```typescript
-// featureFlagConfig.ts
+// config.ts - Add to FEATURE_FLAGS array
 {
   id: 'debug-logging',
   name: 'Debug Logging',
@@ -593,7 +608,7 @@ function MyComponent() {
 ### Example 2: Motion Sensitivity Setting
 
 ```typescript
-// customSettingsConfig.ts
+// config.ts - Add to CUSTOM_SETTINGS array
 {
   id: 'motion-sensitivity',
   name: 'Motion Sensitivity',
@@ -619,7 +634,7 @@ function useMotionDetection() {
 ### Example 3: Theme Setting
 
 ```typescript
-// customSettingsConfig.ts
+// config.ts - Add to CUSTOM_SETTINGS array
 {
   id: 'theme',
   name: 'Color Theme',
@@ -651,7 +666,7 @@ function App() {
 
 When adding new flags or settings:
 
-1. Add to the appropriate config file
+1. Add to the unified config file (`config.ts`)
 2. Update this developer guide with examples
 3. Add tests for new functionality
 4. Update module README if API changes

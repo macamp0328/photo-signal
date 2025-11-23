@@ -244,8 +244,9 @@ describe('ORB Robustness', () => {
     const elapsed = performance.now() - start;
 
     expect(features.keypoints.length).toBeGreaterThanOrEqual(0);
-    // Should complete in reasonable time (< 1000ms for 400x400 image)
-    expect(elapsed).toBeLessThan(1000);
+    // CI runners can be significantly slower than local machines, so we allow
+    // up to ~2s while still catching obvious performance regressions.
+    expect(elapsed).toBeLessThan(2000);
   });
 });
 

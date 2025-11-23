@@ -3,7 +3,7 @@ import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
-import type { Concert } from '../../types';
+import type { Concert, ORBFeaturePayload } from '../../types';
 import type {
   PhotoRecognitionHook,
   PhotoRecognitionOptions,
@@ -89,6 +89,73 @@ const loadImageData = (src: string): Promise<ImageData> => {
 
     img.src = src;
   });
+};
+
+const decodeBase64ToUint8Array = (value: string): Uint8Array | null => {
+  try {
+    if (typeof globalThis.atob === 'function') {
+      const binary = globalThis.atob(value);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    const bufferCtor = (
+      globalThis as typeof globalThis & {
+        Buffer?: {
+          from: (input: string, encoding: string) => Uint8Array | number[];
+        };
+      }
+    ).Buffer;
+
+    if (bufferCtor) {
+      const buffer = bufferCtor.from(value, 'base64');
+      return buffer instanceof Uint8Array ? buffer : Uint8Array.from(buffer);
+    }
+  } catch (error) {
+    console.error('[Photo Recognition][ORB] Failed to decode descriptor payload', error);
+  }
+
+  return null;
+};
+
+const deserializeORBFeatures = (payload?: ORBFeaturePayload): ORBFeatures | null => {
+  if (!payload || !Array.isArray(payload.keypoints) || !Array.isArray(payload.descriptors)) {
+    if (payload && payload.keypoints?.length === 0 && !payload.descriptors) {
+      return { keypoints: [], descriptors: [] };
+    }
+    return null;
+  }
+
+  const keypoints = payload.keypoints.map(([x, y, angle, response, octave, size]) => ({
+    x,
+    y,
+    angle,
+    response,
+    octave,
+    size,
+  }));
+
+  const descriptors: Uint8Array[] = [];
+  for (const descriptor of payload.descriptors) {
+    const decoded = decodeBase64ToUint8Array(descriptor);
+    if (!decoded) {
+      return null;
+    }
+    descriptors.push(decoded);
+  }
+
+  if (keypoints.length !== descriptors.length) {
+    const usableLength = Math.min(keypoints.length, descriptors.length);
+    return {
+      keypoints: keypoints.slice(0, usableLength),
+      descriptors: descriptors.slice(0, usableLength),
+    };
+  }
+
+  return { keypoints, descriptors };
 };
 
 const maxDistanceForAlgorithm = (algorithm: PerceptualHashAlgorithm): number =>
@@ -437,7 +504,32 @@ export function usePhotoRecognition(
     referenceMap.clear();
 
     const prepareReferences = async () => {
+      const pendingExtraction: Concert[] = [];
+      let hydratedCount = 0;
+      let invalidSerializedCount = 0;
+
       for (const concert of concerts) {
+        if (concert.orbFeatures) {
+          const hydrated = deserializeORBFeatures(concert.orbFeatures);
+          if (hydrated) {
+            referenceMap.set(concert.id, hydrated);
+            hydratedCount += 1;
+            continue;
+          }
+
+          invalidSerializedCount += 1;
+          if (import.meta.env.DEV || isEnabled('test-mode')) {
+            console.warn(
+              `[Photo Recognition][ORB] Serialized payload for ${concert.band} (${concert.id}) is invalid, falling back to image extraction`
+            );
+          }
+        }
+
+        pendingExtraction.push(concert);
+      }
+
+      let generatedCount = 0;
+      for (const concert of pendingExtraction) {
         if (!concert.imageFile) {
           if (import.meta.env.DEV || isEnabled('test-mode')) {
             console.warn(
@@ -455,6 +547,7 @@ export function usePhotoRecognition(
 
           const features = extractORBFeatures(imageData, resolvedOrbConfig);
           referenceMap.set(concert.id, features);
+          generatedCount += 1;
         } catch (error) {
           if (import.meta.env.DEV || isEnabled('test-mode')) {
             console.error(
@@ -469,7 +562,7 @@ export function usePhotoRecognition(
         orbReferencesReadyRef.current = referenceMap.size > 0;
         if (import.meta.env.DEV || isEnabled('test-mode')) {
           console.log(
-            `[Photo Recognition][ORB] Reference warmup complete (${referenceMap.size} concerts cached)`
+            `[Photo Recognition][ORB] Reference warmup complete (${referenceMap.size} concerts cached | hydrated=${hydratedCount} | generated=${generatedCount} | invalidSerialized=${invalidSerializedCount})`
           );
         }
       }

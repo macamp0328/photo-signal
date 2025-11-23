@@ -101,6 +101,110 @@ const DEFAULT_ORB_CONFIG: Required<ORBConfig> = {
   matchRatioThreshold: 0.7,
 };
 
+interface PyramidLevel {
+  gray: Uint8ClampedArray;
+  width: number;
+  height: number;
+  scaleX: number;
+  scaleY: number;
+  octave: number;
+}
+
+/**
+ * Construct an image pyramid for multi-scale feature extraction
+ */
+function buildImagePyramid(
+  baseGray: Uint8ClampedArray,
+  baseWidth: number,
+  baseHeight: number,
+  nLevels: number,
+  scaleFactor: number
+): PyramidLevel[] {
+  const levels: PyramidLevel[] = [
+    {
+      gray: baseGray,
+      width: baseWidth,
+      height: baseHeight,
+      scaleX: 1,
+      scaleY: 1,
+      octave: 0,
+    },
+  ];
+
+  let prevGray = baseGray;
+  let prevWidth = baseWidth;
+  let prevHeight = baseHeight;
+
+  for (let levelIndex = 1; levelIndex < nLevels; levelIndex++) {
+    const targetWidth = Math.max(16, Math.round(prevWidth / scaleFactor));
+    const targetHeight = Math.max(16, Math.round(prevHeight / scaleFactor));
+
+    if (
+      targetWidth >= prevWidth ||
+      targetHeight >= prevHeight ||
+      targetWidth < 16 ||
+      targetHeight < 16
+    ) {
+      break; // Cannot downscale further with useful resolution
+    }
+
+    const downscaled = downscaleImage(prevGray, prevWidth, prevHeight, targetWidth, targetHeight);
+
+    levels.push({
+      gray: downscaled,
+      width: targetWidth,
+      height: targetHeight,
+      scaleX: baseWidth / targetWidth,
+      scaleY: baseHeight / targetHeight,
+      octave: levelIndex,
+    });
+
+    prevGray = downscaled;
+    prevWidth = targetWidth;
+    prevHeight = targetHeight;
+  }
+
+  return levels;
+}
+
+/**
+ * Downscale a grayscale image using nearest-neighbor sampling
+ */
+function downscaleImage(
+  srcGray: Uint8ClampedArray,
+  srcWidth: number,
+  srcHeight: number,
+  dstWidth: number,
+  dstHeight: number
+): Uint8ClampedArray {
+  const dst = new Uint8ClampedArray(dstWidth * dstHeight);
+  const xRatio = srcWidth / dstWidth;
+  const yRatio = srcHeight / dstHeight;
+
+  for (let y = 0; y < dstHeight; y++) {
+    const srcY = Math.min(srcHeight - 1, Math.floor(y * yRatio));
+    for (let x = 0; x < dstWidth; x++) {
+      const srcX = Math.min(srcWidth - 1, Math.floor(x * xRatio));
+      dst[y * dstWidth + x] = srcGray[srcY * srcWidth + srcX];
+    }
+  }
+
+  return dst;
+}
+
+/**
+ * Clamp edge threshold to workable bounds for image dimensions
+ */
+function resolveEdgeThreshold(width: number, height: number, edgeThreshold: number): number {
+  const maxBorder = Math.min(Math.floor(width / 2) - 1, Math.floor(height / 2) - 1);
+  if (!Number.isFinite(maxBorder) || maxBorder < 3) {
+    return 3;
+  }
+
+  const clamped = Math.min(edgeThreshold, maxBorder);
+  return Math.max(3, clamped);
+}
+
 /**
  * FAST (Features from Accelerated Segment Test) corner detection
  *
@@ -118,7 +222,8 @@ function detectFASTCorners(
   gray: Uint8ClampedArray,
   width: number,
   height: number,
-  threshold: number
+  threshold: number,
+  edgeThreshold: number
 ): ORBKeypoint[] {
   const keypoints: ORBKeypoint[] = [];
   const circle = [
@@ -140,9 +245,14 @@ function detectFASTCorners(
     [-1, 3],
   ];
 
-  // Skip border pixels
-  for (let y = 3; y < height - 3; y++) {
-    for (let x = 3; x < width - 3; x++) {
+  const safeBorder = resolveEdgeThreshold(width, height, edgeThreshold);
+
+  if (safeBorder * 2 >= width || safeBorder * 2 >= height) {
+    return keypoints;
+  }
+
+  for (let y = safeBorder; y < height - safeBorder; y++) {
+    for (let x = safeBorder; x < width - safeBorder; x++) {
       const centerIdx = y * width + x;
       const centerVal = gray[centerIdx];
 
@@ -331,25 +441,76 @@ export function extractORBFeatures(imageData: ImageData, config: ORBConfig = {})
     gray[i / 4] = 0.299 * r + 0.587 * g + 0.114 * b;
   }
 
-  // Detect FAST corners
-  let keypoints = detectFASTCorners(gray, width, height, cfg.fastThreshold);
+  const pyramid = buildImagePyramid(gray, width, height, cfg.nLevels, cfg.scaleFactor);
+  const collected: Array<{
+    keypoint: ORBKeypoint;
+    descriptor: ORBDescriptor;
+    response: number;
+  }> = [];
 
-  // Sort by response and keep top N
-  keypoints.sort((a, b) => b.response - a.response);
-  keypoints = keypoints.slice(0, cfg.maxFeatures);
+  for (const level of pyramid) {
+    const levelKeypoints = detectFASTCorners(
+      level.gray,
+      level.width,
+      level.height,
+      cfg.fastThreshold,
+      cfg.edgeThreshold
+    );
 
-  // Compute orientations
-  for (const kp of keypoints) {
-    kp.angle = computeKeypointOrientation(kp, gray, width, height);
+    for (const kp of levelKeypoints) {
+      const angle = computeKeypointOrientation(kp, level.gray, level.width, level.height);
+      const descriptor = extractBRIEFDescriptor(
+        { ...kp, angle },
+        level.gray,
+        level.width,
+        level.height
+      );
+
+      collected.push({
+        keypoint: {
+          x: kp.x * level.scaleX,
+          y: kp.y * level.scaleY,
+          angle,
+          response: kp.response,
+          octave: level.octave,
+          size: kp.size * Math.max(level.scaleX, level.scaleY),
+        },
+        descriptor,
+        response: kp.response,
+      });
+    }
   }
 
-  // Extract descriptors
-  const descriptors: ORBDescriptor[] = [];
-  for (const kp of keypoints) {
-    descriptors.push(extractBRIEFDescriptor(kp, gray, width, height));
+  collected.sort((a, b) => b.response - a.response);
+
+  const selectedEntries: typeof collected = [];
+  const usedIndices = new Set<number>();
+  const coveredOctaves = new Set<number>();
+
+  // First, guarantee at least one keypoint per octave (when available)
+  for (let i = 0; i < collected.length && selectedEntries.length < cfg.maxFeatures; i++) {
+    const entry = collected[i];
+    if (coveredOctaves.has(entry.keypoint.octave)) {
+      continue;
+    }
+
+    selectedEntries.push(entry);
+    coveredOctaves.add(entry.keypoint.octave);
+    usedIndices.add(i);
   }
 
-  return { keypoints, descriptors };
+  // Fill remaining slots with highest-response keypoints
+  for (let i = 0; i < collected.length && selectedEntries.length < cfg.maxFeatures; i++) {
+    if (usedIndices.has(i)) {
+      continue;
+    }
+    selectedEntries.push(collected[i]);
+  }
+
+  return {
+    keypoints: selectedEntries.map((entry) => entry.keypoint),
+    descriptors: selectedEntries.map((entry) => entry.descriptor),
+  };
 }
 
 /**

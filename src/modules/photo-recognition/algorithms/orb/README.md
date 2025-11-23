@@ -10,9 +10,7 @@ Unlike perceptual hashing which compares overall image structure, ORB extracts d
 - **Lighting invariant**: Handles different lighting conditions
 - **Robust to distortion**: Tolerates perspective changes from camera angle
 
-⚠️ **Note**: Multi-scale detection (scale invariance) is not yet implemented in this version. The algorithm currently processes images at a single scale.
-
-This makes ORB more robust than perceptual hashing for matching camera photos of printed photos against original digital images.
+Multi-scale detection (scale invariance) is now implemented via a lightweight image pyramid so the camera frame is analyzed at progressively smaller scales before matching. This makes ORB more robust than perceptual hashing for matching camera photos of printed photos against original digital images even when the framing is loose or the photo is smaller in the viewport.
 
 ## Performance Comparison
 
@@ -71,13 +69,11 @@ const result = matchORBFeatures(queryFeatures, refFeatures, config);
 - **`minMatchCount`** (default: 15): Minimum number of good matches to consider a valid match.
 - **`matchRatioThreshold`** (default: 0.7): Lowe's ratio test threshold for filtering good matches. Lower = stricter matching (fewer false positives).
 
-**Not Yet Implemented:**
+**Multi-Scale Controls (NEW):**
 
-The following options are defined in the interface but not yet implemented. They are reserved for future multi-scale pyramid implementation:
-
-- `scaleFactor` – Scale factor between pyramid levels (planned for multi-scale detection)
-- `nLevels` – Number of pyramid levels (planned for multi-scale detection)
-- `edgeThreshold` – Size of border where features are not detected (planned feature)
+- `scaleFactor` – Scale factor between pyramid levels (default `1.2`). Smaller values create more overlap, larger values downscale faster.
+- `nLevels` – Number of pyramid levels to evaluate (default `8`). Each level downsamples the previous one until it becomes too small (<16px) or the level limit is hit.
+- `edgeThreshold` – Size of the border (in pixels) where features are not detected (default `31`). Helps ignore high-contrast edges at the frame boundary. The threshold is automatically clamped for very small images.
 
 ## Return Values
 

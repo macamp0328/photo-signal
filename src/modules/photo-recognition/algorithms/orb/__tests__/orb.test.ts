@@ -124,6 +124,36 @@ describe('ORB Feature Extraction', () => {
       expect(desc.length).toBe(32); // 32 bytes = 256 bits
     }
   });
+
+  it('should extract features across multiple scales when enabled', () => {
+    const image = createNoisyImage(320, 320, 42);
+    const features = extractORBFeatures(image, {
+      nLevels: 3,
+      scaleFactor: 1.5,
+      maxFeatures: 800,
+    });
+
+    const octaves = new Set(features.keypoints.map((kp) => kp.octave));
+    expect(octaves.size).toBeGreaterThan(1);
+    expect(octaves.has(0)).toBe(true);
+    expect(Array.from(octaves).some((octave) => octave > 0)).toBe(true);
+  });
+
+  it('should respect edgeThreshold by avoiding border keypoints', () => {
+    const image = createTestImage(240, 240, 'checkerboard');
+    const edgeThreshold = 40;
+    const features = extractORBFeatures(image, { edgeThreshold, maxFeatures: 200 });
+
+    const minCoord = edgeThreshold - 1; // allow small rounding tolerance
+    const maxX = image.width - edgeThreshold + 1;
+    const maxY = image.height - edgeThreshold + 1;
+
+    const violatesEdge = features.keypoints.some(
+      (kp) => kp.x < minCoord || kp.x > maxX || kp.y < minCoord || kp.y > maxY
+    );
+
+    expect(violatesEdge).toBe(false);
+  });
 });
 
 describe('ORB Feature Matching', () => {
@@ -210,7 +240,7 @@ describe('ORB Robustness', () => {
     const image = createNoisyImage(400, 400); // Use noisy image which has many features
 
     const start = performance.now();
-    const features = extractORBFeatures(image, { maxFeatures: 200 });
+    const features = extractORBFeatures(image, { maxFeatures: 200, nLevels: 1 });
     const elapsed = performance.now() - start;
 
     expect(features.keypoints.length).toBeGreaterThanOrEqual(0);

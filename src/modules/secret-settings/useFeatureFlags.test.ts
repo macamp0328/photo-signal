@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFeatureFlags } from './useFeatureFlags';
-import { FEATURE_FLAGS } from './featureFlagConfig';
+import { FEATURE_FLAGS } from './config';
 
 describe('useFeatureFlags', () => {
   beforeEach(() => {

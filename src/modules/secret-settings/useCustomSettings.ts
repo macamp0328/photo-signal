@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { CustomSetting } from './types';
-import { CUSTOM_SETTINGS } from './customSettingsConfig';
+import { CUSTOM_SETTINGS } from './config';
 
 const STORAGE_KEY = 'photo-signal-custom-settings';
 

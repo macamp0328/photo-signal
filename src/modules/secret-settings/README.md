@@ -42,8 +42,7 @@ src/modules/secret-settings/
 ├── DEVELOPER_GUIDE.md             # Comprehensive guide for adding features
 ├── index.ts                        # Public API exports
 ├── types.ts                        # TypeScript interfaces
-├── featureFlagConfig.ts           # Feature flag definitions
-├── customSettingsConfig.ts        # Custom settings definitions
+├── config.ts                       # Unified configuration (feature flags + custom settings)
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
 ├── useCustomSettings.ts           # Custom settings state management

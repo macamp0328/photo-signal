@@ -404,6 +404,7 @@ export function usePhotoRecognition(
   const matchStartTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef<number>(0);
   const telemetryDispatchRef = useRef<number>(0);
+  const processingFrameCountRef = useRef<number>(0); // Frame counter for frame skipping optimization
 
   // Telemetry tracking
   const telemetryRef = useRef<RecognitionTelemetry>({
@@ -630,6 +631,7 @@ export function usePhotoRecognition(
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
     telemetryDispatchRef.current = 0;
+    processingFrameCountRef.current = 0;
     previousGuidanceRef.current = 'none';
     guidanceStartTimeRef.current = Date.now();
     telemetryRef.current = {
@@ -773,8 +775,13 @@ export function usePhotoRecognition(
     };
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
-    // Create canvas for frame extraction
+    // Create canvas for frame extraction (reusable across all frames)
     const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+      console.error('Failed to get canvas 2D context');
+      return;
+    }
     canvasRef.current = canvas;
 
     // Initialize rectangle detector if enabled
@@ -803,6 +810,13 @@ export function usePhotoRecognition(
         return;
       }
 
+      // Frame skipping optimization: Process every 3rd frame
+      if (processingFrameCountRef.current % 3 !== 0) {
+        processingFrameCountRef.current += 1;
+        return; // Skip 2 out of 3 frames
+      }
+      processingFrameCountRef.current += 1;
+
       try {
         frameCountRef.current += 1;
         const currentTime = Date.now();
@@ -814,12 +828,9 @@ export function usePhotoRecognition(
           { x: number; y: number; width: number; height: number }
         >();
 
-        // Extract current frame
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        if (!ctx) {
-          console.error('Failed to get canvas context');
-          return;
-        }
+        // Reuse canvas and context (already created during initialization)
+        // Clear and reuse the existing canvas for this frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Determine base aspect ratio before detection
         const normalizedAspectRatio: AspectRatio =

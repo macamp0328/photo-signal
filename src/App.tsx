@@ -129,8 +129,24 @@ function App() {
     getSetting<number>('rectangle-detection-confidence-threshold'),
     0.3 // Reduced from 0.6 to 0.3 for better real-world detection
   );
+  const orbMaxFeatures = coerceNumberSetting(getSetting<number>('orb-max-features'), 500);
+  const orbFastThreshold = coerceNumberSetting(getSetting<number>('orb-fast-threshold'), 20);
+  const orbMinMatchCount = coerceNumberSetting(getSetting<number>('orb-min-match-count'), 20);
+  const orbMatchRatioThreshold = coerceNumberSetting(
+    getSetting<number>('orb-match-ratio-threshold'),
+    0.7
+  );
   const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
   const secondarySimilarityThreshold = secondaryHashAlgorithm ? 12 : undefined;
+  const orbConfig =
+    hashAlgorithmValue === 'orb'
+      ? {
+          maxFeatures: orbMaxFeatures,
+          fastThreshold: orbFastThreshold,
+          minMatchCount: orbMinMatchCount,
+          matchRatioThreshold: orbMatchRatioThreshold,
+        }
+      : undefined;
 
   // Module: Photo Recognition (paused when secret menu is open)
   const {
@@ -157,6 +173,7 @@ function App() {
     enableMultiScale: isEnabled('multi-scale-recognition'),
     enableRectangleDetection: isEnabled('rectangle-detection'),
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
+    orbConfig,
     enabled: !showSecretSettings,
   });
 

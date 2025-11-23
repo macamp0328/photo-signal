@@ -8,7 +8,8 @@
 import type { SecretSettingsProps } from './types';
 import { useFeatureFlags } from './useFeatureFlags';
 import { useCustomSettings } from './useCustomSettings';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { CONFIG_PROFILES, CONFIG_PROFILE_SETTING_ID, type ConfigProfileId } from './config';
 import styles from './SecretSettings.module.css';
 
 /**
@@ -30,8 +31,13 @@ import styles from './SecretSettings.module.css';
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
-  const { settings, updateSetting, resetSettings } = useCustomSettings();
+  const { flags, toggleFlag, resetFlags, isEnabled, setFlagState } = useFeatureFlags();
+  const { settings, updateSetting, resetSettings, getSetting } = useCustomSettings();
+
+  const currentProfileId = getSetting<ConfigProfileId>(CONFIG_PROFILE_SETTING_ID) ?? 'custom';
+  const currentProfile = useMemo(() => {
+    return CONFIG_PROFILES.find((profile) => profile.id === currentProfileId);
+  }, [currentProfileId]);
 
   const handleSendIt = useCallback(() => {
     // Close the menu first (provides immediate feedback)
@@ -44,6 +50,45 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
       window.location.reload();
     }, 100);
   }, [onClose]);
+
+  const setSettingValue = useCallback(
+    (id: string, value: string | number | boolean, options?: { fromProfile?: boolean }) => {
+      updateSetting(id, value);
+
+      if (!options?.fromProfile && id !== CONFIG_PROFILE_SETTING_ID) {
+        updateSetting(CONFIG_PROFILE_SETTING_ID, 'custom');
+      }
+    },
+    [updateSetting]
+  );
+
+  const handleProfileSelection = useCallback(
+    (profileId: ConfigProfileId) => {
+      const profile = CONFIG_PROFILES.find((p) => p.id === profileId);
+
+      if (!profile || profile.id === 'custom') {
+        setSettingValue(CONFIG_PROFILE_SETTING_ID, 'custom', { fromProfile: true });
+        return;
+      }
+
+      Object.entries(profile.settings).forEach(([settingId, value]) => {
+        if (value !== undefined) {
+          setSettingValue(settingId, value, { fromProfile: true });
+        }
+      });
+
+      if (profile.featureFlags) {
+        Object.entries(profile.featureFlags).forEach(([flagId, enabled]) => {
+          if (typeof enabled === 'boolean') {
+            setFlagState(flagId, enabled);
+          }
+        });
+      }
+
+      setSettingValue(CONFIG_PROFILE_SETTING_ID, profileId, { fromProfile: true });
+    },
+    [setFlagState, setSettingValue]
+  );
 
   if (!isVisible) {
     return null;
@@ -156,7 +201,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                               step={setting.step ?? 100}
                               value={setting.value as number}
                               onChange={(e) =>
-                                updateSetting(setting.id, parseFloat(e.target.value))
+                                setSettingValue(setting.id, parseFloat(e.target.value))
                               }
                               className={styles.settingRange}
                             />
@@ -173,7 +218,11 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                           <div className={styles.settingControl}>
                             <select
                               value={setting.value as string}
-                              onChange={(e) => updateSetting(setting.id, e.target.value)}
+                              onChange={(e) =>
+                                setting.id === CONFIG_PROFILE_SETTING_ID
+                                  ? handleProfileSelection(e.target.value as ConfigProfileId)
+                                  : setSettingValue(setting.id, e.target.value)
+                              }
                               className={styles.settingSelect}
                             >
                               {setting.options?.map((opt) => (
@@ -182,6 +231,9 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                                 </option>
                               ))}
                             </select>
+                            {setting.id === CONFIG_PROFILE_SETTING_ID && currentProfile && (
+                              <p className={styles.profileHelper}>{currentProfile.description}</p>
+                            )}
                           </div>
                         )}
 
@@ -190,7 +242,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
                             <input
                               type="checkbox"
                               checked={setting.value as boolean}
-                              onChange={(e) => updateSetting(setting.id, e.target.checked)}
+                              onChange={(e) => setSettingValue(setting.id, e.target.checked)}
                               className={styles.flagCheckbox}
                             />
                           </div>

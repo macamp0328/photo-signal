@@ -96,11 +96,14 @@ Visual regression test configuration is in `playwright.config.ts`:
 
 - **Test directory**: `./tests/visual`
 - **Base URL**: `http://localhost:4173` (Vite preview server)
-- **Browsers**: Chromium, Firefox, WebKit (Safari)
-- **Mobile Devices**: Pixel 5 (Mobile Chrome), iPhone 12 (Mobile Safari)
+- **Browsers (CI)**: Chromium only (for speed and reliability)
+- **Browsers (Local)**: Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari
 - **Threshold**: 0.2% pixel difference tolerance (for anti-aliasing)
 - **Timeout**: 30 seconds per test
 - **Retries**: 2 on CI, 0 locally
+- **Workers**: 1 on CI (sequential), unlimited locally (parallel)
+
+**Note**: In CI, only Chromium tests run to keep the workflow fast. Locally, you can test on all browsers and devices by running `npx playwright test`.
 
 ## Writing New Visual Tests
 

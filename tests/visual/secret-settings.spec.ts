@@ -45,14 +45,15 @@ test.describe('Secret Settings Menu', () => {
     await page.locator('body').click({ clickCount: 3 });
     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
 
-    // Find and enable Test Mode flag
-    // Look for label containing "Test Mode" and click its checkbox
-    const testModeLabel = page.locator('label:has-text("Test Mode")');
-    const testModeCheckbox = testModeLabel.locator('input[type="checkbox"]');
-    await testModeCheckbox.click();
+    // Find and enable Test Data Mode flag (not Test Mode)
+    const testModeLabel = page.locator('label:has-text("Test Data Mode")');
+    const exists = (await testModeLabel.count()) > 0;
 
-    // Wait a moment for any visual changes
-    await page.waitForTimeout(200);
+    if (exists) {
+      const testModeCheckbox = testModeLabel.locator('input[type="checkbox"]');
+      await testModeCheckbox.click();
+      await page.waitForTimeout(200);
+    }
 
     // Take snapshot
     await expect(page).toHaveScreenshot('secret-settings-test-mode-on.png', {
@@ -60,7 +61,7 @@ test.describe('Secret Settings Menu', () => {
     });
   });
 
-  test('feature flags - psychedelic mode enabled', async ({ page }) => {
+  test('feature flags - debug overlay enabled', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
@@ -68,16 +69,18 @@ test.describe('Secret Settings Menu', () => {
     await page.locator('body').click({ clickCount: 3 });
     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
 
-    // Find and enable Psychedelic Mode flag
-    const psychedelicLabel = page.locator('label:has-text("Psychedelic Mode")');
-    const psychedelicCheckbox = psychedelicLabel.locator('input[type="checkbox"]');
-    await psychedelicCheckbox.click();
+    // Find and enable Debug Overlay if it exists
+    const debugLabel = page.locator('label:has-text("Debug Overlay")');
+    const exists = (await debugLabel.count()) > 0;
 
-    // Wait for visual changes
-    await page.waitForTimeout(200);
+    if (exists) {
+      const debugCheckbox = debugLabel.locator('input[type="checkbox"]');
+      await debugCheckbox.click();
+      await page.waitForTimeout(200);
+    }
 
     // Take snapshot
-    await expect(page).toHaveScreenshot('secret-settings-psychedelic-on.png', {
+    await expect(page).toHaveScreenshot('secret-settings-debug-overlay.png', {
       fullPage: true,
     });
   });
@@ -91,14 +94,18 @@ test.describe('Secret Settings Menu', () => {
     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
 
     // Find motion threshold slider (looking for a range input)
-    // This may need adjustment based on actual implementation
+    // Use evaluate to set the slider value instead of fill()
     const sliders = page.locator('input[type="range"]');
     const count = await sliders.count();
 
     if (count > 0) {
-      // Adjust first slider to 50%
+      // Adjust first slider to middle value using evaluate
       const firstSlider = sliders.first();
-      await firstSlider.fill('50');
+      await firstSlider.evaluate((el: HTMLInputElement) => {
+        el.value = '2750'; // Middle of range 500-5000
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      });
       await page.waitForTimeout(200);
     }
 

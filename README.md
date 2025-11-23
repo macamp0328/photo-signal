@@ -189,7 +189,27 @@ Edit `public/data.json` to add your own concert data:
 
 ### Photo Recognition
 
-The current implementation uses placeholder logic that triggers after 3 seconds. To implement real photo recognition, modify the `Camera.tsx` component to integrate with your preferred image recognition service (e.g., image-phash or ML-based matching).
+Photo Signal implements **real photo recognition** using perceptual hashing (dHash/pHash) and ORB feature matching to identify printed photographs.
+
+**🎯 Getting Started with Photo Recognition:**
+
+See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** for a comprehensive guide covering:
+- How each recognition algorithm works internally
+- Step-by-step hash generation workflow
+- Configuration recommendations for your environment
+- Systematic testing and troubleshooting procedures
+
+**Quick Setup:**
+1. Enable Test Mode (triple-tap/click → "Test Data Mode")
+2. Point camera at printed photo
+3. Copy hash from debug overlay
+4. Add to `public/data.json` photoHashes
+5. Test recognition
+
+For automated hash generation from photo files:
+```bash
+npm run generate-hashes
+```
 
 ---
 
@@ -201,6 +221,7 @@ For complete documentation including architecture, setup, testing, and all modul
 
 Key docs:
 
+- **⭐ [docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** - **START HERE**: Complete guide to achieving successful photo recognition with printed photographs
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines and AI agent PR policy
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Module structure and design principles
 - **[SETUP.md](./SETUP.md)** - Development environment and CI/CD setup

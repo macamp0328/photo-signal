@@ -169,7 +169,6 @@
     /* When collapsed, position at bottom-left to avoid collision with debug overlay at bottom-right */
     left: 10px;
     right: auto;
-    bottom: 10px;
     width: auto;
   }
 

@@ -15,7 +15,7 @@ export function useMotionDetection(
   stream: MediaStream | null,
   options: MotionDetectionOptions = {}
 ): MotionDetectionHook {
-  const { sensitivity: initialSensitivity = 50, checkInterval = 500 } = options;
+  const { sensitivity: initialSensitivity = 50, checkInterval = 500, enabled = true } = options;
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -98,11 +98,11 @@ export function useMotionDetection(
 
   // Set up interval for motion detection
   useEffect(() => {
-    if (!stream) return;
+    if (!stream || !enabled) return;
 
     const interval = setInterval(detectMovement, checkInterval);
     return () => clearInterval(interval);
-  }, [stream, detectMovement, checkInterval]);
+  }, [stream, detectMovement, checkInterval, enabled]);
 
   return {
     isMoving,

@@ -16,4 +16,6 @@ export interface MotionDetectionOptions {
   sensitivity?: number;
   /** Interval between checks in ms, default 500 */
   checkInterval?: number;
+  /** Enable/disable motion detection, default true */
+  enabled?: boolean;
 }

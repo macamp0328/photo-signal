@@ -452,6 +452,112 @@ describe('useMotionDetection', () => {
     });
   });
 
+  describe('Enabled Option', () => {
+    it('should not perform motion detection when enabled is false', async () => {
+      const mockStream = createMockMediaStream();
+
+      frameDataSequence = [generateMockFrameData(80, 60, 0), generateMockFrameData(80, 60, 255)];
+
+      renderHook(() => useMotionDetection(mockStream, { checkInterval: 100, enabled: false }));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      // Should not perform any motion detection checks
+      expect(mockCanvasContext.getImageData).not.toHaveBeenCalled();
+    });
+
+    it('should perform motion detection when enabled is true', async () => {
+      const mockStream = createMockMediaStream();
+
+      frameDataSequence = [generateMockFrameData(80, 60, 0), generateMockFrameData(80, 60, 255)];
+
+      renderHook(() => useMotionDetection(mockStream, { checkInterval: 100, enabled: true }));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      // Should perform motion detection checks
+      expect(mockCanvasContext.getImageData).toHaveBeenCalled();
+    });
+
+    it('should default to enabled when option is not provided', async () => {
+      const mockStream = createMockMediaStream();
+
+      frameDataSequence = [generateMockFrameData(80, 60, 0), generateMockFrameData(80, 60, 255)];
+
+      renderHook(() => useMotionDetection(mockStream, { checkInterval: 100 }));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      // Should perform motion detection checks by default
+      expect(mockCanvasContext.getImageData).toHaveBeenCalled();
+    });
+
+    it('should stop motion detection when enabled changes to false', async () => {
+      const mockStream = createMockMediaStream();
+
+      frameDataSequence = [generateMockFrameData(80, 60, 100)];
+
+      const { rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          useMotionDetection(mockStream, { checkInterval: 100, enabled }),
+        { initialProps: { enabled: true } }
+      );
+
+      // Initially enabled - should check
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(mockCanvasContext.getImageData).toHaveBeenCalledTimes(1);
+
+      // Clear mocks
+      vi.clearAllMocks();
+
+      // Disable motion detection
+      rerender({ enabled: false });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      // Should not check for motion anymore
+      expect(mockCanvasContext.getImageData).not.toHaveBeenCalled();
+    });
+
+    it('should resume motion detection when enabled changes to true', async () => {
+      const mockStream = createMockMediaStream();
+
+      frameDataSequence = [generateMockFrameData(80, 60, 100)];
+
+      const { rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          useMotionDetection(mockStream, { checkInterval: 100, enabled }),
+        { initialProps: { enabled: false } }
+      );
+
+      // Initially disabled - should not check
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+      expect(mockCanvasContext.getImageData).not.toHaveBeenCalled();
+
+      // Enable motion detection
+      rerender({ enabled: true });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // Should start checking for motion
+      expect(mockCanvasContext.getImageData).toHaveBeenCalled();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle video element not ready', async () => {
       const mockStream = createMockMediaStream();

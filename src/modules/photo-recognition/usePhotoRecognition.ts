@@ -3,7 +3,7 @@ import { dataService } from '../../services/data-service';
 import { useFeatureFlags } from '../secret-settings';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
-import type { Concert } from '../../types';
+import type { Concert, ORBFeaturePayload } from '../../types';
 import type {
   PhotoRecognitionHook,
   PhotoRecognitionOptions,
@@ -91,6 +91,73 @@ const loadImageData = (src: string): Promise<ImageData> => {
   });
 };
 
+const decodeBase64ToUint8Array = (value: string): Uint8Array | null => {
+  try {
+    if (typeof globalThis.atob === 'function') {
+      const binary = globalThis.atob(value);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    const bufferCtor = (
+      globalThis as typeof globalThis & {
+        Buffer?: {
+          from: (input: string, encoding: string) => Uint8Array | number[];
+        };
+      }
+    ).Buffer;
+
+    if (bufferCtor) {
+      const buffer = bufferCtor.from(value, 'base64');
+      return buffer instanceof Uint8Array ? buffer : Uint8Array.from(buffer);
+    }
+  } catch (error) {
+    console.error('[Photo Recognition][ORB] Failed to decode descriptor payload', error);
+  }
+
+  return null;
+};
+
+const deserializeORBFeatures = (payload?: ORBFeaturePayload): ORBFeatures | null => {
+  if (!payload || !Array.isArray(payload.keypoints) || !Array.isArray(payload.descriptors)) {
+    if (payload && payload.keypoints?.length === 0 && !payload.descriptors) {
+      return { keypoints: [], descriptors: [] };
+    }
+    return null;
+  }
+
+  const keypoints = payload.keypoints.map(([x, y, angle, response, octave, size]) => ({
+    x,
+    y,
+    angle,
+    response,
+    octave,
+    size,
+  }));
+
+  const descriptors: Uint8Array[] = [];
+  for (const descriptor of payload.descriptors) {
+    const decoded = decodeBase64ToUint8Array(descriptor);
+    if (!decoded) {
+      return null;
+    }
+    descriptors.push(decoded);
+  }
+
+  if (keypoints.length !== descriptors.length) {
+    const usableLength = Math.min(keypoints.length, descriptors.length);
+    return {
+      keypoints: keypoints.slice(0, usableLength),
+      descriptors: descriptors.slice(0, usableLength),
+    };
+  }
+
+  return { keypoints, descriptors };
+};
+
 const maxDistanceForAlgorithm = (algorithm: PerceptualHashAlgorithm): number =>
   HASH_LENGTHS[algorithm] * 4;
 
@@ -168,6 +235,49 @@ const recordFailure = (
   }
 };
 
+interface ViewportRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const DEFAULT_DISPLAY_ASPECT_RATIO = 1;
+
+const calculateVisibleViewport = (
+  videoWidth: number,
+  videoHeight: number,
+  displayAspectRatio: number = DEFAULT_DISPLAY_ASPECT_RATIO
+): ViewportRegion => {
+  const safeRatio = displayAspectRatio > 0 ? displayAspectRatio : videoWidth / videoHeight;
+  const videoRatio = videoWidth / videoHeight;
+
+  if (!Number.isFinite(videoRatio) || !Number.isFinite(safeRatio)) {
+    return { x: 0, y: 0, width: videoWidth, height: videoHeight };
+  }
+
+  if (Math.abs(videoRatio - safeRatio) < 0.001) {
+    return {
+      x: 0,
+      y: 0,
+      width: videoWidth,
+      height: videoHeight,
+    };
+  }
+
+  if (videoRatio > safeRatio) {
+    const height = videoHeight;
+    const width = Math.round(height * safeRatio);
+    const x = Math.round((videoWidth - width) / 2);
+    return { x, y: 0, width, height };
+  }
+
+  const width = videoWidth;
+  const height = Math.round(width / safeRatio);
+  const y = Math.round((videoHeight - height) / 2);
+  return { x: 0, y, width, height };
+};
+
 /**
  * Calculate the framed region coordinates based on aspect ratio
  * @param videoWidth - Width of the video in pixels
@@ -243,6 +353,7 @@ export function usePhotoRecognition(
     secondaryHashAlgorithm = null,
     secondarySimilarityThreshold,
     orbConfig,
+    displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -437,7 +548,32 @@ export function usePhotoRecognition(
     referenceMap.clear();
 
     const prepareReferences = async () => {
+      const pendingExtraction: Concert[] = [];
+      let hydratedCount = 0;
+      let invalidSerializedCount = 0;
+
       for (const concert of concerts) {
+        if (concert.orbFeatures) {
+          const hydrated = deserializeORBFeatures(concert.orbFeatures);
+          if (hydrated) {
+            referenceMap.set(concert.id, hydrated);
+            hydratedCount += 1;
+            continue;
+          }
+
+          invalidSerializedCount += 1;
+          if (import.meta.env.DEV || isEnabled('test-mode')) {
+            console.warn(
+              `[Photo Recognition][ORB] Serialized payload for ${concert.band} (${concert.id}) is invalid, falling back to image extraction`
+            );
+          }
+        }
+
+        pendingExtraction.push(concert);
+      }
+
+      let generatedCount = 0;
+      for (const concert of pendingExtraction) {
         if (!concert.imageFile) {
           if (import.meta.env.DEV || isEnabled('test-mode')) {
             console.warn(
@@ -455,6 +591,7 @@ export function usePhotoRecognition(
 
           const features = extractORBFeatures(imageData, resolvedOrbConfig);
           referenceMap.set(concert.id, features);
+          generatedCount += 1;
         } catch (error) {
           if (import.meta.env.DEV || isEnabled('test-mode')) {
             console.error(
@@ -469,7 +606,7 @@ export function usePhotoRecognition(
         orbReferencesReadyRef.current = referenceMap.size > 0;
         if (import.meta.env.DEV || isEnabled('test-mode')) {
           console.log(
-            `[Photo Recognition][ORB] Reference warmup complete (${referenceMap.size} concerts cached)`
+            `[Photo Recognition][ORB] Reference warmup complete (${referenceMap.size} concerts cached | hydrated=${hydratedCount} | generated=${generatedCount} | invalidSerialized=${invalidSerializedCount})`
           );
         }
       }
@@ -696,18 +833,39 @@ export function usePhotoRecognition(
         let chosenAspectRatio: AspectRatio =
           normalizedAspectRatio === 'auto' ? '1:1' : normalizedAspectRatio;
 
-        // Optional: Detect rectangle in frame (when enabled)
-        let finalFramedRegion = calculateFramedRegion(
+        const visibleViewport = calculateVisibleViewport(
           video.videoWidth,
           video.videoHeight,
-          chosenAspectRatio
+          displayAspectRatio
+        );
+
+        const offsetRegionToVideo = (region: ViewportRegion): ViewportRegion => ({
+          x: Math.round(visibleViewport.x + region.x),
+          y: Math.round(visibleViewport.y + region.y),
+          width: Math.round(region.width),
+          height: Math.round(region.height),
+        });
+
+        // Optional: Detect rectangle in frame (when enabled)
+        let finalFramedRegion = offsetRegionToVideo(
+          calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
 
         if (enableRectangleDetection && rectangleDetectorRef.current) {
           // First, capture the full frame for rectangle detection
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0);
+          canvas.width = visibleViewport.width;
+          canvas.height = visibleViewport.height;
+          ctx.drawImage(
+            video,
+            visibleViewport.x,
+            visibleViewport.y,
+            visibleViewport.width,
+            visibleViewport.height,
+            0,
+            0,
+            visibleViewport.width,
+            visibleViewport.height
+          );
           const fullFrameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
           // Detect rectangle in full frame
@@ -725,10 +883,10 @@ export function usePhotoRecognition(
             chosenAspectRatio = rect.width >= rect.height ? '3:2' : '2:3';
             // Convert normalized coordinates to pixel coordinates
             finalFramedRegion = {
-              x: Math.round(rect.topLeft.x * video.videoWidth),
-              y: Math.round(rect.topLeft.y * video.videoHeight),
-              width: Math.round(rect.width * video.videoWidth),
-              height: Math.round(rect.height * video.videoHeight),
+              x: Math.round(visibleViewport.x + rect.topLeft.x * visibleViewport.width),
+              y: Math.round(visibleViewport.y + rect.topLeft.y * visibleViewport.height),
+              width: Math.round(rect.width * visibleViewport.width),
+              height: Math.round(rect.height * visibleViewport.height),
             };
           } else {
             // No rectangle detected, use fixed aspect ratio framing
@@ -1081,11 +1239,13 @@ export function usePhotoRecognition(
           }
 
           // Calculate the scaled region
-          const scaledRegion = calculateFramedRegion(
-            video.videoWidth,
-            video.videoHeight,
-            chosenAspectRatio,
-            scale
+          const scaledRegion = offsetRegionToVideo(
+            calculateFramedRegion(
+              visibleViewport.width,
+              visibleViewport.height,
+              chosenAspectRatio,
+              scale
+            )
           );
 
           // Reuse temp canvas to avoid creating new canvas elements in every iteration

@@ -81,10 +81,11 @@ function App() {
     autoStart: isActive,
   });
 
-  // Module: Motion Detection
+  // Module: Motion Detection (paused when secret menu is open)
   const { isMoving } = useMotionDetection(stream, {
     sensitivity: 50,
     checkInterval: 500,
+    enabled: !showSecretSettings,
   });
 
   const rawRecognitionDelay = getSetting<number>('recognition-delay');
@@ -131,7 +132,7 @@ function App() {
   const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
   const secondarySimilarityThreshold = secondaryHashAlgorithm ? 12 : undefined;
 
-  // Module: Photo Recognition
+  // Module: Photo Recognition (paused when secret menu is open)
   const {
     recognizedConcert,
     reset: resetRecognition,
@@ -156,6 +157,7 @@ function App() {
     enableMultiScale: isEnabled('multi-scale-recognition'),
     enableRectangleDetection: isEnabled('rectangle-detection'),
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
+    enabled: !showSecretSettings,
   });
 
   // Module: Audio Playback
@@ -285,7 +287,7 @@ function App() {
           />
         </Suspense>
       )}
-      {isTestModeEnabled && (
+      {isTestModeEnabled && !showSecretSettings && (
         <Suspense fallback={null}>
           <DebugOverlay
             enabled={isTestModeEnabled}
@@ -297,7 +299,7 @@ function App() {
           />
         </Suspense>
       )}
-      {isTestModeEnabled && debugInfo?.telemetry && (
+      {isTestModeEnabled && !showSecretSettings && debugInfo?.telemetry && (
         <TelemetryExport telemetry={debugInfo.telemetry} />
       )}
     </>

@@ -115,7 +115,7 @@ export function CameraView({
       )}
 
       {/* Instructions */}
-      {!showConcertOverlay && (
+      {!concertInfo && (
         <div className={styles.instructions}>
           <p className={styles.instructionsText}>Point camera at a photo to play music</p>
         </div>

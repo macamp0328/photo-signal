@@ -72,6 +72,12 @@ describe('InfoDisplay', () => {
 
       expect(screen.getByText('Now Playing')).toBeInTheDocument();
     });
+
+    it('should display a zero-padded archive number', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
+
+      expect(screen.getByText('#01')).toBeInTheDocument();
+    });
   });
 
   describe('Date Formatting', () => {
@@ -134,9 +140,8 @@ describe('InfoDisplay', () => {
     it('should apply card-style classes', () => {
       const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      const displayDiv = container.querySelector('div');
-      // Check for CSS Module class names
-      expect(displayDiv?.className).toContain('card');
+      const displaySection = container.querySelector('section');
+      expect(displaySection?.className).toContain('card');
     });
 
     it('should apply custom className prop', () => {
@@ -144,30 +149,28 @@ describe('InfoDisplay', () => {
         <InfoDisplay concert={mockConcert} isVisible={true} className="custom-class" />
       );
 
-      const displayDiv = container.querySelector('div');
-      expect(displayDiv).toHaveClass('custom-class');
+      const displaySection = container.querySelector('section');
+      expect(displaySection).toHaveClass('custom-class');
     });
 
     it('should apply padding classes', () => {
       const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      const displayDiv = container.querySelector('div');
-      // CSS Module handles padding through the card class
-      expect(displayDiv?.className).toContain('card');
+      const displaySection = container.querySelector('section');
+      expect(displaySection?.className).toContain('card');
     });
 
     it('should apply proper text sizing classes', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const bandName = screen.getByText('The Beatles');
-      // Check for CSS Module class
       expect(bandName.className).toContain('bandName');
 
       const venue = screen.getByText('Abbey Road Studios');
-      expect(venue.className).toContain('venue');
+      expect(venue.className).toContain('detailValue');
 
       const date = screen.getByText('August 15, 2023');
-      expect(date.className).toContain('date');
+      expect(date.className).toContain('detailValue');
     });
   });
 
@@ -183,8 +186,7 @@ describe('InfoDisplay', () => {
 
       const { container } = render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      // Component should still render
-      expect(container.querySelector('div')).toBeInTheDocument();
+      expect(container.querySelector('section')).toBeInTheDocument();
       expect(screen.getByText('August 15, 2023')).toBeInTheDocument();
     });
 

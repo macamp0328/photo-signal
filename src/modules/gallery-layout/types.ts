@@ -20,6 +20,6 @@ export interface GalleryLayoutProps {
   /** Callback when user wants to activate camera */
   onActivate: () => void;
 
-  /** Whether to show the info section (for backward compatibility, defaults to false) */
+  /** Whether to show the info section (defaults to true for stacked layout, set false for overlay mode) */
   showInfoSection?: boolean;
 }

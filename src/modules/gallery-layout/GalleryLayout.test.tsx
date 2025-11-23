@@ -66,27 +66,11 @@ describe('GalleryLayout', () => {
     // Camera should be visible
     expect(screen.getByTestId('camera-view')).toBeTruthy();
 
-    // Info display should not be visible by default (showInfoSection defaults to false)
-    expect(screen.queryByTestId('info-display')).toBeNull();
+    // Info display should be visible by default in stacked layout
+    expect(screen.getByTestId('info-display')).toBeTruthy();
 
     // Begin button should not be visible
     expect(screen.queryByRole('button', { name: 'Begin' })).toBeNull();
-  });
-
-  it('renders info section when showInfoSection is true', () => {
-    render(
-      <GalleryLayout
-        isActive={true}
-        cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
-        onActivate={mockOnActivate}
-        showInfoSection={true}
-      />
-    );
-
-    // Both camera and info should be visible
-    expect(screen.getByTestId('camera-view')).toBeTruthy();
-    expect(screen.getByTestId('info-display')).toBeTruthy();
   });
 
   it('hides info section when showInfoSection is false', () => {

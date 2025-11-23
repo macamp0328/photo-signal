@@ -15,7 +15,7 @@ export function GalleryLayout({
   cameraView,
   infoDisplay,
   onActivate,
-  showInfoSection = false,
+  showInfoSection = true,
 }: GalleryLayoutProps) {
   if (!isActive) {
     // Landing/Initial View
@@ -44,19 +44,17 @@ export function GalleryLayout({
   // Active Gallery View with Camera
   return (
     <div className={styles.active}>
-      {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.headerTitle}>Photo Signal</h1>
         <p className={styles.headerSubtitle}>Point at a photo to begin</p>
       </div>
 
-      {/* Main Content Area - Camera and Info */}
       <div className={styles.content}>
-        {/* Camera View - Takes up main space */}
-        <div className={styles.cameraSection}>{cameraView}</div>
+        <div className={styles.cameraWrap}>
+          <div className={styles.cameraSection}>{cameraView}</div>
+        </div>
 
-        {/* Info Display - Side panel on desktop, below on mobile (hidden when concert is overlaid) */}
-        {showInfoSection && <div className={styles.infoSection}>{infoDisplay}</div>}
+        {showInfoSection && infoDisplay && <div className={styles.infoSection}>{infoDisplay}</div>}
       </div>
     </div>
   );

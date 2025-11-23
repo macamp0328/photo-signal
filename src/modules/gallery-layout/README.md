@@ -7,7 +7,7 @@ The Gallery Layout module provides a zine-like, curated UI experience for Photo 
 ## Features
 
 - **Landing View**: Initial screen with title, instructions, and "Begin" button
-- **Active Gallery View**: Integrated camera view with header and side panel for concert info
+- **Active Gallery View**: Square camera hero at the top with a spacious info section stacked below
 - **Textured Background**: Paper-like aesthetic throughout the experience
 - **Responsive Layout**: Adapts to mobile and desktop screens
 - **Modular Design**: Accepts camera and info display as children components
@@ -30,47 +30,16 @@ interface GalleryLayoutProps {
   /** Callback when user wants to activate camera */
   onActivate: () => void;
 
-  /** Whether to show the info section (defaults to false for overlay mode) */
+  /** Whether to show the info section (defaults to true for stacked layout) */
   showInfoSection?: boolean;
 }
 ```
 
-**Note**: The `showInfoSection` prop is optional and defaults to `false`. When `false`, the info section is hidden, allowing concert info to be displayed as an overlay on the camera view instead. This prevents the layout from changing when a photo is matched, which could disrupt photo recognition.
+**Note**: The `showInfoSection` prop now defaults to `true`, which renders the info section directly below the camera. Set it to `false` only when you need the legacy overlay experience inside the camera frame.
 
 ## Usage
 
-### Basic Usage (Overlay Mode - Recommended)
-
-```tsx
-import { GalleryLayout } from './modules/gallery-layout';
-
-function App() {
-  const [isActive, setIsActive] = useState(false);
-
-  // Concert info is now passed directly to CameraView for overlay display
-  const cameraView = (
-    <CameraView
-      stream={stream}
-      concertInfo={recognizedConcert}
-      showConcertOverlay={!!recognizedConcert && isPlaying}
-    />
-  );
-
-  const infoDisplay = <InfoDisplay concert={null} isVisible={false} />;
-
-  return (
-    <GalleryLayout
-      isActive={isActive}
-      cameraView={cameraView}
-      infoDisplay={infoDisplay}
-      onActivate={() => setIsActive(true)}
-      showInfoSection={false} // Hide info section, use overlay instead
-    />
-  );
-}
-```
-
-### Legacy Usage (Side Panel Mode)
+### Basic Usage (Stacked Layout - Recommended)
 
 ```tsx
 import { GalleryLayout } from './modules/gallery-layout';
@@ -79,7 +48,10 @@ function App() {
   const [isActive, setIsActive] = useState(false);
 
   const cameraView = <CameraView stream={stream} />;
-  const infoDisplay = <InfoDisplay concert={concert} />;
+
+  const infoDisplay = (
+    <InfoDisplay concert={recognizedConcert} isVisible={!!recognizedConcert && isPlaying} />
+  );
 
   return (
     <GalleryLayout
@@ -87,7 +59,34 @@ function App() {
       cameraView={cameraView}
       infoDisplay={infoDisplay}
       onActivate={() => setIsActive(true)}
-      showInfoSection={true} // Show info section in side panel
+    />
+  );
+}
+```
+
+### Overlay Mode (Optional)
+
+```tsx
+import { GalleryLayout } from './modules/gallery-layout';
+
+function App() {
+  const [isActive, setIsActive] = useState(false);
+
+  const cameraView = (
+    <CameraView
+      stream={stream}
+      concertInfo={recognizedConcert}
+      showConcertOverlay={!!recognizedConcert && isPlaying}
+    />
+  );
+
+  return (
+    <GalleryLayout
+      isActive={isActive}
+      cameraView={cameraView}
+      infoDisplay={null}
+      onActivate={() => setIsActive(true)}
+      showInfoSection={false} // Hide info section, use overlay instead
     />
   );
 }

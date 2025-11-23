@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { FeatureFlag } from './types';
-import { FEATURE_FLAGS } from './featureFlagConfig';
+import { FEATURE_FLAGS } from './config';
 import { dataService } from '../../services/data-service';
 
 const STORAGE_KEY = 'photo-signal-feature-flags';

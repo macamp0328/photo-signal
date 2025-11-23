@@ -10,9 +10,17 @@ Visual regression tests detect unintended CSS or visual changes by comparing scr
 
 Tests are organized by UI area:
 
-- **`landing-page.spec.ts`** - Landing page in inactive state, multiple viewports
-- **`camera-view.spec.ts`** - Camera permission states, active camera view, error states
-- **`ui-components.spec.ts`** - Secret settings, themes, responsive design, interactive states
+- **`landing-page.spec.ts`** - Landing page in inactive state, multiple viewports (3 tests)
+- **`camera-view.spec.ts`** - Camera permission states, active camera view, error states (2 tests)
+- **`ui-components.spec.ts`** - Themes, responsive design, interactive states (4 tests)
+- **`secret-settings.spec.ts`** - Settings menu, feature flags, sliders, mobile viewport (7 tests)
+- **`concert-info.spec.ts`** - Concert display states, overflow handling, mobile viewport (5 tests)
+- **`error-states.spec.ts`** - Permission denied, network errors, empty data, audio failures (5 tests)
+- **`responsive.spec.ts`** - Multiple viewports, secret settings, camera view responsiveness (12 tests)
+- **`accessibility.spec.ts`** - Focus states, high contrast, keyboard navigation, touch targets (10 tests)
+- **`feature-flags.spec.ts`** - Feature flag variations, visual effects, multiple flags (8 tests)
+
+**Total**: ~56 visual regression test scenarios across 9 test files
 
 ## Running Tests
 
@@ -88,10 +96,14 @@ Visual regression test configuration is in `playwright.config.ts`:
 
 - **Test directory**: `./tests/visual`
 - **Base URL**: `http://localhost:4173` (Vite preview server)
-- **Browser**: Chromium (can add Firefox, WebKit if needed)
+- **Browsers (CI)**: Chromium only (for speed and reliability)
+- **Browsers (Local)**: Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari
 - **Threshold**: 0.2% pixel difference tolerance (for anti-aliasing)
 - **Timeout**: 30 seconds per test
 - **Retries**: 2 on CI, 0 locally
+- **Workers**: 1 on CI (sequential), unlimited locally (parallel)
+
+**Note**: In CI, only Chromium tests run to keep the workflow fast. Locally, you can test on all browsers and devices by running `npx playwright test`.
 
 ## Writing New Visual Tests
 

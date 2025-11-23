@@ -556,6 +556,70 @@ All integration tests are located in `src/__tests__/integration/`:
 
 See `src/__tests__/integration/README.md` for detailed documentation and examples.
 
+## Visual Regression Tests
+
+Visual regression tests use Playwright to capture screenshots and detect UI changes. These tests complement unit and integration tests by catching visual regressions that might not be caught by functional tests.
+
+### Visual Test Coverage
+
+| Test Suite      | Scenarios | Coverage                                      |
+| --------------- | --------- | --------------------------------------------- |
+| landing-page    | 3         | Initial app state, responsive viewports       |
+| camera-view     | 2         | Camera UI, permissions, active state          |
+| ui-components   | 4         | Themes, responsive design, interactive states |
+| secret-settings | 7         | Settings menu, flags, sliders, mobile         |
+| concert-info    | 5         | Concert display, overflow handling, mobile    |
+| error-states    | 5         | Permission denied, network errors, empty data |
+| responsive      | 12        | Desktop, tablet, mobile viewports             |
+| accessibility   | 10        | Focus states, high contrast, touch targets    |
+| feature-flags   | 8         | Flag variations, visual effects               |
+
+**Total Visual Tests**: ~56 test scenarios across 9 test files
+
+### Running Visual Tests
+
+```bash
+# Run all visual tests
+npm run test:visual
+
+# Run in UI mode (interactive)
+npm run test:visual:ui
+
+# Update snapshots after intentional changes
+npm run test:visual:update
+
+# View test report
+npm run test:visual:report
+```
+
+### When to Update Snapshots
+
+- After intentional UI changes (new styles, layout changes)
+- After updating dependencies that affect rendering
+- After fixing visual bugs (verify fix looks correct first)
+
+**Never update snapshots blindly** - always review changes in the Playwright UI first!
+
+### Browser & Device Coverage
+
+Visual tests run on:
+
+- **Desktop Browsers**: Chrome, Firefox, Safari (WebKit)
+- **Mobile Devices**: Pixel 5 (Chrome), iPhone 12 (Safari)
+- **Viewports**: 320×568, 375×667, 667×375, 768×1024, 1024×768, 1920×1080, 2560×1440
+
+### Accessibility Testing
+
+Visual regression tests include accessibility checks:
+
+- ✅ Focus states and keyboard navigation
+- ✅ High contrast mode compatibility
+- ✅ Touch target sizes on mobile
+- ✅ Semantic HTML structure (role attributes)
+- ✅ Reduced motion preferences
+
+See `tests/visual/README.md` for detailed documentation on visual testing patterns.
+
 ## Resources
 
 - [Vitest Documentation](https://vitest.dev/)
@@ -564,10 +628,12 @@ See `src/__tests__/integration/README.md` for detailed documentation and example
 - [Vitest API Reference](https://vitest.dev/api/)
 - [React Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
 - [Integration Test Patterns](./src/__tests__/integration/README.md)
+- [Playwright Visual Testing](https://playwright.dev/docs/test-snapshots)
+- [Visual Regression Test Guide](./tests/visual/README.md)
 
 ---
 
-**Status**: ✅ Fully Tested and Validated (526 tests, zero warnings)  
+**Status**: ✅ Fully Tested and Validated (526 unit/integration tests + 56 visual tests, zero warnings)  
 **Priority**: High  
 **Last Reviewed**: November 2024  
-**Related**: ARCHITECTURE.md, AI_AGENT_GUIDE.md, .github/workflows/ci.yml, src/**tests**/integration/README.md
+**Related**: ARCHITECTURE.md, AI_AGENT_GUIDE.md, .github/workflows/ci.yml, src/**tests**/integration/README.md, tests/visual/README.md

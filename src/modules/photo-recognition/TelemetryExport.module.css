@@ -160,14 +160,16 @@
   }
 
   .container:not(.collapsed) {
-    /* When expanded, position above the debug overlay */
+    /* When expanded, position at top to avoid collision with debug overlay at bottom */
     bottom: auto;
     top: 10px;
   }
 
   .collapsed {
-    left: auto;
-    right: 10px;
+    /* When collapsed, position at bottom-left to avoid collision with debug overlay at bottom-right */
+    left: 10px;
+    right: auto;
+    bottom: 10px;
     width: auto;
   }
 

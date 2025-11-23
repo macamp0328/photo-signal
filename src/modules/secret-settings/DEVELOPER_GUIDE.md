@@ -67,50 +67,77 @@ src/modules/secret-settings/
 
 ### Custom Settings
 
-3. **Theme Mode** (`theme-mode`)
-   - Switch between light and dark visual themes
-   - Options: Dark, Light
-   - Applied globally via `data-theme` attribute
-   - Instant theme switching with smooth transitions
+1. **Config Profile** (`config-profile`)
 
-4. **UI Style** (`ui-style`)
-   - Toggle between modern UI and classic retro gallery experience
-   - Options: Modern, Classic
-   - Classic mode uses monospace fonts and removes textures
-   - Applied globally via `data-ui-style` attribute
+- Apply curated baselines (Baseline · pHash / dHash / ORB) from the Photo Recognition Deep Dive
+- Selecting a profile updates all relevant settings plus the rectangle detection flag
+- Manual tweaks automatically switch the profile back to `custom`
 
-5. **Recognition Delay** (`recognition-delay`)
+2. **Theme Mode** (`theme-mode`)
 
-- Adjust how long a photo must stay steady before we confirm a match
-- Range: 500–5000ms (default 1000ms)
-- Longer delays reduce false positives; shorter delays feel more responsive
+- Switch between light and dark visual themes via the `data-theme` attribute
 
-6. **Similarity Threshold** (`similarity-threshold`)
+3. **UI Style** (`ui-style`)
 
-- Tweak the maximum Hamming distance allowed for a match
-- Lower numbers demand closer matches; higher numbers tolerate more noise
-- Recommended: dHash 24–28, pHash 10–14 (default auto-tunes per algorithm)
+- Toggle between modern UI and classic retro gallery experience via `data-ui-style`
 
-7. **Frame Scan Interval** (`recognition-check-interval`)
+4. **Recognition Delay** (`recognition-delay`)
 
-- Controls how often we hash frames (in ms)
-- Lower values improve responsiveness but increase CPU/battery usage
-- Default 250ms for faster recognition
+- Milliseconds a photo must stay steady before the match is confirmed (500–5000ms)
+
+5. **Similarity Threshold** (`similarity-threshold`)
+
+- Maximum Hamming distance allowed for perceptual hashes. Lower = stricter, higher = more lenient
+
+6. **Recognition Engine** (`recognition-mode`)
+
+- Switch between perceptual hashing (dHash/pHash) and ORB feature matching workflows
+
+7. **Perceptual Hash Algorithm** (`hash-algorithm`)
+
+- Choose the active perceptual hash when the recognition engine is set to `perceptual`
+
+8. **Frame Scan Interval** (`recognition-check-interval`)
+
+- How often frames are hashed (ms). Lower values improve responsiveness at a CPU cost
 
 9. **Sharpness Threshold** (`sharpness-threshold`)
 
-- Minimum Laplacian variance required to accept a frame
-- Raise this to filter out more motion blur; lower it to be more permissive
+- Minimum Laplacian variance required to accept a frame (higher value rejects more blur)
 
 10. **Glare Pixel Threshold** (`glare-threshold`)
 
-- Pixel intensity above this value counts as glare
-- Helpful for tuning indoor vs. outdoor lighting conditions
+- Pixel intensity above this value is considered glare (default 250)
 
 11. **Glare Coverage Threshold** (`glare-percentage-threshold`)
 
-- Percentage of pixels that can be blown out before we skip the frame
-- Lower values aggressively reject glare; higher values allow more hotspots
+- Maximum % of pixels allowed to exceed the glare threshold before skipping the frame
+
+12. **Rectangle Detection Confidence** (`rectangle-detection-confidence-threshold`)
+
+- Minimum confidence (0–1) before applying the detected crop
+
+13. **ORB Max Features** (`orb-max-features`)
+
+- Cap on how many FAST keypoints ORB retains (default 500)
+
+14. **ORB FAST Threshold** (`orb-fast-threshold`)
+
+- FAST corner sensitivity. Lower values capture more keypoints but add noise
+
+15. **ORB Min Matches** (`orb-min-match-count`)
+
+- Minimum descriptor matches required before declaring an ORB success
+
+16. **ORB Match Ratio** (`orb-match-ratio-threshold`)
+
+- Lowe’s ratio threshold (0–1). Lower values are stricter comparisons
+
+> **Profile workflow:** the Config Profile select is the first control in the Custom Settings section.
+> Selecting a baseline instantly writes the predetermined values to every related setting and sets the
+> rectangle detection feature flag to match the Photo Recognition Deep Dive defaults. Any manual edit
+> (slider, select, checkbox) automatically sets the profile back to `custom`, signalling that the current
+> configuration deviates from the preset.
 
 ---
 
@@ -216,6 +243,10 @@ export function useFeatureFlags() {
     );
   };
 
+  const setFlagState = (id: string, enabled: boolean) => {
+    setFlags((prev) => prev.map((flag) => (flag.id === id ? { ...flag, enabled } : flag)));
+  };
+
   const isEnabled = (id: string): boolean => {
     return flags.find((flag) => flag.id === id)?.enabled ?? false;
   };
@@ -227,11 +258,15 @@ export function useFeatureFlags() {
   return {
     flags,
     toggleFlag,
+    setFlagState,
     isEnabled,
     resetFlags,
   };
 }
 ```
+
+> **Note:** `setFlagState(id, enabled)` is used by Config Profiles to explicitly force a flag on/off without
+> relying on the toggle helper. You can call it from your own code if you need deterministic flag values.
 
 ### Step 3: Update SecretSettings Component
 

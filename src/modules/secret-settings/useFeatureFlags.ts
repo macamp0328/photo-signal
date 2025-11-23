@@ -70,14 +70,25 @@ export function useFeatureFlags() {
   }, [flags]);
 
   /**
+   * Explicitly set a feature flag state
+   * @param id - The unique identifier of the flag to update
+   * @param enabled - Desired state
+   */
+  const setFlagState = useCallback((id: string, enabled: boolean) => {
+    setFlags((prev) => prev.map((flag) => (flag.id === id ? { ...flag, enabled } : flag)));
+  }, []);
+
+  /**
    * Toggle a feature flag on/off
    * @param id - The unique identifier of the flag to toggle
    */
-  const toggleFlag = useCallback((id: string) => {
-    setFlags((prev) =>
-      prev.map((flag) => (flag.id === id ? { ...flag, enabled: !flag.enabled } : flag))
-    );
-  }, []);
+  const toggleFlag = useCallback(
+    (id: string) => {
+      const flag = flags.find((f) => f.id === id);
+      setFlagState(id, !(flag?.enabled ?? false));
+    },
+    [flags, setFlagState]
+  );
 
   /**
    * Check if a feature flag is enabled
@@ -101,6 +112,7 @@ export function useFeatureFlags() {
   return {
     flags,
     toggleFlag,
+    setFlagState,
     isEnabled,
     resetFlags,
   };

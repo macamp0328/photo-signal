@@ -416,26 +416,28 @@ describe('useCameraAccess', () => {
 
 ### Current Coverage (2024-11)
 
-✅ **29 Test Files** covering all major modules and workflows  
-✅ **513 Tests** passing with zero warnings  
-✅ **5,500 Lines** of test code (estimated)
+✅ **34 Test Files** covering all major modules and workflows  
+✅ **611 Tests** passing with zero warnings  
+✅ **6,000 Lines** of test code (estimated)
 
 **Coverage Breakdown:**
 
-| Module            | Tests  | Status  | Notes                      |
-| ----------------- | ------ | ------- | -------------------------- |
-| camera-access     | 28     | ✅ Pass | Full contract coverage     |
-| camera-view       | 26     | ✅ Pass | UI and stream handling     |
-| motion-detection  | 27     | ✅ Pass | Algorithm validation       |
-| photo-recognition | 19     | ✅ Pass | dHash integration          |
-| audio-playback    | 32     | ✅ Pass | Howler.js integration      |
-| concert-info      | 22     | ✅ Pass | Display logic              |
-| gallery-layout    | 5      | ✅ Pass | Layout component           |
-| secret-settings   | 78     | ✅ Pass | Feature flags & settings   |
-| data-service      | 66     | ✅ Pass | API and caching            |
-| algorithms        | 104    | ✅ Pass | dHash, pHash, hamming      |
-| App               | 2      | ✅ Pass | Basic smoke tests          |
-| **Integration**   | **31** | ✅ Pass | **Cross-module workflows** |
+| Module                | Tests  | Status  | Notes                      |
+| --------------------- | ------ | ------- | -------------------------- |
+| camera-access         | 28     | ✅ Pass | Full contract coverage     |
+| camera-view           | 26     | ✅ Pass | UI and stream handling     |
+| motion-detection      | 27     | ✅ Pass | Algorithm validation       |
+| photo-recognition     | 19     | ✅ Pass | dHash integration          |
+| audio-playback        | 32     | ✅ Pass | Howler.js integration      |
+| concert-info          | 22     | ✅ Pass | Display logic              |
+| gallery-layout        | 5      | ✅ Pass | Layout component           |
+| secret-settings       | 78     | ✅ Pass | Feature flags & settings   |
+| data-service          | 66     | ✅ Pass | API and caching            |
+| algorithms            | 104    | ✅ Pass | dHash, pHash, hamming      |
+| utils/telemetryUtils  | 12     | ✅ Pass | Formatting & calculations  |
+| config/guidanceConfig | 18     | ✅ Pass | Config validation & logic  |
+| App                   | 2      | ✅ Pass | Basic smoke tests          |
+| **Integration**       | **31** | ✅ Pass | **Cross-module workflows** |
 
 **Integration Test Coverage:**
 

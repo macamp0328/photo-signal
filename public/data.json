@@ -205,7 +205,7 @@
     {
       "id": 8,
       "band": "Ringo Deathstar (R0043343)",
-      "venue": "Analog Loft Stage",
+      "venue": "Try Hard Coffee",
       "date": "2024-02-01",
       "audioFile": "/assets/example-real-songs/ps-ringo-deathstarr-colour-trip.opus",
       "imageFile": "/assets/example-real-photos/R0043343.jpg",
@@ -1237,7 +1237,7 @@
     {
       "id": 9,
       "band": "FANTAAZMA (R0055333)",
-      "venue": "Downtown Rooftop",
+      "venue": "Mohawk",
       "date": "2024-02-02",
       "audioFile": "/assets/example-real-songs/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane.opus",
       "imageFile": "/assets/example-real-photos/R0055333.jpg",
@@ -5365,7 +5365,7 @@
     {
       "id": 25,
       "band": "White Denim (R0043815)",
-      "venue": "Canal Street Balcony",
+      "venue": "That place on cesar chavez",
       "date": "2024-02-06",
       "audioFile": "/assets/example-real-songs/ps-white-denim-performance.opus",
       "imageFile": "/assets/example-real-photos/R0043815.jpg",
@@ -6399,7 +6399,7 @@
       "band": "Jo Alice (P3150466)",
       "venue": "Skyline Overlook",
       "date": "2024-02-07",
-      "audioFile": "/assets/example-real-songs/13-1999-clip-02.opus",
+      "audioFile": "/assets/example-real-songs/ps-jo-alice-give-me-some-good-news-when-i-call.opus",
       "imageFile": "/assets/example-real-photos/P3150466.jpg",
       "photoHash": ["0a9ce56333cf9924", "029ce56333cf9964", "021ce56b33cf9964"],
       "photoHashes": {

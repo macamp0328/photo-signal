@@ -4365,7 +4365,7 @@
       "band": "Ringo Deathstar (R0043343)",
       "venue": "Analog Loft Stage",
       "date": "2024-02-01",
-      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-01.opus",
+      "audioFile": "/assets/example-real-songs/ps-ringo-deathstarr-colour-trip.opus",
       "imageFile": "/assets/example-real-photos/R0043343.jpg",
       "photoHash": ["2bcad5353ac88595", "8bc2d5b52bc88595", "83c2d5b52be88595"],
       "photoHashes": {
@@ -5397,7 +5397,7 @@
       "band": "FANTAAZMA (R0055333)",
       "venue": "Downtown Rooftop",
       "date": "2024-02-02",
-      "audioFile": "/assets/example-real-songs/06-ocelot-clip-01.opus",
+      "audioFile": "/assets/example-real-songs/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane.opus",
       "imageFile": "/assets/example-real-photos/R0055333.jpg",
       "photoHash": ["9b92e46c733232c6", "9392646d2b3a72c6", "9392646c2b3a76c6"],
       "photoHashes": {
@@ -6429,7 +6429,7 @@
       "band": "The Tender Things (R0055917)",
       "venue": "Indie Gallery",
       "date": "2024-02-03",
-      "audioFile": "/assets/example-real-songs/13-1999-clip-01.opus",
+      "audioFile": "/assets/example-real-songs/ps-the-tender-things-that-texas-touch.opus",
       "imageFile": "/assets/example-real-photos/R0055917.jpg",
       "photoHash": ["a7144cfa13789b07", "a7144dfa13788e13", "a7144dfa13788e13"],
       "photoHashes": {
@@ -10013,7 +10013,7 @@
       "band": "White Denim (R0043815)",
       "venue": "Canal Street Balcony",
       "date": "2024-02-06",
-      "audioFile": "/assets/example-real-songs/01-mass-romantic-clip-02.opus",
+      "audioFile": "/assets/example-real-songs/ps-white-denim-performance.opus",
       "imageFile": "/assets/example-real-photos/R0043815.jpg",
       "photoHash": ["273e36c2cd945d22", "273e36c3cf845922", "2f3e26c3cf945122"],
       "photoHashes": {

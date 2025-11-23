@@ -62,13 +62,21 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       const sources = fallbackUrl ? [url, fallbackUrl] : [url];
 
       // Create new sound
-      soundRef.current = new Howl({
+      const newSound = new Howl({
         src: sources,
         html5: true,
         volume: volume,
         onplay: () => setIsPlaying(true),
-        onend: () => setIsPlaying(false),
-        onstop: () => setIsPlaying(false),
+        onend: () => {
+          if (soundRef.current === newSound) {
+            setIsPlaying(false);
+          }
+        },
+        onstop: () => {
+          if (soundRef.current === newSound) {
+            setIsPlaying(false);
+          }
+        },
         onloaderror: (_id, error) => {
           console.error('[Audio] Load error:', error);
           if (fallbackUrl) {
@@ -84,8 +92,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         },
       });
 
-      soundRef.current.play();
+      soundRef.current = newSound;
       currentUrlRef.current = url;
+      newSound.play();
     },
     [volume]
   );

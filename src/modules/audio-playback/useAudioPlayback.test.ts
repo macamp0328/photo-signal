@@ -10,14 +10,27 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { Howl } from 'howler';
 import { useAudioPlayback } from './useAudioPlayback';
 
 // Mock Howler.js with inline factory
 vi.mock('howler', () => {
+  type HowlCallbacks = {
+    onplay?: () => void;
+    onend?: () => void;
+    onstop?: () => void;
+    onpause?: () => void;
+    onloaderror?: (id: number, error: unknown) => void;
+    onplayerror?: (id: number, error: unknown) => void;
+  };
+
   // Create mock Howl class inside factory to avoid hoisting issues
   class MockHowl {
     private _volume: number;
     private _playing: boolean = false;
+    private readonly _callbacks: HowlCallbacks;
+
+    public static instances: MockHowl[] = [];
 
     public play: ReturnType<typeof vi.fn>;
     public pause: ReturnType<typeof vi.fn>;
@@ -28,40 +41,38 @@ vi.mock('howler', () => {
     public playing: ReturnType<typeof vi.fn>;
     public seek: ReturnType<typeof vi.fn>;
 
-    constructor(options: {
-      src: string[];
-      html5?: boolean;
-      volume?: number;
-      onplay?: () => void;
-      onend?: () => void;
-      onstop?: () => void;
-      onpause?: () => void;
-      onloaderror?: (id: number, error: unknown) => void;
-      onplayerror?: (id: number, error: unknown) => void;
-    }) {
+    constructor(
+      options: {
+        src: string[];
+        html5?: boolean;
+        volume?: number;
+      } & HowlCallbacks
+    ) {
       this._volume = options.volume ?? 1.0;
+      this._callbacks = options;
+      MockHowl.instances.push(this);
 
       // Initialize methods
       this.play = vi.fn(() => {
         this._playing = true;
-        if (options.onplay) {
-          options.onplay();
+        if (this._callbacks.onplay) {
+          this._callbacks.onplay();
         }
         return 1;
       });
 
       this.pause = vi.fn(() => {
         this._playing = false;
-        if (options.onpause) {
-          options.onpause();
+        if (this._callbacks.onpause) {
+          this._callbacks.onpause();
         }
         return this;
       });
 
       this.stop = vi.fn(() => {
         this._playing = false;
-        if (options.onstop) {
-          options.onstop();
+        if (this._callbacks.onstop) {
+          this._callbacks.onstop();
         }
         return this;
       });
@@ -96,14 +107,32 @@ vi.mock('howler', () => {
         return 0;
       });
     }
+
+    public __triggerEnd(): void {
+      this._callbacks.onend?.();
+    }
+
+    public __triggerStop(): void {
+      this._callbacks.onstop?.();
+    }
   }
 
   return { Howl: MockHowl };
 });
+
+interface MockHowlInstance {
+  __triggerEnd: () => void;
+  __triggerStop: () => void;
+}
+
+type MockedHowlClass = typeof Howl & { instances: MockHowlInstance[] };
+
+const getMockedHowlClass = (): MockedHowlClass => Howl as unknown as MockedHowlClass;
 describe('useAudioPlayback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    getMockedHowlClass().instances.length = 0;
   });
 
   afterEach(() => {
@@ -526,6 +555,28 @@ describe('useAudioPlayback', () => {
       });
 
       // No errors should occur, cleanup should be successful
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should keep playback active when previous track ends after crossfade', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/first.opus');
+      });
+
+      act(() => {
+        result.current.crossfade('/audio/second.opus', 1000);
+      });
+
+      const howlInstances = getMockedHowlClass().instances;
+      expect(howlInstances.length).toBeGreaterThanOrEqual(1);
+
+      // The first instance represents the fading-out track
+      act(() => {
+        howlInstances[0].__triggerEnd();
+      });
+
       expect(result.current.isPlaying).toBe(true);
     });
 

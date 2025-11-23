@@ -114,11 +114,12 @@
 }
 
 .cameraSection {
-  flex: 1;
+  flex: 0 0 auto;
   min-height: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  height: min(50vh, 100vw);
 }
 
 .infoSection {
@@ -162,6 +163,11 @@
   .content {
     flex-direction: row;
     gap: 1.5rem;
+  }
+
+  .cameraSection {
+    flex: 1;
+    height: auto;
   }
 
   .infoSection {

@@ -111,8 +111,6 @@ export function CameraView({
                 ? 'detecting'
                 : 'idle'
           }
-          videoWidth={videoRef.current.videoWidth || 0}
-          videoHeight={videoRef.current.videoHeight || 0}
         />
       )}
 

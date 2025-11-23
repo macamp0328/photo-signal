@@ -90,10 +90,10 @@ imageData: ImageData; // Image data from canvas getImageData()
 {
   rectangle: DetectedRectangle | null; // Detected rectangle
   state: DetectionState; // 'idle' | 'detecting' | 'detected' | 'error'
-  videoWidth: number; // Video width in pixels
-  videoHeight: number; // Video height in pixels
 }
 ```
+
+The overlay automatically scales using percentage-based positioning, so you don't need to pass the rendered video dimensions.
 
 **Rendering**:
 
@@ -190,8 +190,6 @@ function CameraWithDetection() {
       <RectangleOverlay
         rectangle={rectangle}
         state={state}
-        videoWidth={videoRef.current?.videoWidth ?? 0}
-        videoHeight={videoRef.current?.videoHeight ?? 0}
       />
     </div>
   );

@@ -213,4 +213,6 @@ export interface PhotoRecognitionOptions {
   secondarySimilarityThreshold?: number;
   /** Optional overrides for the ORB recognition pipeline */
   orbConfig?: Partial<ORBConfig>;
+  /** Aspect ratio of the visible camera viewport (default 1 for square UI) */
+  displayAspectRatio?: number;
 }

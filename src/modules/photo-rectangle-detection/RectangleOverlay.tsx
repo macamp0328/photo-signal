@@ -6,10 +6,6 @@ export interface RectangleOverlayProps {
   rectangle: DetectedRectangle | null;
   /** Detection state for styling */
   state: DetectionState;
-  /** Width of the video element in pixels */
-  videoWidth: number;
-  /** Height of the video element in pixels */
-  videoHeight: number;
 }
 
 /**
@@ -18,22 +14,11 @@ export interface RectangleOverlayProps {
  * Displays visual feedback for rectangle detection on top of camera view.
  * Shows detected rectangle boundaries with color-coded state indication.
  */
-export function RectangleOverlay({
-  rectangle,
-  state,
-  videoWidth,
-  videoHeight,
-}: RectangleOverlayProps) {
+export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
   // Don't render anything if no rectangle or idle state
   if (!rectangle || state === 'idle') {
     return null;
   }
-
-  // Calculate rectangle dimensions for positioning
-  const width = rectangle.width * videoWidth;
-  const height = rectangle.height * videoHeight;
-  const left = rectangle.topLeft.x * videoWidth;
-  const top = rectangle.topLeft.y * videoHeight;
 
   // Determine CSS class based on state
   const stateClass = {
@@ -49,10 +34,10 @@ export function RectangleOverlay({
       <div
         className={`${styles.rectangle} ${stateClass}`}
         style={{
-          left: `${left}px`,
-          top: `${top}px`,
-          width: `${width}px`,
-          height: `${height}px`,
+          left: `${rectangle.topLeft.x * 100}%`,
+          top: `${rectangle.topLeft.y * 100}%`,
+          width: `${rectangle.width * 100}%`,
+          height: `${rectangle.height * 100}%`,
         }}
       >
         {/* Corner markers */}

@@ -235,6 +235,49 @@ const recordFailure = (
   }
 };
 
+interface ViewportRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const DEFAULT_DISPLAY_ASPECT_RATIO = 1;
+
+const calculateVisibleViewport = (
+  videoWidth: number,
+  videoHeight: number,
+  displayAspectRatio: number = DEFAULT_DISPLAY_ASPECT_RATIO
+): ViewportRegion => {
+  const safeRatio = displayAspectRatio > 0 ? displayAspectRatio : videoWidth / videoHeight;
+  const videoRatio = videoWidth / videoHeight;
+
+  if (!Number.isFinite(videoRatio) || !Number.isFinite(safeRatio)) {
+    return { x: 0, y: 0, width: videoWidth, height: videoHeight };
+  }
+
+  if (Math.abs(videoRatio - safeRatio) < 0.001) {
+    return {
+      x: 0,
+      y: 0,
+      width: videoWidth,
+      height: videoHeight,
+    };
+  }
+
+  if (videoRatio > safeRatio) {
+    const height = videoHeight;
+    const width = Math.round(height * safeRatio);
+    const x = Math.round((videoWidth - width) / 2);
+    return { x, y: 0, width, height };
+  }
+
+  const width = videoWidth;
+  const height = Math.round(width / safeRatio);
+  const y = Math.round((videoHeight - height) / 2);
+  return { x: 0, y, width, height };
+};
+
 /**
  * Calculate the framed region coordinates based on aspect ratio
  * @param videoWidth - Width of the video in pixels
@@ -310,6 +353,7 @@ export function usePhotoRecognition(
     secondaryHashAlgorithm = null,
     secondarySimilarityThreshold,
     orbConfig,
+    displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -789,18 +833,39 @@ export function usePhotoRecognition(
         let chosenAspectRatio: AspectRatio =
           normalizedAspectRatio === 'auto' ? '1:1' : normalizedAspectRatio;
 
-        // Optional: Detect rectangle in frame (when enabled)
-        let finalFramedRegion = calculateFramedRegion(
+        const visibleViewport = calculateVisibleViewport(
           video.videoWidth,
           video.videoHeight,
-          chosenAspectRatio
+          displayAspectRatio
+        );
+
+        const offsetRegionToVideo = (region: ViewportRegion): ViewportRegion => ({
+          x: Math.round(visibleViewport.x + region.x),
+          y: Math.round(visibleViewport.y + region.y),
+          width: Math.round(region.width),
+          height: Math.round(region.height),
+        });
+
+        // Optional: Detect rectangle in frame (when enabled)
+        let finalFramedRegion = offsetRegionToVideo(
+          calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
 
         if (enableRectangleDetection && rectangleDetectorRef.current) {
           // First, capture the full frame for rectangle detection
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0);
+          canvas.width = visibleViewport.width;
+          canvas.height = visibleViewport.height;
+          ctx.drawImage(
+            video,
+            visibleViewport.x,
+            visibleViewport.y,
+            visibleViewport.width,
+            visibleViewport.height,
+            0,
+            0,
+            visibleViewport.width,
+            visibleViewport.height
+          );
           const fullFrameData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
           // Detect rectangle in full frame
@@ -818,10 +883,10 @@ export function usePhotoRecognition(
             chosenAspectRatio = rect.width >= rect.height ? '3:2' : '2:3';
             // Convert normalized coordinates to pixel coordinates
             finalFramedRegion = {
-              x: Math.round(rect.topLeft.x * video.videoWidth),
-              y: Math.round(rect.topLeft.y * video.videoHeight),
-              width: Math.round(rect.width * video.videoWidth),
-              height: Math.round(rect.height * video.videoHeight),
+              x: Math.round(visibleViewport.x + rect.topLeft.x * visibleViewport.width),
+              y: Math.round(visibleViewport.y + rect.topLeft.y * visibleViewport.height),
+              width: Math.round(rect.width * visibleViewport.width),
+              height: Math.round(rect.height * visibleViewport.height),
             };
           } else {
             // No rectangle detected, use fixed aspect ratio framing
@@ -1174,11 +1239,13 @@ export function usePhotoRecognition(
           }
 
           // Calculate the scaled region
-          const scaledRegion = calculateFramedRegion(
-            video.videoWidth,
-            video.videoHeight,
-            chosenAspectRatio,
-            scale
+          const scaledRegion = offsetRegionToVideo(
+            calculateFramedRegion(
+              visibleViewport.width,
+              visibleViewport.height,
+              chosenAspectRatio,
+              scale
+            )
           );
 
           // Reuse temp canvas to avoid creating new canvas elements in every iteration

@@ -811,10 +811,11 @@ export function usePhotoRecognition(
       }
 
       // Frame skipping optimization: Process every 3rd frame
-      processingFrameCountRef.current += 1;
       if (processingFrameCountRef.current % 3 !== 0) {
+        processingFrameCountRef.current += 1;
         return; // Skip 2 out of 3 frames
       }
+      processingFrameCountRef.current += 1;
 
       try {
         frameCountRef.current += 1;

@@ -79,9 +79,8 @@ describe('useCustomSettings', () => {
     it('should update a number setting value', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      // Add a number setting for testing
-      const settingId = result.current.settings[0].id;
-      const newValue = 75;
+      const settingId = 'recognition-delay';
+      const newValue = 1500;
 
       act(() => {
         result.current.updateSetting(settingId, newValue);

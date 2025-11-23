@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { SecretSettings } from './SecretSettings';
 import userEvent from '@testing-library/user-event';
 
@@ -88,6 +88,48 @@ describe('SecretSettings', () => {
       await user.click(modalContent);
 
       expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Config profile workflow', () => {
+    it('should apply Photo Recognition baseline when selecting a profile', async () => {
+      const user = userEvent.setup();
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const profileSelect = screen.getByRole('combobox', { name: /config profile/i });
+      await user.selectOptions(profileSelect, 'baseline-phash');
+
+      await waitFor(() => {
+        const saved = localStorage.getItem('photo-signal-custom-settings');
+        expect(saved).toBeTruthy();
+        const settings = JSON.parse(saved!);
+        const similarity = settings.find((s: { id: string }) => s.id === 'similarity-threshold');
+        const hashAlgorithm = settings.find((s: { id: string }) => s.id === 'hash-algorithm');
+        expect(similarity?.value).toBe(12);
+        expect(hashAlgorithm?.value).toBe('phash');
+      });
+
+      const flagsRaw = localStorage.getItem('photo-signal-feature-flags');
+      expect(flagsRaw).toBeTruthy();
+      const flags = JSON.parse(flagsRaw!);
+      const rectangleFlag = flags.find((f: { id: string }) => f.id === 'rectangle-detection');
+      expect(rectangleFlag?.enabled).toBe(true);
+    });
+
+    it('should revert to Custom profile when manual tweaks are made', async () => {
+      const user = userEvent.setup();
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const profileSelect = screen.getByRole('combobox', {
+        name: /config profile/i,
+      }) as HTMLSelectElement;
+      await user.selectOptions(profileSelect, 'baseline-dhash');
+      expect(profileSelect.value).toBe('baseline-dhash');
+
+      const themeSelect = screen.getByRole('combobox', { name: /theme mode/i });
+      await user.selectOptions(themeSelect, 'light');
+
+      expect(profileSelect.value).toBe('custom');
     });
   });
 

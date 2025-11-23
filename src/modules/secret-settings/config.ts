@@ -11,6 +11,98 @@
 
 import type { FeatureFlag, CustomSetting } from './types';
 
+type ConfigSettingValue = string | number | boolean;
+
+export type ConfigProfileId = 'custom' | 'baseline-phash' | 'baseline-dhash' | 'baseline-orb';
+
+export interface ConfigProfile {
+  id: ConfigProfileId;
+  label: string;
+  description: string;
+  settings: Partial<Record<string, ConfigSettingValue>>;
+  featureFlags?: Partial<Record<FeatureFlag['id'], boolean>>;
+}
+
+export const CONFIG_PROFILE_SETTING_ID = 'config-profile';
+
+export const CONFIG_PROFILES: ConfigProfile[] = [
+  {
+    id: 'custom',
+    label: 'Custom (manual control)',
+    description: 'Keep manual tweaks. Adjust any field below to automatically switch to Custom.',
+    settings: {},
+  },
+  {
+    id: 'baseline-phash',
+    label: 'Baseline · pHash',
+    description: 'Recommended default from the Photo Recognition Deep Dive.',
+    settings: {
+      'recognition-mode': 'perceptual',
+      'hash-algorithm': 'phash',
+      'similarity-threshold': 12,
+      'recognition-delay': 1000,
+      'recognition-check-interval': 250,
+      'sharpness-threshold': 100,
+      'glare-threshold': 250,
+      'glare-percentage-threshold': 20,
+      'rectangle-detection-confidence-threshold': 0.3,
+      'orb-max-features': 500,
+      'orb-fast-threshold': 20,
+      'orb-min-match-count': 20,
+      'orb-match-ratio-threshold': 0.7,
+    },
+    featureFlags: {
+      'rectangle-detection': true,
+    },
+  },
+  {
+    id: 'baseline-dhash',
+    label: 'Baseline · dHash',
+    description: 'Performance-first preset for controlled lighting.',
+    settings: {
+      'recognition-mode': 'perceptual',
+      'hash-algorithm': 'dhash',
+      'similarity-threshold': 24,
+      'recognition-delay': 1000,
+      'recognition-check-interval': 250,
+      'sharpness-threshold': 100,
+      'glare-threshold': 250,
+      'glare-percentage-threshold': 20,
+      'rectangle-detection-confidence-threshold': 0.3,
+      'orb-max-features': 500,
+      'orb-fast-threshold': 20,
+      'orb-min-match-count': 20,
+      'orb-match-ratio-threshold': 0.7,
+    },
+    featureFlags: {
+      'rectangle-detection': true,
+    },
+  },
+  {
+    id: 'baseline-orb',
+    label: 'Baseline · ORB',
+    description: 'Robust preset for extreme lighting, rotation, and perspective.',
+    settings: {
+      'recognition-mode': 'orb',
+      'hash-algorithm': 'phash',
+      'similarity-threshold': 0,
+      'recognition-delay': 1500,
+      'recognition-check-interval': 250,
+      'sharpness-threshold': 80,
+      'glare-threshold': 250,
+      'glare-percentage-threshold': 25,
+      'rectangle-detection-confidence-threshold': 0.3,
+      'orb-max-features': 500,
+      'orb-fast-threshold': 20,
+      'orb-min-match-count': 20,
+      'orb-match-ratio-threshold': 0.7,
+    },
+    featureFlags: {
+      'rectangle-detection': true,
+    },
+  },
+];
+
 /**
  * Feature Flags Configuration
  *
@@ -59,6 +151,19 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
  * These appear in the "Custom Settings" section of the secret settings menu.
  */
 export const CUSTOM_SETTINGS: CustomSetting[] = [
+  {
+    id: CONFIG_PROFILE_SETTING_ID,
+    name: 'Config Profile',
+    description:
+      'Apply the baseline presets from the Photo Recognition Deep Dive. Manual changes switch back to Custom.',
+    type: 'select',
+    value: 'custom',
+    options: CONFIG_PROFILES.map((profile) => ({
+      label: profile.label,
+      value: profile.id,
+    })),
+    category: 'recognition',
+  },
   {
     id: 'theme-mode',
     name: 'Theme Mode',
@@ -121,6 +226,18 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     category: 'recognition',
   },
   {
+    id: 'hash-algorithm',
+    name: 'Perceptual Hash Algorithm',
+    description: 'Controls the active hash when the recognition engine is set to Perceptual.',
+    type: 'select',
+    value: 'phash',
+    options: [
+      { label: 'pHash (robust, default)', value: 'phash' },
+      { label: 'dHash (fastest)', value: 'dhash' },
+    ],
+    category: 'recognition',
+  },
+  {
     id: 'recognition-check-interval',
     name: 'Frame Scan Interval',
     description: 'How often frames are hashed (lower = more responsive, higher = lower CPU use).',
@@ -178,6 +295,54 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     value: 0.6,
     min: 0.3,
     max: 0.9,
+    step: 0.05,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'orb-max-features',
+    name: 'ORB Max Features',
+    description: 'Upper bound on FAST keypoints to keep when ORB is enabled.',
+    type: 'number',
+    value: 500,
+    min: 100,
+    max: 1000,
+    step: 50,
+    unit: 'pts',
+    category: 'recognition',
+  },
+  {
+    id: 'orb-fast-threshold',
+    name: 'ORB FAST Threshold',
+    description: 'Lower values detect more keypoints but are noisier. Default: 20.',
+    type: 'number',
+    value: 20,
+    min: 5,
+    max: 40,
+    step: 1,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'orb-min-match-count',
+    name: 'ORB Min Matches',
+    description: 'Minimum descriptor matches required before declaring success.',
+    type: 'number',
+    value: 20,
+    min: 10,
+    max: 60,
+    step: 1,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'orb-match-ratio-threshold',
+    name: 'ORB Match Ratio',
+    description: 'Lowe’s ratio threshold (0-1). Lower values are stricter comparisons.',
+    type: 'number',
+    value: 0.7,
+    min: 0.5,
+    max: 0.95,
     step: 0.05,
     unit: '',
     category: 'recognition',

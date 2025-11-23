@@ -22,15 +22,31 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 
 **Custom Settings:**
 
-3. **Theme Mode** - Switch between light and dark visual themes
-4. **UI Style** - Toggle between modern and classic retro gallery experience
-5. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
-6. **Similarity Threshold** - Tune the required hash distance to declare a match
-7. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
-8. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
-9. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
-10. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
-11. **Recognition Engine** - Switch between perceptual hashing (dHash + pHash) or ORB feature matching
+1. **Config Profile** - Apply curated baselines (pHash/dHash/ORB) from the Photo Recognition Deep Dive
+2. **Theme Mode** - Switch between light and dark visual themes
+3. **UI Style** - Toggle between modern UI and classic retro gallery experience
+4. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
+5. **Similarity Threshold** - Tune the required hash distance to declare a match
+6. **Recognition Engine** - Switch between perceptual hashing (dHash + pHash) or ORB feature matching
+7. **Perceptual Hash Algorithm** - Choose between dHash (fast) and pHash (robust) when using perceptual mode
+8. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
+9. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
+10. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
+11. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
+12. **Rectangle Detection Confidence** - Adjust how confident the detector must be before cropping
+13. **ORB Max Features** - Cap how many keypoints ORB will keep
+14. **ORB FAST Threshold** - Control FAST corner sensitivity in ORB mode
+15. **ORB Min Matches** - Require a minimum descriptor match count before confirming
+16. **ORB Match Ratio** - Tune Lowe’s ratio threshold (stricter vs more lenient matching)
+
+### Config Profiles
+
+The new **Config Profile** select applies the baseline configurations from the
+_Photo Recognition Deep Dive_ with a single tap. Choosing **Baseline · pHash**, **Baseline · dHash**, or
+**Baseline · ORB** instantly updates the relevant settings (recognition delay, thresholds, hash selection,
+and ORB tuning) and ensures rectangle detection stays enabled, matching the documentation. Any manual tweak
+to the settings panel automatically switches the profile back to **Custom**, making it obvious when values
+no longer match the preset.
 
 ---
 
@@ -194,6 +210,7 @@ Manages feature flag state with localStorage persistence.
 function useFeatureFlags(): {
   flags: FeatureFlag[];
   toggleFlag: (id: string) => void;
+  setFlagState: (id: string, enabled: boolean) => void;
   isEnabled: (id: string) => boolean;
   resetFlags: () => void;
 };
@@ -203,6 +220,7 @@ function useFeatureFlags(): {
 
 - `flags`: Array of all feature flags with current state
 - `toggleFlag(id)`: Toggle a specific flag on/off
+- `setFlagState(id, enabled)`: Explicitly set a flag to a desired state (used by config profiles)
 - `isEnabled(id)`: Check if a flag is currently enabled
 - `resetFlags()`: Reset all flags to default values
 

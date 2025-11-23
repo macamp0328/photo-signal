@@ -108,6 +108,38 @@ describe('useFeatureFlags', () => {
     });
   });
 
+  describe('setFlagState', () => {
+    it('should explicitly set a flag to the provided state', () => {
+      const { result } = renderHook(() => useFeatureFlags());
+
+      act(() => {
+        result.current.setFlagState('test-mode', true);
+      });
+
+      expect(result.current.isEnabled('test-mode')).toBe(true);
+
+      act(() => {
+        result.current.setFlagState('test-mode', false);
+      });
+
+      expect(result.current.isEnabled('test-mode')).toBe(false);
+    });
+
+    it('should persist explicit flag changes to localStorage', () => {
+      const { result } = renderHook(() => useFeatureFlags());
+
+      act(() => {
+        result.current.setFlagState('rectangle-detection', false);
+      });
+
+      const saved = localStorage.getItem('photo-signal-feature-flags');
+      expect(saved).toBeTruthy();
+      const flags = JSON.parse(saved!);
+      const rectangleFlag = flags.find((f: { id: string }) => f.id === 'rectangle-detection');
+      expect(rectangleFlag?.enabled).toBe(false);
+    });
+  });
+
   describe('isEnabled', () => {
     it('should return false for disabled flag', () => {
       const { result } = renderHook(() => useFeatureFlags());

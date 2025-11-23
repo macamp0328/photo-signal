@@ -22,21 +22,30 @@ export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayP
     });
   };
 
-  // For the new gallery layout, we use a card-style design
+  const archiveNumber = `#${String(concert.id).padStart(2, '0')}`;
+  const formattedDate = formatDate(concert.date);
+
   return (
-    <div className={`${styles.card} ${className}`}>
-      <div className={styles.content}>
-        <div className={styles.header}>
-          <h2 className={styles.bandName}>{concert.band}</h2>
+    <section className={`${styles.card} ${className}`} aria-label="Concert details">
+      <div className={styles.metaRow}>
+        <span className={styles.badge}>Now Playing</span>
+        <span className={styles.archiveTag}>{archiveNumber}</span>
+      </div>
+
+      <h2 className={styles.bandName}>{concert.band}</h2>
+
+      <div className={styles.detailGrid}>
+        <div>
+          <p className={styles.detailLabel}>Recorded</p>
+          <p className={styles.detailValue}>{formattedDate}</p>
         </div>
-        <div className={styles.details}>
-          <p className={styles.venue}>{concert.venue}</p>
-          <p className={styles.date}>{formatDate(concert.date)}</p>
-        </div>
-        <div className={styles.footer}>
-          <p className={styles.nowPlaying}>Now Playing</p>
+        <div>
+          <p className={styles.detailLabel}>Venue</p>
+          <p className={styles.detailValue}>{concert.venue}</p>
         </div>
       </div>
-    </div>
+
+      <p className={styles.prompt}>Hold steady to keep the story playing.</p>
+    </section>
   );
 }

@@ -30,7 +30,6 @@ Display concert metadata overlay.
 {
   concert: Concert | null;       // Concert to display, null to hide
   isVisible: boolean;            // Control visibility independently
-  position?: 'top' | 'bottom';   // Vertical position, default 'bottom'
   className?: string;            // Additional CSS classes
 }
 ```
@@ -43,9 +42,9 @@ Display concert metadata overlay.
 
 Uses CSS Modules for:
 
-- Responsive layout
+- Responsive, stacked layout that fits below the camera view
 - Smooth transitions
-- Card-style design with borders
+- Card-style design with badges, metadata grid, and prompt
 - Custom color palette via CSS variables
 
 **Performance**: CSS transitions (GPU-accelerated)
@@ -80,6 +79,7 @@ function App() {
 - Semantic HTML (`h1`, `p` tags)
 - Readable text contrast
 - Smooth transitions (respects prefers-reduced-motion)
+- `aria-label` applied to the section for screen readers
 
 ---
 

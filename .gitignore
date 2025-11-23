@@ -30,6 +30,9 @@ downloads/
 scripts/audio-workflow/encode/work/
 scripts/audio-workflow/encode/output/
 
+# Generated artifacts from encoding scripts
+output/
+
 # Production audio files (served from CDN in production)
 # Keep demo files for local development: concert-*.mp3, concert-song-*.mp3
 # Add your production MP3 files here to exclude them from git

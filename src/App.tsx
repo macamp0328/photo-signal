@@ -260,7 +260,7 @@ function App() {
       onRetry={retry}
       grayscale={isEnabled('grayscale-mode')}
       concertInfo={displayedConcert}
-      showConcertOverlay={!!displayedConcert && isPlaying}
+      showConcertOverlay={false}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       rectangleDetectionConfidenceThreshold={rectangleDetectionConfidenceThresholdValue}
@@ -268,7 +268,7 @@ function App() {
     />
   );
 
-  // Render info display (not shown since showInfoSection is false, concert info is in camera overlay)
+  // Render info display that lives below the camera view in the stacked layout
   const infoDisplay = (
     <InfoDisplay concert={displayedConcert} isVisible={!!displayedConcert && isPlaying} />
   );
@@ -290,7 +290,6 @@ function App() {
         cameraView={cameraView}
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
-        showInfoSection={false}
       />
       {frameQualityIndicator}
       {guidanceMessage}

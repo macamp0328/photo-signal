@@ -457,13 +457,27 @@ describe('CameraView', () => {
       expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });
 
-    it('should show instructions when concert overlay is not shown', () => {
+    it('should hide instructions when concert is recognized but overlay is disabled', () => {
       render(
         <CameraView
           stream={mockStream}
           error={null}
           hasPermission={true}
           concertInfo={mockConcert}
+          showConcertOverlay={false}
+        />
+      );
+
+      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
+    });
+
+    it('should show instructions while awaiting a match', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={null}
           showConcertOverlay={false}
         />
       );

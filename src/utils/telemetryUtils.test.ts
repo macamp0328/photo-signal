@@ -8,7 +8,11 @@ import {
   exportGuidanceTelemetry,
   calculateGuidanceEffectiveness,
 } from './telemetryUtils';
-import type { RecognitionTelemetry, GuidanceType, FailureCategory } from '../modules/photo-recognition/types';
+import type {
+  RecognitionTelemetry,
+  GuidanceType,
+  FailureCategory,
+} from '../modules/photo-recognition/types';
 
 /**
  * Helper to create complete guidanceTracking object with all required GuidanceType keys

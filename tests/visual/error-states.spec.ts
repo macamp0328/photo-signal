@@ -26,7 +26,7 @@ test.describe('Error States', () => {
         .waitFor({ state: 'visible', timeout: 5000 })
         .catch(() => null),
       page
-        .locator('text=camera')
+        .locator('text=Point camera at a photo')
         .waitFor({ state: 'visible', timeout: 5000 })
         .catch(() => null),
       page.waitForTimeout(3000),

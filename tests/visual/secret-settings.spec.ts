@@ -23,7 +23,7 @@ test.describe('Secret Settings Menu', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Triple-tap the body to open secret settings
+    // Triple-click the body to open secret settings
     // This is the activation gesture for the secret menu
     const body = page.locator('body');
     await body.click({ clickCount: 3 });
@@ -45,7 +45,7 @@ test.describe('Secret Settings Menu', () => {
     await page.locator('body').click({ clickCount: 3 });
     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
 
-    // Find and enable Test Data Mode flag (not Test Mode)
+    // Find and enable Test Data Mode flag
     const testModeLabel = page.locator('label:has-text("Test Data Mode")');
     const exists = (await testModeLabel.count()) > 0;
 

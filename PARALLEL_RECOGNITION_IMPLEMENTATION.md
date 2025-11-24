@@ -2,7 +2,7 @@
 
 ## Overview
 
-Successfully implemented a multi-algorithm photo recognition pipeline that runs dhash, phash, and ORB algorithms in parallel to improve recognition accuracy and robustness as requested in issue #[issue_number].
+Successfully implemented a multi-algorithm photo recognition pipeline that runs dhash, phash, and ORB algorithms in parallel to improve recognition accuracy and robustness as requested in issue #204.
 
 ## Goals Achievement ✅
 

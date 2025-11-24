@@ -1079,14 +1079,8 @@ export function usePhotoRecognition(
             });
           }
 
-          // Ensure ORB features are ready
-          if (!orbReferencesReadyRef.current) {
-            if (import.meta.env.DEV || isTestMode) {
-              console.debug('[Photo Recognition][Parallel] ORB features not ready yet, skipping');
-            }
-            return;
-          }
-
+          // Note: ORB features are loaded asynchronously, but dhash and phash can proceed
+          // without them. The parallel recognizer will handle missing ORB features gracefully.
           const startParallelTime = performance.now();
           parallelRecognizerRef.current
             .recognize(imageData, concerts, orbReferenceFeaturesRef.current)

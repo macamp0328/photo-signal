@@ -153,7 +153,9 @@ async function runDHash(
     }
 
     const similarity = normalizeHashDistance(bestMatch.distance, 128);
-    const confidence = Math.max(0, Math.min(1, (threshold - bestMatch.distance) / threshold));
+    // Confidence is higher when distance is lower (closer to 0)
+    // Scale from threshold down to 0: confidence = (threshold - distance) / threshold
+    const confidence = Math.min(1, (threshold - bestMatch.distance) / threshold);
 
     return {
       algorithm: 'dhash',
@@ -217,7 +219,9 @@ async function runPHash(
     }
 
     const similarity = normalizeHashDistance(bestMatch.distance, 64);
-    const confidence = Math.max(0, Math.min(1, (threshold - bestMatch.distance) / threshold));
+    // Confidence is higher when distance is lower (closer to 0)
+    // Scale from threshold down to 0: confidence = (threshold - distance) / threshold
+    const confidence = Math.min(1, (threshold - bestMatch.distance) / threshold);
 
     return {
       algorithm: 'phash',
@@ -319,14 +323,30 @@ export class ParallelPhotoRecognizer {
   private config: Required<ParallelRecognizerConfig>;
 
   constructor(config?: ParallelRecognizerConfig) {
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = {
+      ...DEFAULT_CONFIG,
+      ...config,
+      // Deep merge algorithm weights
+      algorithmWeights: {
+        ...DEFAULT_CONFIG.algorithmWeights,
+        ...(config?.algorithmWeights ?? {}),
+      },
+    };
   }
 
   /**
    * Update configuration
    */
   public updateConfig(config: Partial<ParallelRecognizerConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = {
+      ...this.config,
+      ...config,
+      // Deep merge algorithm weights
+      algorithmWeights: {
+        ...this.config.algorithmWeights,
+        ...(config.algorithmWeights ?? {}),
+      },
+    };
   }
 
   /**

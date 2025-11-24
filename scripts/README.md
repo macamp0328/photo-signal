@@ -519,17 +519,19 @@ node scripts/create-photo-csv.js \
   --imageBasePath=/assets/prod-photographs
 ```
 
-**What it does:**
+- **What it does:**
 
 - Writes `assets/test-data/prod-photographs.csv` (configurable) with headers:
-  `id, band, venue, date, audioFile, imageFile, photoTakenAt, shutterSpeed, camera, aperture`
+  `id, band, venue, date, audioFile, imageFile, shutterSpeed, camera, aperture, focalLength, iso`
 - Auto-increments `id` based on alphabetical filename ordering so spreadsheets stay stable between runs
 - Prefills `imageFile` using the provided `--imageBasePath` so downstream tooling already references the final public path
 - Extracts EXIF fields using [`exifr`](https://github.com/MikeKovarik/exifr):
-  - `photoTakenAt` → ISO timestamp (DateTimeOriginal)
+  - `date` → Central Time ISO timestamp (DateTimeOriginal converted to America/Chicago, e.g., `2025-03-15T19:39:37-05:00`)
   - `shutterSpeed` → Formatted exposure (e.g., `1/125`)
   - `camera` → Combined make + model string
   - `aperture` → `f/<number>` notation
+  - `focalLength` → Native focal length plus 35mm equivalent when available (e.g., `17.0mm 34mm eq`)
+  - `iso` → Numeric ISO sensitivity value
 - Leaves band/venue/date/audio columns blank for manual curation
 
 Re-run the script whenever new production photos are added—existing CSV rows will be replaced, so keep curated copies (`prod-photographs.v1.csv`, etc.) when you need version history.

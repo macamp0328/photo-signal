@@ -13,11 +13,13 @@ const CSV_HEADERS = [
   'date',
   'audioFile',
   'imageFile',
-  'photoTakenAt',
   'shutterSpeed',
   'camera',
   'aperture',
+  'focalLength',
+  'iso',
 ];
+const CENTRAL_TIME_ZONE = 'America/Chicago';
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
@@ -40,13 +42,14 @@ async function main() {
       row.set('id', String(index + 1));
       row.set('band', '');
       row.set('venue', '');
-      row.set('date', '');
+      row.set('date', metadata.dateTaken ?? '');
       row.set('audioFile', '');
       row.set('imageFile', path.posix.join(baseImagePath, fileName));
-      row.set('photoTakenAt', metadata.photoTakenAt ?? '');
       row.set('shutterSpeed', metadata.shutterSpeed ?? '');
       row.set('camera', metadata.camera ?? '');
       row.set('aperture', metadata.aperture ?? '');
+      row.set('focalLength', metadata.focalLength ?? '');
+      row.set('iso', metadata.iso ?? '');
 
       return row;
     })
@@ -95,16 +98,21 @@ async function readPhotoMetadata(filePath) {
       'Model',
       'Make',
       'FNumber',
+      'FocalLength',
+      'FocalLengthIn35mmFilm',
+      'ISO',
     ]);
     if (!exif) {
       return {};
     }
 
     return {
-      photoTakenAt: formatDate(exif.DateTimeOriginal),
+      dateTaken: formatCentralTimestamp(exif.DateTimeOriginal),
       shutterSpeed: formatShutterSpeed(exif.ExposureTime),
       camera: formatCamera(exif.Make, exif.Model),
       aperture: formatAperture(exif.FNumber),
+      focalLength: formatFocalLength(exif.FocalLength, exif.FocalLengthIn35mmFilm),
+      iso: formatISO(exif.ISO),
     };
   } catch (error) {
     console.warn(`Failed to parse metadata for ${filePath}: ${error.message}`);
@@ -112,11 +120,37 @@ async function readPhotoMetadata(filePath) {
   }
 }
 
-function formatDate(date) {
+function formatCentralTimestamp(date) {
   if (!date || Number.isNaN(date?.getTime?.())) {
     return '';
   }
-  return date.toISOString();
+  const lookup = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: CENTRAL_TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value])
+  );
+
+  const year = lookup.year;
+  const month = lookup.month;
+  const day = lookup.day;
+  const hour = lookup.hour;
+  const minute = lookup.minute;
+  const second = lookup.second;
+  if (!year || !month || !day || !hour || !minute || !second) {
+    return '';
+  }
+
+  const offset = formatCentralOffset(date);
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
 }
 
 function formatShutterSpeed(exposureTime) {
@@ -145,6 +179,35 @@ function formatAperture(fNumber) {
     return '';
   }
   return `f/${fNumber.toFixed(1)}`;
+}
+
+function formatFocalLength(focalLength, focalLength35mm) {
+  const parts = [];
+  if (typeof focalLength === 'number' && Number.isFinite(focalLength)) {
+    parts.push(`${focalLength.toFixed(1)}mm`);
+  }
+  if (typeof focalLength35mm === 'number' && Number.isFinite(focalLength35mm)) {
+    const rounded = Math.round(focalLength35mm);
+    parts.push(`${rounded}mm eq`);
+  }
+  return parts.join(' ');
+}
+
+function formatISO(iso) {
+  if (!iso || typeof iso !== 'number' || !Number.isFinite(iso)) {
+    return '';
+  }
+  return `${Math.round(iso)}`;
+}
+
+function formatCentralOffset(date) {
+  const localized = new Date(date.toLocaleString('en-US', { timeZone: CENTRAL_TIME_ZONE }));
+  const diffMinutes = Math.round((localized.getTime() - date.getTime()) / 60000);
+  const sign = diffMinutes <= 0 ? '-' : '+';
+  const absMinutes = Math.abs(diffMinutes);
+  const hours = Math.floor(absMinutes / 60);
+  const minutes = absMinutes % 60;
+  return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
 function buildCsv(rows) {

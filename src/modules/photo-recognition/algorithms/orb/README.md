@@ -64,16 +64,16 @@ const result = matchORBFeatures(queryFeatures, refFeatures, config);
 
 **Active Configuration Options:**
 
-- **`maxFeatures`** (default: 500): Maximum number of keypoints to detect. Higher = more accurate but slower.
-- **`fastThreshold`** (default: 20): Threshold for FAST corner detection. Lower = more corners detected.
+- **`maxFeatures`** (default: 500): Maximum number of keypoints to detect. Higher = more accurate but slower. **Recommended: 1000-1500 for reference images (computed once, cached)**.
+- **`fastThreshold`** (default: 12): Threshold for FAST corner detection. Lower = more corners detected. **Optimized for low-texture regions**.
 - **`minMatchCount`** (default: 15): Minimum number of good matches to consider a valid match.
-- **`matchRatioThreshold`** (default: 0.7): Lowe's ratio test threshold for filtering good matches. Lower = stricter matching (fewer false positives).
+- **`matchRatioThreshold`** (default: 0.75): Lowe's ratio test threshold for filtering good matches. Lower = stricter matching (fewer false positives). **Optimized for print distortions**.
 
-**Multi-Scale Controls (NEW):**
+**Multi-Scale Controls:**
 
-- `scaleFactor` – Scale factor between pyramid levels (default `1.2`). Smaller values create more overlap, larger values downscale faster.
-- `nLevels` – Number of pyramid levels to evaluate (default `8`). Each level downsamples the previous one until it becomes too small (<16px) or the level limit is hit.
-- `edgeThreshold` – Size of the border (in pixels) where features are not detected (default `31`). Helps ignore high-contrast edges at the frame boundary. The threshold is automatically clamped for very small images.
+- **`scaleFactor`** (default: 1.5): Scale factor between pyramid levels. **Optimized from 1.2 to 1.5 for better scale invariance in print-to-camera scenarios**. Smaller values create more overlap but may concentrate features at one octave, larger values (1.5-2.0) provide better distribution across scales.
+- **`nLevels`** (default: 8): Number of pyramid levels to evaluate. Each level downsamples the previous one until it becomes too small (<16px) or the level limit is hit.
+- **`edgeThreshold`** (default: 15): Size of the border (in pixels) where features are not detected. **Reduced from 31 to 15 to allow more features at higher octaves**. Helps ignore high-contrast edges at the frame boundary while maximizing scannable area. The threshold is automatically clamped for very small images.
 
 ## Return Values
 

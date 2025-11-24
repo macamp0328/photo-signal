@@ -93,12 +93,12 @@ export interface ORBConfig {
 
 const DEFAULT_ORB_CONFIG: Required<ORBConfig> = {
   maxFeatures: 500,
-  scaleFactor: 1.2,
+  scaleFactor: 1.5, // Increased from 1.2 for better scale invariance in print-to-camera scenarios
   nLevels: 8,
-  edgeThreshold: 31,
-  fastThreshold: 20,
+  edgeThreshold: 15, // Reduced from 31 to allow more features at higher octaves
+  fastThreshold: 12, // Reduced from 20 to detect more corners in low-texture regions
   minMatchCount: 15,
-  matchRatioThreshold: 0.7,
+  matchRatioThreshold: 0.75, // Slightly increased from 0.7 for more lenient matching with print distortions
 };
 
 interface PyramidLevel {

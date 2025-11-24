@@ -4,8 +4,9 @@ This directory contains sample structured data files for testing data service fu
 
 ## Files
 
-- `concerts.json` - JSON format concert data matching the structure in `public/data.json`
-- `concerts.csv` - CSV format concert data (same dataset, includes legacy `photoHash` column for backwards compatibility)
+- `concerts.dev.json` - Full dev/test dataset with calibration targets and real-photo entries
+- `concerts.prod.json` - Snapshot of production-ready data (mirrors `public/data.json` for convenience)
+- `concerts.csv` - CSV format concert data (same dataset as `concerts.dev.json`, includes legacy `photoHash` column for backwards compatibility)
 
 ## License
 
@@ -21,7 +22,7 @@ These data files are used for:
 - Development and testing with consistent, version-controlled data
 - **Runtime test mode**: When "Test Data Mode" is enabled in Secret Settings, the app loads this data instead of production data
 
-> **Temporary default dataset (Nov 2025):** Until the full 100-photo production batch ships, the main app now uses this dataset even when Test Mode is OFF. The toggle still matters for unlocking debug overlays and telemetry exports, but the data source remains the same either way.
+> **Data source overview (Nov 2025):** Production builds load `public/data.json`. Local development, Test Mode, and automated tests load `assets/test-data/concerts.dev.json` so the calibration fixtures stay available without polluting production data.
 
 ## Runtime Access
 
@@ -31,7 +32,7 @@ The `public/assets/` directory is git-ignored because it's auto-generated from t
 
 ## Format Specifications
 
-### concerts.json
+### concerts.dev.json
 
 Standard JSON format matching the application's data structure:
 
@@ -64,7 +65,7 @@ Standard JSON format matching the application's data structure:
 
 ### concerts.csv
 
-CSV format with headers:
+CSV format with headers (aligned with the dev/test dataset):
 
 ```csv
 id,band,venue,date,audioFile,imageFile,photoHash
@@ -78,7 +79,7 @@ These files can be loaded in tests to simulate data service responses without re
 Example:
 
 ```typescript
-import testData from '../../../assets/test-data/concerts.json';
+import testData from '../../../assets/test-data/concerts.dev.json';
 ```
 
 ## Using Test Mode

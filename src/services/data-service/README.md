@@ -41,7 +41,8 @@ class DataService {
 
 **Side Effects**:
 
-- Fetches from `/assets/test-data/concerts.json` on first call (temporarily shared across modes)
+- Fetches from `/data.json` in production builds and `/assets/test-data/concerts.dev.json` in development/test or when Secret Settings enables Test Data Mode
+- Logs which dataset is active to aid debugging
 - Caches results in memory
 - Future: Will query PostgreSQL API
 
@@ -66,7 +67,11 @@ const results = dataService.search('Fillmore');
 
 ## Data Source
 
-**Current**: Shared JSON at `/assets/test-data/concerts.json` (mirrored to `/public/data.json` for convenience)
+**Current**: Split datasets
+
+- **Production**: `/data.json` (bundled from `assets/test-data/concerts.prod.json`)
+- **Development/Test**: `/assets/test-data/concerts.dev.json` (complete dataset with stress cases)
+- **Test Data Mode**: Forces development dataset even in production builds
 
 **Future**: PostgreSQL via API route
 
@@ -75,15 +80,17 @@ const results = dataService.search('Fillmore');
 When migrating to PostgreSQL:
 
 1. Add API route: `api/concerts.ts`
-2. Update `DATA_URL` in service
+2. Update the mode-specific URLs in the service to point at `/api/concerts`
 3. Zero changes to consuming modules!
 
 ```typescript
 // Before (current state)
-const DATA_URL = '/assets/test-data/concerts.json';
+const productionDataUrl = '/data.json';
+const developmentDataUrl = '/assets/test-data/concerts.dev.json';
 
 // After (PostgreSQL)
-const DATA_URL = '/api/concerts';
+const productionDataUrl = '/api/concerts';
+const developmentDataUrl = '/api/concerts';
 ```
 
 ---

@@ -26,7 +26,7 @@ using `ffmpeg`. Filenames follow the pattern
 | Meatstick        | 10m 00s  | `18-meatstick-clip-0{1..4}.opus`        | 0, 150, 300, 450  | Concert ID 12 (R0060861)  |
 | Possum           | 10m 50s  | `20-possum-clip-0{1..4}.opus`           | 0, 150, 330, 510  | Concert ID 7 (Monochrome) |
 
-> **Current data mapping**: `assets/test-data/concerts.json` and `.csv` point to
+> **Current data mapping**: `assets/test-data/concerts.dev.json` and `.csv` point to
 > the `clip-01` version of each recording by default. Feel free to swap to other
 > clips locally if you want additional variety.
 

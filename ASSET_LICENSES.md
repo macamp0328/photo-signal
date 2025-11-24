@@ -106,10 +106,11 @@ These audio files are simple sine wave tones, chords, and layered compositions g
 
 ### Test Data Files (`assets/test-data/`)
 
-| File            | Description                        | License |
-| --------------- | ---------------------------------- | ------- |
-| `concerts.json` | Sample concert data in JSON format | CC0     |
-| `concerts.csv`  | Sample concert data in CSV format  | CC0     |
+| File                 | Description                                     | License |
+| -------------------- | ----------------------------------------------- | ------- |
+| `concerts.dev.json`  | Dev/test dataset with calibration entries       | CC0     |
+| `concerts.prod.json` | Production snapshot matching `public/data.json` | CC0     |
+| `concerts.csv`       | Sample concert data in CSV format               | CC0     |
 
 These are simple structured data files containing fictional concert information (band names, venues, dates) created for testing purposes only. All data is fictional and does not represent real events.
 

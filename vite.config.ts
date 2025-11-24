@@ -57,18 +57,21 @@ function copyTestAssetsPlugin() {
         let copiedCount = 0;
         let skippedCount = 0;
 
-        // Copy test data if it exists
-        const concertsJsonSrc = path.join(testDataSrc, 'concerts.json');
-        const concertsJsonDest = path.join(publicAssetsDir, 'test-data/concerts.json');
-        if (await exists(concertsJsonSrc)) {
-          if (await needsCopy(concertsJsonSrc, concertsJsonDest)) {
-            await copyFile(concertsJsonSrc, concertsJsonDest);
-            copiedCount++;
+        // Copy dev/prod concert datasets
+        const datasetFiles = ['concerts.dev.json', 'concerts.prod.json'];
+        for (const fileName of datasetFiles) {
+          const src = path.join(testDataSrc, fileName);
+          const dest = path.join(publicAssetsDir, 'test-data', fileName);
+          if (await exists(src)) {
+            if (await needsCopy(src, dest)) {
+              await copyFile(src, dest);
+              copiedCount++;
+            } else {
+              skippedCount++;
+            }
           } else {
-            skippedCount++;
+            console.warn(`⚠ ${fileName} not found in test-data directory`);
           }
-        } else {
-          console.warn('⚠ concerts.json not found in test-data directory');
         }
 
         // Copy example real songs if directory exists

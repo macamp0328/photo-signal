@@ -26,7 +26,7 @@ const TEST_DATA_PATH = join(
   '..',
   'assets',
   'test-data',
-  'concerts.json'
+  'concerts.dev.json'
 );
 
 interface EdgeCaseMetadata {

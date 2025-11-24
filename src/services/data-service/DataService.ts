@@ -40,10 +40,9 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
 class DataService {
   private cache: Concert[] | null = null;
   private isTestMode = false;
-  // Temporary: production and test modes both point to the clip-backed dataset until the 100-photo drop ships.
-  private readonly unifiedDataUrl = '/assets/test-data/concerts.json';
-  private readonly productionDataUrl = this.unifiedDataUrl;
-  private readonly testDataUrl = this.unifiedDataUrl;
+  private readonly productionDataUrl = '/data.json';
+  private readonly developmentDataUrl = '/assets/test-data/concerts.dev.json';
+  private readonly testDataUrl = this.developmentDataUrl;
   private listeners: Array<() => void> = [];
 
   /**
@@ -91,7 +90,49 @@ class DataService {
    * Get the current data URL based on test mode
    */
   private getDataUrl(): string {
-    return this.isTestMode ? this.testDataUrl : this.productionDataUrl;
+    const dataSource = this.getActiveDataSource();
+    if (dataSource === 'production') {
+      return this.productionDataUrl;
+    }
+    return this.developmentDataUrl;
+  }
+
+  private getActiveDataSource(): 'production' | 'development' | 'test' {
+    if (this.isTestMode) {
+      return 'test';
+    }
+
+    const mode = this.getRuntimeMode();
+    if (mode === 'test') {
+      return 'test';
+    }
+
+    if (mode === 'development') {
+      return 'development';
+    }
+
+    return 'production';
+  }
+
+  private getRuntimeMode(): 'development' | 'test' | 'production' {
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV) {
+      const normalized = process.env.NODE_ENV.toLowerCase();
+      if (normalized === 'test' || normalized === 'development') {
+        return normalized;
+      }
+      return 'production';
+    }
+
+    try {
+      const mode = import.meta.env.MODE;
+      if (mode === 'test' || mode === 'development') {
+        return mode;
+      }
+    } catch {
+      // ignore and fall through
+    }
+
+    return 'production';
   }
 
   /**
@@ -104,8 +145,10 @@ class DataService {
     }
 
     try {
+      const dataSource = this.getActiveDataSource();
       const dataUrl = this.getDataUrl();
       console.log(`[DataService] Loading concert data from: ${dataUrl}`);
+      console.log(`[DataService] Data source: ${dataSource}`);
       console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
 
       const response = await fetch(dataUrl);

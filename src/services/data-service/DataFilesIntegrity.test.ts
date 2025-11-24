@@ -128,7 +128,7 @@ describe('Data files integrity', () => {
   });
 
   it('test data entries reference printable images, audio, and hashes', () => {
-    const concerts = loadConcerts('assets/test-data/concerts.json');
+    const concerts = loadConcerts('assets/test-data/concerts.dev.json');
     expect(concerts.length).toBeGreaterThanOrEqual(4);
 
     concerts.forEach((concert) => {
@@ -144,5 +144,11 @@ describe('Data files integrity', () => {
         ensureFileExists(concert.imageFile);
       }
     });
+  });
+
+  it('production snapshot in assets matches public data', () => {
+    const publicConcerts = loadConcerts('public/data.json');
+    const prodSnapshot = loadConcerts('assets/test-data/concerts.prod.json');
+    expect(prodSnapshot).toEqual(publicConcerts);
   });
 });

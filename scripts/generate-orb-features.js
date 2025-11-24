@@ -15,7 +15,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'assets/test-data/concerts.json');
+const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'assets/test-data/concerts.dev.json');
 const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
 
 function parseArgs() {

@@ -13,7 +13,7 @@ import { vi } from 'vitest';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const concertsFixturePath = resolve(__dirname, '../../assets/test-data/concerts.json');
+const concertsFixturePath = resolve(__dirname, '../../assets/test-data/concerts.dev.json');
 const concertsFixture = JSON.parse(readFileSync(concertsFixturePath, 'utf-8')) as Record<
   string,
   unknown
@@ -300,7 +300,12 @@ export function mockFetch() {
     const urlString = typeof url === 'string' ? url : url.toString();
 
     // Mock response for concert data files so tests exercise real fixtures
-    if (urlString.includes('concerts.json') || urlString.includes('data.json')) {
+    if (
+      urlString.includes('concerts.dev.json') ||
+      urlString.includes('concerts.prod.json') ||
+      urlString.includes('concerts.json') ||
+      urlString.includes('data.json')
+    ) {
       return Promise.resolve({
         ok: true,
         status: 200,

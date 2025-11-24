@@ -56,7 +56,7 @@ These photos now ship in both production and test data sets:
 | 26         | Jo Alice (P3150466)          | `/assets/example-real-photos/P3150466.jpg` |
 
 - **Production**: `public/data.json` now contains the hashes above so the main experience recognizes your printed copies.
-- **Test Mode**: `assets/test-data/concerts.json` and `.csv` include the same entries with `/assets/example-real-photos/...` image paths for on-device previews.
+- **Dev/Test Mode**: `assets/test-data/concerts.dev.json` and `.csv` include the same entries with `/assets/example-real-photos/...` image paths for on-device previews.
 
 ## Usage
 

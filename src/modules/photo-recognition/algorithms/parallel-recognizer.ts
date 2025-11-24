@@ -328,6 +328,25 @@ export class ParallelPhotoRecognizer {
         ...(config?.algorithmWeights ?? {}),
       },
     };
+    this.validateWeights();
+  }
+
+  /**
+   * Validates that algorithm weights sum to approximately 1.0
+   * Logs a warning if they don't, but doesn't throw to allow flexibility
+   */
+  private validateWeights(): void {
+    const { dhash, phash, orb } = this.config.algorithmWeights;
+    const sum = dhash + phash + orb;
+    const tolerance = 0.01; // Allow 1% tolerance for floating point
+
+    if (Math.abs(sum - 1.0) > tolerance) {
+      console.warn(
+        `[ParallelRecognizer] Algorithm weights sum to ${sum.toFixed(3)}, expected ~1.0. ` +
+          `This may lead to unexpected confidence scores. ` +
+          `Current weights: dhash=${dhash}, phash=${phash}, orb=${orb}`
+      );
+    }
   }
 
   /**
@@ -343,6 +362,7 @@ export class ParallelPhotoRecognizer {
         ...(config.algorithmWeights ?? {}),
       },
     };
+    this.validateWeights();
   }
 
   /**

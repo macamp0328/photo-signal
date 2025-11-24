@@ -465,4 +465,83 @@ describe('ParallelPhotoRecognizer', () => {
       // We just verify the voting system works, not which concert wins
     });
   });
+
+  describe('weight validation', () => {
+    it('should warn when weights do not sum to 1.0', () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // Create recognizer with weights that don't sum to 1.0
+      new ParallelPhotoRecognizer({
+        algorithmWeights: {
+          dhash: 0.5,
+          phash: 0.5,
+          orb: 0.5, // Sum = 1.5
+        },
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Algorithm weights sum to')
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('expected ~1.0')
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not warn when weights sum to 1.0', () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // Create recognizer with weights that sum to 1.0
+      new ParallelPhotoRecognizer({
+        algorithmWeights: {
+          dhash: 0.3,
+          phash: 0.35,
+          orb: 0.35, // Sum = 1.0
+        },
+      });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should allow weights within tolerance', () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // Create recognizer with weights very close to 1.0 (within 1% tolerance)
+      new ParallelPhotoRecognizer({
+        algorithmWeights: {
+          dhash: 0.333,
+          phash: 0.333,
+          orb: 0.334, // Sum = 1.0
+        },
+      });
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should warn on updateConfig with invalid weights', () => {
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const recognizer = new ParallelPhotoRecognizer();
+      consoleSpy.mockClear(); // Clear any warnings from constructor
+
+      recognizer.updateConfig({
+        algorithmWeights: {
+          dhash: 0.2,
+          phash: 0.2,
+          orb: 0.2, // Sum = 0.6
+        },
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Algorithm weights sum to')
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
 });

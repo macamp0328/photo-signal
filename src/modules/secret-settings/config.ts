@@ -117,6 +117,8 @@ export const CONFIG_PROFILES: ConfigProfile[] = [
     settings: {
       'recognition-mode': 'parallel',
       'hash-algorithm': 'phash',
+      // Note: similarity-threshold is used only as a fallback when parallel mode is disabled.
+      // Parallel mode uses its own thresholds (dhashThreshold, phashThreshold) from the recognizer config.
       'similarity-threshold': 24,
       'recognition-delay': 1000,
       'recognition-check-interval': 250,

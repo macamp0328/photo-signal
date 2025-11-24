@@ -158,10 +158,7 @@ function App() {
   const parallelRecognitionEnabledSetting = getSetting<string>('parallel-recognition-enabled');
   const parallelRecognitionEnabled =
     recognitionMode === 'parallel' || parallelRecognitionEnabledSetting === 'true';
-  const parallelDHashWeight = coerceNumberSetting(
-    getSetting<number>('parallel-dhash-weight'),
-    0.3
-  );
+  const parallelDHashWeight = coerceNumberSetting(getSetting<number>('parallel-dhash-weight'), 0.3);
   const parallelPHashWeight = coerceNumberSetting(
     getSetting<number>('parallel-phash-weight'),
     0.35

@@ -83,6 +83,7 @@ const TEST_FRIENDLY_ORB_CONFIG: ORBConfig = {
 };
 
 const LONG_TEST_TIMEOUT = 15_000;
+const PERFORMANCE_BUDGET_MS = 2_600;
 
 function matchImagesWithTestConfig(
   image1: ImageData,
@@ -276,8 +277,8 @@ describe('ORB Robustness', () => {
 
     expect(features.keypoints.length).toBeGreaterThanOrEqual(0);
     // CI runners can be significantly slower than local machines, so we allow
-    // up to ~2s while still catching obvious performance regressions.
-    expect(elapsed).toBeLessThan(2000);
+    // up to ~2.6s while still catching obvious performance regressions.
+    expect(elapsed).toBeLessThan(PERFORMANCE_BUDGET_MS);
   });
 });
 

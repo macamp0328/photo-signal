@@ -502,6 +502,40 @@ Use these assets when you need ultra-distinct patterns for calibration or debugg
 
 ---
 
+### `create-photo-csv.js` - Bootstrap Production Photo Catalogs
+
+Scans `assets/prod-photographs/` (override via `--input`) and emits a starter CSV that matches the `concerts.csv` schema plus camera metadata. Every `.jpg` becomes a new row with the `imageFile` column pre-filled and EXIF details pulled from the source file so you can fill in artist/venue details manually in Excel.
+
+**Usage:**
+
+```bash
+# Default input/output
+node scripts/create-photo-csv.js
+
+# Custom paths
+node scripts/create-photo-csv.js \
+  --input=assets/prod-photographs \
+  --output=assets/test-data/prod-photographs.csv \
+  --imageBasePath=/assets/prod-photographs
+```
+
+**What it does:**
+
+- Writes `assets/test-data/prod-photographs.csv` (configurable) with headers:
+  `id, band, venue, date, audioFile, imageFile, photoTakenAt, shutterSpeed, camera, aperture`
+- Auto-increments `id` based on alphabetical filename ordering so spreadsheets stay stable between runs
+- Prefills `imageFile` using the provided `--imageBasePath` so downstream tooling already references the final public path
+- Extracts EXIF fields using [`exifr`](https://github.com/MikeKovarik/exifr):
+  - `photoTakenAt` → ISO timestamp (DateTimeOriginal)
+  - `shutterSpeed` → Formatted exposure (e.g., `1/125`)
+  - `camera` → Combined make + model string
+  - `aperture` → `f/<number>` notation
+- Leaves band/venue/date/audio columns blank for manual curation
+
+Re-run the script whenever new production photos are added—existing CSV rows will be replaced, so keep curated copies (`prod-photographs.v1.csv`, etc.) when you need version history.
+
+---
+
 ### `generate-photo-hashes.html` - Generate Photo Hashes (Browser)
 
 Browser-based tool to generate dHash fingerprints for reference photos.

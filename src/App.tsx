@@ -93,11 +93,17 @@ function App() {
     rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
       ? 1000
       : coerceNumberSetting(rawRecognitionDelay, 1000);
-  const recognitionModeSetting = getSetting<'perceptual' | 'orb'>('recognition-mode');
-  const recognitionMode = recognitionModeSetting === 'orb' ? 'orb' : 'perceptual';
+  const recognitionModeSetting = getSetting<'perceptual' | 'orb' | 'parallel'>('recognition-mode');
+  const recognitionMode =
+    recognitionModeSetting === 'orb'
+      ? 'orb'
+      : recognitionModeSetting === 'parallel'
+        ? 'parallel'
+        : 'perceptual';
   const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
   const perceptualAlgorithm = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
-  const hashAlgorithmValue = recognitionMode === 'orb' ? 'orb' : perceptualAlgorithm;
+  const hashAlgorithmValue =
+    recognitionMode === 'orb' || recognitionMode === 'parallel' ? 'orb' : perceptualAlgorithm;
   const defaultSimilarityThreshold =
     hashAlgorithmValue === 'phash' ? 12 : hashAlgorithmValue === 'orb' ? 0 : 24;
   const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
@@ -148,6 +154,34 @@ function App() {
         }
       : undefined;
 
+  // Parallel recognition settings
+  const parallelRecognitionEnabledSetting = getSetting<string>('parallel-recognition-enabled');
+  const parallelRecognitionEnabled =
+    recognitionMode === 'parallel' || parallelRecognitionEnabledSetting === 'true';
+  const parallelDHashWeight = coerceNumberSetting(
+    getSetting<number>('parallel-dhash-weight'),
+    0.3
+  );
+  const parallelPHashWeight = coerceNumberSetting(
+    getSetting<number>('parallel-phash-weight'),
+    0.35
+  );
+  const parallelOrbWeight = coerceNumberSetting(getSetting<number>('parallel-orb-weight'), 0.35);
+  const parallelMinConfidence = coerceNumberSetting(
+    getSetting<number>('parallel-min-confidence'),
+    0.6
+  );
+  const parallelRecognitionConfig = parallelRecognitionEnabled
+    ? {
+        algorithmWeights: {
+          dhash: parallelDHashWeight,
+          phash: parallelPHashWeight,
+          orb: parallelOrbWeight,
+        },
+        minConfidenceThreshold: parallelMinConfidence,
+      }
+    : undefined;
+
   // Module: Photo Recognition (paused when secret menu is open)
   const {
     recognizedConcert,
@@ -174,6 +208,8 @@ function App() {
     enableRectangleDetection: isEnabled('rectangle-detection'),
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
     orbConfig,
+    enableParallelRecognition: parallelRecognitionEnabled,
+    parallelRecognitionConfig,
     enabled: !showSecretSettings,
   });
 

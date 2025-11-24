@@ -13,7 +13,12 @@ import type { FeatureFlag, CustomSetting } from './types';
 
 type ConfigSettingValue = string | number | boolean;
 
-export type ConfigProfileId = 'custom' | 'baseline-phash' | 'baseline-dhash' | 'baseline-orb';
+export type ConfigProfileId =
+  | 'custom'
+  | 'baseline-phash'
+  | 'baseline-dhash'
+  | 'baseline-orb'
+  | 'parallel-balanced';
 
 export interface ConfigProfile {
   id: ConfigProfileId;
@@ -50,6 +55,7 @@ export const CONFIG_PROFILES: ConfigProfile[] = [
       'orb-fast-threshold': 20,
       'orb-min-match-count': 20,
       'orb-match-ratio-threshold': 0.7,
+      'parallel-recognition-enabled': 'false',
     },
     featureFlags: {
       'rectangle-detection': true,
@@ -73,6 +79,7 @@ export const CONFIG_PROFILES: ConfigProfile[] = [
       'orb-fast-threshold': 20,
       'orb-min-match-count': 20,
       'orb-match-ratio-threshold': 0.7,
+      'parallel-recognition-enabled': 'false',
     },
     featureFlags: {
       'rectangle-detection': true,
@@ -96,6 +103,36 @@ export const CONFIG_PROFILES: ConfigProfile[] = [
       'orb-fast-threshold': 20,
       'orb-min-match-count': 20,
       'orb-match-ratio-threshold': 0.7,
+      'parallel-recognition-enabled': 'false',
+    },
+    featureFlags: {
+      'rectangle-detection': true,
+    },
+  },
+  {
+    id: 'parallel-balanced',
+    label: 'Parallel · Balanced',
+    description:
+      'Multi-algorithm recognition (dHash + pHash + ORB) with weighted voting for maximum accuracy.',
+    settings: {
+      'recognition-mode': 'parallel',
+      'hash-algorithm': 'phash',
+      'similarity-threshold': 24,
+      'recognition-delay': 1000,
+      'recognition-check-interval': 250,
+      'sharpness-threshold': 100,
+      'glare-threshold': 250,
+      'glare-percentage-threshold': 20,
+      'rectangle-detection-confidence-threshold': 0.3,
+      'orb-max-features': 1000,
+      'orb-fast-threshold': 12,
+      'orb-min-match-count': 20,
+      'orb-match-ratio-threshold': 0.75,
+      'parallel-recognition-enabled': 'true',
+      'parallel-dhash-weight': 0.3,
+      'parallel-phash-weight': 0.35,
+      'parallel-orb-weight': 0.35,
+      'parallel-min-confidence': 0.6,
     },
     featureFlags: {
       'rectangle-detection': true,
@@ -216,12 +253,13 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
   {
     id: 'recognition-mode',
     name: 'Recognition Engine',
-    description: 'Choose between dHash/pHash combo or ORB feature matching.',
+    description: 'Choose recognition algorithm: perceptual hash, ORB, or parallel multi-algorithm.',
     type: 'select',
     value: 'perceptual',
     options: [
       { label: 'Perceptual Hash (dHash + pHash)', value: 'perceptual' },
       { label: 'ORB Feature Matching', value: 'orb' },
+      { label: 'Parallel (dHash + pHash + ORB)', value: 'parallel' },
     ],
     category: 'recognition',
   },
@@ -342,6 +380,67 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     type: 'number',
     value: 0.7,
     min: 0.5,
+    max: 0.95,
+    step: 0.05,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'parallel-recognition-enabled',
+    name: 'Enable Parallel Recognition',
+    description:
+      'Run dhash, phash, and ORB simultaneously with weighted voting for improved accuracy.',
+    type: 'select',
+    value: 'false',
+    options: [
+      { label: 'Disabled', value: 'false' },
+      { label: 'Enabled', value: 'true' },
+    ],
+    category: 'recognition',
+  },
+  {
+    id: 'parallel-dhash-weight',
+    name: 'Parallel dHash Weight',
+    description: 'Weight for dHash algorithm in parallel voting (fast but less robust).',
+    type: 'number',
+    value: 0.3,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'parallel-phash-weight',
+    name: 'Parallel pHash Weight',
+    description: 'Weight for pHash algorithm in parallel voting (robust to lighting/angles).',
+    type: 'number',
+    value: 0.35,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'parallel-orb-weight',
+    name: 'Parallel ORB Weight',
+    description: 'Weight for ORB algorithm in parallel voting (most robust but slower).',
+    type: 'number',
+    value: 0.35,
+    min: 0,
+    max: 1,
+    step: 0.05,
+    unit: '',
+    category: 'recognition',
+  },
+  {
+    id: 'parallel-min-confidence',
+    name: 'Parallel Min Confidence',
+    description: 'Minimum combined confidence (0-1) required for a match in parallel mode.',
+    type: 'number',
+    value: 0.6,
+    min: 0.3,
     max: 0.95,
     step: 0.05,
     unit: '',

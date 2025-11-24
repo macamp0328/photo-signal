@@ -534,7 +534,7 @@
       /**
        * Generate JSON output for easy copy-paste
        * Note: HTML tool only generates single hash (not multi-exposure variants like the CLI script)
-       * For multi-exposure hashes, use: node scripts/generate-photo-hashes.js
+       * For multi-exposure hashes, use: node scripts/update-recognition-data.js --paths-mode
        */
       function generateJsonOutput() {
         const jsonData = hashResults.map((result) => ({

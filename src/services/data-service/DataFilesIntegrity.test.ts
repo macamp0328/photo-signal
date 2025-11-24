@@ -19,7 +19,6 @@ interface RawConcert {
   date: string;
   audioFile: string;
   imageFile?: string;
-  photoHash?: string | string[];
   photoHashes?: RawHashSet;
 }
 
@@ -29,24 +28,6 @@ function loadConcerts(relativePath: string): RawConcert[] {
   const parsed = JSON.parse(contents);
   expect(Array.isArray(parsed.concerts)).toBe(true);
   return parsed.concerts as RawConcert[];
-}
-
-function expectHexHash(hash: string | string[] | undefined) {
-  expect(hash, 'photoHash should be defined').toBeTruthy();
-
-  const hashes = Array.isArray(hash) ? hash : [hash];
-  expect(hashes.length, 'photoHash array should not be empty').toBeGreaterThan(0);
-
-  hashes.forEach((value) => {
-    expect(typeof value).toBe('string');
-    if (typeof value !== 'string') {
-      throw new Error('photoHash values must be strings');
-    }
-    const isLegacyDhash = /^[0-9a-f]{32}$/i.test(value);
-    const isPhash = /^[0-9a-f]{16}$/i.test(value);
-    const isValidHash = isLegacyDhash || isPhash;
-    expect(isValidHash, `Hash "${value}" should be 16 or 32 hex chars`).toBe(true);
-  });
 }
 
 function expectHashArray(
@@ -121,7 +102,6 @@ describe('Data files integrity', () => {
       expect(typeof concert.audioFile).toBe('string');
       ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
 
-      expectHexHash(concert.photoHash);
       const isEdgeCase = Boolean(concert.id && concert.id >= 13);
       expectHashSet(concert.photoHashes, isEdgeCase);
     });
@@ -132,7 +112,6 @@ describe('Data files integrity', () => {
     expect(concerts.length).toBeGreaterThanOrEqual(4);
 
     concerts.forEach((concert) => {
-      expectHexHash(concert.photoHash);
       // Edge case entries (ID 13+) may only have phash, not dhash
       const isEdgeCase = Boolean(concert.id && concert.id >= 13);
       expectHashSet(concert.photoHashes, isEdgeCase);

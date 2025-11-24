@@ -169,14 +169,6 @@ const similarityPercent = (distance: number, algorithm: PerceptualHashAlgorithm)
   return ((max - distance) / max) * 100;
 };
 
-const normalizeLegacyHashes = (hash: string | string[] | undefined): string[] => {
-  if (!hash) {
-    return [];
-  }
-  const hashes = Array.isArray(hash) ? hash : [hash];
-  return hashes.filter((value) => typeof value === 'string' && value.length > 0);
-};
-
 const isValidForAlgorithm = (hashes: string[], algorithm: PerceptualHashAlgorithm): boolean => {
   if (hashes.length === 0) {
     return false;
@@ -192,13 +184,6 @@ const getPhotoHashesForAlgorithm = (
   const hashSet = concert.photoHashes?.[algorithm];
   if (Array.isArray(hashSet) && hashSet.length > 0 && isValidForAlgorithm(hashSet, algorithm)) {
     return hashSet;
-  }
-
-  // Legacy photoHash field fallback - currently mirrors pHash values (16 chars)
-  // This fallback only works correctly for pHash algorithm; dHash will get empty array
-  const legacyHashes = normalizeLegacyHashes(concert.photoHash);
-  if (isValidForAlgorithm(legacyHashes, algorithm)) {
-    return legacyHashes;
   }
 
   return [];

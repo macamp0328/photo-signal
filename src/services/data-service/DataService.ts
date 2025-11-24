@@ -1,33 +1,24 @@
 import type { Concert } from '../../types';
 
 /**
- * Check if a concert has any photo hashes (legacy or new format)
+ * Check if a concert has any photo hashes in the canonical multi-algorithm structure.
  * Note: This only validates existence and type, not hash format/length.
- * The legacy photoHash field may contain hashes in either format (16 or 32 chars).
  */
 function hasAnyPhotoHashes(concert: Concert): boolean {
-  const legacy = concert.photoHash;
-  if (typeof legacy === 'string' && legacy.length > 0) {
-    return true;
-  }
-  if (Array.isArray(legacy) && legacy.length > 0) {
-    return legacy.every((hash) => typeof hash === 'string' && hash.length > 0);
-  }
-
   const { photoHashes } = concert;
-  if (photoHashes) {
-    const algorithmKeys: Array<'dhash' | 'phash'> = ['dhash', 'phash'];
-    return algorithmKeys.some((algorithm) => {
-      const values = photoHashes[algorithm];
-      return (
-        Array.isArray(values) &&
-        values.length > 0 &&
-        values.every((hash) => typeof hash === 'string' && hash.length > 0)
-      );
-    });
+  if (!photoHashes) {
+    return false;
   }
 
-  return false;
+  const algorithmKeys: Array<'dhash' | 'phash'> = ['dhash', 'phash'];
+  return algorithmKeys.some((algorithm) => {
+    const values = photoHashes[algorithm];
+    return (
+      Array.isArray(values) &&
+      values.length > 0 &&
+      values.every((hash) => typeof hash === 'string' && hash.length > 0)
+    );
+  });
 }
 
 /**
@@ -172,7 +163,7 @@ class DataService {
 
       if (concertsWithHashes === 0) {
         console.warn(
-          '[DataService] Warning: No concerts have photoHash values. Photo recognition will not work.'
+          '[DataService] Warning: No concerts expose photoHashes. Photo recognition will not work.'
         );
       }
 

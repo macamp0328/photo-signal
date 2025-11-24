@@ -319,12 +319,18 @@ Triple-tap/click anywhere → Secret Settings → Enable "Test Data Mode"
 
 ```bash
 npm run generate-hashes
+
+# Hash a different folder (comma-separated)
+npm run generate-hashes -- --paths assets/example-real-photos,assets/new-print-tests
+
+# Full CLI access for power users
+node scripts/update-recognition-data.js --paths-mode --paths assets/test-images --algorithms phash,dhash
 ```
 
 ### Rebuild All Hashes
 
 ```bash
-npm run rebuild-hashes
+npm run update-recognition-data -- --hashes-only
 ```
 
 ### Check Data Structure

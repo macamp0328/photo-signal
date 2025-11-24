@@ -348,7 +348,7 @@ All agents work simultaneously:
 ```typescript
 export interface Concert {
   // ... existing fields
-  photoHash: string; // Added by Agent A
+  photoMetadata: string; // Added by Agent A
 }
 ```
 
@@ -366,7 +366,7 @@ export interface Concert {
 ```typescript
 export interface Concert {
   // ... existing fields
-  photoHash: string; // From Agent A
+  photoMetadata: string; // From Agent A
   duration: number; // From Agent B
 }
 ```

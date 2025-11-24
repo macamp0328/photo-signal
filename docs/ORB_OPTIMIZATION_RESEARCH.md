@@ -138,16 +138,23 @@ With the new parameters, ORB can handle:
 
 ### Required: Regenerate Reference Features
 
-⚠️ **IMPORTANT**: All ORB features in `data.json` need regeneration with new parameters.
+⚠️ **IMPORTANT**: All ORB features in `data.json` need regeneration with the optimized parameters.
 
-**Method**: Use the browser-based tool:
+**Method**: Run the unified CLI refresher (no UI required):
 
-1. Start dev server: `npm run dev`
-2. Open http://localhost:5173
-3. Click settings gear → Secret Settings
-4. Click "Generate ORB Features" in Debug Tools
+```bash
+# Regenerate ORB payloads for every concert and mirror results to public/data.json
+npm run update-recognition-data -- --orb-only
 
-This will regenerate all features with optimized parameters.
+# Target specific ids or tweak ORB config
+npm run update-recognition-data -- \
+   --orb-only \
+   --ids 6,7,8 \
+   --max-features 1200 \
+   --fast-threshold 10
+```
+
+`update-recognition-data` loads `assets/test-data/concerts.dev.json`, rebuilds payloads with the new defaults (scaleFactor 1.5, edgeThreshold 15, fastThreshold 12, matchRatio 0.75), and syncs the same entries into `public/data.json`. Use `--dry-run` to preview changes and `--skip-public` if you only want to touch the test dataset.
 
 ### Testing Real-World Performance
 
@@ -191,11 +198,11 @@ Monitor in production:
 4. `src/modules/photo-recognition/algorithms/orb/__tests__/orb-octave-analysis.test.ts`
    - New comprehensive test suite for octave distribution
 
-5. `scripts/regenerate-orb-features.cjs`
-   - Utility script to check which features need regeneration
+5. `scripts/update-recognition-data.js`
+   - Unified CLI to regenerate hashes/ORB payloads and sync data files
 
 ## Conclusion
 
 The ORB algorithm performance issues were due to suboptimal default parameters causing features to concentrate at a single pyramid octave, eliminating scale invariance. By optimizing scaleFactor, edgeThreshold, and fastThreshold based on research and testing, we now achieve proper multi-scale feature distribution and significantly improved matching robustness for print-to-camera photo recognition.
 
-**Next critical step**: Regenerate all reference features in data.json using the browser tool.
+**Next critical step**: Regenerate all reference features in `assets/test-data/concerts.dev.json` (and mirror to `public/data.json`) via `npm run update-recognition-data -- --orb-only`.

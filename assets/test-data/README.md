@@ -6,7 +6,7 @@ This directory contains sample structured data files for testing data service fu
 
 - `concerts.dev.json` - Full dev/test dataset with calibration targets and real-photo entries
 - `concerts.prod.json` - Snapshot of production-ready data (mirrors `public/data.json` for convenience)
-- `concerts.csv` - CSV format concert data (same dataset as `concerts.dev.json`, includes legacy `photoHash` column for backwards compatibility)
+- `concerts.csv` - CSV format concert data (same dataset as `concerts.dev.json`, excludes hash columns to keep the format simple)
 
 ## License
 
@@ -49,8 +49,7 @@ Standard JSON format matching the application's data structure:
       "photoHashes": {
         "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
         "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
-      },
-      "photoHash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
+      }
     }
   ]
 }
@@ -61,15 +60,15 @@ Standard JSON format matching the application's data structure:
 - `audioFile` paths now standardize on `/assets/example-real-songs/*`, leveraging the 30-second real clip pack for every test entry
 - `imageFile` paths point to `/assets/test-images/*` or `/assets/example-real-photos/*`
 - `photoHashes` provides both **pHash** (default runtime choice) and **dHash** arrays so you can toggle algorithms via Secret Settings without editing data
-- The legacy `photoHash` array mirrors the `phash` values to keep older builds functional until they can be fully migrated
+- Legacy `photoHash` mirrors have been retired; only `photoHashes` is required now
 
 ### concerts.csv
 
 CSV format with headers (aligned with the dev/test dataset):
 
 ```csv
-id,band,venue,date,audioFile,imageFile,photoHash
-1,Band Name,Venue Name,YYYY-MM-DD,/assets/example-real-songs/track-clip.opus,/assets/test-images/image.jpg,normal-exposure-phash
+id,band,venue,date,audioFile,imageFile
+1,Band Name,Venue Name,YYYY-MM-DD,/assets/example-real-songs/track-clip.opus,/assets/test-images/image.jpg
 ```
 
 ## Usage in Tests

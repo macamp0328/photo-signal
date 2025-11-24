@@ -39,7 +39,7 @@ These photos are used for:
 | `R0060861.jpg` | `960bc5ef462e2e8c4e6b566ec2eda7ed` |
 | `P3150466.jpg` | `52554edc49ac45ab44d35aca7c23d912` |
 
-Regenerate hashes anytime with `npm run generate-hashes assets/example-real-photos` if the files change.
+Regenerate hashes anytime with `npm run generate-hashes -- --paths assets/example-real-photos` if the files change.
 
 ## Concert Mapping
 
@@ -75,7 +75,11 @@ open scripts/generate-photo-hashes.html
 **Node.js script**:
 
 ```bash
-npm run generate-hashes assets/example-real-photos/*.jpg
+# Hash every file in this folder (defaults to both algorithms)
+npm run generate-hashes -- --paths assets/example-real-photos
+
+# Or call the CLI directly for more control
+node scripts/update-recognition-data.js --paths-mode --paths assets/example-real-photos --algorithms phash
 ```
 
 The generated hashes should be added to `public/data.json` to enable photo recognition for these concerts.

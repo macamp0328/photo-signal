@@ -178,14 +178,11 @@ Edit `public/data.json` to add your own concert data:
       "photoHashes": {
         "phash": ["dark-hash", "normal-hash", "bright-hash"],
         "dhash": ["dark-dhash", "normal-dhash", "bright-dhash"]
-      },
-      "photoHash": ["dark-hash", "normal-hash", "bright-hash"]
+      }
     }
   ]
 }
 ```
-
-> `photoHashes` is the canonical storage for algorithm-specific hash arrays; keep the legacy `photoHash` array mirrored until older builds are retired.
 
 ### Photo Recognition
 

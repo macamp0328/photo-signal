@@ -479,12 +479,8 @@ describe('ParallelPhotoRecognizer', () => {
         },
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Algorithm weights sum to')
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('expected ~1.0')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Algorithm weights sum to'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('expected ~1.0'));
 
       consoleSpy.mockRestore();
     });
@@ -537,9 +533,7 @@ describe('ParallelPhotoRecognizer', () => {
         },
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Algorithm weights sum to')
-      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Algorithm weights sum to'));
 
       consoleSpy.mockRestore();
     });

@@ -2,7 +2,7 @@
 
 /* eslint-env node */
 
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile, readdir, stat } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -21,7 +21,10 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'assets/test-data/concerts.dev.json');
 const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
+const DEFAULT_IMAGE_DIR = path.resolve(repoRoot, 'assets/test-images');
 const VALID_ALGORITHMS = new Set(['phash', 'dhash']);
+const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
+const EXPOSURE_LABELS = ['dark', 'normal', 'bright'];
 
 function parseIds(value, bucket) {
   if (!bucket) {
@@ -68,6 +71,8 @@ function parseArgs() {
     algorithms: new Set(VALID_ALGORITHMS),
     ids: null,
     orbConfig: { ...DEFAULT_ORB_CONFIG },
+    pathsMode: false,
+    imageTargets: [],
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -155,8 +160,32 @@ function parseArgs() {
       case '--edge-threshold':
         applyNumericOption(options.orbConfig, 'edgeThreshold', args[++i]);
         break;
+      case '--paths-mode':
+        options.pathsMode = true;
+        break;
+      case '--paths':
+      case '--images':
+        if (!args[i + 1]) {
+          throw new Error(`${arg} requires a comma-separated list of paths`);
+        }
+        options.pathsMode = true;
+        splitListArg(args[++i]).forEach((token) => options.imageTargets.push(token));
+        break;
+      case '--path':
+      case '--image':
+        if (!args[i + 1]) {
+          throw new Error(`${arg} requires a single path`);
+        }
+        options.pathsMode = true;
+        options.imageTargets.push(args[++i]);
+        break;
       default:
-        console.warn(`⚠️  Unknown argument ignored: ${arg}`);
+        if (!arg.startsWith('-')) {
+          options.pathsMode = true;
+          options.imageTargets.push(arg);
+        } else {
+          console.warn(`⚠️  Unknown argument ignored: ${arg}`);
+        }
     }
   }
 
@@ -168,7 +197,25 @@ function parseArgs() {
     throw new Error('No hash algorithms selected. Use --algorithms to choose phash and/or dhash.');
   }
 
+  if (options.pathsMode) {
+    if (options.imageTargets.length === 0) {
+      options.imageTargets.push(DEFAULT_IMAGE_DIR);
+    }
+    if (!options.tasks.hashes) {
+      throw new Error('Paths mode requires hash generation to be enabled.');
+    }
+    options.public = null;
+    options.tasks.orb = false;
+  }
+
   return options;
+}
+
+function splitListArg(value) {
+  return value
+    .split(',')
+    .map((token) => token.trim())
+    .filter(Boolean);
 }
 
 async function loadConcertFile(filePath) {
@@ -237,7 +284,6 @@ async function processConcert(concert, options) {
 
       if (options.algorithms.has('phash')) {
         hashStore.phash = hashVariants.phash;
-        concert.photoHash = hashVariants.phash;
       }
 
       if (options.algorithms.has('dhash')) {
@@ -264,6 +310,68 @@ async function processConcert(concert, options) {
   return status;
 }
 
+async function collectImageTargets(targets) {
+  const files = [];
+  const seen = new Set();
+
+  for (const target of targets) {
+    const resolvedTarget = path.resolve(process.cwd(), target);
+    let targetStat;
+    try {
+      targetStat = await stat(resolvedTarget);
+    } catch {
+      console.warn(`⚠️  Skipping missing path: ${target}`);
+      continue;
+    }
+
+    if (targetStat.isDirectory()) {
+      const entries = await readdir(resolvedTarget);
+      for (const entry of entries) {
+        if (!IMAGE_EXTENSIONS.test(entry)) {
+          continue;
+        }
+        const entryPath = path.join(resolvedTarget, entry);
+        if (seen.has(entryPath)) {
+          continue;
+        }
+        seen.add(entryPath);
+        files.push({
+          absolutePath: entryPath,
+          displayPath: path.relative(process.cwd(), entryPath) || entry,
+        });
+      }
+      continue;
+    }
+
+    if (targetStat.isFile()) {
+      if (!IMAGE_EXTENSIONS.test(resolvedTarget)) {
+        console.warn(`⚠️  Skipping non-image file: ${target}`);
+        continue;
+      }
+      if (seen.has(resolvedTarget)) {
+        continue;
+      }
+      seen.add(resolvedTarget);
+      files.push({
+        absolutePath: resolvedTarget,
+        displayPath: path.relative(process.cwd(), resolvedTarget) || target,
+      });
+      continue;
+    }
+
+    console.warn(`⚠️  Skipping unsupported path: ${target}`);
+  }
+
+  return files.sort((a, b) => a.displayPath.localeCompare(b.displayPath));
+}
+
+function logHashDetails(algorithm, hashes) {
+  hashes.forEach((hash, idx) => {
+    const label = EXPOSURE_LABELS[idx] ?? `variant ${idx + 1}`;
+    console.log(`  ${algorithm.toUpperCase()} (${label}): ${hash}`);
+  });
+}
+
 async function syncPublicData(publicPath, sourceData, updateState, dryRun) {
   if (!publicPath || updateState.size === 0) {
     return { synced: 0 };
@@ -287,16 +395,8 @@ async function syncPublicData(publicPath, sourceData, updateState, dryRun) {
     if (state.hashes) {
       if (source.photoHashes) {
         concert.photoHashes = source.photoHashes;
-        if (Array.isArray(source.photoHashes.phash)) {
-          concert.photoHash = source.photoHashes.phash;
-        } else if (Array.isArray(source.photoHash)) {
-          concert.photoHash = source.photoHash;
-        } else {
-          delete concert.photoHash;
-        }
       } else {
         delete concert.photoHashes;
-        delete concert.photoHash;
       }
     }
 
@@ -329,8 +429,71 @@ function formatTaskSummary(status, options) {
   return parts.join(', ');
 }
 
+async function runPathsMode(options) {
+  console.log('📸 Photo Signal recognition data updater — paths mode');
+  console.log(`Algorithms: ${Array.from(options.algorithms).join(', ')}`);
+  console.log('Targets:');
+  options.imageTargets.forEach((target) => console.log(`  • ${target}`));
+  console.log('━'.repeat(60));
+
+  const images = await collectImageTargets(options.imageTargets);
+  if (images.length === 0) {
+    console.error('❌ No image files found for the provided targets.');
+    return;
+  }
+
+  console.log(`Found ${images.length} image(s):\n`);
+  const results = [];
+
+  for (const { absolutePath, displayPath } of images) {
+    try {
+      const imageData = await loadImageData(absolutePath);
+      const { width, height } = imageData;
+      const hashVariants = generateHashVariants(imageData, DEFAULT_EXPOSURE_OFFSETS);
+      const photoHashes = {};
+
+      for (const algorithm of options.algorithms) {
+        photoHashes[algorithm] = hashVariants[algorithm];
+      }
+
+      console.log(`✓ ${displayPath}`);
+      for (const algorithm of options.algorithms) {
+        logHashDetails(algorithm, photoHashes[algorithm]);
+      }
+      console.log(`  Size: ${width} × ${height} px\n`);
+
+      results.push({
+        file: displayPath,
+        dimensions: `${width} × ${height} px`,
+        photoHashes,
+      });
+    } catch (error) {
+      console.error(`❌ Failed to process ${displayPath}: ${error.message}`);
+    }
+  }
+
+  if (results.length === 0) {
+    console.log('No hashes were generated.');
+    return;
+  }
+
+  console.log('━'.repeat(60));
+  console.log('\n📋 JSON Output (merge into concerts data):\n');
+  const jsonOutput = results.map(({ file, photoHashes }) => ({ file, photoHashes }));
+  console.log(JSON.stringify(jsonOutput, null, 2));
+  console.log('\n━'.repeat(60));
+  console.log('\n✅ Hash generation complete!');
+  console.log('💡 Next steps: merge these hashes into your concert entries.\n');
+}
+
 async function main() {
   const options = parseArgs();
+
+  if (options.pathsMode) {
+    await runPathsMode(options);
+    return;
+  }
+
   console.log('📸 Photo Signal recognition data updater');
   console.log(`Input:  ${options.input}`);
   console.log(`Public: ${options.public ?? '(skipped)'}`);

@@ -514,8 +514,7 @@ Your reference hashes must represent how the photo actually looks when scanned b
          "00000000000001600acc000000000000",
          "00000000000001600acc000000000000"
        ]
-     },
-     "photoHash": ["a5b3c7d9e1f20486", "a5b3c7d9e1f20487", "a5b3c7d9e1f20488"]
+     }
    }
    ```
 
@@ -547,9 +546,11 @@ Your reference hashes must represent how the photo actually looks when scanned b
 
 2. **Run Hash Generation Script**
 
-   ```bash
-   npm run generate-hashes
-   ```
+```bash
+npm run generate-hashes -- --paths assets/reference-photos
+# or call the CLI directly:
+node scripts/update-recognition-data.js --paths-mode --paths assets/reference-photos --algorithms phash,dhash
+```
 
 3. **Review Output**
 

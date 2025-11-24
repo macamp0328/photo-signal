@@ -21,7 +21,7 @@
     "test:visual:ui": "npm run build && cross-env NODE_ENV=production playwright test --ui",
     "test:visual:update": "npm run build && cross-env NODE_ENV=production playwright test --update-snapshots",
     "test:visual:report": "playwright show-report --host 0.0.0.0 --port 9323",
-    "generate-hashes": "node scripts/generate-photo-hashes.js",
+    "generate-hashes": "node scripts/update-recognition-data.js --paths-mode",
     "generate-orb-features": "node scripts/update-recognition-data.js --orb-only",
     "rebuild-hashes": "node scripts/update-recognition-data.js --hashes-only",
     "update-recognition-data": "node scripts/update-recognition-data.js",

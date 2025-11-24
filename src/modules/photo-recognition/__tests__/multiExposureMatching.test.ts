@@ -6,51 +6,6 @@ import { describe, it, expect } from 'vitest';
 import { hammingDistance } from '../algorithms/hamming';
 
 describe('Multi-Exposure Hash Matching', () => {
-  describe('getPhotoHashes helper (simulated)', () => {
-    it('should handle single hash (backward compatibility)', () => {
-      const concert: { photoHash?: string | string[] } = {
-        photoHash: 'abc123',
-      };
-
-      const getPhotoHashes = (c: typeof concert) => {
-        if (!c.photoHash) return [];
-        return Array.isArray(c.photoHash) ? c.photoHash : [c.photoHash];
-      };
-
-      const hashes = getPhotoHashes(concert);
-      expect(hashes).toEqual(['abc123']);
-      expect(hashes.length).toBe(1);
-    });
-
-    it('should handle multi-exposure hash array', () => {
-      const concert: { photoHash?: string | string[] } = {
-        photoHash: ['hash_dark', 'hash_normal', 'hash_bright'],
-      };
-
-      const getPhotoHashes = (c: typeof concert) => {
-        if (!c.photoHash) return [];
-        return Array.isArray(c.photoHash) ? c.photoHash : [c.photoHash];
-      };
-
-      const hashes = getPhotoHashes(concert);
-      expect(hashes).toEqual(['hash_dark', 'hash_normal', 'hash_bright']);
-      expect(hashes.length).toBe(3);
-    });
-
-    it('should handle missing photoHash', () => {
-      const concert: { photoHash?: string | string[] } = {};
-
-      const getPhotoHashes = (c: typeof concert) => {
-        if (!c.photoHash) return [];
-        return Array.isArray(c.photoHash) ? c.photoHash : [c.photoHash];
-      };
-
-      const hashes = getPhotoHashes(concert);
-      expect(hashes).toEqual([]);
-      expect(hashes.length).toBe(0);
-    });
-  });
-
   describe('Multi-exposure matching logic', () => {
     it('should find best match across multiple exposure variants', () => {
       // Simulate a concert with 3 exposure hashes
@@ -135,44 +90,6 @@ describe('Multi-Exposure Hash Matching', () => {
       expect(matchedIndex).toBe(0);
       expect(bestDistance).toBeLessThan(distances[1]); // Better than normal
       expect(bestDistance).toBeLessThan(distances[2]); // Better than bright
-    });
-  });
-
-  describe('Hash validation', () => {
-    it('should validate concert has at least one hash', () => {
-      const hasPhotoHash = (concert: { photoHash?: string | string[] }) => {
-        if (typeof concert.photoHash === 'string') {
-          return concert.photoHash.length > 0;
-        }
-        if (Array.isArray(concert.photoHash)) {
-          return (
-            concert.photoHash.length > 0 &&
-            concert.photoHash.every((h) => typeof h === 'string' && h.length > 0)
-          );
-        }
-        return false;
-      };
-
-      // Valid single hash
-      expect(hasPhotoHash({ photoHash: 'abc123' })).toBe(true);
-
-      // Valid multi-exposure array
-      expect(hasPhotoHash({ photoHash: ['hash1', 'hash2', 'hash3'] })).toBe(true);
-
-      // Invalid: empty string
-      expect(hasPhotoHash({ photoHash: '' })).toBe(false);
-
-      // Invalid: empty array
-      expect(hasPhotoHash({ photoHash: [] })).toBe(false);
-
-      // Invalid: array with empty string
-      expect(hasPhotoHash({ photoHash: ['hash1', '', 'hash3'] })).toBe(false);
-
-      // Invalid: missing photoHash
-      expect(hasPhotoHash({})).toBe(false);
-
-      // Invalid: null
-      expect(hasPhotoHash({ photoHash: null as unknown as string })).toBe(false);
     });
   });
 });

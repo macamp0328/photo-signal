@@ -358,39 +358,57 @@ See the [encode README](./audio-workflow/encode/README.md) for complete document
 
 ---
 
-### `generate-photo-hashes.js` - Generate Photo Hashes
+### `update-recognition-data.js --paths-mode` - Generate Photo Hashes
 
-Node.js script to generate dHash **or** pHash fingerprints for reference photos.
+`npm run generate-hashes` now routes through the unified recognition CLI. Passing `--paths-mode` turns `scripts/update-recognition-data.js` into a lightweight hash generator for arbitrary files or folders, so you get the same multi-exposure fingerprints without touching the concert dataset.
 
-**Requirements:** Node.js and canvas package (installed via npm)
+**Requirements:** Node.js and the existing project dependencies (no extra scripts required)
 
 **Usage:**
 
 ```bash
-npm run generate-hashes
-# or directly:
-node scripts/generate-photo-hashes.js
+# Recommended npm alias
+npm run generate-hashes -- --paths assets/example-real-photos
+
+# Direct invocation with custom flags
+node scripts/update-recognition-data.js \
+  --paths-mode \
+  --paths assets/test-images/,assets/example-real-photos \
+  --algorithms phash,dhash
+
+# Single file shortcut
+node scripts/update-recognition-data.js --paths-mode --path assets/test-images/concert-1.jpg
 ```
 
 **What it does:**
 
-- Reads images from `assets/test-images/` by default (pass directories/files as arguments for other folders, e.g., `npm run generate-hashes assets/example-real-photos`)
-- Computes dHash (default) or pHash (`--algorithm phash`) for each image
-- Generates three exposure-adjusted hashes (dark, normal, bright) per photo
-- Outputs photo hashes to console plus a JSON block ready for `concerts.json` (already shaped as `photoHashes` with the correct algorithm key; pHash runs also include the legacy `photoHash` mirror)
+- Accepts any mix of files or directories (defaults to `assets/test-images/`)
+- Generates three exposure-adjusted hashes (dark, normal, bright) per algorithm
+- Supports both dHash and pHash (`--algorithms dhash`, `--algorithms phash`, or both)
+- Prints human-friendly output plus ready-to-paste JSON payloads for `photoHashes`
+- Skips ORB/public sync automatically so it runs fast and read-only
 
-**Example output (`--algorithm phash assets/test-images/concert-1.jpg`):**
+**Example output:**
 
 ```
-📸 Photo Hash Generator
+📸 Photo Signal recognition data updater — paths mode
+Algorithms: phash, dhash
+Targets:
+  • assets/test-images/concert-1.jpg
+  • assets/test-images/concert-2.jpg
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Found 2 image(s):
 
 ✓ assets/test-images/concert-1.jpg
-  Hash (dark):   9853660d98d36f26
-  Hash (normal): 98d2662d98d26f26
-  Hash (bright): 98f2662c98d26f26
+  PHASH (dark):   9853660d98d36f26
+  PHASH (normal): 98d2662d98d26f26
+  PHASH (bright): 98f2662c98d26f26
+  DHASH (dark):   3e1f0c0d3e1f0c0d
+  DHASH (normal): 3e1f0c0d3e1f0c0c
+  DHASH (bright): 3e1f0c0d3e1f0c0b
+  Size: 640 × 480 px
 
-📋 JSON Output (for concerts.json) - PHASH hashes:
-
+📋 JSON Output (merge into concerts data):
 [
   {
     "file": "assets/test-images/concert-1.jpg",
@@ -399,23 +417,21 @@ node scripts/generate-photo-hashes.js
         "9853660d98d36f26",
         "98d2662d98d26f26",
         "98f2662c98d26f26"
+      ],
+      "dhash": [
+        "3e1f0c0d3e1f0c0d",
+        "3e1f0c0d3e1f0c0c",
+        "3e1f0c0d3e1f0c0b"
       ]
-    },
-    "photoHash": [
-      "9853660d98d36f26",
-      "98d2662d98d26f26",
-      "98f2662c98d26f26"
-    ]
+    }
   }
 ]
 ```
 
-> For dHash runs, the JSON only contains `photoHashes.dhash` (no `photoHash` mirror, since that field is reserved for pHash values).
-
 **Next steps after generation**:
 
-1. Merge the JSON block into the appropriate concerts (ensure the `file` paths align).
-2. Repeat runs for both algorithms if you need dual-hash coverage.
+1. Merge the JSON block into the relevant concert entries (`imageFile` must match `file`).
+2. Regenerate both algorithms if you rely on dual-hash matching.
 3. Commit the updated data files once verified.
 
 ---
@@ -455,10 +471,11 @@ npm run update-recognition-data -- \
 - Reads from `assets/test-data/concerts.dev.json` (override via `--input`)
 - Writes refreshed data back to the source file unless `--dry-run`
 - Mirrors updated entries into `public/data.json` unless `--skip-public`
-- Regenerates dHash and pHash (three exposure variants each) and keeps `photoHash` aligned with the pHash array
+- Regenerates dHash and pHash (three exposure variants each)
 - Rebuilds serialized ORB payloads using the optimized defaults (max 1000 features, fast threshold 12, match ratio 0.75)
 - Supports targeted runs via `--id` / `--ids`
 - Offers granular toggles: `--hashes-only`, `--orb-only`, `--no-hashes`, `--no-orb`
+- Includes a fast `--paths-mode` for ad-hoc hash generation (used by `npm run generate-hashes`)
 - Accepts ORB tuning flags (`--max-features`, `--fast-threshold`, `--scale-factor`, `--edge-threshold`, `--match-ratio-threshold`, `--min-match-count`)
 - Provides a safe `--dry-run` preview before writing any files
 
@@ -671,66 +688,24 @@ These scripts are used by:
 
 ---
 
-### `generate-photo-hashes.js` - Generate Photo Hashes
+### `npm run generate-hashes` - Quick Reference
 
-Generates dHash values for test images in `assets/test-images/`. These hashes are required for photo recognition to work in Test Mode.
-
-**Requirements:** Node.js and npm packages installed
-
-**Usage:**
+The legacy `generate-photo-hashes.js` script has been folded into `update-recognition-data.js`. Use the existing npm alias to generate hashes without remembering the full flag list.
 
 ```bash
-# Using npm script (recommended)
+# Default: hash everything under assets/test-images/
 npm run generate-hashes
 
-# Or run directly
-node scripts/generate-photo-hashes.js
+# Point to additional folders or files
+npm run generate-hashes -- --paths assets/example-real-photos,new-shots.jpg
+
+# Switch algorithms
+npm run generate-hashes -- --algorithms phash
 ```
 
-**What it does:**
+Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mode ...`, which prints per-image details and a ready-to-paste JSON block exactly like the full CLI. Re-run with different `--algorithms` values (or leave defaults for both dHash + pHash) whenever you update photos used by Test Mode.
 
-- Scans `assets/test-images/` directory for image files
-- Computes dHash (Difference Hash) for each image
-- Uses the same algorithm as the photo recognition module
-- Outputs hashes in JSON format for easy copy-paste
-
-**Example Output:**
-
-```
-📸 Photo Hash Generator
-
-Found 4 image(s):
-
-✓ concert-1.jpg
-  Hash: 000000042a000000
-  Size: 640 × 480 px
-
-✓ concert-2.jpg
-  Hash: 0000000416000000
-  Size: 640 × 480 px
-
-📋 JSON Output (for concerts.json):
-
-[
-  {
-    "file": "concert-1.jpg",
-    "photoHashes": {
-      "dhash": ["000000042a000000"]
-    }
-  },
-  ...
-]
-```
-
-**When to use:**
-
-- Adding new test images
-- Regenerating hashes after image updates
-- Verifying hash computation
-
-**Browser Alternative:**
-
-For a visual interface, open `scripts/generate-photo-hashes.html` in your browser and drag-and-drop images to generate hashes.
+**Browser alternative:** if you prefer a drag-and-drop UI, open `scripts/generate-photo-hashes.html` for the same dHash workflow entirely in the browser.
 
 ---
 

@@ -40,7 +40,6 @@ interface Concert {
   id: number;
   band: string;
   imageFile: string;
-  photoHash?: string[];
   photoHashes?: {
     phash?: string[];
     dhash?: string[];
@@ -98,6 +97,14 @@ function findBestMatch(
   return { distance: bestDistance, similarity, matches };
 }
 
+function getReferenceHashes(concert: Concert): string[] {
+  const hashes = concert.photoHashes?.phash ?? [];
+  if (!Array.isArray(hashes) || hashes.length === 0) {
+    throw new Error(`Missing photoHashes.phash for concert ${concert.id}`);
+  }
+  return hashes;
+}
+
 describe('Edge Case Accuracy Regression Tests', () => {
   let testData: TestData;
   let edgeCases: Concert[];
@@ -130,7 +137,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
 
     it('should have reference hashes for all edge cases', () => {
       edgeCases.forEach((concert) => {
-        const hashes = concert.photoHashes?.phash || concert.photoHash;
+        const hashes = concert.photoHashes?.phash;
         expect(hashes).toBeDefined();
         expect(Array.isArray(hashes)).toBe(true);
         expect(hashes!.length).toBeGreaterThan(0);
@@ -146,7 +153,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(lightBlur).toBeDefined();
 
       const testHash = await computeHashForImage(lightBlur!.imageFile);
-      const referenceHashes = lightBlur!.photoHashes?.phash || lightBlur!.photoHash!;
+      const referenceHashes = getReferenceHashes(lightBlur!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.matches).toBe(true);
@@ -160,7 +167,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(moderateBlur).toBeDefined();
 
       const testHash = await computeHashForImage(moderateBlur!.imageFile);
-      const referenceHashes = moderateBlur!.photoHashes?.phash || moderateBlur!.photoHash!;
+      const referenceHashes = getReferenceHashes(moderateBlur!);
       const result = findBestMatch(testHash, referenceHashes);
 
       // For moderate blur, we expect lower accuracy but still some recognition capability
@@ -176,7 +183,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(heavyBlur).toBeDefined();
 
       const testHash = await computeHashForImage(heavyBlur!.imageFile);
-      const referenceHashes = heavyBlur!.photoHashes?.phash || heavyBlur!.photoHash!;
+      const referenceHashes = getReferenceHashes(heavyBlur!);
       const result = findBestMatch(testHash, referenceHashes);
 
       // Heavy blur is very challenging - we expect low similarity but testing infrastructure is working
@@ -192,7 +199,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(lightGlare).toBeDefined();
 
       const testHash = await computeHashForImage(lightGlare!.imageFile);
-      const referenceHashes = lightGlare!.photoHashes?.phash || lightGlare!.photoHash!;
+      const referenceHashes = getReferenceHashes(lightGlare!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.matches).toBe(true);
@@ -208,7 +215,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(moderateGlare).toBeDefined();
 
       const testHash = await computeHashForImage(moderateGlare!.imageFile);
-      const referenceHashes = moderateGlare!.photoHashes?.phash || moderateGlare!.photoHash!;
+      const referenceHashes = getReferenceHashes(moderateGlare!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(
@@ -223,7 +230,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(heavyGlare).toBeDefined();
 
       const testHash = await computeHashForImage(heavyGlare!.imageFile);
-      const referenceHashes = heavyGlare!.photoHashes?.phash || heavyGlare!.photoHash!;
+      const referenceHashes = getReferenceHashes(heavyGlare!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(
@@ -238,7 +245,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(lowLight).toBeDefined();
 
       const testHash = await computeHashForImage(lowLight!.imageFile);
-      const referenceHashes = lowLight!.photoHashes?.phash || lowLight!.photoHash!;
+      const referenceHashes = getReferenceHashes(lowLight!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(lowLight!.edgeCase!.expectedAccuracy * 100);
@@ -253,7 +260,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(angle15).toBeDefined();
 
       const testHash = await computeHashForImage(angle15!.imageFile);
-      const referenceHashes = angle15!.photoHashes?.phash || angle15!.photoHash!;
+      const referenceHashes = getReferenceHashes(angle15!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.matches).toBe(true);
@@ -267,7 +274,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(angle30).toBeDefined();
 
       const testHash = await computeHashForImage(angle30!.imageFile);
-      const referenceHashes = angle30!.photoHashes?.phash || angle30!.photoHash!;
+      const referenceHashes = getReferenceHashes(angle30!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(angle30!.edgeCase!.expectedAccuracy * 100);
@@ -280,7 +287,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(angle45).toBeDefined();
 
       const testHash = await computeHashForImage(angle45!.imageFile);
-      const referenceHashes = angle45!.photoHashes?.phash || angle45!.photoHash!;
+      const referenceHashes = getReferenceHashes(angle45!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(angle45!.edgeCase!.expectedAccuracy * 100);
@@ -295,7 +302,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(combined).toBeDefined();
 
       const testHash = await computeHashForImage(combined!.imageFile);
-      const referenceHashes = combined!.photoHashes?.phash || combined!.photoHash!;
+      const referenceHashes = getReferenceHashes(combined!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(combined!.edgeCase!.expectedAccuracy * 100);
@@ -308,7 +315,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       expect(combined).toBeDefined();
 
       const testHash = await computeHashForImage(combined!.imageFile);
-      const referenceHashes = combined!.photoHashes?.phash || combined!.photoHash!;
+      const referenceHashes = getReferenceHashes(combined!);
       const result = findBestMatch(testHash, referenceHashes);
 
       expect(result.similarity).toBeGreaterThanOrEqual(combined!.edgeCase!.expectedAccuracy * 100);
@@ -320,7 +327,7 @@ describe('Edge Case Accuracy Regression Tests', () => {
       const results = await Promise.all(
         edgeCases.map(async (concert) => {
           const testHash = await computeHashForImage(concert.imageFile);
-          const referenceHashes = concert.photoHashes?.phash || concert.photoHash!;
+          const referenceHashes = getReferenceHashes(concert);
           const result = findBestMatch(testHash, referenceHashes);
           return {
             concert: concert.band,

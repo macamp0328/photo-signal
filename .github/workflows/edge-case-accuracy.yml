@@ -12,7 +12,7 @@ on:
     paths:
       - 'src/modules/photo-recognition/**'
       - 'assets/test-data/**'
-      - 'scripts/generate-photo-hashes.js'
+      - 'scripts/update-recognition-data.js'
       - 'scripts/create-edge-case-test-images.js'
   workflow_dispatch:
 

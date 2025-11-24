@@ -59,13 +59,7 @@ export interface Concert {
   audioFileSource?: AudioSource;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
-  /**
-   * Perceptual hash(es) of reference photo (optional, for photo recognition)
-   * - string: Single hash (backward compatible)
-   * - string[]: Multi-exposure hashes [dark, normal, bright] for lighting robustness
-   */
-  photoHash?: string | string[];
-  /** New multi-algorithm hash storage */
+  /** Multi-algorithm hash storage */
   photoHashes?: HashSet;
   /** Pre-computed ORB keypoints/descriptors for feature matching */
   orbFeatures?: ORBFeaturePayload;

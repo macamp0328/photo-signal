@@ -99,10 +99,6 @@ function getHashesForAlgorithm(concert: Concert, algorithm: 'dhash' | 'phash'): 
   if (Array.isArray(hashes) && hashes.length > 0) {
     return hashes;
   }
-  // Fallback to legacy photoHash for phash
-  if (algorithm === 'phash' && concert.photoHash) {
-    return Array.isArray(concert.photoHash) ? concert.photoHash : [concert.photoHash];
-  }
   return [];
 }
 

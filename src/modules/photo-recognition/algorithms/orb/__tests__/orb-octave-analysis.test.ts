@@ -1,6 +1,6 @@
 /**
  * ORB Octave Analysis Tests
- * 
+ *
  * These tests verify that ORB features are being detected across multiple
  * pyramid levels (octaves), which is critical for scale-invariant matching
  * of print-to-camera photos.
@@ -80,8 +80,12 @@ describe('ORB Multi-Scale (Octave) Feature Detection', () => {
     const lowerOctaves = new Set(lowerEdge.keypoints.map((kp) => kp.octave));
 
     console.log('\nEdge threshold comparison:');
-    console.log(`  edgeThreshold=31: ${defaultEdge.keypoints.length} features, ${defaultOctaves.size} octaves`);
-    console.log(`  edgeThreshold=15: ${lowerEdge.keypoints.length} features, ${lowerOctaves.size} octaves`);
+    console.log(
+      `  edgeThreshold=31: ${defaultEdge.keypoints.length} features, ${defaultOctaves.size} octaves`
+    );
+    console.log(
+      `  edgeThreshold=15: ${lowerEdge.keypoints.length} features, ${lowerOctaves.size} octaves`
+    );
 
     // Lower edge threshold should allow more features at higher octaves
     expect(lowerEdge.keypoints.length).toBeGreaterThanOrEqual(defaultEdge.keypoints.length);
@@ -165,9 +169,15 @@ describe('ORB Multi-Scale (Octave) Feature Detection', () => {
     const octaves20 = new Set(scale20.keypoints.map((kp) => kp.octave));
 
     console.log('\nScale factor comparison:');
-    console.log(`  scaleFactor=1.2: ${scale12.keypoints.length} features, octaves ${Array.from(octaves12).sort().join(',')}`);
-    console.log(`  scaleFactor=1.5: ${scale15.keypoints.length} features, octaves ${Array.from(octaves15).sort().join(',')}`);
-    console.log(`  scaleFactor=2.0: ${scale20.keypoints.length} features, octaves ${Array.from(octaves20).sort().join(',')}`);
+    console.log(
+      `  scaleFactor=1.2: ${scale12.keypoints.length} features, octaves ${Array.from(octaves12).sort().join(',')}`
+    );
+    console.log(
+      `  scaleFactor=1.5: ${scale15.keypoints.length} features, octaves ${Array.from(octaves15).sort().join(',')}`
+    );
+    console.log(
+      `  scaleFactor=2.0: ${scale20.keypoints.length} features, octaves ${Array.from(octaves20).sort().join(',')}`
+    );
 
     // All should produce features
     expect(scale12.keypoints.length).toBeGreaterThan(0);

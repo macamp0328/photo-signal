@@ -324,7 +324,7 @@ npm run generate-hashes
 ### Rebuild All Hashes
 
 ```bash
-npm run rebuild-hashes
+npm run update-recognition-data -- --hashes-only
 ```
 
 ### Check Data Structure

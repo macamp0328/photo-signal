@@ -420,60 +420,49 @@ node scripts/generate-photo-hashes.js
 
 ---
 
-### `rebuild-concert-hashes.js` - Refresh All Concert Hashes
+### `update-recognition-data.js` - Refresh Hashes & ORB Payloads
 
-Automates re-generating both dHash **and** pHash values for every concert entry by reading the canonical `assets/test-data/concerts.json` file.
+Single entry point for keeping every concert's recognition metadata current. It can regenerate multi-exposure dHash/pHash values, rebuild ORB feature payloads, or do both in one run.
 
 **Usage:**
 
 ```bash
+# Full refresh (hashes + ORB + public sync)
+npm run update-recognition-data
+
+# Hashes only (compat alias)
 npm run rebuild-hashes
-# or run directly with options
-node scripts/rebuild-concert-hashes.js [--input <path>] [--public <path>] [--dry-run]
-```
 
-**What it does:**
-
-- Loads each concert, resolves its `imageFile` path, and recomputes the three exposure variants (dark/normal/bright) for both algorithms
-- Writes the refreshed hashes back to the test data file and mirrors the matching entries in `public/data.json`
-- Keeps the legacy `photoHash` field in sync with the pHash array for backward compatibility
-- Supports `--dry-run` for verification and `--skip-public` when you only want to update the test dataset
-
-Use this script whenever new reference photos land or when the hashing pipeline changes (e.g., tweaks to exposure offsets). It guarantees internal consistency across both data files with a single command.
-
----
-
-### `generate-orb-features.js` - Precompute ORB Feature Payloads
-
-Builds the serialized keypoint + descriptor data required by the ORB recognition path and writes it directly into the concert data files.
-
-**Requirements:** Node.js and the `canvas` package (already installed via dev dependencies)
-
-**Usage:**
-
-```bash
+# ORB only (compat alias)
 npm run generate-orb-features
-# options mirror rebuild-concert-hashes
-npm run generate-orb-features -- \
-  --input assets/test-data/concerts.json \
-  --public public/data.json \
-  --dry-run \
+
+# Targeted update examples
+npm run update-recognition-data -- \
+  --ids 6,7 \
+  --hashes-only \
+  --algorithms phash \
   --skip-public \
-  --max-features 400
+  --dry-run
+
+npm run update-recognition-data -- \
+  --orb-only \
+  --max-features 1200 \
+  --fast-threshold 10
 ```
 
-**What it does:**
+**Highlights:**
 
-- Loads the canonical concerts file (default: `assets/test-data/concerts.json`)
-- Resolves each `imageFile`, loads it with `canvas`, and extracts ORB keypoints/descriptors
-- Serializes the payload into the `orbFeatures` field (versioned structure with packed keypoints and base64 descriptors)
-- Mirrors the freshly generated payloads into `public/data.json` so the primary build stays in sync
-- Supports `--dry-run` for verification and `--skip-public` to limit updates to the test dataset
-- Exposes config overrides for `--max-features`, `--fast-threshold`, `--min-match-count`, and `--match-ratio-threshold`
+- Reads from `assets/test-data/concerts.dev.json` (override via `--input`)
+- Writes refreshed data back to the source file unless `--dry-run`
+- Mirrors updated entries into `public/data.json` unless `--skip-public`
+- Regenerates dHash and pHash (three exposure variants each) and keeps `photoHash` aligned with the pHash array
+- Rebuilds serialized ORB payloads using the optimized defaults (max 1000 features, fast threshold 12, match ratio 0.75)
+- Supports targeted runs via `--id` / `--ids`
+- Offers granular toggles: `--hashes-only`, `--orb-only`, `--no-hashes`, `--no-orb`
+- Accepts ORB tuning flags (`--max-features`, `--fast-threshold`, `--scale-factor`, `--edge-threshold`, `--match-ratio-threshold`, `--min-match-count`)
+- Provides a safe `--dry-run` preview before writing any files
 
-Use this script any time you add/replace reference photos or adjust the ORB extractor. Cached payloads keep the runtime from re-loading every photo in the browser, dramatically reducing warm-up time in ORB mode.
-
----
+Lean on this script whenever reference photos change, recognition parameters shift, or the two concert data files need to be re-synchronized.
 
 ### `create-easy-test-images.js` - Generate High-Contrast Targets
 
@@ -515,17 +504,6 @@ Browser-based tool to generate dHash fingerprints for reference photos.
 - Useful for quick hash generation
 - JSON output already conforms to the `photoHashes` schema (dHash key only)
 
----
-
-### `generate-favicons.html` - Generate Favicon Images
-
-Browser-based tool to generate PNG favicons from SVG.
-
-**Usage:**
-
-1. Open `scripts/generate-favicons.html` in a web browser
-2. Click "Generate All Favicons"
-3. Download each PNG file
 4. Place in `public/` directory
 
 **What it does:**
@@ -555,34 +533,17 @@ Monitors production bundle sizes and enforces size limits (used in CI).
 - Analyzes files in `dist/assets/`
 - Checks JavaScript bundle (limit: 80 KB gzipped)
 - Checks CSS bundle (limit: 3 KB gzipped)
-- Exits with error code if limits exceeded
-- Provides optimization suggestions on failure
+  Total Bundle: 73 KB
+  ✅ All bundle size checks passed!
 
-**Example Output:**
-
-```
-📦 Bundle Size Analysis
-JavaScript Bundle: 72 KB (gzipped) - ✅ PASS
-CSS Bundle: 1 KB (gzipped) - ✅ PASS
-Total Bundle: 73 KB
-✅ All bundle size checks passed!
-```
+````
 
 **Used by:** GitHub Actions CI workflow
 
----
-
-### `copy-test-assets.sh` - Copy Test Assets
-
-Manually copies test assets from `assets/` to `public/assets/`.
-
-**Note:** This is normally done automatically by the Vite plugin during `npm run dev` or `npm run build`.
-
-**Usage:**
 
 ```bash
 ./scripts/copy-test-assets.sh
-```
+````
 
 **When to use:**
 

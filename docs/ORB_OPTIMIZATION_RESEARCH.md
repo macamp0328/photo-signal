@@ -60,13 +60,13 @@ Three parameter issues worked together to cause this:
 
 Based on OpenCV documentation and academic research on print-to-camera matching:
 
-| Parameter | Old Value | New Value | Reason |
-|-----------|-----------|-----------|--------|
-| `scaleFactor` | 1.2 | **1.5** | Faster downsampling → better scale distribution |
-| `edgeThreshold` | 31 | **15** | More scannable area at higher octaves |
-| `fastThreshold` | 20 | **12** | Detect more corners in low-texture regions |
-| `matchRatioThreshold` | 0.7 | **0.75** | More lenient for print distortions |
-| `maxFeatures` | 500 | **1000** | More features for reference images (cached) |
+| Parameter             | Old Value | New Value | Reason                                          |
+| --------------------- | --------- | --------- | ----------------------------------------------- |
+| `scaleFactor`         | 1.2       | **1.5**   | Faster downsampling → better scale distribution |
+| `edgeThreshold`       | 31        | **15**    | More scannable area at higher octaves           |
+| `fastThreshold`       | 20        | **12**    | Detect more corners in low-texture regions      |
+| `matchRatioThreshold` | 0.7       | **0.75**  | More lenient for print distortions              |
+| `maxFeatures`         | 500       | **1000**  | More features for reference images (cached)     |
 
 ### Results After Optimization
 
@@ -86,11 +86,11 @@ Features now distributed across multiple octaves, providing true scale invarianc
 
 With edgeThreshold change from 31→15:
 
-| Octave | Old (31px) | New (15px) | Improvement |
-|--------|-----------|-----------|-------------|
-| 0 (640x480) | 78.6% | 89.4% | +10.8% |
-| 4 (308x232) | 58.5% | 78.6% | +20.1% |
-| 7 (178x134) | 35.0% | 64.5% | **+29.5%** |
+| Octave      | Old (31px) | New (15px) | Improvement |
+| ----------- | ---------- | ---------- | ----------- |
+| 0 (640x480) | 78.6%      | 89.4%      | +10.8%      |
+| 4 (308x232) | 58.5%      | 78.6%      | +20.1%      |
+| 7 (178x134) | 35.0%      | 64.5%      | **+29.5%**  |
 
 ## Test Coverage
 
@@ -111,12 +111,14 @@ Created comprehensive test suite:
 ## Performance Impact
 
 ### Before Optimization
+
 - Features concentrated at single octave
 - No scale invariance
 - Poor matching for varying photo sizes
 - Low feature counts for simple patterns (15-54 features)
 
 ### After Optimization
+
 - Features distributed across octaves 3-5
 - True scale invariance achieved
 - Higher feature counts (1000 for complex images)
@@ -125,6 +127,7 @@ Created comprehensive test suite:
 ### Matching Robustness
 
 With the new parameters, ORB can handle:
+
 - ✅ Photos at different distances (scale changes 20-80%)
 - ✅ Tilted photos (rotation invariance from keypoint angles)
 - ✅ Varied lighting (FAST corners detect contrast, not absolute brightness)
@@ -138,6 +141,7 @@ With the new parameters, ORB can handle:
 ⚠️ **IMPORTANT**: All ORB features in `data.json` need regeneration with new parameters.
 
 **Method**: Use the browser-based tool:
+
 1. Start dev server: `npm run dev`
 2. Open http://localhost:5173
 3. Click settings gear → Secret Settings
@@ -148,6 +152,7 @@ This will regenerate all features with optimized parameters.
 ### Testing Real-World Performance
 
 After regeneration, test with actual camera:
+
 1. Print test photos (easy-target-checker, easy-target-diagonals)
 2. Point camera at printed photos
 3. Vary distance (close, medium, far)
@@ -159,6 +164,7 @@ Expected: ORB should now match reliably across these variations.
 ### Performance Monitoring
 
 Monitor in production:
+
 - Match counts and ratios
 - Octave distribution in detected features
 - False positive/negative rates

@@ -1,12 +1,16 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-undef */
+
 /**
  * Regenerate ORB Features for Concert Data
- * 
+ *
  * This script regenerates ORB features for all concerts in data.json using
  * the new optimized parameters. This is necessary after changing the default
  * ORB configuration to ensure reference features match the new settings.
- * 
- * Usage: node scripts/regenerate-orb-features.js
+ *
+ * Usage: node scripts/regenerate-orb-features.cjs
  */
 
 const fs = require('fs');
@@ -34,27 +38,29 @@ async function main() {
   console.log('  - fastThreshold: 12 (was 20)');
   console.log('  - matchRatioThreshold: 0.75 (was 0.7)');
   console.log('  - maxFeatures: 1000 (was 500)\n');
-  
+
   // Load current data
   const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-  
+
   console.log(`Found ${data.concerts.length} concerts in data.json`);
-  
-  const concertsWithORB = data.concerts.filter(c => c.orbFeatures);
-  const concertsNeedingRegeneration = concertsWithORB.filter(c => {
+
+  const concertsWithORB = data.concerts.filter((c) => c.orbFeatures);
+  const concertsNeedingRegeneration = concertsWithORB.filter((c) => {
     const config = c.orbFeatures?.config || {};
     return config.scaleFactor !== 1.5 || config.edgeThreshold !== 15 || config.fastThreshold !== 12;
   });
-  
+
   console.log(`Concerts with ORB features: ${concertsWithORB.length}`);
   console.log(`Concerts needing regeneration: ${concertsNeedingRegeneration.length}\n`);
-  
+
   if (concertsNeedingRegeneration.length > 0) {
     console.log('Concerts to regenerate:');
-    concertsNeedingRegeneration.forEach(c => {
+    concertsNeedingRegeneration.forEach((c) => {
       const old = c.orbFeatures?.config || {};
       console.log(`  - ${c.band} (${c.imageFile})`);
-      console.log(`    Old config: scaleFactor=${old.scaleFactor}, edgeThreshold=${old.edgeThreshold}, fastThreshold=${old.fastThreshold}`);
+      console.log(
+        `    Old config: scaleFactor=${old.scaleFactor}, edgeThreshold=${old.edgeThreshold}, fastThreshold=${old.fastThreshold}`
+      );
     });
   } else {
     console.log('✓ All concerts already have up-to-date ORB features!');

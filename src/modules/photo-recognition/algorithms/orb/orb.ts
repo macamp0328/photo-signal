@@ -92,7 +92,7 @@ export interface ORBConfig {
 }
 
 const DEFAULT_ORB_CONFIG: Required<ORBConfig> = {
-  maxFeatures: 500,
+  maxFeatures: 1000, // Increased from 500 for reference images (computed once, cached)
   scaleFactor: 1.5, // Increased from 1.2 for better scale invariance in print-to-camera scenarios
   nLevels: 8,
   edgeThreshold: 15, // Reduced from 31 to allow more features at higher octaves

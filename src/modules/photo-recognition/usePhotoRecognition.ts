@@ -41,10 +41,13 @@ const DEFAULT_THRESHOLDS: Record<PerceptualHashAlgorithm, number> = {
 };
 
 const DEFAULT_ORB_HOOK_CONFIG: ORBConfig = {
-  maxFeatures: 500,
-  fastThreshold: 20,
+  maxFeatures: 1000, // Increased for reference images (computed once, cached)
+  scaleFactor: 1.5, // Better scale invariance for print-to-camera
+  nLevels: 8,
+  edgeThreshold: 15, // Reduced to allow features at higher octaves
+  fastThreshold: 12, // Reduced to detect more corners
   minMatchCount: 20,
-  matchRatioThreshold: 0.7,
+  matchRatioThreshold: 0.75, // Slightly more lenient for print distortions
 };
 
 const ORB_FRAME_PLACEHOLDER = 'ORB';

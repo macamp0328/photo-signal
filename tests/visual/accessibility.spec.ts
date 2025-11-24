@@ -110,6 +110,7 @@ test.describe('Accessibility', () => {
     // Take snapshot of settings in high contrast
     await expect(page).toHaveScreenshot('a11y-high-contrast-settings.png', {
       fullPage: true,
+      maxDiffPixelRatio: 0.015, // forced-colors rendering diverges slightly across runners
     });
   });
 

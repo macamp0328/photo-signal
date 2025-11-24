@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { safeGrantCameraPermissions } from './utils/camera';
 
 /**
  * Visual Regression Tests for Camera View
@@ -10,7 +11,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Camera View', () => {
   test('should show active camera view layout', async ({ page }) => {
     // Grant camera permissions before navigating
-    await page.context().grantPermissions(['camera']);
+    await safeGrantCameraPermissions(page.context());
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -48,7 +49,7 @@ test.describe('Camera View', () => {
 
   test('should show camera view at mobile viewport', async ({ page }) => {
     // Grant camera permissions
-    await page.context().grantPermissions(['camera']);
+    await safeGrantCameraPermissions(page.context());
 
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });

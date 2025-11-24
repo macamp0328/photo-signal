@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /* eslint-disable no-undef */
 
 /**
@@ -15,11 +15,8 @@
 
 const fs = require('fs');
 const path = require('path');
-// Import ORB module (we'll need to transpile TS to use it)
-// For now, this is a template script showing the approach
 
 const DATA_FILE = path.join(__dirname, '../public/data.json');
-const ASSET_DIR = path.join(__dirname, '../public');
 
 async function main() {
   console.log('=== ORB Feature Regeneration Tool ===\n');

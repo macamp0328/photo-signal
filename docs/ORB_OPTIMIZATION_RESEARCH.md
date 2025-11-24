@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-The ORB (Oriented FAST and Rotated BRIEF) algorithm was implemented for print-to-camera photo recognition but performing poorly, unable to recognize test photographs. This document summarizes the research conducted and optimizations implemented to improve performance.
+The ORB (Oriented FAST and Rotated BRIEF) algorithm was implemented for print-to-camera photo recognition but was performing poorly, unable to recognize test photographs. This document summarizes the research conducted and optimizations implemented to improve performance.
 
 ## Root Cause Analysis
 

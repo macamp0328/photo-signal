@@ -64,7 +64,7 @@ const result = matchORBFeatures(queryFeatures, refFeatures, config);
 
 **Active Configuration Options:**
 
-- **`maxFeatures`** (default: 500): Maximum number of keypoints to detect. Higher = more accurate but slower. **Recommended: 1000-1500 for reference images (computed once, cached)**.
+- **`maxFeatures`** (default: 1000): Maximum number of keypoints to detect. Higher = more accurate but slower. **Recommended: 1000-1500 for reference images (computed once, cached)**.
 - **`fastThreshold`** (default: 12): Threshold for FAST corner detection. Lower = more corners detected. **Optimized for low-texture regions**.
 - **`minMatchCount`** (default: 15): Minimum number of good matches to consider a valid match.
 - **`matchRatioThreshold`** (default: 0.75): Lowe's ratio test threshold for filtering good matches. Lower = stricter matching (fewer false positives). **Optimized for print distortions**.

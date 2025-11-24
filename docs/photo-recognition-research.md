@@ -1471,11 +1471,14 @@ export function usePhotoRecognition(
 
       // Compare with all concert hashes
       for (const concert of concerts) {
-        if (!concert.photoHash) continue;
+        const hashes = concert.photoHashes?.dhash;
+        if (!Array.isArray(hashes) || hashes.length === 0) continue;
 
-        const distance = hammingDistance(currentHash, concert.photoHash);
+        const bestDistance = Math.min(
+          ...hashes.map((referenceHash) => hammingDistance(currentHash, referenceHash))
+        );
 
-        if (distance < threshold) {
+        if (bestDistance < threshold) {
           // Match found!
           setIsRecognizing(true);
 
@@ -1555,8 +1558,11 @@ async function computeHashesForPhotos() {
     // Compute hash
     const hash = computeDHash(imageData);
 
-    // Add to concert data
-    concert.photoHash = hash;
+    // Add to concert data (single-variant example)
+    concert.photoHashes = {
+      ...(concert.photoHashes ?? {}),
+      dhash: [hash],
+    };
 
     console.log(`Concert ${concert.id}: ${hash}`);
   }

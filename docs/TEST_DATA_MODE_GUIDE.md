@@ -167,7 +167,7 @@ When testing, you may discover features that are **planned but not yet implement
 ~~❓ **Photo Hash Generation**~~ ✅ **IMPLEMENTED**
 
 - ✅ Browser-based HTML tool: `scripts/generate-photo-hashes.html`
-- ✅ Node.js script: `scripts/generate-photo-hashes.js`
+- ✅ Node.js CLI: `scripts/update-recognition-data.js --paths-mode` (`npm run generate-hashes`)
 - ✅ NPM command: `npm run generate-hashes`
 - See scripts/README.md for usage instructions
 
@@ -253,7 +253,7 @@ When testing, you may discover features that are **planned but not yet implement
 5. Hold camera steady for 3+ seconds
 6. Try adjusting distance (6-12 inches usually works best)
 7. Check that the image is printed clearly (not on a screen)
-8. Verify the test concert has a `photoHashes.phash` array (or at least the legacy `photoHash` array) in `assets/test-data/concerts.json`
+8. Verify the test concert has a `photoHashes.phash` array in `assets/test-data/concerts.json`
 
 **Example Debug Info for Successful Recognition**:
 
@@ -278,10 +278,14 @@ When testing, you may discover features that are **planned but not yet implement
 2. **Using Command Line** (For Automation):
 
    ```bash
-   # Place images in assets/test-images/
+   # Place images in assets/test-images/ (default) or pass --paths for other folders
    npm run generate-hashes
+   # or
+   npm run generate-hashes -- --paths assets/example-real-photos
    # Copy the output hashes to concerts.json
    ```
+
+   > This wraps `scripts/update-recognition-data.js --paths-mode`, so hashes match the data refresh pipeline exactly.
 
    Need a guaranteed-match calibration target? Run `npm run create-easy-images` to regenerate the bullseye/diagonal/checkerboard PNGs before printing.
 
@@ -298,12 +302,11 @@ When testing, you may discover features that are **planned but not yet implement
      "photoHashes": {
        "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
        "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
-     },
-     "photoHash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
+     }
    }
    ```
 
-   > `photoHashes` is the new canonical shape. Keep the legacy `photoHash` array in sync until older builds are retired.
+   > `photoHashes` is the canonical shape for recognition data.
 
 See `scripts/README.md` for detailed hash generation instructions.
 
@@ -348,7 +351,7 @@ Test assets (located in `assets/test-*` directories) are **automatically copied*
 
 **Troubleshooting Auto-Copy Issues:**
 
-If you see "[DataService] Warning: No concerts have photoHash values" or test data fails to load:
+If you see "[DataService] Warning: No concerts expose photoHashes" or test data fails to load:
 
 1. Stop the dev server
 2. Delete the `public/assets/` directory

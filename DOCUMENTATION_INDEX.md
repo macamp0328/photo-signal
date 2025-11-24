@@ -276,9 +276,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/create-sample-audio.sh](./scripts/create-sample-audio.sh)** - Generate sample audio file
 - **[scripts/check-bundle-size.sh](./scripts/check-bundle-size.sh)** - Check build bundle size against limits (used in CI)
 - **[scripts/generate-photo-hashes.html](./scripts/generate-photo-hashes.html)** - Browser-based photo hash generator (drag-and-drop interface)
-- **[scripts/generate-photo-hashes.js](./scripts/generate-photo-hashes.js)** - Node.js photo hash generator script (`npm run generate-hashes`)
-- **[scripts/generate-orb-features.js](./scripts/generate-orb-features.js)** - Pre-compute ORB keypoints/descriptors and sync them into concerts data (`npm run generate-orb-features`)
-- **[scripts/rebuild-concert-hashes.js](./scripts/rebuild-concert-hashes.js)** - Recompute all concert dHash/pHash arrays and sync `public/data.json` (`npm run rebuild-hashes`)
+- **[scripts/update-recognition-data.js](./scripts/update-recognition-data.js)** - Unified CLI that refreshes dHash/pHash variants, ORB payloads, and now provides ad-hoc hash generation via `--paths-mode` (`npm run update-recognition-data`, `npm run generate-hashes`)
 - **[scripts/create-easy-test-images.js](./scripts/create-easy-test-images.js)** - Canvas-based generator for high-contrast calibration targets (`npm run create-easy-images`)
 - **[scripts/create-edge-case-test-images.js](./scripts/create-edge-case-test-images.js)** - Generator for edge case test images covering motion blur, glare, lighting, and angle challenges (`npm run create-edge-case-images`)
 

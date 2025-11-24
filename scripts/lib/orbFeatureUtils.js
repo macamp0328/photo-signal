@@ -6,13 +6,13 @@
  */
 
 export const DEFAULT_ORB_CONFIG = {
-  maxFeatures: 500,
-  scaleFactor: 1.2,
+  maxFeatures: 1000,
+  scaleFactor: 1.5,
   nLevels: 8,
-  edgeThreshold: 31,
-  fastThreshold: 20,
+  edgeThreshold: 15,
+  fastThreshold: 12,
   minMatchCount: 15,
-  matchRatioThreshold: 0.7,
+  matchRatioThreshold: 0.75,
 };
 
 const FULL_CIRCLE = [

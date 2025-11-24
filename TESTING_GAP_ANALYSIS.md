@@ -335,7 +335,7 @@ All 4 issues follow the established template format and include:
 
 **Photo Hash Script** (Production Tool):
 
-- ✅ `generate-photo-hashes.js` - Generates hashes for production photos
+- ✅ `update-recognition-data.js --paths-mode` - Generates multi-exposure hashes for production photos (`npm run generate-hashes`)
 
 **Why**: These run repeatedly, modify data files, process expensive assets
 

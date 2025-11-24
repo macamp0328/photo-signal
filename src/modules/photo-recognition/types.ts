@@ -215,4 +215,17 @@ export interface PhotoRecognitionOptions {
   orbConfig?: Partial<ORBConfig>;
   /** Aspect ratio of the visible camera viewport (default 1 for square UI) */
   displayAspectRatio?: number;
+  /** Enable parallel recognition using dhash, phash, and ORB simultaneously (default false) */
+  enableParallelRecognition?: boolean;
+  /** Configuration for parallel recognition (weights, thresholds) */
+  parallelRecognitionConfig?: {
+    /** Algorithm weights for combined scoring (sum should be 1.0) */
+    algorithmWeights?: {
+      dhash: number;
+      phash: number;
+      orb: number;
+    };
+    /** Minimum overall confidence to consider a match (0-1) */
+    minConfidenceThreshold?: number;
+  };
 }

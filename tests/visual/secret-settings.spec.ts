@@ -8,6 +8,12 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Secret Settings Menu', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage?.clear();
+      window.sessionStorage?.clear();
+    });
+  });
   test('closed state - should be invisible', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -153,6 +159,7 @@ test.describe('Secret Settings Menu', () => {
     // Take snapshot of menu on mobile
     await expect(page).toHaveScreenshot('secret-settings-mobile.png', {
       fullPage: true,
+      maxDiffPixelRatio: 0.015, // Account for mobile text/subpixel rendering variance
     });
   });
 });

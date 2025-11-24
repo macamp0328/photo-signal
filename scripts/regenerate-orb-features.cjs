@@ -15,8 +15,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createCanvas, loadImage } = require('canvas');
-
 // Import ORB module (we'll need to transpile TS to use it)
 // For now, this is a template script showing the approach
 

@@ -19,6 +19,7 @@
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 - **[FUTURE_FEATURES.md](./FUTURE_FEATURES.md)** - Consolidated list of unimplemented features and enhancement ideas
+- **[PARALLEL_RECOGNITION_IMPLEMENTATION.md](./PARALLEL_RECOGNITION_IMPLEMENTATION.md)** - Implementation summary for parallel multi-algorithm photo recognition (dHash + pHash + ORB with weighted voting)
 
 ### Research & Technical Guides
 
@@ -64,12 +65,15 @@ Each module has its own README defining its API contract, usage, and examples.
   - **Phase 1 Enhancements**: Frame sharpness detection (motion blur mitigation), glare detection with user guidance, multi-exposure hashing for lighting robustness
   - **Phase 2 Enhancements**: pHash algorithm implementation (DCT-based, more robust to angles/lighting), failure-category diagnostics (motion-blur, glare, no-match, collision tracking)
   - **Phase 3 Enhancements**: ORB algorithm implementation (feature-based, rotation and scale invariant for print-to-camera matching)
+  - **Phase 4 Enhancements**: Parallel recognition pipeline (concurrent dHash + pHash + ORB with weighted voting)
   - **[photo-recognition/algorithms/dhash.ts](./src/modules/photo-recognition/algorithms/dhash.ts)** - dHash (Difference Hash) implementation - 128-bit gradient-based hash
   - **[photo-recognition/algorithms/phash.ts](./src/modules/photo-recognition/algorithms/phash.ts)** - pHash (Perceptual Hash) implementation - 64-bit DCT-based hash (Phase 2)
   - **[photo-recognition/algorithms/orb/README.md](./src/modules/photo-recognition/algorithms/orb/README.md)** - ORB (Oriented FAST and Rotated BRIEF) feature matching - multi-scale keypoint detection with rotation invariance (Phase 3)
   - **[photo-recognition/algorithms/orb/orb.ts](./src/modules/photo-recognition/algorithms/orb/orb.ts)** - ORB implementation with optimized parameters for print-to-camera matching
   - **[photo-recognition/algorithms/orb/**tests**/orb.test.ts](./src/modules/photo-recognition/algorithms/orb/**tests**/orb.test.ts)** - ORB algorithm unit tests (18 tests)
   - **[photo-recognition/algorithms/orb/**tests**/orb-octave-analysis.test.ts](./src/modules/photo-recognition/algorithms/orb/**tests**/orb-octave-analysis.test.ts)** - ORB octave distribution analysis tests (5 tests)
+  - **[photo-recognition/algorithms/parallel-recognizer.ts](./src/modules/photo-recognition/algorithms/parallel-recognizer.ts)** - Parallel recognition orchestrator - runs dHash, pHash, and ORB concurrently with weighted voting (Phase 4)
+  - **[photo-recognition/algorithms/PARALLEL_RECOGNITION.md](./src/modules/photo-recognition/algorithms/PARALLEL_RECOGNITION.md)** - Parallel recognition API reference, usage guide, and configuration recommendations
   - **[photo-recognition/algorithms/hamming.ts](./src/modules/photo-recognition/algorithms/hamming.ts)** - Hamming distance calculator
   - **[photo-recognition/algorithms/utils.ts](./src/modules/photo-recognition/algorithms/utils.ts)** - Image processing utilities (Laplacian variance for blur detection, glare detection, brightness adjustment for multi-exposure hashing)
   - **[photo-recognition/FrameQualityIndicator.tsx](./src/modules/photo-recognition/FrameQualityIndicator.tsx)** - UI component for displaying frame quality warnings ("Hold steady...", "Tilt to avoid glare")
@@ -77,7 +81,9 @@ Each module has its own README defining its API contract, usage, and examples.
   - **[photo-recognition/**tests**/calculateFramedRegion.test.ts](./src/modules/photo-recognition/**tests**/calculateFramedRegion.test.ts)** - Unit tests for frame cropping calculations (20 tests)
   - **[photo-recognition/**tests**/multiExposureMatching.test.ts](./src/modules/photo-recognition/**tests**/multiExposureMatching.test.ts)** - Unit tests for multi-exposure hash matching logic (8 tests)
   - **[photo-recognition/**tests**/edgeCaseAccuracy.test.ts](./src/modules/photo-recognition/**tests**/edgeCaseAccuracy.test.ts)** - Edge case accuracy regression tests validating recognition thresholds (17 tests)
+  - **[photo-recognition/**tests**/parallelRecognition.test.ts](./src/modules/photo-recognition/**tests**/parallelRecognition.test.ts)** - Integration tests for parallel recognition hook integration (6 tests)
   - **[photo-recognition/algorithms/**tests**/phash.test.ts](./src/modules/photo-recognition/algorithms/**tests**/phash.test.ts)** - Unit tests for pHash algorithm (17 tests, Phase 2)
+  - **[photo-recognition/algorithms/**tests**/parallel-recognizer.test.ts](./src/modules/photo-recognition/algorithms/**tests**/parallel-recognizer.test.ts)** - Unit tests for parallel recognition (13 tests)
 - **[photo-rectangle-detection/README.md](./src/modules/photo-rectangle-detection/README.md)** - Dynamic rectangle detection for printed photographs using edge detection and contour analysis
   - **[photo-rectangle-detection/RectangleDetectionService.ts](./src/modules/photo-rectangle-detection/RectangleDetectionService.ts)** - Core detection algorithm with Sobel edge detection, Gaussian blur, and contour tracing
   - **[photo-rectangle-detection/RectangleOverlay.tsx](./src/modules/photo-rectangle-detection/RectangleOverlay.tsx)** - Visual feedback component showing detected rectangle with state-based styling
@@ -356,14 +362,14 @@ Each module has its own README defining its API contract, usage, and examples.
 
 This index covers:
 
-- ✅ Root documentation (8 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, FUTURE_FEATURES, ASSET_LICENSES)
+- ✅ Root documentation (9 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, FUTURE_FEATURES, ASSET_LICENSES, PARALLEL_RECOGNITION_IMPLEMENTATION)
 - ✅ Technical guides & research (12 files - **photo recognition deep dive**, **quick reference**, photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides)
 - ✅ Accessibility (3 files - standards, quick reference, verification report)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (9 files - including secret-settings and photo-rectangle-detection)
 - ✅ Module developer guides (1 file - secret-settings developer guide)
-- ✅ Module implementation files (11 files - secret-settings feature flags, custom settings, hooks, effects, and photo-rectangle-detection service and overlay)
-- ✅ Photo recognition algorithms (4 files - dhash, phash, hamming, utils)
+- ✅ Module implementation files (13 files - secret-settings feature flags, custom settings, hooks, effects, photo-rectangle-detection service and overlay, parallel-recognizer)
+- ✅ Photo recognition algorithms (5 files - dhash, phash, hamming, utils, parallel-recognizer with PARALLEL_RECOGNITION.md)
 - ✅ Configuration files (15 files - including playwright.config.ts)
 - ✅ GitHub Actions & workflows (5 files - CI workflow, visual regression, edge case accuracy, auto-fix Copilot PR, manage labels)
 - ✅ GitHub Actions - custom actions (2 files)
@@ -375,9 +381,9 @@ This index covers:
 - ✅ Helper scripts (10 files including README, cleanup-docs, easy image generator, and bundle size checker)
 - ✅ Data and asset documentation (7 files - production data, test assets, and example photos)
 - ✅ Test infrastructure (4 files - Vitest setup, mocks, Playwright config, visual test README)
-- ✅ Module tests (10 files - including secret-settings hooks tests, photo recognition frame cropping tests, and phash algorithm tests)
+- ✅ Module tests (12 files - including secret-settings hooks tests, photo recognition frame cropping tests, phash algorithm tests, parallel-recognizer tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 113 documented files (21 historical/redundant docs removed)
+**Total**: 118 documented files (21 historical/redundant docs removed)
 
-Last updated: 2025-11-23
+Last updated: 2025-11-24

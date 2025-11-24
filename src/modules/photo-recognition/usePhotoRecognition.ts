@@ -21,6 +21,7 @@ import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import { extractORBFeatures, matchORBFeatures } from './algorithms/orb';
 import type { ORBFeatures, ORBMatchResult, ORBConfig } from './algorithms/orb';
+import { ParallelPhotoRecognizer } from './algorithms/parallel-recognizer';
 import {
   convertToGrayscale,
   computeLaplacianVariance,
@@ -342,6 +343,8 @@ export function usePhotoRecognition(
     secondarySimilarityThreshold,
     orbConfig,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
+    enableParallelRecognition = false,
+    parallelRecognitionConfig,
   } = options;
 
   const { isEnabled } = useFeatureFlags();
@@ -387,6 +390,7 @@ export function usePhotoRecognition(
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null); // Rectangle detection service
   const orbReferenceFeaturesRef = useRef<Map<number, ORBFeatures>>(new Map());
   const orbReferencesReadyRef = useRef(false);
+  const parallelRecognizerRef = useRef<ParallelPhotoRecognizer | null>(null); // Parallel recognizer instance
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
   const matchStartTimeRef = useRef<number | null>(null);
@@ -1046,6 +1050,156 @@ export function usePhotoRecognition(
         // Apply grayscale conversion if enabled
         if (isEnabled('grayscale-mode')) {
           convertToGrayscale(imageData);
+        }
+
+        // Parallel recognition mode: Run all three algorithms simultaneously
+        if (enableParallelRecognition) {
+          // Initialize parallel recognizer if not already done
+          if (!parallelRecognizerRef.current) {
+            parallelRecognizerRef.current = new ParallelPhotoRecognizer({
+              dhashThreshold: similarityThreshold,
+              phashThreshold: resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS.phash,
+              orbConfig: resolvedOrbConfig,
+              ...parallelRecognitionConfig,
+            });
+          }
+
+          // Note: ORB features are loaded asynchronously, but dhash and phash can proceed
+          // without them. The parallel recognizer will handle missing ORB features gracefully.
+          const startParallelTime = performance.now();
+          parallelRecognizerRef.current
+            .recognize(imageData, concerts, orbReferenceFeaturesRef.current)
+            .then((result) => {
+              const parallelTimeMs = performance.now() - startParallelTime;
+
+              if (import.meta.env.DEV || isTestMode) {
+                console.debug(`\n${'='.repeat(60)}`);
+                console.debug(
+                  `[Parallel Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`
+                );
+                console.debug(`Total execution time: ${parallelTimeMs.toFixed(2)}ms`);
+                console.debug(`\nIndividual algorithms:`);
+                result.algorithmResults.forEach((algResult) => {
+                  console.debug(
+                    `  ${algResult.algorithm.toUpperCase()}: ${algResult.executionTimeMs.toFixed(2)}ms, ` +
+                      `similarity=${(algResult.similarityScore * 100).toFixed(1)}%, ` +
+                      `confidence=${(algResult.confidence * 100).toFixed(1)}%` +
+                      (algResult.matchedConcert
+                        ? ` → ${algResult.matchedConcert.band}`
+                        : ' → NO MATCH')
+                  );
+                });
+                console.debug(`\nVoting details:`);
+                console.debug(
+                  `  dhash vote: ${(result.votingDetails.dhashVote * 100).toFixed(1)}%`
+                );
+                console.debug(
+                  `  phash vote: ${(result.votingDetails.phashVote * 100).toFixed(1)}%`
+                );
+                console.debug(`  orb vote: ${(result.votingDetails.orbVote * 100).toFixed(1)}%`);
+                console.debug(
+                  `  Combined score: ${(result.votingDetails.combinedScore * 100).toFixed(1)}%`
+                );
+                console.debug(
+                  `\nFinal decision: ${result.matchedConcert ? result.matchedConcert.band : 'NO MATCH'}`
+                );
+                console.debug(
+                  `Overall confidence: ${(result.overallConfidence * 100).toFixed(1)}%`
+                );
+                console.debug('='.repeat(60));
+              }
+
+              // Update debug info if enabled
+              if (enableDebugInfo || isTestMode) {
+                const bestAlgResult = result.algorithmResults.reduce((best, curr) =>
+                  curr.confidence > best.confidence ? curr : best
+                );
+                const stabilityInfo =
+                  matchStartTimeRef.current && result.matchedConcert
+                    ? (() => {
+                        const elapsedMs = currentTime - (matchStartTimeRef.current ?? currentTime);
+                        return {
+                          concert: result.matchedConcert,
+                          elapsedMs,
+                          remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
+                          requiredMs: recognitionDelay,
+                          progress: Math.min(elapsedMs / recognitionDelay, 1),
+                        };
+                      })()
+                    : null;
+
+                setDebugInfo({
+                  lastFrameHash: 'PARALLEL',
+                  bestMatch: result.matchedConcert
+                    ? {
+                        concert: result.matchedConcert,
+                        distance: 0,
+                        similarity: result.overallConfidence * 100,
+                        algorithm: bestAlgResult.algorithm as HashAlgorithm,
+                        scale: 1,
+                      }
+                    : null,
+                  lastCheckTime: currentTime,
+                  concertCount: concerts.length,
+                  frameCount: frameCountRef.current,
+                  checkInterval,
+                  aspectRatio: chosenAspectRatio,
+                  frameSize: { width: canvas.width, height: canvas.height },
+                  stability: stabilityInfo,
+                  similarityThreshold: 0,
+                  recognitionDelay,
+                  frameQuality: currentFrameQuality,
+                  telemetry: { ...telemetryRef.current },
+                  hashAlgorithm: 'dhash', // Primary algorithm
+                });
+              }
+
+              // Handle match stability
+              if (result.matchedConcert) {
+                if (lastMatchedConcertRef.current?.id === result.matchedConcert.id) {
+                  if (matchStartTimeRef.current) {
+                    const elapsed = Date.now() - matchStartTimeRef.current;
+                    if (elapsed >= recognitionDelay) {
+                      setRecognizedConcert(result.matchedConcert);
+                      setIsRecognizing(false);
+                      telemetryRef.current.successfulRecognitions += 1;
+                      lastMatchedConcertRef.current = null;
+                      matchStartTimeRef.current = null;
+                      if (import.meta.env.DEV || isTestMode) {
+                        console.log('🎵 PARALLEL RECOGNITION SUCCESS!', result.matchedConcert.band);
+                      }
+                    } else {
+                      setIsRecognizing(true);
+                    }
+                  }
+                } else {
+                  lastMatchedConcertRef.current = result.matchedConcert;
+                  matchStartTimeRef.current = Date.now();
+                  setIsRecognizing(true);
+                }
+              } else {
+                if (lastMatchedConcertRef.current) {
+                  telemetryRef.current.failedAttempts += 1;
+                  lastMatchedConcertRef.current = null;
+                  matchStartTimeRef.current = null;
+                  setIsRecognizing(false);
+                }
+              }
+
+              emitTelemetrySnapshot();
+            })
+            .catch((error) => {
+              console.error('[Parallel Recognition] Error:', error);
+              recordFailure(
+                telemetryRef.current,
+                'unknown',
+                `Parallel recognition error: ${(error as Error).message}`,
+                'PARALLEL'
+              );
+              emitTelemetrySnapshot();
+            });
+
+          return; // Skip single-algorithm logic when parallel mode is enabled
         }
 
         if (hashAlgorithm === 'orb') {

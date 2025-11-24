@@ -94,10 +94,7 @@ const DEFAULT_CONFIG: Required<ParallelRecognizerConfig> = {
 /**
  * Helper to get photo hashes for a specific algorithm
  */
-function getHashesForAlgorithm(
-  concert: Concert,
-  algorithm: 'dhash' | 'phash'
-): string[] {
+function getHashesForAlgorithm(concert: Concert, algorithm: 'dhash' | 'phash'): string[] {
   const hashes = concert.photoHashes?.[algorithm];
   if (Array.isArray(hashes) && hashes.length > 0) {
     return hashes;

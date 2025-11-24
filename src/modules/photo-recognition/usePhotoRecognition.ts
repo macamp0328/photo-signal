@@ -1073,8 +1073,7 @@ export function usePhotoRecognition(
           if (!parallelRecognizerRef.current) {
             parallelRecognizerRef.current = new ParallelPhotoRecognizer({
               dhashThreshold: similarityThreshold,
-              phashThreshold:
-                resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS.phash,
+              phashThreshold: resolvedSecondaryThreshold ?? DEFAULT_THRESHOLDS.phash,
               orbConfig: resolvedOrbConfig,
               ...parallelRecognitionConfig,
             });
@@ -1083,9 +1082,7 @@ export function usePhotoRecognition(
           // Ensure ORB features are ready
           if (!orbReferencesReadyRef.current) {
             if (import.meta.env.DEV || isTestMode) {
-              console.debug(
-                '[Photo Recognition][Parallel] ORB features not ready yet, skipping'
-              );
+              console.debug('[Photo Recognition][Parallel] ORB features not ready yet, skipping');
             }
             return;
           }
@@ -1098,7 +1095,9 @@ export function usePhotoRecognition(
 
               if (import.meta.env.DEV || isTestMode) {
                 console.debug(`\n${'='.repeat(60)}`);
-                console.debug(`[Parallel Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`);
+                console.debug(
+                  `[Parallel Recognition] FRAME ${frameCountRef.current} @ ${timestamp}`
+                );
                 console.debug(`Total execution time: ${parallelTimeMs.toFixed(2)}ms`);
                 console.debug(`\nIndividual algorithms:`);
                 result.algorithmResults.forEach((algResult) => {
@@ -1106,7 +1105,9 @@ export function usePhotoRecognition(
                     `  ${algResult.algorithm.toUpperCase()}: ${algResult.executionTimeMs.toFixed(2)}ms, ` +
                       `similarity=${(algResult.similarityScore * 100).toFixed(1)}%, ` +
                       `confidence=${(algResult.confidence * 100).toFixed(1)}%` +
-                      (algResult.matchedConcert ? ` → ${algResult.matchedConcert.band}` : ' → NO MATCH')
+                      (algResult.matchedConcert
+                        ? ` → ${algResult.matchedConcert.band}`
+                        : ' → NO MATCH')
                   );
                 });
                 console.debug(`\nVoting details:`);
@@ -1116,16 +1117,16 @@ export function usePhotoRecognition(
                 console.debug(
                   `  phash vote: ${(result.votingDetails.phashVote * 100).toFixed(1)}%`
                 );
-                console.debug(
-                  `  orb vote: ${(result.votingDetails.orbVote * 100).toFixed(1)}%`
-                );
+                console.debug(`  orb vote: ${(result.votingDetails.orbVote * 100).toFixed(1)}%`);
                 console.debug(
                   `  Combined score: ${(result.votingDetails.combinedScore * 100).toFixed(1)}%`
                 );
                 console.debug(
                   `\nFinal decision: ${result.matchedConcert ? result.matchedConcert.band : 'NO MATCH'}`
                 );
-                console.debug(`Overall confidence: ${(result.overallConfidence * 100).toFixed(1)}%`);
+                console.debug(
+                  `Overall confidence: ${(result.overallConfidence * 100).toFixed(1)}%`
+                );
                 console.debug('='.repeat(60));
               }
 

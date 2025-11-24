@@ -417,11 +417,7 @@ describe('ParallelPhotoRecognizer', () => {
         descriptors: [],
       });
 
-      const result = await recognizer.recognize(
-        mockImageData,
-        concertsWithoutHashes,
-        new Map()
-      );
+      const result = await recognizer.recognize(mockImageData, concertsWithoutHashes, new Map());
 
       expect(result.matchedConcert).toBeNull();
     });

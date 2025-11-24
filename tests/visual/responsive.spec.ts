@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { safeGrantCameraPermissions } from './utils/camera';
 
 /**
  * Visual Regression Tests for Responsive Design
@@ -133,7 +134,7 @@ test.describe('Responsive Design', () => {
 
   test('camera view - responsive mobile', async ({ page, context }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await context.grantPermissions(['camera']);
+    await safeGrantCameraPermissions(context);
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
@@ -168,7 +169,7 @@ test.describe('Responsive Design', () => {
 
   test('camera view - responsive desktop', async ({ page, context }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
-    await context.grantPermissions(['camera']);
+    await safeGrantCameraPermissions(context);
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');

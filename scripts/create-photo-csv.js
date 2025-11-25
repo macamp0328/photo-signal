@@ -164,7 +164,8 @@ function formatShutterSpeed(exposureTime) {
   if (!Number.isFinite(denominator) || denominator <= 0) {
     return '';
   }
-  return `1/${denominator}`;
+  // Prefix with = to prevent Excel from auto-formatting fractions as dates
+  return `="1/${denominator}"`;
 }
 
 function formatCamera(make, model) {
@@ -201,13 +202,22 @@ function formatISO(iso) {
 }
 
 function formatCentralOffset(date) {
-  const localized = new Date(date.toLocaleString('en-US', { timeZone: CENTRAL_TIME_ZONE }));
-  const diffMinutes = Math.round((localized.getTime() - date.getTime()) / 60000);
-  const sign = diffMinutes <= 0 ? '-' : '+';
-  const absMinutes = Math.abs(diffMinutes);
-  const hours = Math.floor(absMinutes / 60);
-  const minutes = absMinutes % 60;
-  return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  // Use Intl.DateTimeFormat with longOffset to get reliable timezone offset
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: CENTRAL_TIME_ZONE,
+    timeZoneName: 'longOffset',
+  });
+
+  const parts = formatter.formatToParts(date);
+  const tzPart = parts.find((part) => part.type === 'timeZoneName');
+
+  if (!tzPart || !tzPart.value) {
+    return '-06:00'; // Default to CST if unable to determine
+  }
+
+  // Extract offset from 'GMT-05:00' or 'GMT+00:00' format
+  const match = tzPart.value.match(/GMT([+-]\d{2}:\d{2})/);
+  return match ? match[1] : '-06:00';
 }
 
 function buildCsv(rows) {

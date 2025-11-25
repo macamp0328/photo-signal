@@ -1,92 +1,92 @@
 id,band,venue,date,audioFile,imageFile,shutterSpeed,camera,aperture,focalLength,iso
-1,Teddy and the Rough Riders,The White Horse,2025-03-15T10:39:37-05:00,,/assets/prod-photographs/P3150376.jpg,Jan-60,OM Digital Solutions OM-5,f/1.8,25.0mm,2500
-2,Jonny Fritz,The White Horse,2025-03-15T12:42:07-05:00,,/assets/prod-photographs/P3150420.jpg,Jan-60,OM Digital Solutions OM-5,f/2.5,45.0mm,200
-3,Jo Alice,The Belmont,2025-03-15T14:21:24-05:00,,/assets/prod-photographs/P3150466.jpg,Jan-60,OM Digital Solutions OM-5,f/2.0,45.0mm,2000
-4,Maz,The Belmont,2025-03-15T15:30:11-05:00,,/assets/prod-photographs/P3150522.jpg,Jan-90,OM Digital Solutions OM-5,f/2.5,25.0mm,200
-5,Ramesh,The Belmont,2025-03-15T16:06:49-05:00,,/assets/prod-photographs/P3150558.jpg,Jan-60,OM Digital Solutions OM-5,f/2.0,25.0mm,200
-6,Twin Shadow,The Belmont,2025-03-15T17:20:15-05:00,,/assets/prod-photographs/P3150624.jpg,Jan-60,OM Digital Solutions OM-5,f/1.8,25.0mm,2500
-7,SNACKTIME,The Belmont,2025-03-15T19:11:16-05:00,,/assets/prod-photographs/P3160701.jpg,Jan-60,OM Digital Solutions OM-5,f/1.8,25.0mm,2000
-8,Ringo Deathstarr,Try Hard Coffee,2022-03-17T13:34:28-05:00,,/assets/prod-photographs/R0043343.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,1000
-9,Buffalo Rose,Fairmont Austin,2022-03-18T12:29:09-05:00,,/assets/prod-photographs/R0043500.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/4.5,18.3mm,2200
-10,Primo the Alien,Downright Austin,2022-03-18T14:24:03-05:00,,/assets/prod-photographs/R0043553.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/4.5,18.3mm,2000
-11,Croy and the Boys,Hotel Vegas,2022-03-19T07:28:55-05:00,,/assets/prod-photographs/R0043637.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/4.5,18.3mm,140
-12,Heavy Meddo,The Volstead Lounge,2022-03-19T08:19:18-05:00,,/assets/prod-photographs/R0043676.jpg,Jan-90,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-13,Thelma and the Sleaze,Mohawk,2022-03-19T09:53:27-05:00,,/assets/prod-photographs/R0043706.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/3.5,18.3mm,400
-14,Croy and the Boys,Saddle Up + BBQ,2022-03-19T14:16:15-05:00,,/assets/prod-photographs/R0043769.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-15,White Denim,High Noon,2022-03-19T17:49:17-05:00,,/assets/prod-photographs/R0043815.jpg,20-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-16,Overcoats,Cheer Up Charlies,2023-03-14T13:04:22-05:00,,/assets/prod-photographs/R0051464.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,200
-17,Cas Haley,Antone's,2023-03-14T14:10:50-05:00,,/assets/prod-photographs/R0051481.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,1600
-18,Le Ren,Central Presbyterian Church,2023-03-14T15:40:33-05:00,,/assets/prod-photographs/R0051507.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,1600
-19,Thao & the Get Down Stay Down,Central Presbyterian Church,2023-03-14T17:56:28-05:00,,/assets/prod-photographs/R0051522.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-20,Charlie John,The Lucky Duck,2023-03-16T12:09:09-05:00,,/assets/prod-photographs/R0051545.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,1600
-21,Voxtrot,Mohawk,2023-03-16T14:27:16-05:00,,/assets/prod-photographs/R0051569.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,400
-22,Arya,French Legation,2023-03-17T08:46:02-05:00,,/assets/prod-photographs/R0051593.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/7.1,18.3mm,200
-23,Cheekface,High Noon,2023-03-17T10:14:39-05:00,,/assets/prod-photographs/R0051602.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/4.5,18.3mm,200
-24,dog petting,,2023-03-17T11:03:45-05:00,,/assets/prod-photographs/R0051614.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/11.0,18.3mm,200
-25,David Ramirez,The White Horse,2023-03-17T12:11:50-05:00,,/assets/prod-photographs/R0051632.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-26,Crumbsnatchers,Parish,2023-03-18T07:44:19-05:00,,/assets/prod-photographs/R0051657.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-27,Izzy Heltai,Parish,2023-03-18T08:20:11-05:00,,/assets/prod-photographs/R0051663.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-28,Riley Downing,Parish,2023-03-18T09:21:35-05:00,,/assets/prod-photographs/R0051681.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-29,Matthew Logan Vasquez,C-Boy's Heart & Soul,2023-03-18T13:09:48-05:00,,/assets/prod-photographs/R0051704.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,400
-30,Willow Parlo,Parkside,2024-03-11T13:41:17-05:00,,/assets/prod-photographs/R0055134.jpg,Jan-50,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-31,Ace Park,Vaquero Taquero,2024-03-11T14:48:12-05:00,,/assets/prod-photographs/R0055149.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-32,Red Axes,Mohawk,2024-03-11T15:53:02-05:00,,/assets/prod-photographs/R0055167.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-33,Jo Alice,Mohawk,2024-03-11T18:12:07-05:00,,/assets/prod-photographs/R0055209.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-34,Telescreens,Mohawk,2024-03-11T19:46:32-05:00,,/assets/prod-photographs/R0055227.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-35,Sea_n Barna,The Iron Bear,2024-03-12T15:03:20-05:00,,/assets/prod-photographs/R0055267.jpg,1/200,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-36,Bootsy Collins,Mohawk,2024-03-12T16:51:05-05:00,,/assets/prod-photographs/R0055319.jpg,1/160,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-37,FANTAAZMA,Mohawk,2024-03-12T16:56:58-05:00,,/assets/prod-photographs/R0055333.jpg,1/180,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-38,Witworth,The White Horse,2024-03-13T10:25:34-05:00,,/assets/prod-photographs/R0055413.jpg,Jan-45,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-39,Mugger,Hotel Vegas,2024-03-13T10:49:22-05:00,,/assets/prod-photographs/R0055419.jpg,Jan-00,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,400
-40,chokecherry,Hotel Vegas,2024-03-13T11:51:43-05:00,,/assets/prod-photographs/R0055467.jpg,20-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-41,Sextile,Hotel Vegas,2024-03-13T12:05:13-05:00,,/assets/prod-photographs/R0055482.jpg,1/1250,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,400
-42,Bad Bad Hats,Mohawk,2024-03-13T15:20:44-05:00,,/assets/prod-photographs/R0055488.jpg,1/160,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-43,SNACKTIME,Mohawk,2024-03-13T16:41:20-05:00,,/assets/prod-photographs/R0055515.jpg,Jan-90,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-44,Balthvs,Mohawk,2024-03-13T17:27:46-05:00,,/assets/prod-photographs/R0055518.jpg,1/180,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-45,Thus Love,Mohawk,2024-03-13T18:29:14-05:00,,/assets/prod-photographs/R0055540.jpg,30-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-46,Voxtrot,Mohawk,2024-03-13T19:20:58-05:00,,/assets/prod-photographs/R0055558.jpg,1/100,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-47,,,2024-03-14T09:38:25-05:00,,/assets/prod-photographs/R0055567.jpg,Jan-00,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,200
-48,,,2024-03-14T10:34:06-05:00,,/assets/prod-photographs/R0055584.jpg,1/640,"RICOH IMAGING COMPANY, LTD. GR II",f/3.2,18.3mm,400
-49,Reyna Tropical,Hotel Vegas,2024-03-14T10:45:41-05:00,,/assets/prod-photographs/R0055598.jpg,1/500,"RICOH IMAGING COMPANY, LTD. GR II",f/3.2,18.3mm,400
-50,cumgirl8,Hotel Vegas,2024-03-14T11:24:45-05:00,,/assets/prod-photographs/R0055618.jpg,30-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-51,Telescreens,The Volstead Lounge,2024-03-14T11:41:07-05:00,,/assets/prod-photographs/R0055632.jpg,20-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-52,Eyeam,Austin Garden & Studio,2024-03-14T13:42:38-05:00,,/assets/prod-photographs/R0055666.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,2200
-53,Dry Cleaning,Renaissance Hotel,2024-03-14T15:08:31-05:00,,/assets/prod-photographs/R0055703.jpg,1/750,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,400
-54,Voxtrot,Stubb's Bar-B-Q,2024-03-14T16:28:17-05:00,,/assets/prod-photographs/R0055719.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,2000
-55,Babe Corner,Swan Dive,2024-03-14T17:18:05-05:00,,/assets/prod-photographs/R0055724.jpg,Jan-40,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-56,Super Duty Tough Work,Swan Dive,2024-03-14T17:44:00-05:00,,/assets/prod-photographs/R0055734.jpg,Jan-90,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-57,Hinds,High Noon,2024-03-15T06:21:48-05:00,,/assets/prod-photographs/R0055762.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/3.5,18.3mm,1000
-58,Shower Curtain,High Noon,2024-03-15T06:50:29-05:00,,/assets/prod-photographs/R0055769.jpg,Jan-80,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-59,The Barr Brothers,The Coral Snake,2024-03-15T07:50:55-05:00,,/assets/prod-photographs/R0055785.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-60,Mamalarkey,The Coral Snake,2024-03-15T08:28:45-05:00,,/assets/prod-photographs/R0055792.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,640
-61,City of the Sun,The Coral Snake,2024-03-15T10:45:02-05:00,,/assets/prod-photographs/R0055808.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/3.2,18.3mm,3200
-62,The Deslondes,High Noon,2024-03-15T11:36:40-05:00,,/assets/prod-photographs/R0055832.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-63,Squirrel Flower,High Noon,2024-03-15T12:15:28-05:00,,/assets/prod-photographs/R0055850.jpg,Jan-90,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-64,Lucky Lo,Swan Dive,2024-03-15T16:39:02-05:00,,/assets/prod-photographs/R0055855.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-65,Divorce,Swan Dive,2024-03-15T17:17:12-05:00,,/assets/prod-photographs/R0055861.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-66,AngŽlica Garcia,Swan Dive,2024-03-15T18:40:39-05:00,,/assets/prod-photographs/R0055887.jpg,20-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/4.0,18.3mm,3200
-67,Urban Heat,The Coral Snake,2024-03-16T09:29:03-05:00,,/assets/prod-photographs/R0055906.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/3.5,18.3mm,400
-68,The Tender Things,High Noon,2024-03-16T10:12:36-05:00,,/assets/prod-photographs/R0055917.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/3.5,18.3mm,400
-69,Vera Ellen,Lazarus Brewing Co.,2024-03-16T12:36:41-05:00,,/assets/prod-photographs/R0055981.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/5.6,18.3mm,3200
-70,Ramesh,Lazarus Brewing Co.,2024-03-16T13:50:56-05:00,,/assets/prod-photographs/R0056005.jpg,1/250,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-71,Emily Barker,Swan Dive,2024-03-16T16:43:56-05:00,,/assets/prod-photographs/R0056015.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-72,Hinds,Swan Dive,2024-03-16T17:54:47-05:00,,/assets/prod-photographs/R0056061.jpg,Jan-50,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-73,Dale Watson,3Ten ACL,2025-03-08T10:37:05-06:00,,/assets/prod-photographs/R0060168.jpg,Jan-50,"RICOH IMAGING COMPANY, LTD. GR II",f/5.0,18.3mm,100
-74,Sir Woman,Augustine Cocktail Bar ??,2025-03-09T11:16:00-05:00,,/assets/prod-photographs/R0060277.jpg,1/320,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,200
-75,Otis Wilkins,Hotel Vegas,2025-03-09T14:48:33-05:00,,/assets/prod-photographs/R0060550.jpg,Jan-40,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,800
-76,SKLOSS,The Volstead Lounge,2025-03-09T15:20:36-05:00,,/assets/prod-photographs/R0060571.jpg,Jan-80,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-77,Croy and the Boys,The White Horse,2025-03-11T14:11:53-05:00,,/assets/prod-photographs/R0060613.jpg,Jan-80,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-78,Random Band,Hotel Vegas,2025-03-11T14:53:40-05:00,,/assets/prod-photographs/R0060632.jpg,Jan-80,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-79,Big Girl,The Liberty,2025-03-11T16:26:32-05:00,,/assets/prod-photographs/R0060656.jpg,20-Jan,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-80,Stop Motion Orchestra,The Liberty,2025-03-11T17:32:45-05:00,,/assets/prod-photographs/R0060674.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-81,Die Spitz,The 13th floor,2025-03-13T13:26:14-05:00,,/assets/prod-photographs/R0060723.jpg,1/125,"RICOH IMAGING COMPANY, LTD. GR II",f/3.2,18.3mm,320
-82,Shoganai,Lizard House,2025-03-13T14:47:34-05:00,,/assets/prod-photographs/R0060765.jpg,Jan-45,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,200
-83,STEEF,Lizard House,2025-03-13T15:31:32-05:00,,/assets/prod-photographs/R0060808.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-84,Blah Spa,Full Circle Bar,2025-03-13T16:13:13-05:00,,/assets/prod-photographs/R0060822.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,1250
-85,Big Girl,Full Circle Bar,2025-03-13T16:34:29-05:00,,/assets/prod-photographs/R0060833.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,200
-86,Teenage Sequence,King Bee,2025-03-13T17:11:15-05:00,,/assets/prod-photographs/R0060857.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-87,Rankydank,King Bee,2025-03-13T18:05:38-05:00,,/assets/prod-photographs/R0060861.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-88,Majvi Superstar,Lizard House,2025-03-14T14:54:18-05:00,,/assets/prod-photographs/R0060881.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
-89,Maruja,Mohawk,2025-03-14T17:41:16-05:00,,/assets/prod-photographs/R0060920.jpg,1/100,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,800
-90,Bon Enfant,Mohawk,2025-03-14T18:13:17-05:00,,/assets/prod-photographs/R0060940.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,1000
-91,Voxtrot,Mohawk,2025-03-14T19:12:45-05:00,,/assets/prod-photographs/R0060960.jpg,Jan-60,"RICOH IMAGING COMPANY, LTD. GR II",f/2.8,18.3mm,3200
+"1","Teddy and the Rough Riders","The White Horse","2025-03-15T10:39:37-05:00",,"/assets/prod-photographs/P3150376.jpg","=""1/60""","OM Digital Solutions OM-5","f/1.8","25.0mm","2500"
+"2","Jonny Fritz","The White Horse","2025-03-15T12:42:07-05:00",,"/assets/prod-photographs/P3150420.jpg","=""1/60""","OM Digital Solutions OM-5","f/2.5","45.0mm","200"
+"3","Jo Alice","The Belmont","2025-03-15T14:21:24-05:00",,"/assets/prod-photographs/P3150466.jpg","=""1/60""","OM Digital Solutions OM-5","f/2.0","45.0mm","2000"
+"4","Maz","The Belmont","2025-03-15T15:30:11-05:00",,"/assets/prod-photographs/P3150522.jpg","=""1/90""","OM Digital Solutions OM-5","f/2.5","25.0mm","200"
+"5","Ramesh","The Belmont","2025-03-15T16:06:49-05:00",,"/assets/prod-photographs/P3150558.jpg","=""1/60""","OM Digital Solutions OM-5","f/2.0","25.0mm","200"
+"6","Twin Shadow","The Belmont","2025-03-15T17:20:15-05:00",,"/assets/prod-photographs/P3150624.jpg","=""1/60""","OM Digital Solutions OM-5","f/1.8","25.0mm","2500"
+"7","SNACKTIME","The Belmont","2025-03-15T19:11:16-05:00",,"/assets/prod-photographs/P3160701.jpg","=""1/60""","OM Digital Solutions OM-5","f/1.8","25.0mm","2000"
+"8","Ringo Deathstarr","Try Hard Coffee","2022-03-17T13:34:28-05:00",,"/assets/prod-photographs/R0043343.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","1000"
+"9","Buffalo Rose","Fairmont Austin","2022-03-18T12:29:09-05:00",,"/assets/prod-photographs/R0043500.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/4.5","18.3mm","2200"
+"10","Primo the Alien","Downright Austin","2022-03-18T14:24:03-05:00",,"/assets/prod-photographs/R0043553.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/4.5","18.3mm","2000"
+"11","Croy and the Boys","Hotel Vegas","2022-03-19T07:28:55-05:00",,"/assets/prod-photographs/R0043637.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/4.5","18.3mm","140"
+"12","Heavy Meddo","The Volstead Lounge","2022-03-19T08:19:18-05:00",,"/assets/prod-photographs/R0043676.jpg","=""1/90""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"13","Thelma and the Sleaze","Mohawk","2022-03-19T09:53:27-05:00",,"/assets/prod-photographs/R0043706.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/3.5","18.3mm","400"
+"14","Croy and the Boys","Saddle Up + BBQ","2022-03-19T14:16:15-05:00",,"/assets/prod-photographs/R0043769.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"15","White Denim","High Noon","2022-03-19T17:49:17-05:00",,"/assets/prod-photographs/R0043815.jpg","=""1/20""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"16","Overcoats","Cheer Up Charlies","2023-03-14T13:04:22-05:00",,"/assets/prod-photographs/R0051464.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","200"
+"17","Cas Haley","Antone's","2023-03-14T14:10:50-05:00",,"/assets/prod-photographs/R0051481.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","1600"
+"18","Le Ren","Central Presbyterian Church","2023-03-14T15:40:33-05:00",,"/assets/prod-photographs/R0051507.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","1600"
+"19","Thao & the Get Down Stay Down","Central Presbyterian Church","2023-03-14T17:56:28-05:00",,"/assets/prod-photographs/R0051522.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"20","Charlie John","The Lucky Duck","2023-03-16T12:09:09-05:00",,"/assets/prod-photographs/R0051545.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","1600"
+"21","Voxtrot","Mohawk","2023-03-16T14:27:16-05:00",,"/assets/prod-photographs/R0051569.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","400"
+"22","Arya","French Legation","2023-03-17T08:46:02-05:00",,"/assets/prod-photographs/R0051593.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/7.1","18.3mm","200"
+"23","Cheekface","High Noon","2023-03-17T10:14:39-05:00",,"/assets/prod-photographs/R0051602.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/4.5","18.3mm","200"
+"24","dog petting",,"2023-03-17T11:03:45-05:00",,"/assets/prod-photographs/R0051614.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/11.0","18.3mm","200"
+"25","David Ramirez","The White Horse","2023-03-17T12:11:50-05:00",,"/assets/prod-photographs/R0051632.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"26","Crumbsnatchers","Parish","2023-03-18T07:44:19-05:00",,"/assets/prod-photographs/R0051657.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"27","Izzy Heltai","Parish","2023-03-18T08:20:11-05:00",,"/assets/prod-photographs/R0051663.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"28","Riley Downing","Parish","2023-03-18T09:21:35-05:00",,"/assets/prod-photographs/R0051681.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"29","Matthew Logan Vasquez","C-Boy's Heart & Soul","2023-03-18T13:09:48-05:00",,"/assets/prod-photographs/R0051704.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","400"
+"30","Willow Parlo","Parkside","2024-03-11T13:41:17-05:00",,"/assets/prod-photographs/R0055134.jpg","=""1/50""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"31","Ace Park","Vaquero Taquero","2024-03-11T14:48:12-05:00",,"/assets/prod-photographs/R0055149.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"32","Red Axes","Mohawk","2024-03-11T15:53:02-05:00",,"/assets/prod-photographs/R0055167.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"33","Jo Alice","Mohawk","2024-03-11T18:12:07-05:00",,"/assets/prod-photographs/R0055209.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"34","Telescreens","Mohawk","2024-03-11T19:46:32-05:00",,"/assets/prod-photographs/R0055227.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"35","Sea_n Barna","The Iron Bear","2024-03-12T15:03:20-05:00",,"/assets/prod-photographs/R0055267.jpg","=""1/200""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"36","Bootsy Collins","Mohawk","2024-03-12T16:51:05-05:00",,"/assets/prod-photographs/R0055319.jpg","=""1/160""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"37","FANTAAZMA","Mohawk","2024-03-12T16:56:58-05:00",,"/assets/prod-photographs/R0055333.jpg","=""1/180""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"38","Witworth","The White Horse","2024-03-13T10:25:34-05:00",,"/assets/prod-photographs/R0055413.jpg","=""1/45""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"39","Mugger","Hotel Vegas","2024-03-13T10:49:22-05:00",,"/assets/prod-photographs/R0055419.jpg","=""1/2000""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","400"
+"40","chokecherry","Hotel Vegas","2024-03-13T11:51:43-05:00",,"/assets/prod-photographs/R0055467.jpg","=""1/20""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"41","Sextile","Hotel Vegas","2024-03-13T12:05:13-05:00",,"/assets/prod-photographs/R0055482.jpg","=""1/1250""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","400"
+"42","Bad Bad Hats","Mohawk","2024-03-13T15:20:44-05:00",,"/assets/prod-photographs/R0055488.jpg","=""1/160""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"43","SNACKTIME","Mohawk","2024-03-13T16:41:20-05:00",,"/assets/prod-photographs/R0055515.jpg","=""1/90""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"44","Balthvs","Mohawk","2024-03-13T17:27:46-05:00",,"/assets/prod-photographs/R0055518.jpg","=""1/180""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"45","Thus Love","Mohawk","2024-03-13T18:29:14-05:00",,"/assets/prod-photographs/R0055540.jpg","=""1/30""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"46","Voxtrot","Mohawk","2024-03-13T19:20:58-05:00",,"/assets/prod-photographs/R0055558.jpg","=""1/100""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"47",,,"2024-03-14T09:38:25-05:00",,"/assets/prod-photographs/R0055567.jpg","=""1/2500""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","200"
+"48",,,"2024-03-14T10:34:06-05:00",,"/assets/prod-photographs/R0055584.jpg","=""1/640""","RICOH IMAGING COMPANY, LTD. GR II","f/3.2","18.3mm","400"
+"49","Reyna Tropical","Hotel Vegas","2024-03-14T10:45:41-05:00",,"/assets/prod-photographs/R0055598.jpg","=""1/500""","RICOH IMAGING COMPANY, LTD. GR II","f/3.2","18.3mm","400"
+"50","cumgirl8","Hotel Vegas","2024-03-14T11:24:45-05:00",,"/assets/prod-photographs/R0055618.jpg","=""1/30""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"51","Telescreens","The Volstead Lounge","2024-03-14T11:41:07-05:00",,"/assets/prod-photographs/R0055632.jpg","=""1/20""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"52","Eyeam","Austin Garden & Studio","2024-03-14T13:42:38-05:00",,"/assets/prod-photographs/R0055666.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","2200"
+"53","Dry Cleaning","Renaissance Hotel","2024-03-14T15:08:31-05:00",,"/assets/prod-photographs/R0055703.jpg","=""1/750""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","400"
+"54","Voxtrot","Stubb's Bar-B-Q","2024-03-14T16:28:17-05:00",,"/assets/prod-photographs/R0055719.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","2000"
+"55","Babe Corner","Swan Dive","2024-03-14T17:18:05-05:00",,"/assets/prod-photographs/R0055724.jpg","=""1/40""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"56","Super Duty Tough Work","Swan Dive","2024-03-14T17:44:00-05:00",,"/assets/prod-photographs/R0055734.jpg","=""1/90""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"57","Hinds","High Noon","2024-03-15T06:21:48-05:00",,"/assets/prod-photographs/R0055762.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/3.5","18.3mm","1000"
+"58","Shower Curtain","High Noon","2024-03-15T06:50:29-05:00",,"/assets/prod-photographs/R0055769.jpg","=""1/80""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"59","The Barr Brothers","The Coral Snake","2024-03-15T07:50:55-05:00",,"/assets/prod-photographs/R0055785.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"60","Mamalarkey","The Coral Snake","2024-03-15T08:28:45-05:00",,"/assets/prod-photographs/R0055792.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","640"
+"61","City of the Sun","The Coral Snake","2024-03-15T10:45:02-05:00",,"/assets/prod-photographs/R0055808.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/3.2","18.3mm","3200"
+"62","The Deslondes","High Noon","2024-03-15T11:36:40-05:00",,"/assets/prod-photographs/R0055832.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"63","Squirrel Flower","High Noon","2024-03-15T12:15:28-05:00",,"/assets/prod-photographs/R0055850.jpg","=""1/90""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"64","Lucky Lo","Swan Dive","2024-03-15T16:39:02-05:00",,"/assets/prod-photographs/R0055855.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"65","Divorce","Swan Dive","2024-03-15T17:17:12-05:00",,"/assets/prod-photographs/R0055861.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"66","Angï¿½lica Garcia","Swan Dive","2024-03-15T18:40:39-05:00",,"/assets/prod-photographs/R0055887.jpg","=""1/20""","RICOH IMAGING COMPANY, LTD. GR II","f/4.0","18.3mm","3200"
+"67","Urban Heat","The Coral Snake","2024-03-16T09:29:03-05:00",,"/assets/prod-photographs/R0055906.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/3.5","18.3mm","400"
+"68","The Tender Things","High Noon","2024-03-16T10:12:36-05:00",,"/assets/prod-photographs/R0055917.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/3.5","18.3mm","400"
+"69","Vera Ellen","Lazarus Brewing Co.","2024-03-16T12:36:41-05:00",,"/assets/prod-photographs/R0055981.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/5.6","18.3mm","3200"
+"70","Ramesh","Lazarus Brewing Co.","2024-03-16T13:50:56-05:00",,"/assets/prod-photographs/R0056005.jpg","=""1/250""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"71","Emily Barker","Swan Dive","2024-03-16T16:43:56-05:00",,"/assets/prod-photographs/R0056015.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"72","Hinds","Swan Dive","2024-03-16T17:54:47-05:00",,"/assets/prod-photographs/R0056061.jpg","=""1/50""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"73","Dale Watson","3Ten ACL","2025-03-08T10:37:05-06:00",,"/assets/prod-photographs/R0060168.jpg","=""1/50""","RICOH IMAGING COMPANY, LTD. GR II","f/5.0","18.3mm","100"
+"74","Sir Woman","Augustine Cocktail Bar ??","2025-03-09T11:16:00-05:00",,"/assets/prod-photographs/R0060277.jpg","=""1/320""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","200"
+"75","Otis Wilkins","Hotel Vegas","2025-03-09T14:48:33-05:00",,"/assets/prod-photographs/R0060550.jpg","=""1/40""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","800"
+"76","SKLOSS","The Volstead Lounge","2025-03-09T15:20:36-05:00",,"/assets/prod-photographs/R0060571.jpg","=""1/80""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"77","Croy and the Boys","The White Horse","2025-03-11T14:11:53-05:00",,"/assets/prod-photographs/R0060613.jpg","=""1/80""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"78","Random Band","Hotel Vegas","2025-03-11T14:53:40-05:00",,"/assets/prod-photographs/R0060632.jpg","=""1/80""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"79","Big Girl","The Liberty","2025-03-11T16:26:32-05:00",,"/assets/prod-photographs/R0060656.jpg","=""1/20""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"80","Stop Motion Orchestra","The Liberty","2025-03-11T17:32:45-05:00",,"/assets/prod-photographs/R0060674.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"81","Die Spitz","The 13th floor","2025-03-13T13:26:14-05:00",,"/assets/prod-photographs/R0060723.jpg","=""1/125""","RICOH IMAGING COMPANY, LTD. GR II","f/3.2","18.3mm","320"
+"82","Shoganai","Lizard House","2025-03-13T14:47:34-05:00",,"/assets/prod-photographs/R0060765.jpg","=""1/45""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","200"
+"83","STEEF","Lizard House","2025-03-13T15:31:32-05:00",,"/assets/prod-photographs/R0060808.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"84","Blah Spa","Full Circle Bar","2025-03-13T16:13:13-05:00",,"/assets/prod-photographs/R0060822.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","1250"
+"85","Big Girl","Full Circle Bar","2025-03-13T16:34:29-05:00",,"/assets/prod-photographs/R0060833.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","200"
+"86","Teenage Sequence","King Bee","2025-03-13T17:11:15-05:00",,"/assets/prod-photographs/R0060857.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"87","Rankydank","King Bee","2025-03-13T18:05:38-05:00",,"/assets/prod-photographs/R0060861.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"88","Majvi Superstar","Lizard House","2025-03-14T14:54:18-05:00",,"/assets/prod-photographs/R0060881.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"
+"89","Maruja","Mohawk","2025-03-14T17:41:16-05:00",,"/assets/prod-photographs/R0060920.jpg","=""1/100""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","800"
+"90","Bon Enfant","Mohawk","2025-03-14T18:13:17-05:00",,"/assets/prod-photographs/R0060940.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","1000"
+"91","Voxtrot","Mohawk","2025-03-14T19:12:45-05:00",,"/assets/prod-photographs/R0060960.jpg","=""1/60""","RICOH IMAGING COMPANY, LTD. GR II","f/2.8","18.3mm","3200"

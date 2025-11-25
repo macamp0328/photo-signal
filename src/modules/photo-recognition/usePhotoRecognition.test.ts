@@ -61,7 +61,7 @@ describe('usePhotoRecognition', () => {
       id: 1,
       band: 'Test Band 1',
       venue: 'Test Venue 1',
-      date: '2023-08-15',
+      date: '2023-08-15T20:00:00-05:00',
       audioFile: '/audio/test1.opus',
       photoHashes: {
         phash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'],
@@ -76,7 +76,7 @@ describe('usePhotoRecognition', () => {
       id: 2,
       band: 'Test Band 2',
       venue: 'Test Venue 2',
-      date: '2023-09-20',
+      date: '2023-09-20T19:30:00-05:00',
       audioFile: '/audio/test2.opus',
       photoHashes: {
         phash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'],

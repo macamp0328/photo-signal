@@ -49,7 +49,7 @@ export interface Concert {
   band: string;
   /** Venue where concert took place */
   venue: string;
-  /** ISO date string (YYYY-MM-DD) */
+  /** ISO 8601 timestamp (America/Chicago). */
   date: string;
   /** Path or URL to audio file (MP3) - supports both local paths and remote URLs */
   audioFile: string;

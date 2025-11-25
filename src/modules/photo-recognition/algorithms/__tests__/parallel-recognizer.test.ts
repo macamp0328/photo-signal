@@ -52,7 +52,7 @@ describe('ParallelPhotoRecognizer', () => {
         id: 1,
         band: 'Test Band 1',
         venue: 'Test Venue 1',
-        date: '2023-01-01',
+        date: '2023-01-01T00:00:00-06:00',
         audioFile: '/audio/test1.opus',
         photoHashes: {
           dhash: ['a'.repeat(32)],
@@ -63,7 +63,7 @@ describe('ParallelPhotoRecognizer', () => {
         id: 2,
         band: 'Test Band 2',
         venue: 'Test Venue 2',
-        date: '2023-01-02',
+        date: '2023-01-02T00:00:00-06:00',
         audioFile: '/audio/test2.opus',
         photoHashes: {
           dhash: ['c'.repeat(32)],
@@ -405,7 +405,7 @@ describe('ParallelPhotoRecognizer', () => {
           id: 1,
           band: 'No Hashes Band',
           venue: 'Test Venue',
-          date: '2023-01-01',
+          date: '2023-01-01T00:00:00-06:00',
           audioFile: '/audio/test.opus',
         },
       ];

@@ -4,7 +4,7 @@
       "id": 6,
       "band": "Signal Stripes",
       "venue": "Diagonal Pavilion",
-      "date": "2024-01-06",
+      "date": "2024-01-06T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/20-possum-clip-02.opus",
       "imageFile": "/assets/test-images/easy-target-diagonals.png",
       "photoHashes": {
@@ -169,7 +169,7 @@
       "id": 7,
       "band": "Monochrome Grid",
       "venue": "Pattern Plaza",
-      "date": "2024-01-07",
+      "date": "2024-01-07T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/20-possum-clip-01.opus",
       "imageFile": "/assets/test-images/easy-target-checker.png",
       "photoHashes": {
@@ -232,7 +232,7 @@
       "id": 8,
       "band": "Ringo Deathstar (R0043343)",
       "venue": "Try Hard Coffee",
-      "date": "2024-02-01",
+      "date": "2024-02-01T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/ps-ringo-deathstarr-colour-trip.opus",
       "imageFile": "/assets/example-real-photos/R0043343.jpg",
       "photoHashes": {
@@ -2263,7 +2263,7 @@
       "id": 9,
       "band": "FANTAAZMA (R0055333)",
       "venue": "Mohawk",
-      "date": "2024-02-02",
+      "date": "2024-02-02T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane.opus",
       "imageFile": "/assets/example-real-photos/R0055333.jpg",
       "photoHashes": {
@@ -4294,7 +4294,7 @@
       "id": 10,
       "band": "The Tender Things (R0055917)",
       "venue": "Indie Gallery",
-      "date": "2024-02-03",
+      "date": "2024-02-03T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/ps-the-tender-things-that-texas-touch.opus",
       "imageFile": "/assets/example-real-photos/R0055917.jpg",
       "photoHashes": {
@@ -6325,7 +6325,7 @@
       "id": 11,
       "band": "Random Band (R0060632)",
       "venue": "Hotel Vegas",
-      "date": "2024-02-04",
+      "date": "2024-02-04T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/16-you-enjoy-myself-clip-01.opus",
       "imageFile": "/assets/example-real-photos/R0060632.jpg",
       "photoHashes": {
@@ -8356,7 +8356,7 @@
       "id": 12,
       "band": "RankyDank (R0060861)",
       "venue": "Night Market Stage",
-      "date": "2024-02-05",
+      "date": "2024-02-05T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/18-meatstick-clip-01.opus",
       "imageFile": "/assets/example-real-photos/R0060861.jpg",
       "photoHashes": {
@@ -10387,7 +10387,7 @@
       "id": 25,
       "band": "White Denim (R0043815)",
       "venue": "That place on cesar chavez",
-      "date": "2024-02-06",
+      "date": "2024-02-06T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/ps-white-denim-performance.opus",
       "imageFile": "/assets/example-real-photos/R0043815.jpg",
       "photoHashes": {
@@ -12418,7 +12418,7 @@
       "id": 26,
       "band": "Jo Alice (P3150466)",
       "venue": "Skyline Overlook",
-      "date": "2024-02-07",
+      "date": "2024-02-07T00:00:00-06:00",
       "audioFile": "/assets/example-real-songs/ps-jo-alice-give-me-some-good-news-when-i-call.opus",
       "imageFile": "/assets/example-real-photos/P3150466.jpg",
       "photoHashes": {

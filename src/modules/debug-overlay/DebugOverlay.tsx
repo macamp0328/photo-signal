@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react';
 import type { DebugOverlayProps, RecognitionStatus } from './types';
 import styles from './DebugOverlay.module.css';
+import { formatConcertTimestamp } from '../../utils/dateUtils';
 
 // Display "waiting for frame" message if no frame received in 2x the normal check interval (≈1s)
 const FRAME_TIMEOUT_THRESHOLD = 2;
@@ -276,7 +277,9 @@ export function DebugOverlay({
               <div className={styles.label}>🎵 Recognized</div>
               <div className={styles.concertName}>{recognizedConcert.band}</div>
               <div className={styles.concertVenue}>{recognizedConcert.venue}</div>
-              <div className={styles.concertDate}>{recognizedConcert.date}</div>
+              <div className={styles.concertDate}>
+                {formatConcertTimestamp(recognizedConcert.date)}
+              </div>
             </div>
           )}
         </>

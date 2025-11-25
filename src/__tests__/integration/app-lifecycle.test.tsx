@@ -35,7 +35,7 @@ describe('App Lifecycle Integration', () => {
             id: 1,
             band: 'Test Band',
             venue: 'Test Venue',
-            date: '2023-01-01',
+            date: '2023-01-01T00:00:00-06:00',
             audioFile: '/audio/test.opus',
             photoHashes: { dhash: ['abc123'] },
           },

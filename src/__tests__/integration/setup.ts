@@ -55,7 +55,7 @@ export const mockConcertData = {
       id: 1,
       band: 'Test Band 1',
       venue: 'Test Venue 1',
-      date: '2023-08-15',
+      date: '2023-08-15T20:00:00-05:00',
       audioFile: '/audio/test1.opus',
       photoHashes: {
         dhash: ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
@@ -65,7 +65,7 @@ export const mockConcertData = {
       id: 2,
       band: 'Test Band 2',
       venue: 'Test Venue 2',
-      date: '2023-09-20',
+      date: '2023-09-20T19:30:00-05:00',
       audioFile: '/audio/test2.opus',
       photoHashes: {
         dhash: ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],

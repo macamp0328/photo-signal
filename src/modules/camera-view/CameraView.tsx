@@ -2,20 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { CameraViewProps } from './types';
 import { RectangleOverlay } from '../photo-rectangle-detection';
 import styles from './CameraView.module.css';
-
-/**
- * Format date string (YYYY-MM-DD) to readable format
- */
-const formatDate = (dateString: string): string => {
-  // Parse as local date to avoid timezone issues
-  const [year, month, day] = dateString.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-};
+import { formatConcertTimestamp } from '../../utils/dateUtils';
 
 /**
  * Camera View Component
@@ -91,7 +78,9 @@ export function CameraView({
             </div>
             <div className={styles.concertDetails}>
               <p className={styles.concertVenue}>{concertInfo.venue}</p>
-              <p className={styles.concertDate}>{formatDate(concertInfo.date)}</p>
+              <p className={styles.concertDate}>
+                {formatConcertTimestamp(concertInfo.date, { includeTime: false })}
+              </p>
             </div>
             <div className={styles.concertFooter}>
               <p className={styles.concertNowPlaying}>Now Playing</p>

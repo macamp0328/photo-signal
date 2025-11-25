@@ -10,7 +10,7 @@ describe('DebugOverlay', () => {
     id: 1,
     band: 'Test Band',
     venue: 'Test Venue',
-    date: '2023-08-15',
+    date: '2023-08-15T20:00:00-05:00',
     audioFile: '/audio/test.opus',
   };
 
@@ -367,13 +367,25 @@ describe('DebugOverlay', () => {
       const bandNames = screen.getAllByText('Test Band');
       expect(bandNames.length).toBeGreaterThan(0);
       expect(screen.getByText('Test Venue')).toBeInTheDocument();
-      expect(screen.getByText('2023-08-15')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
     });
 
     it('should not display recognized section when concert is null', () => {
       render(<DebugOverlay {...defaultProps} recognizedConcert={null} />);
 
       expect(screen.queryByText('🎵 Recognized')).not.toBeInTheDocument();
+    });
+
+    it('should include time data when recognized concert has a timestamp', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          recognizedConcert={{ ...mockConcert, date: '2023-08-15T21:30:00-05:00' }}
+          debugInfo={mockDebugInfo}
+        />
+      );
+
+      expect(screen.getByText('August 15, 2023 at 9:30 PM CDT')).toBeInTheDocument();
     });
   });
 

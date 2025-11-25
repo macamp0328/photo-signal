@@ -19,21 +19,21 @@ const mockConcerts: Concert[] = [
     id: 1,
     band: 'The Midnight Echoes',
     venue: 'The Fillmore',
-    date: '2023-08-15',
+    date: '2023-08-15T20:00:00-05:00',
     audioFile: '/audio/sample.opus',
   },
   {
     id: 2,
     band: 'Electric Dreams',
     venue: 'Red Rocks Amphitheatre',
-    date: '2023-09-22',
+    date: '2023-09-22T20:00:00-05:00',
     audioFile: '/audio/sample.opus',
   },
   {
     id: 3,
     band: 'Velvet Revolution',
     venue: 'Madison Square Garden',
-    date: '2023-10-10',
+    date: '2023-10-10T20:00:00-05:00',
     audioFile: '/audio/sample.opus',
   },
 ];
@@ -283,7 +283,7 @@ describe('DataService', () => {
       const results = dataService.search('2023-08-15');
 
       expect(results).toHaveLength(1);
-      expect(results[0].date).toBe('2023-08-15');
+      expect(results[0].date).toBe(mockConcerts[0].date);
     });
 
     it('should return multiple matches when query matches multiple concerts', () => {

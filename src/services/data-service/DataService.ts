@@ -1,4 +1,5 @@
 import type { Concert } from '../../types';
+import { getTimestampSearchText } from '../../utils/dateUtils';
 
 /**
  * Check if a concert has any photo hashes in the canonical multi-algorithm structure.
@@ -194,12 +195,14 @@ class DataService {
     if (!this.cache) return [];
 
     const lowerQuery = query.toLowerCase();
-    return this.cache.filter(
-      (concert) =>
-        concert.band.toLowerCase().includes(lowerQuery) ||
-        concert.venue.toLowerCase().includes(lowerQuery) ||
-        concert.date.includes(lowerQuery)
-    );
+    return this.cache.filter((concert) => {
+      const bandMatch = concert.band.toLowerCase().includes(lowerQuery);
+      const venueMatch = concert.venue.toLowerCase().includes(lowerQuery);
+      const rawDateMatch = concert.date.toLowerCase().includes(lowerQuery);
+      const formattedDateMatch = getTimestampSearchText(concert.date).includes(lowerQuery);
+
+      return bandMatch || venueMatch || rawDateMatch || formattedDateMatch;
+    });
   }
 
   /**

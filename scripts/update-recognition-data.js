@@ -3,6 +3,7 @@
 /* eslint-env node */
 
 import { readFile, writeFile, readdir, stat } from 'fs/promises';
+import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -19,6 +20,10 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
+const ORIGINAL_ARGS = process.argv.slice(2);
+const BATCH_CHILD_ENV = 'PHOTO_SIGNAL_BATCH_CHILD';
+const IS_BATCH_CHILD = process.env[BATCH_CHILD_ENV] === '1';
+const DEFAULT_BATCH_SIZE = 6;
 const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'assets/test-data/concerts.dev.json');
 const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
 const DEFAULT_IMAGE_DIR = path.resolve(repoRoot, 'assets/test-images');
@@ -59,7 +64,7 @@ function applyNumericOption(target, key, nextValue) {
 }
 
 function parseArgs() {
-  const args = process.argv.slice(2);
+  const args = ORIGINAL_ARGS;
   const options = {
     input: DEFAULT_TEST_DATA,
     public: DEFAULT_PUBLIC_DATA,
@@ -73,6 +78,8 @@ function parseArgs() {
     orbConfig: { ...DEFAULT_ORB_CONFIG },
     pathsMode: false,
     imageTargets: [],
+    batchSize: IS_BATCH_CHILD ? Number.POSITIVE_INFINITY : DEFAULT_BATCH_SIZE,
+    isBatchChild: IS_BATCH_CHILD,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -163,6 +170,17 @@ function parseArgs() {
       case '--paths-mode':
         options.pathsMode = true;
         break;
+      case '--batch-size': {
+        if (!args[i + 1]) {
+          throw new Error('--batch-size requires a numeric value (use 0 to disable)');
+        }
+        const raw = Number(args[++i]);
+        if (!Number.isFinite(raw) || raw < 0) {
+          throw new Error('--batch-size must be >= 0');
+        }
+        options.batchSize = raw === 0 ? Number.POSITIVE_INFINITY : Math.max(1, Math.floor(raw));
+        break;
+      }
       case '--paths':
       case '--images':
         if (!args[i + 1]) {
@@ -216,6 +234,111 @@ function splitListArg(value) {
     .split(',')
     .map((token) => token.trim())
     .filter(Boolean);
+}
+
+function chunkArray(items, size) {
+  if (!Number.isFinite(size) || size <= 0) {
+    return [items.slice()];
+  }
+  const result = [];
+  for (let i = 0; i < items.length; i += size) {
+    result.push(items.slice(i, i + size));
+  }
+  return result;
+}
+
+function buildBatchArgs(originalArgs) {
+  const filtered = [];
+  for (let i = 0; i < originalArgs.length; i++) {
+    const token = originalArgs[i];
+    if (token === '--ids' || token === '--id' || token === '--batch-size') {
+      i += 1;
+      continue;
+    }
+    filtered.push(token);
+  }
+  return filtered;
+}
+
+function parseSummaryStats(output) {
+  const hashMatch = output.match(/Hash updates:\s+(\d+)/);
+  const orbMatch = output.match(/ORB updates:\s+(\d+)/);
+  const skippedMatch = output.match(/Skipped:\s+(\d+)/);
+  return {
+    hashes: hashMatch ? Number(hashMatch[1]) : 0,
+    orb: orbMatch ? Number(orbMatch[1]) : 0,
+    skipped: skippedMatch ? Number(skippedMatch[1]) : 0,
+  };
+}
+
+function runChildBatch(childArgs, batchLabel) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [__filename, ...childArgs], {
+      env: { ...process.env, [BATCH_CHILD_ENV]: '1' },
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      const text = data.toString();
+      stdout += text;
+      process.stdout.write(text);
+    });
+
+    child.stderr.on('data', (data) => {
+      const text = data.toString();
+      stderr += text;
+      process.stderr.write(text);
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        reject(new Error(`Batch ${batchLabel} failed (exit code ${code})\n${stderr}`));
+      }
+    });
+  });
+}
+
+async function runBatchedProcessing(options, targets) {
+  const chunkSize = Math.max(1, Math.floor(options.batchSize));
+  const batches = chunkArray(targets, chunkSize);
+  const baseArgs = buildBatchArgs(ORIGINAL_ARGS);
+
+  console.log(
+    `⚙️  Processing ${targets.length} concert(s) in ${batches.length} batch(es) (≤ ${chunkSize} per batch)`
+  );
+  console.log('Use --batch-size to adjust or 0 to disable batching.');
+
+  let totalHashes = 0;
+  let totalOrb = 0;
+  let totalSkipped = 0;
+
+  for (let index = 0; index < batches.length; index++) {
+    const batch = batches[index];
+    const ids = batch.map((concert) => concert.id);
+    const label = `${index + 1}/${batches.length}`;
+    console.log(`\n📦 Batch ${label} → ids: ${ids.join(', ')}`);
+    const childArgs = [...baseArgs, '--ids', ids.join(',')];
+    const { stdout } = await runChildBatch(childArgs, label);
+    const summary = parseSummaryStats(stdout);
+    totalHashes += summary.hashes;
+    totalOrb += summary.orb;
+    totalSkipped += summary.skipped;
+  }
+
+  console.log('\n' + '━'.repeat(60));
+  console.log('✅ Batch processing complete');
+  console.log(`Hash updates: ${totalHashes}`);
+  console.log(`ORB updates:  ${totalOrb}`);
+  console.log(`Skipped:      ${totalSkipped}`);
 }
 
 async function loadConcertFile(filePath) {
@@ -521,6 +644,17 @@ async function main() {
 
   if (targets.length === 0) {
     console.log('No concerts matched the provided criteria.');
+    return;
+  }
+
+  const shouldBatch =
+    !options.pathsMode &&
+    !options.isBatchChild &&
+    Number.isFinite(options.batchSize) &&
+    targets.length > options.batchSize;
+
+  if (shouldBatch) {
+    await runBatchedProcessing(options, targets);
     return;
   }
 

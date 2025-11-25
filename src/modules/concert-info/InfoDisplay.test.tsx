@@ -8,7 +8,7 @@ describe('InfoDisplay', () => {
     id: 1,
     band: 'The Beatles',
     venue: 'Abbey Road Studios',
-    date: '2023-08-15',
+    date: '2023-08-15T20:00:00-05:00',
     audioFile: '/audio/beatles.opus',
   };
 
@@ -54,8 +54,8 @@ describe('InfoDisplay', () => {
     it('should display formatted date', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      // Date should be formatted as "August 15, 2023"
-      const formattedDate = screen.getByText('August 15, 2023');
+      // Date should be formatted with time when timestamp includes it
+      const formattedDate = screen.getByText('August 15, 2023 at 8:00 PM CDT');
       expect(formattedDate).toBeInTheDocument();
     });
 
@@ -64,7 +64,7 @@ describe('InfoDisplay', () => {
 
       expect(screen.getByText('The Beatles')).toBeInTheDocument();
       expect(screen.getByText('Abbey Road Studios')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
     });
 
     it('should display "Now Playing" label', () => {
@@ -81,37 +81,48 @@ describe('InfoDisplay', () => {
   });
 
   describe('Date Formatting', () => {
-    it('should format date "2023-08-15" as "August 15, 2023"', () => {
+    it('should format date "2023-08-15T20:00:00-05:00" with time and timezone', () => {
       const concert: Concert = {
         ...mockConcert,
-        date: '2023-08-15',
+        date: '2023-08-15T20:00:00-05:00',
       };
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('August 15, 2023')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
     });
 
     it('should format date "2024-01-01" as "January 1, 2024"', () => {
       const concert: Concert = {
         ...mockConcert,
-        date: '2024-01-01',
+        date: '2024-01-01T00:00:00-06:00',
       };
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('January 1, 2024')).toBeInTheDocument();
+      expect(screen.getByText('January 1, 2024 at 12:00 AM CST')).toBeInTheDocument();
     });
 
     it('should format date "2024-12-31" as "December 31, 2024"', () => {
       const concert: Concert = {
         ...mockConcert,
-        date: '2024-12-31',
+        date: '2024-12-31T18:30:00-06:00',
       };
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('December 31, 2024')).toBeInTheDocument();
+      expect(screen.getByText('December 31, 2024 at 6:30 PM CST')).toBeInTheDocument();
+    });
+
+    it('should include time and timezone when timestamp includes time data', () => {
+      const concert: Concert = {
+        ...mockConcert,
+        date: '2023-08-15T21:30:00-05:00',
+      };
+
+      render(<InfoDisplay concert={concert} isVisible={true} />);
+
+      expect(screen.getByText('August 15, 2023 at 9:30 PM CDT')).toBeInTheDocument();
     });
   });
 
@@ -169,7 +180,7 @@ describe('InfoDisplay', () => {
       const venue = screen.getByText('Abbey Road Studios');
       expect(venue.className).toContain('detailValue');
 
-      const date = screen.getByText('August 15, 2023');
+      const date = screen.getByText('August 15, 2023 at 8:00 PM CDT');
       expect(date.className).toContain('detailValue');
     });
   });
@@ -180,14 +191,14 @@ describe('InfoDisplay', () => {
         id: 1,
         band: '',
         venue: '',
-        date: '2023-08-15',
+        date: '2023-08-15T20:00:00-05:00',
         audioFile: '',
       };
 
       const { container } = render(<InfoDisplay concert={concert} isVisible={true} />);
 
       expect(container.querySelector('section')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
     });
 
     it('should handle very long band names', () => {

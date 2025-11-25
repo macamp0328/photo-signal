@@ -324,7 +324,7 @@ describe('CameraView', () => {
       id: 1,
       band: 'The Beatles',
       venue: 'Shea Stadium',
-      date: '1965-08-15',
+      date: '1965-08-15T19:30:00-05:00',
       audioFile: '/audio/beatles.opus',
     };
 
@@ -384,6 +384,20 @@ describe('CameraView', () => {
           error={null}
           hasPermission={true}
           concertInfo={mockConcert}
+          showConcertOverlay={true}
+        />
+      );
+
+      expect(screen.getByText('August 15, 1965')).toBeInTheDocument();
+    });
+
+    it('should show only the date portion when concertInfo includes a timestamp', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          concertInfo={{ ...mockConcert, date: '1965-08-15T19:30:00-05:00' }}
           showConcertOverlay={true}
         />
       );

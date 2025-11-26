@@ -272,6 +272,9 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** - Overview of the download → organize+encode → update pipeline with links to each stage
 - **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** - Combined organize + encode playbook covering cataloging, normalization, Opus mastering, and manifest generation
 - **[scripts/audio-workflow/encode/metadata-overrides.example.json](./scripts/audio-workflow/encode/metadata-overrides.example.json)** - Sample metadata override mapping showing how to pin custom dates/venues for the encode stage
+- **[scripts/audio-workflow/update/upload-to-r2.js](./scripts/audio-workflow/update/upload-to-r2.js)** - Cloudflare R2 uploader CLI with hash-based skip logic, concurrency controls, and CDN URL summaries
+- **[scripts/audio-workflow/update/upload-audio-local.sh](./scripts/audio-workflow/update/upload-audio-local.sh)** - Bash helper that sources `.env.local` before invoking the uploader
+- **[.env.example](./.env.example)** - Template for local environment variables (Cloudflare R2 credentials, upload defaults)
 - **[scripts/audio-workflow/download/download-yt-song.config.example.json](./scripts/audio-workflow/download/download-yt-song.config.example.json)** - Sample configuration for the yt-dlp download helper (copy to `download-yt-song.config.json` and customize defaults)
 - **[scripts/audio-workflow/download/download-yt-song.config.json](./scripts/audio-workflow/download/download-yt-song.config.json)** - Local default configuration pointing to the Photo Signal playlist and `../downloads` output folder
 - **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)

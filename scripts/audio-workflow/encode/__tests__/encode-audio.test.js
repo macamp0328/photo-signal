@@ -8,53 +8,69 @@ import {
 
 describe('encode-audio', () => {
   describe('generateOutputFilename', () => {
-    it('should generate filename with band-album format', () => {
-      const result = generateOutputFilename('The Midnight Echoes', 'Live at The Fillmore');
+    it('should generate filename with band-title-album format', () => {
+      const result = generateOutputFilename(
+        'The Midnight Echoes',
+        'Live at The Fillmore',
+        'City Lights'
+      );
 
-      expect(result).toBe('ps-the-midnight-echoes-live-at-the-fillmore.opus');
+      expect(result).toBe('ps-the-midnight-echoes-city-lights-live-at-the-fillmore.opus');
     });
 
     it('should normalize spaces to hyphens', () => {
-      const result = generateOutputFilename('Electric Dreams', 'Red Rocks Amphitheatre');
+      const result = generateOutputFilename('Electric Dreams', 'Red Rocks Amphitheatre', 'My Song');
 
-      expect(result).toBe('ps-electric-dreams-red-rocks-amphitheatre.opus');
+      expect(result).toBe('ps-electric-dreams-my-song-red-rocks-amphitheatre.opus');
       expect(result).not.toContain(' ');
     });
 
     it('should lowercase the filename', () => {
-      const result = generateOutputFilename('LOUD BAND', 'BIG VENUE');
+      const result = generateOutputFilename('LOUD BAND', 'BIG VENUE', 'LOUD TITLE');
 
-      expect(result).toBe('ps-loud-band-big-venue.opus');
+      expect(result).toBe('ps-loud-band-loud-title-big-venue.opus');
     });
 
     it('should remove special characters', () => {
-      const result = generateOutputFilename("The Band's Name!", 'Venue @#$% Place');
+      const result = generateOutputFilename(
+        "The Band's Name!",
+        'Venue @#$% Place',
+        'Hit Single!!!'
+      );
 
       expect(result).toMatch(/^ps-[\w-]+-[\w-]+\.opus$/);
       expect(result).not.toMatch(/[!@#$%']/);
     });
 
     it('should handle ampersands by converting to "and"', () => {
-      const result = generateOutputFilename('Rock & Roll Band', 'Blues & Jazz Festival');
+      const result = generateOutputFilename(
+        'Rock & Roll Band',
+        'Blues & Jazz Festival',
+        'Song & Dance'
+      );
 
       // The actual implementation uses sanitize which converts & to "and"
       expect(result).not.toContain('&');
     });
 
     it('should handle multiple consecutive spaces', () => {
-      const result = generateOutputFilename('Band    With    Spaces', 'Album  Title');
+      const result = generateOutputFilename(
+        'Band    With    Spaces',
+        'Album  Title',
+        'Track   Name'
+      );
 
       expect(result).not.toContain('  ');
     });
 
     it('should handle leading/trailing spaces', () => {
-      const result = generateOutputFilename('  Band Name  ', '  Album Name  ');
+      const result = generateOutputFilename('  Band Name  ', '  Album Name  ', '  Track Name  ');
 
-      expect(result).toBe('ps-band-name-album-name.opus');
+      expect(result).toBe('ps-band-name-track-name-album-name.opus');
     });
 
     it('should handle multiple hyphens', () => {
-      const result = generateOutputFilename('Band-Name', 'Album--Title');
+      const result = generateOutputFilename('Band-Name', 'Album--Title', 'Song--Title');
 
       expect(result).not.toMatch(/--+/);
     });

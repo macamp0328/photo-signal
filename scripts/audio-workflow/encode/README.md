@@ -90,7 +90,9 @@ Retiring the standalone `organize/` scripts keeps the workflow linear—run one 
 8. **Metadata tagging**
    - Apply ID tags using ffmpeg `-metadata` flags. Required fields listed below. Include `PHOTO_ID` custom tag for gallery linkage.
 9. **File naming & structure**
-   - Rename to `ps-<year><month><day>-<band-slug>-<venue-slug>.opus` (see naming spec) and store under `output/<photoId>/` for easy gallery sync.
+
+- Rename to `ps-<band-slug>-<track-slug>-<album-slug>.opus` (see naming spec) and store under `output/<photoId>/` for easy gallery sync.
+
 10. **Manifest + QC report**
     - Write/update `audio-index.json` with per-track object and link to CDN-ready path.
     - Emit `photo-audio-map.json` summarizing 1:1 relationships for gallery UI.
@@ -142,11 +144,11 @@ The orchestration script should read this config once and pass values into every
 
 ## Naming Convention
 
-Pattern: `ps-<YYYYMMDD>-<band>-<venue>.opus`
+Pattern: `ps-<band>-<track>-<album>.opus`
 
 - Lowercase, ASCII-only, hyphen separators
-- Slugify `band` and `venue` (spaces → hyphen, punctuation stripped)
-- `YYYYMMDD` pulled from concert date; use `unknown` when missing
+- Slugify band name, track title, and album (spaces → hyphen, punctuation stripped)
+- Missing segments are skipped automatically; if everything is missing the slug falls back to `unknown-track`
 - Store file under `output/<photoId>/ps-<...>.opus` to keep gallery mapping obvious.
 
 Example: `ps-20190814-car-seat-headrest-bowery-ballroom.opus`

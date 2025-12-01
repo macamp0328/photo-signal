@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "description": "A quiet, camera-based gallery that plays music when you point at a printed photo.",
   "type": "module",
+  "packageManager": "npm@10.8.2",
   "scripts": {
     "dev": "vite",
     "build": "cross-env NODE_ENV=production tsc -b && cross-env NODE_ENV=production vite build",

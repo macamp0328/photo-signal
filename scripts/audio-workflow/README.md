@@ -135,6 +135,17 @@ npm run migrate-audio -- [options]
 - Preserves local fallbacks (`audioFileFallback`) and annotates the CDN provider (`audioFileSource`)
 - Provides dry-run previews, change summaries, and backups
 
+### `update/apply-cdn-to-data.js`
+
+```bash
+npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
+```
+
+- Rewrites `audioFile` entries in `public/data.json` to point at a Cloudflare Worker hostname
+- Builds paths using `/<prefix>/<concertId>/<filename>` so R2 keys stay organized by photo ID
+- Keeps existing `audioFileFallback` values (or sets them from the previous `audioFile`)
+- Supports dry runs and automatic backups before writing
+
 ### `update/validate-audio-urls.js`
 
 ```bash

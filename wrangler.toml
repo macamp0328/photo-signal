@@ -1,0 +1,10 @@
+name = "photo-signal-audio-worker"
+main = "cloudflare/worker.ts"
+compatibility_date = "2024-12-01"
+
+[[r2_buckets]]
+binding = "AUDIO"
+bucket_name = "photo-signal-audio"
+
+[vars]
+ALLOWED_ORIGINS = "https://photo-signal.vercel.app,http://localhost:5173"

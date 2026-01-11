@@ -18,7 +18,7 @@ USE_DOCKER=true ./scripts/dev.sh
 
 ## Audio Workflow Directory
 
-The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run validate-audio`) still invoke the scripts in this directory directly.
+The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run apply-cdn-to-data`, `npm run validate-audio`) still invoke the scripts in this directory directly.
 
 ## Available Scripts
 

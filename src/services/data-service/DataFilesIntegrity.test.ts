@@ -70,6 +70,10 @@ function ensureFileExists(relativePath: string) {
   expect(existsSync(absolutePath)).toBe(true);
 }
 
+function isRemoteAsset(assetPath: string): boolean {
+  return /^https?:\/\//i.test(assetPath);
+}
+
 /**
  * Maps asset paths to their repository-relative locations.
  *
@@ -100,7 +104,9 @@ describe('Data files integrity', () => {
       seenIds.add(concert.id);
 
       expect(typeof concert.audioFile).toBe('string');
-      ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
+      if (!isRemoteAsset(concert.audioFile)) {
+        ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
+      }
 
       const isEdgeCase = Boolean(concert.id && concert.id >= 13);
       expectHashSet(concert.photoHashes, isEdgeCase);

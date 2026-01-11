@@ -18,7 +18,7 @@ USE_DOCKER=true ./scripts/dev.sh
 
 ## Audio Workflow Directory
 
-The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run validate-audio`) still invoke the scripts in this directory directly.
+The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run apply-cdn-to-data`, `npm run validate-audio`) still invoke the scripts in this directory directly.
 
 ## Available Scripts
 
@@ -350,11 +350,57 @@ npm run encode-audio
 # 3. Upload to CDN (future)
 # npm run upload-audio
 
-# 4. Validate URLs
+# 4. Rewrite data.json to the CDN base
+npm run apply-cdn-to-data -- --base-url="https://audio.example.com" --prefix=prod/audio
+
+# 5. Validate URLs
 npm run validate-audio
 ```
 
 See the [encode README](./audio-workflow/encode/README.md) for complete documentation, configuration details, and troubleshooting.
+
+---
+
+### `audio-workflow/update/upload-to-r2.js` - Upload Encoded Assets to Cloudflare R2
+
+Ships the Stage 2 output (Opus files, manifests, metadata) to Cloudflare R2 using the S3-compatible API.
+
+**Usage:**
+
+```bash
+# Upload everything under scripts/audio-workflow/encode/output
+npm run upload-audio -- --skip-existing
+
+# Same command but auto-load .env.local first
+npm run upload-audio:local -- --skip-existing
+
+# Override the destination prefix and run in dry-run mode
+npm run upload-audio -- --prefix staging/audio --dry-run
+
+# Point at a custom input directory
+npm run upload-audio -- --input-dir ./output --include-ext .opus,.json
+```
+
+**Environment variables:**
+
+- Copy `.env.example` to `.env.local` (ignored by git) and set the secrets there, or export them manually before running the script.
+
+- `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` (required) – issued from your Cloudflare R2 account
+- `R2_ENDPOINT` **or** `R2_ACCOUNT_ID` – endpoint base URL (`https://<account>.r2.cloudflarestorage.com`)
+- `R2_BUCKET_NAME` – defaults to `photo-signal-audio`
+- `R2_PREFIX` – optional folder-style prefix (e.g., `prod/audio`)
+- `R2_BASE_URL` – public URL root for summary output (`https://.../photo-signal-audio`)
+- `R2_INPUT_DIR`, `R2_INCLUDE_EXTENSIONS`, `R2_CONCURRENCY`, `R2_SKIP_EXISTING`, `R2_DRY_RUN` – override defaults without CLI flags
+
+**What it does:**
+
+- Discovers `.opus`, `.json`, and `.md` files under the chosen directory
+- Computes SHA-256 checksums and records them as R2 object metadata
+- Applies immutable cache headers for audio and short-lived caching for manifests
+- Offers `--skip-existing` to HEAD-check remote objects using stored hashes/size before uploading
+- Prints a deployment summary plus CDN-ready URLs for newly uploaded assets
+
+See the [audio workflow README](./audio-workflow/README.md#stage-3-update-ready) for additional context and usage tips.
 
 ---
 

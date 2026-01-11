@@ -1,5 +1,5 @@
 {
-  "playlist-url": "https://music.youtube.com/playlist?list=PLqTokna7EJXfV5PGot4LTW_RIU_QmIEge",
+  "playlist-url": "https://music.youtube.com/playlist?list=PLqTokna7EJXeh7ZRpEkMSXkOZxW06PrW-",
   "output-dir": "./downloads",
   "file-template": "%(playlist_index)02d - %(title)s.%(ext)s",
   "download-archive": "./downloads/.yt-dlp-archive.txt",

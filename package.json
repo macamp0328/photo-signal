@@ -29,16 +29,20 @@
     "create-easy-images": "node scripts/create-easy-test-images.js",
     "create-edge-case-images": "node scripts/create-edge-case-test-images.js",
     "create-photo-csv": "node scripts/create-photo-csv.js",
+    "apply-cdn-to-data": "node scripts/audio-workflow/update/apply-cdn-to-data.js",
     "migrate-audio": "node scripts/audio-workflow/update/migrate-audio-to-cdn.js",
     "validate-audio": "node scripts/audio-workflow/update/validate-audio-urls.js",
     "download-song": "node scripts/audio-workflow/download/download-yt-song.js",
     "encode-audio": "node scripts/audio-workflow/encode/encode-audio.js",
+    "upload-audio": "node scripts/audio-workflow/update/upload-to-r2.js",
+    "upload-audio:local": "bash scripts/audio-workflow/update/upload-audio-local.sh",
     "pre-commit": "npm audit --audit-level=moderate && npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.940.0",
     "howler": "^2.2.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

@@ -102,6 +102,8 @@ The encode stage reads from `.metadata.json` and embeds only **essential tags** 
 
 ### Structure Example
 
+This example is intentionally truncated. Ellipses (`...`) and placeholder strings show omitted data; remove them and use the actual fields from your `.info.json` to keep the file valid JSON.
+
 ```json
 {
   "schemaVersion": 1,
@@ -173,10 +175,10 @@ The encode stage reads from `.metadata.json` and embeds only **essential tags** 
     "ext": "opus",
     "format": "251 - audio only (medium)",
     "format_id": "251",
-    "thumbnails": [...],
-    "automatic_captions": {...},
-    "subtitles": {...},
-    // ... (100+ additional fields from yt-dlp)
+    "thumbnails": ["…"],
+    "automatic_captions": { "…": "…" },
+    "subtitles": { "…": "…" },
+    "additionalFields": "Additional yt-dlp fields omitted for brevity"
   }
 }
 ```

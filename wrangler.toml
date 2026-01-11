@@ -1,0 +1,10 @@
+name = "photo-signal-audio-worker"
+main = "cloudflare/worker.ts"
+compatibility_date = "2026-01-01"
+
+[[r2_buckets]]
+binding = "AUDIO"
+bucket_name = "photo-signal-audio"
+
+[vars]
+ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal-*.vercel.app,http://localhost:5173"

@@ -1,0 +1,102 @@
+status,bandNormalized,photoId,photoBand,photoImageFile,audioId,audioFileName,audioBand,notes
+"matched_single","teddy and the rough riders","1","Teddy and the Rough Riders","/assets/prod-photographs/P3150376.jpg","teddy-and-the-rough-riders-catfish-summer-catfish-summer","ps-teddy-and-the-rough-riders-catfish-summer-catfish-summer.opus","Teddy and the Rough Riders",
+"matched_single","jonny fritz","2","Jonny Fritz","/assets/prod-photographs/P3150420.jpg","jonny-fritz-goodbye-summer-dad-country","ps-jonny-fritz-goodbye-summer-dad-country.opus","Jonny Fritz",
+"ambiguous_multi_photo","jo alice","3","Jo Alice","/assets/prod-photographs/P3150466.jpg","jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call","ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call.opus","Jo Alice","Multiple photos share this band; confirm correct photoId"
+"no_audio_match","maz","4","Maz","/assets/prod-photographs/P3150522.jpg",,,,"No audio with matching band"
+"ambiguous_multi_both","ramesh","5","Ramesh","/assets/prod-photographs/P3150558.jpg",,,,"Photos: 5; 70 | Audio: ramesh-revolution-eternal-spring; ramesh-the-fool-eternal-spring"
+"matched_single","twin shadow","6","Twin Shadow","/assets/prod-photographs/P3150624.jpg","twin-shadow-as-soon-as-you-can-georgie","ps-twin-shadow-as-soon-as-you-can-georgie.opus","Twin Shadow",
+"ambiguous_multi_both","snacktime","7","SNACKTIME","/assets/prod-photographs/P3160701.jpg",,,,"Photos: 7; 43 | Audio: snacktime-snackmftime-sounds-from-the-street-live; snacktime-sdts-this-is-dance-music"
+"matched_single","ringo deathstarr","8","Ringo Deathstarr","/assets/prod-photographs/R0043343.jpg","ringo-deathstarr-kaleidoscope-colour-trip","ps-ringo-deathstarr-kaleidoscope-colour-trip.opus","Ringo Deathstarr",
+"no_audio_match","buffalo rose","9","Buffalo Rose","/assets/prod-photographs/R0043500.jpg",,,,"No audio with matching band"
+"no_audio_match","primo the alien","10","Primo the Alien","/assets/prod-photographs/R0043553.jpg",,,,"No audio with matching band"
+"no_audio_match","croy and the boys","11","Croy and the Boys","/assets/prod-photographs/R0043637.jpg",,,,"No audio with matching band"
+"no_audio_match","heavy meddo","12","Heavy Meddo","/assets/prod-photographs/R0043676.jpg",,,,"No audio with matching band"
+"no_audio_match","thelma and the sleaze","13","Thelma and the Sleaze","/assets/prod-photographs/R0043706.jpg",,,,"No audio with matching band"
+"no_audio_match","croy and the boys","14","Croy and the Boys","/assets/prod-photographs/R0043769.jpg",,,,"No audio with matching band"
+"matched_single","white denim","15","White Denim","/assets/prod-photographs/R0043815.jpg","white-denim-magazin-performance","ps-white-denim-magazin-performance.opus","White Denim",
+"no_audio_match","overcoats","16","Overcoats","/assets/prod-photographs/R0051464.jpg",,,,"No audio with matching band"
+"no_audio_match","cas haley","17","Cas Haley","/assets/prod-photographs/R0051481.jpg",,,,"No audio with matching band"
+"no_audio_match","le ren","18","Le Ren","/assets/prod-photographs/R0051507.jpg",,,,"No audio with matching band"
+"no_audio_match","thao the get down stay down","19","Thao & the Get Down Stay Down","/assets/prod-photographs/R0051522.jpg",,,,"No audio with matching band"
+"no_audio_match","charlie john","20","Charlie John","/assets/prod-photographs/R0051545.jpg",,,,"No audio with matching band"
+"ambiguous_multi_both","voxtrot","21","Voxtrot","/assets/prod-photographs/R0051569.jpg",,,,"Photos: 21; 46; 54; 91 | Audio: voxtrot-my-peace-my-peace; voxtrot-mothers-sisters-daughters-and-wives-early-music; voxtrot-my-peace-esprit-de-cur"
+"no_audio_match","arya","22","Arya","/assets/prod-photographs/R0051593.jpg",,,,"No audio with matching band"
+"no_audio_match","cheekface","23","Cheekface","/assets/prod-photographs/R0051602.jpg",,,,"No audio with matching band"
+"no_audio_match","dog petting","24","dog petting","/assets/prod-photographs/R0051614.jpg",,,,"No audio with matching band"
+"no_audio_match","david ramirez","25","David Ramirez","/assets/prod-photographs/R0051632.jpg",,,,"No audio with matching band"
+"no_audio_match","crumbsnatchers","26","Crumbsnatchers","/assets/prod-photographs/R0051657.jpg",,,,"No audio with matching band"
+"no_audio_match","izzy heltai","27","Izzy Heltai","/assets/prod-photographs/R0051663.jpg",,,,"No audio with matching band"
+"no_audio_match","riley downing","28","Riley Downing","/assets/prod-photographs/R0051681.jpg",,,,"No audio with matching band"
+"no_audio_match","matthew logan vasquez","29","Matthew Logan Vasquez","/assets/prod-photographs/R0051704.jpg",,,,"No audio with matching band"
+"matched_single","willow parlo","30","Willow Parlo","/assets/prod-photographs/R0055134.jpg","willow-parlo-cant-get-enough-see-u-whenever","ps-willow-parlo-cant-get-enough-see-u-whenever.opus","Willow Parlo",
+"matched_single","ace park","31","Ace Park","/assets/prod-photographs/R0055149.jpg","ace-park-my-bop-mifits-in-the-park","ps-ace-park-my-bop-mifits-in-the-park.opus","Ace Park",
+"no_audio_match","red axes","32","Red Axes","/assets/prod-photographs/R0055167.jpg",,,,"No audio with matching band"
+"ambiguous_multi_photo","jo alice","33","Jo Alice","/assets/prod-photographs/R0055209.jpg","jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call","ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call.opus","Jo Alice","Multiple photos share this band; confirm correct photoId"
+"ambiguous_multi_both","telescreens","34","Telescreens","/assets/prod-photographs/R0055227.jpg",,,,"Photos: 34; 51 | Audio: telescreens-phone-booth-stare-wide; telescreens-lost-lost"
+"no_audio_match","sea n barna","35","Sea_n Barna","/assets/prod-photographs/R0055267.jpg",,,,"No audio with matching band"
+"no_audio_match","bootsy collins","36","Bootsy Collins","/assets/prod-photographs/R0055319.jpg",,,,"No audio with matching band"
+"matched_single","fantaazma","37","FANTAAZMA","/assets/prod-photographs/R0055333.jpg","fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane","ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane.opus","FANTAAZMA",
+"no_audio_match","witworth","38","Witworth","/assets/prod-photographs/R0055413.jpg",,,,"No audio with matching band"
+"no_audio_match","mugger","39","Mugger","/assets/prod-photographs/R0055419.jpg",,,,"No audio with matching band"
+"no_audio_match","chokecherry","40","chokecherry","/assets/prod-photographs/R0055467.jpg",,,,"No audio with matching band"
+"matched_single","sextile","41","Sextile","/assets/prod-photographs/R0055482.jpg","sextile-crassy-mel-push","ps-sextile-crassy-mel-push.opus","Sextile",
+"matched_single","bad bad hats","42","Bad Bad Hats","/assets/prod-photographs/R0055488.jpg","bad-bad-hats-tpa-bad-bad-hats","ps-bad-bad-hats-tpa-bad-bad-hats.opus","Bad Bad Hats",
+"ambiguous_multi_both","snacktime","43","SNACKTIME","/assets/prod-photographs/R0055515.jpg",,,,"Photos: 7; 43 | Audio: snacktime-snackmftime-sounds-from-the-street-live; snacktime-sdts-this-is-dance-music"
+"matched_single","balthvs","44","Balthvs","/assets/prod-photographs/R0055518.jpg","balthvs-sun-and-moon-sun-and-moon","ps-balthvs-sun-and-moon-sun-and-moon.opus","BALTHVS",
+"matched_single","thus love","45","Thus Love","/assets/prod-photographs/R0055540.jpg","thus-love-put-on-dog-put-on-dog","ps-thus-love-put-on-dog-put-on-dog.opus","THUS LOVE",
+"ambiguous_multi_both","voxtrot","46","Voxtrot","/assets/prod-photographs/R0055558.jpg",,,,"Photos: 21; 46; 54; 91 | Audio: voxtrot-my-peace-my-peace; voxtrot-mothers-sisters-daughters-and-wives-early-music; voxtrot-my-peace-esprit-de-cur"
+"missing_photo_band",,"47",,"/assets/prod-photographs/R0055567.jpg",,,,"Add band to photo row"
+"missing_photo_band",,"48",,"/assets/prod-photographs/R0055584.jpg",,,,"Add band to photo row"
+"matched_single","reyna tropical","49","Reyna Tropical","/assets/prod-photographs/R0055598.jpg","reyna-tropical-conocerla-malegra","ps-reyna-tropical-conocerla-malegra.opus","Reyna Tropical",
+"matched_single","cumgirl8","50","cumgirl8","/assets/prod-photographs/R0055618.jpg","cumgirl8-cursed-angel-phantasea-pharm","ps-cumgirl8-cursed-angel-phantasea-pharm.opus","cumgirl8",
+"ambiguous_multi_both","telescreens","51","Telescreens","/assets/prod-photographs/R0055632.jpg",,,,"Photos: 34; 51 | Audio: telescreens-phone-booth-stare-wide; telescreens-lost-lost"
+"matched_single","eyeam","52","Eyeam","/assets/prod-photographs/R0055666.jpg","eyeam-breaking-down-breaking-down","ps-eyeam-breaking-down-breaking-down.opus","Eyeam",
+"matched_single","dry cleaning","53","Dry Cleaning","/assets/prod-photographs/R0055703.jpg","dry-cleaning-strong-feelings-new-long-leg","ps-dry-cleaning-strong-feelings-new-long-leg.opus","Dry Cleaning",
+"ambiguous_multi_both","voxtrot","54","Voxtrot","/assets/prod-photographs/R0055719.jpg",,,,"Photos: 21; 46; 54; 91 | Audio: voxtrot-my-peace-my-peace; voxtrot-mothers-sisters-daughters-and-wives-early-music; voxtrot-my-peace-esprit-de-cur"
+"matched_single","babe corner","55","Babe Corner","/assets/prod-photographs/R0055724.jpg","babe-corner-caught-on-the-double-crybaby","ps-babe-corner-caught-on-the-double-crybaby.opus","Babe Corner",
+"matched_single","super duty tough work","56","Super Duty Tough Work","/assets/prod-photographs/R0055734.jpg","super-duty-tough-work-guillotine-dreams-paradigm-shift","ps-super-duty-tough-work-guillotine-dreams-paradigm-shift.opus","Super Duty Tough Work",
+"ambiguous_multi_both","hinds","57","Hinds","/assets/prod-photographs/R0055762.jpg",,,,"Photos: 57; 72 | Audio: hinds-riding-solo-the-prettiest-curse; hinds-coffee-coffee"
+"no_audio_match","shower curtain","58","Shower Curtain","/assets/prod-photographs/R0055769.jpg",,,,"No audio with matching band"
+"matched_single","the barr brothers","59","The Barr Brothers","/assets/prod-photographs/R0055785.jpg","the-barr-brothers-red-moth-solar-companion-red-moth-solar-companion","ps-the-barr-brothers-red-moth-solar-companion-red-moth-solar-companion.opus","The Barr Brothers",
+"no_audio_match","mamalarkey","60","Mamalarkey","/assets/prod-photographs/R0055792.jpg",,,,"No audio with matching band"
+"no_audio_match","city of the sun","61","City of the Sun","/assets/prod-photographs/R0055808.jpg",,,,"No audio with matching band"
+"matched_single","the deslondes","62","The Deslondes","/assets/prod-photographs/R0055832.jpg","the-deslondes-south-dakota-wild-one-ways-and-means","ps-the-deslondes-south-dakota-wild-one-ways-and-means.opus","The Deslondes",
+"ambiguous_multi_audio","squirrel flower","63","Squirrel Flower","/assets/prod-photographs/R0055850.jpg",,,,"Choose audioId from: squirrel-flower-alley-light-alley-light; squirrel-flower-cortez-the-killer-live-in-austin-tx-cortez-the-killer"
+"no_audio_match","lucky lo","64","Lucky Lo","/assets/prod-photographs/R0055855.jpg",,,,"No audio with matching band"
+"matched_single","divorce","65","Divorce","/assets/prod-photographs/R0055861.jpg","divorce-gears-gears","ps-divorce-gears-gears.opus","Divorce",
+"no_audio_match","ang lica garcia","66","Ang�lica Garcia","/assets/prod-photographs/R0055887.jpg",,,,"No audio with matching band"
+"matched_single","urban heat","67","Urban Heat","/assets/prod-photographs/R0055906.jpg","urban-heat-right-time-of-night-right-time-of-night","ps-urban-heat-right-time-of-night-right-time-of-night.opus","Urban Heat",
+"matched_single","the tender things","68","The Tender Things","/assets/prod-photographs/R0055917.jpg","the-tender-things-that-texas-touch-that-texas-touch","ps-the-tender-things-that-texas-touch-that-texas-touch.opus","The Tender Things",
+"matched_single","vera ellen","69","Vera Ellen","/assets/prod-photographs/R0055981.jpg","vera-ellen-broadway-junction-ideal-home-noise","ps-vera-ellen-broadway-junction-ideal-home-noise.opus","Vera Ellen",
+"ambiguous_multi_both","ramesh","70","Ramesh","/assets/prod-photographs/R0056005.jpg",,,,"Photos: 5; 70 | Audio: ramesh-revolution-eternal-spring; ramesh-the-fool-eternal-spring"
+"matched_single","emily barker","71","Emily Barker","/assets/prod-photographs/R0056015.jpg","emily-barker-wild-to-be-sharing-this-moment-fragile-as-humans","ps-emily-barker-wild-to-be-sharing-this-moment-fragile-as-humans.opus","Emily Barker",
+"ambiguous_multi_both","hinds","72","Hinds","/assets/prod-photographs/R0056061.jpg",,,,"Photos: 57; 72 | Audio: hinds-riding-solo-the-prettiest-curse; hinds-coffee-coffee"
+"matched_single","dale watson","73","Dale Watson","/assets/prod-photographs/R0060168.jpg","dale-watson-south-of-round-rock-texas-cheatin-heart-attack","ps-dale-watson-south-of-round-rock-texas-cheatin-heart-attack.opus","Dale Watson",
+"matched_single","sir woman","74","Sir Woman","/assets/prod-photographs/R0060277.jpg","sir-woman-get-out-of-my-mind-get-out-of-my-mind","ps-sir-woman-get-out-of-my-mind-get-out-of-my-mind.opus","Sir Woman",
+"matched_single","otis wilkins","75","Otis Wilkins","/assets/prod-photographs/R0060550.jpg","otis-wilkins-belong-to-the-sea-belong-to-the-sea","ps-otis-wilkins-belong-to-the-sea-belong-to-the-sea.opus","Otis Wilkins",
+"matched_single","skloss","76","SKLOSS","/assets/prod-photographs/R0060571.jpg","skloss-the-pattern-speaks-the-pattern-speaks","ps-skloss-the-pattern-speaks-the-pattern-speaks.opus","SKLOSS",
+"no_audio_match","croy and the boys","77","Croy and the Boys","/assets/prod-photographs/R0060613.jpg",,,,"No audio with matching band"
+"no_audio_match","random band","78","Random Band","/assets/prod-photographs/R0060632.jpg",,,,"No audio with matching band"
+"ambiguous_multi_both","big girl","79","Big Girl","/assets/prod-photographs/R0060656.jpg",,,,"Photos: 79; 85 | Audio: big-girl-diy-god-diy-god; big-girl-instructions-2-say-sorry-instructions-2-say-sorry"
+"matched_single","stop motion orchestra","80","Stop Motion Orchestra","/assets/prod-photographs/R0060674.jpg","stop-motion-orchestra-blue-fog-hydnora","ps-stop-motion-orchestra-blue-fog-hydnora.opus","Stop Motion Orchestra",
+"matched_single","die spitz","81","Die Spitz","/assets/prod-photographs/R0060723.jpg","die-spitz-hair-of-dog-teeth","ps-die-spitz-hair-of-dog-teeth.opus","Die Spitz",
+"matched_single","shoganai","82","Shoganai","/assets/prod-photographs/R0060765.jpg","shoganai-carving-shoganai","ps-shoganai-carving-shoganai.opus","Shoganai",
+"matched_single","steef","83","STEEF","/assets/prod-photographs/R0060808.jpg","steef-thats-how-i-feel-frozen-in-place-thats-how-i-feel","ps-steef-thats-how-i-feel-frozen-in-place-thats-how-i-feel.opus","STEEF",
+"no_audio_match","blah spa","84","Blah Spa","/assets/prod-photographs/R0060822.jpg",,,,"No audio with matching band"
+"ambiguous_multi_both","big girl","85","Big Girl","/assets/prod-photographs/R0060833.jpg",,,,"Photos: 79; 85 | Audio: big-girl-diy-god-diy-god; big-girl-instructions-2-say-sorry-instructions-2-say-sorry"
+"matched_single","teenage sequence","86","Teenage Sequence","/assets/prod-photographs/R0060857.jpg","teenage-sequence-all-this-art-teenage-sequence","ps-teenage-sequence-all-this-art-teenage-sequence.opus","Teenage Sequence",
+"matched_single","rankydank","87","Rankydank","/assets/prod-photographs/R0060861.jpg","rankydank-feelin-sexual-feelin-sexual","ps-rankydank-feelin-sexual-feelin-sexual.opus","Rankydank",
+"matched_single","majvi superstar","88","Majvi Superstar","/assets/prod-photographs/R0060881.jpg","majvi-superstar-fever-dreaming-fever-dreaming","ps-majvi-superstar-fever-dreaming-fever-dreaming.opus","Majvi Superstar",
+"matched_single","maruja","89","Maruja","/assets/prod-photographs/R0060920.jpg","maruja-aon-aon","ps-maruja-aon-aon.opus","Maruja",
+"matched_single","bon enfant","90","Bon Enfant","/assets/prod-photographs/R0060940.jpg","bon-enfant-minimum-demande-spciale","ps-bon-enfant-minimum-demande-spciale.opus","Bon Enfant",
+"ambiguous_multi_both","voxtrot","91","Voxtrot","/assets/prod-photographs/R0060960.jpg",,,,"Photos: 21; 46; 54; 91 | Audio: voxtrot-my-peace-my-peace; voxtrot-mothers-sisters-daughters-and-wives-early-music; voxtrot-my-peace-esprit-de-cur"
+"no_photo_for_audio","sen barna",,,,"sen-barna-disco-nap-an-evening-at-macri-park","ps-sen-barna-disco-nap-an-evening-at-macri-park.opus","Sen Barna","Add photo row for this band"
+"no_photo_for_audio","henry invisible",,,,"henry-invisible-find-a-way-find-a-way","ps-henry-invisible-find-a-way-find-a-way.opus","Henry Invisible","Add photo row for this band"
+"no_photo_for_audio","chartreuse",,,,"chartreuse-switch-it-on-switch-it-off-morning-ritual","ps-chartreuse-switch-it-on-switch-it-off-morning-ritual.opus","Chartreuse","Add photo row for this band"
+"no_photo_for_audio","whitworth",,,,"whitworth-world-war-world-war","ps-whitworth-world-war-world-war.opus","Whitworth","Add photo row for this band"
+"no_photo_for_audio","suckling",,,,"suckling-sisyphus-suckling","ps-suckling-sisyphus-suckling.opus","Suckling","Add photo row for this band"
+"no_photo_for_audio","rip dunes",,,,"rip-dunes-i-dare-rip-dunes","ps-rip-dunes-i-dare-rip-dunes.opus","RIP Dunes","Add photo row for this band"
+"no_photo_for_audio","zoon",,,,"zoon-manitou-bekka-maiingan","ps-zoon-manitou-bekka-maiingan.opus","Zoon","Add photo row for this band"
+"no_photo_for_audio","mamalarky",,,,"mamalarky-you-know-i-know-pocket-fantasy","ps-mamalarky-you-know-i-know-pocket-fantasy.opus","Mamalarky","Add photo row for this band"
+"no_photo_for_audio","rose hotel",,,,"rose-hotel-some-velvet-morning-some-velvet-morning","ps-rose-hotel-some-velvet-morning-some-velvet-morning.opus","Rose Hotel","Add photo row for this band"
+"no_photo_for_audio","corridor",,,,"corridor-mourir-demain-mimi","ps-corridor-mourir-demain-mimi.opus","Corridor","Add photo row for this band"

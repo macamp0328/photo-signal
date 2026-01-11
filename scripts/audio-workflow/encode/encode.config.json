@@ -18,9 +18,9 @@
     "copyright": "Photo Signal",
     "website": "https://photosignal.app"
   },
-  "inputDir": "../download/output",
-  "workDir": "./work",
-  "outputDir": "./output",
+  "inputDir": "./downloads",
+  "workDir": "./scripts/audio-workflow/encode/work",
+  "outputDir": "./scripts/audio-workflow/encode/output",
   "_comment_photoMapPath": "Reserved for future use: will be used for photo manifest integration when implemented.",
   "photoMapPath": "../../../assets/example-real-photos/index.json"
 }

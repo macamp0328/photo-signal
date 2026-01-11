@@ -73,20 +73,6 @@ export interface ConcertData {
 }
 
 /**
- * Camera permission states
- */
-export type PermissionState = null | boolean;
-
-/**
- * Error types for better error handling
- */
-export interface AppError {
-  message: string;
-  code?: string;
-  module?: string;
-}
-
-/**
  * Aspect ratio for framing guides and cropping
  * - 'auto' is resolved by the photo-recognition module
  */

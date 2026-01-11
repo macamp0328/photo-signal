@@ -23,7 +23,6 @@ import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import type { Concert } from './types';
 import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
-import './index.css';
 
 const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');

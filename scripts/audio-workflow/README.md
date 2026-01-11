@@ -8,6 +8,18 @@ The Photo Signal audio workflow bundles every step required to take a YouTube Mu
 
 All related scripts live under `scripts/audio-workflow/` so the end-to-end process stays isolated from the rest of the project.
 
+## Metadata Philosophy: Capture Once, Store Outside
+
+**The workflow captures all metadata exactly once** during the download stage and stores it in `.metadata.json` files. This "single source of truth" approach:
+
+- ✅ **Avoids double work**: No need to re-tag during encoding
+- ✅ **Preserves complete data**: Stores the entire yt-dlp payload (`ytInfo` field) with 100+ fields
+- ✅ **Keeps containers lean**: Opus files contain minimal tags (title/artist/date/album)
+- ✅ **Enables structured data**: Arrays, objects, and URLs that Vorbis comments can't represent
+- ✅ **Surfaces rich metadata**: Manifests expose distributor, label, credits, tags, categories
+
+The encode stage reads from `.metadata.json` (never from audio container tags) and generates `audio-index.json` for the web app. **Team members should always look at `.metadata.json` or `audio-index.json` for complete metadata**, not at embedded Opus tags.
+
 ## Directory Structure
 
 ```

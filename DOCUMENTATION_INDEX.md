@@ -268,9 +268,9 @@ Each module has its own README defining its API contract, usage, and examples.
 ### Helper Scripts
 
 - **[scripts/README.md](./scripts/README.md)** - Documentation for all helper scripts, including hash generation tools
-- **[scripts/audio-workflow/download/README.md](./scripts/audio-workflow/download/README.md)** - Quick-start guide for yt-dlp downloader prerequisites, config, and sample commands
-- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** - Overview of the download → organize+encode → update pipeline with links to each stage
-- **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** - Combined organize + encode playbook covering cataloging, normalization, Opus mastering, and manifest generation
+- **[scripts/audio-workflow/download/README.md](./scripts/audio-workflow/download/README.md)** - Quick-start guide for yt-dlp downloader prerequisites, config, and sample commands. **Includes comprehensive metadata structure documentation** (`.metadata.json` format, `ytInfo` field, single source of truth strategy)
+- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** - Overview of the download → organize+encode → update pipeline with links to each stage. **Documents the "capture once, store outside" metadata philosophy**
+- **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** - Combined organize + encode playbook covering cataloging, normalization, Opus mastering, and manifest generation. **Explains minimal Opus embedding vs. rich manifest metadata strategy**
 - **[scripts/audio-workflow/encode/metadata-overrides.example.json](./scripts/audio-workflow/encode/metadata-overrides.example.json)** - Sample metadata override mapping showing how to pin custom dates/venues for the encode stage
 - **[scripts/audio-workflow/update/upload-to-r2.js](./scripts/audio-workflow/update/upload-to-r2.js)** - Cloudflare R2 uploader CLI with hash-based skip logic, concurrency controls, and CDN URL summaries
 - **[scripts/audio-workflow/update/upload-audio-local.sh](./scripts/audio-workflow/update/upload-audio-local.sh)** - Bash helper that sources `.env.local` before invoking the uploader

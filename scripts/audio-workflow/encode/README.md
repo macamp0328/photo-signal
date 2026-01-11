@@ -2,6 +2,17 @@
 
 This combined stage ingests the raw downloads gathered in `scripts/audio-workflow/download/`, organizes them into gallery-aware folders, and produces production-ready audio masters for the `update/` phase. The guiding intent is to make every track behave identically in the browser—levels, tags, filenames, manifests, and photo IDs should be deterministic so the site can stream ~100 songs without surprises.
 
+## Metadata Philosophy: Read from JSON, Embed Minimally
+
+**The encode stage reads all metadata from `.metadata.json` files**, not from audio container tags. This follows the "capture once, store outside" principle:
+
+- **Source of truth**: `.metadata.json` contains structured data (`ytInfo` with complete yt-dlp payload)
+- **Opus files stay lean**: Only essential tags (title, artist, album, date) are embedded for media player compatibility
+- **Rich data in manifests**: `audio-index.json` exposes full metadata (genre, credits, tags, categories, distributor, label) sourced from `.metadata.json`
+- **No container parsing**: Encode stage never calls ffprobe to extract tags from input Opus files
+
+This approach avoids double work, prevents metadata bloat, and preserves structured data (arrays, objects, URLs) that Vorbis comments can't represent.
+
 ## Quick Start
 
 ```bash
@@ -155,19 +166,117 @@ Example: `ps-20190814-car-seat-headrest-bowery-ballroom.opus`
 
 ## Metadata Requirements
 
-| Tag           | Source                                          |
-| ------------- | ----------------------------------------------- |
-| `title`       | `<Band> — <Venue> (<Date>)`                     |
-| `artist`      | Band name                                       |
-| `album`       | Config default or per-track override            |
-| `date`        | ISO date string (YYYY-MM-DD)                    |
-| `location`    | Venue + city/state if available                 |
-| `comment`     | "Encoded for Photo Signal" + optional notes     |
-| `website`     | `https://photosignal.app` (ensures provenance)  |
-| `PHOTO_ID`    | Custom Vorbis tag linking to gallery photo      |
-| `PHOTO_PANEL` | Optional custom tag referencing wall column/row |
+### What Gets Embedded in Opus Files (Minimal)
 
-Apply tags directly during ffmpeg encode or via `opusinfo --set-...` equivalent.
+The encode stage embeds **only essential tags** for media player compatibility:
+
+| Tag         | Source                                         |
+| ----------- | ---------------------------------------------- |
+| `title`     | `<Band> — <Venue> (<Date>)`                    |
+| `artist`    | Band name                                      |
+| `album`     | Config default or per-track override           |
+| `date`      | ISO date string (YYYY-MM-DD)                   |
+| `genre`     | Derived from tags/categories or config default |
+| `publisher` | Record label (if available)                    |
+| `label`     | Distributor (if available)                     |
+| `comment`   | "Encoded for Photo Signal"                     |
+| `copyright` | Config default (e.g., "Photo Signal")          |
+| `website`   | `https://photosignal.app` (ensures provenance) |
+
+**Why so minimal?** Opus files are meant to be lean and portable. Rich metadata lives in `audio-index.json` where the web app can access it efficiently.
+
+### What Lives in audio-index.json (Rich Metadata)
+
+The `audio-index.json` manifest contains **all metadata** sourced from `.metadata.json`:
+
+- **Basic info**: id, band, album, date, releaseDate
+- **Music metadata**: genre, recordLabel, distributor
+- **Structured data**: tags (array), categories (array), credits (object)
+- **Audio specs**: durationMs, bitrateKbps, sourceBitrateKbps, sampleRate
+- **Quality metrics**: lufsIntegrated, truePeakDb, lra
+- **File info**: fileName, checksum
+
+Example entry:
+
+```json
+{
+  "id": "20230815-the-midnight-echoes-the-fillmore",
+  "band": "The Midnight Echoes",
+  "album": "Live at The Fillmore",
+  "date": "2023-08-15",
+  "releaseDate": "2023-08-20",
+  "genre": "Indie Rock",
+  "recordLabel": "Indie Records",
+  "distributor": "DistroKid",
+  "tags": ["indie", "rock", "live", "2023"],
+  "categories": ["Music"],
+  "credits": {
+    "Producer": ["John Smith"],
+    "Composer": ["Jane Doe", "The Midnight Echoes"]
+  },
+  "durationMs": 245000,
+  "bitrateKbps": 128,
+  "sourceBitrateKbps": 125,
+  "sourceBitrateSource": "metadata",
+  "sampleRate": 48000,
+  "lufsIntegrated": -14.1,
+  "truePeakDb": -1.3,
+  "lra": 10.8,
+  "fileName": "ps-20230815-the-midnight-echoes-the-fillmore.opus",
+  "checksum": "a1b2c3d4e5f6..."
+}
+```
+
+### Reading Metadata from .metadata.json
+
+The encode stage demonstrates how to extract rich metadata from the `ytInfo` field:
+
+```javascript
+// Load metadata
+const metadata = JSON.parse(readFileSync('track.metadata.json', 'utf-8'));
+const ytInfo = metadata?.ytInfo ?? {};
+
+// Extract distributor from description
+const description = ytInfo.description ?? '';
+const distributorMatch = description.match(/^Provided to YouTube by\s+(.+)$/im);
+const distributor = distributorMatch?.[1]?.trim() ?? null;
+
+// Extract record label
+const labelMatch = description.match(/^℗\s*(.+)$/m);
+const recordLabel = labelMatch?.[1]?.trim() ?? null;
+
+// Get all tags
+const tags = Array.isArray(ytInfo.tags) ? ytInfo.tags : [];
+
+// Parse credits from description lines like "Producer: John Smith"
+const credits = {};
+description.split(/\r?\n/).forEach((line) => {
+  const match = line.match(/^([^:]+):\s*(.+)$/);
+  if (match) {
+    const [, role, name] = match;
+    if (!credits[role]) credits[role] = [];
+    credits[role].push(name.trim());
+  }
+});
+```
+
+**Key principle**: The encode stage never extracts metadata from the downloaded Opus container. It reads exclusively from `.metadata.json` (which contains the complete `ytInfo` payload from yt-dlp).
+
+### Legacy: Why We Stopped Using --add-metadata
+
+The old workflow would:
+
+1. ❌ Run yt-dlp with `--add-metadata` to inject tags into downloaded Opus
+2. ❌ Run ffprobe during encode to extract those tags back out
+3. ❌ Re-tag the normalized master with updated metadata
+4. ❌ Result: double work, bloated containers, lost structured data
+
+The new workflow:
+
+1. ✅ yt-dlp captures complete metadata into `.info.json`
+2. ✅ Download stage copies entire payload to `.metadata.json` (`ytInfo` field)
+3. ✅ Encode stage reads JSON, embeds minimal tags
+4. ✅ Result: single source of truth, lean containers, preserved structure
 
 ### Music Metadata Enrichment
 

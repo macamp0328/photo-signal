@@ -81,3 +81,155 @@ For each track the script can optionally emit:
 - Thumbnail image saved as `.webp` (embedding disabled by default; toggle with flags as needed)
 
 These artifacts feed directly into the Organize + Encode stage, which expects the metadata JSON files to sit alongside the raw downloads.
+
+## Metadata Structure: Single Source of Truth
+
+**The `.metadata.json` file is the single source of truth for all track metadata.** It contains:
+
+1. **Structured metadata** (`playlist`, `track`, `download`, `source`) - normalized fields used by the encode stage
+2. **Complete yt-dlp payload** (`ytInfo`) - the entire `.info.json` content for deep access to all YouTube Music metadata
+
+### Why Keep Metadata Outside the Audio Container?
+
+Following the principle of "capture once, store outside," we:
+
+- **Avoid double work**: No need to re-tag during normalization/encoding
+- **Preserve complete data**: Vorbis comments can't hold structured data (arrays, nested objects, artwork URLs)
+- **Keep containers lean**: Opus files stay small without embedded metadata bloat
+- **Enable manifest-driven playback**: The web app reads from `audio-index.json`, never from file tags
+
+The encode stage reads from `.metadata.json` and embeds only **essential tags** (title, artist, album, date) for media player compatibility. Everything else lives in the JSON manifests.
+
+### Structure Example
+
+```json
+{
+  "schemaVersion": 1,
+  "generatedAt": "2024-01-15T10:30:00.000Z",
+  "playlist": {
+    "url": "https://music.youtube.com/playlist?list=...",
+    "id": "PLqTokna7EJXf...",
+    "title": "My Playlist",
+    "index": 1
+  },
+  "track": {
+    "id": "abc123xyz",
+    "title": "Band Name @ Venue Name",
+    "album": "Album Name",
+    "artist": "Band Name",
+    "description": "Full description...",
+    "releaseDate": "2023-08-15",
+    "uploadDate": "2023-08-20",
+    "channelId": "UCxyz...",
+    "durationSeconds": 245,
+    "thumbnails": [
+      {
+        "url": "https://i.ytimg.com/vi/abc123/maxresdefault.jpg",
+        "width": 1280,
+        "height": 720
+      }
+    ],
+    "webpageUrl": "https://music.youtube.com/watch?v=abc123xyz",
+    "tags": ["indie", "rock", "live"],
+    "categories": ["Music"]
+  },
+  "download": {
+    "filePath": "/path/to/01 - Track.opus",
+    "fileName": "01 - Track.opus",
+    "ext": "opus",
+    "originalExt": "opus",
+    "codec": "opus",
+    "bitrateKbps": 125,
+    "fileSizeBytes": 3840000,
+    "formatAttempted": "opus",
+    "formatPreference": ["opus", "mp3"],
+    "archivePath": "/path/to/.yt-dlp-archive.txt"
+  },
+  "source": {
+    "playlistUrl": "https://music.youtube.com/playlist?list=...",
+    "trackUrl": null,
+    "requestedUrl": "https://music.youtube.com/playlist?list=..."
+  },
+  "infoJsonPath": "/path/to/01 - Track.info.json",
+  "ytInfo": {
+    "_type": "video",
+    "id": "abc123xyz",
+    "title": "Band Name @ Venue Name",
+    "description": "Full description with credits...",
+    "uploader": "Band Name - Topic",
+    "channel": "Band Name",
+    "channel_id": "UCxyz...",
+    "duration": 245,
+    "webpage_url": "https://music.youtube.com/watch?v=abc123xyz",
+    "categories": ["Music"],
+    "tags": ["indie", "rock", "live"],
+    "artists": ["Band Name"],
+    "album": "Album Name",
+    "track": "Track Name",
+    "release_date": "20230815",
+    "upload_date": "20230820",
+    "acodec": "opus",
+    "abr": 125,
+    "ext": "opus",
+    "format": "251 - audio only (medium)",
+    "format_id": "251",
+    "thumbnails": [...],
+    "automatic_captions": {...},
+    "subtitles": {...},
+    // ... (100+ additional fields from yt-dlp)
+  }
+}
+```
+
+### Accessing Rich Metadata
+
+The **`ytInfo` field contains the complete, unmodified yt-dlp metadata**. Use it when you need:
+
+- **Auto-generated credits**: `ytInfo.description` often contains "Producer: ...", "Composer: ...", etc.
+- **Distributor/label**: Description may include "Provided to YouTube by ..." and "℗ Record Label"
+- **All available tags**: `ytInfo.tags` is the full array, not just what we cherry-picked
+- **Format details**: `ytInfo.format`, `ytInfo.format_id`, `ytInfo.format_note` show what container/codec was used
+- **Artwork URLs**: `ytInfo.thumbnails` array with all resolutions
+- **Channel metadata**: `ytInfo.channel_follower_count`, `ytInfo.view_count`, etc.
+- **Any other yt-dlp field**: 100+ fields available for custom processing
+
+The encode stage (`scripts/audio-workflow/encode/encode-audio.js`) demonstrates how to consume this:
+
+```javascript
+const ytInfo = metadata?.ytInfo ?? {};
+const description = ytInfo.description ?? '';
+
+// Parse distributor from "Provided to YouTube by ..." line
+const distributorMatch = description.match(/^Provided to YouTube by\s+(.+)$/im);
+const distributor = distributorMatch?.[1]?.trim() ?? null;
+
+// Extract record label from "℗ Label Name" line
+const labelMatch = description.match(/^℗\s*(.+)$/m);
+const recordLabel = labelMatch?.[1]?.trim() ?? null;
+
+// Access all tags
+const allTags = Array.isArray(ytInfo.tags) ? ytInfo.tags : [];
+
+// Get artist list
+const artists = Array.isArray(ytInfo.artists) ? ytInfo.artists : [];
+```
+
+**Important**: The structured `track` and `download` fields are convenience accessors for common fields, but **always prefer `ytInfo` when you need the complete, authoritative data** from YouTube Music.
+
+### Why Not Embed Metadata in Opus?
+
+The old approach (yt-dlp `--add-metadata`) would:
+
+1. ❌ Inject tags during download (work #1)
+2. ❌ Re-tag during encoding (work #2)
+3. ❌ Bloat containers with verbose comments
+4. ❌ Lose structured data (arrays, URLs, nested objects)
+5. ❌ Require ffprobe to read tags during encode
+
+The new approach:
+
+1. ✅ Capture once into `.metadata.json`
+2. ✅ Encode stage reads JSON, embeds minimal tags
+3. ✅ Manifests (`audio-index.json`) expose rich metadata to web app
+4. ✅ Containers stay lean (~3-5 MB per track)
+5. ✅ Structured data preserved (arrays, objects, URLs)

@@ -108,11 +108,31 @@ function getObjectKey(pathname: string) {
   if (!decoded.startsWith(`/${AUDIO_PREFIX}`)) {
     return null;
   }
-  const key = decoded.replace(/^\/+/, '');
-  if (key.includes('..')) {
+
+  const rawKey = decoded.replace(/^\/+/, '');
+  const segments = rawKey.split('/');
+  const normalizedSegments: string[] = [];
+
+  for (const segment of segments) {
+    if (!segment || segment === '.') {
+      continue;
+    }
+    if (segment === '..') {
+      if (normalizedSegments.length === 0) {
+        return null;
+      }
+      normalizedSegments.pop();
+      continue;
+    }
+    normalizedSegments.push(segment);
+  }
+
+  const normalizedKey = normalizedSegments.join('/');
+  if (normalizedKey !== AUDIO_PREFIX && !normalizedKey.startsWith(`${AUDIO_PREFIX}/`)) {
     return null;
   }
-  return key;
+
+  return normalizedKey;
 }
 
 function selectCorsOrigin(origin: string | null, allowedOrigins: string[], allowAnyOrigin: boolean) {
@@ -130,9 +150,10 @@ export default {
     const url = new URL(request.url);
     const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
     const origin = request.headers.get('Origin');
-    const hasSharedSecret =
-      Boolean(env.SHARED_SECRET) &&
-      request.headers.get('X-PS-Shared-Secret') === env.SHARED_SECRET;
+    const hasSharedSecret = Boolean(env.SHARED_SECRET) && safeCompare(
+      request.headers.get('X-PS-Shared-Secret'),
+      env.SHARED_SECRET
+    );
     const originAllowed = isOriginAllowed(origin, allowedOrigins, hasSharedSecret);
 
     if (request.method === 'OPTIONS') {
@@ -219,3 +240,17 @@ export default {
     return new Response(object.body, { status, headers });
   },
 };
+
+function safeCompare(a: string | null, b: string | null) {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a ?? '');
+  const bBytes = enc.encode(b ?? '');
+  const len = Math.max(aBytes.length, bBytes.length);
+  let result = aBytes.length ^ bBytes.length;
+  for (let i = 0; i < len; i++) {
+    const av = aBytes[i % aBytes.length] ?? 0;
+    const bv = bBytes[i % bBytes.length] ?? 0;
+    result |= av ^ bv;
+  }
+  return result === 0;
+}

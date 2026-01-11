@@ -15,8 +15,6 @@
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
  *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
  *   --check-fallback      Also check fallback URLs
- *   --base-url=<url>      Override base URL (e.g., https://audio.example.com)
- *   --prefix=<path>       Override key prefix (default: prod/audio)
  *   --help                Show this help message
  *
  * Examples:

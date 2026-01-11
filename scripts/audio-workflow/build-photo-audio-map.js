@@ -34,8 +34,8 @@ async function main() {
 
   for (const photo of photos) {
     const normBand = normalizeBand(photo.band);
-    const candidates = normBand ? trackGroups.get(normBand) ?? [] : [];
-    const siblingPhotos = normBand ? photoGroups.get(normBand) ?? [] : [];
+    const candidates = normBand ? (trackGroups.get(normBand) ?? []) : [];
+    const siblingPhotos = normBand ? (photoGroups.get(normBand) ?? []) : [];
 
     if (!photo.band) {
       rows.push(buildRow('missing_photo_band', normBand, photo, null, 'Add band to photo row'));

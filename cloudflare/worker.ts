@@ -26,26 +26,79 @@ const AUDIO_PREFIX = 'prod/audio/';
 const DEFAULT_AUDIO_CONTENT_TYPE = 'audio/ogg; codecs=opus';
 const DEFAULT_CACHE_CONTROL_AUDIO = 'public, max-age=31536000, immutable';
 const DEFAULT_CACHE_CONTROL_METADATA = 'public, max-age=300';
-const DEFAULT_ALLOWED_ORIGINS = ['https://photo-signal.vercel.app', 'http://localhost:5173'];
+const DEFAULT_ALLOWED_ORIGIN_STRINGS = [
+  'https://www.whoisduck2.com',
+  'https://whoisduck2.com',
+  'https://photo-signal-*.vercel.app',
+  'http://localhost:5173',
+];
 
-function parseAllowedOrigins(value?: string | null): string[] {
-  if (!value) {
-    return DEFAULT_ALLOWED_ORIGINS;
-  }
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
+type AllowedOrigin =
+  | { type: 'exact'; origin: string }
+  | { type: 'wildcard'; protocol: string; hostnameSuffix: string };
+
+function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
+  const rawValues = value
+    ? value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : DEFAULT_ALLOWED_ORIGIN_STRINGS;
+
+  return rawValues
+    .map((raw) => {
+      const wildcardMatch = /^(https?:\/\/)\*\.(.+)$/i.exec(raw);
+      if (wildcardMatch) {
+        return {
+          type: 'wildcard' as const,
+          protocol: wildcardMatch[1].toLowerCase(),
+          hostnameSuffix: wildcardMatch[2].toLowerCase(),
+        };
+      }
+
+      try {
+        const url = new URL(raw);
+        return { type: 'exact' as const, origin: url.origin };
+      } catch {
+        return null;
+      }
+    })
+    .filter((value): value is AllowedOrigin => Boolean(value));
 }
 
-function isOriginAllowed(origin: string | null, allowedOrigins: string[], hasSharedSecret: boolean) {
+function matchAllowedOrigin(origin: string | null, allowedOrigins: AllowedOrigin[]): string | null {
   if (!origin) {
-    return hasSharedSecret;
+    return null;
   }
-  if (!allowedOrigins.length) {
-    return hasSharedSecret;
+
+  let originUrl: URL;
+  try {
+    originUrl = new URL(origin);
+  } catch {
+    return null;
   }
-  return allowedOrigins.includes(origin) || hasSharedSecret;
+
+  const normalizedOrigin = `${originUrl.protocol}//${originUrl.host}`;
+  const hostname = originUrl.hostname.toLowerCase();
+
+  for (const allowed of allowedOrigins) {
+    if (allowed.type === 'exact' && normalizedOrigin === allowed.origin) {
+      return normalizedOrigin;
+    }
+
+    if (allowed.type === 'wildcard') {
+      if (originUrl.protocol !== allowed.protocol) {
+        continue;
+      }
+
+      const suffix = allowed.hostnameSuffix.toLowerCase();
+      if (hostname === suffix || hostname.endsWith(`.${suffix}`)) {
+        return normalizedOrigin;
+      }
+    }
+  }
+
+  return null;
 }
 
 function buildCorsHeaders(origin: string | null) {
@@ -135,26 +188,18 @@ function getObjectKey(pathname: string) {
   return normalizedKey;
 }
 
-function selectCorsOrigin(origin: string | null, allowedOrigins: string[], allowAnyOrigin: boolean) {
-  if (!origin) {
-    return null;
-  }
-  if (allowAnyOrigin) {
-    return origin;
-  }
-  return allowedOrigins.includes(origin) ? origin : null;
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
     const origin = request.headers.get('Origin');
-    const hasSharedSecret = Boolean(env.SHARED_SECRET) && safeCompare(
-      request.headers.get('X-PS-Shared-Secret'),
-      env.SHARED_SECRET
-    );
-    const originAllowed = isOriginAllowed(origin, allowedOrigins, hasSharedSecret);
+    const matchedOrigin = matchAllowedOrigin(origin, allowedOrigins);
+    const hasSharedSecret =
+      Boolean(env.SHARED_SECRET) &&
+      safeCompare(request.headers.get('X-PS-Shared-Secret'), env.SHARED_SECRET);
+    const allowAnyOrigin = hasSharedSecret;
+    const originAllowed = Boolean(matchedOrigin) || allowAnyOrigin;
+    const corsOrigin = allowAnyOrigin ? (origin ?? matchedOrigin) : matchedOrigin;
 
     if (request.method === 'OPTIONS') {
       if (!originAllowed) {
@@ -162,7 +207,7 @@ export default {
       }
       return new Response(null, {
         status: 204,
-        headers: buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret)),
+        headers: buildCorsHeaders(corsOrigin),
       });
     }
 
@@ -176,13 +221,13 @@ export default {
 
     const key = getObjectKey(url.pathname);
     if (!key) {
-      const headers = buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret));
+      const headers = buildCorsHeaders(corsOrigin);
       return new Response('Not found', { status: 404, headers });
     }
 
     const head = await env.AUDIO.head(key);
     if (!head) {
-      const headers = buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret));
+      const headers = buildCorsHeaders(corsOrigin);
       return new Response('Not found', { status: 404, headers });
     }
 
@@ -191,7 +236,7 @@ export default {
     if (ifNoneMatch && etag) {
       const candidates = ifNoneMatch.split(',').map((value) => value.trim());
       if (candidates.includes(etag)) {
-        const headers = buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret));
+        const headers = buildCorsHeaders(corsOrigin);
         headers.set('ETag', etag);
         headers.set('Cache-Control', getCacheControl(key));
         headers.set('Accept-Ranges', 'bytes');
@@ -202,7 +247,7 @@ export default {
     const rangeHeader = request.headers.get('Range');
     const range = parseRange(rangeHeader, head.size);
     if (range === 'invalid') {
-      const headers = buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret));
+      const headers = buildCorsHeaders(corsOrigin);
       headers.set('Accept-Ranges', 'bytes');
       headers.set('Content-Range', `bytes */${head.size}`);
       return new Response('Requested Range Not Satisfiable', { status: 416, headers });
@@ -214,11 +259,11 @@ export default {
     );
 
     if (!object) {
-      const headers = buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret));
+      const headers = buildCorsHeaders(corsOrigin);
       return new Response('Not found', { status: 404, headers });
     }
 
-    const headers = buildCorsHeaders(selectCorsOrigin(origin, allowedOrigins, hasSharedSecret));
+    const headers = buildCorsHeaders(corsOrigin);
     headers.set('Content-Type', inferContentType(key));
     headers.set('Cache-Control', getCacheControl(key));
     headers.set('ETag', etag ?? '');

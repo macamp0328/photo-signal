@@ -176,8 +176,8 @@ This example is intentionally truncated. Ellipses (`...`) and placeholder string
     "format": "251 - audio only (medium)",
     "format_id": "251",
     "thumbnails": ["…"],
-    "automatic_captions": {"…": "…"},
-    "subtitles": {"…": "…"},
+    "automatic_captions": { "…": "…" },
+    "subtitles": { "…": "…" },
     "additionalFields": "Additional yt-dlp fields omitted for brevity"
   }
 }

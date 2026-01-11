@@ -38,7 +38,9 @@ async function main() {
 
   await fs.writeFile(outputPath, JSON.stringify(json, null, 2), 'utf8');
   console.info(`Wrote ${mappedEntries.length} mappings to ${outputPath}`);
-  console.info(`Mapped ${Array.from(mappings.keys()).length} audioIds; others left as null photoId`);
+  console.info(
+    `Mapped ${Array.from(mappings.keys()).length} audioIds; others left as null photoId`
+  );
 }
 
 async function loadDeterministicMappings(csvPath) {
@@ -67,7 +69,7 @@ async function loadTracks(audioIndexPath) {
 
 function value(row, headerIndex, key) {
   const idx = headerIndex[key];
-  return typeof idx === 'number' ? row[idx] ?? '' : '';
+  return typeof idx === 'number' ? (row[idx] ?? '') : '';
 }
 
 function parseCsv(content) {

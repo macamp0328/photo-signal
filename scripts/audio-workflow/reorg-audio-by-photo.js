@@ -52,10 +52,12 @@ async function main() {
     console.info(`${dryRun ? '[dry-run] ' : ''}moved ${fileName} -> ${photoId}/`);
   }
 
-  console.info(`Done. moved=${moved}, skipped=${skipped}, missing=${missing}${dryRun ? ' (dry-run)' : ''}`);
+  console.info(
+    `Done. moved=${moved}, skipped=${skipped}, missing=${missing}${dryRun ? ' (dry-run)' : ''}`
+  );
 }
 
-function findFileNameForAudioId(entry, outputDir) {
+function findFileNameForAudioId(entry) {
   if (entry.fileName) return entry.fileName;
   const candidate = `ps-${entry.audioId}.opus`;
   return candidate;

@@ -18,9 +18,13 @@ binding = "AUDIO"
 bucket_name = "photo-signal-audio"
 
 [vars]
-ALLOWED_ORIGINS = "https://photo-signal.vercel.app,http://localhost:5173"
+ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal-*.vercel.app,http://localhost:5173"
 SHARED_SECRET = "generate-a-random-value" # optional
 ```
+
+The `*.vercel.app` wildcard keeps Vercel preview deployments (e.g.,
+`https://photo-signal-git-feat-prod-audio-r2.macamp0328.vercel.app`) CORS-eligible
+without needing to redeploy the Worker for every branch.
 
 Publish with:
 

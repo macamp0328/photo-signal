@@ -33,6 +33,7 @@
 - **[docs/codecov-setup-guide.md](./docs/codecov-setup-guide.md)** - Step-by-step guide for setting up Codecov coverage tracking with screenshots and troubleshooting
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
+- **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** - Cloudflare Worker audio proxy configuration, R2 bindings, and data rewrites
 
 ### Accessibility
 

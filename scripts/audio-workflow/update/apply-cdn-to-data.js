@@ -2,209 +2,177 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const DEFAULT_DATA = path.resolve('public/data.json');
-const DEFAULT_AUDIO_INDEX = path.resolve('scripts/audio-workflow/encode/output/audio-index.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '../../..');
 
-const ENV_BASE_URL = process.env.R2_BASE_URL;
-const ENV_PREFIX = process.env.R2_PREFIX ?? 'prod/audio';
+const DEFAULT_SOURCE = 'public/data.json';
+const DEFAULT_PREFIX = 'prod/audio';
+const AUDIO_SOURCE = 'r2-worker';
 
-function normalizeBaseUrl(baseUrl) {
-  if (!baseUrl) return '';
-  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+export function trimTrailingSlash(value) {
+  if (!value) return value;
+  return value.endsWith('/') ? value.replace(/\/+$/, '') : value;
 }
 
-function normalizePrefix(prefix) {
+export function sanitizePrefix(prefix) {
   if (!prefix) return '';
-  const trimmed = prefix.trim();
-  return trimmed.replace(/^\/+/, '').replace(/\/+$/, '');
+  return prefix.replace(/^\/+|\/+$/g, '');
 }
 
-function parseArgs(argv) {
-  const args = {};
-  for (const token of argv) {
-    if (!token.startsWith('--')) continue;
-    const [rawKey, rawValue] = token.slice(2).split('=');
-    const key = rawKey.trim();
-    if (!key) continue;
-    if (typeof rawValue === 'undefined') {
-      args[key] = true;
-    } else {
-      args[key] = rawValue.trim();
-    }
+export function buildAudioUrl(concert, baseUrl, prefix = DEFAULT_PREFIX) {
+  if (!concert?.audioFile || !concert?.id) {
+    throw new Error('concert must include id and audioFile');
   }
-  return args;
+  const filename = path.basename(concert.audioFile);
+  const cleanedBase = trimTrailingSlash(baseUrl);
+  const cleanedPrefix = sanitizePrefix(prefix);
+  const parts = [cleanedBase, cleanedPrefix, String(concert.id), filename].filter(Boolean);
+  return parts.join('/').replace(/(?<!:)\/+/g, '/');
 }
 
-function toBoolean(value) {
-  if (value === undefined || value === null) return false;
-  if (typeof value === 'boolean') return value;
-  const normalized = String(value).toLowerCase();
-  return normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'y';
-}
-
-function stripToPath(value) {
-  if (!value) return '';
-  if (value.startsWith('http://') || value.startsWith('https://')) {
-    const parsed = new URL(value);
-    return parsed.pathname.replace(/^\/+/, '');
-  }
-  return value.replace(/^\/+/, '');
-}
-
-function deriveKeyFromIndex(audioIndexMap, concertId, prefix) {
-  if (!audioIndexMap.size) return null;
-  const entry = audioIndexMap.get(String(concertId));
-  if (!entry) return null;
-  const normalizedPrefix = normalizePrefix(prefix);
-  const filePath = stripToPath(entry);
-
-  if (!normalizedPrefix) return filePath;
-
-  const needle = `${normalizedPrefix}/`;
-  if (filePath.startsWith(needle)) return filePath;
-
-  const prefixIndex = filePath.indexOf(needle);
-  if (prefixIndex !== -1) return filePath.slice(prefixIndex);
-
-  return `${normalizedPrefix}/${filePath}`;
-}
-
-function deriveKeyFromAudio(concert, prefix) {
-  const normalizedPrefix = normalizePrefix(prefix);
-  const sourceUrl = concert.audioFile || concert.audioFileFallback;
-  if (!sourceUrl) return null;
-
-  const pathOnly = stripToPath(sourceUrl);
-  if (!normalizedPrefix) return pathOnly;
-
-  const needle = `${normalizedPrefix}/`;
-  if (pathOnly.startsWith(needle)) {
-    return pathOnly;
+export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) {
+  if (!concert.audioFile) {
+    return concert;
   }
 
-  const prefixIndex = pathOnly.indexOf(needle);
-  if (prefixIndex !== -1) {
-    return pathOnly.slice(prefixIndex);
-  }
+  const updatedAudioUrl = buildAudioUrl(concert, baseUrl, prefix);
+  const nextFallback = concert.audioFileFallback ?? concert.audioFile;
 
-  const filename = path.basename(pathOnly) || `concert-${concert.id}.opus`;
-  return `${normalizedPrefix}/${concert.id}/${filename}`;
+  return {
+    ...concert,
+    audioFile: updatedAudioUrl,
+    audioFileFallback: nextFallback,
+    audioFileSource: AUDIO_SOURCE,
+  };
 }
 
-function loadAudioIndex(audioIndexPath) {
-  if (!fs.existsSync(audioIndexPath)) return new Map();
-  const content = fs.readFileSync(audioIndexPath, 'utf8');
-  const parsed = JSON.parse(content);
-  const tracks = Array.isArray(parsed.tracks) ? parsed.tracks : [];
-
-  const map = new Map();
-  for (const track of tracks) {
-    const photoId = track.photoId ?? track.id;
-    if (!photoId) continue;
-    const filePath = track.filePath ?? track.fileName;
-    if (!filePath) continue;
-    map.set(String(photoId), filePath);
+export function applyCdnToData(data, baseUrl, prefix = DEFAULT_PREFIX) {
+  if (!data?.concerts || !Array.isArray(data.concerts)) {
+    throw new Error('Invalid data.json format: missing concerts array');
   }
 
-  return map;
+  const updatedConcerts = data.concerts.map((concert) =>
+    updateConcertWithCdn(concert, baseUrl, prefix)
+  );
+
+  return { ...data, concerts: updatedConcerts };
 }
 
-function createBackup(filePath) {
+export function createBackup(filePath) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Cannot create backup: file not found: ${filePath}`);
+  }
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const backupPath = `${filePath}.backup-${timestamp}`;
   fs.copyFileSync(filePath, backupPath);
   return backupPath;
 }
 
-function updateConcert(concert, baseUrl, prefix, audioIndexMap) {
-  const key =
-    deriveKeyFromIndex(audioIndexMap, concert.id, prefix) ?? deriveKeyFromAudio(concert, prefix);
-
-  if (!key) {
-    return { updated: false, concert, reason: 'missing-key' };
+function parseArgs(argv) {
+  const args = {};
+  for (const arg of argv) {
+    if (arg.startsWith('--')) {
+      const [key, value] = arg.includes('=') ? arg.slice(2).split('=') : [arg.slice(2), true];
+      args[key] = value;
+    }
   }
-
-  const nextAudioUrl = `${baseUrl}/${key}`;
-  const fallback = concert.audioFileFallback || concert.audioFile;
-
-  const merged = {
-    ...concert,
-    audioFile: nextAudioUrl,
-    ...(fallback ? { audioFileFallback: fallback } : {}),
-    audioFileSource: 'r2-worker',
-  };
-
-  const changed =
-    concert.audioFile !== merged.audioFile ||
-    concert.audioFileFallback !== merged.audioFileFallback ||
-    concert.audioFileSource !== merged.audioFileSource;
-
-  return { updated: changed, concert: merged, reason: changed ? 'updated' : 'unchanged' };
+  return args;
 }
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
+function printHelp() {
+  console.log(`Apply Cloudflare Worker CDN URLs to data.json
 
-  const dataPath = path.resolve(args.data ?? DEFAULT_DATA);
-  const audioIndexPath = path.resolve(args.audio ?? DEFAULT_AUDIO_INDEX);
-  const baseUrl = normalizeBaseUrl(args['base-url'] ?? ENV_BASE_URL);
-  const prefix = normalizePrefix(args.prefix ?? ENV_PREFIX);
-  const dryRun = toBoolean(args['dry-run']);
+Usage:
+  npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
+
+Options:
+  --source=<path>   Path to data.json (default: ${DEFAULT_SOURCE})
+  --base-url=<url>  Base URL for the Cloudflare Worker (required)
+  --prefix=<path>   Key prefix inside the bucket (default: ${DEFAULT_PREFIX})
+  --dry-run         Preview changes without writing the file
+  --help            Show this message
+`);
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    printHelp();
+    process.exit(0);
+  }
+
+  const source = args.source ? String(args.source) : DEFAULT_SOURCE;
+  const baseUrl = args['base-url'] ? trimTrailingSlash(String(args['base-url'])) : '';
+  const prefix = args.prefix ? sanitizePrefix(String(args.prefix)) : DEFAULT_PREFIX;
+  const dryRun = Boolean(args['dry-run']);
 
   if (!baseUrl) {
-    throw new Error('Missing base URL. Pass --base-url or set R2_BASE_URL.');
+    console.error('❌ Error: --base-url is required');
+    process.exit(1);
   }
 
-  const dataRaw = fs.readFileSync(dataPath, 'utf8');
-  const data = JSON.parse(dataRaw);
-  if (!Array.isArray(data.concerts)) {
-    throw new Error('Invalid data.json: missing concerts array');
+  const dataPath = path.resolve(projectRoot, source);
+  if (!fs.existsSync(dataPath)) {
+    console.error(`❌ Error: Source file not found: ${dataPath}`);
+    process.exit(1);
   }
 
-  const audioIndexMap = loadAudioIndex(audioIndexPath);
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  } catch (error) {
+    console.error(`❌ Error: Invalid JSON in ${dataPath}`);
+    console.error(error);
+    process.exit(1);
+  }
 
-  console.log('🎵 Applying CDN base to data.json');
-  console.log(`  Source: ${dataPath}`);
-  console.log(`  Audio index: ${audioIndexMap.size ? audioIndexPath : 'not found (skipping)'}`);
-  console.log(`  Base URL: ${baseUrl}`);
-  console.log(`  Prefix: ${prefix || '(none)'}`);
-  console.log(`  Dry Run: ${dryRun ? 'Yes' : 'No'}\n`);
+  let updated;
+  try {
+    updated = applyCdnToData(parsed, baseUrl, prefix);
+  } catch (error) {
+    console.error(`❌ Error: ${error.message}`);
+    process.exit(1);
+  }
 
-  let updated = 0;
-  let unchanged = 0;
-  let missing = 0;
-
-  const nextConcerts = [];
-
-  for (const concert of data.concerts) {
-    const result = updateConcert(concert, baseUrl, prefix, audioIndexMap);
-    nextConcerts.push(result.concert);
-
-    if (result.reason === 'missing-key') {
-      missing += 1;
-    } else if (result.updated) {
-      updated += 1;
-    } else {
-      unchanged += 1;
+  const changes = [];
+  for (let i = 0; i < parsed.concerts.length; i++) {
+    const before = parsed.concerts[i];
+    const after = updated.concerts[i];
+    if (before.audioFile !== after.audioFile) {
+      changes.push({
+        id: before.id,
+        band: before.band,
+        from: before.audioFile,
+        to: after.audioFile,
+      });
     }
   }
 
+  console.log('🎧 Apply CDN to data.json');
+  console.log(`  Source: ${dataPath}`);
+  console.log(`  Base URL: ${baseUrl}`);
+  console.log(`  Prefix: ${prefix}`);
+  console.log(`  Dry run: ${dryRun ? 'yes' : 'no'}`);
+  console.log('');
+  console.log(`Found ${changes.length} audio entries to update.`);
+
   if (dryRun) {
-    console.info(`✅ Dry run complete — ${updated} concerts would be updated (${missing} missing keys).`);
-    return;
+    console.log('⚠️  DRY RUN - no files were modified');
+    process.exit(0);
   }
 
-  const backupPath = createBackup(dataPath);
-  fs.writeFileSync(dataPath, JSON.stringify({ ...data, concerts: nextConcerts }, null, 2) + '\n');
+  try {
+    const backupPath = createBackup(dataPath);
+    console.log(`💾 Backup created at ${backupPath}`);
+  } catch (error) {
+    console.error(`❌ Backup failed: ${error.message}`);
+    process.exit(1);
+  }
 
-  console.info(`✅ Updated data.json and created backup at ${backupPath}`);
-  console.info(`   Updated concerts: ${updated}`);
-  console.info(`   Unchanged concerts: ${unchanged}`);
-  console.info(`   Missing keys: ${missing}`);
+  const output = JSON.stringify(updated, null, 2) + '\n';
+  fs.writeFileSync(dataPath, output, 'utf8');
+  console.log('✅ data.json updated with CDN URLs');
 }
-
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});

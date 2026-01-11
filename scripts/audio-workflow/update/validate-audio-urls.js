@@ -12,9 +12,9 @@
  * Options:
  *   --source=<path>       Path to data.json (default: public/data.json)
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
+ *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
+ *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
  *   --check-fallback      Also check fallback URLs
- *   --base-url=<url>      Override base URL (e.g., https://audio.example.com)
- *   --prefix=<path>       Override key prefix (default: prod/audio)
  *   --help                Show this help message
  *
  * Examples:
@@ -33,6 +33,7 @@ import path from 'path';
 import https from 'https';
 import http from 'http';
 import { fileURLToPath } from 'url';
+import { buildAudioUrl, sanitizePrefix, trimTrailingSlash } from './apply-cdn-to-data.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,6 +69,20 @@ for (const arg of args) {
       process.exit(1);
     }
     options.timeout = parseInt(value, 10);
+  } else if (arg.startsWith('--base-url=')) {
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --base-url requires a value');
+      process.exit(1);
+    }
+    options.baseUrl = trimTrailingSlash(value);
+  } else if (arg.startsWith('--prefix=')) {
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --prefix requires a value');
+      process.exit(1);
+    }
+    options.prefix = sanitizePrefix(value);
   }
 }
 
@@ -84,6 +99,8 @@ Usage:
 Options:
   --source=<path>       Path to data.json (default: public/data.json)
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
+  --base-url=<url>      Override audioFile with CDN base URL
+  --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --check-fallback      Also check fallback URLs
   --help                Show this help message
 
@@ -306,6 +323,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     source: 'public/data.json',
     timeout: 10000,
     checkFallback: false,
+    baseUrl: '',
+    prefix: 'prod/audio',
     help: false,
   };
 
@@ -334,14 +353,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         console.error('❌ Error: --base-url requires a value');
         process.exit(1);
       }
-      options.baseUrl = value;
+      options.baseUrl = trimTrailingSlash(value);
     } else if (arg.startsWith('--prefix=')) {
       const value = arg.split('=')[1];
       if (!value) {
         console.error('❌ Error: --prefix requires a value');
         process.exit(1);
       }
-      options.prefix = value;
+      options.prefix = sanitizePrefix(value);
     }
   }
 
@@ -358,6 +377,8 @@ Usage:
 Options:
   --source=<path>       Path to data.json (default: public/data.json)
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
+  --base-url=<url>      Override audioFile with CDN base URL
+  --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --check-fallback      Also check fallback URLs
   --base-url=<url>      Override base URL (e.g., https://audio.example.com)
   --prefix=<path>       Override key prefix (default: prod/audio)
@@ -385,9 +406,12 @@ Examples:
     console.log('Configuration:');
     console.log(`  Source: ${options.source}`);
     console.log(`  Timeout: ${options.timeout}ms`);
-    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}`);
-    console.log(`  Base URL Override: ${options.baseUrl || 'None (use data.json value)'}`);
-    console.log(`  Prefix Override: ${options.prefix || 'None'}\n`);
+    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}\n`);
+    if (options.baseUrl) {
+      console.log(`  Base URL: ${options.baseUrl}`);
+      console.log(`  Prefix: ${options.prefix}`);
+      console.log('');
+    }
 
     // Read source data.json
     const sourcePath = path.resolve(projectRoot, options.source);
@@ -424,23 +448,22 @@ Examples:
     for (const concert of data.concerts) {
       console.log(`Checking Concert #${concert.id}: ${concert.band}`);
 
-      const primaryUrl = resolveAudioUrl(
-        concert.audioFile,
-        concert.id,
-        options.baseUrl,
-        options.prefix
-      );
+      if (!concert.audioFile) {
+        console.log('  ⏭️  Skipping: no audioFile found\n');
+        continue;
+      }
 
-      const primaryResult = primaryUrl
-        ? await checkUrl(primaryUrl, options.timeout)
-        : {
-            url: String(primaryUrl),
-            status: 0,
-            statusText: 'Missing audioFile',
-            accessible: false,
-            isLocal: false,
-            error: 'Missing audioFile',
-          };
+      if (options.baseUrl && !concert.id) {
+        console.log('  ⏭️  Skipping: concert is missing id required for CDN path\n');
+        continue;
+      }
+
+      // Check primary URL
+      const targetUrl = options.baseUrl
+        ? buildAudioUrl(concert, options.baseUrl, options.prefix)
+        : concert.audioFile;
+
+      const primaryResult = await checkUrl(targetUrl, options.timeout);
       results.push({
         concert,
         type: 'primary',
@@ -448,10 +471,7 @@ Examples:
       });
 
       const primaryIcon = primaryResult.accessible ? '✓' : '✗';
-      console.log(`  ${primaryIcon} Primary:  ${primaryUrl ?? 'N/A'}`);
-      if (options.baseUrl && primaryUrl && primaryUrl !== concert.audioFile) {
-        console.log(`            Source:  ${concert.audioFile}`);
-      }
+      console.log(`  ${primaryIcon} Primary:  ${targetUrl}`);
       console.log(`            Status: ${primaryResult.status} ${primaryResult.statusText}`);
 
       if (primaryResult.accessible) {

@@ -350,7 +350,10 @@ npm run encode-audio
 # 3. Upload to CDN (future)
 # npm run upload-audio
 
-# 4. Validate URLs
+# 4. Rewrite data.json to the CDN base
+npm run apply-cdn-to-data -- --base-url="https://audio.example.com" --prefix=prod/audio
+
+# 5. Validate URLs
 npm run validate-audio
 ```
 

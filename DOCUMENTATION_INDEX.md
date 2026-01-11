@@ -116,6 +116,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[tsconfig.app.json](./tsconfig.app.json)** - TypeScript app-specific configuration
 - **[tsconfig.node.json](./tsconfig.node.json)** - TypeScript Node.js configuration
 - **[vercel.json](./vercel.json)** - Vercel deployment settings
+- **[wrangler.toml](./wrangler.toml)** - Cloudflare Worker configuration with R2 bucket binding
 
 ### Testing
 
@@ -374,7 +375,7 @@ This index covers:
 - ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Module implementation files (13 files - secret-settings feature flags, custom settings, hooks, effects, photo-rectangle-detection service and overlay, parallel-recognizer)
 - ✅ Photo recognition algorithms (5 files - dhash, phash, hamming, utils, parallel-recognizer with PARALLEL_RECOGNITION.md)
-- ✅ Configuration files (15 files - including playwright.config.ts)
+- ✅ Configuration files (16 files - including playwright.config.ts and wrangler.toml)
 - ✅ GitHub Actions & workflows (5 files - CI workflow, visual regression, edge case accuracy, auto-fix Copilot PR, manage labels)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)

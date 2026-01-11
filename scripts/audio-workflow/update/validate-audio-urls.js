@@ -15,6 +15,8 @@
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
  *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
  *   --check-fallback      Also check fallback URLs
+ *   --base-url=<url>      Override base URL (e.g., https://audio.example.com)
+ *   --prefix=<path>       Override key prefix (default: prod/audio)
  *   --help                Show this help message
  *
  * Examples:
@@ -260,6 +262,61 @@ export function generateReport(stats) {
   return report;
 }
 
+export function normalizeBaseUrl(baseUrl) {
+  if (!baseUrl) return '';
+  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+}
+
+export function normalizePrefix(prefix) {
+  if (!prefix) return '';
+  const trimmed = prefix.trim();
+  return trimmed.replace(/^\/+/, '').replace(/\/+$/, '');
+}
+
+export function resolveAudioUrl(rawUrl, concertId, baseUrl, prefix) {
+  if (!rawUrl) return null;
+
+  const normalizedBase = normalizeBaseUrl(baseUrl);
+  const normalizedPrefix = normalizePrefix(prefix);
+
+  if (!normalizedBase) {
+    return rawUrl;
+  }
+
+  const pathPart = buildPathWithPrefix(rawUrl, concertId, normalizedPrefix);
+  return `${normalizedBase}/${pathPart}`;
+}
+
+function buildPathWithPrefix(rawUrl, concertId, prefix) {
+  const pathOnly = stripToPath(rawUrl);
+  if (!prefix) {
+    return pathOnly.replace(/^\/+/, '');
+  }
+
+  const normalizedPrefix = `${prefix}/`;
+
+  if (pathOnly.startsWith(normalizedPrefix)) {
+    return pathOnly;
+  }
+
+  const prefixIndex = pathOnly.indexOf(normalizedPrefix);
+  if (prefixIndex !== -1) {
+    return pathOnly.slice(prefixIndex);
+  }
+
+  const filename = path.basename(pathOnly) || `concert-${concertId}.opus`;
+  return `${prefix}/${concertId}/${filename}`;
+}
+
+function stripToPath(value) {
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    const parsed = new URL(value);
+    return parsed.pathname.replace(/^\/+/, '');
+  }
+
+  return value.replace(/^\/+/, '');
+}
+
 // Only run CLI logic when executed directly (not when imported as a module)
 if (import.meta.url === `file://${process.argv[1]}`) {
   // Parse command line arguments
@@ -325,6 +382,8 @@ Options:
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --check-fallback      Also check fallback URLs
+  --base-url=<url>      Override base URL (e.g., https://audio.example.com)
+  --prefix=<path>       Override key prefix (default: prod/audio)
   --help                Show this help message
 
 Examples:
@@ -336,6 +395,9 @@ Examples:
 
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+
+  # Validate against a CDN base
+  node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio
 `);
     process.exit(0);
   }
@@ -422,7 +484,14 @@ Examples:
 
       // Check fallback URL if requested
       if (options.checkFallback && concert.audioFileFallback) {
-        const fallbackResult = await checkUrl(concert.audioFileFallback, options.timeout);
+        const fallbackUrl = resolveAudioUrl(
+          concert.audioFileFallback,
+          concert.id,
+          options.baseUrl,
+          options.prefix
+        );
+
+        const fallbackResult = await checkUrl(fallbackUrl, options.timeout);
         results.push({
           concert,
           type: 'fallback',
@@ -430,7 +499,7 @@ Examples:
         });
 
         const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
-        console.log(`  ${fallbackIcon} Fallback: ${concert.audioFileFallback}`);
+        console.log(`  ${fallbackIcon} Fallback: ${fallbackUrl}`);
         console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
       }
 

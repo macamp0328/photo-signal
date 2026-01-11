@@ -22,7 +22,7 @@ export interface Env {
   SHARED_SECRET?: string;
 }
 
-const AUDIO_PREFIX = 'prod/audio/';
+const AUDIO_PREFIX = 'prod/audio';
 const DEFAULT_AUDIO_CONTENT_TYPE = 'audio/ogg; codecs=opus';
 const DEFAULT_CACHE_CONTROL_AUDIO = 'public, max-age=31536000, immutable';
 const DEFAULT_CACHE_CONTROL_METADATA = 'public, max-age=300';

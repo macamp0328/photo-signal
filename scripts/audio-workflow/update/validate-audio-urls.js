@@ -380,8 +380,6 @@ Options:
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --check-fallback      Also check fallback URLs
-  --base-url=<url>      Override base URL (e.g., https://audio.example.com)
-  --prefix=<path>       Override key prefix (default: prod/audio)
   --help                Show this help message
 
 Examples:

@@ -25,7 +25,7 @@ async function main() {
       skipped += 1;
       continue;
     }
-    const fileName = entry.fileName ?? findFileNameForAudioId(entry, outputDir);
+    const fileName = entry.fileName ?? findFileNameForAudioId(entry);
     if (!fileName) {
       missing += 1;
       continue;

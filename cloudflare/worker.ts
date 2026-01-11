@@ -54,7 +54,10 @@ function buildCorsHeaders(origin: string | null) {
     headers.set('Access-Control-Allow-Origin', origin);
   }
   headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, If-None-Match, Range, X-Requested-With, X-PS-Shared-Secret');
+  headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, If-None-Match, Range, X-Requested-With, X-PS-Shared-Secret'
+  );
   headers.set('Vary', 'Origin');
   return headers;
 }

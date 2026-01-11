@@ -146,3 +146,37 @@ npm run validate-audio -- [options]
 - Supports adjustable timeouts plus optional fallback checks
 
 Refer to the corresponding sections inside [scripts/README.md](../README.md) for detailed flag descriptions, sample output, and troubleshooting tips.
+
+## Photo ↔ Audio Mapping Workflow (deterministic, band-based)
+
+Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally CSV-driven so you can edit in Excel and re-run deterministically.
+
+1) **Generate/refresh photo catalog (optional):**
+    - Run `npm run create-photo-csv` to rebuild `assets/test-data/prod-photographs.csv` from EXIF in `assets/prod-photographs/` (fills `imageFile`, date, camera fields; `band`/`venue` remain manual).
+
+2) **Run band-only matcher:**
+    - `node scripts/audio-workflow/build-photo-audio-map.js`
+    - Inputs (defaults): `assets/test-data/prod-photographs.csv`, `scripts/audio-workflow/encode/output/audio-index.json`
+    - Output: `assets/test-data/photo-audio-map.csv`
+
+3) **Review `photo-audio-map.csv` statuses:**
+    - `matched_single`: one photo ↔ one track (ready)
+    - `ambiguous_multi_audio`: one photo, multiple tracks with same band — pick an `audioId`
+    - `ambiguous_multi_photo`: multiple photos share band — confirm correct `photoId`
+    - `ambiguous_multi_both`: multiple photos and tracks — decide pairing
+    - `no_audio_match`: photo band not in audio — add song or leave unmapped
+    - `no_photo_for_audio`: audio band lacks photo — add photo row
+    - `missing_photo_band`: fill `band` in `prod-photographs.csv`
+
+4) **Fix data and re-run:**
+    - Edit `assets/test-data/prod-photographs.csv` (add/fix `band`, resolve typos, add new photos)
+    - Re-run `node scripts/audio-workflow/build-photo-audio-map.js` until ambiguous/missing rows are resolved to your satisfaction.
+
+5) **Publish mapping:**
+    - Use `node scripts/audio-workflow/sync-photo-audio-map.js` to regenerate `encode/output/photo-audio-map.json` from the finalized CSV. Only `status == matched_single` rows are applied; others remain `photoId: null` for safety.
+    - Use `node scripts/audio-workflow/sync-audio-index-paths.js` to backfill `photoId` and `filePath` in `audio-index.json` so manifests align with the per-photo folder layout.
+
+6) **(Optional) Reorganize encoded files into per-photo folders:**
+    - `node scripts/audio-workflow/reorg-audio-by-photo.js [--dry-run]`
+    - Reads `encode/output/photo-audio-map.json` and moves mapped `.opus` files into `encode/output/<photoId>/`.
+    - Unmapped entries (`photoId: null`) are left in place.

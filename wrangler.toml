@@ -1,0 +1,13 @@
+name = "photo-signal-audio-proxy"
+main = "cloudflare/audio-worker/src/index.ts"
+compatibility_date = "2026-01-11"
+workers_dev = true
+
+[vars]
+# Comma-separated allowed origins (production + local dev)
+ALLOWED_ORIGINS = "https://photo-signal.vercel.app,https://photo-signal.com,https://www.photo-signal.com,http://localhost:4173,http://localhost:5173"
+
+[[r2_buckets]]
+binding = "AUDIO"
+bucket_name = "photo-signal-audio"
+preview_bucket_name = "photo-signal-audio"

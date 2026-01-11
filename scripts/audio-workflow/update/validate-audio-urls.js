@@ -13,6 +13,8 @@
  *   --source=<path>       Path to data.json (default: public/data.json)
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
  *   --check-fallback      Also check fallback URLs
+ *   --base-url=<url>      Override base URL (e.g., https://audio.example.com)
+ *   --prefix=<path>       Override key prefix (default: prod/audio)
  *   --help                Show this help message
  *
  * Examples:
@@ -42,6 +44,8 @@ const options = {
   source: 'public/data.json',
   timeout: 10000,
   checkFallback: false,
+  baseUrl: '',
+  prefix: 'prod/audio',
   help: false,
 };
 
@@ -239,6 +243,61 @@ export function generateReport(stats) {
   return report;
 }
 
+export function normalizeBaseUrl(baseUrl) {
+  if (!baseUrl) return '';
+  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+}
+
+export function normalizePrefix(prefix) {
+  if (!prefix) return '';
+  const trimmed = prefix.trim();
+  return trimmed.replace(/^\/+/, '').replace(/\/+$/, '');
+}
+
+export function resolveAudioUrl(rawUrl, concertId, baseUrl, prefix) {
+  if (!rawUrl) return null;
+
+  const normalizedBase = normalizeBaseUrl(baseUrl);
+  const normalizedPrefix = normalizePrefix(prefix);
+
+  if (!normalizedBase) {
+    return rawUrl;
+  }
+
+  const pathPart = buildPathWithPrefix(rawUrl, concertId, normalizedPrefix);
+  return `${normalizedBase}/${pathPart}`;
+}
+
+function buildPathWithPrefix(rawUrl, concertId, prefix) {
+  const pathOnly = stripToPath(rawUrl);
+  if (!prefix) {
+    return pathOnly.replace(/^\/+/, '');
+  }
+
+  const normalizedPrefix = `${prefix}/`;
+
+  if (pathOnly.startsWith(normalizedPrefix)) {
+    return pathOnly;
+  }
+
+  const prefixIndex = pathOnly.indexOf(normalizedPrefix);
+  if (prefixIndex !== -1) {
+    return pathOnly.slice(prefixIndex);
+  }
+
+  const filename = path.basename(pathOnly) || `concert-${concertId}.opus`;
+  return `${prefix}/${concertId}/${filename}`;
+}
+
+function stripToPath(value) {
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    const parsed = new URL(value);
+    return parsed.pathname.replace(/^\/+/, '');
+  }
+
+  return value.replace(/^\/+/, '');
+}
+
 // Only run CLI logic when executed directly (not when imported as a module)
 if (import.meta.url === `file://${process.argv[1]}`) {
   // Parse command line arguments
@@ -269,6 +328,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
       }
       options.timeout = parseInt(value, 10);
+    } else if (arg.startsWith('--base-url=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --base-url requires a value');
+        process.exit(1);
+      }
+      options.baseUrl = value;
+    } else if (arg.startsWith('--prefix=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --prefix requires a value');
+        process.exit(1);
+      }
+      options.prefix = value;
     }
   }
 
@@ -286,6 +359,8 @@ Options:
   --source=<path>       Path to data.json (default: public/data.json)
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --check-fallback      Also check fallback URLs
+  --base-url=<url>      Override base URL (e.g., https://audio.example.com)
+  --prefix=<path>       Override key prefix (default: prod/audio)
   --help                Show this help message
 
 Examples:
@@ -297,6 +372,9 @@ Examples:
 
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+
+  # Validate against a CDN base
+  node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio
 `);
     process.exit(0);
   }
@@ -307,7 +385,9 @@ Examples:
     console.log('Configuration:');
     console.log(`  Source: ${options.source}`);
     console.log(`  Timeout: ${options.timeout}ms`);
-    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}\n`);
+    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}`);
+    console.log(`  Base URL Override: ${options.baseUrl || 'None (use data.json value)'}`);
+    console.log(`  Prefix Override: ${options.prefix || 'None'}\n`);
 
     // Read source data.json
     const sourcePath = path.resolve(projectRoot, options.source);
@@ -344,8 +424,23 @@ Examples:
     for (const concert of data.concerts) {
       console.log(`Checking Concert #${concert.id}: ${concert.band}`);
 
-      // Check primary URL
-      const primaryResult = await checkUrl(concert.audioFile, options.timeout);
+      const primaryUrl = resolveAudioUrl(
+        concert.audioFile,
+        concert.id,
+        options.baseUrl,
+        options.prefix
+      );
+
+      const primaryResult = primaryUrl
+        ? await checkUrl(primaryUrl, options.timeout)
+        : {
+            url: String(primaryUrl),
+            status: 0,
+            statusText: 'Missing audioFile',
+            accessible: false,
+            isLocal: false,
+            error: 'Missing audioFile',
+          };
       results.push({
         concert,
         type: 'primary',
@@ -353,7 +448,10 @@ Examples:
       });
 
       const primaryIcon = primaryResult.accessible ? '✓' : '✗';
-      console.log(`  ${primaryIcon} Primary:  ${concert.audioFile}`);
+      console.log(`  ${primaryIcon} Primary:  ${primaryUrl ?? 'N/A'}`);
+      if (options.baseUrl && primaryUrl && primaryUrl !== concert.audioFile) {
+        console.log(`            Source:  ${concert.audioFile}`);
+      }
       console.log(`            Status: ${primaryResult.status} ${primaryResult.statusText}`);
 
       if (primaryResult.accessible) {
@@ -364,7 +462,14 @@ Examples:
 
       // Check fallback URL if requested
       if (options.checkFallback && concert.audioFileFallback) {
-        const fallbackResult = await checkUrl(concert.audioFileFallback, options.timeout);
+        const fallbackUrl = resolveAudioUrl(
+          concert.audioFileFallback,
+          concert.id,
+          options.baseUrl,
+          options.prefix
+        );
+
+        const fallbackResult = await checkUrl(fallbackUrl, options.timeout);
         results.push({
           concert,
           type: 'fallback',
@@ -372,7 +477,7 @@ Examples:
         });
 
         const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
-        console.log(`  ${fallbackIcon} Fallback: ${concert.audioFileFallback}`);
+        console.log(`  ${fallbackIcon} Fallback: ${fallbackUrl}`);
         console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
       }
 

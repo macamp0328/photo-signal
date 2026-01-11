@@ -29,6 +29,7 @@
     "create-easy-images": "node scripts/create-easy-test-images.js",
     "create-edge-case-images": "node scripts/create-edge-case-test-images.js",
     "create-photo-csv": "node scripts/create-photo-csv.js",
+    "apply-cdn-to-data": "node scripts/audio-workflow/update/apply-cdn-to-data.js",
     "migrate-audio": "node scripts/audio-workflow/update/migrate-audio-to-cdn.js",
     "validate-audio": "node scripts/audio-workflow/update/validate-audio-urls.js",
     "download-song": "node scripts/audio-workflow/download/download-yt-song.js",

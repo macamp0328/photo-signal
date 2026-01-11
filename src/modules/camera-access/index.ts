@@ -5,4 +5,4 @@
  */
 
 export { useCameraAccess } from './useCameraAccess';
-export type { CameraAccessHook, CameraConstraints } from './types';
+export type { CameraAccessHook, CameraAccessOptions } from './types';

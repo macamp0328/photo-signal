@@ -17,11 +17,3 @@ export interface CameraAccessOptions {
   /** Whether to automatically start camera on mount (default: true) */
   autoStart?: boolean;
 }
-
-export interface CameraConstraints {
-  video: {
-    facingMode: 'user' | 'environment';
-    aspectRatio: number;
-  };
-  audio: boolean;
-}

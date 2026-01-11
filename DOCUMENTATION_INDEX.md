@@ -20,6 +20,7 @@
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 - **[FUTURE_FEATURES.md](./FUTURE_FEATURES.md)** - Consolidated list of unimplemented features and enhancement ideas
 - **[PARALLEL_RECOGNITION_IMPLEMENTATION.md](./PARALLEL_RECOGNITION_IMPLEMENTATION.md)** - Implementation summary for parallel multi-algorithm photo recognition (dHash + pHash + ORB with weighted voting)
+- **[docs/ENVIRONMENT_PIPELINE_REORG_PLAN.md](./docs/ENVIRONMENT_PIPELINE_REORG_PLAN.md)** - Directory and pipeline reorganization plan to separate local, test, and production flows with env-scoped configs and scripts
 
 ### Research & Technical Guides
 
@@ -363,7 +364,7 @@ Each module has its own README defining its API contract, usage, and examples.
 This index covers:
 
 - ✅ Root documentation (9 files - README, SETUP, ARCHITECTURE, AI_AGENT_GUIDE, CONTRIBUTING, TESTING, DOCKER, FUTURE_FEATURES, ASSET_LICENSES, PARALLEL_RECOGNITION_IMPLEMENTATION)
-- ✅ Technical guides & research (12 files - **photo recognition deep dive**, **quick reference**, photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides)
+- ✅ Technical guides & research (13 files - **photo recognition deep dive**, **quick reference**, photo recognition research, camera settings, telemetry, code analysis tooling, codecov/codeql/vercel setup guides, environment/pipeline reorg plan)
 - ✅ Accessibility (3 files - standards, quick reference, verification report)
 - ✅ User guides (1 file - TEST_DATA_MODE_GUIDE.md)
 - ✅ Module READMEs (9 files - including secret-settings and photo-rectangle-detection)
@@ -384,6 +385,6 @@ This index covers:
 - ✅ Module tests (12 files - including secret-settings hooks tests, photo recognition frame cropping tests, phash algorithm tests, parallel-recognizer tests)
 - ✅ Visual regression tests (3 files - landing page, camera view, UI components)
 
-**Total**: 118 documented files (21 historical/redundant docs removed)
+**Total**: 119 documented files (21 historical/redundant docs removed)
 
-Last updated: 2025-11-24
+Last updated: 2026-01-11

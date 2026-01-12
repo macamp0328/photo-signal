@@ -202,6 +202,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
       value: profile.id,
     })),
     category: 'recognition',
+    engines: ['perceptual', 'orb', 'parallel'],
   },
   {
     id: 'theme-mode',
@@ -251,6 +252,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 2,
     unit: 'dist',
     category: 'recognition',
+    engines: ['perceptual'],
   },
   {
     id: 'recognition-mode',
@@ -264,6 +266,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
       { label: 'Parallel (dHash + pHash + ORB)', value: 'parallel' },
     ],
     category: 'recognition',
+    engines: ['perceptual', 'orb', 'parallel'],
   },
   {
     id: 'hash-algorithm',
@@ -276,6 +279,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
       { label: 'dHash (fastest)', value: 'dhash' },
     ],
     category: 'recognition',
+    engines: ['perceptual'],
   },
   {
     id: 'recognition-check-interval',
@@ -350,6 +354,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 50,
     unit: 'pts',
     category: 'recognition',
+    engines: ['orb', 'parallel'],
   },
   {
     id: 'orb-fast-threshold',
@@ -362,6 +367,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 1,
     unit: '',
     category: 'recognition',
+    engines: ['orb', 'parallel'],
   },
   {
     id: 'orb-min-match-count',
@@ -374,6 +380,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 1,
     unit: '',
     category: 'recognition',
+    engines: ['orb', 'parallel'],
   },
   {
     id: 'orb-match-ratio-threshold',
@@ -386,6 +393,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 0.05,
     unit: '',
     category: 'recognition',
+    engines: ['orb', 'parallel'],
   },
   {
     id: 'parallel-recognition-enabled',
@@ -399,6 +407,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
       { label: 'Enabled', value: 'true' },
     ],
     category: 'recognition',
+    engines: ['parallel'],
   },
   {
     id: 'parallel-dhash-weight',
@@ -411,6 +420,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 0.05,
     unit: '',
     category: 'recognition',
+    engines: ['parallel'],
   },
   {
     id: 'parallel-phash-weight',
@@ -423,6 +433,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 0.05,
     unit: '',
     category: 'recognition',
+    engines: ['parallel'],
   },
   {
     id: 'parallel-orb-weight',
@@ -435,6 +446,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 0.05,
     unit: '',
     category: 'recognition',
+    engines: ['parallel'],
   },
   {
     id: 'parallel-min-confidence',
@@ -447,5 +459,6 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     step: 0.05,
     unit: '',
     category: 'recognition',
+    engines: ['parallel'],
   },
 ];

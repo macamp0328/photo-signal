@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { SecretSettings } from './SecretSettings';
 import userEvent from '@testing-library/user-event';
+import { CUSTOM_SETTINGS } from './config';
 
 describe('SecretSettings', () => {
   beforeEach(() => {
@@ -189,6 +190,49 @@ describe('SecretSettings', () => {
 
       // Should show production mode by default (test-mode flag is off by default)
       expect(screen.getByText(/Production Mode/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Recognition engine visibility', () => {
+    it('should show perceptual settings and hide unrelated controls', () => {
+      const savedSettings = CUSTOM_SETTINGS.map((setting) =>
+        setting.id === 'recognition-mode' ? { ...setting, value: 'perceptual' } : setting
+      );
+      localStorage.setItem('photo-signal-custom-settings', JSON.stringify(savedSettings));
+
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(screen.getByText(/Perceptual Hash Algorithm/i)).toBeInTheDocument();
+      expect(screen.getByText(/Similarity Threshold/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Parallel dHash Weight/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/ORB Max Features/i)).not.toBeInTheDocument();
+    });
+
+    it('should show ORB tuning when ORB mode is selected', () => {
+      const savedSettings = CUSTOM_SETTINGS.map((setting) =>
+        setting.id === 'recognition-mode' ? { ...setting, value: 'orb' } : setting
+      );
+      localStorage.setItem('photo-signal-custom-settings', JSON.stringify(savedSettings));
+
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(screen.getByText(/ORB Max Features/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Parallel dHash Weight/i)).not.toBeInTheDocument();
+    });
+
+    it('should show parallel voting controls when Parallel mode is selected', () => {
+      const savedSettings = CUSTOM_SETTINGS.map((setting) =>
+        setting.id === 'recognition-mode' ? { ...setting, value: 'parallel' } : setting
+      );
+      localStorage.setItem('photo-signal-custom-settings', JSON.stringify(savedSettings));
+
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(screen.getByText(/Parallel dHash Weight/i)).toBeInTheDocument();
+      expect(screen.getByText(/Parallel Min Confidence/i)).toBeInTheDocument();
+      expect(screen.getByText(/ORB Max Features/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
     });
   });
 

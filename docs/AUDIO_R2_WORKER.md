@@ -18,7 +18,7 @@ binding = "AUDIO"
 bucket_name = "photo-signal-audio"
 
 [vars]
-ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal.vercel.app,http://localhost:5173"
+ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal.vercel.app,https://photo-signal-*.vercel.app,https://photo-signal.whoisduck2.workers.dev,https://photo-signal.whoisduck2.com,http://localhost:5173,http://localhost:4173,http://127.0.0.1:5173"
 SHARED_SECRET = "generate-a-random-value" # optional
 ```
 

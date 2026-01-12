@@ -195,7 +195,7 @@ function App() {
     sharpnessThreshold: sharpnessThresholdValue,
     glareThreshold: glareThresholdValue,
     glarePercentageThreshold: glarePercentageThresholdValue,
-    enableDebugInfo: isTestModeEnabled,
+    enableDebugInfo: true,
     aspectRatio: 'auto',
     hashAlgorithm: hashAlgorithmValue,
     secondaryHashAlgorithm,
@@ -346,7 +346,8 @@ function App() {
       {!showSecretSettings && (
         <Suspense fallback={null}>
           <DebugOverlay
-            enabled={isTestModeEnabled}
+            enabled
+            isTestMode={isTestModeEnabled}
             recognizedConcert={recognizedConcert}
             isRecognizing={isRecognizing}
             threshold={similarityThresholdValue}

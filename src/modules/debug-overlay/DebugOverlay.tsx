@@ -17,6 +17,7 @@ export function DebugOverlay({
   recognizedConcert,
   isRecognizing,
   enabled,
+  isTestMode,
   debugInfo,
   threshold,
   onReset,
@@ -51,6 +52,13 @@ export function DebugOverlay({
     return () => window.removeEventListener('resize', checkMobile);
   }, [enabled]);
 
+  // Collapse the overlay when disabled so it can be re-opened when re-enabled
+  useEffect(() => {
+    if (!enabled) {
+      setIsCollapsed(true);
+    }
+  }, [enabled]);
+
   // Determine recognition status
   useEffect(() => {
     if (recognizedConcert) {
@@ -66,7 +74,7 @@ export function DebugOverlay({
 
   // Update time since last check using the actual timestamp from debug info
   useEffect(() => {
-    if (!enabled || !lastCheckTime) {
+    if (!lastCheckTime) {
       return;
     }
 
@@ -78,12 +86,6 @@ export function DebugOverlay({
     const interval = setInterval(updateTime, 100);
     return () => clearInterval(interval);
   }, [enabled, lastCheckTime]);
-
-  useEffect(() => {
-    if (!enabled) {
-      setIsCollapsed(true);
-    }
-  }, [enabled]);
 
   // Status indicator color
   const statusColors: Record<RecognitionStatus, string> = {
@@ -114,33 +116,30 @@ export function DebugOverlay({
     ? new Date(lastCheckTime).toLocaleTimeString([], { hour12: false })
     : '—';
 
-  const isInactive = !enabled;
+  const dataBadgeText = isTestMode ? 'TEST DATA' : 'LIVE DATA';
+  const isCollapsedView = isCollapsed || !enabled;
 
   return (
-    <div
-      className={`${styles.overlay} ${isCollapsed ? styles.collapsed : ''} ${isInactive ? styles.inactive : ''}`}
-    >
-      {isCollapsed ? (
+    <div className={`${styles.overlay} ${isCollapsedView ? styles.collapsed : ''}`}>
+      {isCollapsedView ? (
         <div className={styles.collapsedContent}>
           <button
             type="button"
             className={styles.collapsedButton}
-            onClick={() => setIsCollapsed(false)}
+            onClick={() => enabled && setIsCollapsed(false)}
+            disabled={!enabled}
             aria-label="Show debug overlay"
-            aria-expanded={isCollapsed}
+            aria-expanded={isCollapsedView}
           >
             Show overlay
           </button>
-          {isInactive && (
-            <span className={styles.collapsedHint}>Enable Test Mode for live data</span>
-          )}
         </div>
-      ) : !isInactive ? (
+      ) : (
         <>
           <div className={styles.header}>
             <span className={styles.title}>🐛 Debug Info</span>
             <div className={styles.headerActions}>
-              <span className={styles.badge}>TEST MODE</span>
+              <span className={styles.badge}>{dataBadgeText}</span>
               {onReset && (
                 <button
                   type="button"
@@ -285,27 +284,6 @@ export function DebugOverlay({
             </div>
           )}
         </>
-      ) : (
-        <div className={styles.inactiveContent}>
-          <div className={styles.header}>
-            <span className={styles.title}>🐛 Debug Info</span>
-            <div className={styles.headerActions}>
-              <span className={styles.badge}>TEST MODE OFF</span>
-              <button
-                type="button"
-                className={styles.toggleButton}
-                onClick={() => setIsCollapsed(true)}
-                aria-label="Hide debug overlay"
-                aria-expanded={!isCollapsed}
-              >
-                Hide
-              </button>
-            </div>
-          </div>
-          <div className={styles.section}>
-            <div className={styles.inactiveMessage}>Enable Test Mode to view live debug data.</div>
-          </div>
-        </div>
       )}
     </div>
   );

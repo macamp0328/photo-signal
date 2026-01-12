@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-env node */
-
 import { createCanvas } from 'canvas';
 import { mkdir, writeFile } from 'fs/promises';
 import { fileURLToPath } from 'url';

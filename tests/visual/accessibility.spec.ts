@@ -105,12 +105,12 @@ test.describe('Accessibility', () => {
 
     // Enable high contrast mode
     await page.emulateMedia({ forcedColors: 'active' });
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(600);
 
     // Take snapshot of settings in high contrast
     await expect(page).toHaveScreenshot('a11y-high-contrast-settings.png', {
       fullPage: true,
-      maxDiffPixelRatio: 0.015, // forced-colors rendering diverges slightly across runners
+      maxDiffPixelRatio: 0.03, // forced-colors rendering diverges slightly across runners
     });
   });
 

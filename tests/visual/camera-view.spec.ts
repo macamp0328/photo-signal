@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { safeGrantCameraPermissions } from './utils/camera';
+import { safeGrantCameraPermissions, applyStableCameraPlaceholder } from './utils/camera';
 
 /**
  * Visual Regression Tests for Camera View
@@ -26,24 +26,32 @@ test.describe('Camera View', () => {
     await Promise.race([
       page
         .locator('video')
-        .waitFor({ state: 'visible', timeout: 10000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
       page
         .locator('text=Camera Access Required')
-        .waitFor({ state: 'visible', timeout: 10000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
       page
         .locator('text=Point camera at a photo to play music')
-        .waitFor({ state: 'visible', timeout: 10000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
     ]);
 
+    await applyStableCameraPlaceholder(page);
+
     // Give a brief moment for UI to stabilize
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // Mask video element to ignore fake stream noise
+    const videoMask = page.locator('video');
 
     // Take screenshot of active camera state
     await expect(page).toHaveScreenshot('camera-active-view.png', {
       fullPage: true,
+      timeout: 10000,
+      mask: [videoMask],
     });
   });
 
@@ -66,24 +74,32 @@ test.describe('Camera View', () => {
     await Promise.race([
       page
         .locator('video')
-        .waitFor({ state: 'visible', timeout: 10000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
       page
         .locator('text=Camera Access Required')
-        .waitFor({ state: 'visible', timeout: 10000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
       page
         .locator('text=Point camera at a photo to play music')
-        .waitFor({ state: 'visible', timeout: 10000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
     ]);
 
+    await applyStableCameraPlaceholder(page);
+
     // Give a brief moment for UI to stabilize
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // Mask video element to ignore fake stream noise
+    const videoMask = page.locator('video');
 
     // Take screenshot of active camera state on mobile
     await expect(page).toHaveScreenshot('camera-active-view-mobile.png', {
       fullPage: true,
+      timeout: 10000,
+      mask: [videoMask],
     });
   });
 });

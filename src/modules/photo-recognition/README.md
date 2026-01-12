@@ -35,7 +35,7 @@ options?: {
   enabled?: boolean;             // Enable/disable recognition, default true
   similarityThreshold?: number;  // Hamming distance threshold (0-64), default 40
   checkInterval?: number;        // Interval for checking frames (ms), default 1000
-  enableDebugInfo?: boolean;     // Enable debug information output, default false
+  enableDebugInfo?: boolean;     // Enable debug output; toggle with overlay visibility to limit work
   aspectRatio?: '3:2' | '2:3';   // Aspect ratio for frame cropping (default '3:2')
   hashAlgorithm?: 'dhash' | 'phash' | 'orb';  // Algorithm to use (default 'dhash')
   sharpnessThreshold?: number;   // Sharpness threshold for blur detection (default 100)
@@ -347,11 +347,13 @@ Match Decision: POTENTIAL MATCH (The Midnight Echoes)
 
 ### Debug Information API
 
-Enable debug information output with `enableDebugInfo` option:
+Enable debug information output with `enableDebugInfo` option. For best performance, tie it to the DebugOverlay visibility:
 
 ```typescript
-const { recognizedConcert, debugInfo } = usePhotoRecognition(stream, {
-  enableDebugInfo: true, // Enables debugInfo return value
+const [isDebugVisible, setDebugVisible] = useState(false);
+
+const { recognizedConcert, debugInfo, isRecognizing } = usePhotoRecognition(stream, {
+  enableDebugInfo: isTestMode && isDebugVisible, // Only collect metrics when overlay is open
 });
 
 // debugInfo contains:
@@ -367,8 +369,10 @@ Use `debugInfo` with the DebugOverlay component for real-time visualization:
 import { DebugOverlay } from '@/modules/debug-overlay';
 
 function App() {
+  const [isDebugVisible, setDebugVisible] = useState(false);
+
   const { debugInfo, recognizedConcert, isRecognizing } = usePhotoRecognition(stream, {
-    enableDebugInfo: isTestMode,
+    enableDebugInfo: isTestMode && isDebugVisible,
   });
 
   return (
@@ -379,11 +383,14 @@ function App() {
         recognizedConcert={recognizedConcert}
         isRecognizing={isRecognizing}
         debugInfo={debugInfo}
+        onVisibilityChange={setDebugVisible}
       />
     </>
   );
 }
 ```
+
+When `enableDebugInfo` is `false`, the hook stops emitting debug info and skips telemetry/failure logging to avoid extra work.
 
 ---
 

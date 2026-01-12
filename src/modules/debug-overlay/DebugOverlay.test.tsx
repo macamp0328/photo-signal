@@ -87,6 +87,7 @@ describe('DebugOverlay', () => {
     recognizedConcert: null,
     isRecognizing: false,
     enabled: true,
+    isTestMode: true,
     debugInfo: mockDebugInfo,
     threshold: undefined,
     onReset: undefined,
@@ -102,17 +103,16 @@ describe('DebugOverlay', () => {
   });
 
   describe('Visibility', () => {
-    it('should render collapsed pill when enabled is false', () => {
-      render(<DebugOverlay {...defaultProps} enabled={false} />);
-
-      expect(screen.getByText('Show overlay')).toBeInTheDocument();
-      expect(screen.getByText('Enable Test Mode for live data')).toBeInTheDocument();
-    });
-
     it('should render when enabled is true', () => {
       render(<DebugOverlay {...defaultProps} />);
 
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
+    });
+
+    it('should render with live data badge when not in test mode', () => {
+      render(<DebugOverlay {...defaultProps} isTestMode={false} />);
+
+      expect(screen.getByText('LIVE DATA')).toBeInTheDocument();
     });
   });
 

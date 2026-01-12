@@ -45,6 +45,9 @@ function App() {
   // State for secret settings menu
   const [showSecretSettings, setShowSecretSettings] = useState(false);
 
+  // Track whether debug overlay is currently visible/expanded
+  const [isDebugOverlayVisible, setIsDebugOverlayVisible] = useState(true);
+
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
 
@@ -195,7 +198,7 @@ function App() {
     sharpnessThreshold: sharpnessThresholdValue,
     glareThreshold: glareThresholdValue,
     glarePercentageThreshold: glarePercentageThresholdValue,
-    enableDebugInfo: isTestModeEnabled,
+    enableDebugInfo: isDebugOverlayVisible,
     aspectRatio: 'auto',
     hashAlgorithm: hashAlgorithmValue,
     secondaryHashAlgorithm,
@@ -208,6 +211,12 @@ function App() {
     parallelRecognitionConfig,
     enabled: !showSecretSettings,
   });
+
+  useEffect(() => {
+    if (showSecretSettings) {
+      setIsDebugOverlayVisible(false);
+    }
+  }, [showSecretSettings]);
 
   // Module: Audio Playback
   const { play, fadeOut, crossfade, isPlaying } = useAudioPlayback({
@@ -346,12 +355,14 @@ function App() {
       {!showSecretSettings && (
         <Suspense fallback={null}>
           <DebugOverlay
-            enabled={isTestModeEnabled}
+            enabled
+            isTestMode={isTestModeEnabled}
             recognizedConcert={recognizedConcert}
             isRecognizing={isRecognizing}
             threshold={similarityThresholdValue}
             debugInfo={debugInfo}
             onReset={resetRecognition}
+            onVisibilityChange={setIsDebugOverlayVisible}
           />
         </Suspense>
       )}

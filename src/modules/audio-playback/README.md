@@ -39,12 +39,14 @@ options?: {
 
 ```typescript
 {
-  play: (url: string, fallbackUrl?: string) => void;  // Play audio from URL with optional fallback
+  play: (url: string, fallbackUrl?: string) => void;  // Play or resume audio from URL with optional fallback
+  preload: (url: string, fallbackUrl?: string) => void; // Begin streaming so playback is instant
   pause: () => void;                                  // Pause playback
   stop: () => void;                                   // Stop and unload
   fadeOut: (duration?: number) => void;               // Fade out over duration
   crossfade: (newUrl: string, duration?: number, fallbackUrl?: string) => void; // Crossfade to new track with optional fallback
   isPlaying: boolean;                                 // Current playback state
+  progress: number;                                   // Playback progress (0-1)
   volume: number;                                     // Current volume 0-1
   setVolume: (v: number) => void;                     // Set volume 0-1
 }

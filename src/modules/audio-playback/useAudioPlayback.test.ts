@@ -29,6 +29,8 @@ vi.mock('howler', () => {
     private _volume: number;
     private _playing: boolean = false;
     private readonly _callbacks: HowlCallbacks;
+    private seekPosition: number;
+    private durationMs: number;
 
     public static instances: MockHowl[] = [];
 
@@ -40,6 +42,7 @@ vi.mock('howler', () => {
     public unload: ReturnType<typeof vi.fn>;
     public playing: ReturnType<typeof vi.fn>;
     public seek: ReturnType<typeof vi.fn>;
+    public duration: ReturnType<typeof vi.fn>;
 
     constructor(
       options: {
@@ -51,6 +54,8 @@ vi.mock('howler', () => {
       this._volume = options.volume ?? 1.0;
       this._callbacks = options;
       MockHowl.instances.push(this);
+      this.seekPosition = 0;
+      this.durationMs = 30000;
 
       // Initialize methods
       this.play = vi.fn(() => {
@@ -102,9 +107,14 @@ vi.mock('howler', () => {
 
       this.seek = vi.fn((position?: number) => {
         if (position !== undefined) {
+          this.seekPosition = position;
           return this;
         }
-        return 0;
+        return this.seekPosition;
+      });
+
+      this.duration = vi.fn(() => {
+        return this.durationMs / 1000;
       });
     }
 
@@ -204,6 +214,27 @@ describe('useAudioPlayback', () => {
 
       // Should still be playing (new audio)
       expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should resume the same track without creating a new instance', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        result.current.pause();
+      });
+
+      expect(HowlClass.instances.length).toBe(1);
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      expect(HowlClass.instances.length).toBe(1);
     });
   });
 
@@ -445,6 +476,7 @@ describe('useAudioPlayback', () => {
 
       // Verify all contract methods are present
       expect(typeof result.current.play).toBe('function');
+      expect(typeof result.current.preload).toBe('function');
       expect(typeof result.current.pause).toBe('function');
       expect(typeof result.current.stop).toBe('function');
       expect(typeof result.current.fadeOut).toBe('function');
@@ -453,6 +485,7 @@ describe('useAudioPlayback', () => {
 
       // Verify all contract properties are present
       expect(typeof result.current.isPlaying).toBe('boolean');
+      expect(typeof result.current.progress).toBe('number');
       expect(typeof result.current.volume).toBe('number');
     });
 
@@ -465,6 +498,27 @@ describe('useAudioPlayback', () => {
       );
 
       expect(result.current.volume).toBe(0.7);
+    });
+  });
+
+  describe('Preload Functionality', () => {
+    it('should preload audio without starting playback and reuse the cached instance', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.preload('/audio/preload.opus');
+      });
+
+      expect(result.current.isPlaying).toBe(false);
+      expect(HowlClass.instances.length).toBe(1);
+
+      act(() => {
+        result.current.play('/audio/preload.opus');
+      });
+
+      expect(HowlClass.instances.length).toBe(1);
+      expect(result.current.isPlaying).toBe(true);
     });
   });
 

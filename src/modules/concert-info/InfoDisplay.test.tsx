@@ -78,6 +78,37 @@ describe('InfoDisplay', () => {
 
       expect(screen.getByText('#01')).toBeInTheDocument();
     });
+
+    it('should allow a custom status label', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} statusLabel="Now Viewing" />);
+
+      expect(screen.getByText('Now Viewing')).toBeInTheDocument();
+    });
+
+    it('should render optional actions when provided', () => {
+      render(
+        <InfoDisplay
+          concert={mockConcert}
+          isVisible={true}
+          actions={<button type="button">Play</button>}
+        />
+      );
+
+      expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+    });
+
+    it('should render now playing line when provided', () => {
+      render(
+        <InfoDisplay
+          concert={mockConcert}
+          isVisible={true}
+          nowPlayingLine="ghost signal: The Beatles"
+          progressValue={0.5}
+        />
+      );
+
+      expect(screen.getByText(/ghost signal/i)).toBeInTheDocument();
+    });
   });
 
   describe('Date Formatting', () => {

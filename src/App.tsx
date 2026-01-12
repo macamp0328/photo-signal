@@ -219,35 +219,19 @@ function App() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const { play, fadeOut, crossfade, isPlaying } = useAudioPlayback({
+  const { play, pause, preload, fadeOut, crossfade, isPlaying, progress } = useAudioPlayback({
     volume: 0.8,
     fadeTime: 1000,
   });
 
-  // Orchestration Logic
-  // Play audio when photo is recognized
+  // Begin streaming the recognized track immediately so playback feels instant
   useEffect(() => {
     if (!recognizedConcert) {
       return;
     }
 
-    const isSameConcert = activeConcert?.id === recognizedConcert.id;
-
-    if (!activeConcert) {
-      console.log('Photo recognized:', recognizedConcert.band);
-      play(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
-      setActiveConcert(recognizedConcert);
-      return;
-    }
-
-    if (isSameConcert) {
-      return;
-    }
-
-    console.log('Photo changed, crossfading to:', recognizedConcert.band);
-    crossfade(recognizedConcert.audioFile, undefined, recognizedConcert.audioFileFallback);
-    setActiveConcert(recognizedConcert);
-  }, [recognizedConcert, activeConcert, play, crossfade]);
+    preload(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
+  }, [preload, recognizedConcert]);
 
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {
@@ -285,13 +269,113 @@ function App() {
     previousMovementRef.current = isMoving;
   }, [isMoving, activeConcert, resetRecognition]);
 
+  const handleTogglePlayback = () => {
+    const targetConcert = recognizedConcert ?? activeConcert;
+
+    if (!targetConcert) {
+      return;
+    }
+
+    const isSameConcert = activeConcert?.id === targetConcert.id;
+
+    if (isSameConcert) {
+      if (isPlaying) {
+        pause();
+        return;
+      }
+
+      play(targetConcert.audioFile, targetConcert.audioFileFallback);
+      setActiveConcert(targetConcert);
+      return;
+    }
+
+    if (activeConcert && isPlaying) {
+      crossfade(targetConcert.audioFile, undefined, targetConcert.audioFileFallback);
+    } else {
+      play(targetConcert.audioFile, targetConcert.audioFileFallback);
+    }
+
+    setActiveConcert(targetConcert);
+  };
+
+  const handlePauseCurrent = () => {
+    pause();
+  };
+
   // Handle activation from landing view
   const handleActivate = () => {
     setIsActive(true);
   };
 
+  const infoConcert = recognizedConcert ?? activeConcert;
+  const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
+  const showSwitchHint =
+    recognizedConcert && activeConcert && recognizedConcert.id !== activeConcert.id && isPlaying;
+
+  const primaryActionLabel = (() => {
+    if (!infoConcert) {
+      return 'Play';
+    }
+
+    if (isInfoActive) {
+      return isPlaying ? 'Pause' : 'Play';
+    }
+
+    return isPlaying ? `Play ${infoConcert.band}` : 'Play';
+  })();
+
+  const statusLabel =
+    isInfoActive && isPlaying
+      ? 'Now Playing'
+      : recognizedConcert && !isInfoActive
+        ? 'Now Viewing'
+        : isInfoActive
+          ? 'Paused'
+          : 'Now Viewing';
+
+  const promptText = recognizedConcert
+    ? 'Tap play to hear this photo. Music keeps playing until you pause.'
+    : activeConcert
+      ? 'Music will keep playing until you pause.'
+      : 'Point your camera at a photo to get started.';
+
+  const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
+  const nowPlayingLine = activeConcert
+    ? `ghost dial locked on ${activeConcert.band} · ${Math.round(progress * 100)}% through`
+    : isPlaying
+      ? 'ghost dial humming, no band tagged'
+      : 'receiver idle — lift camera to wake it';
+
+  const actions =
+    infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
+      <>
+        <div>
+          <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
+            {primaryActionLabel}
+          </button>
+          {isPlaying && !isInfoActive ? (
+            <button
+              type="button"
+              data-variant="secondary"
+              onClick={handlePauseCurrent}
+              aria-label="Pause currently playing track"
+            >
+              Pause Current
+            </button>
+          ) : null}
+        </div>
+        {showSwitchHint ? (
+          <p>
+            Now playing: {activeConcert?.band}. Tap Play to switch to {recognizedConcert?.band}.
+          </p>
+        ) : null}
+        {activeConcert && isInfoActive && !isPlaying ? <p>Paused — tap play to resume.</p> : null}
+      </>
+    ) : null;
+
   // Render camera view
-  const displayedConcert = activeConcert ?? recognizedConcert;
+  const displayedConcert = recognizedConcert ?? activeConcert;
 
   const cameraView = (
     <CameraView
@@ -311,7 +395,16 @@ function App() {
 
   // Render info display that lives below the camera view in the stacked layout
   const infoDisplay = (
-    <InfoDisplay concert={displayedConcert} isVisible={!!displayedConcert && isPlaying} />
+    <InfoDisplay
+      concert={infoConcert}
+      isVisible={!!infoConcert}
+      statusLabel={statusLabel}
+      promptText={promptText}
+      nowPlayingLine={nowPlayingLine}
+      progressValue={progress}
+      progressColor={progressColor}
+      actions={actions}
+    />
   );
 
   // Render frame quality indicator (only when camera is active and no concert recognized)

@@ -5,6 +5,8 @@
 export interface AudioPlaybackHook {
   /** Play audio from URL with optional fallback */
   play: (url: string, fallbackUrl?: string) => void;
+  /** Preload audio so it is ready to play without delay */
+  preload: (url: string, fallbackUrl?: string) => void;
   /** Pause playback */
   pause: () => void;
   /** Stop and unload audio */
@@ -15,6 +17,8 @@ export interface AudioPlaybackHook {
   crossfade: (newUrl: string, duration?: number, fallbackUrl?: string) => void;
   /** Current playback state */
   isPlaying: boolean;
+  /** Current playback progress (0-1), resets when nothing is playing */
+  progress: number;
   /** Current volume (0-1) */
   volume: number;
   /** Set volume (0-1) */

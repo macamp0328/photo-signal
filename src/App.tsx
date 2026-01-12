@@ -75,6 +75,7 @@ const resolveAudioUrls = (
   primary?: string,
   fallback?: string
 ): { url?: string; fallbackUrl?: string } => {
+  // Prefer the primary URL; if absent, fall back to the secondary source without exposing it as a fallback.
   const url = primary ?? fallback;
   const fallbackUrl = primary ? fallback : undefined;
   return { url, fallbackUrl };
@@ -303,7 +304,7 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Restart recognition when movement begins while a concert is active, to search for the next photo.
+  // Restart recognition when movement begins while a concert is active (not just recognized) to avoid oscillation and search for the next photo.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {

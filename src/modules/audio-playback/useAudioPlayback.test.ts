@@ -29,6 +29,8 @@ vi.mock('howler', () => {
     private _volume: number;
     private _playing: boolean = false;
     private readonly _callbacks: HowlCallbacks;
+    private seekPosition: number;
+    private durationMs: number;
 
     public static instances: MockHowl[] = [];
 
@@ -40,6 +42,7 @@ vi.mock('howler', () => {
     public unload: ReturnType<typeof vi.fn>;
     public playing: ReturnType<typeof vi.fn>;
     public seek: ReturnType<typeof vi.fn>;
+    public duration: ReturnType<typeof vi.fn>;
 
     constructor(
       options: {
@@ -51,6 +54,8 @@ vi.mock('howler', () => {
       this._volume = options.volume ?? 1.0;
       this._callbacks = options;
       MockHowl.instances.push(this);
+      this.seekPosition = 0;
+      this.durationMs = 30000;
 
       // Initialize methods
       this.play = vi.fn(() => {
@@ -102,9 +107,14 @@ vi.mock('howler', () => {
 
       this.seek = vi.fn((position?: number) => {
         if (position !== undefined) {
+          this.seekPosition = position;
           return this;
         }
-        return 0;
+        return this.seekPosition;
+      });
+
+      this.duration = vi.fn(() => {
+        return this.durationMs / 1000;
       });
     }
 
@@ -475,6 +485,7 @@ describe('useAudioPlayback', () => {
 
       // Verify all contract properties are present
       expect(typeof result.current.isPlaying).toBe('boolean');
+      expect(typeof result.current.progress).toBe('number');
       expect(typeof result.current.volume).toBe('number');
     });
 

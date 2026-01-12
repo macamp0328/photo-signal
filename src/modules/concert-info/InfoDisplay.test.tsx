@@ -96,6 +96,19 @@ describe('InfoDisplay', () => {
 
       expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
     });
+
+    it('should render now playing line when provided', () => {
+      render(
+        <InfoDisplay
+          concert={mockConcert}
+          isVisible={true}
+          nowPlayingLine="ghost signal: The Beatles"
+          progressValue={0.5}
+        />
+      );
+
+      expect(screen.getByText(/ghost signal/i)).toBeInTheDocument();
+    });
   });
 
   describe('Date Formatting', () => {

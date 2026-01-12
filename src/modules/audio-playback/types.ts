@@ -17,6 +17,8 @@ export interface AudioPlaybackHook {
   crossfade: (newUrl: string, duration?: number, fallbackUrl?: string) => void;
   /** Current playback state */
   isPlaying: boolean;
+  /** Current playback progress (0-1), resets when nothing is playing */
+  progress: number;
   /** Current volume (0-1) */
   volume: number;
   /** Set volume (0-1) */

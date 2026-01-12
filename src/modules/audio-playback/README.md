@@ -46,6 +46,7 @@ options?: {
   fadeOut: (duration?: number) => void;               // Fade out over duration
   crossfade: (newUrl: string, duration?: number, fallbackUrl?: string) => void; // Crossfade to new track with optional fallback
   isPlaying: boolean;                                 // Current playback state
+  progress: number;                                   // Playback progress (0-1)
   volume: number;                                     // Current volume 0-1
   setVolume: (v: number) => void;                     // Set volume 0-1
 }

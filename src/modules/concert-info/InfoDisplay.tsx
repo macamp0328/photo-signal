@@ -15,12 +15,22 @@ export function InfoDisplay({
   statusLabel = 'Now Playing',
   promptText = 'Hold steady to keep the story playing.',
   actions,
+  nowPlayingLine,
+  progressValue = 0,
+  progressColor,
 }: InfoDisplayProps) {
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
 
   const archiveNumber = `#${String(concert.id).padStart(2, '0')}`;
   const formattedDate = formatConcertTimestamp(concert.date);
+  const progressPercentage = Math.round(Math.min(Math.max(progressValue, 0), 1) * 100);
+  const progressStyle = {
+    backgroundImage: `linear-gradient(90deg, var(--color-accent) ${progressPercentage}%, rgba(255, 255, 255, 0.25) ${progressPercentage}%)`,
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    color: 'transparent',
+  } as const;
 
   return (
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
@@ -28,6 +38,19 @@ export function InfoDisplay({
         <span className={styles.badge}>{statusLabel}</span>
         <span className={styles.archiveTag}>{archiveNumber}</span>
       </div>
+
+      {nowPlayingLine ? (
+        <div className={styles.nowPlayingRow} aria-label="Now playing status">
+          <span
+            className={styles.nowPlayingDot}
+            style={{ backgroundColor: progressColor ?? 'var(--color-accent)' }}
+            aria-hidden="true"
+          />
+          <p className={styles.nowPlaying} style={progressStyle}>
+            {nowPlayingLine}
+          </p>
+        </div>
+      ) : null}
 
       <h2 className={styles.bandName}>{concert.band}</h2>
 

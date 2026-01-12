@@ -24,13 +24,20 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const crossfadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentUrlRef = useRef<string | null>(null);
   const preloadCacheRef = useRef<Map<string, Howl>>(new Map());
+  const progressRafRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [volume, setVolumeState] = useState(initialVolume);
 
   // Cleanup on unmount
   useEffect(() => {
     const cache = preloadCacheRef.current;
     return () => {
+      if (progressRafRef.current !== null) {
+        cancelAnimationFrame(progressRafRef.current);
+        progressRafRef.current = null;
+      }
+
       // Cleanup preloaded sounds
       cache.forEach((sound) => sound.unload());
       cache.clear();
@@ -55,6 +62,34 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     };
   }, []);
 
+  const stopProgressLoop = useCallback(() => {
+    if (progressRafRef.current !== null) {
+      cancelAnimationFrame(progressRafRef.current);
+      progressRafRef.current = null;
+    }
+  }, []);
+
+  const getCurrentRatio = useCallback(() => {
+    const sound = soundRef.current;
+    if (!sound) {
+      return 0;
+    }
+
+    const duration = typeof sound.duration === 'function' ? sound.duration() : 0;
+    const position = typeof sound.seek === 'function' ? (sound.seek() as number) : 0;
+    return duration > 0 ? Math.min(Math.max(position / duration, 0), 1) : 0;
+  }, []);
+
+  const updateProgress = useCallback(() => {
+    const ratio = getCurrentRatio();
+    setProgress(ratio);
+
+    const sound = soundRef.current;
+    if (sound && sound.playing()) {
+      progressRafRef.current = window.requestAnimationFrame(updateProgress);
+    }
+  }, [getCurrentRatio]);
+
   const createSound = useCallback(
     (url: string, fallbackUrl?: string, { initialVolume }: { initialVolume?: number } = {}) => {
       // Build source array with fallback support
@@ -65,15 +100,22 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         html5: true,
         preload: true,
         volume: initialVolume ?? volume,
-        onplay: () => setIsPlaying(true),
+        onplay: () => {
+          setIsPlaying(true);
+          stopProgressLoop();
+          updateProgress();
+        },
         onend: () => {
           if (soundRef.current === sound) {
             setIsPlaying(false);
+            stopProgressLoop();
+            setProgress(0);
           }
         },
         onstop: () => {
           if (soundRef.current === sound) {
             setIsPlaying(false);
+            stopProgressLoop();
           }
         },
         onloaderror: (_id, error) => {
@@ -86,6 +128,8 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           if (soundRef.current === sound) {
             // Keep behavior consistent with previous implementation
             setIsPlaying(true);
+            stopProgressLoop();
+            setProgress(0);
           }
         },
         onplayerror: (_id, error) => {
@@ -95,7 +139,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       return sound;
     },
-    [volume]
+    [stopProgressLoop, updateProgress, volume]
   );
 
   const getCachedOrCreateSound = useCallback(
@@ -172,8 +216,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     if (soundRef.current) {
       soundRef.current.pause();
       setIsPlaying(false);
+      setProgress(getCurrentRatio());
+      stopProgressLoop();
     }
-  }, []);
+  }, [getCurrentRatio, stopProgressLoop]);
 
   const stop = useCallback(() => {
     if (soundRef.current) {
@@ -182,8 +228,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       soundRef.current = null;
       currentUrlRef.current = null;
       setIsPlaying(false);
+      stopProgressLoop();
+      setProgress(0);
     }
-  }, []);
+  }, [stopProgressLoop]);
 
   const fadeOut = useCallback(
     (duration: number = fadeTime) => {
@@ -195,11 +243,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           if (soundRef.current) {
             soundRef.current.stop();
             setIsPlaying(false);
+            stopProgressLoop();
+            setProgress(0);
           }
         }, duration);
       }
     },
-    [isPlaying, fadeTime]
+    [isPlaying, fadeTime, stopProgressLoop]
   );
 
   const setVolume = useCallback((newVolume: number) => {
@@ -292,6 +342,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     fadeOut,
     crossfade,
     isPlaying,
+    progress,
     volume,
     setVolume,
   };

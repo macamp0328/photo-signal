@@ -22,6 +22,8 @@ export interface HowlOptions {
 export class Howl {
   private _volume: number;
   private _playing: boolean = false;
+  private _position: number = 0;
+  private _duration: number = 30;
 
   // Expose callbacks for testing
   public onplay?: () => void;
@@ -78,6 +80,18 @@ export class Howl {
 
   public playing = vi.fn(() => {
     return this._playing;
+  });
+
+  public duration = vi.fn(() => {
+    return this._duration;
+  });
+
+  public seek = vi.fn((position?: number) => {
+    if (typeof position === 'number') {
+      this._position = position;
+      return this;
+    }
+    return this._position;
   });
 
   constructor(options: HowlOptions) {

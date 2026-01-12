@@ -19,6 +19,32 @@
   gap: 1rem;
 }
 
+.nowPlayingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+
+.nowPlayingDot {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0.35rem rgba(0, 0, 0, 0.15),
+    0 0 0.75rem rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.nowPlaying {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
 .badge {
   background-color: var(--color-accent);
   color: var(--color-background);

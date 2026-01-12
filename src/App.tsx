@@ -210,7 +210,7 @@ function App() {
   });
 
   // Module: Audio Playback
-  const { play, pause, preload, fadeOut, crossfade, isPlaying } = useAudioPlayback({
+  const { play, pause, preload, fadeOut, crossfade, isPlaying, progress } = useAudioPlayback({
     volume: 0.8,
     fadeTime: 1000,
   });
@@ -330,6 +330,13 @@ function App() {
       ? 'Music will keep playing until you pause.'
       : 'Point your camera at a photo to get started.';
 
+  const progressColor = `hsl(${Math.round(300 - Math.min(Math.max(progress, 0), 1) * 170)}, 80%, 70%)`;
+  const nowPlayingLine = activeConcert
+    ? `ghost dial locked on ${activeConcert.band} · ${Math.round(progress * 100)}% through`
+    : isPlaying
+      ? 'ghost dial humming, no band tagged'
+      : 'receiver idle — lift camera to wake it';
+
   const actions =
     infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
       <>
@@ -378,6 +385,9 @@ function App() {
       isVisible={!!infoConcert}
       statusLabel={statusLabel}
       promptText={promptText}
+      nowPlayingLine={nowPlayingLine}
+      progressValue={progress}
+      progressColor={progressColor}
       actions={actions}
     />
   );

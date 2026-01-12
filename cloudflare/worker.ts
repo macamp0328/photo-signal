@@ -50,6 +50,10 @@ function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
       const wildcardMatch = /^(https?):\/\/([^/]*\*[^/]*)$/i.exec(raw);
       if (wildcardMatch) {
         const [, protocol, hostnamePattern] = wildcardMatch;
+        if (hostnamePattern.split('*').length > 2) {
+          return null;
+        }
+
         const [hostnamePrefix = '', hostnameSuffix = ''] = hostnamePattern.split('*');
         const normalizedSuffix = hostnameSuffix.replace(/^\./, '').toLowerCase();
         if (!normalizedSuffix) {

@@ -71,6 +71,15 @@ const getAudioSources = (concert: Concert | null): { primary?: string; fallback?
   };
 };
 
+const resolveAudioUrls = (
+  primary?: string,
+  fallback?: string
+): { url?: string; fallbackUrl?: string } => {
+  const url = primary ?? fallback;
+  const fallbackUrl = primary ? fallback : undefined;
+  return { url, fallbackUrl };
+};
+
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -264,14 +273,13 @@ function App() {
     }
 
     const { primary, fallback } = getAudioSources(recognizedConcert);
-    const resolvedPrimary = primary ?? fallback;
-    const resolvedFallback = primary ? fallback : undefined;
+    const { url: selectedAudioUrl, fallbackUrl } = resolveAudioUrls(primary, fallback);
 
-    if (!resolvedPrimary) {
+    if (!selectedAudioUrl) {
       return;
     }
 
-    preload(resolvedPrimary, resolvedFallback);
+    preload(selectedAudioUrl, fallbackUrl);
   }, [preload, recognizedConcert]);
 
   useEffect(() => {
@@ -318,10 +326,9 @@ function App() {
     }
 
     const { primary: targetUrl, fallback: targetFallback } = getAudioSources(targetConcert);
-    const resolvedUrl = targetUrl ?? targetFallback;
-    const resolvedFallback = targetUrl ? targetFallback : undefined;
+    const { url: selectedAudioUrl, fallbackUrl } = resolveAudioUrls(targetUrl, targetFallback);
 
-    if (!resolvedUrl) {
+    if (!selectedAudioUrl) {
       return;
     }
 
@@ -333,15 +340,15 @@ function App() {
         return;
       }
 
-      play(resolvedUrl, resolvedFallback);
+      play(selectedAudioUrl, fallbackUrl);
       setActiveConcert(targetConcert);
       return;
     }
 
     if (activeConcert && isPlaying) {
-      crossfade(resolvedUrl, undefined, resolvedFallback);
+      crossfade(selectedAudioUrl, undefined, fallbackUrl);
     } else {
-      play(resolvedUrl, resolvedFallback);
+      play(selectedAudioUrl, fallbackUrl);
     }
 
     setActiveConcert(targetConcert);

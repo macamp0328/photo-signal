@@ -7,4 +7,5 @@ binding = "AUDIO"
 bucket_name = "photo-signal-audio"
 
 [vars]
-ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal-*.vercel.app,http://localhost:5173"
+# Preview deployments are intentionally excluded to limit CORS to production and localhost.
+ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal.vercel.app,http://localhost:5173"

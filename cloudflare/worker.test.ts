@@ -74,7 +74,7 @@ describe('Cloudflare worker', () => {
   });
 
   it('allows wildcard origins that match the configured pattern', async () => {
-    const env = createEnv({ allowedOrigins: 'https://*.vercel.app' });
+    const env = createEnv({ allowedOrigins: 'https://photo-signal-*.vercel.app' });
     const response = await worker.fetch(
       createRequest('/prod/audio/test.opus', {
         headers: { Origin: 'https://photo-signal-demo.vercel.app' },
@@ -86,6 +86,57 @@ describe('Cloudflare worker', () => {
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
       'https://photo-signal-demo.vercel.app'
     );
+  });
+
+  it('does not match base domain against a mid-hostname wildcard', async () => {
+    const env = createEnv({ allowedOrigins: 'https://photo-signal-*.vercel.app' });
+    const response = await worker.fetch(
+      createRequest('/prod/audio/test.opus', {
+        headers: { Origin: 'https://photo-signal.vercel.app' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(403);
+  });
+
+  it('matches longer subdomain chains with a mid-hostname wildcard', async () => {
+    const env = createEnv({ allowedOrigins: 'https://photo-signal-*.vercel.app' });
+    const response = await worker.fetch(
+      createRequest('/prod/audio/test.opus', {
+        headers: { Origin: 'https://photo-signal-git-feat-branch.vercel.app' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
+      'https://photo-signal-git-feat-branch.vercel.app'
+    );
+  });
+
+  it('ignores invalid wildcard patterns with multiple asterisks', async () => {
+    const env = createEnv({ allowedOrigins: 'https://*-*-*.vercel.app' });
+    const response = await worker.fetch(
+      createRequest('/prod/audio/test.opus', {
+        headers: { Origin: 'https://photo-signal-demo.vercel.app' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(403);
+  });
+
+  it('ignores wildcard patterns without suffix content', async () => {
+    const env = createEnv({ allowedOrigins: 'https://*' });
+    const response = await worker.fetch(
+      createRequest('/prod/audio/test.opus', {
+        headers: { Origin: 'https://photo-signal-demo.vercel.app' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(403);
   });
 
   it('permits any origin when a valid shared secret is provided', async () => {

@@ -108,7 +108,6 @@ export function updateConcert(concert, baseUrl, provider) {
   return {
     ...concert,
     audioFile: cdnUrl,
-    audioFileSource: provider,
   };
 }
 

@@ -43,7 +43,6 @@ export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) 
   return {
     ...concert,
     audioFile: updatedAudioUrl,
-    audioFileSource: AUDIO_SOURCE,
   };
 }
 

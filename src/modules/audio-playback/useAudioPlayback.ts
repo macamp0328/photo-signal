@@ -91,7 +91,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   }, [getCurrentRatio]);
 
   const attachCallbacks = useCallback(
-    (sound: Howl, url: string, fallbackUrl?: string) => {
+    (sound: Howl, url: string) => {
       const hasEventApi = typeof sound.on === 'function' && typeof sound.off === 'function';
 
       const onPlay = () => {
@@ -117,11 +117,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       const onLoadError = (_id: number, error: unknown) => {
         console.error('[Audio] Load error:', error);
-        if (fallbackUrl) {
-          console.warn(`[Audio] Failed to load: ${url}, fallback: ${fallbackUrl}`);
-        } else {
-          console.warn('[Audio] File not found:', url);
-        }
+        console.warn('[Audio] File not found:', url);
         if (soundRef.current === sound) {
           stopProgressLoop();
           setIsPlaying(false);
@@ -180,18 +176,15 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   );
 
   const createSound = useCallback(
-    (url: string, fallbackUrl?: string, { initialVolume }: { initialVolume?: number } = {}) => {
-      // Build source array with fallback support
-      const sources = fallbackUrl ? [url, fallbackUrl] : [url];
-
+    (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
       const sound = new Howl({
-        src: sources,
+        src: [url],
         html5: true,
         preload: true,
         volume: initialVolume ?? volume,
       });
 
-      attachCallbacks(sound, url, fallbackUrl);
+      attachCallbacks(sound, url);
 
       return sound;
     },
@@ -199,7 +192,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   );
 
   const getCachedOrCreateSound = useCallback(
-    (url: string, fallbackUrl?: string, options?: { initialVolume?: number }) => {
+    (url: string, options?: { initialVolume?: number }) => {
       if (preloadCacheRef.current.has(url)) {
         const cachedSound = preloadCacheRef.current.get(url)!;
         preloadCacheRef.current.delete(url);
@@ -208,18 +201,18 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           cachedSound.volume(options.initialVolume);
         }
 
-        attachCallbacks(cachedSound, url, fallbackUrl);
+        attachCallbacks(cachedSound, url);
 
         return cachedSound;
       }
 
-      return createSound(url, fallbackUrl, options);
+      return createSound(url, options);
     },
     [attachCallbacks, createSound]
   );
 
   const preload = useCallback(
-    (url: string, fallbackUrl?: string) => {
+    (url: string) => {
       if (!url) {
         return;
       }
@@ -240,14 +233,14 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
       });
 
-      const preloadedSound = createSound(url, fallbackUrl);
+      const preloadedSound = createSound(url);
       preloadCacheRef.current.set(url, preloadedSound);
     },
     [createSound]
   );
 
   const play = useCallback(
-    (url: string, fallbackUrl?: string) => {
+    (url: string) => {
       // Resume if the same track is paused
       if (soundRef.current && currentUrlRef.current === url) {
         soundRef.current.play();
@@ -260,7 +253,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         soundRef.current = null;
       }
 
-      const newSound = getCachedOrCreateSound(url, fallbackUrl);
+      const newSound = getCachedOrCreateSound(url);
 
       soundRef.current = newSound;
       currentUrlRef.current = url;
@@ -320,10 +313,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   }, []);
 
   const crossfade = useCallback(
-    (newUrl: string, duration: number = crossfadeDuration, fallbackUrl?: string) => {
+    (newUrl: string, duration: number = crossfadeDuration) => {
       // If crossfade is disabled, just play the new track
       if (!crossfadeEnabled) {
-        play(newUrl, fallbackUrl);
+        play(newUrl);
         return;
       }
 
@@ -335,7 +328,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       // If no audio is currently playing, just play the new track
       if (!soundRef.current || !isPlaying) {
-        play(newUrl, fallbackUrl);
+        play(newUrl);
         return;
       }
 
@@ -366,9 +359,8 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       // Start fading out the old sound
       fadingOutSoundRef.current.fade(currentVolume, 0, duration);
 
-      // Build source array with fallback support
       // Create and start new sound at 0 volume
-      const newSound = getCachedOrCreateSound(newUrl, fallbackUrl, { initialVolume: 0 });
+      const newSound = getCachedOrCreateSound(newUrl, { initialVolume: 0 });
 
       // Set new sound as current
       soundRef.current = newSound;

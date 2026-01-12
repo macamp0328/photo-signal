@@ -38,49 +38,6 @@ const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };
 
-const tryGetAudioSources = (concert: Concert | null): { primary?: string; fallback?: string } => {
-  if (!concert) {
-    return { primary: undefined, fallback: undefined };
-  }
-
-  const hasExplicitFallback =
-    typeof concert.audioFileFallback === 'string' && concert.audioFileFallback.length > 0;
-  const primary = concert.audioFile ?? undefined;
-
-  if (!primary && !hasExplicitFallback) {
-    console.error(
-      `[audio] Concert ${concert.id} is missing both primary and fallback audio sources. Audio playback will be disabled for this concert.`
-    );
-    return { primary: undefined, fallback: undefined };
-  }
-
-  if (!hasExplicitFallback) {
-    const generatedFallback = `/audio/concert-${concert.id}.mp3`;
-    console.warn(
-      `[audio] Using convention-based fallback audio path "${generatedFallback}" for concert ${concert.id}. Ensure this file exists to avoid silent audio playback failures.`
-    );
-    return {
-      primary,
-      fallback: generatedFallback,
-    };
-  }
-
-  return {
-    primary,
-    fallback: concert.audioFileFallback,
-  };
-};
-
-const resolveAudioUrls = (
-  primary?: string,
-  fallback?: string
-): { url?: string; fallbackUrl?: string } => {
-  // Prefer the primary URL; if it is missing, treat the fallback as the only source (no secondary fallback to try).
-  const url = primary ?? fallback;
-  const fallbackUrl = primary ? fallback : undefined;
-  return { url, fallbackUrl };
-};
-
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -273,14 +230,13 @@ function App() {
       return;
     }
 
-    const { primary, fallback } = tryGetAudioSources(recognizedConcert);
-    const { url: selectedAudioUrl, fallbackUrl } = resolveAudioUrls(primary, fallback);
+    const selectedAudioUrl = recognizedConcert.audioFile;
 
     if (!selectedAudioUrl) {
       return;
     }
 
-    preload(selectedAudioUrl, fallbackUrl);
+    preload(selectedAudioUrl);
   }, [preload, recognizedConcert]);
 
   useEffect(() => {
@@ -327,8 +283,7 @@ function App() {
       return;
     }
 
-    const { primary: targetUrl, fallback: targetFallback } = tryGetAudioSources(targetConcert);
-    const { url: selectedAudioUrl, fallbackUrl } = resolveAudioUrls(targetUrl, targetFallback);
+    const selectedAudioUrl = targetConcert.audioFile;
 
     if (!selectedAudioUrl) {
       return;
@@ -342,15 +297,15 @@ function App() {
         return;
       }
 
-      play(selectedAudioUrl, fallbackUrl);
+      play(selectedAudioUrl);
       setActiveConcert(targetConcert);
       return;
     }
 
     if (activeConcert && isPlaying) {
-      crossfade(selectedAudioUrl, undefined, fallbackUrl);
+      crossfade(selectedAudioUrl);
     } else {
-      play(selectedAudioUrl, fallbackUrl);
+      play(selectedAudioUrl);
     }
 
     setActiveConcert(targetConcert);

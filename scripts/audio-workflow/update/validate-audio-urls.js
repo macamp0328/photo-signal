@@ -14,15 +14,11 @@
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
  *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
- *   --check-fallback      Also check fallback URLs
  *   --help                Show this help message
  *
  * Examples:
  *   # Validate production data.json
  *   node scripts/audio-workflow/update/validate-audio-urls.js
- *
- *   # Validate with fallback URLs
- *   node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
  *
  *   # Validate test data
  *   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
@@ -44,7 +40,6 @@ const args = process.argv.slice(2);
 const options = {
   source: 'public/data.json',
   timeout: 10000,
-  checkFallback: false,
   baseUrl: '',
   prefix: 'prod/audio',
   help: false,
@@ -53,8 +48,6 @@ const options = {
 for (const arg of args) {
   if (arg === '--help') {
     options.help = true;
-  } else if (arg === '--check-fallback') {
-    options.checkFallback = true;
   } else if (arg.startsWith('--source=')) {
     const value = arg.split('=')[1];
     if (!value) {
@@ -101,15 +94,11 @@ Options:
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
-  --check-fallback      Also check fallback URLs
   --help                Show this help message
 
 Examples:
   # Validate production data.json
   node scripts/audio-workflow/update/validate-audio-urls.js
-
-  # Validate with fallback URLs
-  node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
 
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
@@ -260,61 +249,6 @@ export function generateReport(stats) {
   return report;
 }
 
-export function normalizeBaseUrl(baseUrl) {
-  if (!baseUrl) return '';
-  return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-}
-
-export function normalizePrefix(prefix) {
-  if (!prefix) return '';
-  const trimmed = prefix.trim();
-  return trimmed.replace(/^\/+/, '').replace(/\/+$/, '');
-}
-
-export function resolveAudioUrl(rawUrl, concertId, baseUrl, prefix) {
-  if (!rawUrl) return null;
-
-  const normalizedBase = normalizeBaseUrl(baseUrl);
-  const normalizedPrefix = normalizePrefix(prefix);
-
-  if (!normalizedBase) {
-    return rawUrl;
-  }
-
-  const pathPart = buildPathWithPrefix(rawUrl, concertId, normalizedPrefix);
-  return `${normalizedBase}/${pathPart}`;
-}
-
-function buildPathWithPrefix(rawUrl, concertId, prefix) {
-  const pathOnly = stripToPath(rawUrl);
-  if (!prefix) {
-    return pathOnly.replace(/^\/+/, '');
-  }
-
-  const normalizedPrefix = `${prefix}/`;
-
-  if (pathOnly.startsWith(normalizedPrefix)) {
-    return pathOnly;
-  }
-
-  const prefixIndex = pathOnly.indexOf(normalizedPrefix);
-  if (prefixIndex !== -1) {
-    return pathOnly.slice(prefixIndex);
-  }
-
-  const filename = path.basename(pathOnly) || `concert-${concertId}.opus`;
-  return `${prefix}/${concertId}/${filename}`;
-}
-
-function stripToPath(value) {
-  if (value.startsWith('http://') || value.startsWith('https://')) {
-    const parsed = new URL(value);
-    return parsed.pathname.replace(/^\/+/, '');
-  }
-
-  return value.replace(/^\/+/, '');
-}
-
 // Only run CLI logic when executed directly (not when imported as a module)
 if (import.meta.url === `file://${process.argv[1]}`) {
   // Parse command line arguments
@@ -322,7 +256,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const options = {
     source: 'public/data.json',
     timeout: 10000,
-    checkFallback: false,
     baseUrl: '',
     prefix: 'prod/audio',
     help: false,
@@ -331,8 +264,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   for (const arg of args) {
     if (arg === '--help') {
       options.help = true;
-    } else if (arg === '--check-fallback') {
-      options.checkFallback = true;
     } else if (arg.startsWith('--source=')) {
       const value = arg.split('=')[1];
       if (!value) {
@@ -379,15 +310,11 @@ Options:
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
-  --check-fallback      Also check fallback URLs
   --help                Show this help message
 
 Examples:
   # Validate production data.json
   node scripts/audio-workflow/update/validate-audio-urls.js
-
-  # Validate with fallback URLs
-  node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
 
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
@@ -404,7 +331,7 @@ Examples:
     console.log('Configuration:');
     console.log(`  Source: ${options.source}`);
     console.log(`  Timeout: ${options.timeout}ms`);
-    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}\n`);
+    console.log('');
     if (options.baseUrl) {
       console.log(`  Base URL: ${options.baseUrl}`);
       console.log(`  Prefix: ${options.prefix}`);
@@ -476,27 +403,6 @@ Examples:
         successCount++;
       } else {
         failureCount++;
-      }
-
-      // Check fallback URL if requested
-      if (options.checkFallback && concert.audioFileFallback) {
-        const fallbackUrl = resolveAudioUrl(
-          concert.audioFileFallback,
-          concert.id,
-          options.baseUrl,
-          options.prefix
-        );
-
-        const fallbackResult = await checkUrl(fallbackUrl, options.timeout);
-        results.push({
-          concert,
-          type: 'fallback',
-          result: fallbackResult,
-        });
-
-        const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
-        console.log(`  ${fallbackIcon} Fallback: ${fallbackUrl}`);
-        console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
       }
 
       console.log();

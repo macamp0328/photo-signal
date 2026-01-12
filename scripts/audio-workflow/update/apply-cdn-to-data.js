@@ -39,12 +39,10 @@ export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) 
   }
 
   const updatedAudioUrl = buildAudioUrl(concert, baseUrl, prefix);
-  const nextFallback = concert.audioFileFallback ?? concert.audioFile;
 
   return {
     ...concert,
     audioFile: updatedAudioUrl,
-    audioFileFallback: nextFallback,
     audioFileSource: AUDIO_SOURCE,
   };
 }

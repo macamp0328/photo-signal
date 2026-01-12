@@ -4,7 +4,7 @@
  * Audio CDN Migration Script
  *
  * This script migrates audio files to a CDN (GitHub Releases or Cloudflare R2)
- * and updates data.json with the new URLs while preserving local fallbacks.
+ * and updates data.json with the new URLs.
  *
  * Usage:
  *   node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
@@ -104,11 +104,10 @@ export function updateConcert(concert, baseUrl, provider) {
   // Generate CDN URL
   const cdnUrl = generateCdnUrl(originalAudioFile, baseUrl, provider);
 
-  // Return updated concert with CDN URL, fallback, and source
+  // Return updated concert with CDN URL and source
   return {
     ...concert,
     audioFile: cdnUrl,
-    audioFileFallback: originalAudioFile,
     audioFileSource: provider,
   };
 }
@@ -295,18 +294,16 @@ Examples:
       // Replace concert in array
       data.concerts[i] = updatedConcert;
 
-      changes.push({
-        id: concert.id,
-        band: concert.band,
-        original: originalAudioFile,
-        cdn: updatedConcert.audioFile,
-        fallback: updatedConcert.audioFileFallback,
-      });
+        changes.push({
+          id: concert.id,
+          band: concert.band,
+          original: originalAudioFile,
+          cdn: updatedConcert.audioFile,
+        });
 
       console.log(`✓ Concert #${concert.id} (${concert.band}):`);
       console.log(`    Original: ${originalAudioFile}`);
       console.log(`    CDN URL:  ${updatedConcert.audioFile}`);
-      console.log(`    Fallback: ${updatedConcert.audioFileFallback}`);
       console.log();
 
       migratedCount++;

@@ -39,12 +39,12 @@ options?: {
 
 ```typescript
 {
-  play: (url: string, fallbackUrl?: string) => void;  // Play or resume audio from URL with optional fallback
-  preload: (url: string, fallbackUrl?: string) => void; // Begin streaming so playback is instant
+  play: (url: string) => void;  // Play or resume audio from URL
+  preload: (url: string) => void; // Begin streaming so playback is instant
   pause: () => void;                                  // Pause playback
   stop: () => void;                                   // Stop and unload
   fadeOut: (duration?: number) => void;               // Fade out over duration
-  crossfade: (newUrl: string, duration?: number, fallbackUrl?: string) => void; // Crossfade to new track with optional fallback
+  crossfade: (newUrl: string, duration?: number) => void; // Crossfade to new track
   isPlaying: boolean;                                 // Current playback state
   progress: number;                                   // Playback progress (0-1)
   volume: number;                                     // Current volume 0-1
@@ -101,8 +101,7 @@ function App() {
   const { play, fadeOut, crossfade, isPlaying } = useAudioPlayback();
 
   const handlePhotoRecognized = (concert) => {
-    // Play with CDN URL and local fallback
-    play(concert.audioFile, concert.audioFileFallback);
+    play(concert.audioFile);
   };
 
   const handleMovement = () => {
@@ -110,46 +109,10 @@ function App() {
   };
 
   const handleTrackChange = (newConcert) => {
-    // Smooth transition between tracks with fallback support
-    crossfade(newConcert.audioFile, 2000, newConcert.audioFileFallback);
+    crossfade(newConcert.audioFile, 2000);
   };
 }
 ```
-
-### CDN Streaming with Fallback
-
-The audio playback module supports streaming from CDN with automatic fallback to local files:
-
-```typescript
-// Concert data with CDN URL and local fallback
-const concert = {
-  id: 1,
-  band: 'The Midnight Echoes',
-  audioFile: 'https://cdn.example.com/concert-1.opus', // Primary CDN URL
-  audioFileFallback: '/audio/concert-1.opus', // Local fallback
-};
-
-// Play with automatic fallback
-play(concert.audioFile, concert.audioFileFallback);
-
-// If CDN URL fails, automatically tries local fallback
-// If both fail, error is logged but app continues
-```
-
-**How fallback works:**
-
-1. **Try primary URL**: Attempts to load from CDN
-2. **On error, try fallback**: If CDN fails and fallback URL provided, tries local file
-3. **Graceful degradation**: If both fail, error is logged and playback state is managed
-
-This enables:
-
-- ✅ **Offline development**: Local files work without CDN
-- ✅ **Production reliability**: CDN outages don't break the app
-- ✅ **Cost optimization**: Stream from free CDN (GitHub Releases, Cloudflare R2)
-- ✅ **Scalability**: Support 100+ tracks without bloating git repo
-
-**See also:** [docs/audio-streaming-setup.md](../../../docs/audio-streaming-setup.md) - Complete CDN setup guide
 
 ### Crossfade Example
 
@@ -210,8 +173,6 @@ When you call `crossfade()`, the module:
 - **Format**: Opus (best compatibility/size ratio)
 - **Streaming**: HTML5 audio (no full download needed)
 - **CDN Delivery**: Supports streaming from GitHub Releases or Cloudflare R2
-- **Fallback**: Automatic failover to local files when CDN unavailable
-- **Multi-source**: Howler.js tries sources in order until one succeeds
 
 ---
 
@@ -220,11 +181,10 @@ When you call `crossfade()`, the module:
 For production deployments with 100+ tracks:
 
 1. **Upload Opuss to CDN** (GitHub Releases or Cloudflare R2)
-2. **Update data.json** with CDN URLs and fallbacks:
+2. **Update data.json** with CDN URLs:
    ```json
    {
-     "audioFile": "https://cdn.example.com/concert-1.opus",
-     "audioFileFallback": "/audio/concert-1.opus"
+     "audioFile": "https://cdn.example.com/concert-1.opus"
    }
    ```
 3. **Use migration script**:
@@ -241,7 +201,6 @@ For production deployments with 100+ tracks:
 - Free hosting (GitHub Releases or Cloudflare R2 free tier)
 - <1s playback start on fast wifi
 - Clean git repository (no large Opus files)
-- Offline development still works (fallback to local files)
 
 **See:** [docs/audio-streaming-setup.md](../../../docs/audio-streaming-setup.md) for complete guide
 

@@ -55,6 +55,10 @@ function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
         if (asteriskCount > MAX_ASTERISKS) {
           return null;
         }
+        const wildcardIndex = hostnamePattern.indexOf('*');
+        if (wildcardIndex === hostnamePattern.length - 1) {
+          return null;
+        }
 
         const [hostnamePrefix = '', hostnameSuffix = ''] = hostnamePattern.split('*');
         const normalizedSuffix = hostnameSuffix.replace(/^\./, '').toLowerCase();

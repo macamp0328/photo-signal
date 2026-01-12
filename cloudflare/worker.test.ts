@@ -127,6 +127,18 @@ describe('Cloudflare worker', () => {
     expect(response.status).toBe(403);
   });
 
+  it('ignores wildcard patterns without suffix content', async () => {
+    const env = createEnv({ allowedOrigins: 'https://*' });
+    const response = await worker.fetch(
+      createRequest('/prod/audio/test.opus', {
+        headers: { Origin: 'https://photo-signal-demo.vercel.app' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(403);
+  });
+
   it('permits any origin when a valid shared secret is provided', async () => {
     const env = createEnv({
       allowedOrigins: 'https://example.com',

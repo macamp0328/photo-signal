@@ -1,4 +1,3 @@
-/* eslint-env node */
 /**
  * Shared image processing utilities for scripts
  *

@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-env node */
-
 import { readFile, writeFile, readdir, stat } from 'fs/promises';
 import { spawn } from 'child_process';
 import path from 'path';

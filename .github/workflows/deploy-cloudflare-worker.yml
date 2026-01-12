@@ -1,6 +1,13 @@
 name: Deploy Cloudflare Audio Worker
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'cloudflare/**'
+      - 'wrangler.toml'
+      - '.github/workflows/deploy-cloudflare-worker.yml'
   workflow_dispatch:
 
 concurrency:

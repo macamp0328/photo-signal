@@ -77,7 +77,7 @@ Detects **rapid** triple-tap/click gestures in the center of the screen.
 
 **Timing Requirement:**
 
-All three taps must occur **within 500ms** (configurable) from the **first tap**.
+Each tap must occur **within 500ms** (configurable) of the **previous tap**. The timeout resets after every tap to stay resilient under heavier workloads.
 
 **Examples:**
 
@@ -90,14 +90,14 @@ Tap 3 (t=400ms)
 → Total time: 400ms ✅
 ```
 
-❌ **Invalid (does NOT trigger):**
+❌ **Invalid (does NOT trigger when any gap ≥ 500ms):**
 
 ```
 Tap 1 (t=0ms)
 Tap 2 (t=300ms)
 Tap 3 (t=600ms)
-→ Timeout expired at t=500ms ❌
-→ Count was reset, tap 3 is now first tap
+→ Gap between Tap 2 and Tap 3 is 300ms ✅
+→ If the gap hits 500ms or more, the sequence resets ❌
 ```
 
 **Type Signature:**
@@ -113,14 +113,14 @@ interface UseTripleTapOptions {
 
 **Parameters:**
 
-- `tapTimeout` (optional): Maximum time window (in milliseconds) for completing all three taps, measured from the first tap (default: 500ms)
+- `tapTimeout` (optional): Maximum time window (in milliseconds) between taps (default: 500ms)
 - `onTripleTap`: Callback function triggered when triple-tap is detected
 
 **Behavior:**
 
 - Monitors both `click` (desktop) and `touchend` (mobile) events
 - Only counts taps/clicks in the center third of the screen/window
-- Timeout starts on FIRST tap and does NOT reset on subsequent taps
+- Timeout restarts on every tap; any single gap ≥ timeout clears the sequence
 - Resets count to 0 when timeout expires
 - Cross-platform compatible (desktop, mobile, web)
 

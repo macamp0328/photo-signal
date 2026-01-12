@@ -38,9 +38,7 @@ const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };
 
-const getAudioSources = (
-  concert: Concert | null
-): { primary: string; fallback?: string } => {
+const getAudioSources = (concert: Concert | null): { primary: string; fallback?: string } => {
   if (!concert) {
     return { primary: '', fallback: undefined };
   }

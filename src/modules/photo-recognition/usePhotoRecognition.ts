@@ -625,13 +625,10 @@ export function usePhotoRecognition(
     };
   }, [concerts, hashAlgorithm, resolvedOrbConfig, isEnabled]);
 
-  const commitRecognition = useCallback(
-    (concert: Concert) => {
-      recognizedConcertRef.current = concert;
-      setRecognizedConcert(concert);
-    },
-    []
-  );
+  const commitRecognition = useCallback((concert: Concert) => {
+    recognizedConcertRef.current = concert;
+    setRecognizedConcert(concert);
+  }, []);
 
   useEffect(() => {
     recognizedConcertRef.current = recognizedConcert;

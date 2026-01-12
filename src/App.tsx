@@ -38,19 +38,20 @@ const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };
 
-const getAudioSources = (concert: Concert | null): { primary: string; fallback?: string } => {
+const getAudioSources = (concert: Concert | null): { primary?: string; fallback?: string } => {
   if (!concert) {
-    return { primary: '', fallback: undefined };
+    return { primary: undefined, fallback: undefined };
   }
 
   const hasExplicitFallback =
     typeof concert.audioFileFallback === 'string' && concert.audioFileFallback.length > 0;
+  const primary = concert.audioFile ?? undefined;
 
-  if (!concert.audioFile && !hasExplicitFallback) {
+  if (!primary && !hasExplicitFallback) {
     console.error(
       `[audio] Concert ${concert.id} is missing both primary and fallback audio sources. Audio playback will be disabled for this concert.`
     );
-    return { primary: '', fallback: undefined };
+    return { primary: undefined, fallback: undefined };
   }
 
   if (!hasExplicitFallback) {
@@ -59,13 +60,13 @@ const getAudioSources = (concert: Concert | null): { primary: string; fallback?:
       `[audio] Using convention-based fallback audio path "${generatedFallback}" for concert ${concert.id}. Ensure this file exists to avoid silent audio playback failures.`
     );
     return {
-      primary: concert.audioFile ?? '',
+      primary,
       fallback: generatedFallback,
     };
   }
 
   return {
-    primary: concert.audioFile ?? '',
+    primary,
     fallback: concert.audioFileFallback,
   };
 };
@@ -263,7 +264,14 @@ function App() {
     }
 
     const { primary, fallback } = getAudioSources(recognizedConcert);
-    preload(primary, fallback);
+    const resolvedPrimary = primary ?? fallback;
+    const resolvedFallback = primary ? fallback : undefined;
+
+    if (!resolvedPrimary) {
+      return;
+    }
+
+    preload(resolvedPrimary, resolvedFallback);
   }, [preload, recognizedConcert]);
 
   useEffect(() => {
@@ -310,6 +318,13 @@ function App() {
     }
 
     const { primary: targetUrl, fallback: targetFallback } = getAudioSources(targetConcert);
+    const resolvedUrl = targetUrl ?? targetFallback;
+    const resolvedFallback = targetUrl ? targetFallback : undefined;
+
+    if (!resolvedUrl) {
+      return;
+    }
+
     const isSameConcert = activeConcert?.id === targetConcert.id;
 
     if (isSameConcert) {
@@ -318,15 +333,15 @@ function App() {
         return;
       }
 
-      play(targetUrl, targetFallback);
+      play(resolvedUrl, resolvedFallback);
       setActiveConcert(targetConcert);
       return;
     }
 
     if (activeConcert && isPlaying) {
-      crossfade(targetUrl, undefined, targetFallback);
+      crossfade(resolvedUrl, undefined, resolvedFallback);
     } else {
-      play(targetUrl, targetFallback);
+      play(resolvedUrl, resolvedFallback);
     }
 
     setActiveConcert(targetConcert);

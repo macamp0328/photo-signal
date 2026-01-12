@@ -201,6 +201,42 @@ body::before {
   border-radius: 2px;
 }
 
+.floating-settings-button {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 12000;
+  padding: 0.6rem 1rem;
+  background: var(--color-button-bg, #f5f5f5);
+  color: var(--color-button-text, #0a0a0a);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius, 8px);
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.floating-settings-button:hover,
+.floating-settings-button:focus-visible {
+  background: var(--color-button-hover-bg, #e5e7eb);
+  color: var(--color-button-hover-text, #0a0a0a);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 1rem 2.25rem rgba(0, 0, 0, 0.35);
+}
+
+.floating-settings-button:active {
+  transform: translateY(0);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.28);
+}
+
 /* Remove default focus outline, but keep it for keyboard navigation */
 *:focus:not(:focus-visible) {
   outline: none;

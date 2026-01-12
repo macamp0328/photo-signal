@@ -29,7 +29,7 @@ const DEFAULT_CACHE_CONTROL_METADATA = 'public, max-age=300';
 const DEFAULT_ALLOWED_ORIGIN_STRINGS = [
   'https://www.whoisduck2.com',
   'https://whoisduck2.com',
-  'https://photo-signal-*.vercel.app',
+  'https://photo-signal.vercel.app',
   'http://localhost:5173',
 ];
 

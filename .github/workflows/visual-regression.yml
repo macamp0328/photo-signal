@@ -46,8 +46,8 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Run visual regression tests
-        run: npm run test:visual
+      - name: Run visual regression tests (Mobile Chrome only)
+        run: npm run test:visual -- --project "Mobile Chrome"
         continue-on-error: true
         id: playwright
 

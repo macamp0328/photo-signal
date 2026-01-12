@@ -74,7 +74,7 @@ describe('Cloudflare worker', () => {
   });
 
   it('allows wildcard origins that match the configured pattern', async () => {
-    const env = createEnv({ allowedOrigins: 'https://*.vercel.app' });
+    const env = createEnv({ allowedOrigins: 'https://photo-signal-*.vercel.app' });
     const response = await worker.fetch(
       createRequest('/prod/audio/test.opus', {
         headers: { Origin: 'https://photo-signal-demo.vercel.app' },

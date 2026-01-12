@@ -35,7 +35,7 @@ const DEFAULT_ALLOWED_ORIGIN_STRINGS = [
 
 type AllowedOrigin =
   | { type: 'exact'; origin: string }
-  | { type: 'wildcard'; protocol: string; hostnameSuffix: string };
+  | { type: 'wildcard'; protocol: string; hostnameSuffix: string; hostnamePrefix?: string };
 
 function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
   const rawValues = value
@@ -47,12 +47,20 @@ function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
 
   return rawValues
     .map((raw) => {
-      const wildcardMatch = /^(https?):\/\/\*\.(.+)$/i.exec(raw);
+      const wildcardMatch = /^(https?):\/\/([^/]*\*[^/]*)$/i.exec(raw);
       if (wildcardMatch) {
+        const [, protocol, hostnamePattern] = wildcardMatch;
+        const [hostnamePrefix = '', hostnameSuffix = ''] = hostnamePattern.split('*');
+        const normalizedSuffix = hostnameSuffix.replace(/^\./, '').toLowerCase();
+        if (!normalizedSuffix) {
+          return null;
+        }
+
         return {
           type: 'wildcard' as const,
-          protocol: `${wildcardMatch[1].toLowerCase()}:`,
-          hostnameSuffix: wildcardMatch[2].toLowerCase(),
+          protocol: `${protocol.toLowerCase()}:`,
+          hostnamePrefix: hostnamePrefix.toLowerCase(),
+          hostnameSuffix: normalizedSuffix,
         };
       }
 
@@ -92,7 +100,18 @@ function matchAllowedOrigin(origin: string | null, allowedOrigins: AllowedOrigin
       }
 
       const suffix = allowed.hostnameSuffix.toLowerCase();
-      if (hostname === suffix || hostname.endsWith(`.${suffix}`)) {
+      const prefix = (allowed.hostnamePrefix ?? '').toLowerCase();
+
+      if (!hostname.endsWith(suffix)) {
+        continue;
+      }
+
+      if (prefix && !hostname.startsWith(prefix)) {
+        continue;
+      }
+
+      const wildcardContentLength = hostname.length - prefix.length - suffix.length;
+      if (wildcardContentLength > 0) {
         return normalizedOrigin;
       }
     }

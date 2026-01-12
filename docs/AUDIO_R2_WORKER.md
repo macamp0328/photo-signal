@@ -22,7 +22,7 @@ ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://pho
 SHARED_SECRET = "generate-a-random-value" # optional
 ```
 
-The `*.vercel.app` wildcard keeps Vercel preview deployments (e.g.,
+The `photo-signal-*.vercel.app` wildcard keeps Vercel preview deployments (e.g.,
 `https://photo-signal-git-feat-prod-audio-r2.macamp0328.vercel.app`) CORS-eligible
 without needing to redeploy the Worker for every branch.
 

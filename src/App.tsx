@@ -38,7 +38,7 @@ const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };
 
-const getAudioSources = (concert: Concert | null): { primary?: string; fallback?: string } => {
+const tryGetAudioSources = (concert: Concert | null): { primary?: string; fallback?: string } => {
   if (!concert) {
     return { primary: undefined, fallback: undefined };
   }
@@ -75,7 +75,7 @@ const resolveAudioUrls = (
   primary?: string,
   fallback?: string
 ): { url?: string; fallbackUrl?: string } => {
-  // Prefer the primary URL; if absent, fall back to the secondary source without exposing it as a fallback.
+  // Prefer the primary URL; if it is missing, treat the fallback as the only source (no secondary fallback to try).
   const url = primary ?? fallback;
   const fallbackUrl = primary ? fallback : undefined;
   return { url, fallbackUrl };
@@ -273,7 +273,7 @@ function App() {
       return;
     }
 
-    const { primary, fallback } = getAudioSources(recognizedConcert);
+    const { primary, fallback } = tryGetAudioSources(recognizedConcert);
     const { url: selectedAudioUrl, fallbackUrl } = resolveAudioUrls(primary, fallback);
 
     if (!selectedAudioUrl) {
@@ -326,7 +326,7 @@ function App() {
       return;
     }
 
-    const { primary: targetUrl, fallback: targetFallback } = getAudioSources(targetConcert);
+    const { primary: targetUrl, fallback: targetFallback } = tryGetAudioSources(targetConcert);
     const { url: selectedAudioUrl, fallbackUrl } = resolveAudioUrls(targetUrl, targetFallback);
 
     if (!selectedAudioUrl) {

@@ -10,7 +10,6 @@ const projectRoot = path.resolve(__dirname, '../../..');
 
 const DEFAULT_SOURCE = 'public/data.json';
 const DEFAULT_PREFIX = 'prod/audio';
-const AUDIO_SOURCE = 'r2-worker';
 
 export function trimTrailingSlash(value) {
   if (!value) return value;

@@ -34,6 +34,7 @@ import { buildAudioUrl, sanitizePrefix, trimTrailingSlash } from './apply-cdn-to
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
+const DEFAULT_PREFIX = 'prod/audio';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -77,6 +78,26 @@ for (const arg of args) {
     }
     options.prefix = sanitizePrefix(value);
   }
+}
+
+export function normalizeBaseUrl(baseUrl) {
+  return trimTrailingSlash(baseUrl);
+}
+
+export function normalizePrefix(prefix) {
+  return sanitizePrefix(prefix || DEFAULT_PREFIX);
+}
+
+export function resolveAudioUrl(audioFile, concertId, baseUrl, prefix = DEFAULT_PREFIX) {
+  if (!audioFile) {
+    return '';
+  }
+
+  if (!baseUrl) {
+    return audioFile;
+  }
+
+  return buildAudioUrl({ id: concertId, audioFile }, baseUrl, prefix);
 }
 
 // Show help

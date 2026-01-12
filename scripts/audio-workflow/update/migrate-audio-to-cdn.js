@@ -293,12 +293,12 @@ Examples:
       // Replace concert in array
       data.concerts[i] = updatedConcert;
 
-        changes.push({
-          id: concert.id,
-          band: concert.band,
-          original: originalAudioFile,
-          cdn: updatedConcert.audioFile,
-        });
+      changes.push({
+        id: concert.id,
+        band: concert.band,
+        original: originalAudioFile,
+        cdn: updatedConcert.audioFile,
+      });
 
       console.log(`✓ Concert #${concert.id} (${concert.band}):`);
       console.log(`    Original: ${originalAudioFile}`);

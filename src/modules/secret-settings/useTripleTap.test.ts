@@ -232,7 +232,7 @@ describe('useTripleTap', () => {
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
-    it('should reset count if timeout expires before third tap', () => {
+    it('should still trigger if each gap stays within timeout even when total exceeds window', () => {
       Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
       Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
 
@@ -256,13 +256,13 @@ describe('useTripleTap', () => {
       vi.advanceTimersByTime(200);
       window.dispatchEvent(clickEvent);
 
-      // Wait for timeout to expire
-      vi.advanceTimersByTime(400); // Total 600ms from first tap
+      // Wait, but keep gap under timeout (400ms < 500ms)
+      vi.advanceTimersByTime(400); // Total 600ms from first tap, but rolling gap is 400ms
 
-      // Tap 3 (after timeout expired)
+      // Tap 3 (still within rolling timeout)
       window.dispatchEvent(clickEvent);
 
-      expect(mockCallback).not.toHaveBeenCalled();
+      expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
     it('should handle rapid taps at edge of timeout window', () => {
@@ -296,7 +296,7 @@ describe('useTripleTap', () => {
       expect(mockCallback).toHaveBeenCalledTimes(1);
     });
 
-    it('should NOT trigger if third tap occurs exactly at timeout boundary (500ms)', () => {
+    it('should NOT trigger if any single gap hits the timeout boundary', () => {
       Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
       Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
 
@@ -316,15 +316,15 @@ describe('useTripleTap', () => {
       // Tap 1 (t=0)
       window.dispatchEvent(clickEvent);
 
-      // Tap 2 (t=250ms)
-      vi.advanceTimersByTime(250);
+      // Tap 2 (t=500ms - exactly at boundary, should reset)
+      vi.advanceTimersByTime(500);
       window.dispatchEvent(clickEvent);
 
-      // Tap 3 (t=500ms - exactly at timeout boundary)
-      vi.advanceTimersByTime(250);
+      // Tap 3 (t=1000ms - another boundary hit)
+      vi.advanceTimersByTime(500);
       window.dispatchEvent(clickEvent);
 
-      // At exactly 500ms, timeout has expired, so this should NOT trigger
+      // At the boundary, timeout has expired, so this should NOT trigger
       expect(mockCallback).not.toHaveBeenCalled();
     });
   });

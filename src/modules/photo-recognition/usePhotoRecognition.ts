@@ -630,10 +630,6 @@ export function usePhotoRecognition(
     setRecognizedConcert(concert);
   }, []);
 
-  useEffect(() => {
-    recognizedConcertRef.current = recognizedConcert;
-  }, [recognizedConcert]);
-
   // Reset recognition state
   const reset = useCallback(() => {
     setRecognizedConcert(null);

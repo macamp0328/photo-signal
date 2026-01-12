@@ -43,10 +43,30 @@ const getAudioSources = (concert: Concert | null): { primary: string; fallback?:
     return { primary: '', fallback: undefined };
   }
 
-  const fallback = concert.audioFileFallback ?? `/audio/concert-${concert.id}.mp3`;
+  const hasExplicitFallback =
+    typeof concert.audioFileFallback === 'string' && concert.audioFileFallback.length > 0;
+
+  if (!concert.audioFile && !hasExplicitFallback) {
+    console.error(
+      `[audio] Concert ${concert.id} is missing both primary and fallback audio sources. Audio playback will be disabled for this concert.`
+    );
+    return { primary: '', fallback: undefined };
+  }
+
+  if (!hasExplicitFallback) {
+    const generatedFallback = `/audio/concert-${concert.id}.mp3`;
+    console.warn(
+      `[audio] Using convention-based fallback audio path "${generatedFallback}" for concert ${concert.id}. Ensure this file exists to avoid silent audio playback failures.`
+    );
+    return {
+      primary: concert.audioFile ?? '',
+      fallback: generatedFallback,
+    };
+  }
+
   return {
-    primary: concert.audioFile,
-    fallback,
+    primary: concert.audioFile ?? '',
+    fallback: concert.audioFileFallback,
   };
 };
 
@@ -270,7 +290,7 @@ function App() {
   // Restart recognition when movement begins so we can confirm the next photo.
   const previousMovementRef = useRef(false);
   useEffect(() => {
-    if (isMoving && !previousMovementRef.current && (activeConcert || recognizedConcert)) {
+    if (isMoving && !previousMovementRef.current && activeConcert) {
       if (autoResetTimerRef.current !== null) {
         window.clearTimeout(autoResetTimerRef.current);
         autoResetTimerRef.current = null;
@@ -280,7 +300,7 @@ function App() {
     }
 
     previousMovementRef.current = isMoving;
-  }, [isMoving, activeConcert, recognizedConcert, resetRecognition]);
+  }, [isMoving, activeConcert, resetRecognition]);
 
   const handleTogglePlayback = () => {
     const targetConcert = recognizedConcert ?? activeConcert;

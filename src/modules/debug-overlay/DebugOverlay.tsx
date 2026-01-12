@@ -122,9 +122,6 @@ export function DebugOverlay({
     >
       {isCollapsed ? (
         <div className={styles.collapsedContent}>
-          <span className={styles.collapsedLabel}>
-            {enabled ? '🐛 Debug overlay hidden' : '🐛 Debug overlay'}
-          </span>
           <button
             type="button"
             className={styles.collapsedButton}

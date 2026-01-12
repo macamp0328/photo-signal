@@ -374,6 +374,8 @@ export function usePhotoRecognition(
   const orbMinMatchThreshold =
     resolvedOrbConfig.minMatchCount ?? DEFAULT_ORB_HOOK_CONFIG.minMatchCount ?? 15;
 
+  const debugMetricsEnabled = enableDebugInfo;
+
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -383,6 +385,12 @@ export function usePhotoRecognition(
   const [restartKey, setRestartKey] = useState(0);
   const [detectedRectangle, setDetectedRectangle] = useState<DetectedRectangle | null>(null);
   const [rectangleConfidence, setRectangleConfidence] = useState(0);
+
+  useEffect(() => {
+    if (!debugMetricsEnabled) {
+      setDebugInfo(null);
+    }
+  }, [debugMetricsEnabled]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -450,6 +458,10 @@ export function usePhotoRecognition(
 
   // Emit lightweight on-device telemetry so we can monitor blur/glare rejection rates in real time
   const emitTelemetrySnapshot = useCallback(() => {
+    if (!debugMetricsEnabled) {
+      return;
+    }
+
     if (typeof window === 'undefined') {
       return;
     }
@@ -496,7 +508,7 @@ export function usePhotoRecognition(
         `[Photo Recognition][Telemetry] Frames=${totalFrames} Blur=${blurRejections} (${blurPct}%) Glare=${glareRejections} (${glarePct}%)`
       );
     }
-  }, [isEnabled]);
+  }, [debugMetricsEnabled, isEnabled]);
 
   // Load concert data
   const loadConcerts = useCallback(() => {
@@ -921,7 +933,9 @@ export function usePhotoRecognition(
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
         // Phase 1: Check frame quality (sharpness and glare detection)
-        telemetryRef.current.totalFrames += 1;
+        if (debugMetricsEnabled) {
+          telemetryRef.current.totalFrames += 1;
+        }
 
         // Check sharpness (motion blur detection)
         const sharpness = computeLaplacianVariance(imageData);
@@ -952,14 +966,18 @@ export function usePhotoRecognition(
         // If guidance changed, update duration for previous guidance
         if (previousGuidance !== currentGuidance) {
           const duration = now - guidanceStartTimeRef.current;
-          telemetryRef.current.guidanceTracking.duration[previousGuidance] += duration;
+          if (debugMetricsEnabled) {
+            telemetryRef.current.guidanceTracking.duration[previousGuidance] += duration;
+          }
           guidanceStartTimeRef.current = now;
           previousGuidanceRef.current = currentGuidance;
 
           // Track when guidance is shown (not 'none')
           if (currentGuidance !== 'none') {
-            telemetryRef.current.guidanceTracking.shown[currentGuidance] += 1;
-            telemetryRef.current.guidanceTracking.lastShown[currentGuidance] = now;
+            if (debugMetricsEnabled) {
+              telemetryRef.current.guidanceTracking.shown[currentGuidance] += 1;
+              telemetryRef.current.guidanceTracking.lastShown[currentGuidance] = now;
+            }
           }
         }
 
@@ -997,14 +1015,18 @@ export function usePhotoRecognition(
 
         // Skip frame if it fails quality checks
         if (!isSharp) {
-          telemetryRef.current.blurRejections += 1;
+          if (debugMetricsEnabled) {
+            telemetryRef.current.blurRejections += 1;
+          }
           // Record diagnostic with placeholder hash (not computed yet for blurry frames)
-          recordFailure(
-            telemetryRef.current,
-            'motion-blur',
-            `Sharpness ${sharpness.toFixed(1)} below threshold ${sharpnessThreshold}`,
-            'N/A'
-          );
+          if (debugMetricsEnabled) {
+            recordFailure(
+              telemetryRef.current,
+              'motion-blur',
+              `Sharpness ${sharpness.toFixed(1)} below threshold ${sharpnessThreshold}`,
+              'N/A'
+            );
+          }
           if (isTestMode) {
             console.debug(`❌ Frame REJECTED: Too blurry (motion blur detected)`);
             console.debug(
@@ -1017,14 +1039,18 @@ export function usePhotoRecognition(
         }
 
         if (hasGlare) {
-          telemetryRef.current.glareRejections += 1;
+          if (debugMetricsEnabled) {
+            telemetryRef.current.glareRejections += 1;
+          }
           // Record diagnostic with placeholder hash
-          recordFailure(
-            telemetryRef.current,
-            'glare',
-            `${glarePercentage.toFixed(1)}% of frame blown out (threshold: ${glarePercentageThreshold}%)`,
-            'N/A'
-          );
+          if (debugMetricsEnabled) {
+            recordFailure(
+              telemetryRef.current,
+              'glare',
+              `${glarePercentage.toFixed(1)}% of frame blown out (threshold: ${glarePercentageThreshold}%)`,
+              'N/A'
+            );
+          }
           if (isTestMode) {
             console.debug(
               `❌ Frame REJECTED: Excessive glare (${glarePercentage.toFixed(1)}% blown out)`
@@ -1039,7 +1065,9 @@ export function usePhotoRecognition(
         }
 
         // Frame passed quality checks
-        telemetryRef.current.qualityFrames += 1;
+        if (debugMetricsEnabled) {
+          telemetryRef.current.qualityFrames += 1;
+        }
         if (isTestMode) {
           console.debug(`✓ Frame PASSED quality checks`);
           console.debug(
@@ -1110,7 +1138,7 @@ export function usePhotoRecognition(
               }
 
               // Update debug info if enabled
-              if (enableDebugInfo || isTestMode) {
+              if (debugMetricsEnabled) {
                 const bestAlgResult = result.algorithmResults.reduce((best, curr) =>
                   curr.confidence > best.confidence ? curr : best
                 );
@@ -1162,7 +1190,9 @@ export function usePhotoRecognition(
                     if (elapsed >= recognitionDelay) {
                       setRecognizedConcert(result.matchedConcert);
                       setIsRecognizing(false);
-                      telemetryRef.current.successfulRecognitions += 1;
+                      if (debugMetricsEnabled) {
+                        telemetryRef.current.successfulRecognitions += 1;
+                      }
                       lastMatchedConcertRef.current = null;
                       matchStartTimeRef.current = null;
                       if (import.meta.env.DEV || isTestMode) {
@@ -1179,7 +1209,9 @@ export function usePhotoRecognition(
                 }
               } else {
                 if (lastMatchedConcertRef.current) {
-                  telemetryRef.current.failedAttempts += 1;
+                  if (debugMetricsEnabled) {
+                    telemetryRef.current.failedAttempts += 1;
+                  }
                   lastMatchedConcertRef.current = null;
                   matchStartTimeRef.current = null;
                   setIsRecognizing(false);
@@ -1190,12 +1222,14 @@ export function usePhotoRecognition(
             })
             .catch((error) => {
               console.error('[Parallel Recognition] Error:', error);
-              recordFailure(
-                telemetryRef.current,
-                'unknown',
-                `Parallel recognition error: ${(error as Error).message}`,
-                'PARALLEL'
-              );
+              if (debugMetricsEnabled) {
+                recordFailure(
+                  telemetryRef.current,
+                  'unknown',
+                  `Parallel recognition error: ${(error as Error).message}`,
+                  'PARALLEL'
+                );
+              }
               emitTelemetrySnapshot();
             });
 
@@ -1215,12 +1249,14 @@ export function usePhotoRecognition(
             if (import.meta.env.DEV || isTestMode) {
               console.warn('[Photo Recognition][ORB] Reference cache is empty');
             }
-            recordFailure(
-              telemetryRef.current,
-              'no-match',
-              'ORB reference cache is empty',
-              ORB_FRAME_PLACEHOLDER
-            );
+            if (debugMetricsEnabled) {
+              recordFailure(
+                telemetryRef.current,
+                'no-match',
+                'ORB reference cache is empty',
+                ORB_FRAME_PLACEHOLDER
+              );
+            }
             emitTelemetrySnapshot();
             return;
           }
@@ -1230,12 +1266,14 @@ export function usePhotoRecognition(
             frameFeatures = extractORBFeatures(imageData, resolvedOrbConfig);
           } catch (error) {
             console.error('[Photo Recognition][ORB] Failed to extract features from frame', error);
-            recordFailure(
-              telemetryRef.current,
-              'poor-quality',
-              `ORB extraction failed: ${(error as Error)?.message ?? 'Unknown error'}`,
-              ORB_FRAME_PLACEHOLDER
-            );
+            if (debugMetricsEnabled) {
+              recordFailure(
+                telemetryRef.current,
+                'poor-quality',
+                `ORB extraction failed: ${(error as Error)?.message ?? 'Unknown error'}`,
+                ORB_FRAME_PLACEHOLDER
+              );
+            }
             emitTelemetrySnapshot();
             return;
           }
@@ -1254,12 +1292,14 @@ export function usePhotoRecognition(
           }
 
           if (!bestOrbResult) {
-            recordFailure(
-              telemetryRef.current,
-              'no-match',
-              'No ORB matches available for current frame',
-              ORB_FRAME_PLACEHOLDER
-            );
+            if (debugMetricsEnabled) {
+              recordFailure(
+                telemetryRef.current,
+                'no-match',
+                'No ORB matches available for current frame',
+                ORB_FRAME_PLACEHOLDER
+              );
+            }
             emitTelemetrySnapshot();
             return;
           }
@@ -1297,7 +1337,7 @@ export function usePhotoRecognition(
                 })()
               : null;
 
-          if (enableDebugInfo || isTestMode) {
+          if (debugMetricsEnabled) {
             setDebugInfo({
               lastFrameHash: ORB_FRAME_PLACEHOLDER,
               bestMatch: {
@@ -1335,7 +1375,9 @@ export function usePhotoRecognition(
                 if (elapsed >= recognitionDelay) {
                   setRecognizedConcert(matchedConcert);
                   setIsRecognizing(false);
-                  telemetryRef.current.successfulRecognitions += 1;
+                  if (debugMetricsEnabled) {
+                    telemetryRef.current.successfulRecognitions += 1;
+                  }
                   lastMatchedConcertRef.current = null;
                   matchStartTimeRef.current = null;
                 } else {
@@ -1352,9 +1394,13 @@ export function usePhotoRecognition(
             }
           } else {
             const failureReason = `Best ORB match ${bestConcert.band} with ${orbResult.matchCount} matches (${confidencePct}% confidence)`;
-            recordFailure(telemetryRef.current, 'no-match', failureReason, ORB_FRAME_PLACEHOLDER);
+            if (debugMetricsEnabled) {
+              recordFailure(telemetryRef.current, 'no-match', failureReason, ORB_FRAME_PLACEHOLDER);
+            }
             if (lastMatchedConcertRef.current) {
-              telemetryRef.current.failedAttempts += 1;
+              if (debugMetricsEnabled) {
+                telemetryRef.current.failedAttempts += 1;
+              }
               lastMatchedConcertRef.current = null;
               matchStartTimeRef.current = null;
               setIsRecognizing(false);
@@ -1648,7 +1694,7 @@ export function usePhotoRecognition(
             : primaryResult);
 
         // Update debug info if enabled
-        if (enableDebugInfo || isTestMode) {
+        if (debugMetricsEnabled) {
           const elapsedMs =
             matchStartTimeRef.current && matchedResult
               ? currentTime - (matchStartTimeRef.current ?? currentTime)
@@ -1732,7 +1778,9 @@ export function usePhotoRecognition(
                 // Stable match confirmed!
                 setRecognizedConcert(activeResult.match);
                 setIsRecognizing(false);
-                telemetryRef.current.successfulRecognitions += 1;
+                if (debugMetricsEnabled) {
+                  telemetryRef.current.successfulRecognitions += 1;
+                }
 
                 if (import.meta.env.DEV || isTestMode) {
                   console.log('');
@@ -1825,29 +1873,35 @@ export function usePhotoRecognition(
             const threshold = getThresholdForAlgorithm(bestDisplayResult.algorithm);
             const category: FailureCategory =
               bestDisplayResult.distance <= threshold + 10 ? 'collision' : 'no-match';
-            recordFailure(
-              telemetryRef.current,
-              category,
-              `Best match (${bestDisplayResult.algorithm}): ${bestDisplayResult.match.band}, distance ${bestDisplayResult.distance}, similarity ${similarity.toFixed(1)}%`,
-              currentHash
-            );
+            if (debugMetricsEnabled) {
+              recordFailure(
+                telemetryRef.current,
+                category,
+                `Best match (${bestDisplayResult.algorithm}): ${bestDisplayResult.match.band}, distance ${bestDisplayResult.distance}, similarity ${similarity.toFixed(1)}%`,
+                currentHash
+              );
+            }
             if (isTestMode) {
               console.debug(`   Failure Category: ${category}`);
             }
           } else {
-            recordFailure(
-              telemetryRef.current,
-              'no-match',
-              'No concerts with hashes in database',
-              currentHash
-            );
+            if (debugMetricsEnabled) {
+              recordFailure(
+                telemetryRef.current,
+                'no-match',
+                'No concerts with hashes in database',
+                currentHash
+              );
+            }
             if (isTestMode) {
               console.debug(`   Failure Category: no-match (no candidates)`);
             }
           }
 
           if (lastMatchedConcertRef.current) {
-            telemetryRef.current.failedAttempts += 1;
+            if (debugMetricsEnabled) {
+              telemetryRef.current.failedAttempts += 1;
+            }
             lastMatchedConcertRef.current = null;
             matchStartTimeRef.current = null;
             setIsRecognizing(false);
@@ -1900,6 +1954,7 @@ export function usePhotoRecognition(
     rectangleConfidenceThreshold,
     emitTelemetrySnapshot,
     restartKey,
+    debugMetricsEnabled,
   ]);
 
   return {

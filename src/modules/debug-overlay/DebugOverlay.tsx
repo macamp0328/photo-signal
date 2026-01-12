@@ -18,6 +18,7 @@ export function DebugOverlay({
   isRecognizing,
   enabled,
   isTestMode,
+  onVisibilityChange,
   debugInfo,
   threshold,
   onReset,
@@ -119,6 +120,10 @@ export function DebugOverlay({
   const dataBadgeText = isTestMode ? 'TEST DATA' : 'LIVE DATA';
   const isCollapsedView = isCollapsed || !enabled;
 
+  useEffect(() => {
+    onVisibilityChange?.(enabled && !isCollapsed);
+  }, [enabled, isCollapsed, onVisibilityChange]);
+
   return (
     <div className={`${styles.overlay} ${isCollapsedView ? styles.collapsed : ''}`}>
       {isCollapsedView ? (
@@ -156,7 +161,7 @@ export function DebugOverlay({
                 className={styles.toggleButton}
                 onClick={() => setIsCollapsed(true)}
                 aria-label="Hide debug overlay"
-                aria-expanded={!isCollapsed}
+                aria-expanded={!isCollapsedView}
               >
                 Hide
               </button>

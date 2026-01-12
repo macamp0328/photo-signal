@@ -303,7 +303,7 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Restart recognition when movement begins while audio is active, to search for the next photo.
+  // Restart recognition when movement begins while a concert is active, to search for the next photo.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {

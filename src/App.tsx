@@ -304,7 +304,7 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Restart recognition when movement begins while a concert is active (not just recognized) to avoid oscillation and search for the next photo.
+  // Restart recognition when movement begins while a concert is active (not merely recognized) to avoid oscillation and search for the next photo.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {
@@ -317,6 +317,7 @@ function App() {
     }
 
     previousMovementRef.current = isMoving;
+    // recognizedConcert is intentionally omitted to prevent immediate restart after a fresh lock-in.
   }, [isMoving, activeConcert, resetRecognition]);
 
   const handleTogglePlayback = () => {

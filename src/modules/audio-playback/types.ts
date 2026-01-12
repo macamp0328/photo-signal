@@ -5,6 +5,8 @@
 export interface AudioPlaybackHook {
   /** Play audio from URL with optional fallback */
   play: (url: string, fallbackUrl?: string) => void;
+  /** Preload audio so it is ready to play without delay */
+  preload: (url: string, fallbackUrl?: string) => void;
   /** Pause playback */
   pause: () => void;
   /** Stop and unload audio */

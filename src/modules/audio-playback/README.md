@@ -39,7 +39,8 @@ options?: {
 
 ```typescript
 {
-  play: (url: string, fallbackUrl?: string) => void;  // Play audio from URL with optional fallback
+  play: (url: string, fallbackUrl?: string) => void;  // Play or resume audio from URL with optional fallback
+  preload: (url: string, fallbackUrl?: string) => void; // Begin streaming so playback is instant
   pause: () => void;                                  // Pause playback
   stop: () => void;                                   // Stop and unload
   fadeOut: (duration?: number) => void;               // Fade out over duration

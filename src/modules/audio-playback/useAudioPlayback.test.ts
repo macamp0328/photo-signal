@@ -205,6 +205,27 @@ describe('useAudioPlayback', () => {
       // Should still be playing (new audio)
       expect(result.current.isPlaying).toBe(true);
     });
+
+    it('should resume the same track without creating a new instance', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        result.current.pause();
+      });
+
+      expect(HowlClass.instances.length).toBe(1);
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      expect(HowlClass.instances.length).toBe(1);
+    });
   });
 
   describe('Pause Functionality', () => {
@@ -445,6 +466,7 @@ describe('useAudioPlayback', () => {
 
       // Verify all contract methods are present
       expect(typeof result.current.play).toBe('function');
+      expect(typeof result.current.preload).toBe('function');
       expect(typeof result.current.pause).toBe('function');
       expect(typeof result.current.stop).toBe('function');
       expect(typeof result.current.fadeOut).toBe('function');
@@ -465,6 +487,27 @@ describe('useAudioPlayback', () => {
       );
 
       expect(result.current.volume).toBe(0.7);
+    });
+  });
+
+  describe('Preload Functionality', () => {
+    it('should preload audio without starting playback and reuse the cached instance', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.preload('/audio/preload.opus');
+      });
+
+      expect(result.current.isPlaying).toBe(false);
+      expect(HowlClass.instances.length).toBe(1);
+
+      act(() => {
+        result.current.play('/audio/preload.opus');
+      });
+
+      expect(HowlClass.instances.length).toBe(1);
+      expect(result.current.isPlaying).toBe(true);
     });
   });
 

@@ -31,6 +31,9 @@ Display concert metadata overlay.
   concert: Concert | null;       // Concert to display, null to hide
   isVisible: boolean;            // Control visibility independently
   className?: string;            // Additional CSS classes
+  statusLabel?: string;          // Optional badge label (defaults to "Now Playing")
+  promptText?: string;           // Optional helper text shown beneath details
+  actions?: React.ReactNode;     // Optional controls rendered at the bottom of the card
 }
 ```
 

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Concert } from '../../types';
 
 /**
@@ -11,4 +12,10 @@ export interface InfoDisplayProps {
   isVisible: boolean;
   /** Additional CSS classes */
   className?: string;
+  /** Label describing the state of this concert (e.g., Now Playing, Now Viewing) */
+  statusLabel?: string;
+  /** Optional prompt or helper text shown below details */
+  promptText?: string;
+  /** Optional action controls rendered beneath the details */
+  actions?: ReactNode;
 }

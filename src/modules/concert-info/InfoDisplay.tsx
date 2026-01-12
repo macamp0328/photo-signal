@@ -8,7 +8,14 @@ import { formatConcertTimestamp } from '../../utils/dateUtils';
  * Pure UI component for displaying concert metadata.
  * Styled as a distinct content block with zine-like aesthetic.
  */
-export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayProps) {
+export function InfoDisplay({
+  concert,
+  isVisible,
+  className = '',
+  statusLabel = 'Now Playing',
+  promptText = 'Hold steady to keep the story playing.',
+  actions,
+}: InfoDisplayProps) {
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
 
@@ -18,7 +25,7 @@ export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayP
   return (
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
       <div className={styles.metaRow}>
-        <span className={styles.badge}>Now Playing</span>
+        <span className={styles.badge}>{statusLabel}</span>
         <span className={styles.archiveTag}>{archiveNumber}</span>
       </div>
 
@@ -35,7 +42,9 @@ export function InfoDisplay({ concert, isVisible, className = '' }: InfoDisplayP
         </div>
       </div>
 
-      <p className={styles.prompt}>Hold steady to keep the story playing.</p>
+      <p className={styles.prompt}>{promptText}</p>
+
+      {actions ? <div className={styles.actions}>{actions}</div> : null}
     </section>
   );
 }

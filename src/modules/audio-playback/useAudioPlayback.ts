@@ -23,12 +23,18 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const fadingOutSoundRef = useRef<Howl | null>(null);
   const crossfadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentUrlRef = useRef<string | null>(null);
+  const preloadCacheRef = useRef<Map<string, Howl>>(new Map());
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolumeState] = useState(initialVolume);
 
   // Cleanup on unmount
   useEffect(() => {
+    const cache = preloadCacheRef.current;
     return () => {
+      // Cleanup preloaded sounds
+      cache.forEach((sound) => sound.unload());
+      cache.clear();
+
       // Clear any pending crossfade timeout
       if (crossfadeTimeoutRef.current) {
         clearTimeout(crossfadeTimeoutRef.current);
@@ -49,31 +55,24 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     };
   }, []);
 
-  const play = useCallback(
-    (url: string, fallbackUrl?: string) => {
-      // Stop and unload previous sound
-      if (soundRef.current) {
-        soundRef.current.unload();
-        soundRef.current = null;
-      }
-
+  const createSound = useCallback(
+    (url: string, fallbackUrl?: string, { initialVolume }: { initialVolume?: number } = {}) => {
       // Build source array with fallback support
-      // Howler will try sources in order until one works
       const sources = fallbackUrl ? [url, fallbackUrl] : [url];
 
-      // Create new sound
-      const newSound = new Howl({
+      const sound = new Howl({
         src: sources,
         html5: true,
-        volume: volume,
+        preload: true,
+        volume: initialVolume ?? volume,
         onplay: () => setIsPlaying(true),
         onend: () => {
-          if (soundRef.current === newSound) {
+          if (soundRef.current === sound) {
             setIsPlaying(false);
           }
         },
         onstop: () => {
-          if (soundRef.current === newSound) {
+          if (soundRef.current === sound) {
             setIsPlaying(false);
           }
         },
@@ -84,19 +83,89 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           } else {
             console.warn('[Audio] File not found:', url);
           }
-          // Still mark as "playing" to allow state management
-          setIsPlaying(true);
+          if (soundRef.current === sound) {
+            // Keep behavior consistent with previous implementation
+            setIsPlaying(true);
+          }
         },
         onplayerror: (_id, error) => {
           console.error('[Audio] Play error:', error);
         },
       });
 
-      soundRef.current = newSound;
-      currentUrlRef.current = url;
-      newSound.play();
+      return sound;
     },
     [volume]
+  );
+
+  const getCachedOrCreateSound = useCallback(
+    (url: string, fallbackUrl?: string, options?: { initialVolume?: number }) => {
+      if (preloadCacheRef.current.has(url)) {
+        const cachedSound = preloadCacheRef.current.get(url)!;
+        preloadCacheRef.current.delete(url);
+
+        if (options?.initialVolume !== undefined) {
+          cachedSound.volume(options.initialVolume);
+        }
+
+        return cachedSound;
+      }
+
+      return createSound(url, fallbackUrl, options);
+    },
+    [createSound]
+  );
+
+  const preload = useCallback(
+    (url: string, fallbackUrl?: string) => {
+      if (!url) {
+        return;
+      }
+
+      if (preloadCacheRef.current.has(url) || currentUrlRef.current === url) {
+        return;
+      }
+
+      // Clear any previous cached sounds to keep memory usage low
+      preloadCacheRef.current.forEach((cachedSound, cachedUrl) => {
+        if (
+          cachedUrl !== url &&
+          cachedSound !== soundRef.current &&
+          cachedSound !== fadingOutSoundRef.current
+        ) {
+          cachedSound.unload();
+          preloadCacheRef.current.delete(cachedUrl);
+        }
+      });
+
+      const preloadedSound = createSound(url, fallbackUrl);
+      preloadCacheRef.current.set(url, preloadedSound);
+    },
+    [createSound]
+  );
+
+  const play = useCallback(
+    (url: string, fallbackUrl?: string) => {
+      // Resume if the same track is paused
+      if (soundRef.current && currentUrlRef.current === url) {
+        soundRef.current.play();
+        return;
+      }
+
+      // Stop and unload previous sound
+      if (soundRef.current) {
+        soundRef.current.unload();
+        soundRef.current = null;
+      }
+
+      const newSound = getCachedOrCreateSound(url, fallbackUrl);
+
+      soundRef.current = newSound;
+      currentUrlRef.current = url;
+      newSound.volume(volume);
+      newSound.play();
+    },
+    [getCachedOrCreateSound, volume]
   );
 
   const pause = useCallback(() => {
@@ -190,39 +259,8 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       fadingOutSoundRef.current.fade(currentVolume, 0, duration);
 
       // Build source array with fallback support
-      const sources = fallbackUrl ? [newUrl, fallbackUrl] : [newUrl];
-
       // Create and start new sound at 0 volume
-      const newSound = new Howl({
-        src: sources,
-        html5: true,
-        volume: 0,
-        onplay: () => setIsPlaying(true),
-        onend: () => {
-          // Only set to false if this is still the current sound
-          if (soundRef.current === newSound) {
-            setIsPlaying(false);
-          }
-        },
-        onstop: () => {
-          // Only set to false if this is still the current sound
-          if (soundRef.current === newSound) {
-            setIsPlaying(false);
-          }
-        },
-        onloaderror: (_id, error) => {
-          console.error('[Audio] Load error:', error);
-          if (fallbackUrl) {
-            console.warn(`[Audio] Failed to load: ${newUrl}, fallback: ${fallbackUrl}`);
-          } else {
-            console.warn('[Audio] File not found:', newUrl);
-          }
-          setIsPlaying(true);
-        },
-        onplayerror: (_id, error) => {
-          console.error('[Audio] Play error:', error);
-        },
-      });
+      const newSound = getCachedOrCreateSound(newUrl, fallbackUrl, { initialVolume: 0 });
 
       // Set new sound as current
       soundRef.current = newSound;
@@ -243,11 +281,12 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         crossfadeTimeoutRef.current = null;
       }, duration);
     },
-    [crossfadeDuration, crossfadeEnabled, isPlaying, play, volume]
+    [crossfadeDuration, crossfadeEnabled, getCachedOrCreateSound, isPlaying, play, volume]
   );
 
   return {
     play,
+    preload,
     pause,
     stop,
     fadeOut,

@@ -29,7 +29,9 @@ export function InfoDisplay({
     backgroundImage: `linear-gradient(90deg, var(--color-accent) ${progressPercentage}%, rgba(255, 255, 255, 0.25) ${progressPercentage}%)`,
     WebkitBackgroundClip: 'text',
     backgroundClip: 'text',
-    color: 'transparent',
+    // Fallback solid color so text remains visible if background-clip is unsupported
+    color: progressColor ?? 'var(--color-accent)',
+    WebkitTextFillColor: 'transparent',
   } as const;
 
   return (

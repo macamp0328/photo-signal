@@ -330,7 +330,8 @@ function App() {
       ? 'Music will keep playing until you pause.'
       : 'Point your camera at a photo to get started.';
 
-  const progressColor = `hsl(${Math.round(300 - Math.min(Math.max(progress, 0), 1) * 170)}, 80%, 70%)`;
+  const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
   const nowPlayingLine = activeConcert
     ? `ghost dial locked on ${activeConcert.band} · ${Math.round(progress * 100)}% through`
     : isPlaying
@@ -341,11 +342,16 @@ function App() {
     infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
       <>
         <div>
-          <button type="button" onClick={handleTogglePlayback}>
+          <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
             {primaryActionLabel}
           </button>
           {isPlaying && !isInfoActive ? (
-            <button type="button" data-variant="secondary" onClick={handlePauseCurrent}>
+            <button
+              type="button"
+              data-variant="secondary"
+              onClick={handlePauseCurrent}
+              aria-label="Pause currently playing track"
+            >
               Pause Current
             </button>
           ) : null}

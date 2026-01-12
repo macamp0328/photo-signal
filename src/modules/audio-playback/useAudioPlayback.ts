@@ -90,6 +90,95 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     }
   }, [getCurrentRatio]);
 
+  const attachCallbacks = useCallback(
+    (sound: Howl, url: string, fallbackUrl?: string) => {
+      const hasEventApi = typeof sound.on === 'function' && typeof sound.off === 'function';
+
+      const onPlay = () => {
+        setIsPlaying(true);
+        stopProgressLoop();
+        updateProgress();
+      };
+
+      const onEnd = () => {
+        if (soundRef.current === sound) {
+          stopProgressLoop();
+          setIsPlaying(false);
+          setProgress(0);
+        }
+      };
+
+      const onStop = () => {
+        if (soundRef.current === sound) {
+          stopProgressLoop();
+          setIsPlaying(false);
+        }
+      };
+
+      const onLoadError = (_id: number, error: unknown) => {
+        console.error('[Audio] Load error:', error);
+        if (fallbackUrl) {
+          console.warn(`[Audio] Failed to load: ${url}, fallback: ${fallbackUrl}`);
+        } else {
+          console.warn('[Audio] File not found:', url);
+        }
+        if (soundRef.current === sound) {
+          stopProgressLoop();
+          setIsPlaying(true);
+          setProgress(0);
+        }
+      };
+
+      const onPlayError = (_id: number, error: unknown) => {
+        console.error('[Audio] Play error:', error);
+      };
+
+      if (hasEventApi) {
+        sound.off('play');
+        sound.off('end');
+        sound.off('stop');
+        sound.off('loaderror');
+        sound.off('playerror');
+
+        sound.on('play', onPlay);
+        sound.on('end', onEnd);
+        sound.on('stop', onStop);
+        sound.on('loaderror', onLoadError);
+        sound.on('playerror', onPlayError);
+      } else {
+        const callbackHolder = sound as unknown as {
+          onplay?: () => void;
+          onend?: () => void;
+          onstop?: () => void;
+          onloaderror?: (id: number, error: unknown) => void;
+          onplayerror?: (id: number, error: unknown) => void;
+          _callbacks?: {
+            onplay?: () => void;
+            onend?: () => void;
+            onstop?: () => void;
+            onloaderror?: (id: number, error: unknown) => void;
+            onplayerror?: (id: number, error: unknown) => void;
+          };
+        };
+
+        callbackHolder.onplay = onPlay;
+        callbackHolder.onend = onEnd;
+        callbackHolder.onstop = onStop;
+        callbackHolder.onloaderror = onLoadError;
+        callbackHolder.onplayerror = onPlayError;
+
+        if (callbackHolder._callbacks) {
+          callbackHolder._callbacks.onplay = onPlay;
+          callbackHolder._callbacks.onend = onEnd;
+          callbackHolder._callbacks.onstop = onStop;
+          callbackHolder._callbacks.onloaderror = onLoadError;
+          callbackHolder._callbacks.onplayerror = onPlayError;
+        }
+      }
+    },
+    [stopProgressLoop, updateProgress]
+  );
+
   const createSound = useCallback(
     (url: string, fallbackUrl?: string, { initialVolume }: { initialVolume?: number } = {}) => {
       // Build source array with fallback support
@@ -100,46 +189,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         html5: true,
         preload: true,
         volume: initialVolume ?? volume,
-        onplay: () => {
-          setIsPlaying(true);
-          stopProgressLoop();
-          updateProgress();
-        },
-        onend: () => {
-          if (soundRef.current === sound) {
-            setIsPlaying(false);
-            stopProgressLoop();
-            setProgress(0);
-          }
-        },
-        onstop: () => {
-          if (soundRef.current === sound) {
-            setIsPlaying(false);
-            stopProgressLoop();
-          }
-        },
-        onloaderror: (_id, error) => {
-          console.error('[Audio] Load error:', error);
-          if (fallbackUrl) {
-            console.warn(`[Audio] Failed to load: ${url}, fallback: ${fallbackUrl}`);
-          } else {
-            console.warn('[Audio] File not found:', url);
-          }
-          if (soundRef.current === sound) {
-            // Keep behavior consistent with previous implementation
-            setIsPlaying(true);
-            stopProgressLoop();
-            setProgress(0);
-          }
-        },
-        onplayerror: (_id, error) => {
-          console.error('[Audio] Play error:', error);
-        },
       });
+
+      attachCallbacks(sound, url, fallbackUrl);
 
       return sound;
     },
-    [stopProgressLoop, updateProgress, volume]
+    [attachCallbacks, volume]
   );
 
   const getCachedOrCreateSound = useCallback(
@@ -152,12 +208,14 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           cachedSound.volume(options.initialVolume);
         }
 
+        attachCallbacks(cachedSound, url, fallbackUrl);
+
         return cachedSound;
       }
 
       return createSound(url, fallbackUrl, options);
     },
-    [createSound]
+    [attachCallbacks, createSound]
   );
 
   const preload = useCallback(

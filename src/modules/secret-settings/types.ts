@@ -126,4 +126,11 @@ export interface CustomSetting {
    * Optional category for organization
    */
   category?: string;
+
+  /**
+   * Optional list of recognition engines that should display this setting.
+   * When provided, the setting will only be shown in the UI if the selected
+   * recognition engine matches one of the listed values.
+   */
+  engines?: Array<'perceptual' | 'orb' | 'parallel'>;
 }

@@ -11,6 +11,7 @@ import { useCustomSettings } from './useCustomSettings';
 import { useCallback, useMemo } from 'react';
 import { CONFIG_PROFILES, CONFIG_PROFILE_SETTING_ID, type ConfigProfileId } from './config';
 import styles from './SecretSettings.module.css';
+import type { CustomSetting } from './types';
 
 /**
  * Secret Settings Page Component
@@ -35,9 +36,114 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const { settings, updateSetting, resetSettings, getSetting } = useCustomSettings();
 
   const currentProfileId = getSetting<ConfigProfileId>(CONFIG_PROFILE_SETTING_ID) ?? 'custom';
+  const recognitionMode =
+    getSetting<'perceptual' | 'orb' | 'parallel'>('recognition-mode') ?? 'perceptual';
   const currentProfile = useMemo(() => {
     return CONFIG_PROFILES.find((profile) => profile.id === currentProfileId);
   }, [currentProfileId]);
+
+  const settingMap = useMemo(
+    () => new Map(settings.map((setting) => [setting.id, setting])),
+    [settings]
+  );
+
+  const isSettingVisible = useCallback(
+    (setting?: CustomSetting | undefined) => {
+      if (!setting) {
+        return false;
+      }
+
+      if (setting.engines && setting.engines.length > 0) {
+        return setting.engines.includes(recognitionMode);
+      }
+
+      return true;
+    },
+    [recognitionMode]
+  );
+
+  const settingGroups = useMemo(() => {
+    const groups: Array<{
+      id: string;
+      title: string;
+      description?: string;
+      settingIds: string[];
+    }> = [
+      {
+        id: 'profiles',
+        title: 'Profiles',
+        description: 'Pick a preset or stay on Custom to tune every parameter.',
+        settingIds: [CONFIG_PROFILE_SETTING_ID],
+      },
+      {
+        id: 'engine',
+        title: 'Recognition Engine',
+        description: 'Choose which recognition pipeline to run.',
+        settingIds: ['recognition-mode'],
+      },
+      {
+        id: 'perceptual',
+        title: 'Perceptual Hash Tuning',
+        description: 'Fine-tune perceptual hash matching behavior.',
+        settingIds: ['hash-algorithm', 'similarity-threshold'],
+      },
+      {
+        id: 'parallel',
+        title: 'Parallel Voting',
+        description: 'Tune weighted voting across the multi-engine pipeline.',
+        settingIds: [
+          'parallel-recognition-enabled',
+          'parallel-dhash-weight',
+          'parallel-phash-weight',
+          'parallel-orb-weight',
+          'parallel-min-confidence',
+        ],
+      },
+      {
+        id: 'orb',
+        title: 'ORB Feature Matching',
+        description: 'Adjust ORB feature detection and matching parameters.',
+        settingIds: [
+          'orb-max-features',
+          'orb-fast-threshold',
+          'orb-min-match-count',
+          'orb-match-ratio-threshold',
+        ],
+      },
+      {
+        id: 'timing',
+        title: 'Timing & Performance',
+        description: 'How long to wait for a steady frame and how often to scan.',
+        settingIds: ['recognition-delay', 'recognition-check-interval'],
+      },
+      {
+        id: 'frame-quality',
+        title: 'Frame Quality Filters',
+        description: 'Skip bad frames with glare, blur, or low confidence.',
+        settingIds: [
+          'sharpness-threshold',
+          'glare-threshold',
+          'glare-percentage-threshold',
+          'rectangle-detection-confidence-threshold',
+        ],
+      },
+      {
+        id: 'appearance',
+        title: 'Look & Feel',
+        description: 'Visual and UI polish.',
+        settingIds: ['theme-mode', 'ui-style'],
+      },
+    ];
+
+    return groups
+      .map((group) => ({
+        ...group,
+        settings: group.settingIds
+          .map((settingId) => settingMap.get(settingId))
+          .filter(isSettingVisible) as CustomSetting[],
+      }))
+      .filter((group) => group.settings.length > 0);
+  }, [isSettingVisible, settingMap]);
 
   const handleSendIt = useCallback(() => {
     // Close the menu first (provides immediate feedback)
@@ -178,76 +284,92 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
             <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
             <p className={styles.sectionDescription}>Adjust advanced parameters and preferences.</p>
 
-            {settings.length > 0 ? (
+            {settingGroups.length > 0 ? (
               <>
                 <div className={styles.settingList}>
-                  {settings.map((setting) => (
-                    <div key={setting.id} className={styles.settingItem}>
-                      <label className={styles.settingLabel}>
-                        <div className={styles.settingInfo}>
-                          <span className={styles.settingName}>{setting.name}</span>
-                          <span className={styles.settingDescription}>{setting.description}</span>
-                          {setting.category && (
-                            <span className={styles.settingCategory}>{setting.category}</span>
-                          )}
-                        </div>
+                  {settingGroups.map((group) => (
+                    <div key={group.id} className={styles.settingGroup}>
+                      <div className={styles.settingGroupHeader}>
+                        <h3 className={styles.settingGroupTitle}>{group.title}</h3>
+                        {group.description && (
+                          <p className={styles.settingGroupDescription}>{group.description}</p>
+                        )}
+                      </div>
+                      <div className={styles.settingGroupItems}>
+                        {group.settings.map((setting) => (
+                          <div key={setting.id} className={styles.settingItem}>
+                            <label className={styles.settingLabel}>
+                              <div className={styles.settingInfo}>
+                                <span className={styles.settingName}>{setting.name}</span>
+                                <span className={styles.settingDescription}>
+                                  {setting.description}
+                                </span>
+                                {setting.category && (
+                                  <span className={styles.settingCategory}>{setting.category}</span>
+                                )}
+                              </div>
 
-                        {setting.type === 'number' && (
-                          <div className={styles.settingControl}>
-                            <input
-                              type="range"
-                              min={setting.min}
-                              max={setting.max}
-                              step={setting.step ?? 100}
-                              value={setting.value as number}
-                              onChange={(e) =>
-                                setSettingValue(setting.id, parseFloat(e.target.value))
-                              }
-                              className={styles.settingRange}
-                            />
-                            <div className={styles.settingValueGroup}>
-                              <span className={styles.settingValue}>{setting.value}</span>
-                              {setting.unit && (
-                                <span className={styles.settingUnit}>{setting.unit}</span>
+                              {setting.type === 'number' && (
+                                <div className={styles.settingControl}>
+                                  <input
+                                    type="range"
+                                    min={setting.min}
+                                    max={setting.max}
+                                    step={setting.step ?? 100}
+                                    value={setting.value as number}
+                                    onChange={(e) =>
+                                      setSettingValue(setting.id, parseFloat(e.target.value))
+                                    }
+                                    className={styles.settingRange}
+                                  />
+                                  <div className={styles.settingValueGroup}>
+                                    <span className={styles.settingValue}>{setting.value}</span>
+                                    {setting.unit && (
+                                      <span className={styles.settingUnit}>{setting.unit}</span>
+                                    )}
+                                  </div>
+                                </div>
                               )}
-                            </div>
-                          </div>
-                        )}
 
-                        {setting.type === 'select' && (
-                          <div className={styles.settingControl}>
-                            <select
-                              value={setting.value as string}
-                              onChange={(e) =>
-                                setting.id === CONFIG_PROFILE_SETTING_ID
-                                  ? handleProfileSelection(e.target.value as ConfigProfileId)
-                                  : setSettingValue(setting.id, e.target.value)
-                              }
-                              className={styles.settingSelect}
-                            >
-                              {setting.options?.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </select>
-                            {setting.id === CONFIG_PROFILE_SETTING_ID && currentProfile && (
-                              <p className={styles.profileHelper}>{currentProfile.description}</p>
-                            )}
-                          </div>
-                        )}
+                              {setting.type === 'select' && (
+                                <div className={styles.settingControl}>
+                                  <select
+                                    value={setting.value as string}
+                                    onChange={(e) =>
+                                      setting.id === CONFIG_PROFILE_SETTING_ID
+                                        ? handleProfileSelection(e.target.value as ConfigProfileId)
+                                        : setSettingValue(setting.id, e.target.value)
+                                    }
+                                    className={styles.settingSelect}
+                                  >
+                                    {setting.options?.map((opt) => (
+                                      <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {setting.id === CONFIG_PROFILE_SETTING_ID && currentProfile && (
+                                    <p className={styles.profileHelper}>
+                                      {currentProfile.description}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
 
-                        {setting.type === 'boolean' && (
-                          <div className={styles.settingControl}>
-                            <input
-                              type="checkbox"
-                              checked={setting.value as boolean}
-                              onChange={(e) => setSettingValue(setting.id, e.target.checked)}
-                              className={styles.flagCheckbox}
-                            />
+                              {setting.type === 'boolean' && (
+                                <div className={styles.settingControl}>
+                                  <input
+                                    type="checkbox"
+                                    checked={setting.value as boolean}
+                                    onChange={(e) => setSettingValue(setting.id, e.target.checked)}
+                                    className={styles.flagCheckbox}
+                                  />
+                                </div>
+                              )}
+                            </label>
                           </div>
-                        )}
-                      </label>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

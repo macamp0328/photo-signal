@@ -323,6 +323,14 @@ function App() {
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
       />
+      <button
+        type="button"
+        className="floating-settings-button"
+        onClick={() => setShowSecretSettings(true)}
+        aria-label="Open settings"
+      >
+        Settings
+      </button>
       {frameQualityIndicator}
       {guidanceMessage}
       {showSecretSettings && (
@@ -335,7 +343,7 @@ function App() {
           />
         </Suspense>
       )}
-      {isTestModeEnabled && !showSecretSettings && (
+      {!showSecretSettings && (
         <Suspense fallback={null}>
           <DebugOverlay
             enabled={isTestModeEnabled}

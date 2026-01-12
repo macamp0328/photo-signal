@@ -81,13 +81,9 @@ export function DebugOverlay({
 
   useEffect(() => {
     if (!enabled) {
-      setIsCollapsed(false);
+      setIsCollapsed(true);
     }
   }, [enabled]);
-
-  if (!enabled) {
-    return null;
-  }
 
   // Status indicator color
   const statusColors: Record<RecognitionStatus, string> = {
@@ -118,11 +114,14 @@ export function DebugOverlay({
     ? new Date(lastCheckTime).toLocaleTimeString([], { hour12: false })
     : '—';
 
+  const isInactive = !enabled;
+
   return (
-    <div className={`${styles.overlay} ${isCollapsed ? styles.collapsed : ''}`}>
+    <div
+      className={`${styles.overlay} ${isCollapsed ? styles.collapsed : ''} ${isInactive ? styles.inactive : ''}`}
+    >
       {isCollapsed ? (
         <div className={styles.collapsedContent}>
-          <span className={styles.collapsedLabel}>🐛 Debug overlay hidden</span>
           <button
             type="button"
             className={styles.collapsedButton}
@@ -132,8 +131,11 @@ export function DebugOverlay({
           >
             Show overlay
           </button>
+          {isInactive && (
+            <span className={styles.collapsedHint}>Enable Test Mode for live data</span>
+          )}
         </div>
-      ) : (
+      ) : !isInactive ? (
         <>
           <div className={styles.header}>
             <span className={styles.title}>🐛 Debug Info</span>
@@ -283,6 +285,27 @@ export function DebugOverlay({
             </div>
           )}
         </>
+      ) : (
+        <div className={styles.inactiveContent}>
+          <div className={styles.header}>
+            <span className={styles.title}>🐛 Debug Info</span>
+            <div className={styles.headerActions}>
+              <span className={styles.badge}>TEST MODE OFF</span>
+              <button
+                type="button"
+                className={styles.toggleButton}
+                onClick={() => setIsCollapsed(true)}
+                aria-label="Hide debug overlay"
+                aria-expanded={!isCollapsed}
+              >
+                Hide
+              </button>
+            </div>
+          </div>
+          <div className={styles.section}>
+            <div className={styles.inactiveMessage}>Enable Test Mode to view live debug data.</div>
+          </div>
+        </div>
       )}
     </div>
   );

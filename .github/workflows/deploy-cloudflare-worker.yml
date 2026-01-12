@@ -2,11 +2,6 @@ name: Deploy Cloudflare Audio Worker
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment label for the deployment'
-        required: false
-        default: 'production'
 
 concurrency:
   group: cloudflare-audio-worker-${{ github.ref }}

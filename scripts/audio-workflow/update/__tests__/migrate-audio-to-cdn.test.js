@@ -132,7 +132,7 @@ describe('migrate-audio-to-cdn', () => {
   });
 
   describe('updateConcert', () => {
-    it('should add CDN URL and preserve fallback', () => {
+    it('should add CDN URL', () => {
       const concert = {
         id: 1,
         band: 'Test Band',
@@ -143,8 +143,8 @@ describe('migrate-audio-to-cdn', () => {
       const updated = updateConcert(concert, baseUrl, 'r2');
 
       expect(updated.audioFile).toBe('https://cdn.example.com/test.opus');
-      expect(updated.audioFileFallback).toBe('/audio/test.opus');
-      expect(updated.audioFileSource).toBe('r2');
+      expect(updated.audioFileFallback).toBeUndefined();
+      expect(updated.audioFileSource).toBeUndefined();
     });
 
     it('should not modify concerts without audioFile', () => {

@@ -40,7 +40,7 @@ After deploying the Worker (e.g., `https://audio.example.com`), rewrite `public/
 npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
 ```
 
-This sets `audioFile` to `https://audio.example.com/prod/audio/<id>/<filename>` and preserves fallbacks.
+This sets `audioFile` to `https://audio.example.com/prod/audio/<id>/<filename>`.
 
 ## Validation
 

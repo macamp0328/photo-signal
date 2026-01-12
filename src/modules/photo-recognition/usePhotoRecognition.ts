@@ -385,6 +385,7 @@ export function usePhotoRecognition(
   const [restartKey, setRestartKey] = useState(0);
   const [detectedRectangle, setDetectedRectangle] = useState<DetectedRectangle | null>(null);
   const [rectangleConfidence, setRectangleConfidence] = useState(0);
+  const recognizedConcertRef = useRef<Concert | null>(null);
 
   useEffect(() => {
     if (!debugMetricsEnabled) {
@@ -624,9 +625,15 @@ export function usePhotoRecognition(
     };
   }, [concerts, hashAlgorithm, resolvedOrbConfig, isEnabled]);
 
+  const commitRecognition = useCallback((concert: Concert) => {
+    recognizedConcertRef.current = concert;
+    setRecognizedConcert(concert);
+  }, []);
+
   // Reset recognition state
   const reset = useCallback(() => {
     setRecognizedConcert(null);
+    recognizedConcertRef.current = null;
     setIsRecognizing(false);
     setDebugInfo(null);
     setFrameQuality(null);
@@ -810,7 +817,7 @@ export function usePhotoRecognition(
       }
 
       // If already recognized, don't check anymore
-      if (recognizedConcert) {
+      if (recognizedConcertRef.current) {
         return;
       }
 
@@ -1188,7 +1195,7 @@ export function usePhotoRecognition(
                   if (matchStartTimeRef.current) {
                     const elapsed = Date.now() - matchStartTimeRef.current;
                     if (elapsed >= recognitionDelay) {
-                      setRecognizedConcert(result.matchedConcert);
+                      commitRecognition(result.matchedConcert);
                       setIsRecognizing(false);
                       if (debugMetricsEnabled) {
                         telemetryRef.current.successfulRecognitions += 1;
@@ -1373,7 +1380,7 @@ export function usePhotoRecognition(
                 }
 
                 if (elapsed >= recognitionDelay) {
-                  setRecognizedConcert(matchedConcert);
+                  commitRecognition(matchedConcert);
                   setIsRecognizing(false);
                   if (debugMetricsEnabled) {
                     telemetryRef.current.successfulRecognitions += 1;
@@ -1776,7 +1783,7 @@ export function usePhotoRecognition(
 
               if (elapsed >= recognitionDelay) {
                 // Stable match confirmed!
-                setRecognizedConcert(activeResult.match);
+                commitRecognition(activeResult.match);
                 setIsRecognizing(false);
                 if (debugMetricsEnabled) {
                   telemetryRef.current.successfulRecognitions += 1;
@@ -1955,6 +1962,7 @@ export function usePhotoRecognition(
     emitTelemetrySnapshot,
     restartKey,
     debugMetricsEnabled,
+    commitRecognition,
   ]);
 
   return {

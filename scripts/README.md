@@ -793,7 +793,7 @@ Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mod
 
 ### `audio-workflow/update/migrate-audio-to-cdn.js` - Migrate Audio to CDN
 
-Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs while preserving local fallbacks.
+Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs.
 
 **Requirements:** Node.js (ES modules support)
 
@@ -818,8 +818,6 @@ node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 **What it does:**
 
 - Updates `audioFile` field with CDN URLs
-- Adds `audioFileFallback` field with local paths
-- Sets `audioFileSource` field to indicate CDN provider
 - Creates backup of original data.json
 - Provides detailed migration summary
 
@@ -837,7 +835,6 @@ Configuration:
 ✓ Concert #1 (The Midnight Echoes):
     Original: /audio/concert-1.opus
     CDN URL:  https://github.com/.../concert-1.opus
-    Fallback: /audio/concert-1.opus
 
 📊 Migration Summary:
   Migrated: 12 concerts
@@ -890,13 +887,11 @@ node scripts/audio-workflow/update/validate-audio-urls.js [options]
 
 - `--source=<path>` - Path to data.json (default: `public/data.json`)
 - `--timeout=<ms>` - Request timeout in milliseconds (default: 10000)
-- `--check-fallback` - Also check fallback URLs
 - `--help` - Show help message
 
 **What it does:**
 
-- Checks accessibility of primary audio URLs
-- Optionally checks fallback URLs
+- Checks accessibility of audio URLs
 - Supports both local files and remote URLs
 - Reports success rate and failed URLs
 - Provides troubleshooting recommendations
@@ -909,11 +904,9 @@ node scripts/audio-workflow/update/validate-audio-urls.js [options]
 Configuration:
   Source: public/data.json
   Timeout: 10000ms
-  Check Fallback: No
-
 Checking Concert #1: The Midnight Echoes
-  ✓ Primary:  /audio/concert-1.opus
-            Status: 200 OK (local file)
+  ✓ Audio:   /audio/concert-1.opus
+             Status: 200 OK (local file)
 
 📊 Validation Summary:
   Total URLs Checked: 12
@@ -928,9 +921,6 @@ Checking Concert #1: The Midnight Echoes
 ```bash
 # Validate production data.json
 npm run validate-audio
-
-# Validate with fallback URLs
-npm run validate-audio -- --check-fallback
 
 # Validate test data
 npm run validate-audio -- --source=assets/test-data/concerts.json

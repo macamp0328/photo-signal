@@ -49,13 +49,13 @@ describe('apply-cdn-to-data', () => {
     expect(url).toBe('https://audio.example.com/prod/audio/2/clip.opus');
   });
 
-  it('updateConcertWithCdn should add fallback and source', () => {
+  it('updateConcertWithCdn should update audioFile to CDN URL', () => {
     const concert = { id: 3, band: 'Test Band', audioFile: '/audio/sample.opus' };
     const updated = updateConcertWithCdn(concert, 'https://cdn.example.com', 'prod/audio');
 
     expect(updated.audioFile).toBe('https://cdn.example.com/prod/audio/3/sample.opus');
-    expect(updated.audioFileFallback).toBe('/audio/sample.opus');
-    expect(updated.audioFileSource).toBe('r2-worker');
+    expect(updated.audioFileFallback).toBeUndefined();
+    expect(updated.audioFileSource).toBeUndefined();
   });
 
   it('applyCdnToData should update all concerts with audio', () => {
@@ -69,7 +69,7 @@ describe('apply-cdn-to-data', () => {
     const updated = applyCdnToData(data, 'https://audio.example.com', 'prod/audio');
 
     expect(updated.concerts[0].audioFile).toBe('https://audio.example.com/prod/audio/1/a.opus');
-    expect(updated.concerts[0].audioFileFallback).toBe('/audio/a.opus');
+    expect(updated.concerts[0].audioFileFallback).toBeUndefined();
     expect(updated.concerts[1].audioFile).toBeUndefined();
   });
 

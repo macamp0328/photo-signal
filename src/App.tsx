@@ -230,7 +230,13 @@ function App() {
       return;
     }
 
-    preload(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
+    const selectedAudioUrl = recognizedConcert.audioFile;
+
+    if (!selectedAudioUrl) {
+      return;
+    }
+
+    preload(selectedAudioUrl);
   }, [preload, recognizedConcert]);
 
   useEffect(() => {
@@ -254,7 +260,7 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Restart recognition when movement begins so we can confirm the next photo.
+  // Restart recognition when movement begins while a concert is active (not merely recognized) to avoid oscillation and search for the next photo.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {
@@ -267,12 +273,19 @@ function App() {
     }
 
     previousMovementRef.current = isMoving;
+    // recognizedConcert is intentionally omitted to prevent immediate restart after a fresh lock-in.
   }, [isMoving, activeConcert, resetRecognition]);
 
   const handleTogglePlayback = () => {
     const targetConcert = recognizedConcert ?? activeConcert;
 
     if (!targetConcert) {
+      return;
+    }
+
+    const selectedAudioUrl = targetConcert.audioFile;
+
+    if (!selectedAudioUrl) {
       return;
     }
 
@@ -284,15 +297,15 @@ function App() {
         return;
       }
 
-      play(targetConcert.audioFile, targetConcert.audioFileFallback);
+      play(selectedAudioUrl);
       setActiveConcert(targetConcert);
       return;
     }
 
     if (activeConcert && isPlaying) {
-      crossfade(targetConcert.audioFile, undefined, targetConcert.audioFileFallback);
+      crossfade(selectedAudioUrl);
     } else {
-      play(targetConcert.audioFile, targetConcert.audioFileFallback);
+      play(selectedAudioUrl);
     }
 
     setActiveConcert(targetConcert);

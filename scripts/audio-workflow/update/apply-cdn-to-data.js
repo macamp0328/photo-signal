@@ -10,7 +10,6 @@ const projectRoot = path.resolve(__dirname, '../../..');
 
 const DEFAULT_SOURCE = 'public/data.json';
 const DEFAULT_PREFIX = 'prod/audio';
-const AUDIO_SOURCE = 'r2-worker';
 
 export function trimTrailingSlash(value) {
   if (!value) return value;
@@ -39,13 +38,10 @@ export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) 
   }
 
   const updatedAudioUrl = buildAudioUrl(concert, baseUrl, prefix);
-  const nextFallback = concert.audioFileFallback ?? concert.audioFile;
 
   return {
     ...concert,
     audioFile: updatedAudioUrl,
-    audioFileFallback: nextFallback,
-    audioFileSource: AUDIO_SOURCE,
   };
 }
 

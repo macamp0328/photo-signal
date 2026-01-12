@@ -418,11 +418,17 @@ export function mockAudioContext() {
  *
  * Call this function in your test setup file to enable all mocks
  */
-export function setupGlobalMocks() {
+export function setupGlobalMocks(options: { enableDom?: boolean } = {}) {
+  const enableDom = options.enableDom ?? true;
+
   mockImageData();
-  mockMediaDevices();
-  mockHTMLMediaElement();
-  mockCanvasRenderingContext2D();
+
+  if (enableDom) {
+    mockMediaDevices();
+    mockHTMLMediaElement();
+    mockCanvasRenderingContext2D();
+  }
+
   mockAudioContext();
   mockFetch();
   mockRequestAnimationFrame();

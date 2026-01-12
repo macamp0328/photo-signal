@@ -47,11 +47,11 @@ function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
 
   return rawValues
     .map((raw) => {
-      const wildcardMatch = /^(https?:\/\/)\*\.(.+)$/i.exec(raw);
+      const wildcardMatch = /^(https?):\/\/\*\.(.+)$/i.exec(raw);
       if (wildcardMatch) {
         return {
           type: 'wildcard' as const,
-          protocol: wildcardMatch[1].toLowerCase(),
+          protocol: `${wildcardMatch[1].toLowerCase()}:`,
           hostnameSuffix: wildcardMatch[2].toLowerCase(),
         };
       }

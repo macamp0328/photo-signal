@@ -59,34 +59,36 @@ export default defineConfig({
   },
 
   // Configure projects for major browsers and devices
-  // In CI, only run chromium tests for speed and reliability
-  // Locally, you can test on all browsers with: npx playwright test
-  projects: process.env.CI
-    ? [
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
+  // Firefox removed for speed; run Chrome/Safari + mobile variants in all environments
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
         },
-      ]
-    : [
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
+      },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    // Mobile devices
+    {
+      name: 'Mobile Chrome',
+      use: {
+        ...devices['Pixel 5'],
+        launchOptions: {
+          args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
         },
-        {
-          name: 'webkit',
-          use: { ...devices['Desktop Safari'] },
-        },
-        // Mobile devices
-        {
-          name: 'Mobile Chrome',
-          use: { ...devices['Pixel 5'] },
-        },
-        {
-          name: 'Mobile Safari',
-          use: { ...devices['iPhone 12'] },
-        },
-      ],
+      },
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
+    },
+  ],
 
   // Run your local dev server before starting the tests
   webServer: {

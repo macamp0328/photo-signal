@@ -32,7 +32,7 @@ const DEFAULT_ALLOWED_ORIGIN_STRINGS = [
   'https://photo-signal.vercel.app',
   'http://localhost:5173',
 ];
-const MAX_WILDCARD_SECTIONS = 2;
+const MAX_ASTERISKS = 1;
 
 type AllowedOrigin =
   | { type: 'exact'; origin: string }
@@ -51,7 +51,8 @@ function parseAllowedOrigins(value?: string | null): AllowedOrigin[] {
       const wildcardMatch = /^(https?):\/\/([^/]*\*[^/]*)$/i.exec(raw);
       if (wildcardMatch) {
         const [, protocol, hostnamePattern] = wildcardMatch;
-        if (hostnamePattern.split('*').length > MAX_WILDCARD_SECTIONS) {
+        const asteriskCount = hostnamePattern.split('*').length - 1;
+        if (asteriskCount > MAX_ASTERISKS) {
           return null;
         }
 

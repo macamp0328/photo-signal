@@ -84,13 +84,13 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
       {
         id: 'perceptual',
         title: 'Perceptual Hash Tuning',
-        description: 'Only visible when using the Perceptual engine.',
+        description: 'Fine-tune perceptual hash matching behavior.',
         settingIds: ['hash-algorithm', 'similarity-threshold'],
       },
       {
         id: 'parallel',
         title: 'Parallel Voting',
-        description: 'Weights for the multi-engine voter.',
+        description: 'Tune weighted voting across the multi-engine pipeline.',
         settingIds: [
           'parallel-recognition-enabled',
           'parallel-dhash-weight',
@@ -102,7 +102,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
       {
         id: 'orb',
         title: 'ORB Feature Matching',
-        description: 'Controls for ORB when selected or included in Parallel.',
+        description: 'Adjust ORB feature detection and matching parameters.',
         settingIds: [
           'orb-max-features',
           'orb-fast-threshold',

@@ -231,6 +231,7 @@ describe('SecretSettings', () => {
 
       expect(screen.getByText(/Parallel dHash Weight/i)).toBeInTheDocument();
       expect(screen.getByText(/Parallel Min Confidence/i)).toBeInTheDocument();
+      expect(screen.getByText(/ORB Max Features/i)).toBeInTheDocument();
       expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
     });
   });

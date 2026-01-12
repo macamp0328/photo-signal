@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { applyStableCameraPlaceholder } from './utils/camera';
 
 /**
  * Visual Regression Tests for Error States
@@ -23,18 +24,28 @@ test.describe('Error States', () => {
     await Promise.race([
       page
         .locator('text=Camera Access Required')
-        .waitFor({ state: 'visible', timeout: 5000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
       page
         .locator('text=Point camera at a photo')
-        .waitFor({ state: 'visible', timeout: 5000 })
+        .waitFor({ state: 'visible', timeout: 12000 })
         .catch(() => null),
-      page.waitForTimeout(3000),
+      page.waitForTimeout(4000),
     ]);
+
+    await applyStableCameraPlaceholder(page);
+
+    // Give UI time to stabilize and mask video noise if present
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    const videoMask = page.locator('video');
 
     // Take snapshot of permission state
     await expect(page).toHaveScreenshot('error-camera-permission.png', {
       fullPage: true,
+      timeout: 10000,
+      mask: [videoMask],
     });
   });
 

@@ -42,11 +42,16 @@ test.describe('Camera View', () => {
 
     // Give a brief moment for UI to stabilize
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // Mask video element to ignore fake stream noise
+    const videoMask = page.locator('video');
 
     // Take screenshot of active camera state
     await expect(page).toHaveScreenshot('camera-active-view.png', {
       fullPage: true,
       timeout: 10000,
+      mask: [videoMask],
     });
   });
 
@@ -85,11 +90,16 @@ test.describe('Camera View', () => {
 
     // Give a brief moment for UI to stabilize
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // Mask video element to ignore fake stream noise
+    const videoMask = page.locator('video');
 
     // Take screenshot of active camera state on mobile
     await expect(page).toHaveScreenshot('camera-active-view-mobile.png', {
       fullPage: true,
       timeout: 10000,
+      mask: [videoMask],
     });
   });
 });

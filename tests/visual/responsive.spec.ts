@@ -167,11 +167,15 @@ test.describe('Responsive Design', () => {
     await applyStableCameraPlaceholder(page);
 
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    const videoMask = page.locator('video');
 
     // Take snapshot of camera view on mobile
     await expect(page).toHaveScreenshot('responsive-camera-view-mobile.png', {
       fullPage: true,
       timeout: 10000,
+      mask: [videoMask],
     });
   });
 
@@ -210,11 +214,15 @@ test.describe('Responsive Design', () => {
     await applyStableCameraPlaceholder(page);
 
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    const videoMask = page.locator('video');
 
     // Take snapshot of camera view on desktop
     await expect(page).toHaveScreenshot('responsive-camera-view-desktop.png', {
       fullPage: true,
       timeout: 10000,
+      mask: [videoMask],
     });
   });
 });

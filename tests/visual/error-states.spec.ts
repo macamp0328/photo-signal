@@ -35,10 +35,17 @@ test.describe('Error States', () => {
 
     await applyStableCameraPlaceholder(page);
 
+    // Give UI time to stabilize and mask video noise if present
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    const videoMask = page.locator('video');
+
     // Take snapshot of permission state
     await expect(page).toHaveScreenshot('error-camera-permission.png', {
       fullPage: true,
       timeout: 10000,
+      mask: [videoMask],
     });
   });
 

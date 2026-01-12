@@ -38,6 +38,20 @@ const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };
 
+const getAudioSources = (
+  concert: Concert | null
+): { primary: string; fallback?: string } => {
+  if (!concert) {
+    return { primary: '', fallback: undefined };
+  }
+
+  const fallback = concert.audioFileFallback ?? `/audio/concert-${concert.id}.mp3`;
+  return {
+    primary: concert.audioFile,
+    fallback,
+  };
+};
+
 function App() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -230,7 +244,8 @@ function App() {
       return;
     }
 
-    preload(recognizedConcert.audioFile, recognizedConcert.audioFileFallback);
+    const { primary, fallback } = getAudioSources(recognizedConcert);
+    preload(primary, fallback);
   }, [preload, recognizedConcert]);
 
   useEffect(() => {
@@ -257,7 +272,7 @@ function App() {
   // Restart recognition when movement begins so we can confirm the next photo.
   const previousMovementRef = useRef(false);
   useEffect(() => {
-    if (isMoving && !previousMovementRef.current && activeConcert) {
+    if (isMoving && !previousMovementRef.current && (activeConcert || recognizedConcert)) {
       if (autoResetTimerRef.current !== null) {
         window.clearTimeout(autoResetTimerRef.current);
         autoResetTimerRef.current = null;
@@ -267,7 +282,7 @@ function App() {
     }
 
     previousMovementRef.current = isMoving;
-  }, [isMoving, activeConcert, resetRecognition]);
+  }, [isMoving, activeConcert, recognizedConcert, resetRecognition]);
 
   const handleTogglePlayback = () => {
     const targetConcert = recognizedConcert ?? activeConcert;
@@ -276,6 +291,7 @@ function App() {
       return;
     }
 
+    const { primary: targetUrl, fallback: targetFallback } = getAudioSources(targetConcert);
     const isSameConcert = activeConcert?.id === targetConcert.id;
 
     if (isSameConcert) {
@@ -284,15 +300,15 @@ function App() {
         return;
       }
 
-      play(targetConcert.audioFile, targetConcert.audioFileFallback);
+      play(targetUrl, targetFallback);
       setActiveConcert(targetConcert);
       return;
     }
 
     if (activeConcert && isPlaying) {
-      crossfade(targetConcert.audioFile, undefined, targetConcert.audioFileFallback);
+      crossfade(targetUrl, undefined, targetFallback);
     } else {
-      play(targetConcert.audioFile, targetConcert.audioFileFallback);
+      play(targetUrl, targetFallback);
     }
 
     setActiveConcert(targetConcert);

@@ -124,7 +124,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
         if (soundRef.current === sound) {
           stopProgressLoop();
-          setIsPlaying(true);
+          setIsPlaying(false);
           setProgress(0);
         }
       };

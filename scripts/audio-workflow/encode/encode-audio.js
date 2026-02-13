@@ -317,7 +317,7 @@ async function processAudioFile(download, config, options) {
   const genre = musicDetails.genre ?? config.metadataDefaults?.genre ?? null;
 
   // Generate slug and filenames
-  const slug = generateSlug(band, album);
+  const slug = generateSlug(band, title, album);
   const outputFileName = `ps-${slug}.opus`;
 
   console.log(`  Band:  ${band}`);
@@ -1433,15 +1433,21 @@ function toTitleCase(value) {
  * @param {string} album - Album name
  * @returns {string} Generated filename slug (e.g., "band-name-album-name")
  */
-export function generateOutputFilename(band, album) {
-  const slug = generateSlug(band, album);
+export function generateOutputFilename(band, album, title) {
+  const slug = generateSlug(band, title, album);
   return `ps-${slug}.opus`;
 }
 
-function generateSlug(band, album) {
-  const bandSlug = slugify(band);
-  const albumSlug = slugify(album);
-  return `${bandSlug}-${albumSlug}`;
+function generateSlug(band, title, album) {
+  const parts = [band, title, album]
+    .map((value) => slugify(value ?? ''))
+    .filter((segment) => Boolean(segment));
+
+  if (parts.length === 0) {
+    return 'unknown-track';
+  }
+
+  return parts.join('-');
 }
 
 function slugify(str) {

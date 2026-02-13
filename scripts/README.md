@@ -18,7 +18,7 @@ USE_DOCKER=true ./scripts/dev.sh
 
 ## Audio Workflow Directory
 
-The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run validate-audio`) still invoke the scripts in this directory directly.
+The download -> organize -> encode -> update workflow now lives under `scripts/audio-workflow/`. Use the dedicated [audio-workflow/README.md](./audio-workflow/README.md) for a stage-by-stage overview plus future plans for the organize and encode steps. CLI shortcuts (`npm run download-song`, `npm run migrate-audio`, `npm run apply-cdn-to-data`, `npm run validate-audio`) still invoke the scripts in this directory directly.
 
 ## Available Scripts
 
@@ -350,11 +350,57 @@ npm run encode-audio
 # 3. Upload to CDN (future)
 # npm run upload-audio
 
-# 4. Validate URLs
+# 4. Rewrite data.json to the CDN base
+npm run apply-cdn-to-data -- --base-url="https://audio.example.com" --prefix=prod/audio
+
+# 5. Validate URLs
 npm run validate-audio
 ```
 
 See the [encode README](./audio-workflow/encode/README.md) for complete documentation, configuration details, and troubleshooting.
+
+---
+
+### `audio-workflow/update/upload-to-r2.js` - Upload Encoded Assets to Cloudflare R2
+
+Ships the Stage 2 output (Opus files, manifests, metadata) to Cloudflare R2 using the S3-compatible API.
+
+**Usage:**
+
+```bash
+# Upload everything under scripts/audio-workflow/encode/output
+npm run upload-audio -- --skip-existing
+
+# Same command but auto-load .env.local first
+npm run upload-audio:local -- --skip-existing
+
+# Override the destination prefix and run in dry-run mode
+npm run upload-audio -- --prefix staging/audio --dry-run
+
+# Point at a custom input directory
+npm run upload-audio -- --input-dir ./output --include-ext .opus,.json
+```
+
+**Environment variables:**
+
+- Copy `.env.example` to `.env.local` (ignored by git) and set the secrets there, or export them manually before running the script.
+
+- `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` (required) – issued from your Cloudflare R2 account
+- `R2_ENDPOINT` **or** `R2_ACCOUNT_ID` – endpoint base URL (`https://<account>.r2.cloudflarestorage.com`)
+- `R2_BUCKET_NAME` – defaults to `photo-signal-audio`
+- `R2_PREFIX` – optional folder-style prefix (e.g., `prod/audio`)
+- `R2_BASE_URL` – public URL root for summary output (`https://.../photo-signal-audio`)
+- `R2_INPUT_DIR`, `R2_INCLUDE_EXTENSIONS`, `R2_CONCURRENCY`, `R2_SKIP_EXISTING`, `R2_DRY_RUN` – override defaults without CLI flags
+
+**What it does:**
+
+- Discovers `.opus`, `.json`, and `.md` files under the chosen directory
+- Computes SHA-256 checksums and records them as R2 object metadata
+- Applies immutable cache headers for audio and short-lived caching for manifests
+- Offers `--skip-existing` to HEAD-check remote objects using stored hashes/size before uploading
+- Prints a deployment summary plus CDN-ready URLs for newly uploaded assets
+
+See the [audio workflow README](./audio-workflow/README.md#stage-3-update-ready) for additional context and usage tips.
 
 ---
 
@@ -747,7 +793,7 @@ Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mod
 
 ### `audio-workflow/update/migrate-audio-to-cdn.js` - Migrate Audio to CDN
 
-Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs while preserving local fallbacks.
+Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs.
 
 **Requirements:** Node.js (ES modules support)
 
@@ -772,8 +818,6 @@ node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 **What it does:**
 
 - Updates `audioFile` field with CDN URLs
-- Adds `audioFileFallback` field with local paths
-- Sets `audioFileSource` field to indicate CDN provider
 - Creates backup of original data.json
 - Provides detailed migration summary
 
@@ -791,7 +835,6 @@ Configuration:
 ✓ Concert #1 (The Midnight Echoes):
     Original: /audio/concert-1.opus
     CDN URL:  https://github.com/.../concert-1.opus
-    Fallback: /audio/concert-1.opus
 
 📊 Migration Summary:
   Migrated: 12 concerts
@@ -844,13 +887,11 @@ node scripts/audio-workflow/update/validate-audio-urls.js [options]
 
 - `--source=<path>` - Path to data.json (default: `public/data.json`)
 - `--timeout=<ms>` - Request timeout in milliseconds (default: 10000)
-- `--check-fallback` - Also check fallback URLs
 - `--help` - Show help message
 
 **What it does:**
 
-- Checks accessibility of primary audio URLs
-- Optionally checks fallback URLs
+- Checks accessibility of audio URLs
 - Supports both local files and remote URLs
 - Reports success rate and failed URLs
 - Provides troubleshooting recommendations
@@ -863,11 +904,9 @@ node scripts/audio-workflow/update/validate-audio-urls.js [options]
 Configuration:
   Source: public/data.json
   Timeout: 10000ms
-  Check Fallback: No
-
 Checking Concert #1: The Midnight Echoes
-  ✓ Primary:  /audio/concert-1.opus
-            Status: 200 OK (local file)
+  ✓ Audio:   /audio/concert-1.opus
+             Status: 200 OK (local file)
 
 📊 Validation Summary:
   Total URLs Checked: 12
@@ -882,9 +921,6 @@ Checking Concert #1: The Midnight Echoes
 ```bash
 # Validate production data.json
 npm run validate-audio
-
-# Validate with fallback URLs
-npm run validate-audio -- --check-fallback
 
 # Validate test data
 npm run validate-audio -- --source=assets/test-data/concerts.json

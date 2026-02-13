@@ -12,15 +12,13 @@
  * Options:
  *   --source=<path>       Path to data.json (default: public/data.json)
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
- *   --check-fallback      Also check fallback URLs
+ *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
+ *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
  *   --help                Show this help message
  *
  * Examples:
  *   # Validate production data.json
  *   node scripts/audio-workflow/update/validate-audio-urls.js
- *
- *   # Validate with fallback URLs
- *   node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
  *
  *   # Validate test data
  *   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
@@ -31,25 +29,26 @@ import path from 'path';
 import https from 'https';
 import http from 'http';
 import { fileURLToPath } from 'url';
+import { buildAudioUrl, sanitizePrefix, trimTrailingSlash } from './apply-cdn-to-data.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
+const DEFAULT_PREFIX = 'prod/audio';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 const options = {
   source: 'public/data.json',
   timeout: 10000,
-  checkFallback: false,
+  baseUrl: '',
+  prefix: 'prod/audio',
   help: false,
 };
 
 for (const arg of args) {
   if (arg === '--help') {
     options.help = true;
-  } else if (arg === '--check-fallback') {
-    options.checkFallback = true;
   } else if (arg.startsWith('--source=')) {
     const value = arg.split('=')[1];
     if (!value) {
@@ -64,7 +63,41 @@ for (const arg of args) {
       process.exit(1);
     }
     options.timeout = parseInt(value, 10);
+  } else if (arg.startsWith('--base-url=')) {
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --base-url requires a value');
+      process.exit(1);
+    }
+    options.baseUrl = trimTrailingSlash(value);
+  } else if (arg.startsWith('--prefix=')) {
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --prefix requires a value');
+      process.exit(1);
+    }
+    options.prefix = sanitizePrefix(value);
   }
+}
+
+export function normalizeBaseUrl(baseUrl) {
+  return trimTrailingSlash(baseUrl);
+}
+
+export function normalizePrefix(prefix) {
+  return sanitizePrefix(prefix || DEFAULT_PREFIX);
+}
+
+export function resolveAudioUrl(audioFile, concertId, baseUrl, prefix = DEFAULT_PREFIX) {
+  if (!audioFile) {
+    return '';
+  }
+
+  if (!baseUrl) {
+    return audioFile;
+  }
+
+  return buildAudioUrl({ id: concertId, audioFile }, baseUrl, prefix);
 }
 
 // Show help
@@ -80,15 +113,13 @@ Usage:
 Options:
   --source=<path>       Path to data.json (default: public/data.json)
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
-  --check-fallback      Also check fallback URLs
+  --base-url=<url>      Override audioFile with CDN base URL
+  --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --help                Show this help message
 
 Examples:
   # Validate production data.json
   node scripts/audio-workflow/update/validate-audio-urls.js
-
-  # Validate with fallback URLs
-  node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
 
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
@@ -246,15 +277,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const options = {
     source: 'public/data.json',
     timeout: 10000,
-    checkFallback: false,
+    baseUrl: '',
+    prefix: 'prod/audio',
     help: false,
   };
 
   for (const arg of args) {
     if (arg === '--help') {
       options.help = true;
-    } else if (arg === '--check-fallback') {
-      options.checkFallback = true;
     } else if (arg.startsWith('--source=')) {
       const value = arg.split('=')[1];
       if (!value) {
@@ -269,6 +299,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
       }
       options.timeout = parseInt(value, 10);
+    } else if (arg.startsWith('--base-url=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --base-url requires a value');
+        process.exit(1);
+      }
+      options.baseUrl = trimTrailingSlash(value);
+    } else if (arg.startsWith('--prefix=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --prefix requires a value');
+        process.exit(1);
+      }
+      options.prefix = sanitizePrefix(value);
     }
   }
 
@@ -285,18 +329,19 @@ Usage:
 Options:
   --source=<path>       Path to data.json (default: public/data.json)
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
-  --check-fallback      Also check fallback URLs
+  --base-url=<url>      Override audioFile with CDN base URL
+  --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --help                Show this help message
 
 Examples:
   # Validate production data.json
   node scripts/audio-workflow/update/validate-audio-urls.js
 
-  # Validate with fallback URLs
-  node scripts/audio-workflow/update/validate-audio-urls.js --check-fallback
-
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+
+  # Validate against a CDN base
+  node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio
 `);
     process.exit(0);
   }
@@ -307,7 +352,12 @@ Examples:
     console.log('Configuration:');
     console.log(`  Source: ${options.source}`);
     console.log(`  Timeout: ${options.timeout}ms`);
-    console.log(`  Check Fallback: ${options.checkFallback ? 'Yes' : 'No'}\n`);
+    console.log('');
+    if (options.baseUrl) {
+      console.log(`  Base URL: ${options.baseUrl}`);
+      console.log(`  Prefix: ${options.prefix}`);
+      console.log('');
+    }
 
     // Read source data.json
     const sourcePath = path.resolve(projectRoot, options.source);
@@ -344,8 +394,22 @@ Examples:
     for (const concert of data.concerts) {
       console.log(`Checking Concert #${concert.id}: ${concert.band}`);
 
+      if (!concert.audioFile) {
+        console.log('  ⏭️  Skipping: no audioFile found\n');
+        continue;
+      }
+
+      if (options.baseUrl && !concert.id) {
+        console.log('  ⏭️  Skipping: concert is missing id required for CDN path\n');
+        continue;
+      }
+
       // Check primary URL
-      const primaryResult = await checkUrl(concert.audioFile, options.timeout);
+      const targetUrl = options.baseUrl
+        ? buildAudioUrl(concert, options.baseUrl, options.prefix)
+        : concert.audioFile;
+
+      const primaryResult = await checkUrl(targetUrl, options.timeout);
       results.push({
         concert,
         type: 'primary',
@@ -353,27 +417,13 @@ Examples:
       });
 
       const primaryIcon = primaryResult.accessible ? '✓' : '✗';
-      console.log(`  ${primaryIcon} Primary:  ${concert.audioFile}`);
+      console.log(`  ${primaryIcon} Primary:  ${targetUrl}`);
       console.log(`            Status: ${primaryResult.status} ${primaryResult.statusText}`);
 
       if (primaryResult.accessible) {
         successCount++;
       } else {
         failureCount++;
-      }
-
-      // Check fallback URL if requested
-      if (options.checkFallback && concert.audioFileFallback) {
-        const fallbackResult = await checkUrl(concert.audioFileFallback, options.timeout);
-        results.push({
-          concert,
-          type: 'fallback',
-          result: fallbackResult,
-        });
-
-        const fallbackIcon = fallbackResult.accessible ? '✓' : '✗';
-        console.log(`  ${fallbackIcon} Fallback: ${concert.audioFileFallback}`);
-        console.log(`            Status: ${fallbackResult.status} ${fallbackResult.statusText}`);
       }
 
       console.log();

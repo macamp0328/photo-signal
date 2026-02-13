@@ -40,10 +40,9 @@ export default defineConfig({
   fullyParallel: true,
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
-  // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
-  // Opt out of parallel tests on CI
-  workers: process.env.CI ? 1 : undefined,
+  // Faster CI: no retries, parallel workers on CI
+  retries: 0,
+  workers: process.env.CI ? 2 : undefined,
   // Reporter to use
   reporter: process.env.CI ? [htmlReporter, ['github'], ['list']] : [htmlReporter, ['list']],
   // Shared settings for all the projects below
@@ -59,38 +58,36 @@ export default defineConfig({
   },
 
   // Configure projects for major browsers and devices
-  // In CI, only run chromium tests for speed and reliability
-  // Locally, you can test on all browsers with: npx playwright test
-  projects: process.env.CI
-    ? [
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
+  // Firefox removed for speed; run Chrome/Safari + mobile variants in all environments
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
         },
-      ]
-    : [
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
+      },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    // Mobile devices
+    {
+      name: 'Mobile Chrome',
+      use: {
+        ...devices['Pixel 5'],
+        launchOptions: {
+          args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
         },
-        {
-          name: 'firefox',
-          use: { ...devices['Desktop Firefox'] },
-        },
-        {
-          name: 'webkit',
-          use: { ...devices['Desktop Safari'] },
-        },
-        // Mobile devices
-        {
-          name: 'Mobile Chrome',
-          use: { ...devices['Pixel 5'] },
-        },
-        {
-          name: 'Mobile Safari',
-          use: { ...devices['iPhone 12'] },
-        },
-      ],
+      },
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
+    },
+  ],
 
   // Run your local dev server before starting the tests
   webServer: {

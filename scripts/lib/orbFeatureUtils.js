@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 /**
  * ORB feature extraction utilities for Node-based scripts.
  * Mirrors the browser implementation in src/modules/photo-recognition/algorithms/orb/orb.ts

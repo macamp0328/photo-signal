@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-/* eslint-env node */
-
 /**
  * Photo-of-Photo Hash Distance Analyzer
  *

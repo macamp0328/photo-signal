@@ -360,6 +360,29 @@
   gap: 0.5rem;
 }
 
+.collapsedHint {
+  font-size: 0.6875rem;
+  color: #a0aec0;
+}
+
+.inactive {
+  opacity: 0.92;
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.inactiveContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inactiveMessage {
+  font-size: 0.75rem;
+  color: #cbd5e0;
+  line-height: 1.4;
+}
+
 .collapsedLabel {
   font-size: 0.75rem;
   font-weight: 600;

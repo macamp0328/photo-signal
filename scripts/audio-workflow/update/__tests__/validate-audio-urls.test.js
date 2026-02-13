@@ -6,6 +6,9 @@ import {
   checkLocalFile,
   calculateStats,
   generateReport,
+  normalizeBaseUrl,
+  normalizePrefix,
+  resolveAudioUrl,
 } from '../validate-audio-urls.js';
 
 describe('validate-audio-urls', () => {
@@ -215,6 +218,41 @@ describe('validate-audio-urls', () => {
       expect(report).toContain('6');
       expect(report).toContain('2');
       expect(report).toContain('75.0%');
+    });
+  });
+
+  describe('resolveAudioUrl', () => {
+    it('should return raw URL when no base override is provided', () => {
+      const url = resolveAudioUrl('/audio/test.opus', 12, '', 'prod/audio');
+
+      expect(url).toBe('/audio/test.opus');
+    });
+
+    it('should replace the base and keep existing prefix path', () => {
+      const url = resolveAudioUrl(
+        'https://example.r2.cloudflarestorage.com/photo-signal-audio/prod/audio/1/test.opus',
+        1,
+        'https://audio.example.com',
+        'prod/audio'
+      );
+
+      expect(url).toBe('https://audio.example.com/prod/audio/1/test.opus');
+    });
+
+    it('should append prefix and concert id when missing', () => {
+      const url = resolveAudioUrl('/audio/test.opus', 5, 'https://audio.example.com', 'prod/audio');
+
+      expect(url).toBe('https://audio.example.com/prod/audio/5/test.opus');
+    });
+  });
+
+  describe('normalize helpers', () => {
+    it('should trim trailing slash in base URL', () => {
+      expect(normalizeBaseUrl('https://audio.example.com/')).toBe('https://audio.example.com');
+    });
+
+    it('should strip leading and trailing slashes from prefix', () => {
+      expect(normalizePrefix('/prod/audio/')).toBe('prod/audio');
     });
   });
 });

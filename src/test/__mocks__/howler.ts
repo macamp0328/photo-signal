@@ -22,6 +22,9 @@ export interface HowlOptions {
 export class Howl {
   private _volume: number;
   private _playing: boolean = false;
+  private _position: number = 0;
+  private _duration: number = 30;
+  private _listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
 
   // Expose callbacks for testing
   public onplay?: () => void;
@@ -31,28 +34,45 @@ export class Howl {
   public onloaderror?: (id: number, error: unknown) => void;
   public onplayerror?: (id: number, error: unknown) => void;
 
+  public on = vi.fn((event: string, callback: (...args: unknown[]) => void) => {
+    this._listeners[event] = this._listeners[event] || [];
+    this._listeners[event].push(callback);
+    return this;
+  });
+
+  public off = vi.fn((event?: string) => {
+    if (event) {
+      delete this._listeners[event];
+    } else {
+      this._listeners = {};
+    }
+    return this;
+  });
+
+  private _emit(event: string, ...args: unknown[]) {
+    const listeners = this._listeners[event] ?? [];
+    listeners.forEach((cb) => cb(...args));
+  }
+
   // Track method calls
   public play = vi.fn(() => {
     this._playing = true;
-    if (this.onplay) {
-      this.onplay();
-    }
+    this._emit('play');
+    this.onplay?.();
     return 1; // Return sound ID
   });
 
   public pause = vi.fn(() => {
     this._playing = false;
-    if (this.onpause) {
-      this.onpause();
-    }
+    this._emit('pause');
+    this.onpause?.();
     return this;
   });
 
   public stop = vi.fn(() => {
     this._playing = false;
-    if (this.onstop) {
-      this.onstop();
-    }
+    this._emit('stop');
+    this.onstop?.();
     return this;
   });
 
@@ -73,11 +93,25 @@ export class Howl {
 
   public unload = vi.fn(() => {
     this._playing = false;
+    this._emit('stop');
+    this._listeners = {};
     return this;
   });
 
   public playing = vi.fn(() => {
     return this._playing;
+  });
+
+  public duration = vi.fn(() => {
+    return this._duration;
+  });
+
+  public seek = vi.fn((position?: number) => {
+    if (typeof position === 'number') {
+      this._position = position;
+      return this;
+    }
+    return this._position;
   });
 
   constructor(options: HowlOptions) {

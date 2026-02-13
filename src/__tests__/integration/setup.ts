@@ -38,6 +38,7 @@ export const createMockHowl = () => {
     volume: vi.fn().mockReturnThis(),
     playing: vi.fn().mockReturnValue(false),
     seek: vi.fn().mockReturnValue(0),
+    duration: vi.fn().mockReturnValue(30),
     state: vi.fn().mockReturnValue('loaded'),
     on: vi.fn().mockReturnThis(),
     once: vi.fn().mockReturnThis(),

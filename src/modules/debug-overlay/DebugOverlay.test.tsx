@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DebugOverlay } from './DebugOverlay';
 import type { DebugOverlayProps } from './types';
 import type { Concert } from '../../types';
@@ -87,6 +87,7 @@ describe('DebugOverlay', () => {
     recognizedConcert: null,
     isRecognizing: false,
     enabled: true,
+    isTestMode: true,
     debugInfo: mockDebugInfo,
     threshold: undefined,
     onReset: undefined,
@@ -102,16 +103,16 @@ describe('DebugOverlay', () => {
   });
 
   describe('Visibility', () => {
-    it('should return null when enabled is false', () => {
-      const { container } = render(<DebugOverlay {...defaultProps} enabled={false} />);
-
-      expect(container.firstChild).toBeNull();
-    });
-
     it('should render when enabled is true', () => {
       render(<DebugOverlay {...defaultProps} />);
 
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
+    });
+
+    it('should render with live data badge when not in test mode', () => {
+      render(<DebugOverlay {...defaultProps} isTestMode={false} />);
+
+      expect(screen.getByText('LIVE DATA')).toBeInTheDocument();
     });
   });
 
@@ -527,9 +528,10 @@ describe('DebugOverlay', () => {
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
 
       rerender(<DebugOverlay {...defaultProps} enabled={false} />);
-      expect(screen.queryByText('🐛 Debug Info')).not.toBeInTheDocument();
+      expect(screen.getByText('Show overlay')).toBeInTheDocument();
 
       rerender(<DebugOverlay {...defaultProps} enabled={true} />);
+      fireEvent.click(screen.getByText('Show overlay'));
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
     });
   });

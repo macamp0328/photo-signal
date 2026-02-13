@@ -14,8 +14,8 @@ import type { UseTripleTapOptions } from './types';
  * Monitors tap/click events and triggers callback when three
  * rapid taps/clicks occur in the center region of the screen.
  *
- * **Timing Requirement**: All three taps must occur within the
- * specified timeout (default 500ms) from the FIRST tap.
+ * **Timing Requirement**: Each tap must occur within the
+ * specified timeout (default 500ms) of the previous tap.
  *
  * @param options - Configuration options
  * @returns void
@@ -40,12 +40,12 @@ import type { UseTripleTapOptions } from './types';
 export function useTripleTap({ tapTimeout = 500, onTripleTap }: UseTripleTapOptions): void {
   const tapCountRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const firstTapTimeRef = useRef<number | null>(null);
+  const lastTapTimeRef = useRef<number | null>(null);
 
   // Reset tap count after timeout
   const resetTapCount = useCallback(() => {
     tapCountRef.current = 0;
-    firstTapTimeRef.current = null;
+    lastTapTimeRef.current = null;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -88,22 +88,24 @@ export function useTripleTap({ tapTimeout = 500, onTripleTap }: UseTripleTapOpti
 
       // Check if this tap is within the timeout window (prevents race condition)
       const now = Date.now();
-      if (firstTapTimeRef.current !== null && now - firstTapTimeRef.current >= tapTimeout) {
-        // Timeout has expired, reset and treat this as a new first tap
+      if (lastTapTimeRef.current !== null && now - lastTapTimeRef.current >= tapTimeout) {
+        // Timeout has expired since the previous tap - start a new sequence
         resetTapCount();
       }
 
       // Increment tap count
       tapCountRef.current += 1;
 
-      // On FIRST tap only, start the timeout and record timestamp
-      // (Do NOT reset timeout on subsequent taps)
-      if (tapCountRef.current === 1) {
-        firstTapTimeRef.current = now;
-        timeoutRef.current = setTimeout(() => {
-          resetTapCount();
-        }, tapTimeout);
+      // Record the timestamp of the latest tap and restart the timeout window
+      lastTapTimeRef.current = now;
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
+
+      timeoutRef.current = setTimeout(() => {
+        resetTapCount();
+      }, tapTimeout);
 
       // Check if triple tap detected
       if (tapCountRef.current >= 3) {

@@ -9,7 +9,11 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     css: true,
     // Include script tests and exclude Playwright tests from Vitest
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/__tests__/**/*.test.{js,ts}'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'scripts/**/__tests__/**/*.test.{js,ts}',
+      'cloudflare/**/*.test.{ts,tsx}',
+    ],
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/visual/**'],
     coverage: {
       provider: 'v8',

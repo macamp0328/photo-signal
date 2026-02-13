@@ -12,8 +12,16 @@ import '@testing-library/jest-dom';
 import { setupGlobalMocks } from './mocks';
 import { vi } from 'vitest';
 
-// Initialize all global mocks
-setupGlobalMocks();
+const hasDom = typeof window !== 'undefined' && typeof document !== 'undefined';
+
+if (typeof navigator === 'undefined') {
+  (globalThis as unknown as { navigator: Navigator }).navigator = {
+    userAgent: 'node',
+  } as Navigator;
+}
+
+// Initialize all global mocks (skip DOM-heavy mocks when not available)
+setupGlobalMocks({ enableDom: hasDom });
 
 // Suppress expected console warnings/errors during tests
 const originalConsoleError = console.error;

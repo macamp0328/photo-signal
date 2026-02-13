@@ -34,6 +34,7 @@
 - **[docs/codecov-setup-guide.md](./docs/codecov-setup-guide.md)** - Step-by-step guide for setting up Codecov coverage tracking with screenshots and troubleshooting
 - **[docs/codeql-setup-guide.md](./docs/codeql-setup-guide.md)** - Step-by-step guide for enabling CodeQL code scanning on private repositories with solutions for common issues
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Step-by-step guide for configuring Vercel deployments, troubleshooting deployment issues, and verifying production deployments
+- **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** - Cloudflare Worker audio proxy configuration, R2 bindings, and data rewrites
 
 ### Accessibility
 
@@ -116,6 +117,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[tsconfig.app.json](./tsconfig.app.json)** - TypeScript app-specific configuration
 - **[tsconfig.node.json](./tsconfig.node.json)** - TypeScript Node.js configuration
 - **[vercel.json](./vercel.json)** - Vercel deployment settings
+- **[wrangler.toml](./wrangler.toml)** - Cloudflare Worker configuration with R2 bucket binding
 
 ### Testing
 
@@ -273,6 +275,9 @@ Each module has its own README defining its API contract, usage, and examples.
 - **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** - Overview of the download → organize+encode → update pipeline with links to each stage. **Documents the "capture once, store outside" metadata philosophy**
 - **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** - Combined organize + encode playbook covering cataloging, normalization, Opus mastering, and manifest generation. **Explains minimal Opus embedding vs. rich manifest metadata strategy**
 - **[scripts/audio-workflow/encode/metadata-overrides.example.json](./scripts/audio-workflow/encode/metadata-overrides.example.json)** - Sample metadata override mapping showing how to pin custom dates/venues for the encode stage
+- **[scripts/audio-workflow/update/upload-to-r2.js](./scripts/audio-workflow/update/upload-to-r2.js)** - Cloudflare R2 uploader CLI with hash-based skip logic, concurrency controls, and CDN URL summaries
+- **[scripts/audio-workflow/update/upload-audio-local.sh](./scripts/audio-workflow/update/upload-audio-local.sh)** - Bash helper that sources `.env.local` before invoking the uploader
+- **[.env.example](./.env.example)** - Template for local environment variables (Cloudflare R2 credentials, upload defaults)
 - **[scripts/audio-workflow/download/download-yt-song.config.example.json](./scripts/audio-workflow/download/download-yt-song.config.example.json)** - Sample configuration for the yt-dlp download helper (copy to `download-yt-song.config.json` and customize defaults)
 - **[scripts/audio-workflow/download/download-yt-song.config.json](./scripts/audio-workflow/download/download-yt-song.config.json)** - Local default configuration pointing to the Photo Signal playlist and `../downloads` output folder
 - **[scripts/dev.sh](./scripts/dev.sh)** - Start development server (local or Docker)
@@ -371,7 +376,7 @@ This index covers:
 - ✅ Module developer guides (1 file - secret-settings developer guide)
 - ✅ Module implementation files (13 files - secret-settings feature flags, custom settings, hooks, effects, photo-rectangle-detection service and overlay, parallel-recognizer)
 - ✅ Photo recognition algorithms (5 files - dhash, phash, hamming, utils, parallel-recognizer with PARALLEL_RECOGNITION.md)
-- ✅ Configuration files (15 files - including playwright.config.ts)
+- ✅ Configuration files (16 files - including playwright.config.ts and wrangler.toml)
 - ✅ GitHub Actions & workflows (5 files - CI workflow, visual regression, edge case accuracy, auto-fix Copilot PR, manage labels)
 - ✅ GitHub Actions - custom actions (2 files)
 - ✅ GitHub templates (1 file - PR template)

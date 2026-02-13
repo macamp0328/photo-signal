@@ -14,7 +14,8 @@ The Debug Overlay module provides real-time debugging information for the photo 
 ✅ **Threshold Visualization**: Displays current threshold and required similarity percentage
 ✅ **Stability Countdown**: Visual progress bar and timer while waiting for confirmation
 ✅ **Metric Snapshot**: Frames processed, concerts evaluated, check interval, aspect ratio, frame size, last check timestamp
-✅ **Test Mode Integration**: Only visible when Test Mode is enabled
+✅ **Mode Badge**: Shows TEST vs LIVE when toggled via feature flag
+✅ **Visibility-Aware Data**: Collects debug metrics only while overlay is open
 ✅ **Non-intrusive Design**: Positioned in bottom-right corner with semi-transparent background
 ✅ **Collapsible UI**: Quickly hide or show the overlay to reclaim screen space
 ✅ **Manual Reset Control**: Optional reset button to restart recognition during Test Mode
@@ -24,22 +25,28 @@ The Debug Overlay module provides real-time debugging information for the photo 
 ### In App.tsx
 
 ```tsx
+import { useState } from 'react';
 import { DebugOverlay } from './modules/debug-overlay';
 
 function App() {
   const { isEnabled } = useFeatureFlags();
-  const { recognizedConcert, debugInfo } = usePhotoRecognition(stream, {
-    enableDebugInfo: isEnabled('test-mode'),
+  const isTestMode = isEnabled('test-mode');
+  const [isOverlayVisible, setOverlayVisible] = useState(false);
+
+  const { recognizedConcert, debugInfo, isRecognizing } = usePhotoRecognition(stream, {
+    // Collect debug metrics only while the overlay is open
+    enableDebugInfo: isTestMode && isOverlayVisible,
   });
 
   return (
     <>
       {/* Other components */}
       <DebugOverlay
-        enabled={isEnabled('test-mode')}
+        enabled={isTestMode}
         recognizedConcert={recognizedConcert}
-        isRecognizing={false}
+        isRecognizing={isRecognizing}
         debugInfo={debugInfo}
+        onVisibilityChange={setOverlayVisible}
         onReset={() => console.log('Reset recognition')}
       />
     </>
@@ -49,7 +56,7 @@ function App() {
 
 ### Collapsing the Overlay
 
-Use the **Hide** button in the overlay header to collapse it into a compact pill. Click **Show overlay** to reopen it. The collapsed state resets automatically whenever Test Mode is turned off.
+Use the **Hide** button in the overlay header to collapse it into a compact pill (fires `onVisibilityChange(false)`, so debug metrics pause). Click **Show overlay** to reopen it. The collapsed state resets automatically whenever Test Mode is turned off.
 
 ## Component API
 
@@ -71,6 +78,9 @@ interface DebugOverlayProps {
 
   /** Aggregated debug info from the recognition hook */
   debugInfo?: RecognitionDebugInfo | null;
+
+  /** Notifies when overlay is shown/hidden; use to toggle enableDebugInfo */
+  onVisibilityChange?: (visible: boolean) => void;
 
   /** Optional handler that renders a reset button when provided */
   onReset?: () => void;
@@ -109,12 +119,22 @@ The overlay uses CSS Modules for scoped styling:
 
 ## Integration with Photo Recognition
 
-The debug overlay receives information from the `usePhotoRecognition` hook via the `debugInfo` return value:
+The debug overlay receives information from the `usePhotoRecognition` hook via the `debugInfo` return value. To avoid extra work, wire `onVisibilityChange` to toggle `enableDebugInfo` only while the overlay is open:
 
 ```typescript
-const { recognizedConcert, debugInfo } = usePhotoRecognition(stream, {
-  enableDebugInfo: true, // Enable debug info output
+const [isVisible, setVisible] = useState(false);
+
+const { recognizedConcert, debugInfo, isRecognizing } = usePhotoRecognition(stream, {
+  enableDebugInfo: isTestMode && isVisible,
 });
+
+<DebugOverlay
+  enabled={isTestMode}
+  recognizedConcert={recognizedConcert}
+  isRecognizing={isRecognizing}
+  debugInfo={debugInfo}
+  onVisibilityChange={setVisible}
+/>;
 
 // debugInfo contains:
 // - lastFrameHash: Hash of the last processed frame
@@ -170,11 +190,12 @@ interface RecognitionDebugInfo {
 2. Verify that test images produce expected matches
 3. Check that similarity scores are reasonable
 
-## Performance Considerations
+### Performance Considerations
 
-- **Minimal Overhead**: Only renders when Test Mode is enabled
-- **Efficient Updates**: Uses React state management, no excessive re-renders
-- **No Performance Impact**: Does not affect photo recognition algorithm
+- **Visibility-aware metrics**: Gate `enableDebugInfo` using `onVisibilityChange` so hashing/telemetry runs only when the overlay is open.
+- **Minimal Overhead**: Overlay renders only when enabled (e.g., Test Mode flag).
+- **Efficient Updates**: Uses React state management, no excessive re-renders.
+- **Low impact**: When debug info is disabled, recognition runs without extra computation.
 
 ## Accessibility
 

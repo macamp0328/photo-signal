@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-env node */
-
 import { createCanvas, loadImage } from 'canvas';
 
 export const DEFAULT_EXPOSURE_OFFSETS = [-50, 0, 50];

@@ -1,4 +1,4 @@
-import type { BrowserContext } from '@playwright/test';
+import type { BrowserContext, Page } from '@playwright/test';
 
 /**
  * Attempt to grant camera permissions for browsers that support it.
@@ -21,4 +21,23 @@ export async function safeGrantCameraPermissions(context: BrowserContext): Promi
 
     throw error;
   }
+}
+
+/**
+ * Inject a deterministic placeholder for camera video elements so screenshots are stable.
+ */
+export async function applyStableCameraPlaceholder(page: Page): Promise<void> {
+  await page.addStyleTag({
+    content: `
+video,
+[data-testid="camera-video"] {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  object-fit: cover !important;
+}
+video::-webkit-media-controls,
+video::-moz-media-controls {
+  display: none !important;
+}
+`,
+  });
 }

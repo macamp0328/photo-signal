@@ -451,6 +451,10 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
 ];
 ```
 
+> Tip: To keep the UI focused, you can limit a setting to specific recognition engines by adding an
+> `engines` array (e.g., `engines: ['perceptual', 'parallel']`). The setting will only be shown when
+> that engine is selected in the menu.
+
 ### Step 2: Create State Management Hook
 
 The state management hook already exists at: `src/modules/secret-settings/useCustomSettings.ts`

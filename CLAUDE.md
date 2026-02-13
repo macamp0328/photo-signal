@@ -179,3 +179,39 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 - `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` — Recognition algorithm details
 - `docs/AUDIO_R2_WORKER.md` — Audio CDN setup
 - `docs/TEST_DATA_MODE_GUIDE.md` — Development testing guide
+
+## Agent Workflow Guidelines
+
+### Before Modifying Any Module
+
+1. Read the module's `README.md` for its contract (API, props, responsibilities)
+2. Read the module's existing tests to understand expected behavior
+3. Check `src/types/index.ts` for shared interfaces the module uses
+4. Make changes within the module directory only — do not touch other modules unless the change requires it
+
+### When Adding New Files
+
+- Update `DOCUMENTATION_INDEX.md` when adding, removing, or renaming files
+- Follow existing naming conventions: `kebab-case` for files, `PascalCase` for components
+- Colocate tests next to source files (`foo.ts` → `foo.test.ts`)
+
+### When Writing Tests
+
+- Use Vitest with the `happy-dom` environment (configured in `vitest.config.ts`)
+- Import browser API mocks from `src/test/mocks.ts` when needed
+- Mock external dependencies, not internal module logic
+- Target 70%+ coverage for any new or modified module
+
+### Interpreting Test Results
+
+- **PASS**: Output shows `Test Files X passed` with exit code 0
+- **FAIL**: Output shows `Test Files X failed` with exit code != 0
+- **Ignore**: `stderr` warnings about React `act()`, mock setup, or `console.warn` — these are non-critical
+
+### Common Gotchas
+
+- `data.json` is 9.6 MB — don't read it in full; use `src/services/data-service.ts` to understand the data model instead
+- Browser APIs (camera, canvas, audio) are not available in tests — always use mocks from `src/test/mocks.ts`
+- The `scripts/` directory contains Node.js scripts (CommonJS-style `.js` files), not TypeScript — different lint rules apply
+- CSS Modules generate scoped class names at build time — reference styles via `import styles from './Foo.module.css'`
+- The Vite build copies test assets from `assets/` to `public/assets/` via a custom plugin in `vite.config.ts`

@@ -334,7 +334,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **New module**: Read ARCHITECTURE.md, create module with README.md first
 - **Modify module**: Read module's README.md for contract, keep changes isolated
 - **Parallel work**: See AI_AGENT_GUIDE.md for conflict-free collaboration
-- **Testing**: See TESTING.md for strategy (tests not yet implemented)
+- **Testing**: See TESTING.md for strategy and test configuration
 
 ---
 

@@ -19,7 +19,7 @@
 - **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Examples of parallel AI agent development and collaboration patterns
 - **[TESTING.md](./TESTING.md)** - Testing strategy, framework recommendations, and coverage goals
 - **[FUTURE_FEATURES.md](./FUTURE_FEATURES.md)** - Consolidated list of unimplemented features and enhancement ideas
-- **[PARALLEL_RECOGNITION_IMPLEMENTATION.md](./PARALLEL_RECOGNITION_IMPLEMENTATION.md)** - Implementation summary for parallel multi-algorithm photo recognition (dHash + pHash + ORB with weighted voting)
+- **[docs/archive/PARALLEL_RECOGNITION_IMPLEMENTATION.md](./docs/archive/PARALLEL_RECOGNITION_IMPLEMENTATION.md)** - Archived implementation summary for deprecated parallel multi-algorithm photo recognition (dHash + pHash + ORB with weighted voting)
 
 ### Research & Technical Guides
 

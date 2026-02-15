@@ -189,6 +189,8 @@ Each module has its own README defining its API contract, usage, and examples.
 
 - **[.github/pull_request_template.md](./.github/pull_request_template.md)** - Pull request template with quality gate checklist, AI agent responsibilities, and pre-merge requirements
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** - Comprehensive GitHub Copilot agent instructions including code standards, error handling, accessibility, documentation standards, troubleshooting, git workflow, and dependency management
+- **[CLAUDE.md](./CLAUDE.md)** - Comprehensive reference guide for Claude AI covering project structure, tech stack, npm commands, architecture, code conventions, and agent workflow guidelines
+- **[.claude/settings.json](./.claude/settings.json)** - Claude AI session configuration that auto-runs npm install on session start
 - **[.github/dependabot.yml](./.github/dependabot.yml)** - Dependabot configuration for automated dependency updates (npm and GitHub Actions)
 - **[.github/ISSUE_TEMPLATE/\_TEMPLATE_GUIDE.md](./.github/ISSUE_TEMPLATE/_TEMPLATE_GUIDE.md)** - Guide for creating additional issue templates
 - **[.github/ISSUE_TEMPLATE/module-level-tests.md](./.github/ISSUE_TEMPLATE/module-level-tests.md)** - Template for adding module tests (legacy)
@@ -334,7 +336,7 @@ Each module has its own README defining its API contract, usage, and examples.
 - **New module**: Read ARCHITECTURE.md, create module with README.md first
 - **Modify module**: Read module's README.md for contract, keep changes isolated
 - **Parallel work**: See AI_AGENT_GUIDE.md for conflict-free collaboration
-- **Testing**: See TESTING.md for strategy (tests not yet implemented)
+- **Testing**: See TESTING.md for strategy and test configuration
 
 ---
 

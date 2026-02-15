@@ -97,7 +97,7 @@ src/modules/{module-name}/
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines, quality gates, and **AI agent PR policy** (MUST READ!)
 - **ARCHITECTURE.md** - Module structure, data flow, AI collaboration guide
 - **AI_AGENT_GUIDE.md** - Examples of parallel AI agent development
-- **TESTING.md** - Testing strategy (tests not yet implemented)
+- **TESTING.md** - Testing strategy and configuration
 - **SETUP.md** - Development workflow, CI/CD, deployment
 - **README.md** - User-facing documentation
 
@@ -225,14 +225,14 @@ npm run build
 
 ## Testing
 
-⚠️ **Note**: Tests are not yet implemented (see TESTING.md)
+Tests use Vitest with the `happy-dom` environment. See TESTING.md for full strategy.
 
-When tests are added:
-
-- Use Vitest (Vite-native testing)
+- Test files are colocated with source: `*.test.ts` / `*.test.tsx`
+- Integration tests live in `src/__tests__/integration/`
+- Browser API mocks are in `src/test/mocks.ts` (camera, canvas, audio, fetch, localStorage)
 - Test module contracts, not implementations
 - Mock native APIs (MediaDevices, Canvas, Audio)
-- Target >70% coverage per module
+- Target >70% coverage per module (enforced in CI)
 
 ## Performance Targets
 

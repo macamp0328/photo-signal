@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm install --prefer-offline --no-audit 2>/dev/null && echo '✓ Dependencies installed' || echo '⚠ npm install failed — run manually'"
+          }
+        ]
+      }
+    ]
+  }
+}

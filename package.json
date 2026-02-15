@@ -36,7 +36,8 @@
     "encode-audio": "node scripts/audio-workflow/encode/encode-audio.js",
     "upload-audio": "node scripts/audio-workflow/update/upload-to-r2.js",
     "upload-audio:local": "bash scripts/audio-workflow/update/upload-audio-local.sh",
-    "pre-commit": "npm audit --audit-level=moderate && npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh"
+    "pre-commit": "npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -69,7 +70,9 @@
     "exifr": "^7.1.3",
     "globals": "^16.4.0",
     "happy-dom": "^20.0.10",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.6.2",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",

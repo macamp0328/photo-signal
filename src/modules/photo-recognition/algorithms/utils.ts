@@ -321,3 +321,65 @@ export function detectPoorLighting(
     type: 'ok',
   };
 }
+
+/**
+ * Adaptive quality thresholds derived from ambient conditions.
+ *
+ * In darker environments (e.g., bathroom lighting), this widens acceptable
+ * brightness/glare ranges to reduce false negatives while still rejecting
+ * extreme poor-quality frames.
+ */
+export interface AdaptiveQualityThresholds {
+  minBrightness: number;
+  maxBrightness: number;
+  glarePercentageThreshold: number;
+}
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(Math.max(value, min), max);
+
+export function calculateAdaptiveQualityThresholds(
+  minBrightness: number,
+  maxBrightness: number,
+  glarePercentageThreshold: number,
+  ambientBrightness: number | null,
+  ambientGlarePercentage: number | null
+): AdaptiveQualityThresholds {
+  if (ambientBrightness === null) {
+    return {
+      minBrightness,
+      maxBrightness,
+      glarePercentageThreshold,
+    };
+  }
+
+  const midpoint = (minBrightness + maxBrightness) / 2;
+  const brightnessDelta = ambientBrightness - midpoint;
+
+  // Shift thresholds toward ambient while keeping conservative floors/ceilings.
+  const adjustedMinBrightness = clamp(
+    minBrightness + brightnessDelta * 0.35,
+    20,
+    minBrightness + 30
+  );
+  const adjustedMaxBrightness = clamp(
+    maxBrightness + brightnessDelta * 0.35,
+    maxBrightness - 30,
+    245
+  );
+
+  // In darker scenes, tolerate a bit more localized glare and sensor noise.
+  const glareFromDarkness = Math.max(0, (160 - ambientBrightness) / 8);
+  const glareFromHistory = ambientGlarePercentage !== null ? ambientGlarePercentage * 0.2 : 0;
+  const adjustedGlarePercentageThreshold = clamp(
+    glarePercentageThreshold + glareFromDarkness + glareFromHistory,
+    glarePercentageThreshold,
+    40
+  );
+
+  return {
+    minBrightness: adjustedMinBrightness,
+    maxBrightness: adjustedMaxBrightness,
+    glarePercentageThreshold: adjustedGlarePercentageThreshold,
+  };
+}

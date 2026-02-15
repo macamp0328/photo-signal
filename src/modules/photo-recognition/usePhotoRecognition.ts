@@ -15,6 +15,8 @@ import {
 } from './helpers';
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
 import {
+  calculateAdaptiveQualityThresholds,
+  calculateAverageBrightness,
   computeLaplacianVariance,
   convertToGrayscale,
   detectGlare,
@@ -89,6 +91,8 @@ export function usePhotoRecognition(
   const consecutiveMatchCountRef = useRef(0);
   const matchStartTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef(0);
+  const ambientBrightnessRef = useRef<number | null>(null);
+  const ambientGlarePercentageRef = useRef<number | null>(null);
   const switchCandidateConcertRef = useRef<Concert | null>(null);
   const switchCandidateStartTimeRef = useRef<number | null>(null);
   const switchConsecutiveMatchCountRef = useRef(0);
@@ -102,6 +106,8 @@ export function usePhotoRecognition(
     consecutiveMatchCountRef.current = 0;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
+    ambientBrightnessRef.current = null;
+    ambientGlarePercentageRef.current = null;
     switchCandidateConcertRef.current = null;
     switchCandidateStartTimeRef.current = null;
     switchConsecutiveMatchCountRef.current = 0;
@@ -353,8 +359,37 @@ export function usePhotoRecognition(
         if (shouldRunQualityCheck) {
           const sharpness = computeLaplacianVariance(imageData);
           const isSharp = sharpness >= sharpnessThreshold;
-          const glare = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
-          const lighting = detectPoorLighting(imageData, minBrightness, maxBrightness);
+          const averageBrightness = calculateAverageBrightness(imageData);
+
+          ambientBrightnessRef.current =
+            ambientBrightnessRef.current === null
+              ? averageBrightness
+              : ambientBrightnessRef.current * 0.85 + averageBrightness * 0.15;
+
+          const adaptiveThresholds = calculateAdaptiveQualityThresholds(
+            minBrightness,
+            maxBrightness,
+            glarePercentageThreshold,
+            ambientBrightnessRef.current,
+            ambientGlarePercentageRef.current
+          );
+
+          const glare = detectGlare(
+            imageData,
+            glareThreshold,
+            adaptiveThresholds.glarePercentageThreshold
+          );
+
+          ambientGlarePercentageRef.current =
+            ambientGlarePercentageRef.current === null
+              ? glare.glarePercentage
+              : ambientGlarePercentageRef.current * 0.85 + glare.glarePercentage * 0.15;
+
+          const lighting = detectPoorLighting(
+            imageData,
+            adaptiveThresholds.minBrightness,
+            adaptiveThresholds.maxBrightness
+          );
 
           quality = {
             sharpness,

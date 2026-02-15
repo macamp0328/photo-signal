@@ -12,6 +12,7 @@ import {
   computeLaplacianVariance,
   detectGlare,
   adjustBrightness,
+  calculateAdaptiveQualityThresholds,
   calculateAverageBrightness,
   detectPoorLighting,
 } from '../utils';
@@ -789,6 +790,32 @@ describe('Image Processing Utilities', () => {
       // At exact threshold should be OK
       expect(result.hasPoorLighting).toBe(false);
       expect(result.type).toBe('ok');
+    });
+  });
+
+  describe('calculateAdaptiveQualityThresholds', () => {
+    it('returns base thresholds when ambient context is unavailable', () => {
+      const thresholds = calculateAdaptiveQualityThresholds(50, 220, 20, null, null);
+
+      expect(thresholds.minBrightness).toBe(50);
+      expect(thresholds.maxBrightness).toBe(220);
+      expect(thresholds.glarePercentageThreshold).toBe(20);
+    });
+
+    it('lowers minimum brightness and raises glare tolerance in dark ambient scenes', () => {
+      const thresholds = calculateAdaptiveQualityThresholds(50, 220, 20, 70, 6);
+
+      expect(thresholds.minBrightness).toBeLessThan(50);
+      expect(thresholds.maxBrightness).toBeLessThanOrEqual(220);
+      expect(thresholds.glarePercentageThreshold).toBeGreaterThan(20);
+    });
+
+    it('raises maximum brightness in bright ambient scenes', () => {
+      const thresholds = calculateAdaptiveQualityThresholds(50, 220, 20, 205, 2);
+
+      expect(thresholds.maxBrightness).toBeGreaterThan(220);
+      expect(thresholds.minBrightness).toBeGreaterThanOrEqual(50);
+      expect(thresholds.glarePercentageThreshold).toBeGreaterThanOrEqual(20);
     });
   });
 });

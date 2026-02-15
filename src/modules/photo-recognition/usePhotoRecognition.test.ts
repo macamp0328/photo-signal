@@ -5,6 +5,7 @@ import type { Concert } from '../../types';
 import { usePhotoRecognition } from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
+let activeFrameHash = 'a5b3c7d9e1f20486';
 
 vi.mock('../secret-settings', () => ({
   useFeatureFlags: vi.fn(() => ({
@@ -24,7 +25,7 @@ vi.mock('../../services/data-service', () => ({
 }));
 
 vi.mock('./algorithms/phash', () => ({
-  computePHash: vi.fn(() => 'a5b3c7d9e1f20486'),
+  computePHash: vi.fn(() => activeFrameHash),
 }));
 
 vi.mock('./algorithms/hamming', () => ({
@@ -69,6 +70,7 @@ describe('usePhotoRecognition', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockIsEnabled.mockReturnValue(false);
+    activeFrameHash = 'a5b3c7d9e1f20486';
 
     const mockTrack = {
       kind: 'video',
@@ -192,5 +194,129 @@ describe('usePhotoRecognition', () => {
 
     expect(result.current.recognizedConcert).toBeNull();
     consoleSpy.mockRestore();
+  });
+
+  it('confirms a strong match within 500ms', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const { result } = renderHook(() => usePhotoRecognition(mockStream, { enabled: true }));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      const startMs = Date.now();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+      expect(Date.now() - startMs).toBeLessThanOrEqual(500);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('switches recognized concert in continuous mode after stricter confirmation', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          recognitionDelay: 120,
+          checkInterval: 50,
+          continuousRecognition: true,
+          switchRecognitionDelayMultiplier: 1.5,
+          switchDistanceThreshold: 8,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+
+      activeFrameHash = 'b6c4d8e2f3a10597';
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(350);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(2);
+    } finally {
+      createElementSpy.mockRestore();
+    }
   });
 });

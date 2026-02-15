@@ -106,6 +106,9 @@ export interface PhotoRecognitionOptions {
   recognitionDelay?: number;
   enabled?: boolean;
   similarityThreshold?: number;
+  continuousRecognition?: boolean;
+  switchRecognitionDelayMultiplier?: number;
+  switchDistanceThreshold?: number;
   checkInterval?: number;
   enableDebugInfo?: boolean;
   aspectRatio?: AspectRatio;

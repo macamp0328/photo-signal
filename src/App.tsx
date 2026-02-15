@@ -50,6 +50,8 @@ function App() {
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
+  const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
+  const [dismissedSwitchConcertId, setDismissedSwitchConcertId] = useState<number | null>(null);
 
   // Ref to store auto-reset timer ID for test mode
   const autoResetTimerRef = useRef<number | null>(null);
@@ -145,6 +147,9 @@ function App() {
     aspectRatio: 'auto',
     enableRectangleDetection: isEnabled('rectangle-detection'),
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
+    continuousRecognition: true,
+    switchRecognitionDelayMultiplier: 1.8,
+    switchDistanceThreshold: 8,
     enabled: !showSecretSettings,
   });
 
@@ -175,6 +180,42 @@ function App() {
     preload(selectedAudioUrl);
   }, [preload, recognizedConcert]);
 
+  // Auto-play the first recognized concert after camera activation.
+  useEffect(() => {
+    if (!isActive || !recognizedConcert || activeConcert) {
+      return;
+    }
+
+    const selectedAudioUrl = recognizedConcert.audioFile;
+    if (!selectedAudioUrl) {
+      return;
+    }
+
+    play(selectedAudioUrl);
+    setActiveConcert(recognizedConcert);
+  }, [isActive, recognizedConcert, activeConcert, play]);
+
+  // Track a switch candidate while music is already playing.
+  useEffect(() => {
+    if (!recognizedConcert || !activeConcert || !isPlaying) {
+      setPendingSwitchConcert(null);
+      return;
+    }
+
+    if (recognizedConcert.id === activeConcert.id) {
+      setPendingSwitchConcert(null);
+      setDismissedSwitchConcertId(null);
+      return;
+    }
+
+    if (dismissedSwitchConcertId === recognizedConcert.id) {
+      setPendingSwitchConcert(null);
+      return;
+    }
+
+    setPendingSwitchConcert(recognizedConcert);
+  }, [recognizedConcert, activeConcert, isPlaying, dismissedSwitchConcertId]);
+
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {
       return;
@@ -196,7 +237,7 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Restart recognition when movement begins while a concert is active (not merely recognized) to avoid oscillation and search for the next photo.
+  // Clear dismissed switch preference when user starts moving to a new area.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {
@@ -205,36 +246,38 @@ function App() {
         autoResetTimerRef.current = null;
       }
 
-      resetRecognition();
+      setDismissedSwitchConcertId(null);
     }
 
     previousMovementRef.current = isMoving;
-    // recognizedConcert is intentionally omitted to prevent immediate restart after a fresh lock-in.
-  }, [isMoving, activeConcert, resetRecognition]);
+  }, [isMoving, activeConcert]);
 
   const handleTogglePlayback = () => {
-    const targetConcert = recognizedConcert ?? activeConcert;
-
-    if (!targetConcert) {
+    if (!activeConcert) {
       return;
     }
 
-    const selectedAudioUrl = targetConcert.audioFile;
-
+    const selectedAudioUrl = activeConcert.audioFile;
     if (!selectedAudioUrl) {
       return;
     }
 
-    const isSameConcert = activeConcert?.id === targetConcert.id;
+    if (isPlaying) {
+      pause();
+      return;
+    }
 
-    if (isSameConcert) {
-      if (isPlaying) {
-        pause();
-        return;
-      }
+    play(selectedAudioUrl);
+    setActiveConcert(activeConcert);
+  };
 
-      play(selectedAudioUrl);
-      setActiveConcert(targetConcert);
+  const handleConfirmSwitch = () => {
+    if (!pendingSwitchConcert) {
+      return;
+    }
+
+    const selectedAudioUrl = pendingSwitchConcert.audioFile;
+    if (!selectedAudioUrl) {
       return;
     }
 
@@ -244,7 +287,18 @@ function App() {
       play(selectedAudioUrl);
     }
 
-    setActiveConcert(targetConcert);
+    setActiveConcert(pendingSwitchConcert);
+    setPendingSwitchConcert(null);
+    setDismissedSwitchConcertId(null);
+  };
+
+  const handleKeepCurrentTrack = () => {
+    if (!pendingSwitchConcert) {
+      return;
+    }
+
+    setDismissedSwitchConcertId(pendingSwitchConcert.id);
+    setPendingSwitchConcert(null);
   };
 
   const handlePauseCurrent = () => {
@@ -256,13 +310,12 @@ function App() {
     setIsActive(true);
   };
 
-  const infoConcert = recognizedConcert ?? activeConcert;
+  const infoConcert = pendingSwitchConcert ?? recognizedConcert ?? activeConcert;
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const showSwitchHint =
-    recognizedConcert && activeConcert && recognizedConcert.id !== activeConcert.id && isPlaying;
+  const showSwitchPrompt = !!pendingSwitchConcert;
 
   const primaryActionLabel = (() => {
-    if (!infoConcert) {
+    if (!activeConcert) {
       return 'Play';
     }
 
@@ -270,23 +323,27 @@ function App() {
       return isPlaying ? 'Pause' : 'Play';
     }
 
-    return isPlaying ? `Play ${infoConcert.band}` : 'Play';
+    return isPlaying ? 'Pause Current' : 'Play Current';
   })();
 
   const statusLabel =
     isInfoActive && isPlaying
       ? 'Now Playing'
-      : recognizedConcert && !isInfoActive
-        ? 'Now Viewing'
-        : isInfoActive
-          ? 'Paused'
-          : 'Now Viewing';
+      : showSwitchPrompt
+        ? 'New Photo Found'
+        : recognizedConcert && !isInfoActive
+          ? 'Now Viewing'
+          : isInfoActive
+            ? 'Paused'
+            : 'Now Viewing';
 
-  const promptText = recognizedConcert
-    ? 'Tap play to hear this photo. Music keeps playing until you pause.'
-    : activeConcert
-      ? 'Music will keep playing until you pause.'
-      : 'Point your camera at a photo to get started.';
+  const promptText = showSwitchPrompt
+    ? `Now playing ${activeConcert?.band}. Switch to ${pendingSwitchConcert?.band}?`
+    : recognizedConcert
+      ? 'Song started automatically. Music keeps playing until you pause.'
+      : activeConcert
+        ? 'Music will keep playing until you pause.'
+        : 'Point your camera at a photo to get started.';
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
@@ -299,11 +356,23 @@ function App() {
   const actions =
     infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
       <>
-        <div>
-          <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
-            {primaryActionLabel}
-          </button>
-          {isPlaying && !isInfoActive ? (
+        {showSwitchPrompt ? (
+          <div>
+            <button
+              type="button"
+              onClick={handleConfirmSwitch}
+              aria-label={`Switch to ${pendingSwitchConcert?.band}`}
+            >
+              Switch to {pendingSwitchConcert?.band}
+            </button>
+            <button
+              type="button"
+              data-variant="secondary"
+              onClick={handleKeepCurrentTrack}
+              aria-label="Keep current track"
+            >
+              Keep Current
+            </button>
             <button
               type="button"
               data-variant="secondary"
@@ -312,11 +381,17 @@ function App() {
             >
               Pause Current
             </button>
-          ) : null}
-        </div>
-        {showSwitchHint ? (
+          </div>
+        ) : (
+          <div>
+            <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
+              {primaryActionLabel}
+            </button>
+          </div>
+        )}
+        {showSwitchPrompt ? (
           <p>
-            Now playing: {activeConcert?.band}. Tap Play to switch to {recognizedConcert?.band}.
+            Now playing: {activeConcert?.band}. Confirm to switch to {pendingSwitchConcert?.band}.
           </p>
         ) : null}
         {activeConcert && isInfoActive && !isPlaying ? <p>Paused — tap play to resume.</p> : null}

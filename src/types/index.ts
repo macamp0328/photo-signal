@@ -5,36 +5,11 @@
  * and clear contracts between components.
  */
 
-/**
- * Concert data structure
- */
-export interface HashSet {
-  /** Optional dHash variants (dark/normal/bright) */
-  dhash?: string[];
-  /** Optional pHash variants (dark/normal/bright) */
+export interface PhotoHashes {
+  /** Primary pHash variants (dark/normal/bright) */
   phash?: string[];
-}
-
-export type ORBKeypointTuple = [number, number, number, number, number, number];
-
-export interface ORBFeaturePayload {
-  /** Serialization format version */
-  version: number;
-  /** Original reference image dimensions */
-  imageSize: [number, number];
-  /** Length of each descriptor (bytes) */
-  descriptorLength: number;
-  /** Packed keypoint tuples: [x, y, angle, response, octave, size] */
-  keypoints: ORBKeypointTuple[];
-  /** Descriptors encoded as base64 strings */
-  descriptors: string[];
-  /** Extraction configuration metadata */
-  config: {
-    maxFeatures: number;
-    fastThreshold: number;
-    minMatchCount: number;
-    matchRatioThreshold: number;
-  };
+  /** Legacy algorithms may still exist in data files */
+  [algorithm: string]: string[] | undefined;
 }
 
 export interface Concert {
@@ -50,10 +25,10 @@ export interface Concert {
   audioFile: string;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
-  /** Multi-algorithm hash storage */
-  photoHashes?: HashSet;
-  /** Pre-computed ORB keypoints/descriptors for feature matching */
-  orbFeatures?: ORBFeaturePayload;
+  /** Perceptual hash storage */
+  photoHashes?: PhotoHashes;
+  /** Legacy feature payload (not used by runtime recognizer) */
+  orbFeatures?: unknown;
 }
 
 /**

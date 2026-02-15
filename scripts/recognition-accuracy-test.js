@@ -1,74 +1,155 @@
 #!/usr/bin/env node
 
-/**
- * Recognition Accuracy Test Script
- *
- * Tests each photo recognition algorithm (dHash, pHash, ORB) against reference images
- * to determine which algorithms actually work for the real use case: pointing a phone
- * camera at a printed photo and identifying it.
- *
- * This is a basic sanity test - if an algorithm can't even match the original reference
- * photo against its own stored hash, it definitely won't work with a camera.
- *
- * Usage:
- *   node scripts/recognition-accuracy-test.js
- *
- * Output:
- *   - Per-concert test results
- *   - Timing data for each algorithm
- *   - Summary table showing accuracy and speed
- *   - Recommendations on which algorithms to keep/remove
- */
-
-import { readFile } from 'fs/promises';
-import { join, dirname } from 'path';
+import { readFile, writeFile } from 'fs/promises';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas } from 'canvas';
+import { loadImageData, computeDHash, computePHash } from './lib/photoHashUtils.js';
+import { extractORBFeatures } from './lib/orbFeatureUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const DATA_PATH = join(__dirname, '..', 'public', 'data.json');
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, '..');
+const DATA_PATH = path.join(REPO_ROOT, 'public', 'data.json');
 
-// Algorithm implementations (converted from TS to inline JS)
-function resizeImageData(imageData, targetWidth, targetHeight) {
-  const canvas = createCanvas(targetWidth, targetHeight);
-  const ctx = canvas.getContext('2d');
+const HASH_THRESHOLDS = {
+  dhash: 24,
+  phash: 12,
+};
 
-  // Create temporary canvas with original image
-  const srcCanvas = createCanvas(imageData.width, imageData.height);
-  const srcCtx = srcCanvas.getContext('2d');
-  srcCtx.putImageData(imageData, 0, 0);
+const HASH_LENGTHS = {
+  dhash: 32,
+  phash: 16,
+};
 
-  // Draw resized
-  ctx.drawImage(srcCanvas, 0, 0, targetWidth, targetHeight);
-  return ctx.getImageData(0, 0, targetWidth, targetHeight);
+const ORB_STRICT_CONFIG = {
+  maxFeatures: 1000,
+  scaleFactor: 1.5,
+  nLevels: 8,
+  edgeThreshold: 15,
+  fastThreshold: 12,
+  minMatchCount: 20,
+  matchRatioThreshold: 0.75,
+};
+
+const ORB_FAST_CONFIG = {
+  maxFeatures: 120,
+  scaleFactor: 1.5,
+  nLevels: 3,
+  edgeThreshold: 15,
+  fastThreshold: 12,
+  minMatchCount: 20,
+  matchRatioThreshold: 0.75,
+};
+
+const ORB_FAST_MAX_DIMENSION = 1280;
+
+const FULL_CONFIDENCE_MATCH_RATIO = 0.3;
+
+const POPCOUNT_TABLE = new Uint8Array(256);
+for (let i = 0; i < 256; i += 1) {
+  let value = i;
+  let count = 0;
+  while (value) {
+    count += value & 1;
+    value >>= 1;
+  }
+  POPCOUNT_TABLE[i] = count;
 }
 
-function toGrayscale(imageData) {
-  const grayscale = [];
-  for (let i = 0; i < imageData.data.length; i += 4) {
-    const r = imageData.data[i];
-    const g = imageData.data[i + 1];
-    const b = imageData.data[i + 2];
-    // Luminance formula
-    const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-    grayscale.push(gray);
+function parseArgs(argv) {
+  const args = {
+    mode: 'fast',
+    maxCases: null,
+    startIndex: 0,
+    algorithms: new Set(['dhash', 'phash', 'orb']),
+    verbose: false,
+    summaryJson: null,
+  };
+
+  for (let i = 2; i < argv.length; i += 1) {
+    const token = argv[i];
+
+    if (token === '--mode') {
+      const next = argv[i + 1];
+      if (next === 'fast' || next === 'strict') {
+        args.mode = next;
+        i += 1;
+      }
+      continue;
+    }
+
+    if (token === '--max-cases') {
+      const next = Number(argv[i + 1]);
+      if (Number.isFinite(next) && next > 0) {
+        args.maxCases = Math.floor(next);
+        i += 1;
+      }
+      continue;
+    }
+
+    if (token === '--start-index') {
+      const next = Number(argv[i + 1]);
+      if (Number.isFinite(next) && next >= 0) {
+        args.startIndex = Math.floor(next);
+        i += 1;
+      }
+      continue;
+    }
+
+    if (token === '--algorithms') {
+      const raw = (argv[i + 1] ?? '')
+        .split(',')
+        .map((value) => value.trim().toLowerCase())
+        .filter(Boolean);
+      const nextSet = new Set(raw.filter((value) => ['dhash', 'phash', 'orb'].includes(value)));
+      if (nextSet.size > 0) {
+        args.algorithms = nextSet;
+        i += 1;
+      }
+      continue;
+    }
+
+    if (token === '--verbose') {
+      args.verbose = true;
+      continue;
+    }
+
+    if (token === '--summary-json') {
+      const next = argv[i + 1];
+      if (typeof next === 'string' && next.length > 0) {
+        args.summaryJson = next;
+        i += 1;
+      }
+      continue;
+    }
   }
-  return grayscale;
+
+  return args;
 }
 
-function binaryToHex(binary) {
-  let hex = '';
-  for (let i = 0; i < binary.length; i += 4) {
-    const chunk = binary.slice(i, i + 4);
-    hex += parseInt(chunk, 2).toString(16);
+function resolveImagePath(imageFile) {
+  if (!imageFile || typeof imageFile !== 'string') {
+    return null;
   }
-  return hex;
+  const trimmed = imageFile.replace(/^\/+/, '');
+  return path.resolve(REPO_ROOT, trimmed);
+}
+
+function normalizeHexArray(values, expectedLength) {
+  if (!Array.isArray(values) || values.length === 0) {
+    return [];
+  }
+
+  return values.filter(
+    (value) =>
+      typeof value === 'string' && value.length === expectedLength && /^[0-9a-f]+$/i.test(value)
+  );
 }
 
 function hexToBinary(hex) {
   let binary = '';
-  for (let i = 0; i < hex.length; i++) {
+  for (let i = 0; i < hex.length; i += 1) {
     binary += parseInt(hex[i], 16).toString(2).padStart(4, '0');
   }
   return binary;
@@ -76,372 +157,499 @@ function hexToBinary(hex) {
 
 function hammingDistance(hash1, hash2) {
   if (hash1.length !== hash2.length) {
-    throw new Error('Hash lengths must be equal');
+    throw new Error(`Hash lengths must be equal (${hash1.length} vs ${hash2.length})`);
   }
 
   const binary1 = hexToBinary(hash1);
   const binary2 = hexToBinary(hash2);
 
   let distance = 0;
-  for (let i = 0; i < binary1.length; i++) {
+  for (let i = 0; i < binary1.length; i += 1) {
     if (binary1[i] !== binary2[i]) {
-      distance++;
+      distance += 1;
     }
   }
   return distance;
 }
 
-function computeDHash(imageData) {
-  // Resize to 17x8
-  const resized = resizeImageData(imageData, 17, 8);
-  const grayscale = toGrayscale(resized);
-
-  let binaryHash = '';
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 16; col++) {
-      const currentIndex = row * 17 + col;
-      const nextIndex = currentIndex + 1;
-      const currentPixel = grayscale[currentIndex];
-      const nextPixel = grayscale[nextIndex];
-      binaryHash += currentPixel > nextPixel ? '1' : '0';
-    }
+function decodeORBPayload(payload) {
+  if (!payload || !Array.isArray(payload.keypoints) || !Array.isArray(payload.descriptors)) {
+    return null;
   }
 
-  return binaryToHex(binaryHash);
-}
+  const keypoints = payload.keypoints
+    .filter((tuple) => Array.isArray(tuple) && tuple.length >= 6)
+    .map(([x, y, angle, response, octave, size]) => ({
+      x,
+      y,
+      angle,
+      response,
+      octave,
+      size,
+    }));
 
-function computeDCT(matrix, size) {
-  const dct = Array(size)
-    .fill(0)
-    .map(() => Array(size).fill(0));
-
-  for (let u = 0; u < size; u++) {
-    for (let v = 0; v < size; v++) {
-      let sum = 0;
-
-      for (let x = 0; x < size; x++) {
-        for (let y = 0; y < size; y++) {
-          const cosU = Math.cos(((2 * x + 1) * u * Math.PI) / (2 * size));
-          const cosV = Math.cos(((2 * y + 1) * v * Math.PI) / (2 * size));
-          sum += matrix[x][y] * cosU * cosV;
-        }
+  const descriptors = payload.descriptors
+    .map((entry) => {
+      if (typeof entry !== 'string') {
+        return null;
       }
-
-      const alphaU = u === 0 ? 1 / Math.sqrt(2) : 1;
-      const alphaV = v === 0 ? 1 / Math.sqrt(2) : 1;
-      dct[u][v] = (alphaU * alphaV * sum) / 2;
-    }
-  }
-
-  return dct;
-}
-
-function computePHash(imageData) {
-  // Resize to 32x32
-  const resized = resizeImageData(imageData, 32, 32);
-  const grayscaleArray = toGrayscale(resized);
-
-  // Convert to 2D matrix
-  const matrix = [];
-  for (let i = 0; i < 32; i++) {
-    matrix[i] = grayscaleArray.slice(i * 32, (i + 1) * 32);
-  }
-
-  // Compute DCT
-  const dct = computeDCT(matrix, 32);
-
-  // Extract low-frequency coefficients (top-left 8x8, skip DC)
-  const lowFreq = [];
-  for (let u = 0; u < 8; u++) {
-    for (let v = 0; v < 8; v++) {
-      if (u === 0 && v === 0) continue; // Skip DC component
-      lowFreq.push(dct[u][v]);
-    }
-  }
-
-  // Compute median
-  const sorted = [...lowFreq].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-
-  // Generate hash
-  let binaryHash = '';
-  for (const coeff of lowFreq) {
-    binaryHash += coeff > median ? '1' : '0';
-  }
-
-  return binaryToHex(binaryHash);
-}
-
-// Load and process image
-async function loadImageData(imagePath) {
-  const fullPath = join(__dirname, '..', imagePath);
-  const image = await loadImage(fullPath);
-
-  const canvas = createCanvas(image.width, image.height);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(image, 0, 0);
-
-  return ctx.getImageData(0, 0, canvas.width, canvas.height);
-}
-
-// Test a single algorithm
-async function testAlgorithm(concert, imageData, algorithm, concerts) {
-  const startTime = performance.now();
-  let hash;
-  let distance;
-  let bestMatch = null;
-  let bestDistance = Infinity;
-
-  if (algorithm === 'dhash' || algorithm === 'phash') {
-    // Compute hash
-    hash = algorithm === 'dhash' ? computeDHash(imageData) : computePHash(imageData);
-
-    // Find best match among all concerts
-    for (const testConcert of concerts) {
-      const hashes = testConcert.photoHashes?.[algorithm];
-      if (!hashes || hashes.length === 0) continue;
-
-      // Compare against all exposure variants
-      for (const refHash of hashes) {
-        const dist = hammingDistance(hash, refHash);
-        if (dist < bestDistance) {
-          bestDistance = dist;
-          bestMatch = testConcert;
-        }
+      try {
+        return new Uint8Array(Buffer.from(entry, 'base64'));
+      } catch {
+        return null;
       }
-    }
+    })
+    .filter((entry) => entry instanceof Uint8Array);
 
-    distance = bestDistance;
-  } else if (algorithm === 'orb') {
-    // For ORB, we'd need to extract features and match
-    // This is more complex, so we'll skip for now
-    // and just check if ORB features exist
-    const endTime = performance.now();
+  const usableLength = Math.min(keypoints.length, descriptors.length);
+  if (usableLength === 0) {
     return {
-      algorithm: 'orb',
-      success: false,
-      error: 'ORB matching not implemented in test script',
-      executionTime: endTime - startTime,
+      keypoints: [],
+      descriptors: [],
     };
   }
 
-  const endTime = performance.now();
-  const executionTime = endTime - startTime;
-
-  // Determine if it's a correct match
-  const isCorrect = bestMatch && bestMatch.id === concert.id;
-  const isWrongMatch = bestMatch && bestMatch.id !== concert.id;
-  const isNoMatch = !bestMatch;
-
-  // Calculate similarity percentage
-  const maxDistance = algorithm === 'dhash' ? 128 : 64;
-  const similarity = ((maxDistance - distance) / maxDistance) * 100;
-
   return {
-    algorithm,
-    success: isCorrect,
-    hash,
-    distance,
-    similarity: similarity.toFixed(1),
-    matchedConcert: bestMatch ? bestMatch.band : null,
-    expectedConcert: concert.band,
-    isCorrect,
-    isWrongMatch,
-    isNoMatch,
-    executionTime,
+    keypoints: keypoints.slice(0, usableLength),
+    descriptors: descriptors.slice(0, usableLength),
   };
 }
 
-// Main test runner
-async function runTests() {
-  console.log('╔══════════════════════════════════════════════════════════════╗');
-  console.log('║       Photo Recognition Algorithm Accuracy Test              ║');
-  console.log('╚══════════════════════════════════════════════════════════════╝\n');
+function descriptorDistance(desc1, desc2) {
+  if (!(desc1 instanceof Uint8Array) || !(desc2 instanceof Uint8Array)) {
+    return Infinity;
+  }
 
-  // Load concert data
-  console.log('Loading concert data from public/data.json...');
-  const dataJson = await readFile(DATA_PATH, 'utf-8');
-  const data = JSON.parse(dataJson);
-  const concerts = data.concerts;
+  if (desc1.length !== desc2.length) {
+    return Infinity;
+  }
 
-  console.log(`Loaded ${concerts.length} concerts\n`);
+  let distance = 0;
+  for (let i = 0; i < desc1.length; i += 1) {
+    distance += POPCOUNT_TABLE[desc1[i] ^ desc2[i]];
+  }
 
-  // Filter concerts that have image files
-  const testableConcerts = concerts.filter((c) => c.imageFile);
-  console.log(`Found ${testableConcerts.length} concerts with image files\n`);
+  return distance;
+}
 
-  // Track results
-  const results = {
+function trimFeatures(features, maxFeatures) {
+  if (!features || !Array.isArray(features.keypoints) || !Array.isArray(features.descriptors)) {
+    return {
+      keypoints: [],
+      descriptors: [],
+    };
+  }
+
+  if (!Number.isFinite(maxFeatures) || maxFeatures <= 0) {
+    return features;
+  }
+
+  const usableLength = Math.min(
+    features.keypoints.length,
+    features.descriptors.length,
+    maxFeatures
+  );
+  return {
+    keypoints: features.keypoints.slice(0, usableLength),
+    descriptors: features.descriptors.slice(0, usableLength),
+  };
+}
+
+function resizeImageData(imageData, maxDimension) {
+  if (!Number.isFinite(maxDimension) || maxDimension <= 0) {
+    return imageData;
+  }
+
+  const { width, height } = imageData;
+  const maxSide = Math.max(width, height);
+  if (maxSide <= maxDimension) {
+    return imageData;
+  }
+
+  const scale = maxDimension / maxSide;
+  const targetWidth = Math.max(1, Math.round(width * scale));
+  const targetHeight = Math.max(1, Math.round(height * scale));
+
+  const sourceCanvas = createCanvas(width, height);
+  const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+  if (!sourceCtx) {
+    return imageData;
+  }
+
+  sourceCtx.putImageData(imageData, 0, 0);
+
+  const targetCanvas = createCanvas(targetWidth, targetHeight);
+  const targetCtx = targetCanvas.getContext('2d', { willReadFrequently: true });
+  if (!targetCtx) {
+    return imageData;
+  }
+
+  targetCtx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+  return targetCtx.getImageData(0, 0, targetWidth, targetHeight);
+}
+
+function matchORBFeatures(queryFeatures, refFeatures, config) {
+  const matches = [];
+
+  for (let i = 0; i < queryFeatures.descriptors.length; i += 1) {
+    let bestDist = Infinity;
+    let secondBestDist = Infinity;
+    let bestIdx = -1;
+
+    for (let j = 0; j < refFeatures.descriptors.length; j += 1) {
+      const dist = descriptorDistance(queryFeatures.descriptors[i], refFeatures.descriptors[j]);
+      if (dist === Infinity) {
+        continue;
+      }
+
+      if (dist < bestDist) {
+        secondBestDist = bestDist;
+        bestDist = dist;
+        bestIdx = j;
+      } else if (dist < secondBestDist) {
+        secondBestDist = dist;
+      }
+    }
+
+    if (
+      bestIdx >= 0 &&
+      bestDist !== Infinity &&
+      bestDist < config.matchRatioThreshold * secondBestDist
+    ) {
+      matches.push({
+        queryIdx: i,
+        trainIdx: bestIdx,
+        distance: bestDist,
+      });
+    }
+  }
+
+  const matchCount = matches.length;
+  const minKeypoints = Math.min(queryFeatures.keypoints.length, refFeatures.keypoints.length);
+  const matchRatio = minKeypoints > 0 ? matchCount / minKeypoints : 0;
+  const isMatch = matchCount >= config.minMatchCount;
+
+  const confidence = Math.min(
+    matchCount / config.minMatchCount,
+    matchRatio / FULL_CONFIDENCE_MATCH_RATIO
+  );
+
+  return {
+    matchCount,
+    queryKeypointCount: queryFeatures.keypoints.length,
+    refKeypointCount: refFeatures.keypoints.length,
+    matchRatio,
+    isMatch,
+    confidence: Math.min(1, confidence),
+  };
+}
+
+function classifyMatch(expectedId, matchedId, isMatch) {
+  if (!isMatch || matchedId == null) {
+    return 'no-match';
+  }
+  return matchedId === expectedId ? 'correct' : 'wrong';
+}
+
+function summarizeTimings(values) {
+  if (values.length === 0) {
+    return { avg: 0, min: 0, max: 0 };
+  }
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return {
+    avg: total / values.length,
+    min: Math.min(...values),
+    max: Math.max(...values),
+  };
+}
+
+function formatMs(value) {
+  return `${value.toFixed(2)}ms`;
+}
+
+function printHeader() {
+  console.log('═'.repeat(88));
+  console.log('PHOTO RECOGNITION ACCURACY AUDIT');
+  console.log('Sanity test: reference image should match its own stored fingerprints/features');
+  console.log('═'.repeat(88));
+}
+
+function printSummary(summary, totalCases, algorithms, mode) {
+  console.log('\n' + '═'.repeat(88));
+  console.log('SUMMARY (all-vs-all matching)');
+  console.log('═'.repeat(88));
+  console.log('Algorithm | Accuracy | Correct | Wrong | No match | Avg time | Min-Max');
+  console.log('-'.repeat(88));
+
+  for (const algorithm of ['dhash', 'phash', 'orb']) {
+    if (!algorithms.has(algorithm)) {
+      continue;
+    }
+    const bucket = summary[algorithm];
+    const attempts = bucket.correct + bucket.wrong + bucket.noMatch;
+    const accuracy = attempts > 0 ? (bucket.correct / attempts) * 100 : 0;
+    const timings = summarizeTimings(bucket.times);
+
+    const line = [
+      algorithm.padEnd(9, ' '),
+      `${accuracy.toFixed(1).padStart(6, ' ')}%`,
+      String(bucket.correct).padStart(7, ' '),
+      String(bucket.wrong).padStart(5, ' '),
+      String(bucket.noMatch).padStart(8, ' '),
+      formatMs(timings.avg).padStart(9, ' '),
+      `${formatMs(timings.min)}-${formatMs(timings.max)}`,
+    ].join(' | ');
+
+    console.log(line);
+  }
+
+  console.log('-'.repeat(88));
+  console.log(`Cases tested: ${totalCases}`);
+  console.log(`Mode: ${mode}`);
+  console.log('Thresholds: dHash<=24, pHash<=12, ORB minMatchCount>=20');
+  console.log('═'.repeat(88));
+}
+
+function buildSummaryPayload(summary, totalCases, algorithms, mode, startIndex) {
+  const payload = {
+    totalCases,
+    startIndex,
+    mode,
+    algorithms: Array.from(algorithms),
+    results: {},
+  };
+
+  for (const algorithm of ['dhash', 'phash', 'orb']) {
+    if (!algorithms.has(algorithm)) {
+      continue;
+    }
+
+    const bucket = summary[algorithm];
+    const attempts = bucket.correct + bucket.wrong + bucket.noMatch;
+    const timeSum = bucket.times.reduce((sum, value) => sum + value, 0);
+
+    payload.results[algorithm] = {
+      correct: bucket.correct,
+      wrong: bucket.wrong,
+      noMatch: bucket.noMatch,
+      attempts,
+      timeSum,
+      timeMin: bucket.times.length > 0 ? Math.min(...bucket.times) : 0,
+      timeMax: bucket.times.length > 0 ? Math.max(...bucket.times) : 0,
+    };
+  }
+
+  return payload;
+}
+
+async function main() {
+  const args = parseArgs(process.argv);
+  const orbConfig = args.mode === 'strict' ? ORB_STRICT_CONFIG : ORB_FAST_CONFIG;
+
+  printHeader();
+
+  const raw = await readFile(DATA_PATH, 'utf-8');
+  const data = JSON.parse(raw);
+  const concerts = Array.isArray(data.concerts) ? data.concerts : [];
+
+  const testCasesAll = concerts.filter((concert) => typeof concert.imageFile === 'string');
+  const startIndex = Math.min(args.startIndex, testCasesAll.length);
+  const sliced = testCasesAll.slice(startIndex);
+  const testCases = args.maxCases ? sliced.slice(0, args.maxCases) : sliced;
+
+  console.log(`Loaded concerts: ${concerts.length}`);
+  console.log(`Concerts with imageFile: ${testCasesAll.length}`);
+  console.log(`Start index: ${startIndex}`);
+  console.log(`Test cases selected: ${testCases.length}`);
+  console.log(`Algorithms: ${Array.from(args.algorithms).join(', ')}`);
+  console.log(`Mode: ${args.mode}`);
+  console.log(`Verbose per-case logging: ${args.verbose ? 'ON' : 'OFF'}`);
+
+  const dhashReferences = concerts
+    .map((concert) => ({
+      id: concert.id,
+      band: concert.band,
+      hashes: normalizeHexArray(concert.photoHashes?.dhash, HASH_LENGTHS.dhash),
+    }))
+    .filter((entry) => entry.hashes.length > 0);
+
+  const phashReferences = concerts
+    .map((concert) => ({
+      id: concert.id,
+      band: concert.band,
+      hashes: normalizeHexArray(concert.photoHashes?.phash, HASH_LENGTHS.phash),
+    }))
+    .filter((entry) => entry.hashes.length > 0);
+
+  const orbReferences = concerts
+    .map((concert) => ({
+      id: concert.id,
+      band: concert.band,
+      features: trimFeatures(decodeORBPayload(concert.orbFeatures), orbConfig.maxFeatures),
+    }))
+    .filter((entry) => entry.features !== null);
+
+  console.log(
+    `Reference coverage: dHash=${dhashReferences.length}, pHash=${phashReferences.length}, ORB=${orbReferences.length}\n`
+  );
+
+  const summary = {
     dhash: { correct: 0, wrong: 0, noMatch: 0, times: [] },
     phash: { correct: 0, wrong: 0, noMatch: 0, times: [] },
     orb: { correct: 0, wrong: 0, noMatch: 0, times: [] },
   };
 
-  // Test each concert
-  for (let i = 0; i < testableConcerts.length; i++) {
-    const concert = testableConcerts[i];
-    console.log(`\n[${i + 1}/${testableConcerts.length}] Testing: ${concert.band}`);
-    console.log('─'.repeat(60));
+  for (let i = 0; i < testCases.length; i += 1) {
+    const concert = testCases[i];
+    const imagePath = resolveImagePath(concert.imageFile);
 
-    try {
-      // Load image
-      const imageData = await loadImageData(concert.imageFile);
-      console.log(`  Image: ${concert.imageFile}`);
-      console.log(`  Size: ${imageData.width}x${imageData.height}px`);
+    const prefix = `[${String(i + 1).padStart(2, '0')}/${testCases.length}] ${concert.band}`;
 
-      // Test dHash
-      if (concert.photoHashes?.dhash) {
-        const result = await testAlgorithm(concert, imageData, 'dhash', concerts);
-        console.log(
-          `  dHash: ${result.success ? '✓' : '✗'} ${result.matchedConcert || 'NO MATCH'} (distance: ${result.distance}, ${result.similarity}% similar, ${result.executionTime.toFixed(2)}ms)`
-        );
-        if (result.isCorrect) results.dhash.correct++;
-        else if (result.isWrongMatch) results.dhash.wrong++;
-        else results.dhash.noMatch++;
-        results.dhash.times.push(result.executionTime);
-      } else {
-        console.log(`  dHash: SKIPPED (no stored hashes)`);
+    if (!imagePath) {
+      if (args.verbose) {
+        console.log(`${prefix} ... SKIPPED (invalid imageFile)`);
       }
-
-      // Test pHash
-      if (concert.photoHashes?.phash) {
-        const result = await testAlgorithm(concert, imageData, 'phash', concerts);
-        console.log(
-          `  pHash: ${result.success ? '✓' : '✗'} ${result.matchedConcert || 'NO MATCH'} (distance: ${result.distance}, ${result.similarity}% similar, ${result.executionTime.toFixed(2)}ms)`
-        );
-        if (result.isCorrect) results.phash.correct++;
-        else if (result.isWrongMatch) results.phash.wrong++;
-        else results.phash.noMatch++;
-        results.phash.times.push(result.executionTime);
-      } else {
-        console.log(`  pHash: SKIPPED (no stored hashes)`);
-      }
-
-      // Test ORB (placeholder)
-      if (concert.orbFeatures) {
-        console.log(`  ORB: SKIPPED (matching not implemented in test script)`);
-      } else {
-        console.log(`  ORB: SKIPPED (no stored features)`);
-      }
-    } catch (error) {
-      console.log(`  ERROR: ${error.message}`);
-    }
-  }
-
-  // Print summary
-  console.log('\n\n╔══════════════════════════════════════════════════════════════╗');
-  console.log('║                        SUMMARY                                ║');
-  console.log('╚══════════════════════════════════════════════════════════════╝\n');
-
-  const algorithms = ['dhash', 'phash'];
-  for (const algo of algorithms) {
-    const { correct, wrong, noMatch, times } = results[algo];
-    const total = correct + wrong + noMatch;
-
-    if (total === 0) {
-      console.log(`${algo.toUpperCase()}: No tests run\n`);
       continue;
     }
 
-    const accuracy = ((correct / total) * 100).toFixed(1);
-    const avgTime =
-      times.length > 0 ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2) : 0;
-    const minTime = times.length > 0 ? Math.min(...times).toFixed(2) : 0;
-    const maxTime = times.length > 0 ? Math.max(...times).toFixed(2) : 0;
+    let imageData;
+    try {
+      imageData = await loadImageData(imagePath);
+    } catch (error) {
+      if (args.verbose) {
+        console.log(`${prefix} ... ERROR loading image (${error.message})`);
+      }
+      continue;
+    }
 
-    console.log(`${algo.toUpperCase()}:`);
-    console.log(`  Accuracy: ${accuracy}% (${correct}/${total})`);
-    console.log(`    ✓ Correct matches: ${correct}`);
-    console.log(`    ✗ Wrong matches: ${wrong}`);
-    console.log(`    ∅ No matches: ${noMatch}`);
-    console.log(`  Speed: ${avgTime}ms avg (${minTime}ms min, ${maxTime}ms max)`);
-    console.log('');
+    const parts = [];
+
+    // dHash
+    if (args.algorithms.has('dhash')) {
+      const start = performance.now();
+      const frameHash = computeDHash(imageData);
+      let best = null;
+
+      for (const ref of dhashReferences) {
+        for (const refHash of ref.hashes) {
+          const distance = hammingDistance(frameHash, refHash);
+          if (!best || distance < best.distance) {
+            best = {
+              concertId: ref.id,
+              band: ref.band,
+              distance,
+            };
+          }
+        }
+      }
+
+      const elapsed = performance.now() - start;
+      const isMatch = Boolean(best && best.distance <= HASH_THRESHOLDS.dhash);
+      const outcome = classifyMatch(concert.id, best?.concertId ?? null, isMatch);
+
+      summary.dhash.times.push(elapsed);
+      if (outcome === 'correct') summary.dhash.correct += 1;
+      else if (outcome === 'wrong') summary.dhash.wrong += 1;
+      else summary.dhash.noMatch += 1;
+
+      parts.push(
+        `dHash:${outcome}${best ? `(${best.band},d=${best.distance},${formatMs(elapsed)})` : `(none,${formatMs(elapsed)})`}`
+      );
+    }
+
+    // pHash
+    if (args.algorithms.has('phash')) {
+      const start = performance.now();
+      const frameHash = computePHash(imageData);
+      let best = null;
+
+      for (const ref of phashReferences) {
+        for (const refHash of ref.hashes) {
+          const distance = hammingDistance(frameHash, refHash);
+          if (!best || distance < best.distance) {
+            best = {
+              concertId: ref.id,
+              band: ref.band,
+              distance,
+            };
+          }
+        }
+      }
+
+      const elapsed = performance.now() - start;
+      const isMatch = Boolean(best && best.distance <= HASH_THRESHOLDS.phash);
+      const outcome = classifyMatch(concert.id, best?.concertId ?? null, isMatch);
+
+      summary.phash.times.push(elapsed);
+      if (outcome === 'correct') summary.phash.correct += 1;
+      else if (outcome === 'wrong') summary.phash.wrong += 1;
+      else summary.phash.noMatch += 1;
+
+      parts.push(
+        `pHash:${outcome}${best ? `(${best.band},d=${best.distance},${formatMs(elapsed)})` : `(none,${formatMs(elapsed)})`}`
+      );
+    }
+
+    // ORB
+    if (args.algorithms.has('orb')) {
+      const start = performance.now();
+      const orbInput =
+        args.mode === 'fast' ? resizeImageData(imageData, ORB_FAST_MAX_DIMENSION) : imageData;
+      const frameFeatures = trimFeatures(
+        extractORBFeatures(orbInput, orbConfig),
+        orbConfig.maxFeatures
+      );
+      let best = null;
+
+      for (const ref of orbReferences) {
+        const result = matchORBFeatures(frameFeatures, ref.features, orbConfig);
+        if (!best || result.confidence > best.confidence) {
+          best = {
+            concertId: ref.id,
+            band: ref.band,
+            ...result,
+          };
+        }
+      }
+
+      const elapsed = performance.now() - start;
+      const isMatch = Boolean(best && best.isMatch);
+      const outcome = classifyMatch(concert.id, best?.concertId ?? null, isMatch);
+
+      summary.orb.times.push(elapsed);
+      if (outcome === 'correct') summary.orb.correct += 1;
+      else if (outcome === 'wrong') summary.orb.wrong += 1;
+      else summary.orb.noMatch += 1;
+
+      parts.push(
+        `ORB:${outcome}${best ? `(${best.band},m=${best.matchCount},c=${(best.confidence * 100).toFixed(1)}%,${formatMs(elapsed)})` : `(none,${formatMs(elapsed)})`}`
+      );
+    }
+
+    if (args.verbose) {
+      console.log(`${prefix} ... ${parts.join(' | ')}`);
+    } else if ((i + 1) % 10 === 0 || i + 1 === testCases.length) {
+      console.log(`Progress: ${i + 1}/${testCases.length}`);
+    }
   }
 
-  // Recommendations
-  console.log('╔══════════════════════════════════════════════════════════════╗');
-  console.log('║                     RECOMMENDATIONS                           ║');
-  console.log('╚══════════════════════════════════════════════════════════════╝\n');
+  printSummary(summary, testCases.length, args.algorithms, args.mode);
 
-  const dhashAccuracy =
-    results.dhash.correct / (results.dhash.correct + results.dhash.wrong + results.dhash.noMatch) ||
-    0;
-  const phashAccuracy =
-    results.phash.correct / (results.phash.correct + results.phash.wrong + results.phash.noMatch) ||
-    0;
-
-  const dhashAvgTime =
-    results.dhash.times.length > 0
-      ? results.dhash.times.reduce((a, b) => a + b, 0) / results.dhash.times.length
-      : 0;
-  const phashAvgTime =
-    results.phash.times.length > 0
-      ? results.phash.times.reduce((a, b) => a + b, 0) / results.phash.times.length
-      : 0;
-
-  console.log('Based on this basic sanity test:\n');
-
-  // Accuracy analysis
-  if (dhashAccuracy < 0.5 && phashAccuracy < 0.5) {
-    console.log('⚠️  CRITICAL: Both algorithms have <50% accuracy on reference images!');
-    console.log('   This indicates a fundamental problem with the stored hashes.');
-    console.log('   Recommendation: Regenerate ALL reference hashes from actual photos.\n');
-  } else if (dhashAccuracy < 0.8 || phashAccuracy < 0.8) {
-    console.log('⚠️  WARNING: At least one algorithm has <80% accuracy.');
-    console.log('   This is concerning for a basic sanity test with reference images.');
-    console.log('   Consider regenerating hashes for failed matches.\n');
-  }
-
-  // Speed comparison
-  console.log('Speed:');
-  if (dhashAvgTime > 0 && phashAvgTime > 0) {
-    console.log(
-      `  dHash is ${(phashAvgTime / dhashAvgTime).toFixed(1)}x faster than pHash (${dhashAvgTime.toFixed(2)}ms vs ${phashAvgTime.toFixed(2)}ms)`
+  if (args.summaryJson) {
+    const payload = buildSummaryPayload(
+      summary,
+      testCases.length,
+      args.algorithms,
+      args.mode,
+      startIndex
     );
+    const outputPath = path.resolve(REPO_ROOT, args.summaryJson);
+    await writeFile(outputPath, JSON.stringify(payload, null, 2));
+    console.log(`Summary JSON written: ${outputPath}`);
   }
-  console.log('  QR codes typically scan in <200ms for comparison\n');
-
-  // Algorithm recommendations
-  console.log('Keep/Remove Recommendations:\n');
-
-  if (dhashAccuracy >= 0.9 && phashAccuracy >= 0.9) {
-    console.log('✓ KEEP DHASH: High accuracy (>90%), fastest algorithm');
-    console.log('✓ KEEP PHASH: High accuracy (>90%), more robust to variations');
-    console.log('? EVALUATE ORB: Not tested in this script, but likely slowest');
-    console.log('  Recommendation: Keep dHash as primary, pHash as fallback');
-  } else if (dhashAccuracy >= 0.8 && phashAccuracy >= 0.8) {
-    console.log('✓ KEEP DHASH: Good accuracy (>80%), fastest algorithm');
-    console.log('✓ KEEP PHASH: Good accuracy (>80%), more robust to variations');
-    console.log('? EVALUATE ORB: Consider for difficult cases');
-    console.log('  Recommendation: Use pHash as primary for better robustness');
-  } else if (phashAccuracy > dhashAccuracy && phashAccuracy >= 0.7) {
-    console.log('✗ CONSIDER REMOVING DHASH: Lower accuracy than pHash');
-    console.log('✓ KEEP PHASH: Better accuracy, worth the performance cost');
-    console.log('? EVALUATE ORB: May be needed for robustness');
-    console.log('  Recommendation: Use pHash as primary, consider ORB for fallback');
-  } else if (dhashAccuracy > phashAccuracy && dhashAccuracy >= 0.7) {
-    console.log('✓ KEEP DHASH: Better accuracy, faster performance');
-    console.log('✗ CONSIDER REMOVING PHASH: Lower accuracy, slower');
-    console.log('? EVALUATE ORB: May be needed for robustness');
-    console.log('  Recommendation: Use dHash as primary');
-  } else {
-    console.log('⚠️  Both algorithms show poor accuracy (<70%)');
-    console.log('  Recommendation: Regenerate hashes and retest');
-    console.log('  Consider implementing ORB testing in this script');
-  }
-
-  console.log('\n');
-  console.log('NOTE: This is a basic sanity test using reference images.');
-  console.log('Real-world camera testing may show different results due to:');
-  console.log('  - Camera angle variations');
-  console.log('  - Lighting conditions');
-  console.log('  - Print quality and surface (matte vs glossy)');
-  console.log('  - Distance from camera');
-  console.log('  - Motion blur and focus issues\n');
 }
 
-// Run the tests
-runTests().catch((error) => {
-  console.error('Fatal error:', error);
+main().catch((error) => {
+  console.error('Fatal error in recognition accuracy audit:', error);
   process.exit(1);
 });

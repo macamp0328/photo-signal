@@ -95,28 +95,14 @@ function App() {
     rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
       ? 1000
       : coerceNumberSetting(rawRecognitionDelay, 1000);
-  const recognitionModeSetting = getSetting<'perceptual' | 'orb' | 'parallel'>('recognition-mode');
-  const recognitionMode =
-    recognitionModeSetting === 'orb'
-      ? 'orb'
-      : recognitionModeSetting === 'parallel'
-        ? 'parallel'
-        : 'perceptual';
-  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
-  const perceptualAlgorithm = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
-  const hashAlgorithmValue =
-    recognitionMode === 'orb' || recognitionMode === 'parallel' ? 'orb' : perceptualAlgorithm;
-  const defaultSimilarityThreshold =
-    hashAlgorithmValue === 'phash' ? 12 : hashAlgorithmValue === 'orb' ? 0 : 24;
+  const defaultSimilarityThreshold = 12;
   const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
   const similarityThresholdValue = coerceNumberSetting(
-    hashAlgorithmValue === 'orb'
-      ? 0
-      : rawSimilarityThreshold === undefined ||
-          rawSimilarityThreshold === 40 ||
-          rawSimilarityThreshold === 24
-        ? defaultSimilarityThreshold
-        : rawSimilarityThreshold,
+    rawSimilarityThreshold === undefined ||
+      rawSimilarityThreshold === 40 ||
+      rawSimilarityThreshold === 24
+      ? defaultSimilarityThreshold
+      : rawSimilarityThreshold,
     defaultSimilarityThreshold
   );
   const rawFrameScanInterval = getSetting<number>('recognition-check-interval');
@@ -137,49 +123,6 @@ function App() {
     getSetting<number>('rectangle-detection-confidence-threshold'),
     0.3 // Reduced from 0.6 to 0.3 for better real-world detection
   );
-  const orbMaxFeatures = coerceNumberSetting(getSetting<number>('orb-max-features'), 500);
-  const orbFastThreshold = coerceNumberSetting(getSetting<number>('orb-fast-threshold'), 20);
-  const orbMinMatchCount = coerceNumberSetting(getSetting<number>('orb-min-match-count'), 20);
-  const orbMatchRatioThreshold = coerceNumberSetting(
-    getSetting<number>('orb-match-ratio-threshold'),
-    0.7
-  );
-  const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
-  const secondarySimilarityThreshold = secondaryHashAlgorithm ? 12 : undefined;
-  const orbConfig =
-    hashAlgorithmValue === 'orb'
-      ? {
-          maxFeatures: orbMaxFeatures,
-          fastThreshold: orbFastThreshold,
-          minMatchCount: orbMinMatchCount,
-          matchRatioThreshold: orbMatchRatioThreshold,
-        }
-      : undefined;
-
-  // Parallel recognition settings
-  const parallelRecognitionEnabledSetting = getSetting<string>('parallel-recognition-enabled');
-  const parallelRecognitionEnabled =
-    recognitionMode === 'parallel' || parallelRecognitionEnabledSetting === 'true';
-  const parallelDHashWeight = coerceNumberSetting(getSetting<number>('parallel-dhash-weight'), 0.3);
-  const parallelPHashWeight = coerceNumberSetting(
-    getSetting<number>('parallel-phash-weight'),
-    0.35
-  );
-  const parallelOrbWeight = coerceNumberSetting(getSetting<number>('parallel-orb-weight'), 0.35);
-  const parallelMinConfidence = coerceNumberSetting(
-    getSetting<number>('parallel-min-confidence'),
-    0.6
-  );
-  const parallelRecognitionConfig = parallelRecognitionEnabled
-    ? {
-        algorithmWeights: {
-          dhash: parallelDHashWeight,
-          phash: parallelPHashWeight,
-          orb: parallelOrbWeight,
-        },
-        minConfidenceThreshold: parallelMinConfidence,
-      }
-    : undefined;
 
   // Module: Photo Recognition (paused when secret menu is open)
   const {
@@ -200,15 +143,8 @@ function App() {
     glarePercentageThreshold: glarePercentageThresholdValue,
     enableDebugInfo: isDebugOverlayVisible,
     aspectRatio: 'auto',
-    hashAlgorithm: hashAlgorithmValue,
-    secondaryHashAlgorithm,
-    secondarySimilarityThreshold,
-    enableMultiScale: isEnabled('multi-scale-recognition'),
     enableRectangleDetection: isEnabled('rectangle-detection'),
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
-    orbConfig,
-    enableParallelRecognition: parallelRecognitionEnabled,
-    parallelRecognitionConfig,
     enabled: !showSecretSettings,
   });
 

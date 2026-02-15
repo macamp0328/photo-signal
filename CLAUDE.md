@@ -1,5 +1,17 @@
 # CLAUDE.md — Photo Signal
 
+## CRITICAL: Pre-Commit Rule (Read This First)
+
+**NEVER commit or push code that fails CI.** Before EVERY commit, you MUST run:
+
+```bash
+npm run pre-commit
+```
+
+This runs lint, format, type-check, tests, and build. If ANY step fails, fix it before committing. Do NOT use `--no-verify` to skip hooks. Do NOT push code without running this. This is the single most important rule in this file.
+
+A husky pre-commit hook enforces this automatically, but you must also verify manually — the hook is your safety net, not your workflow.
+
 ## Project Overview
 
 Photo Signal is a camera-based gallery that plays music when you point a device at a printed photo. It uses perceptual hashing (dHash, pHash) and ORB feature matching to recognize photos — no QR codes or visible markers. Mobile-first, deployed as a static site on Vercel with audio served via Cloudflare R2/Workers.
@@ -49,7 +61,9 @@ npm run upload-audio     # Upload to Cloudflare R2
 
 ## Mandatory Pre-Commit Workflow
 
-**Every commit must pass these checks.** Run them in order or use `npm run pre-commit`:
+**Every commit must pass these checks. No exceptions. Do NOT push without passing.**
+
+Run `npm run pre-commit` which executes all of the following in order:
 
 1. `npm run lint:fix` — Fix linting issues
 2. `npm run format` — Format code with Prettier
@@ -57,7 +71,9 @@ npm run upload-audio     # Upload to Cloudflare R2
 4. `npm run test:run` — Run all unit tests
 5. `npm run build` — Production build succeeds
 
-Formatting failures are the #1 cause of CI failures. Always run `npm run format` before committing.
+If any step fails, fix the issue and re-run `npm run pre-commit` from scratch. Only commit after ALL steps pass. A husky git hook also runs these checks automatically on `git commit`, but do not rely solely on the hook — run `npm run pre-commit` explicitly before committing.
+
+**Common failure: formatting.** Always run `npm run format` after making changes. Prettier formatting mismatches are the #1 cause of CI failures.
 
 ## Project Structure
 
@@ -99,6 +115,7 @@ Camera Access → Motion Detection → Photo Recognition → Audio Playback
 ### Module Design
 
 Each module in `src/modules/` is self-contained with:
+
 - A main component or hook as the entry point (`index.ts`)
 - Colocated tests (`*.test.ts`, `*.test.tsx`)
 - CSS Module for styling (`*.module.css`)
@@ -166,6 +183,7 @@ Each module in `src/modules/` is self-contained with:
 ## Environment Variables
 
 See `.env.example` for Cloudflare R2 audio upload configuration:
+
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` — Cloudflare credentials
 - `R2_BUCKET_NAME`, `R2_BASE_URL` — R2 bucket configuration
 - No `.env` file needed for local development (Test Data Mode works without it)
@@ -181,6 +199,14 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 - `docs/TEST_DATA_MODE_GUIDE.md` — Development testing guide
 
 ## Agent Workflow Guidelines
+
+### Before Committing or Pushing (MANDATORY)
+
+1. Run `npm run pre-commit` and confirm ALL checks pass (exit code 0)
+2. If any check fails, fix the issue and re-run from scratch
+3. Only after all checks pass, create your commit
+4. Never use `--no-verify` to bypass the pre-commit hook
+5. Never push to a PR without passing all checks locally first — CI failures on PRs are not acceptable
 
 ### Before Modifying Any Module
 

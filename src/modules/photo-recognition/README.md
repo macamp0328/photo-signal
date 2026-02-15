@@ -11,7 +11,7 @@ This module handles:
 - Frame capture and centered/rectangle-assisted cropping
 - Frame quality filtering (blur, glare, poor lighting)
 - pHash generation and Hamming-distance matching
-- Stability confirmation before recognition
+- Instant confirmation for strong matches and short stability fallback for borderline matches
 - Debug telemetry for diagnostics
 
 This module does not handle:
@@ -29,10 +29,10 @@ This module does not handle:
 stream: MediaStream | null
 
 options?: {
-  recognitionDelay?: number;              // default 1000ms
+  recognitionDelay?: number;              // default 300ms (borderline matches)
   enabled?: boolean;                      // default true
   similarityThreshold?: number;           // pHash distance threshold, default 12
-  checkInterval?: number;                 // default 250ms
+  checkInterval?: number;                 // default 180ms
   enableDebugInfo?: boolean;              // default false
   aspectRatio?: '3:2' | '2:3' | '1:1' | 'auto';
   sharpnessThreshold?: number;            // default 100
@@ -82,5 +82,6 @@ Legacy fields (e.g. `dhash`, `orbFeatures`) may still exist in `data.json` and a
 ## Notes
 
 - Chosen runtime algorithm: **pHash only**
+- Fast confirmation path: immediate confirm for distance <= 5, or 2 consecutive matches
 - Kept for matching: `algorithms/phash.ts`, `algorithms/hamming.ts`, `algorithms/utils.ts`
 - Removed runtime paths: dHash, ORB, parallel voting, secondary fallback, multi-scale branching

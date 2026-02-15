@@ -32,9 +32,12 @@ import type {
 } from './types';
 
 const DEFAULT_SIMILARITY_THRESHOLD = 12;
-const DEFAULT_CHECK_INTERVAL = 250;
-const DEFAULT_RECOGNITION_DELAY = 1000;
+const DEFAULT_CHECK_INTERVAL = 180;
+const DEFAULT_RECOGNITION_DELAY = 300;
 const DEFAULT_DISPLAY_ASPECT_RATIO = 1;
+const INSTANT_DISTANCE_THRESHOLD = 5;
+const QUALITY_GATING_DISTANCE_THRESHOLD = 8;
+const CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM = 2;
 
 export { calculateFramedRegion } from './framing';
 
@@ -75,6 +78,7 @@ export function usePhotoRecognition(
   const recognizedConcertRef = useRef<Concert | null>(null);
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
+  const consecutiveMatchCountRef = useRef(0);
   const matchStartTimeRef = useRef<number | null>(null);
   const frameCountRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -84,6 +88,7 @@ export function usePhotoRecognition(
   const reset = useCallback(() => {
     recognizedConcertRef.current = null;
     lastMatchedConcertRef.current = null;
+    consecutiveMatchCountRef.current = 0;
     matchStartTimeRef.current = null;
     frameCountRef.current = 0;
     telemetryRef.current = createEmptyTelemetry();
@@ -168,135 +173,245 @@ export function usePhotoRecognition(
 
       frameCountRef.current += 1;
       telemetryRef.current.totalFrames += 1;
+      const frameStartAt = performance.now();
+      const frameLabel = `photo-recognition:frame-${frameCountRef.current}`;
+      let frameCaptureMs = 0;
+      let algorithmMs = 0;
+      let confirmedMatch = false;
 
-      const chosenAspectRatio: AspectRatio =
-        aspectRatio === 'auto'
-          ? video.videoWidth >= video.videoHeight
-            ? '3:2'
-            : '2:3'
-          : aspectRatio;
+      if (enableDebugInfo) {
+        console.time(frameLabel);
+      }
 
-      const visibleViewport = calculateVisibleViewport(
-        video.videoWidth,
-        video.videoHeight,
-        displayAspectRatio
-      );
+      try {
+        const chosenAspectRatio: AspectRatio =
+          aspectRatio === 'auto'
+            ? video.videoWidth >= video.videoHeight
+              ? '3:2'
+              : '2:3'
+            : aspectRatio;
 
-      const offsetRegionToVideo = (region: ViewportRegion): ViewportRegion => ({
-        x: region.x + visibleViewport.x,
-        y: region.y + visibleViewport.y,
-        width: region.width,
-        height: region.height,
-      });
-
-      let framedRegion = offsetRegionToVideo(
-        calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
-      );
-
-      if (rectangleDetectorRef.current) {
-        canvas.width = visibleViewport.width;
-        canvas.height = visibleViewport.height;
-        context.drawImage(
-          video,
-          visibleViewport.x,
-          visibleViewport.y,
-          visibleViewport.width,
-          visibleViewport.height,
-          0,
-          0,
-          visibleViewport.width,
-          visibleViewport.height
+        const visibleViewport = calculateVisibleViewport(
+          video.videoWidth,
+          video.videoHeight,
+          displayAspectRatio
         );
 
-        const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const detectionResult = rectangleDetectorRef.current.detectRectangle(viewportImageData);
-        setRectangleConfidence(detectionResult.confidence);
+        const offsetRegionToVideo = (region: ViewportRegion): ViewportRegion => ({
+          x: region.x + visibleViewport.x,
+          y: region.y + visibleViewport.y,
+          width: region.width,
+          height: region.height,
+        });
 
-        if (detectionResult.detected && detectionResult.rectangle) {
-          setDetectedRectangle(detectionResult.rectangle);
-          const meetsConfidence = detectionResult.confidence >= rectangleConfidenceThreshold;
-          if (meetsConfidence) {
-            const pixelRectangle = {
-              x: Math.round(detectionResult.rectangle.topLeft.x * visibleViewport.width),
-              y: Math.round(detectionResult.rectangle.topLeft.y * visibleViewport.height),
-              width: Math.round(detectionResult.rectangle.width * visibleViewport.width),
-              height: Math.round(detectionResult.rectangle.height * visibleViewport.height),
-            };
+        let framedRegion = offsetRegionToVideo(
+          calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
+        );
 
-            if (pixelRectangle.width > 0 && pixelRectangle.height > 0) {
-              framedRegion = offsetRegionToVideo(pixelRectangle);
+        if (rectangleDetectorRef.current) {
+          canvas.width = visibleViewport.width;
+          canvas.height = visibleViewport.height;
+          context.drawImage(
+            video,
+            visibleViewport.x,
+            visibleViewport.y,
+            visibleViewport.width,
+            visibleViewport.height,
+            0,
+            0,
+            visibleViewport.width,
+            visibleViewport.height
+          );
+
+          const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const detectionResult = rectangleDetectorRef.current.detectRectangle(viewportImageData);
+          setRectangleConfidence(detectionResult.confidence);
+
+          if (detectionResult.detected && detectionResult.rectangle) {
+            setDetectedRectangle(detectionResult.rectangle);
+            const meetsConfidence = detectionResult.confidence >= rectangleConfidenceThreshold;
+            if (meetsConfidence) {
+              const pixelRectangle = {
+                x: Math.round(detectionResult.rectangle.topLeft.x * visibleViewport.width),
+                y: Math.round(detectionResult.rectangle.topLeft.y * visibleViewport.height),
+                width: Math.round(detectionResult.rectangle.width * visibleViewport.width),
+                height: Math.round(detectionResult.rectangle.height * visibleViewport.height),
+              };
+
+              if (pixelRectangle.width > 0 && pixelRectangle.height > 0) {
+                framedRegion = offsetRegionToVideo(pixelRectangle);
+              }
+            }
+          } else {
+            setDetectedRectangle(null);
+          }
+        }
+
+        const frameCaptureStartAt = performance.now();
+        canvas.width = framedRegion.width;
+        canvas.height = framedRegion.height;
+        context.drawImage(
+          video,
+          framedRegion.x,
+          framedRegion.y,
+          framedRegion.width,
+          framedRegion.height,
+          0,
+          0,
+          framedRegion.width,
+          framedRegion.height
+        );
+
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        frameCaptureMs = performance.now() - frameCaptureStartAt;
+
+        if (isEnabled('grayscale-mode')) {
+          convertToGrayscale(imageData);
+        }
+
+        const algorithmStartAt = performance.now();
+        const currentHash = computePHash(imageData);
+        let bestMatch: { concert: Concert; distance: number } | null = null;
+
+        for (const concert of eligibleConcerts) {
+          const hashes = getPHashes(concert);
+          for (const hash of hashes) {
+            const distance = hammingDistance(currentHash, hash);
+            if (!bestMatch || distance < bestMatch.distance) {
+              bestMatch = { concert, distance };
+            }
+
+            if (distance <= INSTANT_DISTANCE_THRESHOLD) {
+              break;
             }
           }
-        } else {
-          setDetectedRectangle(null);
+
+          if (bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD) {
+            break;
+          }
         }
-      }
+        algorithmMs = performance.now() - algorithmStartAt;
 
-      canvas.width = framedRegion.width;
-      canvas.height = framedRegion.height;
-      context.drawImage(
-        video,
-        framedRegion.x,
-        framedRegion.y,
-        framedRegion.width,
-        framedRegion.height,
-        0,
-        0,
-        framedRegion.width,
-        framedRegion.height
-      );
+        const now = Date.now();
+        const isWithinThreshold = !!bestMatch && bestMatch.distance <= similarityThreshold;
+        const activeMatch = isWithinThreshold ? bestMatch!.concert : null;
 
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const shouldRunQualityCheck =
+          !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
+        let quality: FrameQualityInfo | null = null;
 
-      if (isEnabled('grayscale-mode')) {
-        convertToGrayscale(imageData);
-      }
+        if (shouldRunQualityCheck) {
+          const sharpness = computeLaplacianVariance(imageData);
+          const isSharp = sharpness >= sharpnessThreshold;
+          const glare = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
+          const lighting = detectPoorLighting(imageData, minBrightness, maxBrightness);
 
-      const sharpness = computeLaplacianVariance(imageData);
-      const isSharp = sharpness >= sharpnessThreshold;
-      const glare = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
-      const lighting = detectPoorLighting(imageData, minBrightness, maxBrightness);
+          quality = {
+            sharpness,
+            isSharp,
+            glarePercentage: glare.glarePercentage,
+            hasGlare: glare.hasGlare,
+            averageBrightness: lighting.averageBrightness,
+            hasPoorLighting: lighting.hasPoorLighting,
+            lightingType: lighting.type,
+          };
 
-      const quality: FrameQualityInfo = {
-        sharpness,
-        isSharp,
-        glarePercentage: glare.glarePercentage,
-        hasGlare: glare.hasGlare,
-        averageBrightness: lighting.averageBrightness,
-        hasPoorLighting: lighting.hasPoorLighting,
-        lightingType: lighting.type,
-      };
+          setFrameQuality(quality);
+          setActiveGuidance(pickGuidance(quality));
 
-      setFrameQuality(quality);
-      setActiveGuidance(pickGuidance(quality));
+          if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
+            if (!quality.isSharp) {
+              telemetryRef.current.blurRejections += 1;
+              recordFailure(
+                telemetryRef.current,
+                'motion-blur',
+                'Sharpness below threshold',
+                'N/A'
+              );
+            } else if (quality.hasGlare) {
+              telemetryRef.current.glareRejections += 1;
+              recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+            } else {
+              telemetryRef.current.lightingRejections += 1;
+              recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+            }
 
-      if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
-        if (!quality.isSharp) {
-          telemetryRef.current.blurRejections += 1;
-          recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
-        } else if (quality.hasGlare) {
-          telemetryRef.current.glareRejections += 1;
-          recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+            lastMatchedConcertRef.current = null;
+            consecutiveMatchCountRef.current = 0;
+            matchStartTimeRef.current = null;
+            setIsRecognizing(false);
+
+            if (enableDebugInfo) {
+              setDebugInfo({
+                lastFrameHash: currentHash,
+                bestMatch:
+                  bestMatch !== null
+                    ? {
+                        concert: bestMatch.concert,
+                        distance: bestMatch.distance,
+                        similarity: similarityPercent(bestMatch.distance),
+                        algorithm: 'phash',
+                      }
+                    : null,
+                lastCheckTime: now,
+                concertCount: eligibleConcerts.length,
+                frameCount: frameCountRef.current,
+                checkInterval,
+                aspectRatio: chosenAspectRatio,
+                frameSize: { width: framedRegion.width, height: framedRegion.height },
+                stability: null,
+                similarityThreshold,
+                recognitionDelay,
+                frameQuality: quality,
+                telemetry: { ...telemetryRef.current },
+                hashAlgorithm: 'phash',
+              });
+            }
+
+            return;
+          }
+
+          telemetryRef.current.qualityFrames += 1;
         } else {
-          telemetryRef.current.lightingRejections += 1;
-          recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+          setFrameQuality(null);
+          setActiveGuidance('none');
         }
 
-        lastMatchedConcertRef.current = null;
-        matchStartTimeRef.current = null;
-        setIsRecognizing(false);
+        const stability =
+          activeMatch &&
+          matchStartTimeRef.current &&
+          lastMatchedConcertRef.current?.id === activeMatch.id
+            ? (() => {
+                const elapsedMs = now - matchStartTimeRef.current;
+                return {
+                  concert: activeMatch,
+                  elapsedMs,
+                  remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
+                  requiredMs: recognitionDelay,
+                  progress: recognitionDelay > 0 ? Math.min(elapsedMs / recognitionDelay, 1) : 1,
+                };
+              })()
+            : null;
 
         if (enableDebugInfo) {
           setDebugInfo({
-            lastFrameHash: null,
-            bestMatch: null,
-            lastCheckTime: Date.now(),
+            lastFrameHash: currentHash,
+            bestMatch:
+              bestMatch !== null
+                ? {
+                    concert: bestMatch.concert,
+                    distance: bestMatch.distance,
+                    similarity: similarityPercent(bestMatch.distance),
+                    algorithm: 'phash',
+                  }
+                : null,
+            lastCheckTime: now,
             concertCount: eligibleConcerts.length,
             frameCount: frameCountRef.current,
             checkInterval,
             aspectRatio: chosenAspectRatio,
             frameSize: { width: framedRegion.width, height: framedRegion.height },
-            stability: null,
+            stability,
             similarityThreshold,
             recognitionDelay,
             frameQuality: quality,
@@ -305,116 +420,88 @@ export function usePhotoRecognition(
           });
         }
 
-        return;
-      }
+        if (activeMatch) {
+          const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
+          consecutiveMatchCountRef.current = isSameConcert
+            ? consecutiveMatchCountRef.current + 1
+            : 1;
 
-      telemetryRef.current.qualityFrames += 1;
+          const isInstantDistance = !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
+          const hasConsecutiveInstantConfidence =
+            consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
 
-      const currentHash = computePHash(imageData);
-      let bestMatch: { concert: Concert; distance: number } | null = null;
-
-      for (const concert of eligibleConcerts) {
-        const hashes = getPHashes(concert);
-        for (const hash of hashes) {
-          const distance = hammingDistance(currentHash, hash);
-          if (!bestMatch || distance < bestMatch.distance) {
-            bestMatch = { concert, distance };
-          }
-        }
-      }
-
-      const now = Date.now();
-      const isWithinThreshold = !!bestMatch && bestMatch.distance <= similarityThreshold;
-      const activeMatch = isWithinThreshold ? bestMatch!.concert : null;
-
-      const stability =
-        activeMatch &&
-        matchStartTimeRef.current &&
-        lastMatchedConcertRef.current?.id === activeMatch.id
-          ? (() => {
-              const elapsedMs = now - matchStartTimeRef.current;
-              return {
-                concert: activeMatch,
-                elapsedMs,
-                remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
-                requiredMs: recognitionDelay,
-                progress: Math.min(elapsedMs / recognitionDelay, 1),
-              };
-            })()
-          : null;
-
-      if (enableDebugInfo) {
-        setDebugInfo({
-          lastFrameHash: currentHash,
-          bestMatch:
-            bestMatch !== null
-              ? {
-                  concert: bestMatch.concert,
-                  distance: bestMatch.distance,
-                  similarity: similarityPercent(bestMatch.distance),
-                  algorithm: 'phash',
-                }
-              : null,
-          lastCheckTime: now,
-          concertCount: eligibleConcerts.length,
-          frameCount: frameCountRef.current,
-          checkInterval,
-          aspectRatio: chosenAspectRatio,
-          frameSize: { width: framedRegion.width, height: framedRegion.height },
-          stability,
-          similarityThreshold,
-          recognitionDelay,
-          frameQuality: quality,
-          telemetry: { ...telemetryRef.current },
-          hashAlgorithm: 'phash',
-        });
-      }
-
-      if (activeMatch) {
-        if (lastMatchedConcertRef.current?.id === activeMatch.id) {
-          if (matchStartTimeRef.current && now - matchStartTimeRef.current >= recognitionDelay) {
+          if (isInstantDistance || hasConsecutiveInstantConfidence) {
             recognizedConcertRef.current = activeMatch;
+            confirmedMatch = true;
             setRecognizedConcert(activeMatch);
             setIsRecognizing(false);
             telemetryRef.current.successfulRecognitions += 1;
             lastMatchedConcertRef.current = null;
+            consecutiveMatchCountRef.current = 0;
             matchStartTimeRef.current = null;
             return;
           }
+
+          if (isSameConcert) {
+            if (matchStartTimeRef.current && now - matchStartTimeRef.current >= recognitionDelay) {
+              recognizedConcertRef.current = activeMatch;
+              confirmedMatch = true;
+              setRecognizedConcert(activeMatch);
+              setIsRecognizing(false);
+              telemetryRef.current.successfulRecognitions += 1;
+              lastMatchedConcertRef.current = null;
+              consecutiveMatchCountRef.current = 0;
+              matchStartTimeRef.current = null;
+              return;
+            }
+            setIsRecognizing(true);
+            return;
+          }
+
+          lastMatchedConcertRef.current = activeMatch;
+          matchStartTimeRef.current = now;
           setIsRecognizing(true);
           return;
         }
 
-        lastMatchedConcertRef.current = activeMatch;
-        matchStartTimeRef.current = now;
-        setIsRecognizing(true);
-        return;
-      }
+        if (bestMatch) {
+          const category: FailureCategory =
+            bestMatch.distance <= similarityThreshold + 10 ? 'collision' : 'no-match';
+          recordFailure(
+            telemetryRef.current,
+            category,
+            `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
+            currentHash
+          );
+        } else {
+          recordFailure(
+            telemetryRef.current,
+            'no-match',
+            'No concerts with valid pHash',
+            currentHash
+          );
+        }
 
-      if (bestMatch) {
-        const category: FailureCategory =
-          bestMatch.distance <= similarityThreshold + 10 ? 'collision' : 'no-match';
-        recordFailure(
-          telemetryRef.current,
-          category,
-          `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
-          currentHash
-        );
-      } else {
-        recordFailure(
-          telemetryRef.current,
-          'no-match',
-          'No concerts with valid pHash',
-          currentHash
-        );
+        if (lastMatchedConcertRef.current) {
+          telemetryRef.current.failedAttempts += 1;
+        }
+        lastMatchedConcertRef.current = null;
+        consecutiveMatchCountRef.current = 0;
+        matchStartTimeRef.current = null;
+        setIsRecognizing(false);
+      } finally {
+        if (enableDebugInfo) {
+          const totalPipelineMs = performance.now() - frameStartAt;
+          console.debug('[photo-recognition] Frame timings', {
+            frame: frameCountRef.current,
+            captureMs: Number(frameCaptureMs.toFixed(2)),
+            algorithmMs: Number(algorithmMs.toFixed(2)),
+            totalPipelineMs: Number(totalPipelineMs.toFixed(2)),
+            confirmedMatch,
+          });
+          console.timeEnd(frameLabel);
+        }
       }
-
-      if (lastMatchedConcertRef.current) {
-        telemetryRef.current.failedAttempts += 1;
-      }
-      lastMatchedConcertRef.current = null;
-      matchStartTimeRef.current = null;
-      setIsRecognizing(false);
     };
 
     intervalRef.current = window.setInterval(checkFrame, checkInterval);

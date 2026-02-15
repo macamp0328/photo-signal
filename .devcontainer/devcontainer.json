@@ -8,7 +8,17 @@
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "ms-vscode.vscode-typescript-next"
+        "ms-vscode.vscode-typescript-next",
+        "Anthropic.claude-code",
+        "github.vscode-github-actions",
+        "usernamehw.errorlens",
+        "vitest.explorer",
+        "ms-playwright.playwright",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker",
+        "christian-kohler.path-intellisense",
+        "ms-azuretools.vscode-docker",
+        "clinyong.vscode-css-modules"
       ],
       "settings": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -16,7 +26,15 @@
         "editor.codeActionsOnSave": {
           "source.fixAll.eslint": "explicit"
         },
-        "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
+        "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+        "gitlens.codeLens.enabled": false,
+        "gitlens.currentLine.enabled": false,
+        "gitlens.hovers.enabled": true,
+        "vitest.enable": true,
+        "vitest.commandLine": "npm run test",
+        "cSpell.diagnosticLevel": "Hint",
+        "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+        "errorLens.followCursor": "activeLine"
       }
     }
   },

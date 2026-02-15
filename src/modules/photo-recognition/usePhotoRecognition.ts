@@ -20,6 +20,7 @@ import {
   detectGlare,
   detectPoorLighting,
 } from './algorithms/utils';
+import { getPerspectiveCroppedImageData } from './algorithms/perspective';
 import type {
   AspectRatio,
   FailureCategory,
@@ -230,6 +231,7 @@ export function usePhotoRecognition(
         let framedRegion = offsetRegionToVideo(
           calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
+        let perspectiveImageData: ImageData | null = null;
 
         if (rectangleDetectorRef.current) {
           canvas.width = visibleViewport.width;
@@ -254,6 +256,11 @@ export function usePhotoRecognition(
             setDetectedRectangle(detectionResult.rectangle);
             const meetsConfidence = detectionResult.confidence >= rectangleConfidenceThreshold;
             if (meetsConfidence) {
+              perspectiveImageData = getPerspectiveCroppedImageData(
+                viewportImageData,
+                detectionResult.rectangle
+              );
+
               const pixelRectangle = {
                 x: Math.round(detectionResult.rectangle.topLeft.x * visibleViewport.width),
                 y: Math.round(detectionResult.rectangle.topLeft.y * visibleViewport.height),
@@ -271,21 +278,37 @@ export function usePhotoRecognition(
         }
 
         const frameCaptureStartAt = performance.now();
-        canvas.width = framedRegion.width;
-        canvas.height = framedRegion.height;
-        context.drawImage(
-          video,
-          framedRegion.x,
-          framedRegion.y,
-          framedRegion.width,
-          framedRegion.height,
-          0,
-          0,
-          framedRegion.width,
-          framedRegion.height
-        );
+        let imageData: ImageData;
 
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        if (perspectiveImageData) {
+          canvas.width = perspectiveImageData.width;
+          canvas.height = perspectiveImageData.height;
+          context.putImageData(perspectiveImageData, 0, 0);
+          framedRegion = {
+            x: framedRegion.x,
+            y: framedRegion.y,
+            width: perspectiveImageData.width,
+            height: perspectiveImageData.height,
+          };
+          imageData = perspectiveImageData;
+        } else {
+          canvas.width = framedRegion.width;
+          canvas.height = framedRegion.height;
+          context.drawImage(
+            video,
+            framedRegion.x,
+            framedRegion.y,
+            framedRegion.width,
+            framedRegion.height,
+            0,
+            0,
+            framedRegion.width,
+            framedRegion.height
+          );
+
+          imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        }
+
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
         if (isEnabled('grayscale-mode')) {

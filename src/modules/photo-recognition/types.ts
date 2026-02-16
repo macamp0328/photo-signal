@@ -53,6 +53,7 @@ export type GuidanceType =
   | 'motion-blur'
   | 'glare'
   | 'poor-lighting'
+  | 'ambiguous-match'
   | 'distance'
   | 'off-center'
   | 'none';

@@ -41,6 +41,7 @@ export function formatGuidanceTelemetry(telemetry: RecognitionTelemetry): string
     'motion-blur',
     'glare',
     'poor-lighting',
+    'ambiguous-match',
     'distance',
     'off-center',
   ];

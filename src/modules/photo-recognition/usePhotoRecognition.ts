@@ -357,6 +357,7 @@ export function usePhotoRecognition(
         const requiredMargin = isSwitchMode ? switchMatchMarginThreshold : matchMarginThreshold;
         const hasSufficientMargin = bestMargin === null || bestMargin >= requiredMargin;
         const isWithinThreshold = !!bestMatch && bestMatch.distance <= activeThreshold;
+        const isAmbiguousMatchCandidate = isWithinThreshold && !hasSufficientMargin;
         const activeMatch = isWithinThreshold && hasSufficientMargin ? bestMatch!.concert : null;
 
         const shouldRunQualityCheck =
@@ -551,6 +552,8 @@ export function usePhotoRecognition(
         }
 
         if (activeMatch) {
+          setActiveGuidance('none');
+
           if (isSwitchMode) {
             const currentlyRecognizedConcert = recognizedConcertRef.current;
 
@@ -652,6 +655,13 @@ export function usePhotoRecognition(
 
         if (bestMatch) {
           const isAmbiguousCollision = !hasSufficientMargin;
+
+          if (isAmbiguousMatchCandidate) {
+            setActiveGuidance('ambiguous-match');
+          } else {
+            setActiveGuidance('none');
+          }
+
           const category: FailureCategory =
             isAmbiguousCollision || bestMatch.distance <= similarityThreshold + 10
               ? 'collision'

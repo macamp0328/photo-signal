@@ -21,6 +21,13 @@ describe('DebugOverlay', () => {
       distance: 10,
       similarity: 96.1,
     },
+    secondBestMatch: {
+      concert: mockConcert,
+      distance: 10,
+      similarity: 84.4,
+      algorithm: 'phash',
+    },
+    bestMatchMargin: 7,
     lastCheckTime: Date.now(),
     concertCount: 5,
     frameCount: 42,
@@ -458,6 +465,8 @@ describe('DebugOverlay', () => {
       const minimalDebugInfo: RecognitionDebugInfo = {
         lastFrameHash: null,
         bestMatch: null,
+        secondBestMatch: null,
+        bestMatchMargin: null,
         lastCheckTime: 0,
         concertCount: 0,
         frameCount: 0,

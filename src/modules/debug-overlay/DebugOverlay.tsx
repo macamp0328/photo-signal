@@ -29,6 +29,8 @@ export function DebugOverlay({
 
   const lastFrameHash = debugInfo?.lastFrameHash ?? null;
   const bestMatch = debugInfo?.bestMatch ?? null;
+  const secondBestMatch = debugInfo?.secondBestMatch ?? null;
+  const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
   const derivedThreshold = threshold ?? debugInfo?.similarityThreshold ?? 40;
   const stability = debugInfo?.stability ?? null;
   const frameSize = debugInfo?.frameSize;
@@ -204,6 +206,20 @@ export function DebugOverlay({
                   <span className={styles.statValue}>{bestMatch.similarity.toFixed(1)}%</span>
                 </div>
               </div>
+              {secondBestMatch ? (
+                <div className={styles.matchStats}>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>2nd Best:</span>
+                    <span className={styles.statValue}>{secondBestMatch.concert.band}</span>
+                  </div>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>Margin:</span>
+                    <span className={styles.statValue}>
+                      {bestMatchMargin !== null ? bestMatchMargin.toFixed(1) : '—'}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
 

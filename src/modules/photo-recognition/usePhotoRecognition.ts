@@ -43,6 +43,8 @@ const QUALITY_GATING_DISTANCE_THRESHOLD = 8;
 const CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM = 2;
 const DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER = 1.8;
 const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 8;
+const DEFAULT_MATCH_MARGIN_THRESHOLD = 3;
+const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 4;
 const SWITCH_INSTANT_DISTANCE_THRESHOLD = 3;
 const CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM = 3;
 
@@ -56,6 +58,8 @@ export function usePhotoRecognition(
     recognitionDelay = DEFAULT_RECOGNITION_DELAY,
     enabled = true,
     similarityThreshold = DEFAULT_SIMILARITY_THRESHOLD,
+    matchMarginThreshold = DEFAULT_MATCH_MARGIN_THRESHOLD,
+    switchMatchMarginThreshold = DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD,
     continuousRecognition = false,
     switchRecognitionDelayMultiplier = DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER,
     switchDistanceThreshold = DEFAULT_SWITCH_DISTANCE_THRESHOLD,
@@ -324,22 +328,21 @@ export function usePhotoRecognition(
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
         let bestMatch: { concert: Concert; distance: number } | null = null;
+        let secondBestMatch: { concert: Concert; distance: number } | null = null;
 
         for (const concert of eligibleConcerts) {
           const hashes = getPHashes(concert);
           for (const hash of hashes) {
             const distance = hammingDistance(currentHash, hash);
             if (!bestMatch || distance < bestMatch.distance) {
+              secondBestMatch = bestMatch;
               bestMatch = { concert, distance };
+            } else if (
+              !secondBestMatch ||
+              (distance < secondBestMatch.distance && distance !== bestMatch.distance)
+            ) {
+              secondBestMatch = { concert, distance };
             }
-
-            if (distance <= INSTANT_DISTANCE_THRESHOLD) {
-              break;
-            }
-          }
-
-          if (bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD) {
-            break;
           }
         }
         algorithmMs = performance.now() - algorithmStartAt;
@@ -349,8 +352,12 @@ export function usePhotoRecognition(
         const activeThreshold = isSwitchMode
           ? Math.min(similarityThreshold, switchDistanceThreshold)
           : similarityThreshold;
+        const bestMargin =
+          bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
+        const requiredMargin = isSwitchMode ? switchMatchMarginThreshold : matchMarginThreshold;
+        const hasSufficientMargin = bestMargin === null || bestMargin >= requiredMargin;
         const isWithinThreshold = !!bestMatch && bestMatch.distance <= activeThreshold;
-        const activeMatch = isWithinThreshold ? bestMatch!.concert : null;
+        const activeMatch = isWithinThreshold && hasSufficientMargin ? bestMatch!.concert : null;
 
         const shouldRunQualityCheck =
           !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
@@ -439,6 +446,16 @@ export function usePhotoRecognition(
                         algorithm: 'phash',
                       }
                     : null,
+                secondBestMatch:
+                  secondBestMatch !== null
+                    ? {
+                        concert: secondBestMatch.concert,
+                        distance: secondBestMatch.distance,
+                        similarity: similarityPercent(secondBestMatch.distance),
+                        algorithm: 'phash',
+                      }
+                    : null,
+                bestMatchMargin: bestMargin,
                 lastCheckTime: now,
                 concertCount: eligibleConcerts.length,
                 frameCount: frameCountRef.current,
@@ -508,6 +525,16 @@ export function usePhotoRecognition(
                     algorithm: 'phash',
                   }
                 : null,
+            secondBestMatch:
+              secondBestMatch !== null
+                ? {
+                    concert: secondBestMatch.concert,
+                    distance: secondBestMatch.distance,
+                    similarity: similarityPercent(secondBestMatch.distance),
+                    algorithm: 'phash',
+                  }
+                : null,
+            bestMatchMargin: bestMargin,
             lastCheckTime: now,
             concertCount: eligibleConcerts.length,
             frameCount: frameCountRef.current,
@@ -624,12 +651,17 @@ export function usePhotoRecognition(
         }
 
         if (bestMatch) {
+          const isAmbiguousCollision = !hasSufficientMargin;
           const category: FailureCategory =
-            bestMatch.distance <= similarityThreshold + 10 ? 'collision' : 'no-match';
+            isAmbiguousCollision || bestMatch.distance <= similarityThreshold + 10
+              ? 'collision'
+              : 'no-match';
           recordFailure(
             telemetryRef.current,
             category,
-            `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
+            isAmbiguousCollision
+              ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band} (margin ${bestMargin ?? 0})`
+              : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
             currentHash
           );
         } else {
@@ -684,6 +716,8 @@ export function usePhotoRecognition(
     checkInterval,
     recognitionDelay,
     similarityThreshold,
+    matchMarginThreshold,
+    switchMatchMarginThreshold,
     continuousRecognition,
     switchRecognitionDelayMultiplier,
     switchDistanceThreshold,

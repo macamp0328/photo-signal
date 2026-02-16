@@ -319,4 +319,94 @@ describe('usePhotoRecognition', () => {
       createElementSpy.mockRestore();
     }
   });
+
+  it('rejects ambiguous close matches when margin is too small', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const closeConcerts: Concert[] = [
+        {
+          id: 1,
+          band: 'Close Band 1',
+          venue: 'Venue A',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/one.opus',
+          photoHashes: {
+            phash: ['aaaaaaaaaaaaaaaa'],
+          },
+        },
+        {
+          id: 2,
+          band: 'Close Band 2',
+          venue: 'Venue B',
+          date: '2023-09-20T19:30:00-05:00',
+          audioFile: '/audio/two.opus',
+          photoHashes: {
+            phash: ['aaaaaaaaaaaaaaab'],
+          },
+        },
+      ];
+
+      vi.mocked(dataService.getConcerts).mockResolvedValue(closeConcerts);
+      activeFrameHash = 'aaaaaaaaaaaaaaaa';
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          recognitionDelay: 120,
+          checkInterval: 50,
+          similarityThreshold: 12,
+          matchMarginThreshold: 5,
+          enableDebugInfo: true,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      expect(result.current.recognizedConcert).toBeNull();
+      expect(result.current.debugInfo?.bestMatch?.concert.id).toBe(1);
+      expect(result.current.debugInfo?.secondBestMatch?.concert.id).toBe(2);
+      expect((result.current.debugInfo?.bestMatchMargin ?? 99) < 5).toBe(true);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
 });

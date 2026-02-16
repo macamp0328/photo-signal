@@ -77,6 +77,8 @@ export interface RecognitionTelemetry {
 export interface RecognitionDebugInfo {
   lastFrameHash: string | null;
   bestMatch: BestMatchInfo | null;
+  secondBestMatch: BestMatchInfo | null;
+  bestMatchMargin: number | null;
   lastCheckTime: number;
   concertCount: number;
   frameCount: number;
@@ -106,6 +108,8 @@ export interface PhotoRecognitionOptions {
   recognitionDelay?: number;
   enabled?: boolean;
   similarityThreshold?: number;
+  matchMarginThreshold?: number;
+  switchMatchMarginThreshold?: number;
   continuousRecognition?: boolean;
   switchRecognitionDelayMultiplier?: number;
   switchDistanceThreshold?: number;

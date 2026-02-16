@@ -25,6 +25,7 @@
 
 - **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** - **⭐ ESSENTIAL**: Comprehensive deep-dive guide to achieving successful photo recognition with printed photographs, including internal mechanics, configuration guidance, hash generation workflow, systematic testing, and troubleshooting (START HERE)
 - **[docs/PHOTO_RECOGNITION_QUICK_REF.md](./docs/PHOTO_RECOGNITION_QUICK_REF.md)** - **Quick reference card** for photo recognition configuration, troubleshooting, and common tasks
+- **[docs/RECOGNITION_REMEDIATION_PROGRESS_2026-02-16.md](./docs/RECOGNITION_REMEDIATION_PROGRESS_2026-02-16.md)** - Progress log for PR #250 remediation slices, completed changes, and prioritized remaining slices
 - **[docs/ORB_OPTIMIZATION_RESEARCH.md](./docs/ORB_OPTIMIZATION_RESEARCH.md)** - **ORB Performance Research**: Root cause analysis and optimization of ORB algorithm parameters for print-to-camera photo matching, including octave distribution analysis and configuration improvements
 - **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** - Comprehensive evaluation of photo recognition approaches (perceptual hashing, ML, cloud services) with technical recommendations
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** - Complete guide to camera API constraints, browser support matrix, low-light optimization strategies, and black and white mode recommendations

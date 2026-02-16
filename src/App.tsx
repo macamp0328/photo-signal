@@ -436,8 +436,8 @@ function App() {
     <FrameQualityIndicator frameQuality={frameQuality} />
   );
 
-  // Render guidance message (only when camera is active and no concert recognized)
-  const guidanceMessage = isActive && stream && !recognizedConcert && (
+  // Render guidance message whenever active guidance exists during camera session
+  const guidanceMessage = isActive && stream && activeGuidance !== 'none' && (
     <GuidanceMessage guidanceType={activeGuidance} />
   );
 

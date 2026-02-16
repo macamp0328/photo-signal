@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import type { Concert } from './types';
+import type { GuidanceType } from './modules/photo-recognition/types';
 
 const concertOne: Concert = {
   id: 1,
@@ -45,7 +46,7 @@ const recognitionState = {
   isRecognizing: false,
   debugInfo: null,
   frameQuality: null,
-  activeGuidance: 'none' as const,
+  activeGuidance: 'none' as GuidanceType,
   detectedRectangle: null,
   rectangleConfidence: 0,
 };
@@ -84,7 +85,9 @@ vi.mock('./modules/photo-recognition', () => ({
     reset: mockResetRecognition,
   }),
   FrameQualityIndicator: () => null,
-  GuidanceMessage: () => null,
+  GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
+    <div data-testid="guidance-message">{guidanceType}</div>
+  ),
   TelemetryExport: () => null,
 }));
 
@@ -165,5 +168,22 @@ describe('App playback flow', () => {
     await user.click(screen.getByRole('button', { name: 'Switch to Band Two' }));
 
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
+  });
+
+  it('shows ambiguity guidance while a track is already recognized', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    recognitionState.activeGuidance = 'ambiguous-match';
+    audioState.isPlaying = true;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(screen.getByTestId('guidance-message')).toHaveTextContent('ambiguous-match');
   });
 });

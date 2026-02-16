@@ -529,21 +529,21 @@ describe('Image Processing Utilities', () => {
       expect(result.glarePercentage).toBeLessThan(20);
     });
 
-    it('should not count pixels where only some channels are blown out', () => {
+    it('should not count strongly colored pixels whose luminance is below threshold', () => {
       // Create image with pixels that have only some channels blown out
       const data = new Uint8ClampedArray(16); // 2x2 * 4
 
-      // Pixel 1: R blown out, G and B not
+      // Pixel 1: R high, but luminance still below 250 threshold
       data[0] = 255;
       data[1] = 100;
       data[2] = 100;
       data[3] = 255;
-      // Pixel 2: G blown out, R and B not
+      // Pixel 2: G high, but luminance below threshold
       data[4] = 100;
       data[5] = 255;
       data[6] = 100;
       data[7] = 255;
-      // Pixel 3: B blown out, R and G not
+      // Pixel 3: B high, but luminance below threshold
       data[8] = 100;
       data[9] = 100;
       data[10] = 255;
@@ -557,9 +557,27 @@ describe('Image Processing Utilities', () => {
       const imageData = new ImageData(data, 2, 2);
       const result = detectGlare(imageData);
 
-      // Only 1 out of 4 pixels (25%) should be counted as glare
+      // Only 1 out of 4 pixels (25%) should be counted as glare at threshold 250
       expect(result.glarePercentage).toBe(25);
       expect(result.hasGlare).toBe(true); // 25% > 20%
+    });
+
+    it('should detect warm-tinted blown-out pixels via luminance threshold', () => {
+      const data = new Uint8ClampedArray(16); // 2x2 * 4
+
+      // Warm near-white pixels (not all channels maxed)
+      for (let i = 0; i < 16; i += 4) {
+        data[i] = 255;
+        data[i + 1] = 245;
+        data[i + 2] = 235;
+        data[i + 3] = 255;
+      }
+
+      const imageData = new ImageData(data, 2, 2);
+      const result = detectGlare(imageData, 240, 50);
+
+      expect(result.glarePercentage).toBe(100);
+      expect(result.hasGlare).toBe(true);
     });
 
     it('should use custom threshold and percentage threshold', () => {

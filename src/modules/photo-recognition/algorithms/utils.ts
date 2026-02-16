@@ -213,18 +213,14 @@ export function detectGlare(
   threshold: number = 250,
   percentageThreshold: number = 20
 ): { hasGlare: boolean; glarePercentage: number } {
-  const { data } = imageData;
+  const grayscale = toGrayscale(imageData);
   let blownOutPixels = 0;
-  const totalPixels = data.length / 4; // Each pixel has 4 values (RGBA)
+  const totalPixels = grayscale.length;
 
-  // Count pixels where all RGB channels are above threshold
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-
-    // Check if all channels are blown out (near white)
-    if (r > threshold && g > threshold && b > threshold) {
+  // Count pixels whose luminance is above threshold.
+  // This is more robust for monochrome prints under warm/cool lighting casts.
+  for (let i = 0; i < grayscale.length; i += 1) {
+    if (grayscale[i] > threshold) {
       blownOutPixels++;
     }
   }

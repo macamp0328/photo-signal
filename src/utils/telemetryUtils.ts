@@ -79,6 +79,22 @@ export function formatGuidanceTelemetry(telemetry: RecognitionTelemetry): string
  * Export guidance telemetry as JSON for analysis
  */
 export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string {
+  const switchDecision = telemetry.switchDecision ?? {
+    shownCount: 0,
+    confirmCount: 0,
+    dismissCount: 0,
+    decisionLatenciesMs: [],
+    averageDecisionLatencyMs: null,
+    lastDecisionLatencyMs: null,
+    lastPromptSnapshot: {
+      activeConcertId: null,
+      candidateConcertId: null,
+      confidence: null,
+      margin: null,
+      shownAt: null,
+    },
+  };
+  const latencyValues = switchDecision.decisionLatenciesMs;
   const exportData = {
     timestamp: new Date().toISOString(),
     frameStats: {
@@ -111,6 +127,27 @@ export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string
           (value / 1000).toFixed(1),
         ])
       ),
+    },
+    switchDecisionMetrics: {
+      shownCount: switchDecision.shownCount,
+      confirmCount: switchDecision.confirmCount,
+      dismissCount: switchDecision.dismissCount,
+      confirmRate:
+        switchDecision.shownCount > 0
+          ? (switchDecision.confirmCount / switchDecision.shownCount) * 100
+          : 0,
+      dismissRate:
+        switchDecision.shownCount > 0
+          ? (switchDecision.dismissCount / switchDecision.shownCount) * 100
+          : 0,
+      decisionLatencyMs: {
+        average: switchDecision.averageDecisionLatencyMs,
+        last: switchDecision.lastDecisionLatencyMs,
+        min: latencyValues.length > 0 ? Math.min(...latencyValues) : null,
+        max: latencyValues.length > 0 ? Math.max(...latencyValues) : null,
+        samples: latencyValues,
+      },
+      lastPromptSnapshot: switchDecision.lastPromptSnapshot,
     },
     failureBreakdown: telemetry.failureByCategory,
     failureHistory: telemetry.failureHistory,

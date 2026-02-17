@@ -27,6 +27,23 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
   }, []);
 
   const exportTelemetry = () => {
+    const switchDecision = telemetry.switchDecision ?? {
+      shownCount: 0,
+      confirmCount: 0,
+      dismissCount: 0,
+      decisionLatenciesMs: [],
+      averageDecisionLatencyMs: null,
+      lastDecisionLatencyMs: null,
+      lastPromptSnapshot: {
+        activeConcertId: null,
+        candidateConcertId: null,
+        confidence: null,
+        margin: null,
+        shownAt: null,
+      },
+    };
+    const latencyValues = switchDecision.decisionLatenciesMs;
+
     // Create comprehensive telemetry report
     const report = {
       timestamp: new Date().toISOString(),
@@ -74,6 +91,19 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
         frameHash: failure.frameHash,
         timestamp: new Date(failure.timestamp).toISOString(),
       })),
+      switchDecisionMetrics: {
+        shownCount: switchDecision.shownCount,
+        confirmCount: switchDecision.confirmCount,
+        dismissCount: switchDecision.dismissCount,
+        decisionLatencyMs: {
+          average: switchDecision.averageDecisionLatencyMs,
+          last: switchDecision.lastDecisionLatencyMs,
+          min: latencyValues.length > 0 ? Math.min(...latencyValues) : null,
+          max: latencyValues.length > 0 ? Math.max(...latencyValues) : null,
+          samples: latencyValues,
+        },
+        lastPromptSnapshot: switchDecision.lastPromptSnapshot,
+      },
       rawData: telemetry,
     };
 

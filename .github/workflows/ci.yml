@@ -1,15 +1,5 @@
 # CI Workflow for Photo Signal
 #
-# 📚 IMPORTANT FOR AI AGENTS:
-# When adding/removing/modifying any of the following, update DOCUMENTATION_INDEX.md:
-#   - New documentation files (*.md)
-#   - New configuration files (*.json, *.js, *.ts config files)
-#   - New modules or services (with their README.md files)
-#   - New GitHub workflows or templates
-#   - New development environment configs
-#
-# See DOCUMENTATION_INDEX.md for the complete documentation structure.
-#
 name: CI
 
 on:
@@ -17,6 +7,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-format-type-check-build:
@@ -29,10 +23,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Temporarily disabled to debug GitHub agent timeouts (Nov 11, 2025)
-      # - name: Setup Copilot documentation cache
-      #   uses: ./.github/actions/setup-copilot
 
       - name: Setup Node.js
         uses: actions/setup-node@v5

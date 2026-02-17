@@ -176,7 +176,7 @@ Each module in `src/modules/` is self-contained with:
 
 - **CI Pipeline** (`.github/workflows/ci.yml`): lint, format check, type-check, test with coverage, build, bundle size check — runs on all PRs and pushes to main
 - **Visual Regression** (`.github/workflows/visual-regression.yml`): Playwright tests on Mobile Chrome with 0.2% pixel tolerance
-- **Auto-Fix** (`.github/workflows/auto-fix-copilot-pr.yml`): Auto-formats Copilot PRs on CI failure
+- **Auto-Fix** (`.github/workflows/auto-fix-agent-pr.yml`): Auto-formats AI agent PRs (copilot/, claude/) on CI failure
 - **Vercel**: Auto-deploys main branch to production
 - **Cloudflare**: Worker deployment for audio proxy
 

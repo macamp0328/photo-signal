@@ -238,15 +238,6 @@ In addition to the main CI workflow, the repository uses:
 
 See **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** for complete documentation on all analysis tools.
 
-### Copilot Documentation Caching:
-
-The CI workflow includes a custom action (`.github/actions/setup-copilot`) that pre-fetches GitHub Copilot documentation before firewall restrictions are applied. This ensures the Copilot coding agent has access to:
-
-- GitHub Copilot coding agent best practices
-- GitHub Actions setup documentation
-
-Documentation is cached in `/tmp/gh-docs/` for reference throughout the CI job. See [.github/actions/setup-copilot/README.md](.github/actions/setup-copilot/README.md) for details.
-
 ### Performance Optimizations:
 
 - **npm caching** - Dependencies cached between runs for faster installs

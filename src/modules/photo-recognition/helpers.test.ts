@@ -30,5 +30,29 @@ describe('helpers', () => {
 
       expect(getPHashes(concert)).toEqual([]);
     });
+
+    it('returns empty array for empty string entries', () => {
+      const concert = buildConcert(['']);
+
+      expect(getPHashes(concert)).toEqual([]);
+    });
+
+    it('returns empty array for non-string entries', () => {
+      const concert = buildConcert([null, 123, {}, []]);
+
+      expect(getPHashes(concert)).toEqual([]);
+    });
+
+    it('returns empty array when all entries are invalid hex', () => {
+      const concert = buildConcert(['gggggggggggggggg']);
+
+      expect(getPHashes(concert)).toEqual([]);
+    });
+
+    it('returns empty array for entries with special characters', () => {
+      const concert = buildConcert(['@#$%^&*()123456']);
+
+      expect(getPHashes(concert)).toEqual([]);
+    });
   });
 });

@@ -558,7 +558,7 @@ describe('useSecretSettingsController', () => {
       expect(result.current.currentProfile).toBeDefined();
     });
 
-    it('should handle setting value with undefined setting id', () => {
+    it('should handle setting value with non-existent setting id', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
       // This should not crash

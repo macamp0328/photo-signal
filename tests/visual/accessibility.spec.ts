@@ -69,8 +69,8 @@ test.describe('Accessibility', () => {
     await page.locator('body').click({ clickCount: 3 });
     await page.waitForSelector('[role="dialog"]', { state: 'visible' });
 
-    // Tab through several elements
-    for (let i = 0; i < 3; i++) {
+    // Tab through settings controls to a stable focus target across browsers
+    for (let i = 0; i < 2; i++) {
       await page.keyboard.press('Tab');
       await page.waitForTimeout(100);
     }

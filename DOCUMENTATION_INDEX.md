@@ -25,8 +25,6 @@
 - **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** — Comprehensive photo recognition guide (start here)
 - **[docs/PHOTO_RECOGNITION_QUICK_REF.md](./docs/PHOTO_RECOGNITION_QUICK_REF.md)** — Photo recognition quick reference card
 - **[docs/RECOGNITION_REMEDIATION_PROGRESS_2026-02-16.md](./docs/RECOGNITION_REMEDIATION_PROGRESS_2026-02-16.md)** — PR #250 remediation progress log
-- **[docs/ORB_OPTIMIZATION_RESEARCH.md](./docs/ORB_OPTIMIZATION_RESEARCH.md)** — ORB algorithm optimization research
-- **[docs/photo-recognition-research.md](./docs/photo-recognition-research.md)** — Photo recognition approach evaluation
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** — Camera API, browser support, low-light optimization
 - **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** — Recognition telemetry and debugging
 - **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** — Cloudflare Worker audio proxy and R2 setup
@@ -84,6 +82,8 @@ Each module has a README defining its API contract:
 ## Archive
 
 - **[docs/archive/PARALLEL_RECOGNITION_IMPLEMENTATION.md](./docs/archive/PARALLEL_RECOGNITION_IMPLEMENTATION.md)** — Deprecated parallel multi-algorithm recognition
+- **[docs/archive/ORB_OPTIMIZATION_RESEARCH.md](./docs/archive/ORB_OPTIMIZATION_RESEARCH.md)** — Historical ORB optimization research (non-operational)
+- **[docs/archive/photo-recognition-research.md](./docs/archive/photo-recognition-research.md)** — Historical algorithm evaluation and early architecture options
 
 ---
 

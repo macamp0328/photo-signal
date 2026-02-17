@@ -44,7 +44,7 @@ describe('useSecretSettingsController', () => {
       expect(result.current.currentProfile?.id).toBe('custom');
     });
 
-    it('should resolve setting groups with all settings visible', () => {
+    it('should resolve setting groups with correct structure', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
       expect(result.current.settingGroups.length).toBeGreaterThan(0);
@@ -361,8 +361,13 @@ describe('useSecretSettingsController', () => {
       // Groups should still exist after mode change
       expect(afterGroups.length).toBeGreaterThan(0);
 
-      // Verify groups are reactive to settings changes
-      expect(result.current.settingGroups).toBe(afterGroups);
+      // Verify groups are reactive to settings changes by checking the updated setting value
+      const updatedRecognitionSetting = afterGroups
+        .flatMap((group) => group.settings)
+        .find((setting) => setting.id === 'recognition-mode');
+
+      expect(updatedRecognitionSetting).toBeDefined();
+      expect(updatedRecognitionSetting?.value).toBe('orb');
     });
   });
 
@@ -443,7 +448,7 @@ describe('useSecretSettingsController', () => {
         return originalSetTimeout(() => {
           callOrder.push('reload');
           callback();
-        }, delay) as unknown as NodeJS.Timeout;
+        }, delay) as unknown as ReturnType<typeof setTimeout>;
       });
 
       const { result } = renderHook(() => useSecretSettingsController(trackedOnClose));

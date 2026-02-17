@@ -86,21 +86,20 @@ jobs:
                 for (const entry of entries) {
                   const fullPath = path.join(dir, entry.name);
                   if (entry.isDirectory()) {
-                    findDiffImages(fullPath);
-                    if (hasVisualDiffs) return; // Propagate early exit up the stack
-                  } else if (entry.name.includes('-diff.png')) {
-                    hasVisualDiffs = true;
-                    return; // Early exit once we find a diff
+                    if (findDiffImages(fullPath)) return true;
+                  } else if (entry.name.endsWith('-diff.png')) {
+                    return true; // Found a diff
                   }
                 }
               } catch (error) {
                 console.log('Error reading directory:', dir, error);
               }
+              return false;
             }
 
             try {
               if (fs.existsSync(testResultsDir)) {
-                findDiffImages(testResultsDir);
+                hasVisualDiffs = findDiffImages(testResultsDir);
               }
             } catch (error) {
               console.log('Error checking test results:', error);

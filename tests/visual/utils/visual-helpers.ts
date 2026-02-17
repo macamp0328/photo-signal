@@ -12,14 +12,22 @@ export async function bootstrapVisualState(
 ): Promise<void> {
   const { featureFlags } = options;
 
-  await page.addInitScript((flags) => {
-    window.localStorage.clear();
-    window.sessionStorage.clear();
+  await page.addInitScript(
+    ({ flags, storageKey }) => {
+      window.localStorage.clear();
+      window.sessionStorage.clear();
 
-    if (flags) {
-      window.localStorage.setItem('photo-signal-feature-flags', JSON.stringify(flags));
-    }
-  }, featureFlags);
+      if (flags) {
+        // Convert Record<string, boolean> to array of { id, enabled } objects
+        const flagsArray = Object.entries(flags).map(([id, enabled]) => ({
+          id,
+          enabled,
+        }));
+        window.localStorage.setItem(storageKey, JSON.stringify(flagsArray));
+      }
+    },
+    { flags: featureFlags, storageKey: FEATURE_FLAG_STORAGE_KEY }
+  );
 }
 
 export async function gotoLanding(page: Page): Promise<void> {
@@ -42,20 +50,29 @@ export async function dismissDebugOverlay(page: Page): Promise<void> {
 }
 
 export async function waitForCameraState(page: Page): Promise<void> {
-  await Promise.race([
+  const result = await Promise.race([
     page
       .locator('video')
       .waitFor({ state: 'visible', timeout: 12000 })
+      .then(() => 'video' as const)
       .catch(() => null),
     page
       .getByText(/camera access required/i)
       .waitFor({ state: 'visible', timeout: 12000 })
+      .then(() => 'permission' as const)
       .catch(() => null),
     page
       .getByText(/point camera at a photo to play music/i)
       .waitFor({ state: 'visible', timeout: 12000 })
+      .then(() => 'instruction' as const)
       .catch(() => null),
   ]);
+
+  if (!result) {
+    throw new Error(
+      'Camera state never stabilized: no video, permission prompt, or instruction text appeared within timeout'
+    );
+  }
 }
 
 export { FEATURE_FLAG_STORAGE_KEY };

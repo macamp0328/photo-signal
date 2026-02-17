@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { applyStableCameraPlaceholder } from './utils/camera';
-import { bootstrapVisualState, waitForCameraState } from './utils/visual-helpers';
+import { bootstrapVisualState, gotoLanding, waitForCameraState } from './utils/visual-helpers';
 
 /**
  * Visual Regression Tests for Error States
@@ -12,9 +12,7 @@ import { bootstrapVisualState, waitForCameraState } from './utils/visual-helpers
 test.describe('Error States', () => {
   test('@smoke camera permission fallback is visible', async ({ page }) => {
     await bootstrapVisualState(page);
-
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await gotoLanding(page);
 
     const activateButton = page.getByRole('button', {
       name: /activate camera and begin experience/i,
@@ -41,8 +39,7 @@ test.describe('Error States', () => {
       route.abort('failed');
     });
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await gotoLanding(page);
     await expect(
       page.getByRole('button', { name: /activate camera and begin experience/i })
     ).toBeVisible();
@@ -63,8 +60,7 @@ test.describe('Error States', () => {
       });
     });
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await gotoLanding(page);
     await expect(
       page.getByRole('button', { name: /activate camera and begin experience/i })
     ).toBeVisible();

@@ -69,12 +69,12 @@ describe('useAudioTest', () => {
   };
 
   const failedDiagnostic = {
-    httpStatus: 403,
+    httpStatus: 404,
     corsOrigin: null,
     contentType: null,
     contentLength: null,
-    likelyCorsIssue: true,
-    message: 'Server returned Forbidden. No CORS origin header found.',
+    likelyCorsIssue: false,
+    message: 'Server returned Not Found.',
   };
 
   beforeEach(() => {
@@ -111,9 +111,13 @@ describe('useAudioTest', () => {
 
     const { result } = renderHook(() => useAudioTest());
 
-    await act(async () => {
+    act(() => {
       result.current.runTest(testUrl);
-      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    // Flush all promises
+    await act(async () => {
+      await vi.runAllTimersAsync();
     });
 
     expect(result.current.isTestRunning).toBe(false);
@@ -166,9 +170,13 @@ describe('useAudioTest', () => {
 
     const { result } = renderHook(() => useAudioTest());
 
-    await act(async () => {
+    act(() => {
       result.current.runTest(testUrl);
-      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    // Flush all promises
+    await act(async () => {
+      await vi.runAllTimersAsync();
     });
 
     expect(result.current.testResult).not.toBeNull();

@@ -50,7 +50,8 @@ describe('diagnoseAudioUrl', () => {
 
     expect(result.httpStatus).toBe(403);
     expect(result.corsOrigin).toBeNull();
-    expect(result.likelyCorsIssue).toBe(true);
+    // If fetch returned a Response, CORS was already permitted - only thrown errors indicate CORS blocks
+    expect(result.likelyCorsIssue).toBe(false);
     expect(result.message).toContain('Forbidden');
     expect(result.message).toContain('No CORS origin header');
   });

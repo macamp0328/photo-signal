@@ -154,12 +154,22 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           // Clear refs and unload to enable clean retry
           cleanupSound(sound, url);
 
-          // Asynchronously replace generic message with diagnostic details
-          startDiagnostic(url).then((result) => {
-            if (isMountedRef.current) {
-              setPlaybackError(`Audio failed to load: ${result.message} Tap play to retry.`);
-            }
-          });
+          // Asynchronously replace generic message with diagnostic details.
+          // Only update error state if a different URL hasn't been loaded since.
+          startDiagnostic(url)
+            .then((result) => {
+              // If mounted and no other URL has been loaded (or same URL loaded again), update
+              if (
+                isMountedRef.current &&
+                (currentUrlRef.current === null || currentUrlRef.current === url)
+              ) {
+                setPlaybackError(`Audio failed to load: ${result.message} Tap play to retry.`);
+              }
+            })
+            .catch((diagnosticError) => {
+              // Avoid unhandled rejections if diagnoseAudioUrl throws
+              console.error('[Audio] Diagnostic error:', diagnosticError);
+            });
         }
       };
 

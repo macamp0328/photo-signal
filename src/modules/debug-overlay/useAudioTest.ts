@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Howl } from 'howler';
 import { diagnoseAudioUrl } from '../audio-playback';
 import type { AudioDiagnosticResult } from '../audio-playback';
@@ -25,25 +25,29 @@ export function useAudioTest(): UseAudioTestReturn {
   const [testResult, setTestResult] = useState<AudioTestResult | null>(null);
   const testSoundRef = useRef<Howl | null>(null);
   const isMountedRef = useRef(true);
+  const timeoutRef = useRef<number | null>(null);
+  const runIdRef = useRef(0);
 
-  // Track mount state
-  const cleanupRef = useRef(() => {
-    isMountedRef.current = false;
-    if (testSoundRef.current) {
-      testSoundRef.current.unload();
-      testSoundRef.current = null;
-    }
-  });
-
-  // Register cleanup on first render via a ref-based pattern
-  // (useEffect is called later in the component, but the ref captures the intent)
-  useState(() => {
-    // Return cleanup on unmount — this runs synchronously once
-    return () => cleanupRef.current();
-  });
+  // Register cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (testSoundRef.current) {
+        testSoundRef.current.unload();
+        testSoundRef.current = null;
+      }
+    };
+  }, []);
 
   const runTest = useCallback((url: string) => {
     if (!url) return;
+
+    // Increment runId to invalidate any in-flight previous runs
+    const currentRunId = ++runIdRef.current;
 
     setIsTestRunning(true);
     setTestResult(null);
@@ -57,12 +61,17 @@ export function useAudioTest(): UseAudioTestReturn {
     const startTime = Date.now();
 
     diagnoseAudioUrl(url).then((diagnostic) => {
-      if (!isMountedRef.current) return;
+      // Ignore stale results from previous runs
+      if (!isMountedRef.current || runIdRef.current !== currentRunId) return;
 
-      // If the fetch itself failed, skip playback test
+      // If the fetch itself failed, or we got an unrecoverable HTTP status, skip playback test.
+      // Note: Some CDNs legitimately return 403/405 for HEAD while still allowing GET/streaming,
+      // so we treat those as "probe unsupported" and still attempt playback.
       if (
         diagnostic.httpStatus === null ||
-        (diagnostic.httpStatus && diagnostic.httpStatus >= 400)
+        (diagnostic.httpStatus >= 400 &&
+          diagnostic.httpStatus !== 403 &&
+          diagnostic.httpStatus !== 405)
       ) {
         setTestResult({
           diagnostic,
@@ -77,9 +86,10 @@ export function useAudioTest(): UseAudioTestReturn {
       // Phase 2: attempt actual Howler playback
       let settled = false;
 
-      const timeout = window.setTimeout(() => {
-        if (settled) return;
+      timeoutRef.current = window.setTimeout(() => {
+        if (settled || runIdRef.current !== currentRunId) return;
         settled = true;
+        timeoutRef.current = null;
         if (testSoundRef.current) {
           testSoundRef.current.unload();
           testSoundRef.current = null;
@@ -104,9 +114,12 @@ export function useAudioTest(): UseAudioTestReturn {
       testSoundRef.current = sound;
 
       sound.on('play', () => {
-        if (settled) return;
+        if (settled || runIdRef.current !== currentRunId) return;
         settled = true;
-        clearTimeout(timeout);
+        if (timeoutRef.current !== null) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
 
         // Stop immediately — we just wanted to confirm playback works
         sound.stop();
@@ -125,9 +138,12 @@ export function useAudioTest(): UseAudioTestReturn {
       });
 
       sound.on('loaderror', (_id: number, error: unknown) => {
-        if (settled) return;
+        if (settled || runIdRef.current !== currentRunId) return;
         settled = true;
-        clearTimeout(timeout);
+        if (timeoutRef.current !== null) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
         sound.unload();
         testSoundRef.current = null;
 
@@ -143,9 +159,12 @@ export function useAudioTest(): UseAudioTestReturn {
       });
 
       sound.on('playerror', (_id: number, error: unknown) => {
-        if (settled) return;
+        if (settled || runIdRef.current !== currentRunId) return;
         settled = true;
-        clearTimeout(timeout);
+        if (timeoutRef.current !== null) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
         sound.unload();
         testSoundRef.current = null;
 

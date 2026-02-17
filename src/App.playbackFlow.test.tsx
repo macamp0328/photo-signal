@@ -285,9 +285,14 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
+    // Record call count before clicking Play button
+    const callCountBefore = mockPlay.mock.calls.length;
+
     await user.click(screen.getByRole('button', { name: 'Play' }));
 
-    expect(mockPlay).toHaveBeenCalledWith('/audio/two.opus');
+    // Verify Play button click triggered a new play call
+    expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
   });
 
   it('shows playback error guidance with retry hint', async () => {
@@ -304,9 +309,7 @@ describe('App playback flow', () => {
     );
 
     // Should show error message without duplication (already has "Tap Play to retry")
-    expect(
-      screen.getByText('Audio failed to start. Tap Play to retry.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
     expect(screen.getByText('Playback Error')).toBeInTheDocument();
   });
 

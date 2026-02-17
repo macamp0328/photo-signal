@@ -9,11 +9,6 @@ import {
   generateHashVariants,
   DEFAULT_EXPOSURE_OFFSETS,
 } from './lib/photoHashUtils.js';
-import {
-  DEFAULT_ORB_CONFIG,
-  extractORBFeatures,
-  serializeORBFeatures,
-} from './lib/orbFeatureUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +20,7 @@ const DEFAULT_BATCH_SIZE = 6;
 const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'assets/test-data/concerts.dev.json');
 const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
 const DEFAULT_IMAGE_DIR = path.resolve(repoRoot, 'assets/test-images');
-const VALID_ALGORITHMS = new Set(['phash', 'dhash']);
+const VALID_ALGORITHMS = new Set(['phash']);
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
 const EXPOSURE_LABELS = ['dark', 'normal', 'bright'];
 
@@ -49,18 +44,6 @@ function parseIds(value, bucket) {
   return bucket;
 }
 
-function applyNumericOption(target, key, nextValue) {
-  if (nextValue === undefined) {
-    throw new Error(`--${key} requires a numeric value`);
-  }
-  const parsed = Number(nextValue);
-  if (!Number.isFinite(parsed)) {
-    throw new Error(`--${key} must be a valid number`);
-  }
-  target[key] = parsed;
-  return parsed;
-}
-
 function parseArgs() {
   const args = ORIGINAL_ARGS;
   const options = {
@@ -69,11 +52,9 @@ function parseArgs() {
     dryRun: false,
     tasks: {
       hashes: true,
-      orb: true,
     },
     algorithms: new Set(VALID_ALGORITHMS),
     ids: null,
-    orbConfig: { ...DEFAULT_ORB_CONFIG },
     pathsMode: false,
     imageTargets: [],
     batchSize: IS_BATCH_CHILD ? Number.POSITIVE_INFINITY : DEFAULT_BATCH_SIZE,
@@ -103,17 +84,9 @@ function parseArgs() {
         break;
       case '--hashes-only':
         options.tasks.hashes = true;
-        options.tasks.orb = false;
-        break;
-      case '--orb-only':
-        options.tasks.hashes = false;
-        options.tasks.orb = true;
         break;
       case '--no-hashes':
         options.tasks.hashes = false;
-        break;
-      case '--no-orb':
-        options.tasks.orb = false;
         break;
       case '--algorithm':
       case '--algorithms':
@@ -146,24 +119,6 @@ function parseArgs() {
           throw new Error('--ids requires a comma-separated list');
         }
         options.ids = parseIds(args[++i], options.ids);
-        break;
-      case '--max-features':
-        applyNumericOption(options.orbConfig, 'maxFeatures', args[++i]);
-        break;
-      case '--fast-threshold':
-        applyNumericOption(options.orbConfig, 'fastThreshold', args[++i]);
-        break;
-      case '--min-match-count':
-        applyNumericOption(options.orbConfig, 'minMatchCount', args[++i]);
-        break;
-      case '--match-ratio-threshold':
-        applyNumericOption(options.orbConfig, 'matchRatioThreshold', args[++i]);
-        break;
-      case '--scale-factor':
-        applyNumericOption(options.orbConfig, 'scaleFactor', args[++i]);
-        break;
-      case '--edge-threshold':
-        applyNumericOption(options.orbConfig, 'edgeThreshold', args[++i]);
         break;
       case '--paths-mode':
         options.pathsMode = true;
@@ -205,12 +160,12 @@ function parseArgs() {
     }
   }
 
-  if (!options.tasks.hashes && !options.tasks.orb) {
-    throw new Error('At least one task must be enabled (hashes and/or ORB).');
+  if (!options.tasks.hashes) {
+    throw new Error('At least one task must be enabled (hash generation).');
   }
 
   if (options.tasks.hashes && options.algorithms.size === 0) {
-    throw new Error('No hash algorithms selected. Use --algorithms to choose phash and/or dhash.');
+    throw new Error('No hash algorithms selected. Use --algorithms phash.');
   }
 
   if (options.pathsMode) {
@@ -221,7 +176,6 @@ function parseArgs() {
       throw new Error('Paths mode requires hash generation to be enabled.');
     }
     options.public = null;
-    options.tasks.orb = false;
   }
 
   return options;
@@ -260,11 +214,9 @@ function buildBatchArgs(originalArgs) {
 
 function parseSummaryStats(output) {
   const hashMatch = output.match(/Hash updates:\s+(\d+)/);
-  const orbMatch = output.match(/ORB updates:\s+(\d+)/);
   const skippedMatch = output.match(/Skipped:\s+(\d+)/);
   return {
     hashes: hashMatch ? Number(hashMatch[1]) : 0,
-    orb: orbMatch ? Number(orbMatch[1]) : 0,
     skipped: skippedMatch ? Number(skippedMatch[1]) : 0,
   };
 }
@@ -316,7 +268,6 @@ async function runBatchedProcessing(options, targets) {
   console.log('Use --batch-size to adjust or 0 to disable batching.');
 
   let totalHashes = 0;
-  let totalOrb = 0;
   let totalSkipped = 0;
 
   for (let index = 0; index < batches.length; index++) {
@@ -328,14 +279,12 @@ async function runBatchedProcessing(options, targets) {
     const { stdout } = await runChildBatch(childArgs, label);
     const summary = parseSummaryStats(stdout);
     totalHashes += summary.hashes;
-    totalOrb += summary.orb;
     totalSkipped += summary.skipped;
   }
 
   console.log('\n' + '━'.repeat(60));
   console.log('✅ Batch processing complete');
   console.log(`Hash updates: ${totalHashes}`);
-  console.log(`ORB updates:  ${totalOrb}`);
   console.log(`Skipped:      ${totalSkipped}`);
 }
 
@@ -368,12 +317,11 @@ async function processConcert(concert, options) {
     id: concert.id,
     band: concert.band,
     hashes: false,
-    orb: false,
     errors: [],
     reason: null,
   };
 
-  if (!options.tasks.hashes && !options.tasks.orb) {
+  if (!options.tasks.hashes) {
     status.reason = 'No tasks enabled';
     return status;
   }
@@ -407,24 +355,9 @@ async function processConcert(concert, options) {
         hashStore.phash = hashVariants.phash;
       }
 
-      if (options.algorithms.has('dhash')) {
-        hashStore.dhash = hashVariants.dhash;
-      }
-
       status.hashes = true;
     } catch (error) {
       status.errors.push(`hash generation failed: ${error.message}`);
-    }
-  }
-
-  if (options.tasks.orb) {
-    try {
-      const imageData = await ensureImageData();
-      const features = extractORBFeatures(imageData, options.orbConfig);
-      concert.orbFeatures = serializeORBFeatures(imageData, features, options.orbConfig);
-      status.orb = true;
-    } catch (error) {
-      status.errors.push(`ORB generation failed: ${error.message}`);
     }
   }
 
@@ -521,14 +454,6 @@ async function syncPublicData(publicPath, sourceData, updateState, dryRun) {
       }
     }
 
-    if (state.orb) {
-      if (source.orbFeatures) {
-        concert.orbFeatures = source.orbFeatures;
-      } else {
-        delete concert.orbFeatures;
-      }
-    }
-
     synced += 1;
   }
 
@@ -543,9 +468,6 @@ function formatTaskSummary(status, options) {
   const parts = [];
   if (status.hashes) {
     parts.push(`hashes(${Array.from(options.algorithms).join('+')})`);
-  }
-  if (status.orb) {
-    parts.push('orb');
   }
   return parts.join(', ');
 }
@@ -618,16 +540,9 @@ async function main() {
   console.log('📸 Photo Signal recognition data updater');
   console.log(`Input:  ${options.input}`);
   console.log(`Public: ${options.public ?? '(skipped)'}`);
-  console.log(
-    `Tasks: hashes=${options.tasks.hashes ? 'on' : 'off'}, orb=${options.tasks.orb ? 'on' : 'off'}`
-  );
+  console.log(`Tasks: hashes=${options.tasks.hashes ? 'on' : 'off'}`);
   if (options.tasks.hashes) {
     console.log(`Hash algorithms: ${Array.from(options.algorithms).join(', ')}`);
-  }
-  if (options.tasks.orb) {
-    console.log(
-      `ORB config: maxFeatures=${options.orbConfig.maxFeatures}, fastThreshold=${options.orbConfig.fastThreshold}, matchRatio=${options.orbConfig.matchRatioThreshold}`
-    );
   }
   if (options.ids && options.ids.size > 0) {
     console.log(`Targeting concert ids: ${Array.from(options.ids).join(', ')}`);
@@ -658,15 +573,13 @@ async function main() {
 
   const updateState = new Map();
   let hashCount = 0;
-  let orbCount = 0;
   let skipped = 0;
 
   for (const concert of targets) {
     const status = await processConcert(concert, options);
-    if (status.hashes || status.orb) {
-      updateState.set(concert.id, { hashes: status.hashes, orb: status.orb });
+    if (status.hashes) {
+      updateState.set(concert.id, { hashes: status.hashes });
       if (status.hashes) hashCount += 1;
-      if (status.orb) orbCount += 1;
       console.log(`✓ ${concert.band}`);
       console.log(`  ${formatTaskSummary(status, options)}`);
     } else if (status.errors.length > 0) {
@@ -699,7 +612,6 @@ async function main() {
 
   console.log('━'.repeat(60));
   console.log(`Hash updates: ${hashCount}`);
-  console.log(`ORB updates:  ${orbCount}`);
   console.log(`Skipped:      ${skipped}`);
 }
 

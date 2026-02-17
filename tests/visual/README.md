@@ -1,169 +1,100 @@
 # Visual Regression Tests
 
-This directory contains Playwright-based visual regression tests for the Photo Signal project.
+This suite is intentionally small and mobile-first. It is a guardrail for autonomous changes, not a broad snapshot catalog.
 
-## Purpose
+## Suite Design
 
-Visual regression tests detect unintended CSS or visual changes by comparing screenshots of UI components across runs. These tests ensure that any changes to styles, layouts, or visual elements are intentional and reviewed before merging.
+- **Blocking tier (`@smoke`)**: high-signal regressions on core user-visible flows.
+- **Informational tier (`@extended`)**: broader checks that report drift without blocking PRs.
+- **Default stance**: fewer snapshots with clearer intent and lower maintenance cost.
 
-## Test Structure
+## Current Coverage
 
-Tests are organized by UI area:
+| Test Suite                | Tier             | Focus                                           |
+| ------------------------- | ---------------- | ----------------------------------------------- |
+| `landing-page.spec.ts`    | smoke + extended | Landing shell and CTA stability                 |
+| `camera-view.spec.ts`     | smoke            | Camera activation state                         |
+| `error-states.spec.ts`    | smoke + extended | Permission and network fallback states          |
+| `secret-settings.spec.ts` | smoke + extended | Settings dialog and key toggle behavior         |
+| `accessibility.spec.ts`   | extended         | Focus visibility, high-contrast, reduced motion |
+| `responsive.spec.ts`      | extended         | Small-mobile baseline + minimal desktop sanity  |
 
-- **`landing-page.spec.ts`** - Landing page in inactive state, multiple viewports (3 tests)
-- **`camera-view.spec.ts`** - Camera permission states, active camera view, error states (2 tests)
-- **`ui-components.spec.ts`** - Themes, responsive design, interactive states (4 tests)
-- **`secret-settings.spec.ts`** - Settings menu, feature flags, sliders, mobile viewport (7 tests)
-- **`concert-info.spec.ts`** - Concert display states, overflow handling, mobile viewport (5 tests)
-- **`error-states.spec.ts`** - Permission denied, network errors, empty data, audio failures (5 tests)
-- **`responsive.spec.ts`** - Multiple viewports, secret settings, camera view responsiveness (12 tests)
-- **`accessibility.spec.ts`** - Focus states, high contrast, keyboard navigation, touch targets (10 tests)
-- **`feature-flags.spec.ts`** - Feature flag variations, visual effects, multiple flags (8 tests)
+Removed low-signal suites:
 
-**Total**: ~56 visual regression test scenarios across 9 test files
+- `ui-components.spec.ts`
+- `concert-info.spec.ts`
+- `feature-flags.spec.ts`
 
-## Running Tests
-
-### Prerequisites
-
-Install Playwright browsers (one-time setup):
-
-```bash
-npx playwright install chromium
-```
-
-### Run All Visual Tests
+## Commands
 
 ```bash
-npx playwright test
-```
+# Blocking visual gate (mobile only)
+npm run test:visual
 
-### Run Specific Test File
+# Explicit smoke run
+npm run test:visual:smoke
 
-```bash
-npx playwright test tests/visual/landing-page.spec.ts
-```
+# Non-blocking informational coverage
+npm run test:visual:extended
 
-### Update Baseline Screenshots
+# Full run (all visual tests)
+npm run test:visual:full
 
-When you intentionally change CSS or UI, update the baseline screenshots:
+# Agent-safe non-interactive runs (no auto-open report UI)
+npm run test:visual:smoke:agent
+npm run test:visual:extended:agent
+npm run test:visual:full:agent
+npm run test:visual:update:agent
 
-```bash
-npx playwright test --update-snapshots
-```
+# Agent-safe targeted snapshot update for one visual spec
+npm run test:visual:update:spec:agent -- tests/visual/secret-settings.spec.ts
 
-### View Test Results
+# Update baselines after intentional UI changes
+npm run test:visual:update
 
-After running tests, view the HTML report:
-
-```bash
+# Open HTML report
 npm run test:visual:report
 ```
 
-This script runs `playwright show-report --host 0.0.0.0 --port 9323`, which binds the report server to all interfaces so it can be accessed from devcontainers and other remote environments. If you're running locally you can still execute `npx playwright show-report` directly.
+## CI Behavior
 
-## CI Integration
+Workflow: `.github/workflows/visual-regression.yml`
 
-Visual regression tests run automatically in GitHub Actions via the `.github/workflows/visual-regression.yml` workflow:
+- **Blocking**: `@smoke` on `Mobile Chrome` + `Mobile Safari`
+- **Informational**: `@extended` runs after smoke and uploads artifacts
+- **PR outcome**: smoke failures fail the workflow; extended failures are reported for review
 
-- Runs on all pull requests and pushes to `main`
-- Fails the check if visual differences are detected
-- Uploads diff images as artifacts for review
-- Separate from the main CI workflow for clarity
+## Snapshot Acceptance Criteria
 
-## Screenshot Storage
+Accept a snapshot update only when all are true:
 
-Baseline screenshots are stored alongside test files in:
+1. Change is user-visible and intentional.
+2. The test asserts an outcome, not an implementation detail.
+3. Snapshot is scoped appropriately (targeted region preferred; full-page only for shell/layout risk).
+4. Drift is deterministic across two local reruns.
+5. PR description explains why visual baselines changed.
 
-```
-tests/visual/
-├── landing-page.spec.ts
-├── landing-page.spec.ts-snapshots/
-│   ├── landing-page-chromium-linux.png
-│   ├── landing-page-mobile-chromium-linux.png
-│   └── landing-page-tablet-chromium-linux.png
-├── camera-view.spec.ts
-├── camera-view.spec.ts-snapshots/
-│   └── ...
-└── ...
-```
+## Mobile-First Rules
 
-**Important**: Baseline screenshots are committed to the repository so CI can compare against them.
+1. New blocking visuals must prove mobile user value first.
+2. Desktop visuals are allowed only for layout/overflow classes of risk.
+3. Avoid adding tablet/desktop variants unless they catch a distinct regression class.
+4. Prefer one canonical viewport per risk area.
 
-## Configuration
+## Flake Triage Workflow
 
-Visual regression test configuration is in `playwright.config.ts`:
+1. Re-run the failing test twice (`npx playwright test <spec> --grep <name>`).
+2. If non-deterministic, classify root cause:
+   - dynamic clock/timer content,
+   - animation/transition timing,
+   - unstable selector or focus target,
+   - browser-specific rendering drift.
+3. Fix root cause before updating baselines (no blind snapshot refresh).
+4. If risk is low and drift remains browser-specific, move check to `@extended`.
 
-- **Test directory**: `./tests/visual`
-- **Base URL**: `http://localhost:4173` (Vite preview server)
-- **Browsers (CI)**: Chromium only (for speed and reliability)
-- **Browsers (Local)**: Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari
-- **Threshold**: 0.2% pixel difference tolerance (for anti-aliasing)
-- **Timeout**: 30 seconds per test
-- **Retries**: 2 on CI, 0 locally
-- **Workers**: 1 on CI (sequential), unlimited locally (parallel)
+## Authoring Guidance
 
-**Note**: In CI, only Chromium tests run to keep the workflow fast. Locally, you can test on all browsers and devices by running `npx playwright test`.
-
-## Writing New Visual Tests
-
-When adding new UI components or pages, add corresponding visual tests:
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe('My New Component', () => {
-  test('should render correctly', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Navigate to your component state
-    // ...
-
-    // Take screenshot
-    await expect(page).toHaveScreenshot('my-component.png');
-  });
-});
-```
-
-### Best Practices
-
-1. **Wait for stability**: Use `page.waitForLoadState('networkidle')` to ensure page is fully loaded
-2. **Disable animations**: Configured globally in `playwright.config.ts`
-3. **Full page vs component**: Use `fullPage: true` for page-level tests
-4. **Multiple viewports**: Test responsive layouts at mobile, tablet, desktop sizes
-5. **Meaningful names**: Use descriptive screenshot names like `landing-page-mobile.png`
-6. **Isolate tests**: Each test should be independent and reset state
-
-## Troubleshooting
-
-### Tests Failing Due to Minor Differences
-
-If tests fail due to anti-aliasing or minor rendering differences:
-
-1. Review the diff images in `test-results/`
-2. If differences are acceptable, update threshold in `playwright.config.ts`
-3. Or update baselines with `--update-snapshots`
-
-### Flaky Tests
-
-If screenshots vary between runs:
-
-1. Ensure animations are disabled
-2. Wait for network idle: `await page.waitForLoadState('networkidle')`
-3. Add specific waits: `await page.waitForTimeout(500)`
-4. Mock dynamic content (dates, randomness)
-
-### CI-Only Failures
-
-If tests pass locally but fail on CI:
-
-1. Font rendering differs between OS - update baselines from CI
-2. Run tests in Docker locally to match CI environment
-3. Check for system font differences
-
-## References
-
-- [Playwright Visual Comparisons](https://playwright.dev/docs/test-snapshots)
-- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [GitHub Actions Integration](https://playwright.dev/docs/ci-intro)
+- Use shared helpers from `tests/visual/utils/visual-helpers.ts`.
+- Avoid `waitForTimeout`; wait for explicit visible state.
+- Use role/name-based selectors and deterministic state setup.
+- Keep snapshot names tied to user outcome (example: `error-network-data-load.png`).

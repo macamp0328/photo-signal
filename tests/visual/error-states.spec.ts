@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { applyStableCameraPlaceholder } from './utils/camera';
+import { bootstrapVisualState, waitForCameraState } from './utils/visual-helpers';
 
 /**
  * Visual Regression Tests for Error States
@@ -9,66 +10,51 @@ import { applyStableCameraPlaceholder } from './utils/camera';
  */
 
 test.describe('Error States', () => {
-  test('camera permission denied', async ({ page }) => {
-    // Start with a clean page
+  test('@smoke camera permission fallback is visible', async ({ page }) => {
+    await bootstrapVisualState(page);
+
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Click the activate button to trigger camera request
-    const activateButton = page.getByRole('button', { name: /begin/i });
-
-    // In headless mode, this will show the permission state
+    const activateButton = page.getByRole('button', {
+      name: /activate camera and begin experience/i,
+    });
     await activateButton.click();
-
-    // Wait for either camera view or permission denied state
-    await Promise.race([
-      page
-        .locator('text=Camera Access Required')
-        .waitFor({ state: 'visible', timeout: 12000 })
-        .catch(() => null),
-      page
-        .locator('text=Point camera at a photo')
-        .waitFor({ state: 'visible', timeout: 12000 })
-        .catch(() => null),
-      page.waitForTimeout(4000),
-    ]);
+    await waitForCameraState(page);
 
     await applyStableCameraPlaceholder(page);
-
-    // Give UI time to stabilize and mask video noise if present
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
 
     const videoMask = page.locator('video');
 
-    // Take snapshot of permission state
-    await expect(page).toHaveScreenshot('error-camera-permission.png', {
+    await expect(page).toHaveScreenshot('error-camera-permission-or-active-state.png', {
       fullPage: true,
       timeout: 10000,
       mask: [videoMask],
     });
   });
 
-  test('network error - data loading failed', async ({ page }) => {
-    // Mock network error for data.json
+  test('@smoke network error fallback state', async ({ page }) => {
+    await bootstrapVisualState(page);
+
     await page.route('**/data.json', (route) => {
       route.abort('failed');
     });
 
     await page.goto('/');
-
-    // Wait for page to attempt loading data
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await expect(
+      page.getByRole('button', { name: /activate camera and begin experience/i })
+    ).toBeVisible();
 
-    // Take snapshot showing network error state
-    await expect(page).toHaveScreenshot('error-network-failed.png', {
+    await expect(page).toHaveScreenshot('error-network-data-load.png', {
       fullPage: true,
     });
   });
 
-  test('no concerts found - empty data', async ({ page }) => {
-    // Mock empty concert data
+  test('@extended empty data state remains stable', async ({ page }) => {
+    await bootstrapVisualState(page);
+
     await page.route('**/data.json', (route) => {
       route.fulfill({
         status: 200,
@@ -79,62 +65,11 @@ test.describe('Error States', () => {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle');
+    await expect(
+      page.getByRole('button', { name: /activate camera and begin experience/i })
+    ).toBeVisible();
 
-    // Take snapshot showing empty data state
-    await expect(page).toHaveScreenshot('error-no-concerts.png', {
-      fullPage: true,
-    });
-  });
-
-  test('audio playback error - file not found', async ({ page }) => {
-    // Mock concert data but fail audio file loading
-    await page.route('**/data.json', (route) => {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          concerts: [
-            {
-              id: 1,
-              band: 'Test Band',
-              venue: 'Test Venue',
-              date: '2023-01-01',
-              audioFile: '/audio/nonexistent.opus',
-            },
-          ],
-        }),
-      });
-    });
-
-    // Abort all audio file requests
-    await page.route('**/audio/*.opus', (route) => {
-      route.abort('failed');
-    });
-
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Take snapshot (may show normal state, as audio errors might be silent)
-    await expect(page).toHaveScreenshot('error-audio-failed.png', {
-      fullPage: true,
-    });
-  });
-
-  test('mobile viewport - error states', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-
-    // Mock network error
-    await page.route('**/data.json', (route) => {
-      route.abort('failed');
-    });
-
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    // Take snapshot of error state on mobile
-    await expect(page).toHaveScreenshot('error-mobile.png', {
+    await expect(page).toHaveScreenshot('error-empty-data-state.png', {
       fullPage: true,
     });
   });

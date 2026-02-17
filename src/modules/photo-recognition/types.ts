@@ -58,6 +58,24 @@ export type GuidanceType =
   | 'off-center'
   | 'none';
 
+export interface SwitchPromptSnapshot {
+  activeConcertId: number | null;
+  candidateConcertId: number | null;
+  confidence: number | null;
+  margin: number | null;
+  shownAt: number | null;
+}
+
+export interface SwitchDecisionTelemetry {
+  shownCount: number;
+  confirmCount: number;
+  dismissCount: number;
+  decisionLatenciesMs: number[];
+  averageDecisionLatencyMs: number | null;
+  lastDecisionLatencyMs: number | null;
+  lastPromptSnapshot: SwitchPromptSnapshot;
+}
+
 export interface RecognitionTelemetry {
   totalFrames: number;
   blurRejections: number;
@@ -73,6 +91,7 @@ export interface RecognitionTelemetry {
     duration: Record<GuidanceType, number>;
     lastShown: Record<GuidanceType, number>;
   };
+  switchDecision?: SwitchDecisionTelemetry;
 }
 
 export interface RecognitionDebugInfo {

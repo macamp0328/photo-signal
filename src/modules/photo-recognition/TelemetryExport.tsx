@@ -2,6 +2,27 @@ import { useState, useEffect } from 'react';
 import type { RecognitionTelemetry } from './types';
 import styles from './TelemetryExport.module.css';
 
+const getLatencyBounds = (latencyValues: number[]): { min: number | null; max: number | null } => {
+  if (latencyValues.length === 0) {
+    return { min: null, max: null };
+  }
+
+  let min = latencyValues[0];
+  let max = latencyValues[0];
+
+  for (let index = 1; index < latencyValues.length; index += 1) {
+    const value = latencyValues[index];
+    if (value < min) {
+      min = value;
+    }
+    if (value > max) {
+      max = value;
+    }
+  }
+
+  return { min, max };
+};
+
 interface TelemetryExportProps {
   telemetry: RecognitionTelemetry;
 }
@@ -27,6 +48,24 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
   }, []);
 
   const exportTelemetry = () => {
+    const switchDecision = telemetry.switchDecision ?? {
+      shownCount: 0,
+      confirmCount: 0,
+      dismissCount: 0,
+      decisionLatenciesMs: [],
+      averageDecisionLatencyMs: null,
+      lastDecisionLatencyMs: null,
+      lastPromptSnapshot: {
+        activeConcertId: null,
+        candidateConcertId: null,
+        confidence: null,
+        margin: null,
+        shownAt: null,
+      },
+    };
+    const latencyValues = switchDecision.decisionLatenciesMs;
+    const latencyBounds = getLatencyBounds(latencyValues);
+
     // Create comprehensive telemetry report
     const report = {
       timestamp: new Date().toISOString(),
@@ -74,6 +113,19 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
         frameHash: failure.frameHash,
         timestamp: new Date(failure.timestamp).toISOString(),
       })),
+      switchDecisionMetrics: {
+        shownCount: switchDecision.shownCount,
+        confirmCount: switchDecision.confirmCount,
+        dismissCount: switchDecision.dismissCount,
+        decisionLatencyMs: {
+          average: switchDecision.averageDecisionLatencyMs,
+          last: switchDecision.lastDecisionLatencyMs,
+          min: latencyBounds.min,
+          max: latencyBounds.max,
+          samples: latencyValues,
+        },
+        lastPromptSnapshot: switchDecision.lastPromptSnapshot,
+      },
       rawData: telemetry,
     };
 

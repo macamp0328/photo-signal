@@ -22,6 +22,10 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import type { Concert } from './types';
+import type {
+  RecognitionTelemetry,
+  SwitchDecisionTelemetry,
+} from './modules/photo-recognition/types';
 import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
 
 const SecretSettings = lazy(async () => {
@@ -39,6 +43,45 @@ const DebugOverlay = lazy(async () => {
 
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
+const MAX_SWITCH_DECISION_LATENCY_SAMPLES = 200;
+const createEmptySwitchDecisionTelemetry = (): SwitchDecisionTelemetry => ({
+  shownCount: 0,
+  confirmCount: 0,
+  dismissCount: 0,
+  decisionLatenciesMs: [],
+  averageDecisionLatencyMs: null,
+  lastDecisionLatencyMs: null,
+  lastPromptSnapshot: {
+    activeConcertId: null,
+    candidateConcertId: null,
+    confidence: null,
+    margin: null,
+    shownAt: null,
+  },
+});
+
+const recordSwitchDecisionLatency = (
+  switchDecision: SwitchDecisionTelemetry,
+  promptShownAt: number | null
+): void => {
+  if (promptShownAt === null) {
+    return;
+  }
+
+  const decisionLatencyMs = Math.max(Date.now() - promptShownAt, 0);
+  switchDecision.decisionLatenciesMs.push(decisionLatencyMs);
+  if (switchDecision.decisionLatenciesMs.length > MAX_SWITCH_DECISION_LATENCY_SAMPLES) {
+    switchDecision.decisionLatenciesMs.shift();
+  }
+
+  switchDecision.lastDecisionLatencyMs = decisionLatencyMs;
+  const totalDecisions = switchDecision.confirmCount + switchDecision.dismissCount;
+  const previousAverage = switchDecision.averageDecisionLatencyMs ?? 0;
+  switchDecision.averageDecisionLatencyMs =
+    totalDecisions <= 1
+      ? decisionLatencyMs
+      : previousAverage + (decisionLatencyMs - previousAverage) / totalDecisions;
+};
 
 interface AccessGateConfig {
   enabled: boolean;
@@ -111,6 +154,11 @@ function AppContent() {
   // Ref to store auto-reset timer ID for test mode
   const autoResetTimerRef = useRef<number | null>(null);
   const previousRecognizedIdRef = useRef<number | null>(null);
+  const switchDecisionTelemetryRef = useRef<SwitchDecisionTelemetry>(
+    createEmptySwitchDecisionTelemetry()
+  );
+  const lastPromptConcertIdRef = useRef<number | null>(null);
+  const promptShownAtRef = useRef<number | null>(null);
 
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
@@ -289,7 +337,6 @@ function AppContent() {
 
     if (recognizedConcert.id === activeConcert.id) {
       setPendingSwitchConcert(null);
-      setDismissedSwitchConcertId(null);
       return;
     }
 
@@ -300,6 +347,31 @@ function AppContent() {
 
     setPendingSwitchConcert(recognizedConcert);
   }, [recognizedConcert, activeConcert, isPlaying, dismissedSwitchConcertId, activeGuidance]);
+
+  useEffect(() => {
+    if (!pendingSwitchConcert) {
+      lastPromptConcertIdRef.current = null;
+      promptShownAtRef.current = null;
+      return;
+    }
+
+    if (lastPromptConcertIdRef.current === pendingSwitchConcert.id) {
+      return;
+    }
+
+    const shownAt = Date.now();
+    const switchDecision = switchDecisionTelemetryRef.current;
+    switchDecision.shownCount += 1;
+    switchDecision.lastPromptSnapshot = {
+      activeConcertId: activeConcert?.id ?? null,
+      candidateConcertId: pendingSwitchConcert.id,
+      confidence: debugInfo?.bestMatch?.similarity ?? null,
+      margin: debugInfo?.bestMatchMargin ?? null,
+      shownAt,
+    };
+    promptShownAtRef.current = shownAt;
+    lastPromptConcertIdRef.current = pendingSwitchConcert.id;
+  }, [activeConcert, debugInfo, pendingSwitchConcert]);
 
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {
@@ -372,6 +444,12 @@ function AppContent() {
       return;
     }
 
+    const switchDecision = switchDecisionTelemetryRef.current;
+    switchDecision.confirmCount += 1;
+    recordSwitchDecisionLatency(switchDecision, promptShownAtRef.current);
+    promptShownAtRef.current = null;
+    lastPromptConcertIdRef.current = null;
+
     if (activeConcert && isPlaying) {
       crossfade(selectedAudioUrl);
     } else {
@@ -388,6 +466,12 @@ function AppContent() {
     if (!pendingSwitchConcert) {
       return;
     }
+
+    const switchDecision = switchDecisionTelemetryRef.current;
+    switchDecision.dismissCount += 1;
+    recordSwitchDecisionLatency(switchDecision, promptShownAtRef.current);
+    promptShownAtRef.current = null;
+    lastPromptConcertIdRef.current = null;
 
     setDismissedSwitchConcertId(pendingSwitchConcert.id);
     setPendingSwitchConcert(null);
@@ -527,6 +611,16 @@ function AppContent() {
   const guidanceMessage = isActive && stream && activeGuidance !== 'none' && (
     <GuidanceMessage guidanceType={activeGuidance} />
   );
+  const telemetryForExport: RecognitionTelemetry | null = debugInfo?.telemetry
+    ? {
+        ...debugInfo.telemetry,
+        switchDecision: {
+          ...switchDecisionTelemetryRef.current,
+          decisionLatenciesMs: [...switchDecisionTelemetryRef.current.decisionLatenciesMs],
+          lastPromptSnapshot: { ...switchDecisionTelemetryRef.current.lastPromptSnapshot },
+        },
+      }
+    : null;
 
   return (
     <>
@@ -570,8 +664,8 @@ function AppContent() {
           />
         </Suspense>
       )}
-      {isTestModeEnabled && !showSecretSettings && debugInfo?.telemetry && (
-        <TelemetryExport telemetry={debugInfo.telemetry} />
+      {isTestModeEnabled && !showSecretSettings && telemetryForExport && (
+        <TelemetryExport telemetry={telemetryForExport} />
       )}
     </>
   );

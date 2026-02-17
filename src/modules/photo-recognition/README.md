@@ -83,5 +83,6 @@ Legacy fields (e.g. `dhash`, `orbFeatures`) may still exist in `data.json` and a
 
 - Chosen runtime algorithm: **pHash only**
 - Fast confirmation path: immediate confirm for distance <= 5, or 2 consecutive matches
+- Telemetry includes app-level switch prompt decisions (shown/confirm/dismiss counts, latency, and confidence/margin snapshot)
 - Kept for matching: `algorithms/phash.ts`, `algorithms/hamming.ts`, `algorithms/utils.ts`
 - Removed runtime paths: dHash, ORB, parallel voting, secondary fallback, multi-scale branching

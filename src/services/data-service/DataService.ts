@@ -31,6 +31,7 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
  */
 class DataService {
   private cache: Concert[] | null = null;
+  private inFlightRequest: Promise<Concert[]> | null = null;
   private isTestMode = false;
   private readonly productionDataUrl = '/data.json';
   private readonly developmentDataUrl = '/assets/test-data/concerts.dev.json';
@@ -130,53 +131,67 @@ class DataService {
   /**
    * Get all concerts
    * Cached after first call for performance
+   * Deduplicates concurrent in-flight requests
    */
   async getConcerts(): Promise<Concert[]> {
     if (this.cache) {
       return this.cache as Concert[];
     }
 
-    try {
-      const dataSource = this.getActiveDataSource();
-      const dataUrl = this.getDataUrl();
-      console.log(`[DataService] Loading concert data from: ${dataUrl}`);
-      console.log(`[DataService] Data source: ${dataSource}`);
-      console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
-
-      const response = await fetch(dataUrl);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const concerts = Array.isArray(data.concerts) ? data.concerts : [];
-      this.cache = concerts;
-
-      const concertsWithHashes = concerts.filter((c: Concert) => hasAnyPhotoHashes(c)).length;
-
-      console.log(`[DataService] Successfully loaded ${concerts.length} concerts`);
-      console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
-
-      if (concerts.length === 0) {
-        console.warn('[DataService] Warning: No concerts found in data file');
-      }
-
-      if (concertsWithHashes === 0) {
-        console.warn(
-          '[DataService] Warning: No concerts expose photoHashes. Photo recognition will not work.'
-        );
-      }
-
-      return concerts;
-    } catch (error) {
-      console.error('[DataService] Failed to load concert data:', error);
-      console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
-      console.error(
-        `[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}. Try ${this.isTestMode ? 'disabling' : 'enabling'} it in Secret Settings.`
-      );
-      return [];
+    // If a request is already in flight, return that promise to dedupe concurrent calls
+    if (this.inFlightRequest) {
+      return this.inFlightRequest;
     }
+
+    // Create and store the in-flight request promise
+    this.inFlightRequest = (async () => {
+      try {
+        const dataSource = this.getActiveDataSource();
+        const dataUrl = this.getDataUrl();
+        console.log(`[DataService] Loading concert data from: ${dataUrl}`);
+        console.log(`[DataService] Data source: ${dataSource}`);
+        console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
+
+        const response = await fetch(dataUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const concerts = Array.isArray(data.concerts) ? data.concerts : [];
+        this.cache = concerts;
+
+        const concertsWithHashes = concerts.filter((c: Concert) => hasAnyPhotoHashes(c)).length;
+
+        console.log(`[DataService] Successfully loaded ${concerts.length} concerts`);
+        console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
+
+        if (concerts.length === 0) {
+          console.warn('[DataService] Warning: No concerts found in data file');
+        }
+
+        if (concertsWithHashes === 0) {
+          console.warn(
+            '[DataService] Warning: No concerts expose photoHashes. Photo recognition will not work.'
+          );
+        }
+
+        return concerts;
+      } catch (error) {
+        console.error('[DataService] Failed to load concert data:', error);
+        console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
+        console.error(
+          `[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}. Try ${this.isTestMode ? 'disabling' : 'enabling'} it in Secret Settings.`
+        );
+        return [];
+      } finally {
+        // Clear the in-flight request after it completes (success or failure)
+        this.inFlightRequest = null;
+      }
+    })();
+
+    return this.inFlightRequest;
   }
 
   /**
@@ -210,6 +225,7 @@ class DataService {
    */
   clearCache(): void {
     this.cache = null;
+    this.inFlightRequest = null;
   }
 
   /**

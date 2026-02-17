@@ -29,6 +29,7 @@ describe('guidanceConfig', () => {
         'motion-blur',
         'glare',
         'poor-lighting',
+        'ambiguous-match',
         'distance',
         'off-center',
         'none',
@@ -85,6 +86,7 @@ describe('guidanceConfig', () => {
     it('should return correct priority for each guidance type', () => {
       expect(getGuidancePriority('motion-blur', defaultGuidanceConfig)).toBe(5);
       expect(getGuidancePriority('glare', defaultGuidanceConfig)).toBe(4);
+      expect(getGuidancePriority('ambiguous-match', defaultGuidanceConfig)).toBe(3);
       expect(getGuidancePriority('poor-lighting', defaultGuidanceConfig)).toBe(3);
       expect(getGuidancePriority('distance', defaultGuidanceConfig)).toBe(3);
       expect(getGuidancePriority('off-center', defaultGuidanceConfig)).toBe(2);

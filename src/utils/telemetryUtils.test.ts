@@ -26,6 +26,7 @@ function createGuidanceTracking(overrides?: {
     'motion-blur': 0,
     glare: 0,
     'poor-lighting': 0,
+    'ambiguous-match': 0,
     distance: 0,
     'off-center': 0,
     none: 0,

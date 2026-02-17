@@ -167,10 +167,10 @@ Each module in `src/modules/` is self-contained with:
 
 ### Photo Recognition
 
-- Multi-algorithm: dHash (128-bit), pHash (64-bit), ORB feature matching
+- Single-algorithm runtime: pHash (64-bit) matching
 - Multi-exposure variants (dark/normal/bright) for lighting robustness
-- Parallel recognition with weighted voting
-- See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for details
+- Legacy dHash/ORB/parallel docs retained in `docs/archive/` for historical reference
+- See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for current behavior
 
 ## CI/CD
 

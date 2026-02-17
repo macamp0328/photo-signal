@@ -1,18 +1,12 @@
-/**
- * Tests for Photo Recognition Module
- *
- * Validates dHash-based recognition logic and state management
- */
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { usePhotoRecognition } from './usePhotoRecognition';
+import { act, renderHook } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
+import { usePhotoRecognition } from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
+let activeFrameHash = 'a5b3c7d9e1f20486';
 
-// Mock the secret-settings module
 vi.mock('../secret-settings', () => ({
   useFeatureFlags: vi.fn(() => ({
     flags: [],
@@ -22,32 +16,24 @@ vi.mock('../secret-settings', () => ({
   })),
 }));
 
-// Mock the data service
 vi.mock('../../services/data-service', () => ({
   dataService: {
     getConcerts: vi.fn(),
     clearCache: vi.fn(),
-    subscribe: vi.fn(() => () => {}), // Returns unsubscribe function
+    subscribe: vi.fn(() => () => {}),
   },
 }));
 
-// Mock the hashing algorithms
-vi.mock('./algorithms/dhash', () => ({
-  computeDHash: vi.fn((imageData: ImageData) => {
-    // Return a predictable hash based on image data
-    // For testing, we'll use a simple checksum
-    const sum = Array.from(imageData.data).reduce((a, b) => a + b, 0);
-    return sum.toString(16).padStart(32, '0');
-  }),
+vi.mock('./algorithms/phash', () => ({
+  computePHash: vi.fn(() => activeFrameHash),
 }));
 
 vi.mock('./algorithms/hamming', () => ({
   hammingDistance: vi.fn((hash1: string, hash2: string) => {
-    // Simple distance: count different characters
     let distance = 0;
-    for (let i = 0; i < Math.min(hash1.length, hash2.length); i++) {
+    for (let i = 0; i < Math.min(hash1.length, hash2.length); i += 1) {
       if (hash1[i] !== hash2[i]) {
-        distance += 4; // Each hex char represents 4 bits
+        distance += 4;
       }
     }
     return distance;
@@ -55,7 +41,6 @@ vi.mock('./algorithms/hamming', () => ({
 }));
 
 describe('usePhotoRecognition', () => {
-  // Mock concert data with photoHashes
   const mockConcerts: Concert[] = [
     {
       id: 1,
@@ -65,11 +50,6 @@ describe('usePhotoRecognition', () => {
       audioFile: '/audio/test1.opus',
       photoHashes: {
         phash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'],
-        dhash: [
-          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-          'cccccccccccccccccccccccccccccccc',
-        ],
       },
     },
     {
@@ -80,24 +60,18 @@ describe('usePhotoRecognition', () => {
       audioFile: '/audio/test2.opus',
       photoHashes: {
         phash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'],
-        dhash: [
-          'dddddddddddddddddddddddddddddddd',
-          'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-          'ffffffffffffffffffffffffffffffff',
-        ],
       },
     },
   ];
 
-  // Create a proper MediaStream mock
   let mockStream: MediaStream;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockIsEnabled.mockReturnValue(false);
+    activeFrameHash = 'a5b3c7d9e1f20486';
 
-    // Create a better MediaStream mock that happy-dom will accept
     const mockTrack = {
       kind: 'video',
       id: 'mock-track-id',
@@ -129,7 +103,6 @@ describe('usePhotoRecognition', () => {
       dispatchEvent: vi.fn(),
     } as unknown as MediaStream;
 
-    // Setup default mock behavior
     vi.mocked(dataService.getConcerts).mockResolvedValue(mockConcerts);
   });
 
@@ -137,394 +110,303 @@ describe('usePhotoRecognition', () => {
     vi.useRealTimers();
   });
 
-  describe('Initial State', () => {
-    it('should have null recognizedConcert initially', () => {
-      const { result } = renderHook(() => usePhotoRecognition(null));
-
-      expect(result.current.recognizedConcert).toBeNull();
-    });
-
-    it('should have isRecognizing false initially', () => {
-      const { result } = renderHook(() => usePhotoRecognition(null));
-
-      expect(result.current.isRecognizing).toBe(false);
-    });
-
-    it('should provide reset function', () => {
-      const { result } = renderHook(() => usePhotoRecognition(null));
-
-      expect(result.current.reset).toBeDefined();
-      expect(typeof result.current.reset).toBe('function');
-    });
+  it('starts with null recognized concert', () => {
+    const { result } = renderHook(() => usePhotoRecognition(null));
+    expect(result.current.recognizedConcert).toBeNull();
+    expect(result.current.isRecognizing).toBe(false);
   });
 
-  describe('Reset Functionality', () => {
-    it('should reset recognizedConcert to null', async () => {
+  it('provides reset function', () => {
+    const { result } = renderHook(() => usePhotoRecognition(null));
+    expect(typeof result.current.reset).toBe('function');
+  });
+
+  it('loads concerts when enabled and stream exists', async () => {
+    renderHook(() => usePhotoRecognition(mockStream, { enabled: true }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    expect(dataService.getConcerts).toHaveBeenCalled();
+  });
+
+  it('does not start matching when disabled', async () => {
+    const { result } = renderHook(() => usePhotoRecognition(mockStream, { enabled: false }));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    expect(result.current.isRecognizing).toBe(false);
+    expect(result.current.recognizedConcert).toBeNull();
+  });
+
+  it('supports rectangle detection options', () => {
+    const { result } = renderHook(() =>
+      usePhotoRecognition(mockStream, {
+        enableRectangleDetection: true,
+        rectangleConfidenceThreshold: 0.3,
+      })
+    );
+
+    expect(result.current.detectedRectangle).toBeNull();
+    expect(result.current.rectangleConfidence).toBe(0);
+  });
+
+  it('supports configurable thresholds', () => {
+    const { result } = renderHook(() =>
+      usePhotoRecognition(mockStream, {
+        similarityThreshold: 10,
+        recognitionDelay: 800,
+        checkInterval: 200,
+      })
+    );
+
+    expect(result.current).toBeDefined();
+  });
+
+  it('resets state cleanly', async () => {
+    const { result } = renderHook(() => usePhotoRecognition(mockStream));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    act(() => {
+      result.current.reset();
+    });
+
+    expect(result.current.recognizedConcert).toBeNull();
+    expect(result.current.isRecognizing).toBe(false);
+    expect(result.current.activeGuidance).toBe('none');
+  });
+
+  it('handles data loading errors gracefully', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('load failed'));
+
+    const { result } = renderHook(() => usePhotoRecognition(mockStream));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    expect(result.current.recognizedConcert).toBeNull();
+    consoleSpy.mockRestore();
+  });
+
+  it('confirms a strong match within 500ms', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const { result } = renderHook(() => usePhotoRecognition(mockStream, { enabled: true }));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      const startMs = Date.now();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+      expect(Date.now() - startMs).toBeLessThanOrEqual(500);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('switches recognized concert in continuous mode after stricter confirmation', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
       const { result } = renderHook(() =>
         usePhotoRecognition(mockStream, {
-          recognitionDelay: 100,
-          checkInterval: 50,
-        })
-      );
-
-      // Wait for concerts to load
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      // Manually set a recognized concert to test reset
-      // (In real scenario, recognition would set this)
-      act(() => {
-        // Simulate recognition by setting state
-        result.current.reset();
-      });
-
-      expect(result.current.recognizedConcert).toBeNull();
-    });
-
-    it('should reset isRecognizing to false', () => {
-      const { result } = renderHook(() => usePhotoRecognition(mockStream));
-
-      act(() => {
-        result.current.reset();
-      });
-
-      expect(result.current.isRecognizing).toBe(false);
-    });
-
-    it('should reinitialize recognition loop after reset', async () => {
-      mockIsEnabled.mockImplementation((flag: string) => flag === 'test-mode');
-      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          recognitionDelay: 100,
-          checkInterval: 50,
-        })
-      );
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(0);
-        await Promise.resolve();
-      });
-
-      const logsBeforeReset = logSpy.mock.calls.filter(
-        ([message]) =>
-          typeof message === 'string' && message.includes('[Photo Recognition] Initializing')
-      ).length;
-
-      act(() => {
-        result.current.reset();
-      });
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(0);
-        await Promise.resolve();
-      });
-
-      const logsAfterReset = logSpy.mock.calls.filter(
-        ([message]) =>
-          typeof message === 'string' && message.includes('[Photo Recognition] Initializing')
-      ).length;
-
-      expect(logsAfterReset).toBeGreaterThan(logsBeforeReset);
-
-      logSpy.mockRestore();
-      mockIsEnabled.mockReturnValue(false);
-    });
-  });
-
-  describe('Enabled/Disabled State', () => {
-    it('should not start recognition when enabled is false', async () => {
-      const { result } = renderHook(() => usePhotoRecognition(mockStream, { enabled: false }));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(5000);
-      });
-
-      expect(result.current.isRecognizing).toBe(false);
-      expect(result.current.recognizedConcert).toBeNull();
-    });
-
-    it('should start processing when enabled is true', async () => {
-      renderHook(() => usePhotoRecognition(mockStream, { enabled: true }));
-
-      // Should load concerts
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(dataService.getConcerts).toHaveBeenCalled();
-    });
-  });
-
-  describe('No Stream Handling', () => {
-    it('should not process when stream is null', async () => {
-      const { result } = renderHook(() => usePhotoRecognition(null));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(5000);
-      });
-
-      expect(result.current.isRecognizing).toBe(false);
-      expect(result.current.recognizedConcert).toBeNull();
-    });
-
-    it('should not throw errors when stream is null', () => {
-      expect(() => {
-        renderHook(() => usePhotoRecognition(null));
-      }).not.toThrow();
-    });
-
-    it('should start processing when stream changes from null to valid stream', async () => {
-      const { result, rerender } = renderHook(({ stream }) => usePhotoRecognition(stream), {
-        initialProps: { stream: null as MediaStream | null },
-      });
-
-      // Initially no stream
-      expect(result.current.isRecognizing).toBe(false);
-
-      // Provide stream
-      act(() => {
-        rerender({ stream: mockStream });
-      });
-
-      // Should start loading concerts
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(dataService.getConcerts).toHaveBeenCalled();
-    });
-  });
-
-  describe('Cleanup', () => {
-    it('should clean up on unmount', async () => {
-      const { unmount } = renderHook(() => usePhotoRecognition(mockStream, { checkInterval: 100 }));
-
-      // Start processing
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      // Unmount
-      unmount();
-
-      // Should not throw errors
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(1000);
-      });
-    });
-  });
-
-  describe('Configuration Options', () => {
-    it('should use default checkInterval of 1000ms', async () => {
-      const { result } = renderHook(() => usePhotoRecognition(mockStream));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(result.current).toBeDefined();
-    });
-
-    it('should use custom checkInterval', async () => {
-      const { result } = renderHook(() => usePhotoRecognition(mockStream, { checkInterval: 500 }));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(result.current).toBeDefined();
-    });
-
-    it('should use custom similarityThreshold', async () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, { similarityThreshold: 5 })
-      );
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(result.current).toBeDefined();
-    });
-
-    it('should use custom recognitionDelay', async () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, { recognitionDelay: 500 })
-      );
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(result.current).toBeDefined();
-    });
-  });
-
-  describe('Concert Data Loading', () => {
-    it('should load concerts on mount', async () => {
-      renderHook(() => usePhotoRecognition(mockStream));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(dataService.getConcerts).toHaveBeenCalled();
-    });
-
-    it('should handle empty concert list', async () => {
-      vi.mocked(dataService.getConcerts).mockResolvedValue([]);
-
-      const { result } = renderHook(() => usePhotoRecognition(mockStream));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      expect(result.current.recognizedConcert).toBeNull();
-    });
-
-    it('should not process frames until concerts are loaded', async () => {
-      const { result } = renderHook(() => usePhotoRecognition(mockStream, { checkInterval: 50 }));
-
-      // Before concerts load, should not be processing
-      expect(result.current.isRecognizing).toBe(false);
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      // After loading, might start processing if there's a match
-      expect(dataService.getConcerts).toHaveBeenCalled();
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle errors in concert loading gracefully', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      vi.mocked(dataService.getConcerts).mockRejectedValue(new Error('Test error'));
-
-      const { result } = renderHook(() => usePhotoRecognition(mockStream));
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(100);
-      });
-
-      // Should not crash
-      expect(result.current.recognizedConcert).toBeNull();
-
-      consoleErrorSpy.mockRestore();
-    });
-  });
-
-  describe('Multi-Scale Recognition', () => {
-    it('should use default scale when multi-scale is disabled', () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          enableMultiScale: false,
-          checkInterval: 50,
-        })
-      );
-
-      // Default behavior should be maintained
-      expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.isRecognizing).toBe(false);
-    });
-
-    it('should accept custom multi-scale variants', () => {
-      const customVariants = [0.7, 0.8, 0.9];
-
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          enableMultiScale: true,
-          multiScaleVariants: customVariants,
-          checkInterval: 50,
-        })
-      );
-
-      // Should initialize without errors
-      expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.isRecognizing).toBe(false);
-    });
-
-    it('should accept enableMultiScale option', () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          enableMultiScale: true,
-          checkInterval: 50,
-        })
-      );
-
-      // Should work with multi-scale enabled
-      expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.isRecognizing).toBe(false);
-    });
-
-    it('should use default variants when multi-scale enabled without custom variants', () => {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          enableMultiScale: true,
-          checkInterval: 50,
-        })
-      );
-
-      // Default variants [0.75, 0.8, 0.85, 0.9] should be used
-      expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.isRecognizing).toBe(false);
-    });
-  });
-
-  describe('Performance Optimizations', () => {
-    it('should implement frame skipping optimization', () => {
-      // This test verifies that frame skipping is implemented
-      // The actual frame skipping logic processes every 3rd frame
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          checkInterval: 50,
           enabled: true,
+          recognitionDelay: 120,
+          checkInterval: 50,
+          continuousRecognition: true,
+          switchRecognitionDelayMultiplier: 1.5,
+          switchDistanceThreshold: 8,
         })
       );
 
-      // Wait for hook to initialize
-      act(() => {
-        vi.advanceTimersByTime(100);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
       });
 
-      // Advance time to trigger multiple checkFrame calls
-      act(() => {
-        vi.advanceTimersByTime(300);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
       });
 
-      // The hook should still be working correctly with frame skipping enabled
-      expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.isRecognizing).toBe(false);
-    });
+      expect(result.current.recognizedConcert?.id).toBe(1);
 
-    it('should implement canvas reuse optimization', () => {
-      // This test verifies that canvas reuse is implemented
-      // The canvas is created once during initialization and reused across frames
+      activeFrameHash = 'b6c4d8e2f3a10597';
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(350);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(2);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('rejects ambiguous close matches when margin is too small', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const closeConcerts: Concert[] = [
+        {
+          id: 1,
+          band: 'Close Band 1',
+          venue: 'Venue A',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/one.opus',
+          photoHashes: {
+            phash: ['aaaaaaaaaaaaaaaa'],
+          },
+        },
+        {
+          id: 2,
+          band: 'Close Band 2',
+          venue: 'Venue B',
+          date: '2023-09-20T19:30:00-05:00',
+          audioFile: '/audio/two.opus',
+          photoHashes: {
+            phash: ['aaaaaaaaaaaaaaab'],
+          },
+        },
+      ];
+
+      vi.mocked(dataService.getConcerts).mockResolvedValue(closeConcerts);
+      activeFrameHash = 'aaaaaaaaaaaaaaaa';
+
       const { result } = renderHook(() =>
         usePhotoRecognition(mockStream, {
-          checkInterval: 50,
           enabled: true,
+          recognitionDelay: 120,
+          checkInterval: 50,
+          similarityThreshold: 12,
+          matchMarginThreshold: 5,
+          enableDebugInfo: true,
         })
       );
 
-      // Wait for hook to initialize
-      act(() => {
-        vi.advanceTimersByTime(100);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
       });
 
-      // Advance time to trigger multiple checkFrame calls
-      act(() => {
-        vi.advanceTimersByTime(500);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
       });
 
-      // The hook should still be working correctly with canvas reuse enabled
       expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.isRecognizing).toBe(false);
-    });
+      expect(result.current.debugInfo?.bestMatch?.concert.id).toBe(1);
+      expect(result.current.debugInfo?.secondBestMatch?.concert.id).toBe(2);
+      expect((result.current.debugInfo?.bestMatchMargin ?? 99) < 5).toBe(true);
+    } finally {
+      createElementSpy.mockRestore();
+    }
   });
 });

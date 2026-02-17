@@ -15,6 +15,7 @@ export type GuidanceType =
   | 'motion-blur'
   | 'glare'
   | 'poor-lighting'
+  | 'ambiguous-match'
   | 'distance'
   | 'off-center'
   | 'none';
@@ -95,6 +96,12 @@ export const defaultGuidanceConfig: GuidanceConfig = {
       icon: '💡',
       text: 'Improve lighting',
       detail: 'Move to better lighting or adjust exposure',
+      priority: 3,
+    },
+    'ambiguous-match': {
+      icon: '🖼️',
+      text: 'Center one photo',
+      detail: 'Multiple nearby photos look similar. Fill the frame with one print.',
       priority: 3,
     },
     distance: {

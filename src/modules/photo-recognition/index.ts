@@ -22,5 +22,4 @@ export type {
   FailureCategory,
   FailureDiagnostic,
   HashAlgorithm,
-  PerceptualHashAlgorithm,
 } from './types';

@@ -50,6 +50,8 @@ function App() {
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
+  const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
+  const [dismissedSwitchConcertId, setDismissedSwitchConcertId] = useState<number | null>(null);
 
   // Ref to store auto-reset timer ID for test mode
   const autoResetTimerRef = useRef<number | null>(null);
@@ -95,28 +97,14 @@ function App() {
     rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
       ? 1000
       : coerceNumberSetting(rawRecognitionDelay, 1000);
-  const recognitionModeSetting = getSetting<'perceptual' | 'orb' | 'parallel'>('recognition-mode');
-  const recognitionMode =
-    recognitionModeSetting === 'orb'
-      ? 'orb'
-      : recognitionModeSetting === 'parallel'
-        ? 'parallel'
-        : 'perceptual';
-  const hashAlgorithmSetting = getSetting<'dhash' | 'phash'>('hash-algorithm');
-  const perceptualAlgorithm = hashAlgorithmSetting === 'phash' ? 'phash' : 'dhash';
-  const hashAlgorithmValue =
-    recognitionMode === 'orb' || recognitionMode === 'parallel' ? 'orb' : perceptualAlgorithm;
-  const defaultSimilarityThreshold =
-    hashAlgorithmValue === 'phash' ? 12 : hashAlgorithmValue === 'orb' ? 0 : 24;
+  const defaultSimilarityThreshold = 12;
   const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
   const similarityThresholdValue = coerceNumberSetting(
-    hashAlgorithmValue === 'orb'
-      ? 0
-      : rawSimilarityThreshold === undefined ||
-          rawSimilarityThreshold === 40 ||
-          rawSimilarityThreshold === 24
-        ? defaultSimilarityThreshold
-        : rawSimilarityThreshold,
+    rawSimilarityThreshold === undefined ||
+      rawSimilarityThreshold === 40 ||
+      rawSimilarityThreshold === 24
+      ? defaultSimilarityThreshold
+      : rawSimilarityThreshold,
     defaultSimilarityThreshold
   );
   const rawFrameScanInterval = getSetting<number>('recognition-check-interval');
@@ -137,49 +125,6 @@ function App() {
     getSetting<number>('rectangle-detection-confidence-threshold'),
     0.3 // Reduced from 0.6 to 0.3 for better real-world detection
   );
-  const orbMaxFeatures = coerceNumberSetting(getSetting<number>('orb-max-features'), 500);
-  const orbFastThreshold = coerceNumberSetting(getSetting<number>('orb-fast-threshold'), 20);
-  const orbMinMatchCount = coerceNumberSetting(getSetting<number>('orb-min-match-count'), 20);
-  const orbMatchRatioThreshold = coerceNumberSetting(
-    getSetting<number>('orb-match-ratio-threshold'),
-    0.7
-  );
-  const secondaryHashAlgorithm = hashAlgorithmValue === 'dhash' ? ('phash' as const) : null;
-  const secondarySimilarityThreshold = secondaryHashAlgorithm ? 12 : undefined;
-  const orbConfig =
-    hashAlgorithmValue === 'orb'
-      ? {
-          maxFeatures: orbMaxFeatures,
-          fastThreshold: orbFastThreshold,
-          minMatchCount: orbMinMatchCount,
-          matchRatioThreshold: orbMatchRatioThreshold,
-        }
-      : undefined;
-
-  // Parallel recognition settings
-  const parallelRecognitionEnabledSetting = getSetting<string>('parallel-recognition-enabled');
-  const parallelRecognitionEnabled =
-    recognitionMode === 'parallel' || parallelRecognitionEnabledSetting === 'true';
-  const parallelDHashWeight = coerceNumberSetting(getSetting<number>('parallel-dhash-weight'), 0.3);
-  const parallelPHashWeight = coerceNumberSetting(
-    getSetting<number>('parallel-phash-weight'),
-    0.35
-  );
-  const parallelOrbWeight = coerceNumberSetting(getSetting<number>('parallel-orb-weight'), 0.35);
-  const parallelMinConfidence = coerceNumberSetting(
-    getSetting<number>('parallel-min-confidence'),
-    0.6
-  );
-  const parallelRecognitionConfig = parallelRecognitionEnabled
-    ? {
-        algorithmWeights: {
-          dhash: parallelDHashWeight,
-          phash: parallelPHashWeight,
-          orb: parallelOrbWeight,
-        },
-        minConfidenceThreshold: parallelMinConfidence,
-      }
-    : undefined;
 
   // Module: Photo Recognition (paused when secret menu is open)
   const {
@@ -200,15 +145,11 @@ function App() {
     glarePercentageThreshold: glarePercentageThresholdValue,
     enableDebugInfo: isDebugOverlayVisible,
     aspectRatio: 'auto',
-    hashAlgorithm: hashAlgorithmValue,
-    secondaryHashAlgorithm,
-    secondarySimilarityThreshold,
-    enableMultiScale: isEnabled('multi-scale-recognition'),
     enableRectangleDetection: isEnabled('rectangle-detection'),
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
-    orbConfig,
-    enableParallelRecognition: parallelRecognitionEnabled,
-    parallelRecognitionConfig,
+    continuousRecognition: true,
+    switchRecognitionDelayMultiplier: 1.8,
+    switchDistanceThreshold: 8,
     enabled: !showSecretSettings,
   });
 
@@ -239,6 +180,47 @@ function App() {
     preload(selectedAudioUrl);
   }, [preload, recognizedConcert]);
 
+  // Auto-play the first recognized concert after camera activation.
+  useEffect(() => {
+    if (!isActive || !recognizedConcert || activeConcert) {
+      return;
+    }
+
+    const selectedAudioUrl = recognizedConcert.audioFile;
+    if (!selectedAudioUrl) {
+      return;
+    }
+
+    play(selectedAudioUrl);
+    setActiveConcert(recognizedConcert);
+  }, [isActive, recognizedConcert, activeConcert, play]);
+
+  // Track a switch candidate while music is already playing.
+  useEffect(() => {
+    if (!recognizedConcert || !activeConcert || !isPlaying) {
+      setPendingSwitchConcert(null);
+      return;
+    }
+
+    if (activeGuidance === 'ambiguous-match') {
+      setPendingSwitchConcert(null);
+      return;
+    }
+
+    if (recognizedConcert.id === activeConcert.id) {
+      setPendingSwitchConcert(null);
+      setDismissedSwitchConcertId(null);
+      return;
+    }
+
+    if (dismissedSwitchConcertId === recognizedConcert.id) {
+      setPendingSwitchConcert(null);
+      return;
+    }
+
+    setPendingSwitchConcert(recognizedConcert);
+  }, [recognizedConcert, activeConcert, isPlaying, dismissedSwitchConcertId, activeGuidance]);
+
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {
       return;
@@ -260,7 +242,7 @@ function App() {
     };
   }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
 
-  // Restart recognition when movement begins while a concert is active (not merely recognized) to avoid oscillation and search for the next photo.
+  // Clear dismissed switch preference when user starts moving to a new area.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {
@@ -269,36 +251,38 @@ function App() {
         autoResetTimerRef.current = null;
       }
 
-      resetRecognition();
+      setDismissedSwitchConcertId(null);
     }
 
     previousMovementRef.current = isMoving;
-    // recognizedConcert is intentionally omitted to prevent immediate restart after a fresh lock-in.
-  }, [isMoving, activeConcert, resetRecognition]);
+  }, [isMoving, activeConcert]);
 
   const handleTogglePlayback = () => {
-    const targetConcert = recognizedConcert ?? activeConcert;
-
-    if (!targetConcert) {
+    if (!activeConcert) {
       return;
     }
 
-    const selectedAudioUrl = targetConcert.audioFile;
-
+    const selectedAudioUrl = activeConcert.audioFile;
     if (!selectedAudioUrl) {
       return;
     }
 
-    const isSameConcert = activeConcert?.id === targetConcert.id;
+    if (isPlaying) {
+      pause();
+      return;
+    }
 
-    if (isSameConcert) {
-      if (isPlaying) {
-        pause();
-        return;
-      }
+    play(selectedAudioUrl);
+    setActiveConcert(activeConcert);
+  };
 
-      play(selectedAudioUrl);
-      setActiveConcert(targetConcert);
+  const handleConfirmSwitch = () => {
+    if (!pendingSwitchConcert) {
+      return;
+    }
+
+    const selectedAudioUrl = pendingSwitchConcert.audioFile;
+    if (!selectedAudioUrl) {
       return;
     }
 
@@ -308,7 +292,18 @@ function App() {
       play(selectedAudioUrl);
     }
 
-    setActiveConcert(targetConcert);
+    setActiveConcert(pendingSwitchConcert);
+    setPendingSwitchConcert(null);
+    setDismissedSwitchConcertId(null);
+  };
+
+  const handleKeepCurrentTrack = () => {
+    if (!pendingSwitchConcert) {
+      return;
+    }
+
+    setDismissedSwitchConcertId(pendingSwitchConcert.id);
+    setPendingSwitchConcert(null);
   };
 
   const handlePauseCurrent = () => {
@@ -320,13 +315,12 @@ function App() {
     setIsActive(true);
   };
 
-  const infoConcert = recognizedConcert ?? activeConcert;
+  const infoConcert = pendingSwitchConcert ?? recognizedConcert ?? activeConcert;
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const showSwitchHint =
-    recognizedConcert && activeConcert && recognizedConcert.id !== activeConcert.id && isPlaying;
+  const showSwitchPrompt = !!pendingSwitchConcert;
 
   const primaryActionLabel = (() => {
-    if (!infoConcert) {
+    if (!activeConcert) {
       return 'Play';
     }
 
@@ -334,23 +328,27 @@ function App() {
       return isPlaying ? 'Pause' : 'Play';
     }
 
-    return isPlaying ? `Play ${infoConcert.band}` : 'Play';
+    return isPlaying ? 'Pause Current' : 'Play Current';
   })();
 
   const statusLabel =
     isInfoActive && isPlaying
       ? 'Now Playing'
-      : recognizedConcert && !isInfoActive
-        ? 'Now Viewing'
-        : isInfoActive
-          ? 'Paused'
-          : 'Now Viewing';
+      : showSwitchPrompt
+        ? 'New Photo Found'
+        : recognizedConcert && !isInfoActive
+          ? 'Now Viewing'
+          : isInfoActive
+            ? 'Paused'
+            : 'Now Viewing';
 
-  const promptText = recognizedConcert
-    ? 'Tap play to hear this photo. Music keeps playing until you pause.'
-    : activeConcert
-      ? 'Music will keep playing until you pause.'
-      : 'Point your camera at a photo to get started.';
+  const promptText = showSwitchPrompt
+    ? `Now playing ${activeConcert?.band}. Switch to ${pendingSwitchConcert?.band}?`
+    : recognizedConcert
+      ? 'Song started automatically. Music keeps playing until you pause.'
+      : activeConcert
+        ? 'Music will keep playing until you pause.'
+        : 'Point your camera at a photo to get started.';
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
@@ -363,11 +361,23 @@ function App() {
   const actions =
     infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
       <>
-        <div>
-          <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
-            {primaryActionLabel}
-          </button>
-          {isPlaying && !isInfoActive ? (
+        {showSwitchPrompt ? (
+          <div>
+            <button
+              type="button"
+              onClick={handleConfirmSwitch}
+              aria-label={`Switch to ${pendingSwitchConcert?.band}`}
+            >
+              Switch to {pendingSwitchConcert?.band}
+            </button>
+            <button
+              type="button"
+              data-variant="secondary"
+              onClick={handleKeepCurrentTrack}
+              aria-label="Keep current track"
+            >
+              Keep Current
+            </button>
             <button
               type="button"
               data-variant="secondary"
@@ -376,11 +386,17 @@ function App() {
             >
               Pause Current
             </button>
-          ) : null}
-        </div>
-        {showSwitchHint ? (
+          </div>
+        ) : (
+          <div>
+            <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
+              {primaryActionLabel}
+            </button>
+          </div>
+        )}
+        {showSwitchPrompt ? (
           <p>
-            Now playing: {activeConcert?.band}. Tap Play to switch to {recognizedConcert?.band}.
+            Now playing: {activeConcert?.band}. Confirm to switch to {pendingSwitchConcert?.band}.
           </p>
         ) : null}
         {activeConcert && isInfoActive && !isPlaying ? <p>Paused — tap play to resume.</p> : null}
@@ -425,8 +441,8 @@ function App() {
     <FrameQualityIndicator frameQuality={frameQuality} />
   );
 
-  // Render guidance message (only when camera is active and no concert recognized)
-  const guidanceMessage = isActive && stream && !recognizedConcert && (
+  // Render guidance message whenever active guidance exists during camera session
+  const guidanceMessage = isActive && stream && activeGuidance !== 'none' && (
     <GuidanceMessage guidanceType={activeGuidance} />
   );
 

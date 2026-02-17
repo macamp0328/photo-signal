@@ -636,4 +636,4 @@ See `tests/visual/README.md` for detailed documentation on visual testing patter
 **Status**: ✅ Fully Tested and Validated (526 unit/integration tests + 56 visual tests, zero warnings)  
 **Priority**: High  
 **Last Reviewed**: November 2024  
-**Related**: ARCHITECTURE.md, AI_AGENT_GUIDE.md, .github/workflows/ci.yml, src/**tests**/integration/README.md, tests/visual/README.md
+**Related**: ARCHITECTURE.md, .github/workflows/ci.yml, src/**tests**/integration/README.md, tests/visual/README.md

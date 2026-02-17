@@ -418,4 +418,4 @@ After testing with the test data:
 
 **Need Help?** Check the project README or open an issue on GitHub.
 
-**Developer?** See `ARCHITECTURE.md` and `AI_AGENT_GUIDE.md` for technical details on implementing missing features.
+**Developer?** See `ARCHITECTURE.md` for technical details on implementing missing features.

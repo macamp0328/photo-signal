@@ -8,10 +8,16 @@
 import type { SecretSettingsProps } from './types';
 import { useFeatureFlags } from './useFeatureFlags';
 import { useCustomSettings } from './useCustomSettings';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import type { KeyboardEvent } from 'react';
 import { CONFIG_PROFILES, CONFIG_PROFILE_SETTING_ID, type ConfigProfileId } from './config';
 import styles from './SecretSettings.module.css';
 import type { CustomSetting } from './types';
+
+const SEND_IT_RELOAD_DELAY_MS = 100;
+
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
  * Secret Settings Page Component
@@ -34,6 +40,9 @@ import type { CustomSetting } from './types';
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   const { flags, toggleFlag, resetFlags, isEnabled, setFlagState } = useFeatureFlags();
   const { settings, updateSetting, resetSettings, getSetting } = useCustomSettings();
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const currentProfileId = getSetting<ConfigProfileId>(CONFIG_PROFILE_SETTING_ID) ?? 'custom';
   const recognitionMode =
@@ -154,8 +163,56 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
     // even if the component unmounts (which happens when onClose is called)
     window.setTimeout(() => {
       window.location.reload();
-    }, 100);
+    }, SEND_IT_RELOAD_DELAY_MS);
   }, [onClose]);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !modalRef.current) {
+        return;
+      }
+
+      const focusableElements = Array.from(
+        modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      ).filter((element) => !element.hasAttribute('disabled') && element.tabIndex !== -1);
+
+      if (focusableElements.length === 0) {
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    },
+    [onClose]
+  );
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    closeButtonRef.current?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, [isVisible]);
 
   const setSettingValue = useCallback(
     (id: string, value: string | number | boolean, options?: { fromProfile?: boolean }) => {
@@ -201,8 +258,16 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
   }
 
   return (
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
+    <div
+      className={styles.overlay}
+      onClick={onClose}
+      onKeyDown={handleKeyDown}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="secret-settings-title"
+    >
       <div
+        ref={modalRef}
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         role="document"
@@ -210,8 +275,11 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
       >
         {/* Header */}
         <div className={styles.header}>
-          <h1 className={styles.title}>🔧 Secret Settings</h1>
+          <h1 id="secret-settings-title" className={styles.title}>
+            🔧 Secret Settings
+          </h1>
           <button
+            ref={closeButtonRef}
             onClick={onClose}
             className={styles.closeButton}
             aria-label="Close settings menu"
@@ -389,13 +457,13 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
             <button
               onClick={handleSendIt}
               className={styles.sendItButton}
-              aria-label="Send It - Apply changes and reload page"
+              aria-label="Save & Reload - Apply changes and reload page"
               type="button"
             >
-              Send It 🚀
+              Save & Reload 🚀
             </button>
             <p className={styles.sendItDescription}>
-              Apply all changes and reload the page to ensure everything takes effect
+              Settings are saved immediately. Reload applies all changes across the app.
             </p>
           </section>
 

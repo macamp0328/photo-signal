@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { SecretSettings } from './SecretSettings';
 import userEvent from '@testing-library/user-event';
 import { CUSTOM_SETTINGS } from './config';
@@ -153,6 +153,23 @@ describe('SecretSettings', () => {
       expect(closeButton).toHaveAttribute('type', 'button');
       expect(closeButton).toHaveAttribute('aria-label', 'Close settings menu');
     });
+
+    it('should close when Escape key is pressed', () => {
+      const onClose = vi.fn();
+      render(<SecretSettings isVisible={true} onClose={onClose} />);
+
+      const overlay = screen.getByRole('dialog');
+      fireEvent.keyDown(overlay, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should focus close button on open', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const closeButton = screen.getByRole('button', { name: /close settings menu/i });
+      expect(closeButton).toHaveFocus();
+    });
   });
 
   describe('Content sections', () => {
@@ -237,34 +254,34 @@ describe('SecretSettings', () => {
   });
 
   describe('Send It Button', () => {
-    it('should render Send It button', () => {
+    it('should render Save & Reload button', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-      expect(screen.getByText(/Send It/i)).toBeInTheDocument();
+      expect(screen.getByText(/Save & Reload/i)).toBeInTheDocument();
     });
 
     it('should have proper accessibility attributes', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       const button = screen.getByRole('button', {
-        name: /Send It - Apply changes and reload page/i,
+        name: /Save & Reload - Apply changes and reload page/i,
       });
       expect(button).toBeInTheDocument();
       expect(button).toHaveAttribute('type', 'button');
-      expect(button).toHaveAttribute('aria-label', 'Send It - Apply changes and reload page');
+      expect(button).toHaveAttribute('aria-label', 'Save & Reload - Apply changes and reload page');
     });
 
-    it('should call onClose when Send It is clicked', async () => {
+    it('should call onClose when Save & Reload is clicked', async () => {
       const user = userEvent.setup();
       const handleClose = vi.fn();
       render(<SecretSettings isVisible={true} onClose={handleClose} />);
 
-      const button = screen.getByText(/Send It/i);
+      const button = screen.getByText(/Save & Reload/i);
       await user.click(button);
 
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should reload page after clicking Send It', async () => {
+    it('should reload page after clicking Save & Reload', async () => {
       const user = userEvent.setup();
       const reloadSpy = vi.fn();
       const originalLocation = window.location;
@@ -276,10 +293,9 @@ describe('SecretSettings', () => {
 
         render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-        const button = screen.getByText(/Send It/i);
+        const button = screen.getByText(/Save & Reload/i);
         await user.click(button);
 
-        // Wait for timeout
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         expect(reloadSpy).toHaveBeenCalled();
@@ -293,7 +309,9 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(
-        screen.getByText(/Apply all changes and reload the page to ensure everything takes effect/i)
+        screen.getByText(
+          /Settings are saved immediately\. Reload applies all changes across the app\./i
+        )
       ).toBeInTheDocument();
     });
 
@@ -309,14 +327,13 @@ describe('SecretSettings', () => {
 
         render(<SecretSettings isVisible={true} onClose={handleClose} />);
 
-        const button = screen.getByText(/Send It/i);
+        const button = screen.getByText(/Save & Reload/i);
         await user.click(button);
 
         // onClose should be called immediately (before reload timeout)
         expect(handleClose).toHaveBeenCalledTimes(1);
         expect(reloadSpy).not.toHaveBeenCalled();
 
-        // Wait for reload timeout
         await new Promise((resolve) => setTimeout(resolve, 150));
         expect(reloadSpy).toHaveBeenCalled();
       } finally {
@@ -324,7 +341,7 @@ describe('SecretSettings', () => {
       }
     });
 
-    it('should reload page even if component unmounts after Send It is clicked', async () => {
+    it('should reload page even if component unmounts after Save & Reload is clicked', async () => {
       const user = userEvent.setup();
       const reloadSpy = vi.fn();
       const originalLocation = window.location;
@@ -335,13 +352,12 @@ describe('SecretSettings', () => {
 
         const { unmount } = render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-        const button = screen.getByText(/Send It/i);
+        const button = screen.getByText(/Save & Reload/i);
         await user.click(button);
 
         // Unmount immediately after clicking (simulates parent setting isVisible={false})
         unmount();
 
-        // Wait longer than timeout
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         // Reload should still be called even though component was unmounted
@@ -367,8 +383,8 @@ describe('SecretSettings', () => {
         const testModeCheckbox = screen.getByRole('checkbox', { name: /test data mode/i });
         await user.click(testModeCheckbox);
 
-        // Click Send It
-        const button = screen.getByText(/Send It/i);
+        // Click Save & Reload
+        const button = screen.getByText(/Save & Reload/i);
         await user.click(button);
 
         // Check that the change was persisted to localStorage before reload
@@ -378,7 +394,6 @@ describe('SecretSettings', () => {
         const testModeFlag = flags.find((f: { id: string }) => f.id === 'test-mode');
         expect(testModeFlag?.enabled).toBe(true);
 
-        // Wait for reload
         await new Promise((resolve) => setTimeout(resolve, 150));
         expect(reloadSpy).toHaveBeenCalled();
       } finally {
@@ -401,8 +416,8 @@ describe('SecretSettings', () => {
         const themeSelect = screen.getByRole('combobox', { name: /theme mode/i });
         await user.selectOptions(themeSelect, 'light');
 
-        // Click Send It
-        const button = screen.getByText(/Send It/i);
+        // Click Save & Reload
+        const button = screen.getByText(/Save & Reload/i);
         await user.click(button);
 
         // Check that the change was persisted to localStorage before reload
@@ -412,7 +427,6 @@ describe('SecretSettings', () => {
         const themeSetting = settings.find((s: { id: string }) => s.id === 'theme-mode');
         expect(themeSetting?.value).toBe('light');
 
-        // Wait for reload
         await new Promise((resolve) => setTimeout(resolve, 150));
         expect(reloadSpy).toHaveBeenCalled();
       } finally {
@@ -431,11 +445,10 @@ describe('SecretSettings', () => {
 
         render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-        // Click X button instead of Send It
+        // Click X button instead of Save & Reload
         const closeButton = screen.getByRole('button', { name: /close settings menu/i });
         await user.click(closeButton);
 
-        // Wait to ensure no reload happens
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         expect(reloadSpy).not.toHaveBeenCalled();
@@ -455,11 +468,10 @@ describe('SecretSettings', () => {
 
         render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-        // Click overlay (not Send It button)
+        // Click overlay (not Save & Reload button)
         const overlay = screen.getByRole('dialog');
         await user.click(overlay);
 
-        // Wait to ensure no reload happens
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         expect(reloadSpy).not.toHaveBeenCalled();
@@ -485,7 +497,7 @@ describe('SecretSettings', () => {
 
         const { rerender } = render(<SecretSettings isVisible={isVisible} onClose={handleClose} />);
 
-        const button = screen.getByText(/Send It/i);
+        const button = screen.getByText(/Save & Reload/i);
         await user.click(button);
 
         // Simulate parent re-render after onClose sets isVisible=false
@@ -495,7 +507,6 @@ describe('SecretSettings', () => {
         // Component is now unmounted (returns null when isVisible=false)
         expect(screen.queryByText(/Secret Settings/i)).not.toBeInTheDocument();
 
-        // Wait for reload timeout
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         // Reload should still happen despite component being unmounted

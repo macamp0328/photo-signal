@@ -242,6 +242,40 @@ describe('App playback flow', () => {
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
   });
 
+  it('keeps switch prompt dismissed through ambiguous oscillation after keep-current', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Keep current track' }));
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+
+    recognitionState.activeGuidance = 'none';
+    recognitionState.recognizedConcert = concertOne;
+    view.rerender(<App />);
+
+    recognitionState.activeGuidance = 'ambiguous-match';
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+
+    recognitionState.activeGuidance = 'none';
+    view.rerender(<App />);
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+  });
+
   it('auto-plays a newly recognized match when no music is currently playing', async () => {
     recognitionState.recognizedConcert = concertOne;
 

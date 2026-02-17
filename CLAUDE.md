@@ -223,10 +223,10 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 
 ### Git Tooling and PR Workflow (MANDATORY)
 
-1. Prefer `gh` CLI for collaboration tasks (commits, PR creation/updates, PR comments, and review actions) instead of GitKraken tools.
+1. Prefer `gh` CLI for PR collaboration tasks (PR creation/updates, PR comments, and review actions) instead of GitKraken tools.
 2. If `gh` is not authenticated, ask the maintainer to run `gh auth login` and continue once access is ready.
-3. For larger changes, create regular logical commits on the feature branch rather than one large final commit.
-4. Keep commits focused with clear messages, and run `npm run pre-commit` before each commit.
+3. For larger changes, use `git` to create regular logical commits on the feature branch rather than one large final commit.
+4. Keep `git` commits focused with clear messages, and run `npm run pre-commit` before each commit.
 5. Open or update the PR with `gh` when implementation is complete.
 
 ### Before Modifying Any Module

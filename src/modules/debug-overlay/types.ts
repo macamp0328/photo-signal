@@ -32,4 +32,6 @@ export interface DebugOverlayProps {
   debugInfo?: RecognitionDebugInfo | null;
   /** Optional reset handler for restarting recognition */
   onReset?: () => void;
+  /** Audio URL to use for the Test Song diagnostic button */
+  testAudioUrl?: string | null;
 }

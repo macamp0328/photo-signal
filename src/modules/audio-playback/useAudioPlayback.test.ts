@@ -13,6 +13,18 @@ import { renderHook, act } from '@testing-library/react';
 import { Howl } from 'howler';
 import { useAudioPlayback } from './useAudioPlayback';
 
+// Mock diagnoseAudioUrl
+vi.mock('./diagnoseAudioUrl', () => ({
+  diagnoseAudioUrl: vi.fn().mockResolvedValue({
+    httpStatus: null,
+    corsOrigin: null,
+    contentType: null,
+    contentLength: null,
+    likelyCorsIssue: true,
+    message: 'Network request failed. Likely a CORS origin mismatch or the server is unreachable.',
+  }),
+}));
+
 // Mock Howler.js with inline factory
 vi.mock('howler', () => {
   type HowlCallbacks = {
@@ -485,6 +497,38 @@ describe('useAudioPlayback', () => {
       expect(result.current.playbackError).toBeNull();
 
       consoleSpy.mockRestore();
+    });
+
+    it('should enhance load error message with diagnostic details', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.play('/audio/cors-blocked.opus');
+      });
+
+      act(() => {
+        HowlClass.instances[0].__triggerLoadError();
+      });
+
+      // Initial generic message
+      expect(result.current.playbackError).toBe(
+        'Audio failed to load. Check your connection and try again.'
+      );
+
+      // Flush all promises to allow diagnostic to resolve
+      await act(async () => {
+        await vi.runAllTimersAsync();
+      });
+
+      expect(result.current.playbackError).toContain('Audio failed to load:');
+      expect(result.current.playbackError).toContain('Tap play to retry.');
+
+      consoleSpy.mockRestore();
+      warnSpy.mockRestore();
     });
   });
 

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import type { DebugOverlayProps, RecognitionStatus } from './types';
 import styles from './DebugOverlay.module.css';
 import { formatConcertTimestamp } from '../../utils/dateUtils';
+import { useAudioTest } from './useAudioTest';
 
 // Display "waiting for frame" message if no frame received in 2x the normal check interval (≈1s)
 const FRAME_TIMEOUT_THRESHOLD = 2;
@@ -22,10 +23,12 @@ export function DebugOverlay({
   debugInfo,
   threshold,
   onReset,
+  testAudioUrl,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const { runTest, isTestRunning, testResult, resetTest } = useAudioTest();
 
   const lastFrameHash = debugInfo?.lastFrameHash ?? null;
   const bestMatch = debugInfo?.bestMatch ?? null;
@@ -302,6 +305,70 @@ export function DebugOverlay({
               <div className={styles.concertDate}>
                 {formatConcertTimestamp(recognizedConcert.date)}
               </div>
+            </div>
+          )}
+
+          {/* Audio Test */}
+          {testAudioUrl && (
+            <div className={styles.section}>
+              <div className={styles.label}>Audio Test</div>
+              {!testResult && !isTestRunning && (
+                <button
+                  type="button"
+                  className={styles.testButton}
+                  onClick={() => runTest(testAudioUrl)}
+                  aria-label="Test audio playback"
+                >
+                  Test Song
+                </button>
+              )}
+              {isTestRunning && <div className={styles.testRunning}>Testing...</div>}
+              {testResult && (
+                <div className={styles.testResults}>
+                  <div className={styles.testRow}>
+                    <span className={styles.testLabel}>Fetch:</span>
+                    <span
+                      className={
+                        testResult.diagnostic.httpStatus !== null &&
+                        testResult.diagnostic.httpStatus >= 200 &&
+                        testResult.diagnostic.httpStatus < 300
+                          ? styles.testSuccess
+                          : styles.testError
+                      }
+                    >
+                      {testResult.diagnostic.httpStatus ?? 'Network Error'}
+                    </span>
+                  </div>
+                  <div className={styles.testRow}>
+                    <span className={styles.testLabel}>CORS:</span>
+                    <span className={styles.testValue}>
+                      {testResult.diagnostic.corsOrigin ?? 'No header'}
+                    </span>
+                  </div>
+                  <div className={styles.testRow}>
+                    <span className={styles.testLabel}>Playback:</span>
+                    <span
+                      className={
+                        testResult.playbackOutcome === 'success'
+                          ? styles.testSuccess
+                          : styles.testError
+                      }
+                    >
+                      {testResult.playbackOutcome}
+                    </span>
+                  </div>
+                  <div className={styles.testMessage}>{testResult.diagnostic.message}</div>
+                  <div className={styles.testDuration}>{testResult.durationMs}ms</div>
+                  <button
+                    type="button"
+                    className={styles.testClearButton}
+                    onClick={resetTest}
+                    aria-label="Clear test results"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </>

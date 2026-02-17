@@ -39,3 +39,18 @@ export interface AudioPlaybackOptions {
   /** Enable crossfade functionality, default true */
   crossfadeEnabled?: boolean;
 }
+
+export interface AudioDiagnosticResult {
+  /** HTTP status code from HEAD request, or null if request failed */
+  httpStatus: number | null;
+  /** Value of Access-Control-Allow-Origin header, or null if absent */
+  corsOrigin: string | null;
+  /** Content-Type header value */
+  contentType: string | null;
+  /** Content-Length in bytes */
+  contentLength: number | null;
+  /** Whether a CORS issue is the likely cause of failure */
+  likelyCorsIssue: boolean;
+  /** Human-readable diagnostic message */
+  message: string;
+}

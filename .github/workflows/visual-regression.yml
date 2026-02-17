@@ -1,15 +1,5 @@
 # Visual Regression Testing Workflow
 #
-# 📚 IMPORTANT FOR AI AGENTS:
-# When adding/removing/modifying any of the following, update DOCUMENTATION_INDEX.md:
-#   - New documentation files (*.md)
-#   - New configuration files (*.json, *.js, *.ts config files)
-#   - New modules or services (with their README.md files)
-#   - New GitHub workflows or templates
-#   - New development environment configs
-#
-# See DOCUMENTATION_INDEX.md for the complete documentation structure.
-#
 name: Visual Regression Tests
 
 on:
@@ -17,6 +7,10 @@ on:
     branches: [main]
   push:
     branches: [main]
+
+concurrency:
+  group: visual-regression-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   visual-regression:

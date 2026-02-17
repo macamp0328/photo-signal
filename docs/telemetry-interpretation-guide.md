@@ -46,6 +46,20 @@ Each failed recognition is categorized to identify patterns:
 | **collision**    | Multiple similar matches                   | Similar photos in database, hash collision, near-threshold matches |
 | **unknown**      | Unclassified failure                       | Edge cases not covered by other categories                         |
 
+### Switch Decision Metrics (Prompt Behavior)
+
+When music is already playing and a new strong candidate appears, app-level telemetry records prompt outcomes:
+
+| Metric                 | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| **shownCount**         | Number of times switch prompt was shown                                  |
+| **confirmCount**       | User confirmed switching to candidate track                              |
+| **dismissCount**       | User selected “Keep current track”                                       |
+| **decisionLatencyMs**  | Time-to-decision stats (average/last/min/max + samples) from prompt show |
+| **lastPromptSnapshot** | Last prompt context: active/candidate IDs, confidence, margin, timestamp |
+
+Use `confirmRate` and `dismissRate` (derived in JSON export) to evaluate whether switch prompts are too aggressive for current field conditions.
+
 ## Interpreting JSON Export
 
 ### Sample JSON Structure
@@ -80,6 +94,23 @@ Each failed recognition is categorized to identify patterns:
       "timestamp": "2024-03-15T10:30:44.500Z"
     }
   ],
+  "switchDecisionMetrics": {
+    "shownCount": 3,
+    "confirmCount": 2,
+    "dismissCount": 1,
+    "decisionLatencyMs": {
+      "average": 1000,
+      "last": 1200,
+      "min": 800,
+      "max": 1200
+    },
+    "lastPromptSnapshot": {
+      "activeConcertId": 1,
+      "candidateConcertId": 2,
+      "confidence": 96.25,
+      "margin": 5
+    }
+  },
   "rawData": {
     /* Full telemetry object */
   }
@@ -107,6 +138,11 @@ Each failed recognition is categorized to identify patterns:
    - **Diagnosis**: Quality frames not matching stored hashes
    - **Action**: Verify hashes are correct, check photo dataset completeness
    - **Improvement**: May need multi-exposure hashing, pHash algorithm
+
+5. **High Switch Prompt Dismiss Rate** (>60% dismissals)
+   - **Diagnosis**: Prompt candidates are often not compelling enough to users
+   - **Action**: Review `switchDecisionMetrics.lastPromptSnapshot` confidence/margin with nearby failures
+   - **Improvement**: Field-tune switch thresholds (`switchDistanceThreshold`, margin thresholds, delay multiplier)
 
 ## Interpreting Markdown Report
 

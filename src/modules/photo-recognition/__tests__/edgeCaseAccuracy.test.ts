@@ -42,7 +42,6 @@ interface Concert {
   imageFile: string;
   photoHashes?: {
     phash?: string[];
-    dhash?: string[];
   };
   edgeCase?: EdgeCaseMetadata;
 }

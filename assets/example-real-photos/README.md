@@ -100,7 +100,7 @@ The generated hashes should be added to `public/data.json` to enable photo recog
 
 ## Related Documentation
 
-- [Photo Recognition Research](../../docs/photo-recognition-research.md) - Algorithm selection and evaluation
+- [Photo Recognition Research](../../docs/archive/photo-recognition-research.md) - Historical algorithm selection and evaluation
 - [Hash Generation Scripts](../../scripts/README.md) - Tools for generating photo hashes
 - [Data Service](../../src/services/data-service/README.md) - How photo hashes are stored and used
 - [Photo Recognition Module](../../src/modules/photo-recognition/README.md) - Recognition implementation details

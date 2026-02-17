@@ -202,6 +202,11 @@ function App() {
       return;
     }
 
+    if (activeGuidance === 'ambiguous-match') {
+      setPendingSwitchConcert(null);
+      return;
+    }
+
     if (recognizedConcert.id === activeConcert.id) {
       setPendingSwitchConcert(null);
       setDismissedSwitchConcertId(null);
@@ -214,7 +219,7 @@ function App() {
     }
 
     setPendingSwitchConcert(recognizedConcert);
-  }, [recognizedConcert, activeConcert, isPlaying, dismissedSwitchConcertId]);
+  }, [recognizedConcert, activeConcert, isPlaying, dismissedSwitchConcertId, activeGuidance]);
 
   useEffect(() => {
     if (!isTestModeEnabled || !recognizedConcert) {

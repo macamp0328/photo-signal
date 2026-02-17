@@ -186,4 +186,49 @@ describe('App playback flow', () => {
 
     expect(screen.getByTestId('guidance-message')).toHaveTextContent('ambiguous-match');
   });
+
+  it('suppresses switch prompt while ambiguity guidance is active', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = true;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.activeGuidance = 'ambiguous-match';
+    view.rerender(<App />);
+
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+  });
+
+  it('shows switch prompt again once ambiguity guidance clears', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = true;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.activeGuidance = 'ambiguous-match';
+    view.rerender(<App />);
+
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+
+    recognitionState.activeGuidance = 'none';
+    view.rerender(<App />);
+
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+  });
 });

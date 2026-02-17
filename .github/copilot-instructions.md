@@ -1,675 +1,110 @@
 # GitHub Copilot Instructions for Photo Signal
 
-> **Purpose**: This file provides guidance for GitHub Copilot and AI agents working on this project. It defines coding standards, architecture patterns, and development workflows to ensure consistency and quality.
+## CRITICAL: Pre-Commit Rule
 
-## How to Use These Instructions
-
-When working on this project:
-
-1. **Read First**: Review relevant sections before making changes
-2. **Follow Patterns**: Use established patterns from existing code
-3. **Ask Questions**: If unclear, ask for clarification rather than guessing
-4. **Update Documentation**: Keep these instructions current as the project evolves
-5. **Quality First**: Always run ALL quality checks before committing (see below)
-
-## ⚠️ MANDATORY Pre-Commit Workflow
-
-**EVERY TIME you make changes, you MUST run these commands before committing:**
+**NEVER commit or push code that fails CI.** Before EVERY commit, run:
 
 ```bash
-npm run lint:fix      # Auto-fix linting issues
-npm run format        # Format code with Prettier
-npm run type-check    # Validate TypeScript types
-npm run test:run      # Run all tests
-npm run build         # Create production bundle
+npm run pre-commit
 ```
 
-**DO NOT SKIP THIS.** These checks ensure code quality and prevent CI failures. If any check fails, fix the issue before committing.
+This runs lint, format, type-check, tests, and build. If ANY step fails, fix it before committing. This is non-negotiable.
 
-**User Expectation**: The user expects you to automatically run these checks before committing, without being asked. Make it a habit.
+**Formatting is the #1 cause of CI failures.** Always run `npm run format` after making changes.
 
-**⚠️ CRITICAL**: Formatting failures (`npm run format:check`) are the #1 cause of CI failures in Copilot PRs. Always run `npm run format` before committing to avoid this.
+**Safety net**: The `auto-fix-copilot-pr` workflow will auto-fix formatting if CI fails, but don't rely on it.
 
-**Safety Net**: If you forget to format and CI fails, the `auto-fix-copilot-pr` workflow will automatically run `lint:fix` and `format` and commit the fixes. However, **you should not rely on this** - always format your code before committing to avoid extra commits and delays.
+### Interpreting Test Output
 
-### How to Interpret Test Output
-
-**Tests PASS when you see:**
-
-- `Test Files  X passed (X)` at the end
-- Exit code 0
-- Even if there are `stderr` warnings (React `act()` warnings, mock warnings, etc.)
-
-**Tests FAIL when you see:**
-
-- `Test Files  X failed`
-- Red ❌ or `FAIL` markers
-- Exit code != 0
-- Actual assertion errors
-
-**Common Non-Critical Warnings (can be ignored):**
-
-- `An update to TestComponent inside a test was not wrapped in act(...)` - React 19 warning, tests still pass
-- `Failed to set video srcObject in test environment` - Mock limitation, tests still pass
-- `Camera access error` in test output - Expected test behavior
-
-**If tests actually fail:**
-
-1. Read the error message carefully
-2. Fix the failing test or code
-3. Re-run `npm run test:run` to verify fix
-4. Only commit when exit code is 0
+- **PASS**: `Test Files X passed` with exit code 0 (ignore `stderr` warnings about React `act()` or mocks)
+- **FAIL**: `Test Files X failed` with exit code != 0
 
 ## Project Overview
 
-Photo Signal is a camera-based gallery app that plays music when you point at a printed photo. It's designed as a quiet, in-home installation that uses computer vision to recognize photos and trigger corresponding audio playback.
+Photo Signal is a camera-based gallery that plays music when you point a device at a printed photo. It uses perceptual hashing (pHash) to recognize photos — no QR codes or markers. Mobile-first, deployed as a static site on Vercel with audio via Cloudflare R2/Workers.
 
-**Tech Stack**: React 19, TypeScript, Vite, CSS Modules, Howler.js
+**Tech Stack**: React 19, TypeScript 5.9 (strict), Vite 7, CSS Modules, Howler.js, Vitest, Playwright
 
-## Architecture Principles
+## Commands
 
-This project follows a **modular, AI-agent-friendly architecture** optimized for parallel development:
+```bash
+npm run dev              # Vite dev server (port 5173)
+npm run pre-commit       # Full quality check (lint, format, type-check, test, build)
+npm run lint:fix         # Auto-fix lint issues
+npm run format           # Format with Prettier
+npm run type-check       # TypeScript validation
+npm run test:run         # Unit tests (single run)
+npm run build            # Production build
+```
 
-1. **Module Isolation**: Each module is self-contained with clear contracts
-2. **TypeScript Contracts**: Strong typing for reliable integration
-3. **Performance First**: Native APIs, minimal dependencies, optimized bundle
-4. **Zero Coupling**: Modules don't depend on each other directly
-5. **Cost Optimization**: Static hosting, no backend required (MVP)
+## Architecture
+
+```
+Camera Access → Motion Detection → Photo Recognition → Audio Playback
+                                                     → Concert Info Display
+```
 
 ### Module Structure
 
-Each module follows this pattern:
+Each module in `src/modules/` is self-contained:
 
 ```
-src/modules/{module-name}/
-├── README.md           # API contract, usage, examples
-├── index.ts            # Public API exports
+src/modules/{name}/
+├── README.md           # API contract (read this first)
+├── index.ts            # Public exports
 ├── types.ts            # TypeScript interfaces
-├── {Module}.tsx        # React component (if UI)
-└── {Service}.ts        # Business logic (if needed)
+├── {Component}.tsx     # React component
+└── {Component}.test.tsx # Colocated tests
 ```
 
-## Key Documentation Files
+Modules communicate through React props/hooks only — no direct cross-module imports.
 
-⚠️ **IMPORTANT**: When adding, removing, or moving any documentation, configuration files, modules, or services, you **MUST** update **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** to keep the documentation phonebook current.
+### Key Directories
 
-- **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** - Central phonebook of ALL project documentation (UPDATE THIS!)
-- **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines, quality gates, and **AI agent PR policy** (MUST READ!)
-- **ARCHITECTURE.md** - Module structure, data flow, AI collaboration guide
-- **AI_AGENT_GUIDE.md** - Examples of parallel AI agent development
-- **TESTING.md** - Testing strategy and configuration
-- **SETUP.md** - Development workflow, CI/CD, deployment
-- **README.md** - User-facing documentation
-
-## AI Agent PR Policy ⚠️
-
-**CRITICAL**: All AI agents MUST follow the PR policy defined in [CONTRIBUTING.md](../CONTRIBUTING.md#ai-agent-pr-policy).
-
-**Key Requirements:**
-
-1. **All GitHub Actions checks MUST pass** before requesting review
-2. **Proactively monitor your PRs** for CI failures
-3. **Fix failures immediately** without waiting for maintainer notification
-4. **Use the PR template** and complete all checklist items
-5. **Update documentation** when adding/removing/moving files
-
-**Automated Enforcement:**
-
-- PRs with failing checks receive automated reminder comments
-- Failing PRs are labeled "ci-failing" and "needs-fixes"
-- PRs not fixed within 7 days may be closed
-- No review will occur until all checks pass
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for complete guidelines.
-
-## Development Workflow
-
-### Before Making Changes
-
-1. Read the module's `README.md` to understand its contract
-2. Keep changes isolated within module directories
-3. Ensure exported interfaces remain compatible
-4. Update module README if contract changes
-
-### Code Quality Commands
-
-```bash
-npm run lint          # Check code quality
-npm run lint:fix      # Auto-fix linting issues
-npm run format        # Format code with Prettier
-npm run format:check  # Check formatting
-npm run type-check    # Validate TypeScript types
-npm run build         # Create production bundle
-npm run dev           # Start development server
+```
+src/modules/          # Feature modules (camera, audio, recognition, etc.)
+src/services/         # Data service for concert metadata
+src/types/index.ts    # Shared TypeScript interfaces
+src/test/mocks.ts     # Browser API mocks for tests
+public/               # Static assets (data.json, audio, images)
+scripts/              # Node.js automation scripts (CommonJS .js files)
 ```
 
-### Before Committing
+## Code Style
 
-**MANDATORY**: Always run ALL quality checks before committing:
-
-```bash
-npm run lint:fix
-npm run format
-npm run type-check
-npm run test:run
-npm run build
-```
-
-**These checks are NON-NEGOTIABLE.** Run them every single time before committing changes.
-
-## Code Style Guidelines
-
-### TypeScript
-
-- Strict mode enabled
-- No implicit `any`
-- Strict null checks
-- Use interfaces for contracts, types for unions
-
-### React
-
-- Functional components with hooks
-- No class components
-- Use TypeScript for props
-
-### Styling
-
-- Use CSS Modules for component-specific styles
-- Import styles: `import styles from './Component.module.css'`
-- Apply classes: `className={styles.className}`
-- Keep inline styles for dynamic/calculated values only
-- Mobile-first responsive design
-- Use CSS custom properties (variables) for theming
-
-### Prettier Configuration
-
-- 2 space indentation
-- Single quotes
-- Semicolons required
-- Trailing commas (ES5)
-- 100 character line width
-
-## Module Guidelines
-
-### Core Modules (src/modules/)
-
-1. **camera-access/** - Camera permission and stream management
-2. **camera-view/** - Video display UI component
-3. **motion-detection/** - Movement detection algorithm
-4. **photo-recognition/** - Photo matching service (currently placeholder)
-5. **audio-playback/** - Audio control and fading
-6. **concert-info/** - Info display overlay
-
-### Services (src/services/)
-
-1. **data-service/** - Concert data management (currently static JSON)
-
-### When Adding a New Module
-
-1. Create directory: `src/modules/new-module/`
-2. Write contract first: `README.md` with API spec
-3. Define types: `types.ts`
-4. Implement logic: `Service.ts` or `Component.tsx`
-5. Export public API: `index.ts`
-6. Update ARCHITECTURE.md
-7. **Update DOCUMENTATION_INDEX.md** with link to new module's README
-
-### When Modifying a Module
-
-1. Read the module's `README.md` contract
-2. Make changes within module directory only
-3. Ensure exported interface stays compatible
-4. Other modules should remain untouched
-5. Update module's README if contract changes
-6. **Update DOCUMENTATION_INDEX.md if you added/removed/renamed files**
+- **TypeScript**: Strict mode, no `any`, no unused locals/parameters
+- **Prettier**: 100 chars, 2-space indent, single quotes, semicolons, trailing commas (ES5), LF
+- **CSS**: CSS Modules only — `import styles from './Foo.module.css'`
+- **Components**: Functional components with hooks, typed props interfaces
+- **State**: React hooks only (useState, useEffect, useRef, useContext) — no external state library
 
 ## Testing
 
-Tests use Vitest with the `happy-dom` environment. See TESTING.md for full strategy.
-
-- Test files are colocated with source: `*.test.ts` / `*.test.tsx`
-- Integration tests live in `src/__tests__/integration/`
-- Browser API mocks are in `src/test/mocks.ts` (camera, canvas, audio, fetch, localStorage)
-- Test module contracts, not implementations
-- Mock native APIs (MediaDevices, Canvas, Audio)
-- Target >70% coverage per module (enforced in CI)
-
-## Performance Targets
-
-- **Bundle Size**: < 100KB initial (gzipped)
-- **Runtime**: 60 FPS camera feed, instant audio response
-- **Cost**: $0/month hosting (static site)
-
-## Common Patterns
-
-### Hooks
-
-```typescript
-export function useModuleName(options) {
-  // State and logic here
-
-  return {
-    // Public API that matches README contract
-  };
-}
-```
-
-### Components
-
-```typescript
-interface ComponentProps {
-  // Typed props
-}
-
-export function Component({ prop1, prop2 }: ComponentProps) {
-  // Component logic
-  return <div>...</div>;
-}
-```
-
-### Services
-
-```typescript
-export class ServiceName {
-  private readonly config: Config;
-
-  public async methodName(): Promise<Result> {
-    // Service logic
-  }
-}
-```
-
-## File Locations
-
-- **Components**: `src/components/` (legacy) or `src/modules/*/` (preferred)
-- **Types**: `src/types/` (shared types) or `src/modules/*/types.ts` (module-specific)
-- **Assets**: `public/` (audio files, images, data.json)
-- **Config**: Root directory (vite.config.ts, tsconfig.json, etc.)
-
-## Data Flow
-
-```
-User Opens App
-    ↓
-Camera Access (request permissions)
-    ↓
-Stream → Motion Detection + Photo Recognition
-    ↓
-Photo Recognition → Concert Match
-    ↓
-Audio Playback + Info Display
-    ↓
-Motion Detection → Fade Audio
-    ↓
-Loop
-```
-
-## Migration Paths
-
-### Future: Static JSON → PostgreSQL
-
-- Add API route in `api/concerts.ts`
-- Update Data Service to call API instead of fetch JSON
-- Zero changes to other modules (contract stays same!)
-
-### Future: Placeholder Recognition → ML-based
-
-- Replace logic in `photo-recognition` module
-- Keep same interface exported
-- Other modules remain untouched
-
-## AI Agent Collaboration
-
-Multiple AI agents can work in parallel by:
-
-1. Each agent "owns" a module directory
-2. Reading README.md contract before coding
-3. TypeScript enforces integration correctness
-4. Minimal file overlap = minimal conflicts
-
-See **AI_AGENT_GUIDE.md** for detailed examples of parallel development scenarios.
-
-## Common Tasks
-
-### Adding a Concert
-
-Edit `public/data.json`:
-
-```json
-{
-  "concerts": [
-    {
-      "id": 1,
-      "band": "Band Name",
-      "venue": "Venue Name",
-      "date": "2023-08-15",
-      "audioFile": "/audio/sample.opus"
-    }
-  ]
-}
-```
-
-### Adding Audio Files
-
-Place Opus audio files in `public/audio/` directory
-
-### Updating Dependencies
-
-```bash
-npm install package-name
-# Always check for vulnerabilities
-npm audit
-```
-
-## CI/CD
-
-- **GitHub Actions**: Runs on push to main and PRs
-- **Checks**: ESLint, Prettier, Type-check, Build
-- **Vercel**: Auto-deploy from main branch only (preview deployments disabled for free tier optimization)
-
-## Security
-
-- No secrets in code
-- Camera/audio permissions handled securely
-- Dependencies audited regularly
-- Minimal GitHub Actions permissions
-- Use HTTPS for all external resources
-- Sanitize user inputs (if any are added in future)
-- Follow OWASP best practices for web applications
-
-## Error Handling
-
-### Error Handling Patterns
-
-- **Camera Access**: Handle permission denials gracefully with user-friendly messages
-- **Audio Playback**: Catch and log audio loading/playback errors
-- **Network Requests**: Implement retry logic for transient failures
-- **Type Safety**: Use TypeScript's strict mode to catch errors at compile time
-
-### Error Reporting
-
-```typescript
-try {
-  // Operation that might fail
-} catch (error) {
-  console.error('Descriptive error message:', error);
-  // Show user-friendly error message
-  // Don't expose sensitive error details to users
-}
-```
-
-### Validation
-
-- Validate all external data (API responses, user inputs)
-- Use TypeScript types for compile-time validation
-- Add runtime validation for critical data paths
-- Fail fast with clear error messages
-
-## Accessibility
-
-### WCAG 2.1 Level AA Compliance
-
-- **Keyboard Navigation**: All interactive elements must be keyboard accessible
-- **Screen Readers**: Use semantic HTML and ARIA labels where needed
-- **Color Contrast**: Ensure 4.5:1 contrast ratio for normal text, 3:1 for large text
-- **Focus Indicators**: Visible focus states for all interactive elements
-- **Alt Text**: Provide meaningful alt text for images (when added)
-
-### Accessibility Patterns
-
-```typescript
-// Example: Accessible button
-<button
-  onClick={handleClick}
-  aria-label="Start camera"
-  className="focus:ring-2 focus:ring-blue-500"
->
-  Start Camera
-</button>
-```
-
-### Testing
-
-- Test with keyboard only (no mouse)
-- Test with screen reader (VoiceOver, NVDA, JAWS)
-- Use browser DevTools accessibility audit
-- Follow semantic HTML patterns
-
-## Documentation Standards
-
-### Code Documentation
-
-- **Functions**: Document complex logic with clear comments
-- **Interfaces**: Add JSDoc comments for public APIs
-- **Modules**: Keep README.md up-to-date with contract changes
-- **Examples**: Include usage examples in module READMEs
-
-### Comment Style
-
-```typescript
-/**
- * Detects motion in the camera feed by comparing frames.
- *
- * @param currentFrame - The current video frame as ImageData
- * @param threshold - Motion sensitivity (0-100, default: 10)
- * @returns true if motion detected, false otherwise
- */
-export function detectMotion(currentFrame: ImageData, threshold: number = 10): boolean {
-  // Implementation
-}
-```
-
-### When to Comment
-
-- **Do**: Explain why, not what (code should be self-documenting)
-- **Do**: Document complex algorithms or business logic
-- **Do**: Add TODO/FIXME with ticket numbers for future work
-- **Don't**: Comment obvious code
-- **Don't**: Leave commented-out code (use git history instead)
-
-## Getting Help
-
-1. Check relevant README.md in module directory
-2. Review ARCHITECTURE.md for system design
-3. See AI_AGENT_GUIDE.md for collaboration patterns
-4. Read SETUP.md for development environment details
-5. Check DOCUMENTATION_INDEX.md for all documentation links
-
-## Quick Reference
-
-| Command              | Purpose                  |
-| -------------------- | ------------------------ |
-| `npm run dev`        | Start dev server         |
-| `npm run build`      | Production build         |
-| `npm run lint`       | Check code quality       |
-| `npm run lint:fix`   | Fix linting issues       |
-| `npm run format`     | Format code              |
-| `npm run type-check` | Validate TypeScript      |
-| `npm run preview`    | Preview production build |
-
-## Troubleshooting
-
-### Common Issues
-
-**Camera not working**
-
-- Check browser permissions in DevTools Console
-- Ensure HTTPS or localhost (required for camera access)
-- Try different browsers (Chrome, Firefox, Safari)
-
-**Build failures**
-
-- Clear `node_modules` and reinstall: `rm -rf node_modules package-lock.json && npm install`
-- Check Node.js version (requires Node 18+)
-- Run `npm run type-check` to identify TypeScript errors
-
-**Linting errors**
-
-- Run `npm run lint:fix` to auto-fix issues
-- Run `npm run format` to fix formatting
-- Check ESLint config if new rules needed
-
-**Audio not playing**
-
-- Check browser console for loading errors
-- Verify audio file exists in `public/audio/`
-- Check audio file format (Opus supported)
-- Ensure user has interacted with page (browser autoplay policy)
-
-## Best Practices
-
-### What TO Do
-
-- ✅ Write self-documenting code with clear variable names
-- ✅ Use TypeScript types for all function parameters and returns
-- ✅ Keep functions small and focused (single responsibility)
-- ✅ Write tests for new features (when test infrastructure exists)
-- ✅ Run all quality checks before committing
-- ✅ Update documentation when changing contracts
-- ✅ Use semantic HTML elements
-- ✅ Handle errors gracefully with user feedback
-- ✅ Follow existing patterns in the codebase
-- ✅ Ask for clarification if requirements are unclear
-
-### What NOT To Do
-
-- ❌ Don't use `any` type (use `unknown` if type is truly unknown)
-- ❌ Don't ignore TypeScript errors (fix them, don't suppress)
-- ❌ Don't skip linting/formatting before committing
-- ❌ Don't add dependencies without checking bundle size impact
-- ❌ Don't modify module contracts without updating README
-- ❌ Don't couple modules together (maintain independence)
-- ❌ Don't commit commented-out code (delete it, it's in git history)
-- ❌ Don't hard-code values that should be configurable
-- ❌ Don't ignore accessibility (keyboard nav, screen readers)
-- ❌ Don't commit `.env` files or secrets
-
-## Git Workflow
-
-### Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
-**Types:**
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, no logic change)
-- `refactor`: Code refactoring (no feature change)
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks (deps, config, etc.)
-
-**Examples:**
-
-```
-feat(audio): add crossfade transitions
-fix(camera): handle permission denial gracefully
-docs(readme): update setup instructions
-test(motion): add motion detection tests
-chore(deps): update vite to 7.2.2
-```
-
-### Pull Request Guidelines
-
-**PR Title**: Use same format as commit messages
-
-```
-feat(module-name): Brief description of changes
-```
-
-**PR Description Template**:
-
-```markdown
-## What
-
-Brief description of what changed.
-
-## Why
-
-Why this change is needed.
-
-## How
-
-How the change was implemented.
-
-## Testing
-
-- [ ] Linted: `npm run lint`
-- [ ] Type-checked: `npm run type-check`
-- [ ] Built successfully: `npm run build`
-- [ ] Tested manually: [describe testing]
-- [ ] Tests pass: `npm test` (when available)
-
-## Screenshots
-
-[Add screenshots for UI changes]
-
-## Documentation
-
-- [ ] Updated module README if contract changed
-- [ ] Updated DOCUMENTATION_INDEX.md if files added/removed
-- [ ] Updated ARCHITECTURE.md if structure changed
-```
-
-### Branch Naming
-
-- `feat/short-description` - New features
-- `fix/short-description` - Bug fixes
-- `docs/short-description` - Documentation
-- `test/short-description` - Tests
-- `chore/short-description` - Maintenance
-
-## Dependency Management
-
-### Adding Dependencies
-
-1. **Check necessity**: Can you achieve this with existing dependencies or native APIs?
-2. **Check bundle size**: Use [Bundlephobia](https://bundlephobia.com/) to check impact
-3. **Check maintenance**: Is the package actively maintained? Recent commits?
-4. **Check security**: Run `npm audit` after installing
-5. **Check license**: Ensure compatible with project license
-
-### Allowed Dependency Types
-
-- **Production deps** (`dependencies`): Only what's needed in the browser
-- **Dev deps** (`devDependencies`): Build tools, linters, testing frameworks
-- **Peer deps**: Avoid if possible (complexity)
-
-### Updating Dependencies
-
-```bash
-# Check for outdated packages
-npm outdated
-
-# Update specific package
-npm update package-name
-
-# Update all packages (be careful)
-npm update
-
-# Always audit after updates
-npm audit
-npm audit fix  # Auto-fix vulnerabilities if possible
-```
-
-### Preferred Libraries
-
-- **State Management**: React hooks (useState, useContext) - no Redux needed for MVP
-- **HTTP Client**: Native `fetch` API
-- **Animations**: CSS transitions/animations (CSS Modules)
-- **Testing**: Vitest + React Testing Library (when implemented)
-- **Audio**: Howler.js (already included)
-- **Styling**: CSS Modules (scoped, modular CSS)
-
----
-
-**Remember**: When in doubt, check the module's README.md for its contract and usage examples!
+- **Framework**: Vitest with `happy-dom` environment
+- **Colocated**: Test files live next to source (`foo.ts` → `foo.test.ts`)
+- **Integration tests**: `src/__tests__/integration/`
+- **Mocks**: Import browser API mocks from `src/test/mocks.ts`
+- **Coverage**: 70% minimum threshold
+
+## Before Modifying Any Module
+
+1. Read the module's `README.md` for its contract
+2. Read existing tests to understand expected behavior
+3. Check `src/types/index.ts` for shared interfaces
+4. Keep changes within the module directory
+5. Update `DOCUMENTATION_INDEX.md` when adding, removing, or renaming files
+
+## Common Gotchas
+
+- `data.json` is ~9.6 MB — use `src/services/data-service.ts` to understand the data model
+- Browser APIs (camera, canvas, audio) are not available in tests — always use mocks
+- `scripts/` contains CommonJS `.js` files, not TypeScript
+- CSS Modules generate scoped class names — reference via `import styles from './Foo.module.css'`
+
+## Key Documentation
+
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)** — Contribution guidelines and quality gates
+- **[ARCHITECTURE.md](../ARCHITECTURE.md)** — System design and module contracts
+- **[TESTING.md](../TESTING.md)** — Testing strategy
+- **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** — Complete documentation index
+- **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](../docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** — Recognition algorithm details

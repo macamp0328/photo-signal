@@ -193,7 +193,6 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 - `ARCHITECTURE.md` — System design and module contracts
 - `CONTRIBUTING.md` — Contribution guidelines (human and AI)
 - `TESTING.md` — Testing strategy
-- `AI_AGENT_GUIDE.md` — Parallel AI development patterns
 - `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` — Recognition algorithm details
 - `docs/AUDIO_R2_WORKER.md` — Audio CDN setup
 - `docs/TEST_DATA_MODE_GUIDE.md` — Development testing guide

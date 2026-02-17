@@ -662,4 +662,74 @@ describe('DataService', () => {
       unsubscribe2();
     });
   });
+
+  describe('concurrent request deduplication', () => {
+    it('should deduplicate concurrent calls to getConcerts', async () => {
+      // Mock fetch to track how many times it's called
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ concerts: mockConcerts }),
+      });
+      global.fetch = mockFetch;
+
+      // Make multiple concurrent calls to getConcerts
+      const [result1, result2, result3] = await Promise.all([
+        dataService.getConcerts(),
+        dataService.getConcerts(),
+        dataService.getConcerts(),
+      ]);
+
+      // All should return the same data
+      expect(result1).toEqual(mockConcerts);
+      expect(result2).toEqual(mockConcerts);
+      expect(result3).toEqual(mockConcerts);
+
+      // But fetch should only be called once
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should allow subsequent calls after first request completes', async () => {
+      // Mock fetch to track how many times it's called
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ concerts: mockConcerts }),
+      });
+      global.fetch = mockFetch;
+
+      // First call
+      const result1 = await dataService.getConcerts();
+      expect(result1).toEqual(mockConcerts);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Clear cache to force a new fetch
+      dataService.clearCache();
+
+      // Second call should trigger another fetch
+      const result2 = await dataService.getConcerts();
+      expect(result2).toEqual(mockConcerts);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should handle concurrent calls with failed requests', async () => {
+      // Mock fetch to fail
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+      global.fetch = mockFetch;
+
+      // Make multiple concurrent calls
+      const [result1, result2] = await Promise.all([
+        dataService.getConcerts(),
+        dataService.getConcerts(),
+      ]);
+
+      // All should return empty array
+      expect(result1).toEqual([]);
+      expect(result2).toEqual([]);
+
+      // But fetch should only be called once
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
 });

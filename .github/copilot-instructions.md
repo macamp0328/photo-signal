@@ -92,6 +92,7 @@ scripts/              # Node.js automation scripts (CommonJS .js files)
 2. Read existing tests to understand expected behavior
 3. Check `src/types/index.ts` for shared interfaces
 4. Keep changes within the module directory
+5. Update `DOCUMENTATION_INDEX.md` when adding, removing, or renaming files
 
 ## Common Gotchas
 

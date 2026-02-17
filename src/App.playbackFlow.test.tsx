@@ -285,9 +285,14 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
+    // Record call count before clicking Play button
+    const callCountBefore = mockPlay.mock.calls.length;
+
     await user.click(screen.getByRole('button', { name: 'Play' }));
 
-    expect(mockPlay).toHaveBeenCalledWith('/audio/two.opus');
+    // Verify Play button click triggered a new play call
+    expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
   });
 
   it('shows playback error guidance with retry hint', async () => {
@@ -303,9 +308,28 @@ describe('App playback flow', () => {
       })
     );
 
+    // Should show error message without duplication (already has "Tap Play to retry")
+    expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
+    expect(screen.getByText('Playback Error')).toBeInTheDocument();
+  });
+
+  it('shows playback error with additional guidance when retry hint not included', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.playbackError = 'Audio failed to load. Check your connection and try again.';
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    // Should append retry guidance when error doesn't already include it
     expect(
       screen.getByText(
-        'Audio failed to start. Tap Play to retry. Check stream access and tap Play to retry.'
+        'Audio failed to load. Check your connection and try again. Check stream access and tap Play to retry.'
       )
     ).toBeInTheDocument();
     expect(screen.getByText('Playback Error')).toBeInTheDocument();

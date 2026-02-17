@@ -9,6 +9,7 @@ import type {
 
 export const PHASH_HEX_LENGTH = 16;
 export const PHASH_MAX_DISTANCE = PHASH_HEX_LENGTH * 4;
+const PHASH_HEX_PATTERN = /^[0-9a-f]+$/i;
 
 export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   totalFrames: 0,
@@ -67,7 +68,12 @@ export const getPHashes = (concert: Concert): string[] => {
     return [];
   }
 
-  return hashes.filter((value) => typeof value === 'string' && value.length === PHASH_HEX_LENGTH);
+  return hashes.filter(
+    (value) =>
+      typeof value === 'string' &&
+      value.length === PHASH_HEX_LENGTH &&
+      PHASH_HEX_PATTERN.test(value)
+  );
 };
 
 export const recordFailure = (

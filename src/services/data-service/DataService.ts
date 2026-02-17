@@ -2,7 +2,7 @@ import type { Concert } from '../../types';
 import { getTimestampSearchText } from '../../utils/dateUtils';
 
 /**
- * Check if a concert has any photo hashes in the canonical multi-algorithm structure.
+ * Check if a concert has pHash values.
  * Note: This only validates existence and type, not hash format/length.
  */
 function hasAnyPhotoHashes(concert: Concert): boolean {
@@ -11,15 +11,12 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
     return false;
   }
 
-  const algorithmKeys: Array<'dhash' | 'phash'> = ['dhash', 'phash'];
-  return algorithmKeys.some((algorithm) => {
-    const values = photoHashes[algorithm];
-    return (
-      Array.isArray(values) &&
-      values.length > 0 &&
-      values.every((hash) => typeof hash === 'string' && hash.length > 0)
-    );
-  });
+  const values = photoHashes.phash;
+  return (
+    Array.isArray(values) &&
+    values.length > 0 &&
+    values.every((hash) => typeof hash === 'string' && hash.length > 0)
+  );
 }
 
 /**

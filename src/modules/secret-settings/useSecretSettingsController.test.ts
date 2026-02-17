@@ -111,20 +111,22 @@ describe('useSecretSettingsController', () => {
     it('should apply all settings from a profile', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
-      const profile = CONFIG_PROFILES.find((p) => p.id === 'baseline-dhash');
+      const profile = CONFIG_PROFILES.find((p) => p.id === 'baseline-phash');
       expect(profile).toBeDefined();
 
       act(() => {
-        result.current.handleProfileSelection('baseline-dhash');
+        result.current.handleProfileSelection('baseline-phash');
       });
 
       // Verify the profile is applied
-      expect(result.current.currentProfile?.id).toBe('baseline-dhash');
+      expect(result.current.currentProfile?.id).toBe('baseline-phash');
 
       // Check that settings groups reflect the profile settings
-      const engineGroup = result.current.settingGroups.find((g) => g.id === 'engine');
-      const recognitionModeSetting = engineGroup?.settings.find((s) => s.id === 'recognition-mode');
-      expect(recognitionModeSetting?.value).toBe('perceptual');
+      const recognitionGroup = result.current.settingGroups.find((g) => g.id === 'recognition');
+      const similaritySetting = recognitionGroup?.settings.find(
+        (s) => s.id === 'similarity-threshold'
+      );
+      expect(similaritySetting?.value).toBe(12);
     });
 
     it('should handle profile with no feature flags gracefully', () => {
@@ -169,11 +171,11 @@ describe('useSecretSettingsController', () => {
 
       // Changing to another profile via setSettingValue
       act(() => {
-        result.current.setSettingValue(CONFIG_PROFILE_SETTING_ID, 'baseline-dhash');
+        result.current.setSettingValue(CONFIG_PROFILE_SETTING_ID, 'baseline-phash');
       });
 
-      // Should be baseline-dhash, not custom
-      expect(result.current.currentProfile?.id).toBe('baseline-dhash');
+      // Should remain baseline-phash, not custom
+      expect(result.current.currentProfile?.id).toBe('baseline-phash');
     });
 
     it('should not switch to custom when changing from within profile selection', () => {
@@ -188,10 +190,10 @@ describe('useSecretSettingsController', () => {
       // The profile selection process internally uses setSettingValue with fromProfile flag
       // This should not switch to custom
       act(() => {
-        result.current.handleProfileSelection('baseline-orb');
+        result.current.handleProfileSelection('baseline-phash');
       });
 
-      expect(result.current.currentProfile?.id).toBe('baseline-orb');
+      expect(result.current.currentProfile?.id).toBe('baseline-phash');
     });
 
     it('should switch to custom for any non-profile setting change', () => {
@@ -227,80 +229,34 @@ describe('useSecretSettingsController', () => {
   });
 
   describe('Setting Visibility Filtering', () => {
-    it('should show settings visible for perceptual mode', () => {
+    it('should include pHash recognition tuning settings', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
-      // Set to perceptual mode
-      act(() => {
-        result.current.setSettingValue('recognition-mode', 'perceptual');
-      });
-
-      const perceptualGroup = result.current.settingGroups.find((g) => g.id === 'perceptual');
-      expect(perceptualGroup).toBeDefined();
-      expect(perceptualGroup!.settings.length).toBeGreaterThan(0);
+      const recognitionGroup = result.current.settingGroups.find((g) => g.id === 'recognition');
+      expect(recognitionGroup).toBeDefined();
+      expect(recognitionGroup?.settings.some((s) => s.id === 'similarity-threshold')).toBe(true);
     });
 
-    it('should show settings visible for orb mode', () => {
+    it('should not include legacy engine-specific groups', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
-      // Set to orb mode
-      act(() => {
-        result.current.setSettingValue('recognition-mode', 'orb');
-      });
-
-      const orbGroup = result.current.settingGroups.find((g) => g.id === 'orb');
-      expect(orbGroup).toBeDefined();
-      expect(orbGroup!.settings.length).toBeGreaterThan(0);
+      expect(result.current.settingGroups.find((g) => g.id === 'engine')).toBeUndefined();
+      expect(result.current.settingGroups.find((g) => g.id === 'perceptual')).toBeUndefined();
+      expect(result.current.settingGroups.find((g) => g.id === 'orb')).toBeUndefined();
+      expect(result.current.settingGroups.find((g) => g.id === 'parallel')).toBeUndefined();
     });
 
-    it('should show settings visible for parallel mode', () => {
+    it('should keep group structure stable across setting updates', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
-      // Set to parallel mode
+      const initialGroupIds = result.current.settingGroups.map((group) => group.id);
+
       act(() => {
-        result.current.setSettingValue('recognition-mode', 'parallel');
+        result.current.setSettingValue('similarity-threshold', 16);
       });
 
-      const parallelGroup = result.current.settingGroups.find((g) => g.id === 'parallel');
-      expect(parallelGroup).toBeDefined();
-      expect(parallelGroup!.settings.length).toBeGreaterThan(0);
-    });
-
-    it('should always show settings with no engine restriction', () => {
-      const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
-
-      // Check that engine group is visible (it contains recognition-mode which has no engine restriction)
-      const engineGroup = result.current.settingGroups.find((g) => g.id === 'engine');
-      expect(engineGroup).toBeDefined();
-
-      // Switch modes and verify it's still visible
-      act(() => {
-        result.current.setSettingValue('recognition-mode', 'orb');
-      });
-
-      const engineGroupAfter = result.current.settingGroups.find((g) => g.id === 'engine');
-      expect(engineGroupAfter).toBeDefined();
-    });
-
-    it('should filter settings based on current recognition mode', () => {
-      const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
-
-      // Set to perceptual mode
-      act(() => {
-        result.current.setSettingValue('recognition-mode', 'perceptual');
-      });
-
-      const perceptualGroups = result.current.settingGroups;
-
-      // Set to orb mode
-      act(() => {
-        result.current.setSettingValue('recognition-mode', 'orb');
-      });
-
-      const orbGroups = result.current.settingGroups;
-
-      // The groups should be different (different settings visible)
-      expect(perceptualGroups).not.toEqual(orbGroups);
+      const updatedGroupIds = result.current.settingGroups.map((group) => group.id);
+      expect(updatedGroupIds).toEqual(initialGroupIds);
     });
   });
 
@@ -340,9 +296,9 @@ describe('useSecretSettingsController', () => {
       expect(profilesGroup?.title).toBe('Profiles');
       expect(profilesGroup?.description).toContain('preset');
 
-      const engineGroup = result.current.settingGroups.find((g) => g.id === 'engine');
-      expect(engineGroup).toBeDefined();
-      expect(engineGroup?.title).toBe('Recognition Engine');
+      const recognitionGroup = result.current.settingGroups.find((g) => g.id === 'recognition');
+      expect(recognitionGroup).toBeDefined();
+      expect(recognitionGroup?.title).toBe('Recognition Tuning');
     });
 
     it('should update groups when settings change', () => {
@@ -351,9 +307,9 @@ describe('useSecretSettingsController', () => {
       const initialGroups = result.current.settingGroups;
       expect(initialGroups.length).toBeGreaterThan(0);
 
-      // Change recognition mode which affects group visibility
+      // Change a setting and verify groups are reactive
       act(() => {
-        result.current.setSettingValue('recognition-mode', 'orb');
+        result.current.setSettingValue('similarity-threshold', 18);
       });
 
       const afterGroups = result.current.settingGroups;
@@ -362,12 +318,12 @@ describe('useSecretSettingsController', () => {
       expect(afterGroups.length).toBeGreaterThan(0);
 
       // Verify groups are reactive to settings changes by checking the updated setting value
-      const updatedRecognitionSetting = afterGroups
+      const updatedSimilaritySetting = afterGroups
         .flatMap((group) => group.settings)
-        .find((setting) => setting.id === 'recognition-mode');
+        .find((setting) => setting.id === 'similarity-threshold');
 
-      expect(updatedRecognitionSetting).toBeDefined();
-      expect(updatedRecognitionSetting?.value).toBe('orb');
+      expect(updatedSimilaritySetting).toBeDefined();
+      expect(updatedSimilaritySetting?.value).toBe(18);
     });
   });
 
@@ -579,8 +535,6 @@ describe('useSecretSettingsController', () => {
 
       act(() => {
         result.current.handleProfileSelection('baseline-phash');
-        result.current.handleProfileSelection('baseline-dhash');
-        result.current.handleProfileSelection('baseline-orb');
         result.current.handleProfileSelection('custom');
       });
 

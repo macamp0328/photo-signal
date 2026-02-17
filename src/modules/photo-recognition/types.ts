@@ -2,7 +2,7 @@ import type { Concert, AspectRatio as AspectRatioType } from '../../types';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 
 export type AspectRatio = AspectRatioType;
-export type HashAlgorithm = 'phash' | 'dhash' | 'orb';
+export type HashAlgorithm = 'phash';
 
 export interface BestMatchInfo {
   concert: Concert;

@@ -96,9 +96,9 @@ AI agents (Copilot, Claude Code, etc.) must:
 5. Keep changes minimal and focused
 6. Ask the maintainer whether to sync the feature branch with latest `main` before PR handoff
 7. If requested, pull/merge `main` and resolve conflicts, then re-run `npm run pre-commit`
-8. Prefer `gh` CLI for commit/PR workflows instead of GitKraken tooling
+8. Use `git` for commits, and prefer `gh` CLI for PR/collaboration workflows (create/update PRs, comments, reviews) instead of GitKraken tooling
 9. If `gh` is not authenticated, ask the maintainer to run `gh auth login` before continuing PR tasks
-10. For larger changes, commit in regular logical checkpoints and open/update the PR with `gh` when complete
+10. For larger changes, commit in regular logical checkpoints with `git` and open/update the PR with `gh` when complete
 
 The `auto-fix-agent-pr` workflow auto-fixes lint/format issues on `copilot/` and `claude/` branches when CI fails — but agents should not rely on it.
 

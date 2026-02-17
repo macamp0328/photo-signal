@@ -366,7 +366,9 @@ function App() {
             : 'Now Viewing';
 
   const promptText = playbackError
-    ? `${playbackError} Check stream access and tap Play to retry.`
+    ? playbackError.toLowerCase().includes('tap play to retry')
+      ? playbackError
+      : `${playbackError} Check stream access and tap Play to retry.`
     : showSwitchPrompt
       ? `Now playing ${activeConcert?.band}. Switch to ${pendingSwitchConcert?.band}?`
       : recognizedConcert

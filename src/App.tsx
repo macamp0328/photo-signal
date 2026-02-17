@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { lazy, Suspense, useEffect, useState, useRef } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import {
@@ -27,6 +27,7 @@ import type {
   SwitchDecisionTelemetry,
 } from './modules/photo-recognition/types';
 import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
+import { dataService } from './services/data-service';
 
 const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
@@ -151,6 +152,9 @@ function AppContent() {
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
   const [dismissedSwitchConcertId, setDismissedSwitchConcertId] = useState<number | null>(null);
 
+  // Audio test URL for the debug overlay's Test Song button
+  const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
+
   // Ref to store auto-reset timer ID for test mode
   const autoResetTimerRef = useRef<number | null>(null);
   const previousRecognizedIdRef = useRef<number | null>(null);
@@ -183,6 +187,19 @@ function AppContent() {
     // Apply UI style (modern/classic)
     document.documentElement.setAttribute('data-ui-style', uiStyle);
   }, [getSetting, settings]);
+
+  // Load the first available audio URL for the debug overlay's Test Song button
+  const loadTestAudioUrl = useCallback(async () => {
+    const concerts = await dataService.getConcerts();
+    const withAudio = concerts.find((c) => !!c.audioFile);
+    if (withAudio?.audioFile) {
+      setTestAudioUrl(withAudio.audioFile);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTestAudioUrl();
+  }, [loadTestAudioUrl]);
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({
@@ -661,6 +678,7 @@ function AppContent() {
             debugInfo={debugInfo}
             onReset={resetRecognition}
             onVisibilityChange={setIsDebugOverlayVisible}
+            testAudioUrl={testAudioUrl}
           />
         </Suspense>
       )}

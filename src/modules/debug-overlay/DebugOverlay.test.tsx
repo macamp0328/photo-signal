@@ -5,6 +5,18 @@ import type { DebugOverlayProps } from './types';
 import type { Concert } from '../../types';
 import type { RecognitionDebugInfo } from '../photo-recognition/types';
 
+const mockRunTest = vi.fn();
+const mockResetTest = vi.fn();
+
+vi.mock('./useAudioTest', () => ({
+  useAudioTest: () => ({
+    runTest: mockRunTest,
+    isTestRunning: false,
+    testResult: null,
+    resetTest: mockResetTest,
+  }),
+}));
+
 describe('DebugOverlay', () => {
   const mockConcert: Concert = {
     id: 1,
@@ -548,6 +560,41 @@ describe('DebugOverlay', () => {
       rerender(<DebugOverlay {...defaultProps} enabled={true} />);
       fireEvent.click(screen.getByText('Show overlay'));
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
+    });
+  });
+
+  describe('Audio Test Button', () => {
+    it('should show Test Song button when testAudioUrl is provided', () => {
+      render(<DebugOverlay {...defaultProps} testAudioUrl="https://audio.example.com/song.opus" />);
+
+      expect(screen.getByText('Test Song')).toBeInTheDocument();
+    });
+
+    it('should not show Test Song button when testAudioUrl is null', () => {
+      render(<DebugOverlay {...defaultProps} testAudioUrl={null} />);
+
+      expect(screen.queryByText('Test Song')).not.toBeInTheDocument();
+    });
+
+    it('should not show Test Song button when testAudioUrl is not provided', () => {
+      render(<DebugOverlay {...defaultProps} />);
+
+      expect(screen.queryByText('Test Song')).not.toBeInTheDocument();
+    });
+
+    it('should call runTest when Test Song button is clicked', () => {
+      const url = 'https://audio.example.com/song.opus';
+      render(<DebugOverlay {...defaultProps} testAudioUrl={url} />);
+
+      fireEvent.click(screen.getByText('Test Song'));
+
+      expect(mockRunTest).toHaveBeenCalledWith(url);
+    });
+
+    it('should show Audio Test label in the section', () => {
+      render(<DebugOverlay {...defaultProps} testAudioUrl="https://audio.example.com/song.opus" />);
+
+      expect(screen.getByText('Audio Test')).toBeInTheDocument();
     });
   });
 });

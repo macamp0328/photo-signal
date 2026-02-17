@@ -73,6 +73,11 @@ const results = dataService.search('Fillmore');
 - **Development/Test**: `/assets/test-data/concerts.dev.json` (complete dataset with stress cases)
 - **Test Data Mode**: Forces development dataset even in production builds
 
+### Data Integrity Contract
+
+- `photoHashes.phash` is required for every concert entry consumed by runtime recognition
+- `photoHashes.phash` must be a non-empty array of 16-character hexadecimal strings
+
 **Future**: PostgreSQL via API route
 
 ### Migration Path

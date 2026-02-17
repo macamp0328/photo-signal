@@ -70,6 +70,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     }
   }, []);
 
+  const cleanupSound = useCallback((sound: Howl, url: string) => {
+    sound.unload();
+    soundRef.current = null;
+    currentUrlRef.current = null;
+    preloadCacheRef.current.delete(url);
+  }, []);
+
   const getCurrentRatio = useCallback(() => {
     const sound = soundRef.current;
     if (!sound) {
@@ -126,10 +133,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           setProgress(0);
           setPlaybackError('Audio failed to load. Check your connection and try again.');
           // Clear refs and unload to enable clean retry
-          sound.unload();
-          soundRef.current = null;
-          currentUrlRef.current = null;
-          preloadCacheRef.current.delete(url);
+          cleanupSound(sound, url);
         }
       };
 
@@ -141,10 +145,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           setProgress(0);
           setPlaybackError('Audio failed to start. Tap Play to retry.');
           // Clear refs and unload to enable clean retry
-          sound.unload();
-          soundRef.current = null;
-          currentUrlRef.current = null;
-          preloadCacheRef.current.delete(url);
+          cleanupSound(sound, url);
         }
       };
 
@@ -191,7 +192,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
       }
     },
-    [stopProgressLoop, updateProgress]
+    [stopProgressLoop, updateProgress, cleanupSound]
   );
 
   const createSound = useCallback(

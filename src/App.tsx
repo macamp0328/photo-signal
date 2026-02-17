@@ -29,6 +29,9 @@ const SecretSettings = lazy(async () => {
   return { default: module.SecretSettings };
 });
 
+// Constants for retry guidance text
+const RETRY_HINT_TEXT = 'tap play to retry';
+
 const DebugOverlay = lazy(async () => {
   const module = await import('./modules/debug-overlay');
   return { default: module.DebugOverlay };
@@ -366,7 +369,7 @@ function App() {
             : 'Now Viewing';
 
   const promptText = playbackError
-    ? playbackError.toLowerCase().includes('tap play to retry')
+    ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
       ? playbackError
       : `${playbackError} Check stream access and tap Play to retry.`
     : showSwitchPrompt

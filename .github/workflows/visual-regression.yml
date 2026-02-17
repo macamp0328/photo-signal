@@ -87,6 +87,7 @@ jobs:
                   const fullPath = path.join(dir, entry.name);
                   if (entry.isDirectory()) {
                     findDiffImages(fullPath);
+                    if (hasVisualDiffs) return; // Propagate early exit up the stack
                   } else if (entry.name.includes('-diff.png')) {
                     hasVisualDiffs = true;
                     return; // Early exit once we find a diff

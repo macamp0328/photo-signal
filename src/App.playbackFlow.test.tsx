@@ -262,10 +262,11 @@ describe('App playback flow', () => {
     await user.click(screen.getByRole('button', { name: 'Keep current track' }));
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
 
-    recognitionState.activeGuidance = 'ambiguous-match';
+    recognitionState.activeGuidance = 'none';
     recognitionState.recognizedConcert = concertOne;
     view.rerender(<App />);
 
+    recognitionState.activeGuidance = 'ambiguous-match';
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();

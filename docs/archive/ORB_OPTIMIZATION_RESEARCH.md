@@ -1,5 +1,9 @@
 # ORB Performance Optimization Research Summary
 
+> ⚠️ **Archived historical document (non-operational):** This ORB research reflects a legacy
+> implementation path and is retained only for project history. Do not use it as current runtime
+> guidance; see `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for the active pHash-first implementation.
+
 ## Problem Statement
 
 The ORB (Oriented FAST and Rotated BRIEF) algorithm was implemented for print-to-camera photo recognition but was performing poorly, unable to recognize test photographs. This document summarizes the research conducted and optimizations implemented to improve performance.

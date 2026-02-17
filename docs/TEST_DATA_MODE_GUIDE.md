@@ -44,7 +44,7 @@ The underlying dataset is now identical in both modes: `/assets/test-data/concer
 
 - **Debug overlay + telemetry export** – live recognition metrics stay visible in the bottom-right corner and you can export telemetry snapshots.
 - **Verbose logging** – Photo recognition and data service logs include per-frame breakdowns, helping you reason about similarity scores.
-- **Feature flag overrides** – Experimental settings (hash algorithm switches, recognition delay slider, retro audio, etc.) remain available only while the 🧪 flag is on.
+- **Feature flag overrides** – Experimental settings (recognition delay slider, retro audio, etc.) remain available only while the 🧪 flag is on.
 
 > 💡 We will reintroduce a dedicated production dataset once the 100-photo drop is ready. For now, leaving Test Mode off only hides the debug UI—it no longer changes the data source.
 
@@ -79,7 +79,7 @@ Print whichever asset set you want to exercise:
 
 - Print at 4x6" or larger for the most reliable recognition window.
 - The easy PNGs are ideal when you just need a guaranteed match while tuning settings.
-- The example real photos now ship with both `phash` and `dhash` arrays in production and test data, so you can flip the **Hash Algorithm** custom setting without editing JSON.
+- The example real photos ship with `phash` arrays in production and test data so runtime recognition stays aligned with the pHash-only pipeline.
 
 #### Testing Steps
 
@@ -98,7 +98,7 @@ Print whichever asset set you want to exercise:
 - Toggle between Production and Test modes
 - Mode indicator badge (🎯/🧪)
 - Camera access and permission handling
-- Photo recognition using perceptual hashing (dHash algorithm)
+- Photo recognition using perceptual hashing (pHash pipeline)
 - **Photo hash generation tools** (browser-based HTML tool + Node.js script)
 - **Debug overlay** showing real-time recognition information
 - **Enhanced console logging** for troubleshooting
@@ -173,7 +173,7 @@ When testing, you may discover features that are **planned but not yet implement
 
 ~~❓ **Photo Hash Computation Tools**~~ ✅ **IMPLEMENTED**
 
-- ✅ Built-in tools to compute dHash for new photos
+- ✅ Built-in tools to compute pHash values for new photos
 - ✅ Easy-to-use browser interface (drag-and-drop)
 - ✅ Command-line script for automation
 - **Impact**: Adding photos is now simple for anyone
@@ -300,8 +300,7 @@ When testing, you may discover features that are **planned but not yet implement
      "audioFile": "/assets/example-real-songs/new-track.mp3",
      "imageFile": "/assets/test-images/new-image.jpg",
      "photoHashes": {
-       "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"],
-       "dhash": ["dark-exposure-dhash", "normal-exposure-dhash", "bright-exposure-dhash"]
+       "phash": ["dark-exposure-phash", "normal-exposure-phash", "bright-exposure-phash"]
      }
    }
    ```
@@ -369,7 +368,7 @@ If you see "[DataService] Warning: No concerts expose photoHashes" or test data 
 ### How Photo Recognition Works
 
 1. **Frame Capture**: Camera feed is sampled every 1000ms
-2. **Hash Computation**: Each frame is converted to an 8x8 grayscale dHash
+2. **Hash Computation**: Each frame is converted into a pHash fingerprint
 3. **Comparison**: Frame hash is compared to all concert photo hashes
 4. **Threshold Matching**: If Hamming distance ≤ 10 (similarity ≥ 84%), it's a match
 5. **Stability Check**: Match must persist for 1000ms to trigger recognition
@@ -391,7 +390,7 @@ The shared dataset now includes:
 
 - **24 concerts** with complete metadata (4 gradients, 3 high-contrast targets, 5 real photos, and 12 diagnostic edge cases)
 - **All audio references pulled from the 30-second clip pack** in `/assets/example-real-songs/`, giving every entry a realistic playback sample
-- **Photo images with pre-computed pHash + dHash values** (JPEG + PNG) so you can toggle algorithms without editing data
+- **Photo images with pre-computed pHash values** (JPEG + PNG) ready for the runtime recognizer
 - **Full recognition workflow** ready to test, including the challenging edge-case scenarios that gate future releases
 
 ## Providing Feedback

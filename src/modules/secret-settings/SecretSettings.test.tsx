@@ -140,9 +140,25 @@ describe('SecretSettings', () => {
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('aria-modal', 'true');
+      expect(dialog).toHaveAttribute(
+        'aria-describedby',
+        'secret-settings-intro-description secret-settings-mode-status'
+      );
 
       const document = screen.getByRole('document');
       expect(document).toHaveAttribute('aria-label', 'Secret Settings Menu');
+    });
+
+    it('should expose intro and mode status with stable IDs for assistive tech', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(
+        screen.getByText(/opens with a triple tap in the center of the screen/i)
+      ).toHaveAttribute('id', 'secret-settings-intro-description');
+
+      const modeBadge = screen.getByText(/production mode/i);
+      expect(modeBadge).toHaveAttribute('id', 'secret-settings-mode-status');
+      expect(modeBadge).toHaveAttribute('aria-live', 'polite');
     });
 
     it('should have accessible close button', () => {

@@ -16,9 +16,9 @@ Photo Signal's telemetry system tracks photo recognition performance and failure
 4. Click **"📥 Export JSON"** for raw structured data
 5. Click **"📝 Export Markdown Report"** for formatted table report
 
-### Automated Reports (CI/CD)
+### Automated Validation (CI/CD)
 
-Edge case accuracy reports are automatically posted to PRs via the **Edge Case Accuracy Report** workflow.
+Edge case accuracy thresholds are validated as part of standard CI test runs.
 
 ## Telemetry Data Structure
 
@@ -273,19 +273,7 @@ Pass Rate: 100% (12/12)
 - Average: Overall edge case performance (baseline: ≥65%)
 - Pass Rate: Percentage of edge cases meeting targets (target: ≥75%)
 
-### CI/CD Integration
-
-The **Edge Case Accuracy Report** workflow runs on every PR:
-
-1. **Automatic Testing**: Runs edge case tests automatically
-2. **PR Comment**: Posts results to PR for review
-3. **Threshold Checks**: Fails build if accuracy drops below baseline
-4. **Artifact Upload**: Saves full test output for 30 days
-
-**GitHub Actions Status**:
-
-- ✅ Green check: All thresholds met
-- ❌ Red X: Accuracy dropped below baseline or pass rate <75%
+These edge-case assertions are also exercised in standard CI test runs.
 
 ## Best Practices
 
@@ -346,7 +334,6 @@ The **Edge Case Accuracy Report** workflow runs on every PR:
 
 ## References
 
-- **Exploratory Analysis**: `docs/image-recognition-exploratory-analysis.md`
 - **Test Implementation**: `src/modules/photo-recognition/__tests__/edgeCaseAccuracy.test.ts`
 - **Telemetry Types**: `src/modules/photo-recognition/types.ts`
 - **Export Component**: `src/modules/photo-recognition/TelemetryExport.tsx`

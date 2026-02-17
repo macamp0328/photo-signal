@@ -239,8 +239,29 @@ describe('SecretSettings', () => {
     it('should display reset buttons', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      const resetButtons = screen.getAllByText(/Reset All/i);
-      expect(resetButtons.length).toBeGreaterThan(0);
+      expect(screen.getByRole('button', { name: /reset feature flags/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /reset custom settings/i })).toBeInTheDocument();
+    });
+
+    it('should associate section descriptions with sections for screen readers', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const featureFlagsHeading = screen.getByRole('heading', { name: /feature flags/i });
+      const featureFlagsSection = featureFlagsHeading.closest('section');
+      expect(featureFlagsSection).toHaveAttribute('aria-describedby', 'feature-flags-description');
+      expect(
+        screen.getByText(/toggle feature flags used for experiments and troubleshooting/i)
+      ).toHaveAttribute('id', 'feature-flags-description');
+
+      const customSettingsHeading = screen.getByRole('heading', { name: /custom settings/i });
+      const customSettingsSection = customSettingsHeading.closest('section');
+      expect(customSettingsSection).toHaveAttribute(
+        'aria-describedby',
+        'custom-settings-description'
+      );
+      expect(
+        screen.getByText(/tune recognition, performance, and appearance behavior/i)
+      ).toHaveAttribute('id', 'custom-settings-description');
     });
 
     it('should display feature flag checkboxes', () => {

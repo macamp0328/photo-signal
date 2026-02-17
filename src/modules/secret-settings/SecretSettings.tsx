@@ -29,9 +29,9 @@ interface FeatureFlagsSectionProps {
 
 function FeatureFlagsSection({ flags, onToggleFlag, onResetFlags }: FeatureFlagsSectionProps) {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-describedby="feature-flags-description">
       <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
-      <p className={styles.sectionDescription}>
+      <p id="feature-flags-description" className={styles.sectionDescription}>
         Toggle feature flags used for experiments and troubleshooting.
       </p>
 
@@ -56,8 +56,8 @@ function FeatureFlagsSection({ flags, onToggleFlag, onResetFlags }: FeatureFlags
               </div>
             ))}
           </div>
-          <button onClick={onResetFlags} className={styles.resetButton}>
-            Reset All Flags
+          <button onClick={onResetFlags} className={styles.resetButton} type="button">
+            Reset Feature Flags
           </button>
         </>
       ) : (
@@ -85,9 +85,9 @@ function CustomSettingsSection({
   onResetSettings,
 }: CustomSettingsSectionProps) {
   return (
-    <section className={styles.section}>
+    <section className={styles.section} aria-describedby="custom-settings-description">
       <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
-      <p className={styles.sectionDescription}>
+      <p id="custom-settings-description" className={styles.sectionDescription}>
         Tune recognition, performance, and appearance behavior.
       </p>
 
@@ -176,8 +176,8 @@ function CustomSettingsSection({
               </div>
             ))}
           </div>
-          <button onClick={onResetSettings} className={styles.resetButton}>
-            Reset All Settings
+          <button onClick={onResetSettings} className={styles.resetButton} type="button">
+            Reset Custom Settings
           </button>
         </>
       ) : (

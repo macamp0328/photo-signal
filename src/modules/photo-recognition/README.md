@@ -83,7 +83,7 @@ Each concert should include pHash variants:
 }
 ```
 
-Legacy fields (e.g. `dhash`, `orbFeatures`) may still exist in `data.json` and are ignored by runtime recognition.
+Only `photoHashes.phash` is required by runtime recognition.
 
 ## Notes
 
@@ -94,4 +94,4 @@ Legacy fields (e.g. `dhash`, `orbFeatures`) may still exist in `data.json` and a
 - App-level switch prompt is suppressed while `ambiguous-match` guidance is active
 - Telemetry includes switch prompt decisions (`shownCount`, `confirmCount`, `dismissCount`, decision latency, confidence/margin snapshot)
 - Kept for matching: `algorithms/phash.ts`, `algorithms/hamming.ts`, `algorithms/utils.ts`
-- Removed runtime paths: dHash, ORB, parallel voting, secondary fallback, multi-scale branching
+- Removed runtime paths: legacy non-pHash matching and fallback branches

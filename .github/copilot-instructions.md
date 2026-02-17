@@ -12,7 +12,7 @@ This runs lint, format, type-check, tests, and build. If ANY step fails, fix it 
 
 **Formatting is the #1 cause of CI failures.** Always run `npm run format` after making changes.
 
-**Safety net**: The `auto-fix-copilot-pr` workflow will auto-fix formatting if CI fails, but don't rely on it.
+**Safety net**: The `auto-fix-agent-pr` workflow will auto-fix formatting if CI fails, but don't rely on it.
 
 ### Interpreting Test Output
 

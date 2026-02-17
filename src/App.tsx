@@ -34,11 +34,47 @@ const DebugOverlay = lazy(async () => {
   return { default: module.DebugOverlay };
 });
 
+const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
+const DEFAULT_ACCESS_SESSION_HOURS = 12;
+
+interface AccessGateConfig {
+  enabled: boolean;
+  passcode: string;
+  sessionMs: number;
+}
+
+const getAccessGateConfig = (): AccessGateConfig => {
+  const passcode = (import.meta.env.VITE_ACCESS_PASSCODE ?? '').trim();
+  const rawSessionHours = Number(
+    import.meta.env.VITE_ACCESS_SESSION_HOURS ?? `${DEFAULT_ACCESS_SESSION_HOURS}`
+  );
+  const sessionHours =
+    Number.isFinite(rawSessionHours) && rawSessionHours > 0
+      ? rawSessionHours
+      : DEFAULT_ACCESS_SESSION_HOURS;
+
+  return {
+    enabled: passcode.length > 0,
+    passcode,
+    sessionMs: sessionHours * 60 * 60 * 1000,
+  };
+};
+
+const hasValidAccessSession = (): boolean => {
+  const storedValue = window.localStorage.getItem(ACCESS_STORAGE_KEY);
+  if (!storedValue) {
+    return false;
+  }
+
+  const accessUntil = Number(storedValue);
+  return Number.isFinite(accessUntil) && accessUntil > Date.now();
+};
+
 const coerceNumberSetting = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
 };
 
-function App() {
+function AppContent() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -517,6 +553,81 @@ function App() {
         <TelemetryExport telemetry={debugInfo.telemetry} />
       )}
     </>
+  );
+}
+
+function App() {
+  const gateConfig = getAccessGateConfig();
+  const [isUnlocked, setIsUnlocked] = useState(
+    () => !gateConfig.enabled || hasValidAccessSession()
+  );
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
+
+  useEffect(() => {
+    if (!gateConfig.enabled) {
+      setIsUnlocked(true);
+      return;
+    }
+
+    setIsUnlocked(hasValidAccessSession());
+  }, [gateConfig.enabled]);
+
+  if (!gateConfig.enabled || isUnlocked) {
+    return <AppContent />;
+  }
+
+  const handleUnlockSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (passcodeInput.trim() !== gateConfig.passcode) {
+      setPasscodeError('Incorrect code. Please try again.');
+      return;
+    }
+
+    window.localStorage.setItem(ACCESS_STORAGE_KEY, `${Date.now() + gateConfig.sessionMs}`);
+    setPasscodeError('');
+    setPasscodeInput('');
+    setIsUnlocked(true);
+  };
+
+  return (
+    <main className="access-gate" aria-label="Private access gate">
+      <section className="access-gate-card" aria-labelledby="access-gate-title">
+        <h1 id="access-gate-title" className="access-gate-title">
+          Private Gallery
+        </h1>
+        <p className="access-gate-description">Enter access code to begin.</p>
+        <form className="access-gate-form" onSubmit={handleUnlockSubmit}>
+          <label className="access-gate-label" htmlFor="access-code-input">
+            Access code
+          </label>
+          <input
+            id="access-code-input"
+            className="access-gate-input"
+            type="password"
+            value={passcodeInput}
+            onChange={(event) => {
+              setPasscodeInput(event.target.value);
+              if (passcodeError) {
+                setPasscodeError('');
+              }
+            }}
+            autoComplete="off"
+            autoFocus
+            inputMode="numeric"
+          />
+          {passcodeError ? (
+            <p className="access-gate-error" role="alert">
+              {passcodeError}
+            </p>
+          ) : null}
+          <button type="submit" className="access-gate-button">
+            Enter
+          </button>
+        </form>
+      </section>
+    </main>
   );
 }
 

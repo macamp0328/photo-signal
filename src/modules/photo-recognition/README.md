@@ -11,7 +11,8 @@ This module handles:
 - Frame capture and centered/rectangle-assisted cropping
 - Frame quality filtering (blur, glare, poor lighting)
 - pHash generation and Hamming-distance matching
-- Instant confirmation for strong matches and short stability fallback for borderline matches
+- Margin-based ambiguity guardrails for near-tie candidates
+- Instant/stability confirmation rules for initial matches and stricter switch-mode confirmation
 - Debug telemetry for diagnostics
 
 This module does not handle:
@@ -32,6 +33,11 @@ options?: {
   recognitionDelay?: number;              // default 300ms (borderline matches)
   enabled?: boolean;                      // default true
   similarityThreshold?: number;           // pHash distance threshold, default 12
+  matchMarginThreshold?: number;          // min best-vs-second margin, default 3
+  switchMatchMarginThreshold?: number;    // stricter switch margin, default 4
+  continuousRecognition?: boolean;        // default false (enables switch-mode behavior)
+  switchRecognitionDelayMultiplier?: number; // default 1.8x recognitionDelay
+  switchDistanceThreshold?: number;       // default 8 (stricter than base threshold)
   checkInterval?: number;                 // default 180ms
   enableDebugInfo?: boolean;              // default false
   aspectRatio?: '3:2' | '2:3' | '1:1' | 'auto';
@@ -82,7 +88,10 @@ Legacy fields (e.g. `dhash`, `orbFeatures`) may still exist in `data.json` and a
 ## Notes
 
 - Chosen runtime algorithm: **pHash only**
-- Fast confirmation path: immediate confirm for distance <= 5, or 2 consecutive matches
-- Telemetry includes app-level switch prompt decisions (shown/confirm/dismiss counts, latency, and confidence/margin snapshot)
+- Initial match confirmation: immediate when distance <= 5, otherwise 2 consecutive strong matches or short delay hold
+- Continuous switch confirmation: only for stronger candidates (distance <= 8 + margin >= 4), then 3 consistent frames and either delay completion or instant distance <= 3
+- Ambiguous candidates (within threshold but low margin) emit `ambiguous-match` guidance and are not promoted
+- App-level switch prompt is suppressed while `ambiguous-match` guidance is active
+- Telemetry includes switch prompt decisions (`shownCount`, `confirmCount`, `dismissCount`, decision latency, confidence/margin snapshot)
 - Kept for matching: `algorithms/phash.ts`, `algorithms/hamming.ts`, `algorithms/utils.ts`
 - Removed runtime paths: dHash, ORB, parallel voting, secondary fallback, multi-scale branching

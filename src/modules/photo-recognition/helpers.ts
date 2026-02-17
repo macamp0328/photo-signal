@@ -57,6 +57,21 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
       none: 0,
     },
   },
+  switchDecision: {
+    shownCount: 0,
+    confirmCount: 0,
+    dismissCount: 0,
+    decisionLatenciesMs: [],
+    averageDecisionLatencyMs: null,
+    lastDecisionLatencyMs: null,
+    lastPromptSnapshot: {
+      activeConcertId: null,
+      candidateConcertId: null,
+      confidence: null,
+      margin: null,
+      shownAt: null,
+    },
+  },
 });
 
 export const similarityPercent = (distance: number): number =>

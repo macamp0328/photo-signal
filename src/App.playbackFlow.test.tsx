@@ -3,7 +3,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import type { Concert } from './types';
-import type { GuidanceType } from './modules/photo-recognition/types';
+import type {
+  GuidanceType,
+  RecognitionDebugInfo,
+  RecognitionTelemetry,
+} from './modules/photo-recognition/types';
 
 const concertOne: Concert = {
   id: 1,
@@ -45,7 +49,7 @@ const audioState = {
 const recognitionState = {
   recognizedConcert: null as Concert | null,
   isRecognizing: false,
-  debugInfo: null,
+  debugInfo: null as RecognitionDebugInfo | null,
   frameQuality: null,
   activeGuidance: 'none' as GuidanceType,
   detectedRectangle: null,
@@ -53,10 +57,84 @@ const recognitionState = {
 };
 
 const mockResetRecognition = vi.fn();
+const enabledFlags = new Set<string>();
+let latestTelemetryExport: RecognitionTelemetry | null = null;
+
+const createDebugTelemetry = (): RecognitionTelemetry => ({
+  totalFrames: 1,
+  blurRejections: 0,
+  glareRejections: 0,
+  lightingRejections: 0,
+  qualityFrames: 1,
+  successfulRecognitions: 1,
+  failedAttempts: 0,
+  failureHistory: [],
+  failureByCategory: {
+    'motion-blur': 0,
+    glare: 0,
+    'poor-quality': 0,
+    'no-match': 0,
+    collision: 0,
+    unknown: 0,
+  },
+  guidanceTracking: {
+    shown: {
+      'motion-blur': 0,
+      glare: 0,
+      'poor-lighting': 0,
+      'ambiguous-match': 0,
+      distance: 0,
+      'off-center': 0,
+      none: 1,
+    },
+    duration: {
+      'motion-blur': 0,
+      glare: 0,
+      'poor-lighting': 0,
+      'ambiguous-match': 0,
+      distance: 0,
+      'off-center': 0,
+      none: 100,
+    },
+    lastShown: {
+      'motion-blur': 0,
+      glare: 0,
+      'poor-lighting': 0,
+      'ambiguous-match': 0,
+      distance: 0,
+      'off-center': 0,
+      none: Date.now(),
+    },
+  },
+});
+
+const createDebugInfo = (concert: Concert, margin = 6): RecognitionDebugInfo => ({
+  lastFrameHash: 'abcdef1234567890',
+  bestMatch: {
+    concert,
+    distance: 6,
+    similarity: 96.25,
+    algorithm: 'phash',
+  },
+  secondBestMatch: null,
+  bestMatchMargin: margin,
+  lastCheckTime: Date.now(),
+  concertCount: 2,
+  frameCount: 10,
+  checkInterval: 250,
+  aspectRatio: '3:2',
+  frameSize: { width: 640, height: 480 },
+  stability: null,
+  similarityThreshold: 12,
+  recognitionDelay: 1000,
+  frameQuality: null,
+  telemetry: createDebugTelemetry(),
+  hashAlgorithm: 'phash',
+});
 
 vi.mock('./modules/secret-settings', () => ({
   useFeatureFlags: () => ({
-    isEnabled: () => false,
+    isEnabled: (flag: string) => enabledFlags.has(flag),
   }),
   useCustomSettings: () => ({
     getSetting: () => undefined,
@@ -89,7 +167,10 @@ vi.mock('./modules/photo-recognition', () => ({
   GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
     <div data-testid="guidance-message">{guidanceType}</div>
   ),
-  TelemetryExport: () => null,
+  TelemetryExport: ({ telemetry }: { telemetry: RecognitionTelemetry }) => {
+    latestTelemetryExport = telemetry;
+    return null;
+  },
 }));
 
 vi.mock('./modules/audio-playback', () => ({
@@ -118,6 +199,8 @@ describe('App playback flow', () => {
     recognitionState.activeGuidance = 'none';
     recognitionState.detectedRectangle = null;
     recognitionState.rectangleConfidence = 0;
+    enabledFlags.clear();
+    latestTelemetryExport = null;
 
     audioState.isPlaying = false;
     audioState.progress = 0;
@@ -367,5 +450,39 @@ describe('App playback flow', () => {
       )
     ).toBeInTheDocument();
     expect(screen.getByText('Playback Error')).toBeInTheDocument();
+  });
+
+  it('captures switch shown/dismiss telemetry with latency and confidence snapshot in test mode', async () => {
+    enabledFlags.add('test-mode');
+    recognitionState.recognizedConcert = concertOne;
+    recognitionState.debugInfo = createDebugInfo(concertOne);
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.debugInfo = createDebugInfo(concertTwo, 5);
+    view.rerender(<App />);
+    view.rerender(<App />);
+
+    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(1);
+    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.candidateConcertId).toBe(2);
+    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.activeConcertId).toBe(1);
+    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.confidence).toBe(96.25);
+    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.margin).toBe(5);
+
+    await user.click(screen.getByRole('button', { name: 'Keep current track' }));
+
+    expect(latestTelemetryExport?.switchDecision?.dismissCount).toBe(1);
+    expect(latestTelemetryExport?.switchDecision?.confirmCount).toBe(0);
+    expect((latestTelemetryExport?.switchDecision?.decisionLatenciesMs.length ?? 0) > 0).toBe(true);
   });
 });

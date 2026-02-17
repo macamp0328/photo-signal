@@ -47,7 +47,7 @@ function expectHashArray(hashes: string[] | undefined): asserts hashes is string
 }
 
 function expectHashSet(hashSet: RawHashSet | undefined) {
-  expect(hashSet, 'photoHashes should be defined').toBeTruthy();
+  expect(hashSet, 'photoHashes.phash should be defined').toBeTruthy();
   if (!hashSet) {
     throw new Error('photoHashes missing');
   }
@@ -84,7 +84,7 @@ function getRepositoryRelativeAssetPath(assetPath: string): string {
 }
 
 describe('Data files integrity', () => {
-  it('public data has unique ids, hashes, and local audio files', () => {
+  it('public data has unique ids, pHash hashes, and local audio files', () => {
     const concerts = loadConcerts('public/data.json');
     expect(concerts.length).toBeGreaterThanOrEqual(4);
     const seenIds = new Set<number>();
@@ -103,7 +103,7 @@ describe('Data files integrity', () => {
     });
   });
 
-  it('test data entries reference printable images, audio, and hashes', () => {
+  it('test data entries reference printable images, audio, and pHash hashes', () => {
     const concerts = loadConcerts('assets/test-data/concerts.dev.json');
     expect(concerts.length).toBeGreaterThanOrEqual(4);
 

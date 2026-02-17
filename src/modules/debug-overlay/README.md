@@ -9,7 +9,7 @@ The Debug Overlay module provides real-time debugging information for the photo 
 ## Key Features
 
 ✅ **Real-time Status Display**: Shows recognition state (IDLE/CHECKING/MATCHING/RECOGNIZED)
-✅ **Frame Hash Visualization**: Displays the current frame's dHash value
+✅ **Frame Hash Visualization**: Displays the current frame's pHash value
 ✅ **Best Match Information**: Shows the closest matching concert and similarity score
 ✅ **Threshold Visualization**: Displays current threshold and required similarity percentage
 ✅ **Stability Countdown**: Visual progress bar and timer while waiting for confirmation

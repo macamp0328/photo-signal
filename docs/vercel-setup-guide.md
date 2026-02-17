@@ -99,6 +99,21 @@ The repository includes a `vercel.json` file at the root with the following conf
 | `framework`                  | `vite`          | Framework detection for optimizations                  |
 | `regions`                    | `["iad1"]`      | AWS US East (North Virginia) deployment region         |
 
+### Optional: Shared Passcode Access Gate
+
+If you want to limit casual web traffic while keeping guest access simple, you can enable the built-in app gate with environment variables.
+
+Set these in **Vercel → Project Settings → Environment Variables**:
+
+- `VITE_ACCESS_PASSCODE` (required to enable gate)
+- `VITE_ACCESS_SESSION_HOURS` (optional, defaults to `12`)
+
+Behavior:
+
+- Users are prompted for a shared passcode once
+- Access is remembered in browser storage for the configured session window
+- If `VITE_ACCESS_PASSCODE` is empty/unset, gate is disabled
+
 ---
 
 ## Deployment Workflow

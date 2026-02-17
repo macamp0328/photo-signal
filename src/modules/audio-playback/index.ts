@@ -5,4 +5,5 @@
  */
 
 export { useAudioPlayback } from './useAudioPlayback';
-export type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
+export { diagnoseAudioUrl } from './diagnoseAudioUrl';
+export type { AudioPlaybackHook, AudioPlaybackOptions, AudioDiagnosticResult } from './types';

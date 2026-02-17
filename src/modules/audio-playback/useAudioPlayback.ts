@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Howl } from 'howler';
 import type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
+import { diagnoseAudioUrl } from './diagnoseAudioUrl';
 
 /**
  * Custom hook for audio playback
@@ -25,6 +26,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const currentUrlRef = useRef<string | null>(null);
   const preloadCacheRef = useRef<Map<string, Howl>>(new Map());
   const progressRafRef = useRef<number | null>(null);
+  const diagnosticCacheRef = useRef<Map<string, Promise<import('./types').AudioDiagnosticResult>>>(
+    new Map()
+  );
+  const isMountedRef = useRef(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolumeState] = useState(initialVolume);
@@ -32,8 +37,12 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     const cache = preloadCacheRef.current;
+    const diagCache = diagnosticCacheRef.current;
     return () => {
+      isMountedRef.current = false;
+
       if (progressRafRef.current !== null) {
         cancelAnimationFrame(progressRafRef.current);
         progressRafRef.current = null;
@@ -42,6 +51,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       // Cleanup preloaded sounds
       cache.forEach((sound) => sound.unload());
       cache.clear();
+
+      // Clear diagnostic cache
+      diagCache.clear();
 
       // Clear any pending crossfade timeout
       if (crossfadeTimeoutRef.current) {
@@ -98,6 +110,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     }
   }, [getCurrentRatio]);
 
+  const startDiagnostic = useCallback((url: string) => {
+    if (!diagnosticCacheRef.current.has(url)) {
+      diagnosticCacheRef.current.set(url, diagnoseAudioUrl(url));
+    }
+    return diagnosticCacheRef.current.get(url)!;
+  }, []);
+
   const attachCallbacks = useCallback(
     (sound: Howl, url: string) => {
       const hasEventApi = typeof sound.on === 'function' && typeof sound.off === 'function';
@@ -134,6 +153,23 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           setPlaybackError('Audio failed to load. Check your connection and try again.');
           // Clear refs and unload to enable clean retry
           cleanupSound(sound, url);
+
+          // Asynchronously replace generic message with diagnostic details.
+          // Only update error state if a different URL hasn't been loaded since.
+          startDiagnostic(url)
+            .then((result) => {
+              // If mounted and no other URL has been loaded (or same URL loaded again), update
+              if (
+                isMountedRef.current &&
+                (currentUrlRef.current === null || currentUrlRef.current === url)
+              ) {
+                setPlaybackError(`Audio failed to load: ${result.message} Tap play to retry.`);
+              }
+            })
+            .catch((diagnosticError) => {
+              // Avoid unhandled rejections if diagnoseAudioUrl throws
+              console.error('[Audio] Diagnostic error:', diagnosticError);
+            });
         }
       };
 
@@ -192,7 +228,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
       }
     },
-    [stopProgressLoop, updateProgress, cleanupSound]
+    [stopProgressLoop, updateProgress, cleanupSound, startDiagnostic]
   );
 
   const createSound = useCallback(

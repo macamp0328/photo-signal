@@ -337,7 +337,6 @@ function AppContent() {
 
     if (recognizedConcert.id === activeConcert.id) {
       setPendingSwitchConcert(null);
-      setDismissedSwitchConcertId(null);
       return;
     }
 

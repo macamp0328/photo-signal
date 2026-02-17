@@ -6,6 +6,27 @@
 
 import type { RecognitionTelemetry, GuidanceType } from '../modules/photo-recognition/types';
 
+const getLatencyBounds = (latencyValues: number[]): { min: number | null; max: number | null } => {
+  if (latencyValues.length === 0) {
+    return { min: null, max: null };
+  }
+
+  let min = latencyValues[0];
+  let max = latencyValues[0];
+
+  for (let index = 1; index < latencyValues.length; index += 1) {
+    const value = latencyValues[index];
+    if (value < min) {
+      min = value;
+    }
+    if (value > max) {
+      max = value;
+    }
+  }
+
+  return { min, max };
+};
+
 /**
  * Format guidance telemetry for console logging
  */
@@ -95,6 +116,7 @@ export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string
     },
   };
   const latencyValues = switchDecision.decisionLatenciesMs;
+  const latencyBounds = getLatencyBounds(latencyValues);
   const exportData = {
     timestamp: new Date().toISOString(),
     frameStats: {
@@ -143,8 +165,8 @@ export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string
       decisionLatencyMs: {
         average: switchDecision.averageDecisionLatencyMs,
         last: switchDecision.lastDecisionLatencyMs,
-        min: latencyValues.length > 0 ? Math.min(...latencyValues) : null,
-        max: latencyValues.length > 0 ? Math.max(...latencyValues) : null,
+        min: latencyBounds.min,
+        max: latencyBounds.max,
         samples: latencyValues,
       },
       lastPromptSnapshot: switchDecision.lastPromptSnapshot,

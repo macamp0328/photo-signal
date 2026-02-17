@@ -43,6 +43,7 @@ const DebugOverlay = lazy(async () => {
 
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
+const MAX_SWITCH_DECISION_LATENCY_SAMPLES = 200;
 const createEmptySwitchDecisionTelemetry = (): SwitchDecisionTelemetry => ({
   shownCount: 0,
   confirmCount: 0,
@@ -69,10 +70,17 @@ const recordSwitchDecisionLatency = (
 
   const decisionLatencyMs = Math.max(Date.now() - promptShownAt, 0);
   switchDecision.decisionLatenciesMs.push(decisionLatencyMs);
+  if (switchDecision.decisionLatenciesMs.length > MAX_SWITCH_DECISION_LATENCY_SAMPLES) {
+    switchDecision.decisionLatenciesMs.shift();
+  }
+
   switchDecision.lastDecisionLatencyMs = decisionLatencyMs;
+  const totalDecisions = switchDecision.confirmCount + switchDecision.dismissCount;
+  const previousAverage = switchDecision.averageDecisionLatencyMs ?? 0;
   switchDecision.averageDecisionLatencyMs =
-    switchDecision.decisionLatenciesMs.reduce((total, value) => total + value, 0) /
-    switchDecision.decisionLatenciesMs.length;
+    totalDecisions <= 1
+      ? decisionLatencyMs
+      : previousAverage + (decisionLatencyMs - previousAverage) / totalDecisions;
 };
 
 interface AccessGateConfig {

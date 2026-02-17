@@ -2,6 +2,27 @@ import { useState, useEffect } from 'react';
 import type { RecognitionTelemetry } from './types';
 import styles from './TelemetryExport.module.css';
 
+const getLatencyBounds = (latencyValues: number[]): { min: number | null; max: number | null } => {
+  if (latencyValues.length === 0) {
+    return { min: null, max: null };
+  }
+
+  let min = latencyValues[0];
+  let max = latencyValues[0];
+
+  for (let index = 1; index < latencyValues.length; index += 1) {
+    const value = latencyValues[index];
+    if (value < min) {
+      min = value;
+    }
+    if (value > max) {
+      max = value;
+    }
+  }
+
+  return { min, max };
+};
+
 interface TelemetryExportProps {
   telemetry: RecognitionTelemetry;
 }
@@ -43,6 +64,7 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
       },
     };
     const latencyValues = switchDecision.decisionLatenciesMs;
+    const latencyBounds = getLatencyBounds(latencyValues);
 
     // Create comprehensive telemetry report
     const report = {
@@ -98,8 +120,8 @@ export function TelemetryExport({ telemetry }: TelemetryExportProps) {
         decisionLatencyMs: {
           average: switchDecision.averageDecisionLatencyMs,
           last: switchDecision.lastDecisionLatencyMs,
-          min: latencyValues.length > 0 ? Math.min(...latencyValues) : null,
-          max: latencyValues.length > 0 ? Math.max(...latencyValues) : null,
+          min: latencyBounds.min,
+          max: latencyBounds.max,
           samples: latencyValues,
         },
         lastPromptSnapshot: switchDecision.lastPromptSnapshot,

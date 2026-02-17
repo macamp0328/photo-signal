@@ -75,14 +75,31 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            // Check if test-results directory exists
+            // Check if test-results directory exists and recursively search for diff images
             const testResultsDir = 'test-results';
             let hasVisualDiffs = false;
 
+            // Recursive function to walk directory tree and find diff images
+            function findDiffImages(dir) {
+              try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                  const fullPath = path.join(dir, entry.name);
+                  if (entry.isDirectory()) {
+                    if (findDiffImages(fullPath)) return true;
+                  } else if (entry.name.endsWith('-diff.png')) {
+                    return true; // Found a diff
+                  }
+                }
+              } catch (error) {
+                console.log(`Error reading directory ${dir}:`, error.message || error);
+              }
+              return false;
+            }
+
             try {
               if (fs.existsSync(testResultsDir)) {
-                const files = fs.readdirSync(testResultsDir);
-                hasVisualDiffs = files.some(f => f.includes('-diff.png'));
+                hasVisualDiffs = findDiffImages(testResultsDir);
               }
             } catch (error) {
               console.log('Error checking test results:', error);

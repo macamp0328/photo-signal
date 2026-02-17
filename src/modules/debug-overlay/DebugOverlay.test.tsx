@@ -117,6 +117,8 @@ describe('DebugOverlay', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    mockRunTest.mockReset();
+    mockResetTest.mockReset();
   });
 
   afterEach(() => {

@@ -329,7 +329,9 @@ export function DebugOverlay({
                     <span className={styles.testLabel}>Fetch:</span>
                     <span
                       className={
-                        testResult.diagnostic.httpStatus === 200
+                        testResult.diagnostic.httpStatus !== null &&
+                        testResult.diagnostic.httpStatus >= 200 &&
+                        testResult.diagnostic.httpStatus < 300
                           ? styles.testSuccess
                           : styles.testError
                       }

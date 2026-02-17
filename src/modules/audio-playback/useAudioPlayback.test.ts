@@ -519,9 +519,9 @@ describe('useAudioPlayback', () => {
         'Audio failed to load. Check your connection and try again.'
       );
 
-      // Wait for the async diagnostic to resolve and update the message
+      // Flush all promises to allow diagnostic to resolve
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(0);
+        await vi.runAllTimersAsync();
       });
 
       expect(result.current.playbackError).toContain('Audio failed to load:');

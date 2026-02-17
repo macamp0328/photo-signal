@@ -198,8 +198,14 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    loadTestAudioUrl();
-  }, [loadTestAudioUrl]);
+    if (!isTestModeEnabled) {
+      // Ensure debug UI remains opt-in when Test Mode is disabled
+      setTestAudioUrl(null);
+      return;
+    }
+
+    void loadTestAudioUrl();
+  }, [isTestModeEnabled, loadTestAudioUrl]);
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({

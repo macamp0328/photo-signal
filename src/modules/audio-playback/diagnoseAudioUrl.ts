@@ -5,6 +5,11 @@ import type { AudioDiagnosticResult } from './types';
  *
  * Probes the URL with `mode: 'cors'` to surface HTTP errors and
  * missing CORS headers that Howler.js cannot report.
+ *
+ * Note: `Access-Control-Allow-Origin` and `Content-Length` are not
+ * CORS-safelisted response headers, so they will only be readable if
+ * the server sends `Access-Control-Expose-Headers`. These fields may
+ * be null even when the headers are present on the server.
  */
 export async function diagnoseAudioUrl(url: string): Promise<AudioDiagnosticResult> {
   try {
@@ -13,7 +18,11 @@ export async function diagnoseAudioUrl(url: string): Promise<AudioDiagnosticResu
     const corsOrigin = response.headers.get('access-control-allow-origin');
     const contentType = response.headers.get('content-type');
     const rawLength = response.headers.get('content-length');
-    const contentLength = rawLength ? Number(rawLength) : null;
+    const parsedLength = rawLength !== null ? Number(rawLength) : null;
+    const contentLength =
+      typeof parsedLength === 'number' && Number.isFinite(parsedLength) && parsedLength >= 0
+        ? parsedLength
+        : null;
 
     if (response.ok) {
       return {
@@ -34,7 +43,10 @@ export async function diagnoseAudioUrl(url: string): Promise<AudioDiagnosticResu
       corsOrigin,
       contentType,
       contentLength,
-      likelyCorsIssue: response.status === 403 && !corsOrigin,
+      // If fetch returned a Response, CORS has already allowed this origin.
+      // Only the thrown/TypeError path in the catch block should be treated
+      // as a likely CORS/network issue.
+      likelyCorsIssue: false,
       message: `Server returned ${statusText}.${corsHint}`,
     };
   } catch {

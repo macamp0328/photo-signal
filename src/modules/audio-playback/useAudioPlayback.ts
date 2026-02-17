@@ -125,6 +125,11 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           setIsPlaying(false);
           setProgress(0);
           setPlaybackError('Audio failed to load. Check your connection and try again.');
+          // Clear refs and unload to enable clean retry
+          sound.unload();
+          soundRef.current = null;
+          currentUrlRef.current = null;
+          preloadCacheRef.current.delete(url);
         }
       };
 
@@ -133,7 +138,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         if (soundRef.current === sound) {
           stopProgressLoop();
           setIsPlaying(false);
+          setProgress(0);
           setPlaybackError('Audio failed to start. Tap Play to retry.');
+          // Clear refs and unload to enable clean retry
+          sound.unload();
+          soundRef.current = null;
+          currentUrlRef.current = null;
+          preloadCacheRef.current.delete(url);
         }
       };
 

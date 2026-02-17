@@ -24,8 +24,10 @@ Camera frame
   → crop region (rectangle detection when confident, else centered frame)
   → pHash compute
   → Hamming distance against all concert pHash variants
-  → threshold check
-  → stability timer
+  → threshold + margin gate (reject ambiguous near-ties)
+  → confirm path:
+      - initial recognition: instant or short stability
+      - active-playback switch mode: stricter candidate confirmation
   → recognized concert
 ```
 
@@ -41,11 +43,18 @@ From the project audit:
 ## Key thresholds
 
 - `similarityThreshold`: default `12` (pHash distance)
-- `checkInterval`: default `250ms`
-- `recognitionDelay`: default `1000ms`
+- `checkInterval`: default `180ms`
+- `recognitionDelay`: default `300ms`
 - `sharpnessThreshold`: default `100`
 - `glareThreshold`: default `250`
 - `glarePercentageThreshold`: default `20`
+- `matchMarginThreshold`: default `3` (minimum best-vs-second distance margin)
+- `switchMatchMarginThreshold`: default `4` (stricter margin while switching)
+- `switchDistanceThreshold`: default `8`
+- `switchRecognitionDelayMultiplier`: default `1.8` (switch hold time multiplier)
+- Instant confirm distances:
+  - initial: `<= 5` (or 2 consecutive strong frames)
+  - switch mode: `<= 3` plus 3 consecutive strong frames
 
 ## Data expectations
 
@@ -61,9 +70,19 @@ Legacy fields such as `photoHashes.dhash` and `orbFeatures` may remain in data f
 
 - `debugInfo` (last hash, best candidate, frame stats)
 - `frameQuality` (sharpness, glare, lighting)
-- telemetry counters and failure categories
+- telemetry counters and failure categories, including ambiguity/collision outcomes
+- switch decision telemetry consumed by `App` (`shownCount`, `confirmCount`, `dismissCount`, decision latency, last prompt confidence/margin snapshot)
 
 This keeps diagnostics intact while removing algorithm-branch complexity.
+
+## Ambiguity + switch prompt behavior (current app flow)
+
+- Ambiguity is detected when best match is within threshold but too close to second-best (margin below configured guardrail).
+- In this state, recognition emits `ambiguous-match` guidance and does **not** confirm a new concert.
+- While music is already playing, app-level switch prompts are suppressed during `ambiguous-match` guidance.
+- When ambiguity clears and a stronger candidate remains, the app can show a switch prompt:
+  - **Confirm** → crossfade to candidate track.
+  - **Keep current track** → dismiss that candidate until movement/reset changes context.
 
 ## Operational guidance
 

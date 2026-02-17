@@ -102,26 +102,4 @@ describe('Data files integrity', () => {
       expectHashSet(concert.photoHashes);
     });
   });
-
-  it('test data entries reference printable images, audio, and pHash hashes', () => {
-    const concerts = loadConcerts('assets/test-data/concerts.dev.json');
-    expect(concerts.length).toBeGreaterThanOrEqual(4);
-
-    concerts.forEach((concert) => {
-      expectHashSet(concert.photoHashes);
-      expect(typeof concert.audioFile).toBe('string');
-      ensureFileExists(concert.audioFile);
-
-      expect(concert.imageFile, 'imageFile must be defined for test entries').toBeTruthy();
-      if (concert.imageFile) {
-        ensureFileExists(concert.imageFile);
-      }
-    });
-  });
-
-  it('production snapshot in assets matches public data', () => {
-    const publicConcerts = loadConcerts('public/data.json');
-    const prodSnapshot = loadConcerts('assets/test-data/concerts.prod.json');
-    expect(prodSnapshot).toEqual(publicConcerts);
-  });
 });

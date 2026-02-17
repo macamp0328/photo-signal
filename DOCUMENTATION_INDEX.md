@@ -67,11 +67,7 @@ Each module has a README defining its API contract:
 
 ## Asset Documentation
 
-- **[assets/test-images/README.md](./assets/test-images/README.md)** — Test images for development
-- **[assets/test-audio/README.md](./assets/test-audio/README.md)** — Test audio files
-- **[assets/test-data/README.md](./assets/test-data/README.md)** — Test data files
-- **[assets/example-real-songs/README.md](./assets/example-real-songs/README.md)** — Real-world Opus library for test mode
-- **[assets/example-real-photos/README.md](./assets/example-real-photos/README.md)** — Real concert photos for testing
+- **assets/prod-photographs/** — Canonical production photo source materials
 
 ## Issue Drafts
 

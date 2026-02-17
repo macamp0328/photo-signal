@@ -87,7 +87,7 @@ describe('DataService', () => {
 
       // Verify fetch was called with correct URL
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith('/assets/test-data/concerts.dev.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.json');
 
       // Verify returned data structure
       expect(concerts).toEqual(mockConcerts);
@@ -143,7 +143,7 @@ describe('DataService', () => {
         expect.any(Error)
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[DataService] Attempted to load from: /assets/test-data/concerts.dev.json'
+        '[DataService] Attempted to load from: /data.json'
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[DataService] Test mode is DISABLED. Try enabling it in Secret Settings.'
@@ -545,7 +545,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with test data URL
-      expect(mockFetch).toHaveBeenCalledWith('/assets/test-data/concerts.dev.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.json');
       expect(dataService.getTestMode()).toBe(true);
     });
 
@@ -565,7 +565,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with production data URL
-      expect(mockFetch).toHaveBeenCalledWith('/assets/test-data/concerts.dev.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.json');
       expect(dataService.getTestMode()).toBe(false);
     });
 
@@ -580,7 +580,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       expect(mockFetch1).toHaveBeenCalledTimes(1);
-      expect(mockFetch1).toHaveBeenCalledWith('/assets/test-data/concerts.dev.json');
+      expect(mockFetch1).toHaveBeenCalledWith('/data.json');
 
       // Switch to test mode
       dataService.setTestMode(true);
@@ -598,7 +598,7 @@ describe('DataService', () => {
 
       // Should fetch from test URL with new data
       expect(mockFetch2).toHaveBeenCalledTimes(1);
-      expect(mockFetch2).toHaveBeenCalledWith('/assets/test-data/concerts.dev.json');
+      expect(mockFetch2).toHaveBeenCalledWith('/data.json');
       expect(concerts[0].band).toBe('Test Band');
     });
 
@@ -612,7 +612,7 @@ describe('DataService', () => {
       // Verify logging occurred
       expect(consoleLogSpy).toHaveBeenCalledWith('[DataService] Test mode ENABLED');
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[DataService] Data will be loaded from: /assets/test-data/concerts.dev.json'
+        '[DataService] Data will be loaded from: /data.json'
       );
     });
 

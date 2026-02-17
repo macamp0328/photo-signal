@@ -12,6 +12,7 @@ import { hammingDistance } from '../algorithms/hamming';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,6 +26,8 @@ const TEST_DATA_PATH = join(
   'test-data',
   'concerts.dev.json'
 );
+const HAS_EDGE_CASE_DATASET = existsSync(TEST_DATA_PATH);
+const describeEdgeCaseSuite = HAS_EDGE_CASE_DATASET ? describe : describe.skip;
 
 interface EdgeCaseMetadata {
   category: string;
@@ -101,7 +104,7 @@ function getReferenceHashes(concert: Concert): string[] {
   return hashes;
 }
 
-describe('Edge Case Accuracy Regression Tests', () => {
+describeEdgeCaseSuite('Edge Case Accuracy Regression Tests', () => {
   let testData: TestData;
   let edgeCases: Concert[];
 

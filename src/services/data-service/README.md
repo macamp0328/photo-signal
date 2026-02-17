@@ -41,7 +41,7 @@ class DataService {
 
 **Side Effects**:
 
-- Fetches from `/data.json` in production builds and `/assets/test-data/concerts.dev.json` in development/test or when Secret Settings enables Test Data Mode
+- Fetches from `/data.json` in production builds and `/data.json` in development/test or when Secret Settings enables Test Data Mode
 - Logs which dataset is active to aid debugging
 - Caches results in memory
 - Future: Will query PostgreSQL API
@@ -67,11 +67,11 @@ const results = dataService.search('Fillmore');
 
 ## Data Source
 
-**Current**: Split datasets
+**Current**: Single production dataset
 
-- **Production**: `/data.json` (bundled from `assets/test-data/concerts.prod.json`)
-- **Development/Test**: `/assets/test-data/concerts.dev.json` (complete dataset with stress cases)
-- **Test Data Mode**: Forces development dataset even in production builds
+- **Production**: `/data.json`
+- **Development/Test**: `/data.json`
+- **Test Data Mode**: Retained for feature toggles; data source remains `/data.json`
 
 ### Data Integrity Contract
 
@@ -91,7 +91,7 @@ When migrating to PostgreSQL:
 ```typescript
 // Before (current state)
 const productionDataUrl = '/data.json';
-const developmentDataUrl = '/assets/test-data/concerts.dev.json';
+const developmentDataUrl = '/data.json';
 
 // After (PostgreSQL)
 const productionDataUrl = '/api/concerts';

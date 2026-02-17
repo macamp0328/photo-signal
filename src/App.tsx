@@ -55,6 +55,7 @@ function App() {
 
   // Ref to store auto-reset timer ID for test mode
   const autoResetTimerRef = useRef<number | null>(null);
+  const previousRecognizedIdRef = useRef<number | null>(null);
 
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
@@ -160,7 +161,17 @@ function App() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const { play, pause, preload, fadeOut, crossfade, isPlaying, progress } = useAudioPlayback({
+  const {
+    play,
+    pause,
+    preload,
+    fadeOut,
+    crossfade,
+    isPlaying,
+    progress,
+    playbackError,
+    clearPlaybackError,
+  } = useAudioPlayback({
     volume: 0.8,
     fadeTime: 1000,
   });
@@ -180,9 +191,21 @@ function App() {
     preload(selectedAudioUrl);
   }, [preload, recognizedConcert]);
 
-  // Auto-play the first recognized concert after camera activation.
+  // Auto-play newly recognized concerts whenever nothing is currently playing.
   useEffect(() => {
-    if (!isActive || !recognizedConcert || activeConcert) {
+    if (!recognizedConcert) {
+      previousRecognizedIdRef.current = null;
+      return;
+    }
+
+    if (!isActive) {
+      return;
+    }
+
+    const isNewRecognition = previousRecognizedIdRef.current !== recognizedConcert.id;
+    previousRecognizedIdRef.current = recognizedConcert.id;
+
+    if (!isNewRecognition || isPlaying) {
       return;
     }
 
@@ -193,7 +216,9 @@ function App() {
 
     play(selectedAudioUrl);
     setActiveConcert(recognizedConcert);
-  }, [isActive, recognizedConcert, activeConcert, play]);
+    setPendingSwitchConcert(null);
+    setDismissedSwitchConcertId(null);
+  }, [isActive, recognizedConcert, isPlaying, play]);
 
   // Track a switch candidate while music is already playing.
   useEffect(() => {
@@ -258,11 +283,14 @@ function App() {
   }, [isMoving, activeConcert]);
 
   const handleTogglePlayback = () => {
-    if (!activeConcert) {
+    const playbackTargetConcert =
+      !isPlaying && recognizedConcert ? recognizedConcert : activeConcert;
+
+    if (!playbackTargetConcert) {
       return;
     }
 
-    const selectedAudioUrl = activeConcert.audioFile;
+    const selectedAudioUrl = playbackTargetConcert.audioFile;
     if (!selectedAudioUrl) {
       return;
     }
@@ -272,8 +300,11 @@ function App() {
       return;
     }
 
+    clearPlaybackError();
     play(selectedAudioUrl);
-    setActiveConcert(activeConcert);
+    setActiveConcert(playbackTargetConcert);
+    setPendingSwitchConcert(null);
+    setDismissedSwitchConcertId(null);
   };
 
   const handleConfirmSwitch = () => {
@@ -289,6 +320,7 @@ function App() {
     if (activeConcert && isPlaying) {
       crossfade(selectedAudioUrl);
     } else {
+      clearPlaybackError();
       play(selectedAudioUrl);
     }
 
@@ -319,20 +351,11 @@ function App() {
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const showSwitchPrompt = !!pendingSwitchConcert;
 
-  const primaryActionLabel = (() => {
-    if (!activeConcert) {
-      return 'Play';
-    }
+  const primaryActionLabel = isPlaying ? (isInfoActive ? 'Pause' : 'Pause Current') : 'Play';
 
-    if (isInfoActive) {
-      return isPlaying ? 'Pause' : 'Play';
-    }
-
-    return isPlaying ? 'Pause Current' : 'Play Current';
-  })();
-
-  const statusLabel =
-    isInfoActive && isPlaying
+  const statusLabel = playbackError
+    ? 'Playback Error'
+    : isInfoActive && isPlaying
       ? 'Now Playing'
       : showSwitchPrompt
         ? 'New Photo Found'
@@ -342,13 +365,15 @@ function App() {
             ? 'Paused'
             : 'Now Viewing';
 
-  const promptText = showSwitchPrompt
-    ? `Now playing ${activeConcert?.band}. Switch to ${pendingSwitchConcert?.band}?`
-    : recognizedConcert
-      ? 'Song started automatically. Music keeps playing until you pause.'
-      : activeConcert
-        ? 'Music will keep playing until you pause.'
-        : 'Point your camera at a photo to get started.';
+  const promptText = playbackError
+    ? `${playbackError} Check stream access and tap Play to retry.`
+    : showSwitchPrompt
+      ? `Now playing ${activeConcert?.band}. Switch to ${pendingSwitchConcert?.band}?`
+      : recognizedConcert
+        ? 'Song started automatically. Music keeps playing until you pause.'
+        : activeConcert
+          ? 'Music will keep playing until you pause.'
+          : 'Point your camera at a photo to get started.';
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;

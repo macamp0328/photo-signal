@@ -170,6 +170,61 @@ describe('SecretSettings', () => {
       const closeButton = screen.getByRole('button', { name: /close settings menu/i });
       expect(closeButton).toHaveFocus();
     });
+
+    it('should trap Tab focus inside the modal', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const dialog = screen.getByRole('dialog');
+      const modalContent = screen.getByRole('document');
+      const focusableElements = Array.from(
+        modalContent.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((element) => !element.hasAttribute('disabled') && element.tabIndex !== -1);
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      lastElement.focus();
+      fireEvent.keyDown(dialog, { key: 'Tab' });
+      expect(firstElement).toHaveFocus();
+
+      firstElement.focus();
+      fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true });
+      expect(lastElement).toHaveFocus();
+    });
+
+    it('should restore focus to previously focused element when closing', async () => {
+      const { rerender } = render(
+        <>
+          <button type="button">Launch Settings</button>
+          <SecretSettings isVisible={false} onClose={vi.fn()} />
+        </>
+      );
+
+      const launchButton = screen.getByRole('button', { name: /launch settings/i });
+      launchButton.focus();
+
+      rerender(
+        <>
+          <button type="button">Launch Settings</button>
+          <SecretSettings isVisible={true} onClose={vi.fn()} />
+        </>
+      );
+
+      expect(screen.getByRole('button', { name: /close settings menu/i })).toHaveFocus();
+
+      rerender(
+        <>
+          <button type="button">Launch Settings</button>
+          <SecretSettings isVisible={false} onClose={vi.fn()} />
+        </>
+      );
+
+      await waitFor(() => {
+        expect(launchButton).toHaveFocus();
+      });
+    });
   });
 
   describe('Content sections', () => {
@@ -177,7 +232,7 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(
-        screen.getByText(/activated by triple-tapping in the center of the screen/i)
+        screen.getByText(/opens with a triple tap in the center of the screen/i)
       ).toBeInTheDocument();
     });
 
@@ -309,9 +364,7 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(
-        screen.getByText(
-          /Settings are saved immediately\. Reload applies all changes across the app\./i
-        )
+        screen.getByText(/Settings save instantly\. Reload applies runtime-only changes\./i)
       ).toBeInTheDocument();
     });
 

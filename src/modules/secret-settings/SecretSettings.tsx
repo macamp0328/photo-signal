@@ -32,7 +32,7 @@ function FeatureFlagsSection({ flags, onToggleFlag, onResetFlags }: FeatureFlags
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
       <p className={styles.sectionDescription}>
-        Toggle experimental and creative features on or off.
+        Toggle feature flags used for experiments and troubleshooting.
       </p>
 
       {flags.length > 0 ? (
@@ -87,7 +87,9 @@ function CustomSettingsSection({
   return (
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
-      <p className={styles.sectionDescription}>Adjust advanced parameters and preferences.</p>
+      <p className={styles.sectionDescription}>
+        Tune recognition, performance, and appearance behavior.
+      </p>
 
       {settingGroups.length > 0 ? (
         <>
@@ -203,7 +205,7 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
         Save & Reload 🚀
       </button>
       <p className={styles.sendItDescription}>
-        Settings are saved immediately. Reload applies all changes across the app.
+        Settings save instantly. Reload applies runtime-only changes.
       </p>
     </section>
   );
@@ -351,8 +353,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           {/* Introduction */}
           <div className={styles.section}>
             <p className={styles.intro}>
-              This hidden menu is activated by triple-tapping in the center of the screen. It's
-              designed to hold feature flags and custom settings for advanced users and developers.
+              This hidden menu opens with a triple tap in the center of the screen.
             </p>
             <p className={styles.intro}>
               <span

@@ -21,8 +21,12 @@ export interface AudioPlaybackHook {
   progress: number;
   /** Current volume (0-1) */
   volume: number;
+  /** Most recent playback/load error message */
+  playbackError: string | null;
   /** Set volume (0-1) */
   setVolume: (volume: number) => void;
+  /** Clear current playback error state */
+  clearPlaybackError: () => void;
 }
 
 export interface AudioPlaybackOptions {

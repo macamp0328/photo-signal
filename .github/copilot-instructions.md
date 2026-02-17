@@ -19,6 +19,29 @@ This runs lint, format, type-check, tests, and build. If ANY step fails, fix it 
 - **PASS**: `Test Files X passed` with exit code 0 (ignore `stderr` warnings about React `act()` or mocks)
 - **FAIL**: `Test Files X failed` with exit code != 0
 
+## CRITICAL: Branch Workflow Rule
+
+Before implementing any code change, create and switch to a feature branch.
+
+- Tiny docs-only edits may be done on `main`, but branches are still preferred.
+- For AI-agent work, branch prefixes `copilot/` and `claude/` are recommended (not required).
+- Planner mode is optional, but recommended for larger or multi-file changes.
+- Use `CONTRIBUTING.md` as the canonical contributor workflow reference.
+
+After completing implementation, ask the maintainer whether to update the feature branch from `main` before PR handoff.
+
+- If requested, pull/merge `main` into the feature branch and resolve conflicts.
+- Re-run `npm run pre-commit` after resolving conflicts.
+
+## CRITICAL: Git Tooling Preference
+
+Prefer `gh` CLI for git collaboration tasks (commits, PR creation, PR updates, PR comments, and review actions) instead of GitKraken tools.
+
+- If `gh` is not authenticated, pause and ask the maintainer to run `gh auth login`, then continue.
+- For larger changes, commit in logical checkpoints on the feature branch rather than one large final commit.
+- Keep commits focused and descriptive, and ensure `npm run pre-commit` passes before each commit.
+- Open or update the PR with `gh` when implementation is complete.
+
 ## Project Overview
 
 Photo Signal is a camera-based gallery that plays music when you point a device at a printed photo. It uses perceptual hashing (pHash) to recognize photos — no QR codes or markers. Mobile-first, deployed as a static site on Vercel with audio via Cloudflare R2/Workers.

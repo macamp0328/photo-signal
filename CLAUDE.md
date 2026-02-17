@@ -199,6 +199,14 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 
 ## Agent Workflow Guidelines
 
+### Before Implementing Any Change (MANDATORY)
+
+1. For any code change, create and switch to a feature branch before implementation.
+2. Tiny docs-only edits may be done on `main`, but branches are still preferred.
+3. For AI-agent work, branch prefixes `copilot/` and `claude/` are recommended (not required).
+4. Planner mode is optional, but recommended for larger or multi-file changes.
+5. Use `CONTRIBUTING.md` as the canonical contributor workflow reference.
+
 ### Before Committing or Pushing (MANDATORY)
 
 1. Run `npm run pre-commit` and confirm ALL checks pass (exit code 0)
@@ -206,6 +214,20 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 3. Only after all checks pass, create your commit
 4. Never use `--no-verify` to bypass the pre-commit hook
 5. Never push to a PR without passing all checks locally first — CI failures on PRs are not acceptable
+
+### After Completing Implementation (MANDATORY)
+
+1. Ask the maintainer whether the branch should be updated with the latest `main` before handoff.
+2. If requested, pull/merge `main` into the feature branch and resolve conflicts before opening or updating the PR.
+3. Re-run `npm run pre-commit` after conflict resolution to confirm the branch is still green.
+
+### Git Tooling and PR Workflow (MANDATORY)
+
+1. Prefer `gh` CLI for collaboration tasks (commits, PR creation/updates, PR comments, and review actions) instead of GitKraken tools.
+2. If `gh` is not authenticated, ask the maintainer to run `gh auth login` and continue once access is ready.
+3. For larger changes, create regular logical commits on the feature branch rather than one large final commit.
+4. Keep commits focused with clear messages, and run `npm run pre-commit` before each commit.
+5. Open or update the PR with `gh` when implementation is complete.
 
 ### Before Modifying Any Module
 

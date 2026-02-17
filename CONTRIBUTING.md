@@ -94,6 +94,11 @@ AI agents (Copilot, Claude Code, etc.) must:
 3. Read module READMEs before making changes
 4. Update `DOCUMENTATION_INDEX.md` when adding or removing files
 5. Keep changes minimal and focused
+6. Ask the maintainer whether to sync the feature branch with latest `main` before PR handoff
+7. If requested, pull/merge `main` and resolve conflicts, then re-run `npm run pre-commit`
+8. Prefer `gh` CLI for commit/PR workflows instead of GitKraken tooling
+9. If `gh` is not authenticated, ask the maintainer to run `gh auth login` before continuing PR tasks
+10. For larger changes, commit in regular logical checkpoints and open/update the PR with `gh` when complete
 
 The `auto-fix-agent-pr` workflow auto-fixes lint/format issues on `copilot/` and `claude/` branches when CI fails — but agents should not rely on it.
 

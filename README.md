@@ -222,7 +222,7 @@ For complete documentation including architecture, setup, testing, and all modul
 Key docs:
 
 - **⭐ [docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** - **START HERE**: Complete guide to achieving successful photo recognition with printed photographs
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines and AI agent PR policy
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines, feature-branch workflow, and AI agent PR policy
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Module structure and design principles
 - **[SETUP.md](./SETUP.md)** - Development environment and CI/CD setup
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Vercel deployment configuration and troubleshooting

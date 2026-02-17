@@ -1,5 +1,9 @@
 # Photo Recognition Research: Technical Evaluation
 
+> ⚠️ **Archived historical document (non-operational):** This research captured early algorithm
+> evaluation (including ORB/parallel options) and is retained for historical context only. Do not
+> treat it as current implementation guidance; see `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`.
+
 > **Milestone**: M2.1 - Real Photo Recognition  
 > **Author**: AI Research Agent  
 > **Date**: 2025-11-09  
@@ -1686,7 +1690,7 @@ computeHashesForPhotos();
 
 **Success Criteria Met**: ✅
 
-- [x] Research document created at `docs/photo-recognition-research.md`
+- [x] Research document created at `docs/archive/photo-recognition-research.md`
 - [x] All major approaches evaluated and documented
 - [x] Performance benchmarks included with estimates
 - [x] Clear recommendation made with pros/cons

@@ -44,7 +44,7 @@ Everything runs in the browser. No backend needed.
 
 - **Mobile-First Design**: Optimized for mobile devices with touch support
 - **Rear Camera Access**: Opens device's rear camera with 3:2 aspect ratio overlay
-- **Photo Recognition**: Placeholder logic simulates photo recognition (triggers after 3 seconds)
+- **Photo Recognition**: Real-time pHash matching recognizes printed photos and maps them to concert metadata
 - **Concert Information Display**: Shows band name, venue, and date when photo is recognized
 - **Audio Playback**: Uses Howler.js to play Opus audio files
 - **Motion Detection**: Detects movement to trigger a fresh recognition pass when you move to a new photo
@@ -154,7 +154,7 @@ npm run preview
 1. Open the app on a mobile device or desktop with camera access
 2. Grant camera permissions when prompted
 3. Point the camera at a photo within the 3:2 overlay guide
-4. After ~3 seconds, the app will "recognize" the photo (placeholder logic)
+4. Hold the frame steady while pHash matching confirms a recognition
 5. Concert information will appear and music will start playing
 6. Move the camera to fade out the music
 
@@ -176,8 +176,7 @@ Edit `public/data.json` to add your own concert data:
       "date": "2023-08-15",
       "audioFile": "/audio/sample.opus",
       "photoHashes": {
-        "phash": ["dark-hash", "normal-hash", "bright-hash"],
-        "dhash": ["dark-dhash", "normal-dhash", "bright-dhash"]
+        "phash": ["dark-hash", "normal-hash", "bright-hash"]
       }
     }
   ]
@@ -186,13 +185,13 @@ Edit `public/data.json` to add your own concert data:
 
 ### Photo Recognition
 
-Photo Signal implements **real photo recognition** using perceptual hashing (dHash/pHash) and ORB feature matching to identify printed photographs.
+Photo Signal implements **real photo recognition** using a single pHash-based perceptual hashing pipeline to identify printed photographs.
 
 **🎯 Getting Started with Photo Recognition:**
 
 See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** for a comprehensive guide covering:
 
-- How each recognition algorithm works internally
+- How the pHash recognition pipeline works internally
 - Step-by-step hash generation workflow
 - Configuration recommendations for your environment
 - Systematic testing and troubleshooting procedures

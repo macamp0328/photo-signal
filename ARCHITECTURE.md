@@ -185,7 +185,7 @@ interface PhotoRecognitionService {
 }
 ```
 
-**Current**: dHash perceptual hashing with functional frame cropping  
+**Current**: pHash perceptual hashing with functional frame cropping  
 **Future**: Enhanced ML-based recognition
 
 **Dependencies**: `data-service`
@@ -216,7 +216,7 @@ The camera view displays a framing guide to help users align photos. This guide 
 **Data Flow with Functional Cropping**:
 
 ```
-Camera Stream → Full Video Frame → Crop to Framed Region → dHash Algorithm
+Camera Stream → Full Video Frame → Crop to Framed Region → pHash Pipeline
                                     ↑
                       Only analyzes pixels inside framing guide
                       (3:2 landscape OR 2:3 portrait)
@@ -227,7 +227,7 @@ Camera Stream → Full Video Frame → Crop to Framed Region → dHash Algorithm
 1. CameraView renders framing overlay (CSS-based)
 2. Photo recognition calculates framed region coordinates
 3. Canvas extracts only the cropped region
-4. dHash algorithm analyzes cropped pixels only
+4. pHash pipeline analyzes cropped pixels only
 5. Matching compares cropped hash with reference hashes
 
 **Cropping Logic**:

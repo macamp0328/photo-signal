@@ -6,15 +6,9 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
 
 ---
 
-## Algorithm Quick Comparison
+## Runtime Algorithm
 
-| Algorithm | Speed  | Accuracy | Rotation | Lighting | Use Case                    |
-| --------- | ------ | -------- | -------- | -------- | --------------------------- |
-| **dHash** | ⚡⚡⚡ | ⭐⭐     | ❌       | ⚠️       | Controlled env, performance |
-| **pHash** | ⚡⚡   | ⭐⭐⭐   | ⚠️       | ✅       | **Default - best balance**  |
-| **ORB**   | ⚡     | ⭐⭐⭐⭐ | ✅       | ✅       | Extreme conditions          |
-
-**Default Recommendation**: pHash
+Photo Signal runtime recognition uses **pHash only**.
 
 ---
 
@@ -33,41 +27,6 @@ For detailed explanations, see [PHOTO_RECOGNITION_DEEP_DIVE.md](./PHOTO_RECOGNIT
   "glarePercentageThreshold": 20
 }
 ```
-
-### dHash (Performance)
-
-```json
-{
-  "hashAlgorithm": "dhash",
-  "similarityThreshold": 24,
-  "recognitionDelay": 1000,
-  "checkInterval": 250,
-  "sharpnessThreshold": 100,
-  "glareThreshold": 250,
-  "glarePercentageThreshold": 20
-}
-```
-
-### ORB (Robustness)
-
-```json
-{
-  "hashAlgorithm": "orb",
-  "recognitionDelay": 1500,
-  "checkInterval": 250,
-  "sharpnessThreshold": 80,
-  "glareThreshold": 250,
-  "glarePercentageThreshold": 25,
-  "orbConfig": {
-    "maxFeatures": 500,
-    "fastThreshold": 20,
-    "minMatchCount": 20,
-    "matchRatioThreshold": 0.7
-  }
-}
-```
-
----
 
 ## Environment-Specific Tweaks
 
@@ -223,7 +182,7 @@ Capture 3 hashes per photo:
 }
 ```
 
-**Alternative**: Use pHash instead of dHash, or regenerate with more distinctive reference
+**Alternative**: Regenerate with more distinctive reference
 
 ### Slow Recognition (>5 seconds)
 
@@ -237,7 +196,7 @@ Capture 3 hashes per photo:
 }
 ```
 
-**Alternative**: Switch to dHash for faster processing
+**Alternative**: Reduce `checkInterval` carefully if your device can handle it
 
 ---
 
@@ -253,15 +212,6 @@ Capture 3 hashes per photo:
 - 16 bits = 75.0% match
 - 24 bits = 62.5% match
 - 32 bits = 50.0% match
-
-**dHash (128-bit)**:
-
-- 0 bits = 100% match
-- 12 bits = 90.6% match
-- 24 bits = 81.3% match (default)
-- 32 bits = 75.0% match
-- 48 bits = 62.5% match
-- 64 bits = 50.0% match
 
 ### Adjustment Strategy
 
@@ -324,7 +274,7 @@ npm run generate-hashes
 npm run generate-hashes -- --paths assets/example-real-photos,assets/new-print-tests
 
 # Full CLI access for power users
-node scripts/update-recognition-data.js --paths-mode --paths assets/test-images --algorithms phash,dhash
+node scripts/update-recognition-data.js --paths-mode --paths assets/test-images --algorithms phash
 ```
 
 ### Rebuild All Hashes

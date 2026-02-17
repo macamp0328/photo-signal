@@ -102,7 +102,8 @@ Use `confirmRate` and `dismissRate` (derived in JSON export) to evaluate whether
       "average": 1000,
       "last": 1200,
       "min": 800,
-      "max": 1200
+      "max": 1200,
+      "samples": [800, 1000, 1200]
     },
     "lastPromptSnapshot": {
       "activeConcertId": 1,

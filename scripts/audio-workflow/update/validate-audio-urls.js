@@ -14,6 +14,8 @@
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
  *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
+ *   --origin=<origin>     Optional Origin header for CORS-protected endpoints
+ *   --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
  *   --help                Show this help message
  *
  * Examples:
@@ -43,6 +45,8 @@ const options = {
   timeout: 10000,
   baseUrl: '',
   prefix: 'prod/audio',
+  origin: '',
+  sharedSecret: '',
   help: false,
 };
 
@@ -77,6 +81,20 @@ for (const arg of args) {
       process.exit(1);
     }
     options.prefix = sanitizePrefix(value);
+  } else if (arg.startsWith('--origin=')) {
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --origin requires a value');
+      process.exit(1);
+    }
+    options.origin = value;
+  } else if (arg.startsWith('--shared-secret=')) {
+    const value = arg.split('=')[1];
+    if (!value) {
+      console.error('❌ Error: --shared-secret requires a value');
+      process.exit(1);
+    }
+    options.sharedSecret = value;
   }
 }
 
@@ -133,7 +151,7 @@ Examples:
  * @param {number} timeout - Request timeout in milliseconds
  * @returns {Promise<object>} Result object with accessibility info
  */
-export function checkUrl(url, timeout) {
+export function checkUrl(url, timeout, requestOptions = {}) {
   return new Promise((resolve) => {
     // Handle local file paths
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -144,8 +162,17 @@ export function checkUrl(url, timeout) {
 
     // Handle remote URLs
     const protocol = url.startsWith('https://') ? https : http;
+    const headers = {};
 
-    const request = protocol.get(url, { timeout }, (response) => {
+    if (requestOptions.origin) {
+      headers.Origin = requestOptions.origin;
+    }
+
+    if (requestOptions.sharedSecret) {
+      headers['X-PS-Shared-Secret'] = requestOptions.sharedSecret;
+    }
+
+    const request = protocol.get(url, { timeout, headers }, (response) => {
       resolve({
         url,
         status: response.statusCode,
@@ -279,6 +306,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     timeout: 10000,
     baseUrl: '',
     prefix: 'prod/audio',
+    origin: '',
+    sharedSecret: '',
     help: false,
   };
 
@@ -313,6 +342,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
       }
       options.prefix = sanitizePrefix(value);
+    } else if (arg.startsWith('--origin=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --origin requires a value');
+        process.exit(1);
+      }
+      options.origin = value;
+    } else if (arg.startsWith('--shared-secret=')) {
+      const value = arg.split('=')[1];
+      if (!value) {
+        console.error('❌ Error: --shared-secret requires a value');
+        process.exit(1);
+      }
+      options.sharedSecret = value;
     }
   }
 
@@ -331,6 +374,8 @@ Options:
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
+  --origin=<origin>     Optional Origin header for CORS-protected endpoints
+  --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
   --help                Show this help message
 
 Examples:
@@ -342,6 +387,9 @@ Examples:
 
   # Validate against a CDN base
   node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio
+
+  # Validate Cloudflare Worker URLs with CORS origin
+  node scripts/audio-workflow/update/validate-audio-urls.js --origin=http://localhost:5173
 `);
     process.exit(0);
   }
@@ -356,6 +404,16 @@ Examples:
     if (options.baseUrl) {
       console.log(`  Base URL: ${options.baseUrl}`);
       console.log(`  Prefix: ${options.prefix}`);
+      console.log('');
+    }
+
+    if (options.origin) {
+      console.log(`  Origin header: ${options.origin}`);
+      console.log('');
+    }
+
+    if (options.sharedSecret) {
+      console.log('  Shared secret header: configured');
       console.log('');
     }
 
@@ -409,7 +467,10 @@ Examples:
         ? buildAudioUrl(concert, options.baseUrl, options.prefix)
         : concert.audioFile;
 
-      const primaryResult = await checkUrl(targetUrl, options.timeout);
+      const primaryResult = await checkUrl(targetUrl, options.timeout, {
+        origin: options.origin,
+        sharedSecret: options.sharedSecret,
+      });
       results.push({
         concert,
         type: 'primary',
@@ -456,7 +517,8 @@ Examples:
       console.log('1. Check that audio files are uploaded to the CDN');
       console.log('2. Verify CDN URLs are correct in data.json');
       console.log('3. Ensure CDN allows public access (CORS enabled)');
-      console.log('4. Check network connectivity');
+      console.log('4. Retry with --origin=<allowed-origin> for CORS-protected workers');
+      console.log('5. Check network connectivity');
       console.log();
 
       process.exit(1);

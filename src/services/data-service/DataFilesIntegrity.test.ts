@@ -9,7 +9,6 @@ const projectRoot = path.resolve(__dirname, '../../..');
 
 interface RawHashSet {
   phash?: string[];
-  dhash?: string[];
 }
 
 interface RawConcert {
@@ -30,20 +29,16 @@ function loadConcerts(relativePath: string): RawConcert[] {
   return parsed.concerts as RawConcert[];
 }
 
-function expectHashArray(
-  hashes: string[] | undefined,
-  algorithm: 'phash' | 'dhash'
-): asserts hashes is string[] {
-  expect(hashes, `${algorithm} array should exist`).toBeTruthy();
+function expectHashArray(hashes: string[] | undefined): asserts hashes is string[] {
+  expect(hashes, 'phash array should exist').toBeTruthy();
   if (!hashes) {
-    throw new Error(`${algorithm} hash array missing`);
+    throw new Error('phash hash array missing');
   }
 
-  expect(Array.isArray(hashes), `${algorithm} hash should be an array`).toBe(true);
-  expect(hashes.length, `${algorithm} hash array should not be empty`).toBeGreaterThan(0);
+  expect(Array.isArray(hashes), 'phash hash should be an array').toBe(true);
+  expect(hashes.length, 'phash hash array should not be empty').toBeGreaterThan(0);
 
-  const expectedLength = algorithm === 'phash' ? 16 : 32;
-  const regex = new RegExp(`^[0-9a-f]{${expectedLength}}$`, 'i');
+  const regex = new RegExp('^[0-9a-f]{16}$', 'i');
 
   hashes.forEach((value) => {
     expect(typeof value).toBe('string');
@@ -51,17 +46,13 @@ function expectHashArray(
   });
 }
 
-function expectHashSet(hashSet: RawHashSet | undefined, allowOptionalDHash: boolean = false) {
+function expectHashSet(hashSet: RawHashSet | undefined) {
   expect(hashSet, 'photoHashes should be defined').toBeTruthy();
   if (!hashSet) {
     throw new Error('photoHashes missing');
   }
 
-  expectHashArray(hashSet.phash, 'phash');
-  // dhash is optional for edge case test entries (which may only have phash)
-  if (!allowOptionalDHash) {
-    expectHashArray(hashSet.dhash, 'dhash');
-  }
+  expectHashArray(hashSet.phash);
 }
 
 function ensureFileExists(relativePath: string) {
@@ -108,8 +99,7 @@ describe('Data files integrity', () => {
         ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
       }
 
-      const isEdgeCase = Boolean(concert.id && concert.id >= 13);
-      expectHashSet(concert.photoHashes, isEdgeCase);
+      expectHashSet(concert.photoHashes);
     });
   });
 
@@ -118,9 +108,7 @@ describe('Data files integrity', () => {
     expect(concerts.length).toBeGreaterThanOrEqual(4);
 
     concerts.forEach((concert) => {
-      // Edge case entries (ID 13+) may only have phash, not dhash
-      const isEdgeCase = Boolean(concert.id && concert.id >= 13);
-      expectHashSet(concert.photoHashes, isEdgeCase);
+      expectHashSet(concert.photoHashes);
       expect(typeof concert.audioFile).toBe('string');
       ensureFileExists(concert.audioFile);
 

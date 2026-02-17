@@ -102,7 +102,7 @@ describe('DebugOverlay', () => {
         },
       },
     },
-    hashAlgorithm: 'dhash',
+    hashAlgorithm: 'phash',
   };
 
   const defaultProps: DebugOverlayProps = {
@@ -541,7 +541,7 @@ describe('DebugOverlay', () => {
             },
           },
         },
-        hashAlgorithm: 'dhash',
+        hashAlgorithm: 'phash',
       };
 
       const { container } = render(<DebugOverlay {...defaultProps} debugInfo={minimalDebugInfo} />);

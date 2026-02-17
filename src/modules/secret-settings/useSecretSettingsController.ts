@@ -25,39 +25,10 @@ const SETTING_GROUP_DEFINITIONS: SettingGroupDefinition[] = [
     settingIds: [CONFIG_PROFILE_SETTING_ID],
   },
   {
-    id: 'engine',
-    title: 'Recognition Engine',
-    description: 'Choose which recognition pipeline to run.',
-    settingIds: ['recognition-mode'],
-  },
-  {
-    id: 'perceptual',
-    title: 'Perceptual Hash Tuning',
-    description: 'Fine-tune perceptual hash matching behavior.',
-    settingIds: ['hash-algorithm', 'similarity-threshold'],
-  },
-  {
-    id: 'parallel',
-    title: 'Parallel Voting',
-    description: 'Tune weighted voting across the multi-engine pipeline.',
-    settingIds: [
-      'parallel-recognition-enabled',
-      'parallel-dhash-weight',
-      'parallel-phash-weight',
-      'parallel-orb-weight',
-      'parallel-min-confidence',
-    ],
-  },
-  {
-    id: 'orb',
-    title: 'ORB Feature Matching',
-    description: 'Adjust ORB feature detection and matching parameters.',
-    settingIds: [
-      'orb-max-features',
-      'orb-fast-threshold',
-      'orb-min-match-count',
-      'orb-match-ratio-threshold',
-    ],
+    id: 'recognition',
+    title: 'Recognition Tuning',
+    description: 'Fine-tune pHash matching behavior.',
+    settingIds: ['similarity-threshold'],
   },
   {
     id: 'timing',
@@ -89,8 +60,6 @@ export function useSecretSettingsController(onClose: () => void) {
   const { settings, updateSetting, resetSettings, getSetting } = useCustomSettings();
 
   const currentProfileId = getSetting<ConfigProfileId>(CONFIG_PROFILE_SETTING_ID) ?? 'custom';
-  const recognitionMode =
-    getSetting<'perceptual' | 'orb' | 'parallel'>('recognition-mode') ?? 'perceptual';
 
   const currentProfile = useMemo(() => {
     return CONFIG_PROFILES.find((profile) => profile.id === currentProfileId);
@@ -101,20 +70,7 @@ export function useSecretSettingsController(onClose: () => void) {
     [settings]
   );
 
-  const isSettingVisible = useCallback(
-    (setting?: CustomSetting | undefined) => {
-      if (!setting) {
-        return false;
-      }
-
-      if (setting.engines && setting.engines.length > 0) {
-        return setting.engines.includes(recognitionMode);
-      }
-
-      return true;
-    },
-    [recognitionMode]
-  );
+  const isSettingVisible = useCallback((setting?: CustomSetting | undefined) => !!setting, []);
 
   const settingGroups = useMemo<ResolvedSettingGroup[]>(() => {
     return SETTING_GROUP_DEFINITIONS.map((group) => ({

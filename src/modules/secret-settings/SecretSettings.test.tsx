@@ -6,7 +6,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { SecretSettings } from './SecretSettings';
 import userEvent from '@testing-library/user-event';
-import { CUSTOM_SETTINGS } from './config';
 
 describe('SecretSettings', () => {
   beforeEach(() => {
@@ -105,9 +104,7 @@ describe('SecretSettings', () => {
         expect(saved).toBeTruthy();
         const settings = JSON.parse(saved!);
         const similarity = settings.find((s: { id: string }) => s.id === 'similarity-threshold');
-        const hashAlgorithm = settings.find((s: { id: string }) => s.id === 'hash-algorithm');
         expect(similarity?.value).toBe(12);
-        expect(hashAlgorithm?.value).toBe('phash');
       });
 
       const flagsRaw = localStorage.getItem('photo-signal-feature-flags');
@@ -124,8 +121,8 @@ describe('SecretSettings', () => {
       const profileSelect = screen.getByRole('combobox', {
         name: /config profile/i,
       }) as HTMLSelectElement;
-      await user.selectOptions(profileSelect, 'baseline-dhash');
-      expect(profileSelect.value).toBe('baseline-dhash');
+      await user.selectOptions(profileSelect, 'baseline-phash');
+      expect(profileSelect.value).toBe('baseline-phash');
 
       const themeSelect = screen.getByRole('combobox', { name: /theme mode/i });
       await user.selectOptions(themeSelect, 'light');
@@ -302,46 +299,15 @@ describe('SecretSettings', () => {
     });
   });
 
-  describe('Recognition engine visibility', () => {
-    it('should show perceptual settings and hide unrelated controls', () => {
-      const savedSettings = CUSTOM_SETTINGS.map((setting) =>
-        setting.id === 'recognition-mode' ? { ...setting, value: 'perceptual' } : setting
-      );
-      localStorage.setItem('photo-signal-custom-settings', JSON.stringify(savedSettings));
-
+  describe('Recognition settings visibility', () => {
+    it('should show pHash-relevant controls and hide legacy engine controls', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByText(/Perceptual Hash Algorithm/i)).toBeInTheDocument();
       expect(screen.getByText(/Similarity Threshold/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Recognition Engine/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/Parallel dHash Weight/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/ORB Max Features/i)).not.toBeInTheDocument();
-    });
-
-    it('should show ORB tuning when ORB mode is selected', () => {
-      const savedSettings = CUSTOM_SETTINGS.map((setting) =>
-        setting.id === 'recognition-mode' ? { ...setting, value: 'orb' } : setting
-      );
-      localStorage.setItem('photo-signal-custom-settings', JSON.stringify(savedSettings));
-
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByText(/ORB Max Features/i)).toBeInTheDocument();
-      expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Parallel dHash Weight/i)).not.toBeInTheDocument();
-    });
-
-    it('should show parallel voting controls when Parallel mode is selected', () => {
-      const savedSettings = CUSTOM_SETTINGS.map((setting) =>
-        setting.id === 'recognition-mode' ? { ...setting, value: 'parallel' } : setting
-      );
-      localStorage.setItem('photo-signal-custom-settings', JSON.stringify(savedSettings));
-
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByText(/Parallel dHash Weight/i)).toBeInTheDocument();
-      expect(screen.getByText(/Parallel Min Confidence/i)).toBeInTheDocument();
-      expect(screen.getByText(/ORB Max Features/i)).toBeInTheDocument();
-      expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
     });
   });
 

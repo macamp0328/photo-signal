@@ -59,7 +59,7 @@ export const mockConcertData = {
       date: '2023-08-15T20:00:00-05:00',
       audioFile: '/audio/test1.opus',
       photoHashes: {
-        dhash: ['aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'],
+        phash: ['aaaaaaaaaaaaaaaa'],
       },
     },
     {
@@ -69,7 +69,7 @@ export const mockConcertData = {
       date: '2023-09-20T19:30:00-05:00',
       audioFile: '/audio/test2.opus',
       photoHashes: {
-        dhash: ['bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'],
+        phash: ['bbbbbbbbbbbbbbbb'],
       },
     },
   ],

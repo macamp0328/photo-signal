@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { writeFileSync, existsSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import https from 'node:https';
 import {
   checkUrl,
   checkLocalFile,
@@ -58,6 +59,70 @@ describe('validate-audio-urls', () => {
       // Similar to HTTP - would need mocking for proper testing
 
       expect(checkUrl).toBeDefined();
+    });
+
+    it('should pass Origin header for remote requests', async () => {
+      const mockResponse = {
+        statusCode: 200,
+        statusMessage: 'OK',
+        resume: vi.fn(),
+      };
+      const mockRequest = {
+        on: vi.fn(),
+      };
+
+      const getSpy = vi.spyOn(https, 'get').mockImplementation((_url, opts, callback) => {
+        callback(mockResponse);
+        return mockRequest;
+      });
+
+      const result = await checkUrl('https://example.com/audio.opus', 5000, {
+        origin: 'http://localhost:5173',
+      });
+
+      expect(result.accessible).toBe(true);
+      expect(getSpy).toHaveBeenCalledWith(
+        'https://example.com/audio.opus',
+        expect.objectContaining({
+          timeout: 5000,
+          headers: expect.objectContaining({
+            Origin: 'http://localhost:5173',
+          }),
+        }),
+        expect.any(Function)
+      );
+    });
+
+    it('should pass shared secret header for remote requests', async () => {
+      const mockResponse = {
+        statusCode: 200,
+        statusMessage: 'OK',
+        resume: vi.fn(),
+      };
+      const mockRequest = {
+        on: vi.fn(),
+      };
+
+      const getSpy = vi.spyOn(https, 'get').mockImplementation((_url, opts, callback) => {
+        callback(mockResponse);
+        return mockRequest;
+      });
+
+      const result = await checkUrl('https://example.com/audio.opus', 5000, {
+        sharedSecret: 'top-secret-token',
+      });
+
+      expect(result.accessible).toBe(true);
+      expect(getSpy).toHaveBeenCalledWith(
+        'https://example.com/audio.opus',
+        expect.objectContaining({
+          timeout: 5000,
+          headers: expect.objectContaining({
+            'X-PS-Shared-Secret': 'top-secret-token',
+          }),
+        }),
+        expect.any(Function)
+      );
     });
   });
 

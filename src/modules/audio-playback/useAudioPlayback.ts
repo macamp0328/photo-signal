@@ -28,6 +28,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolumeState] = useState(initialVolume);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -69,6 +70,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     }
   }, []);
 
+  const cleanupSound = useCallback((sound: Howl, url: string) => {
+    sound.unload();
+    soundRef.current = null;
+    currentUrlRef.current = null;
+    preloadCacheRef.current.delete(url);
+  }, []);
+
   const getCurrentRatio = useCallback(() => {
     const sound = soundRef.current;
     if (!sound) {
@@ -96,6 +104,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       const onPlay = () => {
         setIsPlaying(true);
+        setPlaybackError(null);
         stopProgressLoop();
         updateProgress();
       };
@@ -122,11 +131,22 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           stopProgressLoop();
           setIsPlaying(false);
           setProgress(0);
+          setPlaybackError('Audio failed to load. Check your connection and try again.');
+          // Clear refs and unload to enable clean retry
+          cleanupSound(sound, url);
         }
       };
 
       const onPlayError = (_id: number, error: unknown) => {
         console.error('[Audio] Play error:', error);
+        if (soundRef.current === sound) {
+          stopProgressLoop();
+          setIsPlaying(false);
+          setProgress(0);
+          setPlaybackError('Audio failed to start. Tap Play to retry.');
+          // Clear refs and unload to enable clean retry
+          cleanupSound(sound, url);
+        }
       };
 
       if (hasEventApi) {
@@ -172,7 +192,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
       }
     },
-    [stopProgressLoop, updateProgress]
+    [stopProgressLoop, updateProgress, cleanupSound]
   );
 
   const createSound = useCallback(
@@ -241,6 +261,8 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const play = useCallback(
     (url: string) => {
+      setPlaybackError(null);
+
       // Resume if the same track is paused
       if (soundRef.current && currentUrlRef.current === url) {
         soundRef.current.play();
@@ -312,8 +334,14 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     }
   }, []);
 
+  const clearPlaybackError = useCallback(() => {
+    setPlaybackError(null);
+  }, []);
+
   const crossfade = useCallback(
     (newUrl: string, duration: number = crossfadeDuration) => {
+      setPlaybackError(null);
+
       // If crossfade is disabled, just play the new track
       if (!crossfadeEnabled) {
         play(newUrl);
@@ -394,6 +422,8 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     isPlaying,
     progress,
     volume,
+    playbackError,
     setVolume,
+    clearPlaybackError,
   };
 }

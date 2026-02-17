@@ -39,6 +39,7 @@ const mockSetVolume = vi.fn();
 const audioState = {
   isPlaying: false,
   progress: 0,
+  playbackError: null as string | null,
 };
 
 const recognitionState = {
@@ -100,6 +101,8 @@ vi.mock('./modules/audio-playback', () => ({
     crossfade: mockCrossfade,
     isPlaying: audioState.isPlaying,
     progress: audioState.progress,
+    playbackError: audioState.playbackError,
+    clearPlaybackError: vi.fn(),
     stop: vi.fn(),
     volume: 0.8,
     setVolume: mockSetVolume,
@@ -118,6 +121,7 @@ describe('App playback flow', () => {
 
     audioState.isPlaying = false;
     audioState.progress = 0;
+    audioState.playbackError = null;
 
     vi.clearAllMocks();
   });
@@ -143,7 +147,7 @@ describe('App playback flow', () => {
 
   it('shows prompt-before-switch and crossfades only after confirm', async () => {
     recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = true;
+    audioState.isPlaying = false;
 
     const user = userEvent.setup();
     const view = render(<App />);
@@ -155,6 +159,8 @@ describe('App playback flow', () => {
     );
 
     expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+
+    audioState.isPlaying = true;
 
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
@@ -189,7 +195,7 @@ describe('App playback flow', () => {
 
   it('suppresses switch prompt while ambiguity guidance is active', async () => {
     recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = true;
+    audioState.isPlaying = false;
 
     const user = userEvent.setup();
     const view = render(<App />);
@@ -199,6 +205,8 @@ describe('App playback flow', () => {
         name: 'Activate camera and begin experience',
       })
     );
+
+    audioState.isPlaying = true;
 
     recognitionState.recognizedConcert = concertTwo;
     recognitionState.activeGuidance = 'ambiguous-match';
@@ -209,7 +217,7 @@ describe('App playback flow', () => {
 
   it('shows switch prompt again once ambiguity guidance clears', async () => {
     recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = true;
+    audioState.isPlaying = false;
 
     const user = userEvent.setup();
     const view = render(<App />);
@@ -219,6 +227,8 @@ describe('App playback flow', () => {
         name: 'Activate camera and begin experience',
       })
     );
+
+    audioState.isPlaying = true;
 
     recognitionState.recognizedConcert = concertTwo;
     recognitionState.activeGuidance = 'ambiguous-match';
@@ -230,5 +240,98 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+  });
+
+  it('auto-plays a newly recognized match when no music is currently playing', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+
+    audioState.isPlaying = false;
+    recognitionState.recognizedConcert = null;
+    view.rerender(<App />);
+
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/two.opus');
+  });
+
+  it('plays the newly recognized track when paused and user taps Play', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+
+    audioState.isPlaying = false;
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    // Record call count before clicking Play button
+    const callCountBefore = mockPlay.mock.calls.length;
+
+    await user.click(screen.getByRole('button', { name: 'Play' }));
+
+    // Verify Play button click triggered a new play call
+    expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
+  });
+
+  it('shows playback error guidance with retry hint', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.playbackError = 'Audio failed to start. Tap Play to retry.';
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    // Should show error message without duplication (already has "Tap Play to retry")
+    expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
+    expect(screen.getByText('Playback Error')).toBeInTheDocument();
+  });
+
+  it('shows playback error with additional guidance when retry hint not included', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.playbackError = 'Audio failed to load. Check your connection and try again.';
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    // Should append retry guidance when error doesn't already include it
+    expect(
+      screen.getByText(
+        'Audio failed to load. Check your connection and try again. Check stream access and tap Play to retry.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Playback Error')).toBeInTheDocument();
   });
 });

@@ -48,7 +48,9 @@ options?: {
   isPlaying: boolean;                                 // Current playback state
   progress: number;                                   // Playback progress (0-1)
   volume: number;                                     // Current volume 0-1
+  playbackError: string | null;                       // Last playback/load error
   setVolume: (v: number) => void;                     // Set volume 0-1
+  clearPlaybackError: () => void;                     // Clear playback error state
 }
 ```
 

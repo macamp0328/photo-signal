@@ -125,6 +125,14 @@ vi.mock('howler', () => {
     public __triggerStop(): void {
       this._callbacks.onstop?.();
     }
+
+    public __triggerLoadError(error: unknown = new Error('Load failure')): void {
+      this._callbacks.onloaderror?.(1, error);
+    }
+
+    public __triggerPlayError(error: unknown = new Error('Play failure')): void {
+      this._callbacks.onplayerror?.(1, error);
+    }
   }
 
   return { Howl: MockHowl };
@@ -133,6 +141,8 @@ vi.mock('howler', () => {
 interface MockHowlInstance {
   __triggerEnd: () => void;
   __triggerStop: () => void;
+  __triggerLoadError: (error?: unknown) => void;
+  __triggerPlayError: (error?: unknown) => void;
 }
 
 type MockedHowlClass = typeof Howl & { instances: MockHowlInstance[] };
@@ -155,6 +165,7 @@ describe('useAudioPlayback', () => {
 
       expect(result.current.isPlaying).toBe(false);
       expect(result.current.volume).toBe(0.8);
+      expect(result.current.playbackError).toBeNull();
     });
 
     it('should accept custom initial volume', () => {
@@ -423,14 +434,20 @@ describe('useAudioPlayback', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
 
       act(() => {
         result.current.play('/audio/nonexistent.opus');
       });
 
-      // The hook sets isPlaying to true even on load error
-      // to allow state management (as per implementation)
-      expect(result.current.isPlaying).toBe(true);
+      act(() => {
+        HowlClass.instances[0].__triggerLoadError();
+      });
+
+      expect(result.current.isPlaying).toBe(false);
+      expect(result.current.playbackError).toBe(
+        'Audio failed to load. Check your connection and try again.'
+      );
 
       consoleSpy.mockRestore();
       warnSpy.mockRestore();
@@ -440,13 +457,32 @@ describe('useAudioPlayback', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
 
       // Start playing (this should succeed in the mock)
       act(() => {
         result.current.play('/audio/test.opus');
       });
 
+      act(() => {
+        HowlClass.instances[0].__triggerPlayError();
+      });
+
+      expect(result.current.isPlaying).toBe(false);
+      expect(result.current.playbackError).toBe('Audio failed to start. Tap Play to retry.');
+
+      act(() => {
+        result.current.clearPlaybackError();
+      });
+
+      expect(result.current.playbackError).toBeNull();
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
       expect(result.current.isPlaying).toBe(true);
+      expect(result.current.playbackError).toBeNull();
 
       consoleSpy.mockRestore();
     });
@@ -482,11 +518,15 @@ describe('useAudioPlayback', () => {
       expect(typeof result.current.fadeOut).toBe('function');
       expect(typeof result.current.crossfade).toBe('function');
       expect(typeof result.current.setVolume).toBe('function');
+      expect(typeof result.current.clearPlaybackError).toBe('function');
 
       // Verify all contract properties are present
       expect(typeof result.current.isPlaying).toBe('boolean');
       expect(typeof result.current.progress).toBe('number');
       expect(typeof result.current.volume).toBe('number');
+      expect(
+        result.current.playbackError === null || typeof result.current.playbackError === 'string'
+      ).toBe(true);
     });
 
     it('should accept options parameter as per contract', () => {

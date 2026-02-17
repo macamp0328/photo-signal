@@ -8,8 +8,6 @@
 export interface PhotoHashes {
   /** Primary pHash variants (dark/normal/bright) */
   phash?: string[];
-  /** Legacy algorithms may still exist in data files */
-  [algorithm: string]: string[] | undefined;
 }
 
 export interface Concert {
@@ -27,8 +25,6 @@ export interface Concert {
   imageFile?: string;
   /** Perceptual hash storage */
   photoHashes?: PhotoHashes;
-  /** Legacy feature payload (not used by runtime recognizer) */
-  orbFeatures?: unknown;
 }
 
 /**

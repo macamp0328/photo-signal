@@ -2,10 +2,7 @@
  * Edge Case Accuracy Regression Tests
  *
  * Validates that photo recognition accuracy meets expected thresholds
- * for each edge case category defined in docs/image-recognition-exploratory-analysis.md
- *
- * These tests ensure Phase 1 improvements (sharpness detection, glare guidance,
- * multi-exposure hashing) maintain or improve accuracy as documented in Section 4.
+ * for each edge case category in the test dataset.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -340,28 +337,13 @@ describe('Edge Case Accuracy Regression Tests', () => {
 
       // Calculate average accuracy
       const avgAccuracy = results.reduce((sum, r) => sum + r.actualSimilarity, 0) / results.length;
-
-      // Log detailed results for debugging
-      console.log('\n📊 Edge Case Performance Summary:');
-      console.log('━'.repeat(80));
-      results.forEach((r) => {
-        const status = r.meetsThreshold ? '✓' : '✗';
-        console.log(
-          `${status} ${r.concert.padEnd(45)} ${(r.actualSimilarity * 100).toFixed(1)}% (target: ${(r.expectedAccuracy * 100).toFixed(0)}%)`
-        );
-      });
-      console.log('━'.repeat(80));
-      console.log(`Average Accuracy: ${(avgAccuracy * 100).toFixed(1)}%`);
-
       const passedCount = results.filter((r) => r.meetsThreshold).length;
       const passRate = (passedCount / results.length) * 100;
-      console.log(`Pass Rate: ${passRate.toFixed(0)}% (${passedCount}/${results.length})`);
-      console.log('━'.repeat(80) + '\n');
 
       // At least 75% of edge cases should meet their individual thresholds
       expect(passRate).toBeGreaterThanOrEqual(75);
 
-      // Overall average accuracy should be above 65% (baseline from exploratory analysis Section 4)
+      // Overall average accuracy should remain above baseline
       expect(avgAccuracy).toBeGreaterThanOrEqual(0.65);
     });
   });

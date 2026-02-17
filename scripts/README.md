@@ -420,7 +420,7 @@ npm run generate-hashes -- --paths assets/example-real-photos
 node scripts/update-recognition-data.js \
   --paths-mode \
   --paths assets/test-images/,assets/example-real-photos \
-  --algorithms phash,dhash
+  --algorithms phash
 
 # Single file shortcut
 node scripts/update-recognition-data.js --paths-mode --path assets/test-images/concert-1.jpg
@@ -430,15 +430,15 @@ node scripts/update-recognition-data.js --paths-mode --path assets/test-images/c
 
 - Accepts any mix of files or directories (defaults to `assets/test-images/`)
 - Generates three exposure-adjusted hashes (dark, normal, bright) per algorithm
-- Supports both dHash and pHash (`--algorithms dhash`, `--algorithms phash`, or both)
+- Supports the production pHash pipeline (`--algorithms phash`)
 - Prints human-friendly output plus ready-to-paste JSON payloads for `photoHashes`
-- Skips ORB/public sync automatically so it runs fast and read-only
+- Skips public sync automatically so it runs fast and read-only
 
 **Example output:**
 
 ```
 📸 Photo Signal recognition data updater — paths mode
-Algorithms: phash, dhash
+Algorithms: phash
 Targets:
   • assets/test-images/concert-1.jpg
   • assets/test-images/concert-2.jpg
@@ -449,9 +449,6 @@ Found 2 image(s):
   PHASH (dark):   9853660d98d36f26
   PHASH (normal): 98d2662d98d26f26
   PHASH (bright): 98f2662c98d26f26
-  DHASH (dark):   3e1f0c0d3e1f0c0d
-  DHASH (normal): 3e1f0c0d3e1f0c0c
-  DHASH (bright): 3e1f0c0d3e1f0c0b
   Size: 640 × 480 px
 
 📋 JSON Output (merge into concerts data):
@@ -463,11 +460,6 @@ Found 2 image(s):
         "9853660d98d36f26",
         "98d2662d98d26f26",
         "98f2662c98d26f26"
-      ],
-      "dhash": [
-        "3e1f0c0d3e1f0c0d",
-        "3e1f0c0d3e1f0c0c",
-        "3e1f0c0d3e1f0c0b"
       ]
     }
   }
@@ -477,26 +469,20 @@ Found 2 image(s):
 **Next steps after generation**:
 
 1. Merge the JSON block into the relevant concert entries (`imageFile` must match `file`).
-2. Regenerate both algorithms if you rely on dual-hash matching.
+2. Regenerate pHash values whenever your source photos change.
 3. Commit the updated data files once verified.
 
 ---
 
-### `update-recognition-data.js` - Refresh Hashes & ORB Payloads
+### `update-recognition-data.js` - Refresh pHash Data
 
-Single entry point for keeping every concert's recognition metadata current. It can regenerate multi-exposure dHash/pHash values, rebuild ORB feature payloads, or do both in one run.
+Single entry point for keeping every concert's recognition metadata current with production pHash values.
 
 **Usage:**
 
 ```bash
-# Full refresh (hashes + ORB + public sync)
+# Full refresh (pHash + public sync)
 npm run update-recognition-data
-
-# Hashes only (compat alias)
-npm run rebuild-hashes
-
-# ORB only (compat alias)
-npm run generate-orb-features
 
 # Targeted update examples
 npm run update-recognition-data -- \
@@ -505,11 +491,6 @@ npm run update-recognition-data -- \
   --algorithms phash \
   --skip-public \
   --dry-run
-
-npm run update-recognition-data -- \
-  --orb-only \
-  --max-features 1200 \
-  --fast-threshold 10
 ```
 
 **Highlights:**
@@ -517,12 +498,10 @@ npm run update-recognition-data -- \
 - Reads from `assets/test-data/concerts.dev.json` (override via `--input`)
 - Writes refreshed data back to the source file unless `--dry-run`
 - Mirrors updated entries into `public/data.json` unless `--skip-public`
-- Regenerates dHash and pHash (three exposure variants each)
-- Rebuilds serialized ORB payloads using the optimized defaults (max 1000 features, fast threshold 12, match ratio 0.75)
+- Regenerates pHash values (three exposure variants)
 - Supports targeted runs via `--id` / `--ids`
-- Offers granular toggles: `--hashes-only`, `--orb-only`, `--no-hashes`, `--no-orb`
+- Offers hash-focused toggles such as `--hashes-only`
 - Includes a fast `--paths-mode` for ad-hoc hash generation (used by `npm run generate-hashes`)
-- Accepts ORB tuning flags (`--max-features`, `--fast-threshold`, `--scale-factor`, `--edge-threshold`, `--match-ratio-threshold`, `--min-match-count`)
 - Provides a safe `--dry-run` preview before writing any files
 
 Lean on this script whenever reference photos change, recognition parameters shift, or the two concert data files need to be re-synchronized.
@@ -586,22 +565,22 @@ Re-run the script whenever new production photos are added—existing CSV rows w
 
 ### `generate-photo-hashes.html` - Generate Photo Hashes (Browser)
 
-Browser-based tool to generate dHash fingerprints for reference photos.
+Browser-based tool to generate pHash fingerprints for reference photos.
 
 **Usage:**
 
 1. Open `scripts/generate-photo-hashes.html` in a web browser
 2. Click "Choose Files" and select image(s)
 3. Copy the generated hash values
-4. Drop the output directly into `photoHashes.dhash` (JSON already matches the schema)
+4. Drop the output directly into `photoHashes.phash` (JSON already matches the schema)
 
 **What it does:**
 
-- Uses same dHash algorithm as the app
+- Uses the same pHash algorithm as the app
 - Processes images client-side in browser
 - No server/Node.js required
 - Useful for quick hash generation
-- JSON output already conforms to the `photoHashes` schema (dHash key only)
+- JSON output already conforms to the `photoHashes` schema (pHash key only)
 
 4. Place in `public/` directory
 
@@ -785,9 +764,9 @@ npm run generate-hashes -- --paths assets/example-real-photos,new-shots.jpg
 npm run generate-hashes -- --algorithms phash
 ```
 
-Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mode ...`, which prints per-image details and a ready-to-paste JSON block exactly like the full CLI. Re-run with different `--algorithms` values (or leave defaults for both dHash + pHash) whenever you update photos used by Test Mode.
+Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mode ...`, which prints per-image details and a ready-to-paste JSON block exactly like the full CLI. Re-run with `--algorithms phash` whenever you update photos used by Test Mode.
 
-**Browser alternative:** if you prefer a drag-and-drop UI, open `scripts/generate-photo-hashes.html` for the same dHash workflow entirely in the browser.
+**Browser alternative:** if you prefer a drag-and-drop UI, open `scripts/generate-photo-hashes.html` for an interactive hash workflow in the browser.
 
 ---
 

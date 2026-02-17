@@ -33,6 +33,18 @@ const concertTwo: Concert = {
   },
 };
 
+const concertThree: Concert = {
+  id: 3,
+  band: 'Band Three',
+  venue: 'Venue Three',
+  date: '2024-03-03T20:00:00-05:00',
+  audioFile: '/audio/three.opus',
+  imageFile: '/images/three.jpg',
+  photoHashes: {
+    phash: ['0011223344556677'],
+  },
+};
+
 const mockPlay = vi.fn();
 const mockPause = vi.fn();
 const mockPreload = vi.fn();
@@ -357,6 +369,70 @@ describe('App playback flow', () => {
     recognitionState.activeGuidance = 'none';
     view.rerender(<App />);
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+  });
+
+  it('avoids switch prompt churn during persistent ambiguity and prompts once after it clears', async () => {
+    enabledFlags.add('test-mode');
+    recognitionState.recognizedConcert = concertOne;
+    recognitionState.debugInfo = createDebugInfo(concertOne);
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.debugInfo = createDebugInfo(concertTwo, 3);
+    recognitionState.activeGuidance = 'ambiguous-match';
+    view.rerender(<App />);
+    view.rerender(<App />);
+
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(0);
+
+    recognitionState.activeGuidance = 'none';
+    view.rerender(<App />);
+    view.rerender(<App />);
+
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(1);
+
+    view.rerender(<App />);
+    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(1);
+  });
+
+  it('shows a new switch prompt for a different candidate after keep-current dismisses the first', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Keep current track' }));
+
+    recognitionState.activeGuidance = 'none';
+    view.rerender(<App />);
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+
+    recognitionState.recognizedConcert = concertThree;
+    view.rerender(<App />);
+    expect(screen.getByRole('button', { name: 'Switch to Band Three' })).toBeInTheDocument();
   });
 
   it('auto-plays a newly recognized match when no music is currently playing', async () => {

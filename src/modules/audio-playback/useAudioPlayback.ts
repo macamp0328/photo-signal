@@ -1,7 +1,20 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { Howl } from 'howler';
+import * as howlerModule from 'howler';
 import type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
 import { diagnoseAudioUrl } from './diagnoseAudioUrl';
+
+const { Howl } = howlerModule;
+
+function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> } | undefined {
+  try {
+    const howler = Reflect.get(howlerModule as object, 'Howler') as
+      | { ctx?: { state?: string; resume?: () => Promise<unknown> } }
+      | undefined;
+    return howler?.ctx;
+  } catch {
+    return undefined;
+  }
+}
 
 /**
  * Custom hook for audio playback
@@ -35,13 +48,52 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const [volume, setVolumeState] = useState(initialVolume);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
 
+  const unlockAudioContext = useCallback(async () => {
+    const audioContext = getHowlerContext();
+    if (!audioContext || audioContext.state !== 'suspended') {
+      return;
+    }
+
+    try {
+      await audioContext.resume?.();
+    } catch (error) {
+      console.warn('[Audio] Failed to resume audio context:', error);
+    }
+  }, []);
+
+  const resolvePlayErrorMessage = useCallback((error: unknown) => {
+    const text = String(error ?? '').toLowerCase();
+    if (
+      text.includes('notallowederror') ||
+      text.includes('user gesture') ||
+      text.includes('gesture')
+    ) {
+      return 'Playback blocked by browser autoplay rules. Touch screen and tap Play again.';
+    }
+
+    return 'Audio failed to start. Tap Play to retry.';
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     isMountedRef.current = true;
     const cache = preloadCacheRef.current;
     const diagCache = diagnosticCacheRef.current;
+
+    const handleUserGesture = () => {
+      void unlockAudioContext();
+    };
+
+    window.addEventListener('pointerdown', handleUserGesture, { passive: true });
+    window.addEventListener('touchstart', handleUserGesture, { passive: true });
+    window.addEventListener('click', handleUserGesture, { passive: true });
+
     return () => {
       isMountedRef.current = false;
+
+      window.removeEventListener('pointerdown', handleUserGesture);
+      window.removeEventListener('touchstart', handleUserGesture);
+      window.removeEventListener('click', handleUserGesture);
 
       if (progressRafRef.current !== null) {
         cancelAnimationFrame(progressRafRef.current);
@@ -73,7 +125,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         soundRef.current = null;
       }
     };
-  }, []);
+  }, [unlockAudioContext]);
 
   const stopProgressLoop = useCallback(() => {
     if (progressRafRef.current !== null) {
@@ -179,7 +231,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           stopProgressLoop();
           setIsPlaying(false);
           setProgress(0);
-          setPlaybackError('Audio failed to start. Tap Play to retry.');
+          setPlaybackError(resolvePlayErrorMessage(error));
           // Clear refs and unload to enable clean retry
           cleanupSound(sound, url);
         }
@@ -228,7 +280,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
       }
     },
-    [stopProgressLoop, updateProgress, cleanupSound, startDiagnostic]
+    [stopProgressLoop, updateProgress, cleanupSound, startDiagnostic, resolvePlayErrorMessage]
   );
 
   const createSound = useCallback(
@@ -298,6 +350,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const play = useCallback(
     (url: string) => {
       setPlaybackError(null);
+      void unlockAudioContext();
 
       // Resume if the same track is paused
       if (soundRef.current && currentUrlRef.current === url) {
@@ -318,7 +371,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       newSound.volume(volume);
       newSound.play();
     },
-    [getCachedOrCreateSound, volume]
+    [getCachedOrCreateSound, unlockAudioContext, volume]
   );
 
   const pause = useCallback(() => {

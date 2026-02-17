@@ -37,6 +37,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
 const DEFAULT_PREFIX = 'prod/audio';
+const DEFAULT_ENCODE_OUTPUT_DIR = 'scripts/audio-workflow/encode/output';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -47,6 +48,8 @@ const options = {
   prefix: 'prod/audio',
   origin: '',
   sharedSecret: '',
+  trace: false,
+  concertId: null,
   help: false,
 };
 
@@ -95,6 +98,16 @@ for (const arg of args) {
       process.exit(1);
     }
     options.sharedSecret = value;
+  } else if (arg === '--trace') {
+    options.trace = true;
+  } else if (arg.startsWith('--concert-id=')) {
+    const value = arg.split('=')[1];
+    const parsed = Number.parseInt(value, 10);
+    if (!value || Number.isNaN(parsed)) {
+      console.error('❌ Error: --concert-id requires an integer value');
+      process.exit(1);
+    }
+    options.concertId = parsed;
   }
 }
 
@@ -118,6 +131,181 @@ export function resolveAudioUrl(audioFile, concertId, baseUrl, prefix = DEFAULT_
   return buildAudioUrl({ id: concertId, audioFile }, baseUrl, prefix);
 }
 
+export function classifyUrlShape(url, prefix = DEFAULT_PREFIX) {
+  if (!url) {
+    return { type: 'unknown', key: null };
+  }
+
+  try {
+    const parsed = new URL(url);
+    const key = parsed.pathname.replace(/^\/+/, '');
+    return classifyPathShape(key, prefix);
+  } catch {
+    const key = url.replace(/^\/+/, '');
+    return classifyPathShape(key, prefix);
+  }
+}
+
+function classifyPathShape(key, prefix = DEFAULT_PREFIX) {
+  const cleanPrefix = sanitizePrefix(prefix);
+  if (!cleanPrefix || !key.startsWith(`${cleanPrefix}/`)) {
+    return { type: 'non-worker-or-non-prefix', key };
+  }
+
+  const suffix = key.slice(cleanPrefix.length + 1);
+  const parts = suffix.split('/').filter(Boolean);
+  if (parts.length <= 1) {
+    return { type: 'flat', key };
+  }
+
+  if (parts.length >= 2 && /^\d+$/.test(parts[0])) {
+    return { type: 'id-scoped', key, inferredId: Number.parseInt(parts[0], 10) };
+  }
+
+  return { type: 'nested-non-numeric', key };
+}
+
+export function findConcertById(concerts, concertId) {
+  if (!Array.isArray(concerts) || concertId === null || concertId === undefined) {
+    return null;
+  }
+
+  return concerts.find((concert) => Number(concert.id) === Number(concertId)) ?? null;
+}
+
+export function findLocalFilesByBasename(fileName, rootDir = DEFAULT_ENCODE_OUTPUT_DIR) {
+  if (!fileName) {
+    return [];
+  }
+
+  const absoluteRoot = path.resolve(projectRoot, rootDir);
+  if (!fs.existsSync(absoluteRoot)) {
+    return [];
+  }
+
+  const results = [];
+  const queue = [absoluteRoot];
+
+  while (queue.length > 0) {
+    const current = queue.pop();
+    const entries = fs.readdirSync(current, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        queue.push(fullPath);
+        continue;
+      }
+
+      if (entry.name === fileName) {
+        results.push(path.relative(projectRoot, fullPath).split(path.sep).join('/'));
+      }
+    }
+  }
+
+  return results.sort();
+}
+
+function createRequestHeaders(requestOptions = {}, extraHeaders = {}) {
+  const headers = { ...extraHeaders };
+
+  if (requestOptions.origin) {
+    headers.Origin = requestOptions.origin;
+  }
+
+  if (requestOptions.sharedSecret) {
+    headers['X-PS-Shared-Secret'] = requestOptions.sharedSecret;
+  }
+
+  return headers;
+}
+
+export function checkRemote(url, timeout, requestOptions = {}, method = 'GET', extraHeaders = {}) {
+  return new Promise((resolve) => {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      resolve({
+        url,
+        method,
+        status: 0,
+        statusText: 'Not a remote URL',
+        accessible: false,
+        isLocal: true,
+      });
+      return;
+    }
+
+    const protocol = url.startsWith('https://') ? https : http;
+    const headers = createRequestHeaders(requestOptions, extraHeaders);
+
+    const request = protocol.request(url, { timeout, headers, method }, (response) => {
+      resolve({
+        url,
+        method,
+        status: response.statusCode,
+        statusText: response.statusMessage,
+        headers: response.headers,
+        accessible: response.statusCode >= 200 && response.statusCode < 400,
+        isLocal: false,
+      });
+
+      response.resume();
+    });
+
+    request.on('error', (error) => {
+      resolve({
+        url,
+        method,
+        status: 0,
+        statusText: error.message,
+        accessible: false,
+        isLocal: false,
+        error: error.message,
+      });
+    });
+
+    request.on('timeout', () => {
+      request.destroy();
+      resolve({
+        url,
+        method,
+        status: 0,
+        statusText: 'Request timeout',
+        accessible: false,
+        isLocal: false,
+        error: 'Request timeout',
+      });
+    });
+
+    request.end();
+  });
+}
+
+export async function probeRemoteAudio(url, timeout, requestOptions = {}) {
+  const head = await checkRemote(url, timeout, requestOptions, 'HEAD');
+  const range = await checkRemote(url, timeout, requestOptions, 'GET', { Range: 'bytes=0-1023' });
+  return { head, range };
+}
+
+export function inferLikelyFailure(result) {
+  if (result.accessible) {
+    return 'URL is reachable.';
+  }
+
+  if (result.status === 403) {
+    return 'Likely CORS allowlist issue (Origin not in ALLOWED_ORIGINS) or shared-secret mismatch.';
+  }
+
+  if (result.status === 404) {
+    return 'Likely object key mismatch: dataset URL path does not match uploaded R2 key.';
+  }
+
+  if (result.status === 0 && /timeout/i.test(result.statusText || '')) {
+    return 'Network timeout reaching endpoint.';
+  }
+
+  return 'Unknown failure. Check worker logs, object key, and response headers.';
+}
+
 // Show help
 if (options.help) {
   console.log(`
@@ -133,6 +321,10 @@ Options:
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
+  --trace               Print deep diagnostics for one concert
+  --concert-id=<id>     Concert ID to trace (default: first concert with audio)
+  --origin=<origin>     Optional Origin header for CORS-protected endpoints
+  --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
   --help                Show this help message
 
 Examples:
@@ -141,6 +333,9 @@ Examples:
 
   # Validate test data
   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+
+  # Deep trace one concert end-to-end
+  node scripts/audio-workflow/update/validate-audio-urls.js --trace --concert-id=1 --origin=https://www.whoisduck2.com
 `);
   process.exit(0);
 }
@@ -308,6 +503,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     prefix: 'prod/audio',
     origin: '',
     sharedSecret: '',
+    trace: false,
+    concertId: null,
     help: false,
   };
 
@@ -356,6 +553,16 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
       }
       options.sharedSecret = value;
+    } else if (arg === '--trace') {
+      options.trace = true;
+    } else if (arg.startsWith('--concert-id=')) {
+      const value = arg.split('=')[1];
+      const parsed = Number.parseInt(value, 10);
+      if (!value || Number.isNaN(parsed)) {
+        console.error('❌ Error: --concert-id requires an integer value');
+        process.exit(1);
+      }
+      options.concertId = parsed;
     }
   }
 
@@ -374,6 +581,8 @@ Options:
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
+  --trace               Print deep diagnostics for one concert
+  --concert-id=<id>     Concert ID to trace (default: first concert with audio)
   --origin=<origin>     Optional Origin header for CORS-protected endpoints
   --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
   --help                Show this help message
@@ -390,6 +599,9 @@ Examples:
 
   # Validate Cloudflare Worker URLs with CORS origin
   node scripts/audio-workflow/update/validate-audio-urls.js --origin=http://localhost:5173
+
+  # Deep trace one concert end-to-end
+  node scripts/audio-workflow/update/validate-audio-urls.js --trace --concert-id=1 --origin=https://www.whoisduck2.com
 `);
     process.exit(0);
   }
@@ -414,6 +626,13 @@ Examples:
 
     if (options.sharedSecret) {
       console.log('  Shared secret header: configured');
+      console.log('');
+    }
+
+    if (options.trace) {
+      console.log(
+        `  Trace mode: enabled${options.concertId ? ` (concert ${options.concertId})` : ''}`
+      );
       console.log('');
     }
 
@@ -443,6 +662,70 @@ Examples:
     }
 
     console.log(`✓ Found ${data.concerts.length} concerts\n`);
+
+    if (options.trace) {
+      const traceConcert =
+        findConcertById(data.concerts, options.concertId) ??
+        data.concerts.find((concert) => concert.audioFile) ??
+        null;
+
+      if (!traceConcert) {
+        console.error('❌ No concert with audioFile found to trace.');
+        process.exit(1);
+      }
+
+      const targetUrl = options.baseUrl
+        ? buildAudioUrl(traceConcert, options.baseUrl, options.prefix)
+        : traceConcert.audioFile;
+      const basename = path.basename(targetUrl || '');
+      const localMatches = findLocalFilesByBasename(basename);
+      const shape = classifyUrlShape(targetUrl, options.prefix);
+
+      console.log('🧭 Trace Mode:');
+      console.log(`  Concert ID: ${traceConcert.id}`);
+      console.log(`  Band: ${traceConcert.band}`);
+      console.log(`  Source audioFile: ${traceConcert.audioFile}`);
+      console.log(`  Resolved URL: ${targetUrl}`);
+      console.log(`  URL shape: ${shape.type}`);
+      if (shape.key) {
+        console.log(`  Worker key candidate: ${shape.key}`);
+      }
+      console.log(`  Local basename: ${basename || '(empty)'}`);
+      console.log(
+        `  Local encode matches: ${localMatches.length > 0 ? localMatches.join(', ') : '(none found)'}`
+      );
+
+      const primaryResult = await checkUrl(targetUrl, options.timeout, {
+        origin: options.origin,
+        sharedSecret: options.sharedSecret,
+      });
+      console.log(`  Primary GET: ${primaryResult.status} ${primaryResult.statusText}`);
+      console.log(`  Primary diagnosis: ${inferLikelyFailure(primaryResult)}`);
+
+      if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+        const remoteProbe = await probeRemoteAudio(targetUrl, options.timeout, {
+          origin: options.origin,
+          sharedSecret: options.sharedSecret,
+        });
+
+        console.log(`  HEAD probe: ${remoteProbe.head.status} ${remoteProbe.head.statusText}`);
+        console.log(
+          `    Access-Control-Allow-Origin: ${remoteProbe.head.headers?.['access-control-allow-origin'] ?? '(missing)'}`
+        );
+        console.log(
+          `    Accept-Ranges: ${remoteProbe.head.headers?.['accept-ranges'] ?? '(missing)'}`
+        );
+        console.log(
+          `    Content-Type: ${remoteProbe.head.headers?.['content-type'] ?? '(missing)'}`
+        );
+        console.log(`  Range probe: ${remoteProbe.range.status} ${remoteProbe.range.statusText}`);
+        console.log(
+          `    Content-Range: ${remoteProbe.range.headers?.['content-range'] ?? '(missing)'}`
+        );
+      }
+
+      console.log('');
+    }
 
     // Validate each concert's audio URL
     const results = [];
@@ -518,7 +801,10 @@ Examples:
       console.log('2. Verify CDN URLs are correct in data.json');
       console.log('3. Ensure CDN allows public access (CORS enabled)');
       console.log('4. Retry with --origin=<allowed-origin> for CORS-protected workers');
-      console.log('5. Check network connectivity');
+      console.log(
+        '5. Re-run with --trace to inspect key shape, local file match, CORS, and range headers'
+      );
+      console.log('6. Check network connectivity');
       console.log();
 
       process.exit(1);

@@ -5,10 +5,15 @@ import https from 'node:https';
 import {
   checkUrl,
   checkLocalFile,
+  classifyUrlShape,
   calculateStats,
+  findConcertById,
+  findLocalFilesByBasename,
   generateReport,
+  inferLikelyFailure,
   normalizeBaseUrl,
   normalizePrefix,
+  probeRemoteAudio,
   resolveAudioUrl,
 } from '../validate-audio-urls.js';
 
@@ -123,6 +128,87 @@ describe('validate-audio-urls', () => {
         }),
         expect.any(Function)
       );
+    });
+  });
+
+  describe('trace helpers', () => {
+    it('should classify flat worker path shape', () => {
+      const shape = classifyUrlShape('https://worker.example.com/prod/audio/concert-1.opus');
+
+      expect(shape.type).toBe('flat');
+      expect(shape.key).toBe('prod/audio/concert-1.opus');
+    });
+
+    it('should classify id-scoped worker path shape', () => {
+      const shape = classifyUrlShape('https://worker.example.com/prod/audio/12/concert-1.opus');
+
+      expect(shape.type).toBe('id-scoped');
+      expect(shape.inferredId).toBe(12);
+    });
+
+    it('should find concert by id', () => {
+      const concerts = [
+        { id: 1, band: 'A' },
+        { id: 2, band: 'B' },
+      ];
+
+      const match = findConcertById(concerts, 2);
+      expect(match?.band).toBe('B');
+    });
+
+    it('should infer likely 403 failure cause', () => {
+      const diagnosis = inferLikelyFailure({
+        accessible: false,
+        status: 403,
+        statusText: 'Forbidden',
+      });
+      expect(diagnosis).toMatch(/CORS|allowlist/i);
+    });
+
+    it('should find local basename matches in a custom directory', () => {
+      const customRoot = join(testDir, 'encode-output');
+      const nested = join(customRoot, '12');
+      mkdirSync(nested, { recursive: true });
+      const localFile = join(nested, 'concert-1.opus');
+      writeFileSync(localFile, 'dummy');
+      testFiles.push(localFile);
+
+      const matches = findLocalFilesByBasename('concert-1.opus', customRoot);
+      expect(matches.some((entry) => entry.endsWith('encode-output/12/concert-1.opus'))).toBe(true);
+    });
+
+    it('should probe remote audio with HEAD and Range', async () => {
+      const calls = [];
+      const mockRequest = {
+        on: vi.fn(),
+        end: vi.fn(),
+      };
+
+      vi.spyOn(https, 'request').mockImplementation((_url, options, callback) => {
+        calls.push(options);
+        callback({
+          statusCode: options.method === 'HEAD' ? 200 : 206,
+          statusMessage: 'OK',
+          headers: {
+            'access-control-allow-origin': 'https://www.whoisduck2.com',
+          },
+          resume: vi.fn(),
+        });
+        return mockRequest;
+      });
+
+      const result = await probeRemoteAudio(
+        'https://worker.example.com/prod/audio/concert-1.opus',
+        5000,
+        {
+          origin: 'https://www.whoisduck2.com',
+        }
+      );
+
+      expect(result.head.status).toBe(200);
+      expect(result.range.status).toBe(206);
+      expect(calls[0].method).toBe('HEAD');
+      expect(calls[1].headers.Range).toBe('bytes=0-1023');
     });
   });
 

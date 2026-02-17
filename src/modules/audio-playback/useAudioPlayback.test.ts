@@ -10,7 +10,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 import { useAudioPlayback } from './useAudioPlayback';
 
 // Mock diagnoseAudioUrl
@@ -147,7 +147,15 @@ vi.mock('howler', () => {
     }
   }
 
-  return { Howl: MockHowl };
+  return {
+    Howl: MockHowl,
+    Howler: {
+      ctx: {
+        state: 'running',
+        resume: vi.fn().mockResolvedValue(undefined),
+      },
+    },
+  };
 });
 
 interface MockHowlInstance {
@@ -160,11 +168,16 @@ interface MockHowlInstance {
 type MockedHowlClass = typeof Howl & { instances: MockHowlInstance[] };
 
 const getMockedHowlClass = (): MockedHowlClass => Howl as unknown as MockedHowlClass;
+const getMockedHowler = (): { ctx: { state: string; resume: ReturnType<typeof vi.fn> } } =>
+  Howler as unknown as { ctx: { state: string; resume: ReturnType<typeof vi.fn> } };
 describe('useAudioPlayback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     getMockedHowlClass().instances.length = 0;
+    const mockedHowler = getMockedHowler();
+    mockedHowler.ctx.state = 'running';
+    mockedHowler.ctx.resume.mockClear();
   });
 
   afterEach(() => {
@@ -258,6 +271,18 @@ describe('useAudioPlayback', () => {
       });
 
       expect(HowlClass.instances.length).toBe(1);
+    });
+
+    it('should attempt to resume audio context when suspended', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      mockedHowler.ctx.state = 'suspended';
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      expect(mockedHowler.ctx.resume).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -495,6 +520,27 @@ describe('useAudioPlayback', () => {
 
       expect(result.current.isPlaying).toBe(true);
       expect(result.current.playbackError).toBeNull();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should surface autoplay-specific guidance on NotAllowedError', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        HowlClass.instances[0].__triggerPlayError(new Error('NotAllowedError: play() failed'));
+      });
+
+      expect(result.current.playbackError).toBe(
+        'Playback blocked by browser autoplay rules. Touch screen and tap Play again.'
+      );
 
       consoleSpy.mockRestore();
     });

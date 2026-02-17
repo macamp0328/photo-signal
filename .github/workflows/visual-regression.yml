@@ -92,7 +92,7 @@ jobs:
                   }
                 }
               } catch (error) {
-                console.log('Error reading directory:', dir, error);
+                console.log(`Error reading directory ${dir}:`, error.message || error);
               }
               return false;
             }

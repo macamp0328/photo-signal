@@ -1,9 +1,10 @@
-# Auto-fix Copilot PR Formatting
+# Auto-fix AI Agent PR Formatting
 #
-# Automatically fixes formatting and linting issues on Copilot PRs
-# Reduces manual work by auto-committing fixes when CI fails
+# Automatically fixes formatting and linting issues on AI agent PRs
+# (Copilot, Claude Code, and other agents that push to known branch prefixes).
+# Reduces manual work by auto-committing fixes when CI fails.
 #
-name: Auto-fix Copilot PR
+name: Auto-fix Agent PR
 
 on:
   workflow_run:
@@ -19,11 +20,14 @@ permissions:
 jobs:
   auto-fix:
     runs-on: ubuntu-latest
-    # Only run on failed CI runs for pull requests from Copilot branches
+    # Only run on failed CI runs for pull requests from AI agent branches
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'failure' &&
-      startsWith(github.event.workflow_run.head_branch, 'copilot/')
+      (
+        startsWith(github.event.workflow_run.head_branch, 'copilot/') ||
+        startsWith(github.event.workflow_run.head_branch, 'claude/')
+      )
 
     steps:
       - name: Get PR number
@@ -115,7 +119,7 @@ jobs:
           git add .
           git commit \
             -m "Auto-fix: Run lint:fix and format" \
-            -m $'Automatically applied code formatting and linting fixes.\n\nThis commit was created by the auto-fix-copilot-pr workflow to reduce manual work.'
+            -m $'Automatically applied code formatting and linting fixes.\n\nThis commit was created by the auto-fix-agent-pr workflow.'
           git push
 
       - name: Comment on PR
@@ -126,7 +130,7 @@ jobs:
             const prNumber = ${{ steps.pr.outputs.number }};
 
             const message = [
-              '## 🤖 Auto-fix Applied',
+              '## Auto-fix Applied',
               '',
               'Formatting and linting issues have been automatically fixed.',
               '',
@@ -134,7 +138,7 @@ jobs:
               '- `npm run lint:fix` - Auto-fixed linting issues',
               '- `npm run format` - Applied Prettier formatting',
               '',
-              'CI checks should pass now. No manual intervention needed! ✨'
+              'CI checks should pass now. No manual intervention needed.'
             ].join('\n');
 
             await github.rest.issues.createComment({
@@ -152,13 +156,13 @@ jobs:
             const prNumber = ${{ steps.pr.outputs.number }};
 
             const message = [
-              '## ℹ️ No Formatting Changes Needed',
+              '## No Formatting Changes Needed',
               '',
               'Ran `npm run lint:fix` and `npm run format`, but no changes were needed.',
               '',
               'The CI failure is likely due to another issue (type errors, test failures, build errors).',
               '',
-              'Please check the [CI logs](${{ github.event.workflow_run.html_url }}) for details.'
+              `Please check the [CI logs](${context.payload.workflow_run.html_url}) for details.`
             ].join('\n');
 
             await github.rest.issues.createComment({

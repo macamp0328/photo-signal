@@ -87,13 +87,15 @@ chore(deps): update vite to 7.2.0
 
 ## AI Agent Requirements
 
-AI agents (Copilot, Claude, etc.) must:
+AI agents (Copilot, Claude Code, etc.) must:
 
 1. Run `npm run pre-commit` before every commit — no exceptions
 2. Fix CI failures immediately without waiting for maintainer notification
 3. Read module READMEs before making changes
 4. Update `DOCUMENTATION_INDEX.md` when adding or removing files
 5. Keep changes minimal and focused
+
+The `auto-fix-agent-pr` workflow auto-fixes lint/format issues on `copilot/` and `claude/` branches when CI fails — but agents should not rely on it.
 
 Agent-specific instructions:
 

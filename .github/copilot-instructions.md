@@ -35,7 +35,7 @@ After completing implementation, ask the maintainer whether to update the featur
 
 ## CRITICAL: Git Tooling Preference
 
-Prefer `gh` CLI for git collaboration tasks (commits, PR creation, PR updates, PR comments, and review actions) instead of GitKraken tools.
+Prefer `gh` CLI for GitHub collaboration tasks (PR creation, PR updates, PR comments, and review actions) instead of GitKraken tools.
 
 - If `gh` is not authenticated, pause and ask the maintainer to run `gh auth login`, then continue.
 - For larger changes, commit in logical checkpoints on the feature branch rather than one large final commit.

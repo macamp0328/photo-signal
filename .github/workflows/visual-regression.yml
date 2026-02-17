@@ -35,15 +35,20 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Build project
         run: npm run build
 
-      - name: Run visual regression tests (Mobile Chrome only)
-        run: npm run test:visual -- --project "Mobile Chrome"
+      - name: Run blocking visual smoke checks (Mobile Chrome + Mobile Safari)
+        run: npm run test:visual:smoke
         continue-on-error: true
-        id: playwright
+        id: smoke
+
+      - name: Run informational visual checks (non-blocking)
+        run: npm run test:visual:extended
+        continue-on-error: true
+        id: extended
 
       - name: Upload test results
         if: always()
@@ -54,7 +59,7 @@ jobs:
           retention-days: 30
 
       - name: Upload visual diff artifacts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: visual-diff-results
@@ -62,7 +67,7 @@ jobs:
           retention-days: 30
 
       - name: Comment PR with results
-        if: failure() && github.event_name == 'pull_request'
+        if: (steps.smoke.outcome == 'failure' || steps.extended.outcome == 'failure') && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -70,21 +75,47 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            // Check if test-results directory exists
+            // Check if test-results directory exists and recursively search for diff images
             const testResultsDir = 'test-results';
             let hasVisualDiffs = false;
 
+            // Recursive function to walk directory tree and find diff images
+            function findDiffImages(dir) {
+              try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                  const fullPath = path.join(dir, entry.name);
+                  if (entry.isDirectory()) {
+                    if (findDiffImages(fullPath)) return true;
+                  } else if (entry.name.endsWith('-diff.png')) {
+                    return true; // Found a diff
+                  }
+                }
+              } catch (error) {
+                console.log(`Error reading directory ${dir}:`, error.message || error);
+              }
+              return false;
+            }
+
             try {
               if (fs.existsSync(testResultsDir)) {
-                const files = fs.readdirSync(testResultsDir);
-                hasVisualDiffs = files.some(f => f.includes('-diff.png'));
+                hasVisualDiffs = findDiffImages(testResultsDir);
               }
             } catch (error) {
               console.log('Error checking test results:', error);
             }
 
+            const smokeFailed = '${{ steps.smoke.outcome }}' === 'failure';
+            const extendedFailed = '${{ steps.extended.outcome }}' === 'failure';
+
+            const statusHeader = smokeFailed
+              ? '## ❌ Blocking visual smoke checks failed'
+              : '## ⚠️ Informational visual checks found differences';
+
+            const tierSummary = `\n- Blocking smoke tier: ${smokeFailed ? 'FAILED' : 'PASSED'}\n- Informational extended tier: ${extendedFailed ? 'FAILED' : 'PASSED'}`;
+
             const comment = hasVisualDiffs
-              ? `## ⚠️ Visual Regression Test Failures
+              ? `${statusHeader}${tierSummary}
 
             Visual differences were detected in this PR. Please review the changes:
 
@@ -96,7 +127,7 @@ jobs:
             4. If changes are unintentional, fix the CSS/UI issue
 
             See [Visual Regression Test Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
-              : `## ❌ Visual Regression Tests Failed
+              : `${statusHeader}${tierSummary}
 
             The visual regression tests failed. Please check the [test report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
 
@@ -107,6 +138,6 @@ jobs:
               body: comment
             });
 
-      - name: Fail if tests failed
-        if: steps.playwright.outcome == 'failure'
+      - name: Fail if blocking smoke tests failed
+        if: steps.smoke.outcome == 'failure'
         run: exit 1

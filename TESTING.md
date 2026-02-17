@@ -558,29 +558,44 @@ See `src/__tests__/integration/README.md` for detailed documentation and example
 
 ## Visual Regression Tests
 
-Visual regression tests use Playwright to capture screenshots and detect UI changes. These tests complement unit and integration tests by catching visual regressions that might not be caught by functional tests.
+Visual regression tests use Playwright to capture screenshots and detect UI changes. The suite is intentionally lean and mobile-first: blocking checks are reserved for high-signal user-visible risks, while broader checks are informational.
 
 ### Visual Test Coverage
 
-| Test Suite      | Scenarios | Coverage                                      |
-| --------------- | --------- | --------------------------------------------- |
-| landing-page    | 3         | Initial app state, responsive viewports       |
-| camera-view     | 2         | Camera UI, permissions, active state          |
-| ui-components   | 4         | Themes, responsive design, interactive states |
-| secret-settings | 7         | Settings menu, flags, sliders, mobile         |
-| concert-info    | 5         | Concert display, overflow handling, mobile    |
-| error-states    | 5         | Permission denied, network errors, empty data |
-| responsive      | 12        | Desktop, tablet, mobile viewports             |
-| accessibility   | 10        | Focus states, high contrast, touch targets    |
-| feature-flags   | 8         | Flag variations, visual effects               |
+| Test Suite      | Scenarios | Coverage                                          |
+| --------------- | --------- | ------------------------------------------------- |
+| landing-page    | 2         | Landing shell + CTA stability                     |
+| camera-view     | 1         | Camera activation state                           |
+| secret-settings | 2         | Dialog open state + test mode toggle              |
+| error-states    | 3         | Permission fallback + data loading failure states |
+| responsive      | 3         | Small-mobile baseline + minimal desktop sanity    |
+| accessibility   | 3         | Focus visibility, high-contrast, reduced motion   |
 
-**Total Visual Tests**: ~56 test scenarios across 9 test files
+**Total Visual Tests**: 14 test scenarios across 6 test files
 
 ### Running Visual Tests
 
 ```bash
-# Run all visual tests
+# Run blocking visual smoke checks (mobile-first)
 npm run test:visual
+
+# Run smoke checks explicitly
+npm run test:visual:smoke
+
+# Run informational visual checks (non-blocking)
+npm run test:visual:extended
+
+# Run full visual suite
+npm run test:visual:full
+
+# Agent-safe non-interactive commands (no report UI auto-open)
+npm run test:visual:smoke:agent
+npm run test:visual:extended:agent
+npm run test:visual:full:agent
+npm run test:visual:update:agent
+
+# Agent-safe targeted snapshot update for one visual spec
+npm run test:visual:update:spec:agent -- tests/visual/secret-settings.spec.ts
 
 # Run in UI mode (interactive)
 npm run test:visual:ui
@@ -602,21 +617,19 @@ npm run test:visual:report
 
 ### Browser & Device Coverage
 
-Visual tests run on:
+Blocking checks run on:
 
-- **Desktop Browsers**: Chrome, Firefox, Safari (WebKit)
-- **Mobile Devices**: Pixel 5 (Chrome), iPhone 12 (Safari)
-- **Viewports**: 320×568, 375×667, 667×375, 768×1024, 1024×768, 1920×1080, 2560×1440
+- **Mobile Devices**: Pixel 5 (Mobile Chrome), iPhone 12 (Mobile Safari)
+
+Informational checks may additionally run on desktop projects for limited layout sanity coverage.
 
 ### Accessibility Testing
 
-Visual regression tests include accessibility checks:
+Visual checks include focused accessibility states:
 
-- ✅ Focus states and keyboard navigation
-- ✅ High contrast mode compatibility
-- ✅ Touch target sizes on mobile
-- ✅ Semantic HTML structure (role attributes)
-- ✅ Reduced motion preferences
+- ✅ Focus visibility on primary CTA
+- ✅ High contrast rendering in settings dialog
+- ✅ Reduced motion landing state
 
 See `tests/visual/README.md` for detailed documentation on visual testing patterns.
 

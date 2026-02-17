@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { bootstrapVisualState, gotoLanding } from './utils/visual-helpers';
 
 /**
  * Visual Regression Tests for Gallery Landing Page
@@ -8,50 +9,20 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Gallery Landing Page', () => {
-  test('should render landing page correctly', async ({ page }) => {
-    await page.goto('/');
+  test('@smoke should render landing shell', async ({ page }) => {
+    await bootstrapVisualState(page);
+    await gotoLanding(page);
 
-    // Wait for the page to be fully loaded
-    await page.waitForLoadState('networkidle');
-
-    // Wait for the main heading to be visible
-    await expect(page.getByRole('heading', { name: /photo signal/i })).toBeVisible();
-
-    // Take a screenshot of the entire page
-    await expect(page).toHaveScreenshot('landing-page.png', {
+    await expect(page).toHaveScreenshot('landing-shell.png', {
       fullPage: true,
     });
   });
 
-  test('should render landing page at mobile viewport', async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
+  test('@extended should keep begin CTA styling stable', async ({ page }) => {
+    await bootstrapVisualState(page);
+    await gotoLanding(page);
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Wait for the main heading to be visible
-    await expect(page.getByRole('heading', { name: /photo signal/i })).toBeVisible();
-
-    // Take a screenshot at mobile size
-    await expect(page).toHaveScreenshot('landing-page-mobile.png', {
-      fullPage: true,
-    });
-  });
-
-  test('should render landing page at tablet viewport', async ({ page }) => {
-    // Set tablet viewport
-    await page.setViewportSize({ width: 768, height: 1024 });
-
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Wait for the main heading to be visible
-    await expect(page.getByRole('heading', { name: /photo signal/i })).toBeVisible();
-
-    // Take a screenshot at tablet size
-    await expect(page).toHaveScreenshot('landing-page-tablet.png', {
-      fullPage: true,
-    });
+    const beginButton = page.getByRole('button', { name: /activate camera and begin experience/i });
+    await expect(beginButton).toHaveScreenshot('landing-begin-button.png');
   });
 });

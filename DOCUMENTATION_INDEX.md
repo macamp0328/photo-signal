@@ -68,6 +68,7 @@ Each module has a README defining its API contract:
 ## Asset Documentation
 
 - **assets/prod-photographs/** — Canonical production photo source materials
+- **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical photo-to-band metadata and EXIF details
 
 ## Issue Drafts
 

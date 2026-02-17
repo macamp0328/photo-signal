@@ -64,6 +64,7 @@ describe('upload-to-r2 helpers', () => {
   });
 
   it('derives endpoint from account id when needed', () => {
+    delete process.env.R2_ENDPOINT;
     const config = resolveConfigFromEnvAndArgs({
       bucket: 'photo-signal-audio',
       account: '12345',

@@ -56,21 +56,37 @@ const getAccessGateConfig = (): AccessGateConfig => {
       ? rawSessionHours
       : DEFAULT_ACCESS_SESSION_HOURS;
 
+  const isTestEnv = import.meta.env.MODE === 'test';
+
   return {
-    enabled: passcode.length > 0,
+    enabled: !isTestEnv && passcode.length > 0,
     passcode,
     sessionMs: sessionHours * 60 * 60 * 1000,
   };
 };
 
 const hasValidAccessSession = (): boolean => {
-  const storedValue = window.localStorage.getItem(ACCESS_STORAGE_KEY);
-  if (!storedValue) {
+  if (typeof window === 'undefined' || !('localStorage' in window)) {
     return false;
   }
 
-  const accessUntil = Number(storedValue);
-  return Number.isFinite(accessUntil) && accessUntil > Date.now();
+  try {
+    const storedValue = window.localStorage.getItem(ACCESS_STORAGE_KEY);
+    if (!storedValue) {
+      return false;
+    }
+
+    const accessUntil = Number(storedValue);
+    if (!Number.isFinite(accessUntil)) {
+      window.localStorage.removeItem(ACCESS_STORAGE_KEY);
+      return false;
+    }
+
+    return accessUntil > Date.now();
+  } catch (error) {
+    console.error('Error reading access session from localStorage:', error);
+    return false;
+  }
 };
 
 const coerceNumberSetting = (value: unknown, fallback: number): number => {
@@ -590,7 +606,12 @@ function App() {
       return;
     }
 
-    window.localStorage.setItem(ACCESS_STORAGE_KEY, `${Date.now() + gateConfig.sessionMs}`);
+    try {
+      window.localStorage.setItem(ACCESS_STORAGE_KEY, `${Date.now() + gateConfig.sessionMs}`);
+    } catch (error) {
+      console.error('Failed to persist access session to localStorage:', error);
+    }
+
     setPasscodeError('');
     setPasscodeInput('');
     setIsUnlocked(true);

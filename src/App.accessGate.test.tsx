@@ -5,6 +5,7 @@ import App from './App';
 const env = import.meta.env as Record<string, string | undefined>;
 const originalPasscode = env.VITE_ACCESS_PASSCODE;
 const originalSessionHours = env.VITE_ACCESS_SESSION_HOURS;
+const originalMode = env.MODE;
 
 beforeEach(() => {
   Object.defineProperty(navigator, 'mediaDevices', {
@@ -23,12 +24,25 @@ beforeEach(() => {
 afterEach(() => {
   env.VITE_ACCESS_PASSCODE = originalPasscode;
   env.VITE_ACCESS_SESSION_HOURS = originalSessionHours;
+  env.MODE = originalMode;
   window.localStorage.clear();
 });
 
 describe('App access gate', () => {
+  it('is disabled in test mode even when passcode is set', () => {
+    env.VITE_ACCESS_PASSCODE = '2468';
+    env.MODE = 'test';
+
+    render(<App />);
+
+    // Should skip gate and show the app directly
+    expect(screen.getByText('Photo Signal')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Private Gallery' })).toBeNull();
+  });
+
   it('shows passcode screen when gate is enabled', () => {
     env.VITE_ACCESS_PASSCODE = '2468';
+    env.MODE = 'production';
 
     render(<App />);
 
@@ -38,6 +52,7 @@ describe('App access gate', () => {
 
   it('rejects invalid passcode', async () => {
     env.VITE_ACCESS_PASSCODE = '2468';
+    env.MODE = 'production';
 
     render(<App />);
 
@@ -53,6 +68,7 @@ describe('App access gate', () => {
 
   it('unlocks app and stores session when passcode is valid', async () => {
     env.VITE_ACCESS_PASSCODE = '2468';
+    env.MODE = 'production';
 
     render(<App />);
 

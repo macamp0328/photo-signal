@@ -403,46 +403,54 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     help: false,
   };
 
+  const readArgValue = (input) => {
+    const separatorIndex = input.indexOf('=');
+    if (separatorIndex === -1) {
+      return '';
+    }
+    return input.slice(separatorIndex + 1);
+  };
+
   for (const arg of args) {
     if (arg === '--help') {
       options.help = true;
     } else if (arg.startsWith('--source=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       if (!value) {
         console.error('❌ Error: --source requires a value');
         process.exit(1);
       }
       options.source = value;
     } else if (arg.startsWith('--timeout=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       if (!value || isNaN(parseInt(value, 10)) || parseInt(value, 10) <= 0) {
         console.error('❌ Error: --timeout requires a positive integer value');
         process.exit(1);
       }
       options.timeout = parseInt(value, 10);
     } else if (arg.startsWith('--base-url=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       if (!value) {
         console.error('❌ Error: --base-url requires a value');
         process.exit(1);
       }
       options.baseUrl = trimTrailingSlash(value);
     } else if (arg.startsWith('--prefix=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       if (!value) {
         console.error('❌ Error: --prefix requires a value');
         process.exit(1);
       }
       options.prefix = sanitizePrefix(value);
     } else if (arg.startsWith('--origin=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       if (!value) {
         console.error('❌ Error: --origin requires a value');
         process.exit(1);
       }
       options.origin = value;
     } else if (arg.startsWith('--shared-secret=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       if (!value) {
         console.error('❌ Error: --shared-secret requires a value');
         process.exit(1);
@@ -451,7 +459,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     } else if (arg === '--trace') {
       options.trace = true;
     } else if (arg.startsWith('--concert-id=')) {
-      const value = arg.split('=')[1];
+      const value = readArgValue(arg);
       const parsed = Number.parseInt(value, 10);
       if (!value || Number.isNaN(parsed)) {
         console.error('❌ Error: --concert-id requires an integer value');
@@ -459,7 +467,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       }
       options.concertId = parsed;
     } else if (arg.startsWith('--only-concert-ids=')) {
-      const value = arg.split('=')[1] || '';
+      const value = readArgValue(arg);
       const parsed = value
         .split(',')
         .map((entry) => Number.parseInt(entry.trim(), 10))

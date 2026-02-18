@@ -8,7 +8,6 @@ import {
   collectFiles,
   buildObjectKey,
   resolveObjectKeyForFile,
-  loadPhotoIdByFileName,
   getContentType,
   getCacheControl,
   computeSha256,
@@ -116,44 +115,13 @@ describe('upload-to-r2 helpers', () => {
   });
 
   it('keeps opus files flat under prefix', () => {
-    const key = resolveObjectKeyForFile(
-      { relativePath: 'ps-example-track.opus' },
-      'prod/audio',
-      new Map([['ps-example-track.opus', 42]])
-    );
+    const key = resolveObjectKeyForFile({ relativePath: 'ps-example-track.opus' }, 'prod/audio');
     expect(key).toBe('prod/audio/ps-example-track.opus');
   });
 
   it('keeps non-opus files flat under prefix', () => {
-    const key = resolveObjectKeyForFile(
-      { relativePath: 'audio-index.json' },
-      'prod/audio',
-      new Map([['audio-index.json', 42]])
-    );
+    const key = resolveObjectKeyForFile({ relativePath: 'audio-index.json' }, 'prod/audio');
     expect(key).toBe('prod/audio/audio-index.json');
-  });
-
-  it('loads photoId mappings from audio-index', () => {
-    const indexPath = path.join(tempDir, 'audio-index.json');
-    writeFileSync(
-      indexPath,
-      JSON.stringify(
-        {
-          tracks: [
-            { fileName: 'a.opus', photoId: 1 },
-            { fileName: 'b.opus', photoId: 2 },
-            { fileName: 'bad.opus', photoId: null },
-          ],
-        },
-        null,
-        2
-      )
-    );
-
-    const map = loadPhotoIdByFileName(indexPath);
-    expect(map.get('a.opus')).toBe(1);
-    expect(map.get('b.opus')).toBe(2);
-    expect(map.has('bad.opus')).toBe(false);
   });
 
   it('returns accurate content types and cache headers', () => {

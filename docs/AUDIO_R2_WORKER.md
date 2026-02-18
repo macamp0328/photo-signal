@@ -40,10 +40,10 @@ After deploying the Worker (e.g., `https://audio.example.com`), rewrite `public/
 npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
 ```
 
-This sets `audioFile` to `https://audio.example.com/prod/audio/<id>/<filename>`.
+This sets `audioFile` to `https://audio.example.com/prod/audio/<filename>` (flat key layout).
 
-If your bucket keys are flat (no `<id>` folder), keep data URLs as
-`https://audio.example.com/prod/audio/<filename>` and do not rewrite to id-scoped paths.
+If you intentionally use id-scoped object keys (`<id>/<filename>`), update data URLs to match that
+shape with your own rewrite step so Worker paths and R2 keys stay aligned.
 
 ## Validation
 

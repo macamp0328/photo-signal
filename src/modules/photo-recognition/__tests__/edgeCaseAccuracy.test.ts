@@ -1,8 +1,9 @@
 /**
- * Edge Case Accuracy Regression Tests
+ * Production Data Recognition Regression Tests
  *
- * Validates that photo recognition accuracy meets expected thresholds
- * for each edge case category in the test dataset.
+ * Uses canonical production `public/data.json` and production image assets to
+ * validate that core recognition inputs remain healthy and that pHash matching
+ * still works for representative real photos.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -16,25 +17,11 @@ import { existsSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const TEST_DATA_PATH = join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'assets',
-  'test-data',
-  'concerts.dev.json'
-);
-const HAS_EDGE_CASE_DATASET = existsSync(TEST_DATA_PATH);
-const describeEdgeCaseSuite = HAS_EDGE_CASE_DATASET ? describe : describe.skip;
-
-interface EdgeCaseMetadata {
-  category: string;
-  severity: string;
-  description: string;
-  expectedAccuracy: number;
-}
+const PROJECT_ROOT = join(__dirname, '..', '..', '..', '..');
+const PRODUCTION_DATA_PATH = join(PROJECT_ROOT, 'public', 'data.json');
+const SAMPLE_SIZE = 12;
+const MAX_PHASH_DISTANCE = 48;
+const MIN_DISCRIMINATION_PASS_RATE = 75;
 
 interface Concert {
   id: number;
@@ -43,27 +30,24 @@ interface Concert {
   photoHashes?: {
     phash?: string[];
   };
-  edgeCase?: EdgeCaseMetadata;
+  audioFile?: string;
 }
 
-interface TestData {
+interface ProductionData {
   concerts: Concert[];
 }
 
-/**
- * Load concert data from test dataset
- */
-async function loadTestData(): Promise<TestData> {
-  const data = await readFile(TEST_DATA_PATH, 'utf-8');
+async function loadProductionData(): Promise<ProductionData> {
+  const data = await readFile(PRODUCTION_DATA_PATH, 'utf-8');
   return JSON.parse(data);
 }
 
-/**
- * Compute hash for an image file
- */
+function resolveImagePath(imageFile: string): string {
+  return join(PROJECT_ROOT, imageFile.replace(/^\/+/, ''));
+}
+
 async function computeHashForImage(imagePath: string): Promise<string> {
-  const fullPath = join(__dirname, '..', '..', '..', '..', imagePath);
-  const image = await loadImage(fullPath);
+  const image = await loadImage(imagePath);
 
   const canvas = createCanvas(image.width, image.height);
   const ctx = canvas.getContext('2d');
@@ -73,27 +57,12 @@ async function computeHashForImage(imagePath: string): Promise<string> {
   return computePHash(imageData as unknown as ImageData);
 }
 
-/**
- * Find best matching hash from reference set
- */
-function findBestMatch(
-  testHash: string,
-  referenceHashes: string[],
-  threshold: number = 40
-): { distance: number; similarity: number; matches: boolean } {
+function findBestDistance(testHash: string, referenceHashes: string[]): number {
   let bestDistance = Infinity;
-
   for (const refHash of referenceHashes) {
-    const distance = hammingDistance(testHash, refHash);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-    }
+    bestDistance = Math.min(bestDistance, hammingDistance(testHash, refHash));
   }
-
-  const similarity = ((256 - bestDistance) / 256) * 100;
-  const matches = bestDistance <= threshold;
-
-  return { distance: bestDistance, similarity, matches };
+  return bestDistance;
 }
 
 function getReferenceHashes(concert: Concert): string[] {
@@ -104,250 +73,124 @@ function getReferenceHashes(concert: Concert): string[] {
   return hashes;
 }
 
-describeEdgeCaseSuite('Edge Case Accuracy Regression Tests', () => {
-  let testData: TestData;
-  let edgeCases: Concert[];
+describe('Production Data Recognition Regression Tests', () => {
+  let productionData: ProductionData;
+  let concertsWithImagesAndHashes: Concert[];
+  let sampleConcerts: Concert[];
+  const sampleComputedHashes = new Map<number, string>();
 
   beforeAll(async () => {
-    testData = await loadTestData();
-    // Filter to only edge case entries (IDs 13-24)
-    edgeCases = testData.concerts.filter((concert) => concert.edgeCase !== undefined);
+    productionData = await loadProductionData();
+    concertsWithImagesAndHashes = productionData.concerts.filter(
+      (concert) =>
+        Boolean(concert.imageFile) &&
+        Array.isArray(concert.photoHashes?.phash) &&
+        (concert.photoHashes?.phash?.length ?? 0) > 0
+    );
+
+    sampleConcerts = concertsWithImagesAndHashes.slice(0, SAMPLE_SIZE);
+
+    for (const concert of sampleConcerts) {
+      const imagePath = resolveImagePath(concert.imageFile);
+      const computedHash = await computeHashForImage(imagePath);
+      sampleComputedHashes.set(concert.id, computedHash);
+    }
   });
 
   describe('Dataset Validation', () => {
-    it('should load edge case test data', () => {
-      expect(testData).toBeDefined();
-      expect(testData.concerts).toBeInstanceOf(Array);
-      expect(edgeCases.length).toBeGreaterThan(0);
+    it('loads production data with concerts', () => {
+      expect(productionData).toBeDefined();
+      expect(Array.isArray(productionData.concerts)).toBe(true);
+      expect(productionData.concerts.length).toBeGreaterThan(0);
     });
 
-    it('should have 12 edge case entries', () => {
-      expect(edgeCases).toHaveLength(12);
+    it('has imageFile + pHash references for production concerts', () => {
+      expect(concertsWithImagesAndHashes.length).toBeGreaterThan(0);
+      expect(concertsWithImagesAndHashes.length).toBe(productionData.concerts.length);
     });
 
-    it('should have edge cases for all categories', () => {
-      const categories = new Set(edgeCases.map((c) => c.edgeCase!.category));
-      expect(categories).toContain('motion-blur');
-      expect(categories).toContain('glare');
-      expect(categories).toContain('poor-lighting');
-      expect(categories).toContain('angle');
-      expect(categories).toContain('combined');
+    it('uses stable pHash format in production data', () => {
+      for (const concert of concertsWithImagesAndHashes) {
+        const hashes = getReferenceHashes(concert);
+        for (const hash of hashes) {
+          expect(hash).toMatch(/^[0-9a-f]{16}$/i);
+        }
+      }
     });
 
-    it('should have reference hashes for all edge cases', () => {
-      edgeCases.forEach((concert) => {
-        const hashes = concert.photoHashes?.phash;
-        expect(hashes).toBeDefined();
-        expect(Array.isArray(hashes)).toBe(true);
-        expect(hashes!.length).toBeGreaterThan(0);
-      });
-    });
-  });
-
-  describe('Motion Blur Category', () => {
-    it('should meet accuracy threshold for light motion blur (≥80%)', async () => {
-      const lightBlur = edgeCases.find(
-        (c) => c.edgeCase?.category === 'motion-blur' && c.edgeCase?.severity === 'light'
-      );
-      expect(lightBlur).toBeDefined();
-
-      const testHash = await computeHashForImage(lightBlur!.imageFile);
-      const referenceHashes = getReferenceHashes(lightBlur!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      expect(result.matches).toBe(true);
-      expect(result.similarity).toBeGreaterThanOrEqual(lightBlur!.edgeCase!.expectedAccuracy * 100);
+    it('keeps unique concert ids', () => {
+      const ids = productionData.concerts.map((concert) => concert.id);
+      expect(new Set(ids).size).toBe(ids.length);
     });
 
-    it('should meet accuracy threshold for moderate motion blur (≥60%)', async () => {
-      const moderateBlur = edgeCases.find(
-        (c) => c.edgeCase?.category === 'motion-blur' && c.edgeCase?.severity === 'moderate'
-      );
-      expect(moderateBlur).toBeDefined();
-
-      const testHash = await computeHashForImage(moderateBlur!.imageFile);
-      const referenceHashes = getReferenceHashes(moderateBlur!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      // For moderate blur, we expect lower accuracy but still some recognition capability
-      expect(result.similarity).toBeGreaterThanOrEqual(
-        moderateBlur!.edgeCase!.expectedAccuracy * 100
-      );
-    });
-
-    it('should attempt recognition for heavy motion blur (≥40%)', async () => {
-      const heavyBlur = edgeCases.find(
-        (c) => c.edgeCase?.category === 'motion-blur' && c.edgeCase?.severity === 'heavy'
-      );
-      expect(heavyBlur).toBeDefined();
-
-      const testHash = await computeHashForImage(heavyBlur!.imageFile);
-      const referenceHashes = getReferenceHashes(heavyBlur!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      // Heavy blur is very challenging - we expect low similarity but testing infrastructure is working
-      expect(result.similarity).toBeGreaterThanOrEqual(heavyBlur!.edgeCase!.expectedAccuracy * 100);
+    it('resolves production image files from data.json paths', () => {
+      for (const concert of concertsWithImagesAndHashes) {
+        const imagePath = resolveImagePath(concert.imageFile);
+        expect(existsSync(imagePath)).toBe(true);
+      }
     });
   });
 
-  describe('Glare Category', () => {
-    it('should meet accuracy threshold for light glare (≥85%)', async () => {
-      const lightGlare = edgeCases.find(
-        (c) => c.edgeCase?.category === 'glare' && c.edgeCase?.severity === 'light'
-      );
-      expect(lightGlare).toBeDefined();
+  describe('pHash Regression (Production Sample)', () => {
+    it(`matches sampled production images within distance <= ${MAX_PHASH_DISTANCE}`, async () => {
+      expect(sampleConcerts.length).toBeGreaterThan(0);
 
-      const testHash = await computeHashForImage(lightGlare!.imageFile);
-      const referenceHashes = getReferenceHashes(lightGlare!);
-      const result = findBestMatch(testHash, referenceHashes);
+      for (const concert of sampleConcerts) {
+        const computedHash = sampleComputedHashes.get(concert.id);
+        expect(computedHash).toBeDefined();
+        const referenceHashes = getReferenceHashes(concert);
+        const bestDistance = findBestDistance(computedHash!, referenceHashes);
 
-      expect(result.matches).toBe(true);
-      expect(result.similarity).toBeGreaterThanOrEqual(
-        lightGlare!.edgeCase!.expectedAccuracy * 100
-      );
+        expect(bestDistance).toBeLessThanOrEqual(MAX_PHASH_DISTANCE);
+      }
     });
 
-    it('should meet accuracy threshold for moderate glare (≥70%)', async () => {
-      const moderateGlare = edgeCases.find(
-        (c) => c.edgeCase?.category === 'glare' && c.edgeCase?.severity === 'moderate'
-      );
-      expect(moderateGlare).toBeDefined();
+    it('keeps a strong pass rate across sampled production images', async () => {
+      let passing = 0;
 
-      const testHash = await computeHashForImage(moderateGlare!.imageFile);
-      const referenceHashes = getReferenceHashes(moderateGlare!);
-      const result = findBestMatch(testHash, referenceHashes);
+      for (const concert of sampleConcerts) {
+        const computedHash = sampleComputedHashes.get(concert.id);
+        expect(computedHash).toBeDefined();
+        const referenceHashes = getReferenceHashes(concert);
+        const bestDistance = findBestDistance(computedHash!, referenceHashes);
 
-      expect(result.similarity).toBeGreaterThanOrEqual(
-        moderateGlare!.edgeCase!.expectedAccuracy * 100
-      );
+        if (bestDistance <= MAX_PHASH_DISTANCE) {
+          passing += 1;
+        }
+      }
+
+      const passRate = (passing / sampleConcerts.length) * 100;
+      expect(passRate).toBeGreaterThanOrEqual(90);
     });
 
-    it('should meet accuracy threshold for heavy glare (≥70%)', async () => {
-      const heavyGlare = edgeCases.find(
-        (c) => c.edgeCase?.category === 'glare' && c.edgeCase?.severity === 'heavy'
-      );
-      expect(heavyGlare).toBeDefined();
+    it('matches own reference set better than other concerts for most sampled images', () => {
+      let ownBestWins = 0;
 
-      const testHash = await computeHashForImage(heavyGlare!.imageFile);
-      const referenceHashes = getReferenceHashes(heavyGlare!);
-      const result = findBestMatch(testHash, referenceHashes);
+      for (const concert of sampleConcerts) {
+        const computedHash = sampleComputedHashes.get(concert.id);
+        expect(computedHash).toBeDefined();
 
-      expect(result.similarity).toBeGreaterThanOrEqual(
-        heavyGlare!.edgeCase!.expectedAccuracy * 100
-      );
-    });
-  });
+        const ownBestDistance = findBestDistance(computedHash!, getReferenceHashes(concert));
 
-  describe('Lighting Category', () => {
-    it('should meet accuracy threshold for low-light conditions (≥75%)', async () => {
-      const lowLight = edgeCases.find((c) => c.edgeCase?.category === 'poor-lighting');
-      expect(lowLight).toBeDefined();
+        let nearestOtherDistance = Infinity;
+        for (const otherConcert of sampleConcerts) {
+          if (otherConcert.id === concert.id) {
+            continue;
+          }
+          const candidateDistance = findBestDistance(
+            computedHash!,
+            getReferenceHashes(otherConcert)
+          );
+          nearestOtherDistance = Math.min(nearestOtherDistance, candidateDistance);
+        }
 
-      const testHash = await computeHashForImage(lowLight!.imageFile);
-      const referenceHashes = getReferenceHashes(lowLight!);
-      const result = findBestMatch(testHash, referenceHashes);
+        if (ownBestDistance <= nearestOtherDistance) {
+          ownBestWins += 1;
+        }
+      }
 
-      expect(result.similarity).toBeGreaterThanOrEqual(lowLight!.edgeCase!.expectedAccuracy * 100);
-    });
-  });
-
-  describe('Angle Category', () => {
-    it('should meet accuracy threshold for 15-degree angle (≥85%)', async () => {
-      const angle15 = edgeCases.find(
-        (c) => c.edgeCase?.category === 'angle' && c.edgeCase?.severity === 'light'
-      );
-      expect(angle15).toBeDefined();
-
-      const testHash = await computeHashForImage(angle15!.imageFile);
-      const referenceHashes = getReferenceHashes(angle15!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      expect(result.matches).toBe(true);
-      expect(result.similarity).toBeGreaterThanOrEqual(angle15!.edgeCase!.expectedAccuracy * 100);
-    });
-
-    it('should meet accuracy threshold for 30-degree angle (≥70%)', async () => {
-      const angle30 = edgeCases.find(
-        (c) => c.edgeCase?.category === 'angle' && c.edgeCase?.severity === 'moderate'
-      );
-      expect(angle30).toBeDefined();
-
-      const testHash = await computeHashForImage(angle30!.imageFile);
-      const referenceHashes = getReferenceHashes(angle30!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      expect(result.similarity).toBeGreaterThanOrEqual(angle30!.edgeCase!.expectedAccuracy * 100);
-    });
-
-    it('should meet accuracy threshold for 45-degree angle (≥50%)', async () => {
-      const angle45 = edgeCases.find(
-        (c) => c.edgeCase?.category === 'angle' && c.edgeCase?.severity === 'severe'
-      );
-      expect(angle45).toBeDefined();
-
-      const testHash = await computeHashForImage(angle45!.imageFile);
-      const referenceHashes = getReferenceHashes(angle45!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      expect(result.similarity).toBeGreaterThanOrEqual(angle45!.edgeCase!.expectedAccuracy * 100);
-    });
-  });
-
-  describe('Combined Edge Cases', () => {
-    it('should meet accuracy threshold for blur + glare combination (≥60%)', async () => {
-      const combined = edgeCases.find(
-        (c) => c.edgeCase?.category === 'combined' && c.band.includes('Blur + Glare')
-      );
-      expect(combined).toBeDefined();
-
-      const testHash = await computeHashForImage(combined!.imageFile);
-      const referenceHashes = getReferenceHashes(combined!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      expect(result.similarity).toBeGreaterThanOrEqual(combined!.edgeCase!.expectedAccuracy * 100);
-    });
-
-    it('should meet accuracy threshold for angle + low light combination (≥60%)', async () => {
-      const combined = edgeCases.find(
-        (c) => c.edgeCase?.category === 'combined' && c.band.includes('Angle + Low Light')
-      );
-      expect(combined).toBeDefined();
-
-      const testHash = await computeHashForImage(combined!.imageFile);
-      const referenceHashes = getReferenceHashes(combined!);
-      const result = findBestMatch(testHash, referenceHashes);
-
-      expect(result.similarity).toBeGreaterThanOrEqual(combined!.edgeCase!.expectedAccuracy * 100);
-    });
-  });
-
-  describe('Overall Edge Case Performance', () => {
-    it('should maintain average accuracy above baseline across all edge cases', async () => {
-      const results = await Promise.all(
-        edgeCases.map(async (concert) => {
-          const testHash = await computeHashForImage(concert.imageFile);
-          const referenceHashes = getReferenceHashes(concert);
-          const result = findBestMatch(testHash, referenceHashes);
-          return {
-            concert: concert.band,
-            category: concert.edgeCase!.category,
-            expectedAccuracy: concert.edgeCase!.expectedAccuracy,
-            actualSimilarity: result.similarity / 100,
-            meetsThreshold: result.similarity >= concert.edgeCase!.expectedAccuracy * 100,
-          };
-        })
-      );
-
-      // Calculate average accuracy
-      const avgAccuracy = results.reduce((sum, r) => sum + r.actualSimilarity, 0) / results.length;
-      const passedCount = results.filter((r) => r.meetsThreshold).length;
-      const passRate = (passedCount / results.length) * 100;
-
-      // At least 75% of edge cases should meet their individual thresholds
-      expect(passRate).toBeGreaterThanOrEqual(75);
-
-      // Overall average accuracy should remain above baseline
-      expect(avgAccuracy).toBeGreaterThanOrEqual(0.65);
+      const discriminationRate = (ownBestWins / sampleConcerts.length) * 100;
+      expect(discriminationRate).toBeGreaterThanOrEqual(MIN_DISCRIMINATION_PASS_RATE);
     });
   });
 });

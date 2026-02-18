@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
-import { createReadStream, readFileSync, readdirSync, statSync } from 'node:fs';
+import { createReadStream, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
@@ -189,33 +189,7 @@ export function buildObjectKey(relativePath, prefix) {
   return [prefix, cleanRelative].filter(Boolean).join('/');
 }
 
-export function loadPhotoIdByFileName(audioIndexPath) {
-  if (!audioIndexPath) {
-    return new Map();
-  }
-
-  try {
-    const raw = JSON.parse(requireTextFile(audioIndexPath));
-    const map = new Map();
-    for (const track of raw?.tracks ?? []) {
-      const fileName = track?.fileName;
-      const photoId = Number.parseInt(String(track?.photoId ?? ''), 10);
-      if (fileName && Number.isInteger(photoId) && photoId > 0) {
-        map.set(fileName, photoId);
-      }
-    }
-    return map;
-  } catch {
-    return new Map();
-  }
-}
-
-function requireTextFile(filePath) {
-  return readFileSync(filePath, 'utf8');
-}
-
-export function resolveObjectKeyForFile(file, prefix, photoIdByFileName) {
-  void photoIdByFileName;
+export function resolveObjectKeyForFile(file, prefix) {
   return buildObjectKey(file.relativePath, prefix);
 }
 
@@ -394,10 +368,9 @@ async function main() {
     process.exit(0);
   }
 
-  const photoIdByFileName = new Map();
   files = files.map((file) => ({
     ...file,
-    objectKey: resolveObjectKeyForFile(file, config.prefix, photoIdByFileName),
+    objectKey: resolveObjectKeyForFile(file, config.prefix),
   }));
 
   console.log('🎧 Cloudflare R2 Upload Script');

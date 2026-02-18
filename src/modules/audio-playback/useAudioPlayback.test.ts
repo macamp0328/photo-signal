@@ -292,32 +292,43 @@ describe('useAudioPlayback', () => {
 
       renderHook(() => useAudioPlayback());
 
-      // Verify all three event listeners are registered
-      expect(addEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function), {
-        passive: true,
-      });
-      expect(addEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function), {
-        passive: true,
-      });
-      expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), {
-        passive: true,
-      });
+      const pointerCall = addEventListenerSpy.mock.calls.find((args) => args[0] === 'pointerdown');
+      const touchCall = addEventListenerSpy.mock.calls.find((args) => args[0] === 'touchstart');
+      const clickCall = addEventListenerSpy.mock.calls.find((args) => args[0] === 'click');
+
+      expect(pointerCall?.[1]).toEqual(expect.any(Function));
+      expect(pointerCall?.[2]).toEqual({ passive: true });
+
+      expect(touchCall?.[1]).toEqual(expect.any(Function));
+      expect(touchCall?.[2]).toEqual({ passive: true });
+
+      expect(clickCall?.[1]).toEqual(expect.any(Function));
+      expect(clickCall?.[2]).toEqual({ passive: true });
 
       addEventListenerSpy.mockRestore();
     });
 
     it('should remove window event listeners on unmount', () => {
+      const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
 
       const { unmount } = renderHook(() => useAudioPlayback());
 
+      const pointerListener = addEventListenerSpy.mock.calls.find(
+        (args) => args[0] === 'pointerdown'
+      )?.[1];
+      const touchListener = addEventListenerSpy.mock.calls.find(
+        (args) => args[0] === 'touchstart'
+      )?.[1];
+      const clickListener = addEventListenerSpy.mock.calls.find((args) => args[0] === 'click')?.[1];
+
       unmount();
 
-      // Verify all three event listeners are removed
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function));
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
-      expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', pointerListener);
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('touchstart', touchListener);
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('click', clickListener);
 
+      addEventListenerSpy.mockRestore();
       removeEventListenerSpy.mockRestore();
     });
 

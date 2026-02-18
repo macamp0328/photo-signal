@@ -16,7 +16,10 @@ function parseArgs(argv) {
       continue;
     }
     if (arg.includes('=')) {
-      const [key, value] = arg.slice(2).split('=');
+      const normalized = arg.slice(2);
+      const separatorIndex = normalized.indexOf('=');
+      const key = normalized.slice(0, separatorIndex);
+      const value = normalized.slice(separatorIndex + 1);
       parsed[key] = value;
     } else {
       parsed[arg.slice(2)] = 'true';

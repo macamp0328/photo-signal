@@ -286,6 +286,105 @@ describe('useAudioPlayback', () => {
     });
   });
 
+  describe('Audio Context Unlock Event Listeners', () => {
+    it('should register window event listeners on mount', () => {
+      const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+
+      renderHook(() => useAudioPlayback());
+
+      // Verify all three event listeners are registered
+      expect(addEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function), {
+        passive: true,
+      });
+      expect(addEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function), {
+        passive: true,
+      });
+      expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), {
+        passive: true,
+      });
+
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('should remove window event listeners on unmount', () => {
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+      const { unmount } = renderHook(() => useAudioPlayback());
+
+      unmount();
+
+      // Verify all three event listeners are removed
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
+
+      removeEventListenerSpy.mockRestore();
+    });
+
+    it('should unlock audio context when pointerdown event fires', async () => {
+      renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      mockedHowler.ctx.state = 'suspended';
+
+      // Simulate pointerdown event
+      await act(async () => {
+        window.dispatchEvent(new Event('pointerdown'));
+        await vi.runAllTimersAsync();
+      });
+
+      expect(mockedHowler.ctx.resume).toHaveBeenCalled();
+    });
+
+    it('should unlock audio context when touchstart event fires', async () => {
+      renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      mockedHowler.ctx.state = 'suspended';
+
+      // Reset the resume spy from previous tests
+      mockedHowler.ctx.resume.mockClear();
+
+      // Simulate touchstart event
+      await act(async () => {
+        window.dispatchEvent(new Event('touchstart'));
+        await vi.runAllTimersAsync();
+      });
+
+      expect(mockedHowler.ctx.resume).toHaveBeenCalled();
+    });
+
+    it('should unlock audio context when click event fires', async () => {
+      renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      mockedHowler.ctx.state = 'suspended';
+
+      // Reset the resume spy from previous tests
+      mockedHowler.ctx.resume.mockClear();
+
+      // Simulate click event
+      await act(async () => {
+        window.dispatchEvent(new Event('click'));
+        await vi.runAllTimersAsync();
+      });
+
+      expect(mockedHowler.ctx.resume).toHaveBeenCalled();
+    });
+
+    it('should not attempt to unlock audio context when already running', async () => {
+      renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      mockedHowler.ctx.state = 'running';
+
+      // Simulate click event
+      await act(async () => {
+        window.dispatchEvent(new Event('click'));
+        await vi.runAllTimersAsync();
+      });
+
+      // resume should not be called when context is already running
+      expect(mockedHowler.ctx.resume).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Pause Functionality', () => {
     it('should pause playing audio', () => {
       const { result } = renderHook(() => useAudioPlayback());

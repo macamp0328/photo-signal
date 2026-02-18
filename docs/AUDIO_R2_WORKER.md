@@ -87,3 +87,63 @@ npm run trace-audio
 ```bash
 npm run validate-audio -- --source=public/data.json --origin=https://www.whoisduck2.com
 ```
+
+## Root Cause Analysis (2026-02-18)
+
+### What was reproduced
+
+The following command reproduces the current production failure pattern:
+
+```bash
+npm run validate-audio -- --trace --concert-id=1 --origin=https://www.whoisduck2.com --source=public/data.json
+```
+
+Observed output:
+
+- `Primary GET: 200`, `HEAD probe: 200`, `Range probe: 206` for valid objects
+- Validation summary: `Successful: 56 (61.5%)`, `Failed: 35`
+- Every failure was `404 Not Found` for the same object path: `/prod/audio/concert-4.opus`
+
+### Technical root cause
+
+The root cause is **dataset/object mismatch**, not a Howler runtime bug:
+
+1. App playback entry points all consume `concert.audioFile` from `public/data.json`:
+   - Auto play: `src/App.tsx` (`play(selectedAudioUrl)` in recognized-concert effect)
+   - Play button: `src/App.tsx` (`handleTogglePlayback`)
+   - Play test song: `src/App.tsx` (`loadTestAudioUrl`) + `src/modules/debug-overlay/useAudioTest.ts`
+2. Many concerts currently point to `.../prod/audio/concert-4.opus` in `public/data.json`.
+3. Worker + R2 return `404` for that key, so all feature paths fail when they target those records.
+
+### Scope confirmation (R2 response vs browser vs Howler)
+
+- **R2/Worker behavior:** mixed (healthy for existing keys, failing for missing keys)
+- **Browser/Howler integration:** healthy for valid keys (`200/206` responses play normally)
+- **Primary failing component:** data/R2 object coverage (missing object for URL present in dataset)
+
+If debug overlay shows:
+
+- `fetch: 200`
+- `cors: No header` (or `Not exposed to browser`)
+- `playback: load-error`
+- `Content-Type: audio/ogg; codecs=opus`
+
+that means network reachability is fine, and the likely app/runtime issue is **codec decode support**
+on the current browser (for example, browsers that do not decode Ogg Opus).
+
+### Feature-by-feature reproduction
+
+1. **Auto play (photo detected):** detect a concert whose `audioFile` is `/prod/audio/concert-4.opus` → playback fails with load error.
+2. **Play button:** with the same recognized/active concert, tapping Play retries the same missing URL → same failure.
+3. **Play test song:** uses first available `audioFile` from data. If the first record is a missing key in an environment, the test also fails for the same reason.
+
+### Recommended remediation
+
+1. Regenerate or patch `public/data.json` so all `audioFile` entries map to uploaded objects.
+2. Upload a real `concert-4.opus` fallback object (short-term mitigation) **or** stop emitting that fallback URL.
+3. Gate releases with:
+   ```bash
+   npm run validate-audio -- --source=public/data.json --origin=https://www.whoisduck2.com
+   ```
+   and require `100%` success before deploy.
+4. Keep Worker CORS allowlist checks (`--origin=...`) in place, but treat `404` as data/object mismatch first.

@@ -84,6 +84,7 @@ describe('useAudioTest', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -163,6 +164,54 @@ describe('useAudioTest', () => {
     expect(result.current.isTestRunning).toBe(false);
     expect(result.current.testResult!.playbackOutcome).toBe('load-error');
     expect(result.current.testResult!.playbackDetail).toContain('codec error');
+  });
+
+  it('should append codec hint when fetch succeeds but browser cannot play content type', async () => {
+    vi.mocked(diagnoseAudioUrl).mockResolvedValue({
+      ...successDiagnostic,
+      contentType: 'audio/ogg; codecs=opus',
+    });
+    vi.spyOn(globalThis.Audio.prototype, 'canPlayType').mockReturnValue('');
+
+    const { result } = renderHook(() => useAudioTest());
+
+    await act(async () => {
+      result.current.runTest(testUrl);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      const instances = getMockedHowlClass().instances;
+      instances[0].__triggerEvent('loaderror', 1, 'decode error');
+    });
+
+    expect(result.current.testResult!.playbackDetail).toContain(
+      'Browser codec support issue likely (audio/ogg; codecs=opus)'
+    );
+  });
+
+  it('should append codec hint when play error occurs with unsupported content type', async () => {
+    vi.mocked(diagnoseAudioUrl).mockResolvedValue({
+      ...successDiagnostic,
+      contentType: 'audio/ogg; codecs=opus',
+    });
+    vi.spyOn(globalThis.Audio.prototype, 'canPlayType').mockReturnValue('');
+
+    const { result } = renderHook(() => useAudioTest());
+
+    await act(async () => {
+      result.current.runTest(testUrl);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      const instances = getMockedHowlClass().instances;
+      instances[0].__triggerEvent('playerror', 1, 'decode error');
+    });
+
+    expect(result.current.testResult!.playbackDetail).toContain(
+      'Browser codec support issue likely (audio/ogg; codecs=opus)'
+    );
   });
 
   it('should reset test state', async () => {

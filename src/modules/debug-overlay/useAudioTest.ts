@@ -20,6 +20,39 @@ export interface UseAudioTestReturn {
 const TEST_PLAYBACK_TIMEOUT_MS = 5000;
 const TEST_VOLUME = 0.15;
 
+function canPlayContentType(contentType: string | null): boolean | null {
+  if (!contentType || typeof Audio === 'undefined') {
+    return null;
+  }
+
+  try {
+    const audio = new Audio();
+    if (typeof audio.canPlayType !== 'function') {
+      return null;
+    }
+    const support = audio.canPlayType(contentType);
+    return support === 'probably' || support === 'maybe';
+  } catch {
+    return null;
+  }
+}
+
+function buildPlaybackErrorDetail(
+  prefix: 'Howler load error' | 'Howler play error',
+  error: unknown,
+  diagnostic: AudioDiagnosticResult
+) {
+  const baseMessage = `${prefix}: ${String(error)}.`;
+  const isHttpSuccess =
+    diagnostic.httpStatus !== null && diagnostic.httpStatus >= 200 && diagnostic.httpStatus < 300;
+
+  if (isHttpSuccess && canPlayContentType(diagnostic.contentType) === false) {
+    return `${baseMessage} Browser codec support issue likely (${diagnostic.contentType}).`;
+  }
+
+  return baseMessage;
+}
+
 export function useAudioTest(): UseAudioTestReturn {
   const [isTestRunning, setIsTestRunning] = useState(false);
   const [testResult, setTestResult] = useState<AudioTestResult | null>(null);
@@ -151,7 +184,7 @@ export function useAudioTest(): UseAudioTestReturn {
           setTestResult({
             diagnostic,
             playbackOutcome: 'load-error',
-            playbackDetail: `Howler load error: ${String(error)}.`,
+            playbackDetail: buildPlaybackErrorDetail('Howler load error', error, diagnostic),
             durationMs: Date.now() - startTime,
           });
           setIsTestRunning(false);
@@ -172,7 +205,7 @@ export function useAudioTest(): UseAudioTestReturn {
           setTestResult({
             diagnostic,
             playbackOutcome: 'play-error',
-            playbackDetail: `Howler play error: ${String(error)}.`,
+            playbackDetail: buildPlaybackErrorDetail('Howler play error', error, diagnostic),
             durationMs: Date.now() - startTime,
           });
           setIsTestRunning(false);

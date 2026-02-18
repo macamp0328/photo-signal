@@ -124,6 +124,12 @@ export function DebugOverlay({
 
   const dataBadgeText = isTestMode ? 'TEST DATA' : 'LIVE DATA';
   const isCollapsedView = isCollapsed || !enabled;
+  const statusCode = testResult?.diagnostic.httpStatus;
+  const isSuccessfulFetch = typeof statusCode === 'number' && statusCode >= 200 && statusCode < 300;
+  const corsDisplay = testResult
+    ? (testResult.diagnostic.corsOrigin ??
+      (isSuccessfulFetch ? 'Not exposed to browser' : 'No header'))
+    : null;
 
   useEffect(() => {
     onVisibilityChange?.(enabled && !isCollapsed);
@@ -341,9 +347,7 @@ export function DebugOverlay({
                   </div>
                   <div className={styles.testRow}>
                     <span className={styles.testLabel}>CORS:</span>
-                    <span className={styles.testValue}>
-                      {testResult.diagnostic.corsOrigin ?? 'No header'}
-                    </span>
+                    <span className={styles.testValue}>{corsDisplay}</span>
                   </div>
                   <div className={styles.testRow}>
                     <span className={styles.testLabel}>Playback:</span>
@@ -357,6 +361,9 @@ export function DebugOverlay({
                       {testResult.playbackOutcome}
                     </span>
                   </div>
+                  {testResult.playbackDetail && (
+                    <div className={styles.testMessage}>{testResult.playbackDetail}</div>
+                  )}
                   <div className={styles.testMessage}>{testResult.diagnostic.message}</div>
                   <div className={styles.testDuration}>{testResult.durationMs}ms</div>
                   <button

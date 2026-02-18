@@ -113,30 +113,6 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     category: 'recognition',
   },
   {
-    id: 'theme-mode',
-    name: 'Theme Mode',
-    description: 'Switch between light and dark visual themes',
-    type: 'select',
-    value: 'dark',
-    options: [
-      { label: 'Dark', value: 'dark' },
-      { label: 'Light', value: 'light' },
-    ],
-    category: 'ui',
-  },
-  {
-    id: 'ui-style',
-    name: 'UI Style',
-    description: 'Toggle between modern UI and classic retro gallery experience',
-    type: 'select',
-    value: 'modern',
-    options: [
-      { label: 'Modern', value: 'modern' },
-      { label: 'Classic', value: 'classic' },
-    ],
-    category: 'ui',
-  },
-  {
     id: 'recognition-delay',
     name: 'Recognition Delay',
     description: 'Adjust how long a photo must stay steady before it is considered a match',

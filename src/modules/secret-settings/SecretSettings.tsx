@@ -90,7 +90,7 @@ function CustomSettingsSection({
     <section className={styles.section} aria-describedby="custom-settings-description">
       <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
       <p id="custom-settings-description" className={styles.sectionDescription}>
-        Tune recognition, performance, and appearance behavior.
+        Tune recognition, frame quality, and performance behavior.
       </p>
 
       {settingGroups.length > 0 ? (

@@ -164,7 +164,7 @@ function AppContent() {
 
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
-  const { getSetting, settings } = useCustomSettings();
+  const { getSetting } = useCustomSettings();
 
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({
@@ -173,17 +173,11 @@ function AppContent() {
     },
   });
 
-  // Apply theme changes
+  // Enforce a single curated visual system for all users
   useEffect(() => {
-    const themeMode = getSetting<string>('theme-mode') ?? 'dark';
-    const uiStyle = getSetting<string>('ui-style') ?? 'modern';
-
-    // Apply theme mode (light/dark)
-    document.documentElement.setAttribute('data-theme', themeMode);
-
-    // Apply UI style (modern/classic)
-    document.documentElement.setAttribute('data-ui-style', uiStyle);
-  }, [getSetting, settings]);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-ui-style', 'modern');
+  }, []);
 
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
@@ -477,39 +471,45 @@ function AppContent() {
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const showSwitchPrompt = !!pendingSwitchConcert;
 
-  const primaryActionLabel = isPlaying ? (isInfoActive ? 'Pause' : 'Pause Current') : 'Play';
+  const primaryActionLabel = isPlaying
+    ? isInfoActive
+      ? 'Pause Playback'
+      : 'Pause Current Track'
+    : isInfoActive
+      ? 'Play Track'
+      : 'Play Detected Track';
 
   const statusLabel = playbackError
-    ? 'Playback Error'
+    ? 'Playback Fault'
     : isInfoActive && isPlaying
-      ? 'Now Playing'
+      ? 'On Air'
       : showSwitchPrompt
-        ? 'New Photo Found'
+        ? 'Switch Candidate'
         : recognizedConcert && !isInfoActive
-          ? 'Now Viewing'
+          ? 'Locked Frame'
           : isInfoActive
-            ? 'Paused'
-            : 'Now Viewing';
+            ? 'Deck Paused'
+            : 'Preview';
 
   const promptText = playbackError
     ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
       ? playbackError
       : `${playbackError} Check stream access and tap Play to retry.`
     : showSwitchPrompt
-      ? `Now playing ${activeConcert?.band}. Switch to ${pendingSwitchConcert?.band}?`
+      ? `Current cut: ${activeConcert?.band}. Fresh lock found: ${pendingSwitchConcert?.band}.`
       : recognizedConcert
-        ? 'Song started automatically. Music keeps playing until you pause.'
+        ? 'Signal is locked. Playback runs continuously until you pause.'
         : activeConcert
-          ? 'Music will keep playing until you pause.'
-          : 'Point your camera at a photo to get started.';
+          ? 'Archive is still live. Pause any time to stop the deck.'
+          : 'Aim at a print to lock signal and start the deck.';
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
   const nowPlayingLine = activeConcert
-    ? `ghost dial locked on ${activeConcert.band} · ${Math.round(progress * 100)}% through`
+    ? `${activeConcert.band} • ${Math.round(progress * 100)}% through the cut`
     : isPlaying
-      ? 'ghost dial humming, no band tagged'
-      : 'receiver idle — lift camera to wake it';
+      ? 'Deck is running — waiting on a stable band lock'
+      : 'Receiver idle — lift the camera to wake playback';
 
   const actions =
     infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
@@ -519,9 +519,9 @@ function AppContent() {
             <button
               type="button"
               onClick={handleConfirmSwitch}
-              aria-label={`Switch to ${pendingSwitchConcert?.band}`}
+              aria-label={`Switch to ${pendingSwitchConcert?.band ?? 'detected track'}`}
             >
-              Switch to {pendingSwitchConcert?.band}
+              Switch Deck
             </button>
             <button
               type="button"
@@ -549,10 +549,12 @@ function AppContent() {
         )}
         {showSwitchPrompt ? (
           <p>
-            Now playing: {activeConcert?.band}. Confirm to switch to {pendingSwitchConcert?.band}.
+            Live now: {activeConcert?.band}. Confirm switch to {pendingSwitchConcert?.band}.
           </p>
         ) : null}
-        {activeConcert && isInfoActive && !isPlaying ? <p>Paused — tap play to resume.</p> : null}
+        {activeConcert && isInfoActive && !isPlaying ? (
+          <p>Deck paused. Tap play to roll again.</p>
+        ) : null}
       </>
     ) : null;
 

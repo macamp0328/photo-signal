@@ -42,9 +42,9 @@ const INSTANT_DISTANCE_THRESHOLD = 5;
 const QUALITY_GATING_DISTANCE_THRESHOLD = 8;
 const CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM = 2;
 const DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER = 1.8;
-const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 8;
-const DEFAULT_MATCH_MARGIN_THRESHOLD = 3;
-const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 4;
+const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
+const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
+const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 5;
 const SWITCH_INSTANT_DISTANCE_THRESHOLD = 3;
 const CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM = 3;
 
@@ -72,7 +72,7 @@ export function usePhotoRecognition(
     minBrightness = 50,
     maxBrightness = 220,
     enableRectangleDetection = false,
-    rectangleConfidenceThreshold = 0.6,
+    rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
   } = options;
 

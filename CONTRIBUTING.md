@@ -99,6 +99,7 @@ AI agents (Copilot, Claude Code, etc.) must:
 8. Use `git` for commits, and prefer `gh` CLI for PR/collaboration workflows (create/update PRs, comments, reviews) instead of GitKraken tooling
 9. If `gh` is not authenticated, ask the maintainer to run `gh auth login` before continuing PR tasks
 10. For larger changes, commit in regular logical checkpoints with `git` and open/update the PR with `gh` when complete
+11. If automated `code_review` fails (for example `autofind` exits non-zero), retry once with a short plain-text PR title/body; if it still fails, document the failure and continue with manual review + `codeql_checker`
 
 The `auto-fix-agent-pr` workflow auto-fixes lint/format issues on `copilot/` and `claude/` branches when CI fails — but agents should not rely on it.
 

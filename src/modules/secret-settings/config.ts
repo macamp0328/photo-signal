@@ -43,7 +43,7 @@ export const CONFIG_PROFILES: ConfigProfile[] = [
       'sharpness-threshold': 100,
       'glare-threshold': 250,
       'glare-percentage-threshold': 20,
-      'rectangle-detection-confidence-threshold': 0.3,
+      'rectangle-detection-confidence-threshold': 0.35,
     },
     featureFlags: {
       'rectangle-detection': true,
@@ -215,7 +215,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
     description:
       'Minimum confidence (0-1) for rectangle detection to be considered valid. Higher = stricter.',
     type: 'number',
-    value: 0.6,
+    value: 0.35,
     min: 0.3,
     max: 0.9,
     step: 0.05,

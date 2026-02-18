@@ -7,6 +7,8 @@ import {
   resolveConfigFromEnvAndArgs,
   collectFiles,
   buildObjectKey,
+  resolveObjectKeyForFile,
+  loadPhotoIdByFileName,
   getContentType,
   getCacheControl,
   computeSha256,
@@ -36,6 +38,11 @@ describe('upload-to-r2 helpers', () => {
     expect(args.bucket).toBe('photo');
     expect(args['dry-run']).toBe('true');
     expect(args.concurrency).toBe('8');
+  });
+
+  it('preserves full values that contain additional equals signs', () => {
+    const args = parseArgs(['--shared-secret=abc=def=ghi']);
+    expect(args['shared-secret']).toBe('abc=def=ghi');
   });
 
   it('resolves config from args + defaults', () => {
@@ -106,6 +113,47 @@ describe('upload-to-r2 helpers', () => {
   it('builds object keys with prefixes and normalizes slashes', () => {
     const key = buildObjectKey('folder/file.opus', 'prod/audio');
     expect(key).toBe('prod/audio/folder/file.opus');
+  });
+
+  it('maps opus files into id-scoped keys when photoId is available', () => {
+    const key = resolveObjectKeyForFile(
+      { relativePath: 'ps-example-track.opus' },
+      'prod/audio',
+      new Map([['ps-example-track.opus', 42]])
+    );
+    expect(key).toBe('prod/audio/42/ps-example-track.opus');
+  });
+
+  it('keeps non-opus files flat under prefix', () => {
+    const key = resolveObjectKeyForFile(
+      { relativePath: 'audio-index.json' },
+      'prod/audio',
+      new Map([['audio-index.json', 42]])
+    );
+    expect(key).toBe('prod/audio/audio-index.json');
+  });
+
+  it('loads photoId mappings from audio-index', () => {
+    const indexPath = path.join(tempDir, 'audio-index.json');
+    writeFileSync(
+      indexPath,
+      JSON.stringify(
+        {
+          tracks: [
+            { fileName: 'a.opus', photoId: 1 },
+            { fileName: 'b.opus', photoId: 2 },
+            { fileName: 'bad.opus', photoId: null },
+          ],
+        },
+        null,
+        2
+      )
+    );
+
+    const map = loadPhotoIdByFileName(indexPath);
+    expect(map.get('a.opus')).toBe(1);
+    expect(map.get('b.opus')).toBe(2);
+    expect(map.has('bad.opus')).toBe(false);
   });
 
   it('returns accurate content types and cache headers', () => {

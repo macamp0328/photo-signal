@@ -8,6 +8,42 @@ The Photo Signal audio workflow bundles every step required to take a YouTube Mu
 
 All related scripts live under `scripts/audio-workflow/` so the end-to-end process stays isolated from the rest of the project.
 
+## Deterministic Clean-Slate Workflow (new)
+
+Use these commands to make the end-to-end pipeline restartable and checkpointed.
+
+```bash
+# 1) Reset local generated artifacts
+npm run audio:reset
+
+# Optional: also purge uploaded objects from the configured R2 prefix
+npm run audio:reset -- --with-r2 --confirm-r2-delete=DELETE
+
+# 2) Run all phases deterministically with checkpoints
+npm run audio:clean-slate -- --base-url=https://photo-signal-audio-worker.example.workers.dev
+
+# Fast smoke run (downloads only first 10 songs)
+npm run audio:clean-slate:smoke -- --base-url=https://photo-signal-audio-worker.example.workers.dev
+
+# 3) Verify mapping + URL integrity and detect stale placeholders
+npm run audio:verify
+```
+
+Checkpoint outputs:
+
+- `scripts/audio-workflow/output/clean-slate-reset-report.json`
+- `scripts/audio-workflow/output/clean-slate-checkpoints.json`
+- `scripts/audio-workflow/output/clean-slate-verify-report.json`
+
+You can also run individual phases via:
+
+- `npm run audio:phase:download`
+- `npm run audio:phase:download:smoke`
+- `npm run audio:phase:encode`
+- `npm run audio:phase:upload`
+- `npm run audio:phase:apply-cdn`
+- `npm run audio:phase:validate`
+
 ## Metadata Philosophy: Capture Once, Store Outside
 
 **The workflow captures all metadata exactly once** during the download stage and stores it in `.metadata.json` files. This "single source of truth" approach:
@@ -50,8 +86,8 @@ Key features:
 - Emits `.metadata.json` index files next to every downloaded track that capture playlist context, yt-dlp `.info.json` data, codec details, and filesystem paths
 - Supports cookies, proxies, retries, throttling, and `--update-yt-dlp`
 - Loads defaults from `download/download-yt-song.config.json` (edit this file to set playlist URL, output dir, archive path, etc.)
-- Uses the `webremix` YouTube client by default; when forcing the `android` or `tv` clients you must also provide `--po-token` (or set it in the config) to satisfy yt-dlp's new PO token requirement
-- Automatically detects the local Node.js 20+ runtime and passes `--js-runtimes` to yt-dlp so modern YouTube clients (like `webremix`) stay unlocked; override with `--js-runtime` or disable with `--no-js-runtime`
+- Uses deterministic fallback client order by default (`web -> mweb -> ios -> tv`); when forcing the `android` client you must provide `--po-token` (or set it in config)
+- Automatically detects the local Node.js 20+ runtime and passes `--js-runtimes` to yt-dlp; override with `--js-runtime` or disable with `--no-js-runtime`
 
 See the [helper script docs](../README.md#audio-workflowdownloaddownload-yt-songjs---download-one-track-with-yt-dlp) for the full option list.
 
@@ -163,12 +199,12 @@ Refer to the corresponding sections inside [scripts/README.md](../README.md) for
 Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally CSV-driven so you can edit in Excel and re-run deterministically.
 
 1. **Generate/refresh photo catalog (optional):**
-   - Run `npm run create-photo-csv` to rebuild `assets/test-data/prod-photographs.csv` from EXIF in `assets/prod-photographs/` (fills `imageFile`, date, camera fields; `band`/`venue` remain manual).
+   - Run `npm run create-photo-csv` to rebuild `assets/prod-photographs/prod-photographs-details.csv` from EXIF in `assets/prod-photographs/` (fills `imageFile`, date, camera fields; `band`/`venue` remain manual).
 
 2. **Run band-only matcher:**
    - `node scripts/audio-workflow/build-photo-audio-map.js`
-   - Inputs (defaults): `assets/test-data/prod-photographs.csv`, `scripts/audio-workflow/encode/output/audio-index.json`
-   - Output: `assets/test-data/photo-audio-map.csv`
+   - Inputs (defaults): `assets/prod-photographs/prod-photographs-details.csv`, `scripts/audio-workflow/encode/output/audio-index.json`
+   - Output: `assets/prod-photographs/photo-audio-map.csv`
 
 3. **Review `photo-audio-map.csv` statuses:**
    - `matched_single`: one photo ↔ one track (ready)
@@ -180,7 +216,7 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
    - `missing_photo_band`: fill `band` in `prod-photographs.csv`
 
 4. **Fix data and re-run:**
-   - Edit `assets/test-data/prod-photographs.csv` (add/fix `band`, resolve typos, add new photos)
+   - Edit `assets/prod-photographs/prod-photographs-details.csv` (add/fix `band`, resolve typos, add new photos)
    - Re-run `node scripts/audio-workflow/build-photo-audio-map.js` until ambiguous/missing rows are resolved to your satisfaction.
 
 5. **Publish mapping:**

@@ -114,6 +114,7 @@ Retiring the standalone `organize/` scripts keeps the workflow linear—run one 
 - `opus.bitrateKbps` in `encode.config.json` is treated as a **ceiling** (default 160 kbps).
 - Each track inspects the source bitrate from `.metadata.json` (and falls back to `ffprobe`) to avoid upsampling.
 - A configurable `opus.minBitrateFloorKbps` (default 96) prevents the encoder from dipping below transparent bitrates unless the source truly is lower.
+- `opus.vbrMode` defaults to `constrained` to keep output size predictable while preserving Opus quality.
 - The CLI now prints both the detected source bitrate and the chosen target per track, and `audio-index.json` stores both values for auditing.
 
 ### Verifying a Track
@@ -121,10 +122,10 @@ Retiring the standalone `organize/` scripts keeps the workflow linear—run one 
 After encoding, confirm the manifest and the file agree:
 
 ```bash
-ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 scripts/audio-workflow/encode/output/ps-<slug>.opus
+ffprobe -v error -show_entries format=bit_rate,size,duration -of default=noprint_wrappers=1 scripts/audio-workflow/encode/output/ps-<slug>.opus
 ```
 
-Divide the printed value by 1000 to get kbps (e.g. `124500` → `124.5 kbps`) and compare it to `audio-index.json -> tracks[].bitrateKbps`. Record these spot checks in PR notes for manual verification.
+Use `bit_rate` ÷ 1000 to get kbps (e.g. `124500` → `124.5 kbps`) and compare it to `audio-index.json -> tracks[].bitrateKbps`. When `bit_rate` is unavailable, derive estimated bitrate from `size` and `duration`. Record these spot checks in PR notes for manual verification.
 
 ## Configuration Sketch
 
@@ -136,6 +137,7 @@ Divide the printed value by 1000 to get kbps (e.g. `124500` → `124.5 kbps`) an
   "opus": {
     "bitrateKbps": 160,
     "minBitrateFloorKbps": 96,
+    "vbrMode": "constrained",
     "complexity": 10,
     "frameSizeMs": 20
   },

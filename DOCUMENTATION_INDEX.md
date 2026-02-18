@@ -60,7 +60,7 @@ Each module has a README defining its API contract:
 ## Scripts & Workflows
 
 - **[scripts/README.md](./scripts/README.md)** — Helper scripts documentation
-- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline
+- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline + deterministic clean-slate reset/run/verify
 - **[scripts/audio-workflow/download/README.md](./scripts/audio-workflow/download/README.md)** — yt-dlp downloader guide
 - **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** — Opus encoding playbook
 - **[tests/visual/README.md](./tests/visual/README.md)** — Visual regression testing guide

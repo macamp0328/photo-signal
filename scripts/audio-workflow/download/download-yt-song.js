@@ -18,6 +18,20 @@ const DEFAULT_PLAYLIST_URL =
 const DEFAULT_OUTPUT_DIR = 'downloads/yt-music';
 const DEFAULT_TEMPLATE = '%(playlist_index)02d - %(title)s.%(ext)s';
 const DEFAULT_ARCHIVE_NAME = '.yt-dlp-archive.txt';
+const DEFAULT_PLAYER_CLIENT_ORDER = ['web', 'mweb', 'ios', 'tv'];
+const DEFAULT_YT_DLP_MAX_AGE_DAYS = 90;
+const AUDIO_FILE_EXTENSIONS = new Set(['.opus', '.webm', '.m4a', '.mp3', '.wav', '.flac', '.ogg']);
+const SUPPORTED_AUDIO_FORMATS = new Set([
+  'best',
+  'aac',
+  'alac',
+  'flac',
+  'm4a',
+  'mp3',
+  'opus',
+  'vorbis',
+  'wav',
+]);
 const DEFAULT_CONFIG_PATH = resolve(
   process.cwd(),
   'scripts/audio-workflow/download/download-yt-song.config.json'
@@ -47,14 +61,15 @@ if (!targetUrl) {
   process.exit(1);
 }
 
-const playlistItem = trackUrl ? null : normalizePlaylistSelection(options.index ?? options.item);
+const playlistItem = trackUrl ? null : resolvePlaylistSelection(options);
 const outputDir = resolvePath(options['output-dir'] ?? DEFAULT_OUTPUT_DIR);
 const unavailableLogDisabled = toBoolean(options['no-unavailable-log'], false);
 const unavailableLogPath = unavailableLogDisabled
   ? null
   : resolvePath(options['unavailable-log'] ?? join(outputDir, 'download-unavailable.log'));
 const fileTemplate = options.template ?? options['file-template'] ?? DEFAULT_TEMPLATE;
-const playerClient = normalizeValue(options['player-client'], 'webremix');
+const playerClient = normalizeValue(options['player-client'], null);
+const playerClientOrder = normalizeValue(options['player-client-order'], null);
 const poToken = normalizeValue(options['po-token'], null);
 const disableJsRuntime = toBoolean(options['no-js-runtime'], false);
 const explicitJsRuntime = normalizeValue(options['js-runtimes'] ?? options['js-runtime'], null);
@@ -99,7 +114,7 @@ if (downloadArchive) {
 
 if (playerClient === 'android' && !poToken) {
   console.warn(
-    '⚠️  The android client now requires a PO token. Provide --po-token=<token> or switch to the default webremix client.'
+    '⚠️  The android client now requires a PO token. Provide --po-token=<token> or use the default client fallback order.'
   );
 }
 
@@ -123,7 +138,9 @@ const cookiesFile = options.cookies ?? options['cookies-file'];
 const netrc = toBoolean(options.netrc, false);
 const proxy = options.proxy;
 
-const ensureLatest = toBoolean(options['update-yt-dlp'] ?? options['ensure-updated'], false);
+const ensureLatest = toBoolean(options['update-yt-dlp'] ?? options['ensure-updated'], true);
+const allowStaleYtDlp = toBoolean(options['allow-stale-yt-dlp'], false);
+const maxYtDlpAgeDays = toInt(options['max-yt-dlp-age-days'], DEFAULT_YT_DLP_MAX_AGE_DAYS);
 const skipPrereqCheck = toBoolean(options['skip-prereq-check'], false);
 const ytBinary = normalizeBinary(options['yt-dlp-path'] ?? options['yt-dlp']) ?? 'yt-dlp';
 
@@ -136,11 +153,37 @@ if (!skipPrereqCheck) {
   }
 }
 
-if (ensureLatest && !options['dry-run']) {
-  console.log('🔄 Checking for yt-dlp updates...');
-  const updateResult = spawnSync(ytBinary, ['-U'], { stdio: 'inherit' });
-  if (updateResult.status !== 0) {
-    console.warn('⚠️  yt-dlp update check failed. Continuing with the current version.');
+if (!options['dry-run']) {
+  if (ensureLatest) {
+    console.log('🔄 Checking for yt-dlp updates...');
+    const updateResult = spawnSync(ytBinary, ['-U'], { stdio: 'inherit' });
+    if (updateResult.status !== 0) {
+      const message =
+        'yt-dlp update failed. Refusing to continue because freshness guardrails are enabled.';
+      if (allowStaleYtDlp) {
+        console.warn(`⚠️  ${message} Proceeding because --allow-stale-yt-dlp was set.`);
+      } else {
+        console.error(`❌ ${message}`);
+        console.error('   Use --allow-stale-yt-dlp only as an emergency bypass.');
+        process.exit(1);
+      }
+    }
+  }
+
+  const freshness = getYtDlpFreshness(ytBinary, maxYtDlpAgeDays);
+  if (!freshness.ok) {
+    const message =
+      freshness.reason ??
+      `Unable to verify yt-dlp freshness (max age ${maxYtDlpAgeDays} days). Refusing to continue.`;
+    if (allowStaleYtDlp) {
+      console.warn(`⚠️  ${message} Proceeding because --allow-stale-yt-dlp was set.`);
+    } else {
+      console.error(`❌ ${message}`);
+      console.error('   Use --allow-stale-yt-dlp only as an emergency bypass.');
+      process.exit(1);
+    }
+  } else if (freshness.version && typeof freshness.ageDays === 'number') {
+    console.log(`✅ yt-dlp ${freshness.version} is fresh (${freshness.ageDays} day(s) old).`);
   }
 }
 
@@ -205,13 +248,16 @@ function runDownloadPlan(planIndex) {
 
   ytProcess.on('close', (code) => {
     const downloadedFilePaths = readPrintedFilePaths(filepathLog);
+    const downloadedAudioFilePaths = downloadedFilePaths.filter(isAudioDownloadPath);
     cleanupTempPath(tempDir);
     const combinedOutput = `${stdoutBuffer}\n${stderrBuffer}`;
     const allowPartialErrors = toBoolean(options['allow-partial-errors'], true);
     const hasUnavailableError = detectUnavailableError(combinedOutput);
     const treatAsPartialSuccess = allowPartialErrors && hasUnavailableError;
+    const noAudioDownloaded = downloadedAudioFilePaths.length === 0;
+    const hasArchiveSkip = detectArchiveSkip(combinedOutput);
 
-    if (code === 0 || treatAsPartialSuccess) {
+    if ((code === 0 || treatAsPartialSuccess) && !noAudioDownloaded) {
       const unavailableEntries = treatAsPartialSuccess
         ? parseUnavailableEntries(combinedOutput)
         : [];
@@ -227,8 +273,8 @@ function runDownloadPlan(planIndex) {
         console.warn('⚠️  Some playlist items were unavailable and were skipped.');
       }
 
-      if (writeIndexFiles && downloadedFilePaths.length) {
-        for (const filePath of downloadedFilePaths) {
+      if (writeIndexFiles && downloadedAudioFilePaths.length) {
+        for (const filePath of downloadedAudioFilePaths) {
           try {
             createMetadataIndex({
               downloadedFilePath: filePath,
@@ -239,12 +285,28 @@ function runDownloadPlan(planIndex) {
             console.warn(`⚠️  Unable to write metadata index: ${error.message}`);
           }
         }
-      } else if (writeIndexFiles && !downloadedFilePaths.length) {
+      } else if (writeIndexFiles && !downloadedAudioFilePaths.length) {
         console.warn('⚠️  Could not determine downloaded file path for metadata indexing.');
       }
 
       console.log(`✅ Finished${label}! Files saved to ${outputDir}`);
       process.exit(0);
+    }
+
+    if ((code === 0 || treatAsPartialSuccess) && noAudioDownloaded && hasArchiveSkip) {
+      if (treatAsPartialSuccess) {
+        console.warn('⚠️  Some playlist items were unavailable and were skipped.');
+      }
+      console.log(
+        `✅ Finished${label}! No new audio files downloaded because requested item(s) are already present in the download archive.`
+      );
+      process.exit(0);
+    }
+
+    if (code === 0 && noAudioDownloaded) {
+      console.warn(
+        `⚠️  ${plan.label?.toUpperCase() ?? 'Attempt'} completed but produced no audio files. Trying next fallback plan...`
+      );
     }
 
     if (planIndex + 1 < downloadPlans.length) {
@@ -264,11 +326,11 @@ function runDownloadPlan(planIndex) {
 }
 
 function buildDownloadPlans() {
+  const clients = resolveClientPreference(playerClientOrder, playerClient, poToken);
   const baseParams = {
     targetUrl,
     playlistItem,
     outputPathTemplate,
-    playerClient,
     poToken,
     jsRuntimes,
     keepVideo,
@@ -290,30 +352,37 @@ function buildDownloadPlans() {
   };
 
   if (keepVideo) {
-    return [
-      {
-        label: formatPreference[0] ?? 'video',
-        audioFormat: formatPreference[0] ?? null,
-        params: {
-          ...baseParams,
-          audioFormat: null,
-          formatSelector: formatPreference[0] ?? 'best',
-        },
+    return clients.map((client) => ({
+      label: `${formatPreference[0] ?? 'video'}@${client}`,
+      audioFormat: formatPreference[0] ?? null,
+      params: {
+        ...baseParams,
+        playerClient: client,
+        audioFormat: null,
+        formatSelector: formatPreference[0] ?? 'best',
       },
-    ];
+    }));
   }
 
   const preference = formatPreference.length ? formatPreference : ['opus', 'mp3'];
+  const plans = [];
 
-  return preference.map((audioFormat) => ({
-    label: audioFormat,
-    audioFormat,
-    params: {
-      ...baseParams,
-      audioFormat,
-      formatSelector: resolveAudioFormatSelector(audioFormat),
-    },
-  }));
+  for (const audioFormat of preference) {
+    for (const client of clients) {
+      plans.push({
+        label: `${audioFormat}@${client}`,
+        audioFormat,
+        params: {
+          ...baseParams,
+          playerClient: client,
+          audioFormat,
+          formatSelector: resolveAudioFormatSelector(audioFormat),
+        },
+      });
+    }
+  }
+
+  return plans;
 }
 
 function parseArgs(argv) {
@@ -329,7 +398,9 @@ function parseArgs(argv) {
     let value;
 
     if (keyValue.includes('=')) {
-      const [rawKey, valueFromEquals] = keyValue.split('=');
+      const separatorIndex = keyValue.indexOf('=');
+      const rawKey = keyValue.slice(0, separatorIndex);
+      const valueFromEquals = keyValue.slice(separatorIndex + 1);
       keyValue = rawKey;
       value = valueFromEquals;
     } else {
@@ -372,7 +443,47 @@ function normalizePlaylistSelection(rawIndex) {
     return null;
   }
 
-  return validateIndex(rawIndex);
+  if (typeof rawIndex === 'string') {
+    const normalized = rawIndex.trim();
+    if (/^\d+$/.test(normalized)) {
+      return String(validateIndex(normalized));
+    }
+
+    if (/^\d+:\d+(?::\d+)?$/.test(normalized)) {
+      return normalized;
+    }
+
+    if (/^\d+(,\d+)+$/.test(normalized)) {
+      return normalized;
+    }
+
+    console.error(
+      'Invalid playlist item selection. Use a number, range (1:10), list (1,4,8), or all.'
+    );
+    process.exit(1);
+  }
+
+  return String(validateIndex(rawIndex));
+}
+
+function resolvePlaylistSelection(rawOptions) {
+  const explicitSelection =
+    rawOptions['playlist-items'] ??
+    rawOptions['playlist-items-range'] ??
+    rawOptions.index ??
+    rawOptions.item;
+  const normalizedSelection = normalizePlaylistSelection(explicitSelection);
+  if (normalizedSelection) {
+    return normalizedSelection;
+  }
+
+  const maxItemsRaw = rawOptions['max-items'];
+  if (maxItemsRaw === undefined || maxItemsRaw === null || maxItemsRaw === '') {
+    return null;
+  }
+
+  const maxItems = validateIndex(maxItemsRaw);
+  return `1:${maxItems}`;
 }
 
 function buildYtArgs({
@@ -601,15 +712,131 @@ function normalizeBinary(value) {
   return trimmed;
 }
 
+function parseYtDlpVersionDate(rawVersion) {
+  const match = String(rawVersion ?? '')
+    .trim()
+    .match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+
+  const [, yearRaw, monthRaw, dayRaw] = match;
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  const day = Number(dayRaw);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function getYtDlpFreshness(binaryPath, maxAgeDays) {
+  const versionResult = spawnSync(binaryPath, ['--version'], {
+    encoding: 'utf-8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  if (versionResult.status !== 0) {
+    return {
+      ok: false,
+      reason: 'Could not read yt-dlp version via --version.',
+    };
+  }
+
+  const version = String(versionResult.stdout ?? '').trim();
+  const releasedAt = parseYtDlpVersionDate(version);
+  if (!releasedAt) {
+    return {
+      ok: false,
+      version,
+      reason:
+        'yt-dlp version string was not date-based (expected YYYY.MM.DD), so freshness could not be verified.',
+    };
+  }
+
+  const ageMs = Date.now() - releasedAt.getTime();
+  const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
+
+  if (ageDays > maxAgeDays) {
+    return {
+      ok: false,
+      version,
+      ageDays,
+      reason: `yt-dlp ${version} is ${ageDays} days old (> ${maxAgeDays} day limit).`,
+    };
+  }
+
+  return {
+    ok: true,
+    version,
+    ageDays,
+  };
+}
+
 function parseFormatPreference(rawPreference) {
+  const rawValues = !rawPreference
+    ? ['opus', 'mp3']
+    : String(rawPreference)
+        .split(',')
+        .map((entry) => entry.trim().toLowerCase())
+        .filter(Boolean);
+
+  const normalizedValues = [];
+
+  for (const value of rawValues) {
+    const normalized = normalizeAudioFormatValue(value);
+    if (!SUPPORTED_AUDIO_FORMATS.has(normalized)) {
+      console.warn(`⚠️  Skipping unsupported audio format preference: ${value}`);
+      continue;
+    }
+    normalizedValues.push(normalized);
+  }
+
+  const dedupedValues = Array.from(new Set(normalizedValues));
+  return dedupedValues.length ? dedupedValues : ['opus', 'mp3'];
+}
+
+function normalizeAudioFormatValue(value) {
+  switch ((value ?? '').toLowerCase()) {
+    case 'webm':
+      console.warn(
+        '⚠️  Audio format "webm" is not valid for --audio-format. Using "vorbis" fallback.'
+      );
+      return 'vorbis';
+    default:
+      return (value ?? '').toLowerCase();
+  }
+}
+
+function parseClientPreference(rawPreference) {
   if (!rawPreference) {
-    return ['opus', 'mp3'];
+    return [];
   }
 
   return String(rawPreference)
     .split(',')
     .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((entry) => entry !== 'none');
+}
+
+function resolveClientPreference(rawPreference, explicitClient, currentPoToken) {
+  if (explicitClient && explicitClient !== 'none') {
+    return [explicitClient.toLowerCase()];
+  }
+
+  const configured = parseClientPreference(rawPreference);
+  const defaults = configured.length ? configured : DEFAULT_PLAYER_CLIENT_ORDER;
+  const unique = Array.from(new Set(defaults));
+
+  return unique.filter((client) => currentPoToken || client !== 'android');
 }
 
 function resolveAudioFormatSelector(audioFormat) {
@@ -640,6 +867,11 @@ function readPrintedFilePaths(filePath) {
   }
 }
 
+function isAudioDownloadPath(filePath) {
+  const extension = extname(filePath).toLowerCase();
+  return AUDIO_FILE_EXTENSIONS.has(extension);
+}
+
 const UNAVAILABLE_PATTERNS = [
   /video (is )?not available/i,
   /video unavailable/i,
@@ -652,6 +884,13 @@ function detectUnavailableError(output) {
     return false;
   }
   return UNAVAILABLE_PATTERNS.some((pattern) => pattern.test(output));
+}
+
+function detectArchiveSkip(output) {
+  if (!output) {
+    return false;
+  }
+  return /has already been recorded in the archive/i.test(output);
 }
 
 const UNAVAILABLE_ENTRY_REGEX =
@@ -865,12 +1104,15 @@ Options:
 	--playlist-url <url>         YouTube Music playlist URL (default: Photo Signal playlist)
 	--track-url <url>            Download a single track URL (skips playlist indexing)
 	--item <n|all>              Playlist index (1-based) to download (omit or pass "all" for full playlist)
+  --playlist-items <expr>      Explicit yt-dlp playlist selection (e.g. 1, 1:10, 1,3,9)
+  --max-items <n>              Download first n playlist items (shorthand for --playlist-items=1:n)
 	--output-dir <path>          Directory for downloads (default: ${DEFAULT_OUTPUT_DIR})
   --format <ext>               Audio format (comma-separated list for priority; default: opus,mp3)
   --format-order <list>        Alternate way to set comma-separated audio priority
 	--file-template <tpl>        yt-dlp output template (default: ${DEFAULT_TEMPLATE})
 	--keep-video                 Skip audio extraction and keep original container
-  --player-client <client>     Force specific YouTube client (default: webremix)
+  --player-client <client>     Force specific YouTube client (disables automatic client fallback)
+  --player-client-order <list> Client fallback order when --player-client is not set (default: ${DEFAULT_PLAYER_CLIENT_ORDER.join(',')})
   --po-token <token>           Provide required PO token when using android or tv clients
   --js-runtime[s] <spec>       Pass custom --js-runtime or --js-runtimes to yt-dlp (e.g. node:/usr/local/bin/node)
   --no-js-runtime              Disable automatic JS runtime detection
@@ -896,7 +1138,9 @@ Options:
 	--fragment-retries <n>       Fragment retry attempts (default: 15)
   --allow-partial-errors       Exit successfully when some playlist items are unavailable (default: on)
 	--yt-dlp-path <path>         Custom yt-dlp binary path
-	--update-yt-dlp              Run "yt-dlp -U" before downloading
+  --update-yt-dlp              Run "yt-dlp -U" before downloading (default: on)
+  --max-yt-dlp-age-days <n>    Freshness limit in days (default: ${DEFAULT_YT_DLP_MAX_AGE_DAYS})
+  --allow-stale-yt-dlp         Emergency bypass for freshness/update failures
 	--skip-prereq-check          Skip ffmpeg/yt-dlp availability checks
   --config <path>              JSON file with default flags (auto-loads scripts/audio-workflow/download/download-yt-song.config.json)
 	--dry-run                    Print the final command instead of executing

@@ -3,7 +3,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-const DEFAULT_CSV = path.resolve('assets/test-data/photo-audio-map.csv');
+const DEFAULT_CSV = path.resolve('assets/prod-photographs/photo-audio-map.csv');
 const DEFAULT_AUDIO_INDEX = path.resolve('scripts/audio-workflow/encode/output/audio-index.json');
 const DEFAULT_OUTPUT = path.resolve('scripts/audio-workflow/encode/output/photo-audio-map.json');
 

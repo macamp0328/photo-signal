@@ -21,9 +21,18 @@ npm run download-song -- --playlist-url "<playlist-url>" --output-dir ~/Music/ph
 
 # Download by direct track URL
 npm run download-song -- --track-url "https://music.youtube.com/watch?v=..."
+
+# Smoke pass: first 10 playlist items
+npm run download-song:smoke
 ```
 
 Add `--dry-run` to inspect the underlying yt-dlp command without downloading anything.
+
+For faster local validation cycles, use `--max-items` to cap playlist size without changing the playlist URL:
+
+```bash
+npm run download-song -- --max-items 10
+```
 
 ## Prerequisites
 
@@ -39,18 +48,43 @@ Defaults live in `download-yt-song.config.json` (copyable from the `.example` fi
 
 - `playlist-url` – primary playlist to monitor
 - `output-dir` – local folder for downloaded assets (default `downloads/yt-music`)
-- `format-order` – preference list (default `opus,webm,m4a,mp3`) so yt-dlp grabs the best native Opus/WebM audio before falling back
+- `format-order` – preference list (default `opus,m4a,mp3`) so yt-dlp grabs native Opus first before falling back
 - `write-thumbnail` – keep a `.webp` cover next to the audio (default: on)
 - `embed-thumbnail` – attach artwork to the container (default: off to keep Opus lean)
 - `add-metadata` – inject tags into the container (default: off; metadata lives in JSON)
 - `player-client` / `po-token` – control which YouTube client yt-dlp impersonates
+- `player-client-order` – fallback sequence when no explicit `player-client` is set (default `web,mweb,ios,tv`)
 - `archive` – path to the `.yt-dlp-archive.txt` file for duplicate protection
+- `update-yt-dlp` – auto-run `yt-dlp -U` before downloads (default: on)
+- `max-yt-dlp-age-days` – fail if local yt-dlp release date exceeds age limit (default: 90)
 
 CLI flags always override config values, so you can keep long-term defaults committed and tweak per run.
 
+### Client Fallback Behavior
+
+When `--player-client` is not provided, the downloader now runs deterministic fallback attempts across
+`web -> mweb -> ios -> tv` for each requested format preference. This addresses breakage when a client
+becomes unsupported or starts returning 403s.
+
+If a plan finishes without producing any audio file (for example only `.info.json`/`.webp` are written),
+that attempt is treated as failed and the script continues to the next fallback plan.
+
+If no new files are produced because the requested item is already in the download archive,
+the run is treated as success so reruns stay deterministic.
+
+### yt-dlp Freshness Guardrails
+
+Each non-dry-run download now enforces this sequence:
+
+1. Run `yt-dlp -U` (enabled by default)
+2. Read `yt-dlp --version` and verify release-date age is within the configured limit
+
+If either step fails, the script exits non-zero by default. Emergency bypass is available via
+`--allow-stale-yt-dlp`.
+
 ### Format Priority
 
-The default config forces yt-dlp to try `opus` (and the Opus-in-WebM container) before touching lossy fallbacks. That keeps the pipeline lossless up to the encode stage. Pair this with the encode guardrail—which caps output at 160 kbps and refuses to upsample past the detected source bitrate—and every track stays lean without sacrificing fidelity.
+The default config forces yt-dlp to try `opus` before touching lossy fallbacks. That keeps the pipeline lossless up to the encode stage. Pair this with the encode guardrail—which caps output at 160 kbps and refuses to upsample past the detected source bitrate—and every track stays lean without sacrificing fidelity.
 
 ## Metadata and Artwork Defaults
 

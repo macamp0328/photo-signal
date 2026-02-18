@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
-import { createReadStream, readdirSync, statSync } from 'node:fs';
+import { createReadStream, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
@@ -14,8 +14,15 @@ export function parseArgs(argv) {
   const args = {};
   for (const arg of argv) {
     if (arg.startsWith('--')) {
-      const [key, value] = arg.includes('=') ? arg.slice(2).split('=') : [arg.slice(2), 'true'];
-      args[key] = value;
+      if (arg.includes('=')) {
+        const raw = arg.slice(2);
+        const separatorIndex = raw.indexOf('=');
+        const key = raw.slice(0, separatorIndex);
+        const value = raw.slice(separatorIndex + 1);
+        args[key] = value;
+      } else {
+        args[arg.slice(2)] = 'true';
+      }
     }
   }
   return args;
@@ -182,6 +189,46 @@ export function buildObjectKey(relativePath, prefix) {
   return [prefix, cleanRelative].filter(Boolean).join('/');
 }
 
+export function loadPhotoIdByFileName(audioIndexPath) {
+  if (!audioIndexPath) {
+    return new Map();
+  }
+
+  try {
+    const raw = JSON.parse(requireTextFile(audioIndexPath));
+    const map = new Map();
+    for (const track of raw?.tracks ?? []) {
+      const fileName = track?.fileName;
+      const photoId = Number.parseInt(String(track?.photoId ?? ''), 10);
+      if (fileName && Number.isInteger(photoId) && photoId > 0) {
+        map.set(fileName, photoId);
+      }
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
+function requireTextFile(filePath) {
+  return readFileSync(filePath, 'utf8');
+}
+
+export function resolveObjectKeyForFile(file, prefix, photoIdByFileName) {
+  const ext = path.extname(file.relativePath).toLowerCase();
+  if (ext !== '.opus') {
+    return buildObjectKey(file.relativePath, prefix);
+  }
+
+  const fileName = path.basename(file.relativePath);
+  const photoId = photoIdByFileName.get(fileName);
+  if (!photoId) {
+    return buildObjectKey(file.relativePath, prefix);
+  }
+
+  return [prefix, String(photoId), fileName].filter(Boolean).join('/');
+}
+
 export function getContentType(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   switch (ext) {
@@ -236,7 +283,7 @@ export async function shouldSkipUpload(s3Client, bucket, key, { sha256, size }) 
 }
 
 export async function uploadSingleFile({ file, config, s3Client }) {
-  const key = buildObjectKey(file.relativePath, config.prefix);
+  const key = file.objectKey ?? buildObjectKey(file.relativePath, config.prefix);
   const sha256 = await computeSha256(file.fullPath);
   const metadata = {
     sha256,
@@ -357,6 +404,13 @@ async function main() {
     process.exit(0);
   }
 
+  const audioIndexPath = path.join(config.inputDir, 'audio-index.json');
+  const photoIdByFileName = loadPhotoIdByFileName(audioIndexPath);
+  files = files.map((file) => ({
+    ...file,
+    objectKey: resolveObjectKeyForFile(file, config.prefix, photoIdByFileName),
+  }));
+
   console.log('🎧 Cloudflare R2 Upload Script');
   console.log('');
   console.log('Configuration:');
@@ -368,6 +422,9 @@ async function main() {
   console.log(`  Concurrency:  ${config.concurrency}`);
   console.log(`  Dry run:      ${config.dryRun ? 'yes' : 'no'}`);
   console.log(`  Skip existing:${config.skipExisting ? 'yes' : 'no'}`);
+  console.log(
+    `  ID-scoped map:${photoIdByFileName.size > 0 ? `yes (${photoIdByFileName.size} track(s))` : 'no'}`
+  );
   console.log('');
   console.log(`Discovered ${files.length} file(s)`);
   console.log('');

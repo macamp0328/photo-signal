@@ -23,7 +23,7 @@
  *   node scripts/audio-workflow/update/validate-audio-urls.js
  *
  *   # Validate test data
- *   node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+ *   node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.json
  */
 
 import fs from 'fs';
@@ -399,6 +399,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     sharedSecret: '',
     trace: false,
     concertId: null,
+    onlyConcertIds: null,
     help: false,
   };
 
@@ -457,6 +458,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         process.exit(1);
       }
       options.concertId = parsed;
+    } else if (arg.startsWith('--only-concert-ids=')) {
+      const value = arg.split('=')[1] || '';
+      const parsed = value
+        .split(',')
+        .map((entry) => Number.parseInt(entry.trim(), 10))
+        .filter((entry) => Number.isInteger(entry));
+
+      if (!value || parsed.length === 0) {
+        console.error('❌ Error: --only-concert-ids requires a comma-separated list of integers');
+        process.exit(1);
+      }
+
+      options.onlyConcertIds = new Set(parsed);
     }
   }
 
@@ -477,6 +491,7 @@ Options:
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
   --trace               Print deep diagnostics for one concert
   --concert-id=<id>     Concert ID to trace (default: first concert with audio)
+  --only-concert-ids=<ids> Limit validation to comma-separated concert IDs
   --origin=<origin>     Optional Origin header for CORS-protected endpoints
   --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
   --help                Show this help message
@@ -486,7 +501,7 @@ Examples:
   node scripts/audio-workflow/update/validate-audio-urls.js
 
   # Validate test data
-  node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
+  node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.json
 
   # Validate against a CDN base
   node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio
@@ -553,6 +568,13 @@ Examples:
     if (!data.concerts || !Array.isArray(data.concerts)) {
       console.error('❌ Error: Invalid data.json format (missing concerts array)');
       process.exit(1);
+    }
+
+    if (options.onlyConcertIds?.size) {
+      data.concerts = data.concerts.filter((concert) =>
+        options.onlyConcertIds.has(Number(concert.id))
+      );
+      console.log(`  Concert ID filter: ${Array.from(options.onlyConcertIds).join(', ')}`);
     }
 
     console.log(`✓ Found ${data.concerts.length} concerts\n`);

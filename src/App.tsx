@@ -155,8 +155,6 @@ function AppContent() {
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
 
-  // Ref to store auto-reset timer ID for test mode
-  const autoResetTimerRef = useRef<number | null>(null);
   const previousRecognizedIdRef = useRef<number | null>(null);
   const switchDecisionTelemetryRef = useRef<SwitchDecisionTelemetry>(
     createEmptySwitchDecisionTelemetry()
@@ -167,7 +165,6 @@ function AppContent() {
   // Module: Feature Flags & Custom Settings
   const { isEnabled } = useFeatureFlags();
   const { getSetting, settings } = useCustomSettings();
-  const isTestModeEnabled = isEnabled('test-mode');
 
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({
@@ -198,14 +195,8 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (!isTestModeEnabled) {
-      // Ensure debug UI remains opt-in when Test Mode is disabled
-      setTestAudioUrl(null);
-      return;
-    }
-
     void loadTestAudioUrl();
-  }, [isTestModeEnabled, loadTestAudioUrl]);
+  }, [loadTestAudioUrl]);
 
   // Module: Camera Access (only initialize when active)
   const { stream, error, hasPermission, retry } = useCameraAccess({
@@ -291,7 +282,6 @@ function AppContent() {
     play,
     pause,
     preload,
-    fadeOut,
     crossfade,
     isPlaying,
     progress,
@@ -396,36 +386,10 @@ function AppContent() {
     lastPromptConcertIdRef.current = pendingSwitchConcert.id;
   }, [activeConcert, debugInfo, pendingSwitchConcert]);
 
-  useEffect(() => {
-    if (!isTestModeEnabled || !recognizedConcert) {
-      return;
-    }
-
-    const AUTO_RESET_DELAY_MS = 4000;
-    const timerId = window.setTimeout(() => {
-      fadeOut();
-      setActiveConcert(null);
-      resetRecognition();
-    }, AUTO_RESET_DELAY_MS);
-
-    // Store timer ID in ref so motion detection can clear it
-    autoResetTimerRef.current = timerId;
-
-    return () => {
-      window.clearTimeout(timerId);
-      autoResetTimerRef.current = null;
-    };
-  }, [isTestModeEnabled, recognizedConcert, fadeOut, resetRecognition]);
-
   // Clear dismissed switch preference when user starts moving to a new area.
   const previousMovementRef = useRef(false);
   useEffect(() => {
     if (isMoving && !previousMovementRef.current && activeConcert) {
-      if (autoResetTimerRef.current !== null) {
-        window.clearTimeout(autoResetTimerRef.current);
-        autoResetTimerRef.current = null;
-      }
-
       setDismissedSwitchConcertId(null);
     }
 
@@ -677,7 +641,7 @@ function AppContent() {
         <Suspense fallback={null}>
           <DebugOverlay
             enabled
-            isTestMode={isTestModeEnabled}
+            isTestMode={false}
             recognizedConcert={recognizedConcert}
             isRecognizing={isRecognizing}
             threshold={similarityThresholdValue}
@@ -688,7 +652,7 @@ function AppContent() {
           />
         </Suspense>
       )}
-      {isTestModeEnabled && !showSecretSettings && telemetryForExport && (
+      {!showSecretSettings && telemetryForExport && (
         <TelemetryExport telemetry={telemetryForExport} />
       )}
     </>

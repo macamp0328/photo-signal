@@ -32,7 +32,7 @@ Click the **"Send It 🚀"** button at the bottom of the Secret Settings menu. T
 
 1. Save your settings to localStorage
 2. Reload the page
-3. Load test data instead of production data
+3. Re-open the app with your updated feature flag state
 
 Alternatively, you can click the X button or click outside the modal to close the menu. Your preference is automatically saved, but you'll need to manually reload the page for test mode to take effect.
 
@@ -40,13 +40,9 @@ Alternatively, you can click the X button or click outside the modal to close th
 
 ### What Changes When Test Mode is Active?
 
-The underlying dataset is now identical in both modes: `/assets/test-data/concerts.json` with audio coming exclusively from `/assets/example-real-songs/*.mp3`. We still recommend enabling Test Mode during development because it unlocks extra tooling:
+At the moment, toggling Test Mode does **not** change app runtime behavior or data loading. Both states use the same dataset path: `/data.json`.
 
-- **Debug overlay + telemetry export** – live recognition metrics stay visible in the bottom-right corner and you can export telemetry snapshots.
-- **Verbose logging** – Photo recognition and data service logs include per-frame breakdowns, helping you reason about similarity scores.
-- **Feature flag overrides** – Experimental settings (recognition delay slider, retro audio, etc.) remain available only while the 🧪 flag is on.
-
-> 💡 We will reintroduce a dedicated production dataset once the 100-photo drop is ready. For now, leaving Test Mode off only hides the debug UI—it no longer changes the data source.
+The toggle is intentionally retained as a dormant feature flag so future releases can safely reuse it without changing persistence semantics.
 
 ### Testing the Photo Recognition Workflow
 
@@ -107,9 +103,9 @@ Print whichever asset set you want to exercise:
 - Concert information display overlay
 - Data persistence across page reloads
 
-### Debug Overlay (Test Mode Only)
+### Debug Overlay
 
-When Test Mode is enabled, a debug overlay appears in the bottom-right corner showing:
+The debug overlay appears in the bottom-right corner showing:
 
 - **Recognition Status**: IDLE 🔵 CHECKING 🟡 MATCHING 🟢 RECOGNIZED
 - **Frame Hash**: Last computed hash from camera (e.g., `a5b3c7...0486`)
@@ -127,14 +123,14 @@ Need something even easier to match? Run `npm run create-easy-images` to regener
 
 ### Console Logging
 
-When Test Mode is enabled, detailed logs are output to the browser console. Because both modes now fetch `/assets/test-data/concerts.json`, the only log difference is whether the `Test mode` line says ENABLED or DISABLED.
+Data loading logs are the same in both modes because both states fetch `/data.json`. If you toggle Test Mode, the only expected difference is the `Test mode` status line (ENABLED/DISABLED).
 
 **Data Service Logs** (when test mode is toggled):
 
 ```
 [DataService] Test mode ENABLED
-[DataService] Data will be loaded from: /assets/test-data/concerts.json
-[DataService] Loading concert data from: /assets/test-data/concerts.json
+[DataService] Data will be loaded from: /data.json
+[DataService] Loading concert data from: /data.json
 [DataService] Successfully loaded 12 concerts
 [DataService] Concerts with photo hashes: 12
 ```

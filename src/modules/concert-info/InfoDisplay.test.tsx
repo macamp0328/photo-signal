@@ -109,6 +109,30 @@ describe('InfoDisplay', () => {
 
       expect(screen.getByText(/ghost signal/i)).toBeInTheDocument();
     });
+
+    it('should display EXIF metadata when available', () => {
+      const exifConcert: Concert = {
+        ...mockConcert,
+        camera: 'RICOH GR II',
+        focalLength: '18.3mm',
+        aperture: 'f/2.8',
+        shutterSpeed: '1/125',
+        iso: '1600',
+      };
+
+      render(<InfoDisplay concert={exifConcert} isVisible={true} />);
+
+      expect(screen.getByText('Camera')).toBeInTheDocument();
+      expect(screen.getByText('RICOH GR II')).toBeInTheDocument();
+      expect(screen.getByText('Focal Length')).toBeInTheDocument();
+      expect(screen.getByText('18.3mm')).toBeInTheDocument();
+      expect(screen.getByText('Aperture (f-stop)')).toBeInTheDocument();
+      expect(screen.getByText('f/2.8')).toBeInTheDocument();
+      expect(screen.getByText('Shutter')).toBeInTheDocument();
+      expect(screen.getByText('1/125')).toBeInTheDocument();
+      expect(screen.getByText('ISO')).toBeInTheDocument();
+      expect(screen.getByText('1600')).toBeInTheDocument();
+    });
   });
 
   describe('Date Formatting', () => {

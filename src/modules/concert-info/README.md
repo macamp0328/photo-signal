@@ -8,7 +8,7 @@ Display concert metadata overlay.
 
 **ONLY** handles:
 
-- Rendering concert information (band, venue, date)
+- Rendering concert information (band, venue, date, optional EXIF metadata)
 - Fade in/out animations
 - Responsive layout
 

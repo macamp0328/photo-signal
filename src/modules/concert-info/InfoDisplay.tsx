@@ -24,6 +24,15 @@ export function InfoDisplay({
 
   const archiveNumber = `#${String(concert.id).padStart(2, '0')}`;
   const formattedDate = formatConcertTimestamp(concert.date);
+  const detailItems = [
+    { label: 'Recorded', value: formattedDate },
+    { label: 'Venue', value: concert.venue },
+    { label: 'Camera', value: concert.camera },
+    { label: 'Focal Length', value: concert.focalLength },
+    { label: 'Aperture (f-stop)', value: concert.aperture },
+    { label: 'Shutter', value: concert.shutterSpeed },
+    { label: 'ISO', value: concert.iso },
+  ].filter((item) => Boolean(item.value));
   const progressPercentage = Math.round(Math.min(Math.max(progressValue, 0), 1) * 100);
   const progressStyle = {
     backgroundImage: `linear-gradient(90deg, var(--color-accent) ${progressPercentage}%, rgba(255, 255, 255, 0.25) ${progressPercentage}%)`,
@@ -57,14 +66,12 @@ export function InfoDisplay({
       <h2 className={styles.bandName}>{concert.band}</h2>
 
       <div className={styles.detailGrid}>
-        <div>
-          <p className={styles.detailLabel}>Recorded</p>
-          <p className={styles.detailValue}>{formattedDate}</p>
-        </div>
-        <div>
-          <p className={styles.detailLabel}>Venue</p>
-          <p className={styles.detailValue}>{concert.venue}</p>
-        </div>
+        {detailItems.map((item) => (
+          <div key={item.label}>
+            <p className={styles.detailLabel}>{item.label}</p>
+            <p className={styles.detailValue}>{item.value}</p>
+          </div>
+        ))}
       </div>
 
       <p className={styles.prompt}>{promptText}</p>

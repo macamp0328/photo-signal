@@ -236,7 +236,7 @@ describe('App playback flow', () => {
     expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
     expect(
-      screen.getByText('Song started automatically. Music keeps playing until you pause.')
+      screen.getByText('Signal is locked. Playback runs continuously until you pause.')
     ).toBeInTheDocument();
   });
 
@@ -260,7 +260,9 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(screen.getByText('Now playing Band One. Switch to Band Two?')).toBeInTheDocument();
+    expect(
+      screen.getByText('Current cut: Band One. Fresh lock found: Band Two.')
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Keep current track' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
 
@@ -480,7 +482,7 @@ describe('App playback flow', () => {
     // Record call count before clicking Play button
     const callCountBefore = mockPlay.mock.calls.length;
 
-    await user.click(screen.getByRole('button', { name: 'Play' }));
+    await user.click(screen.getByRole('button', { name: 'Play Track' }));
 
     // Verify Play button click triggered a new play call
     expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);
@@ -502,7 +504,7 @@ describe('App playback flow', () => {
 
     // Should show error message without duplication (already has "Tap Play to retry")
     expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
-    expect(screen.getByText('Playback Error')).toBeInTheDocument();
+    expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
   it('shows playback error with additional guidance when retry hint not included', async () => {
@@ -524,7 +526,7 @@ describe('App playback flow', () => {
         'Audio failed to load. Check your connection and try again. Check stream access and tap Play to retry.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Playback Error')).toBeInTheDocument();
+    expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
   it('captures switch shown/dismiss telemetry with latency and confidence snapshot', async () => {

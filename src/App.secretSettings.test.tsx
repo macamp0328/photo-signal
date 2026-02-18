@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 
@@ -31,8 +31,10 @@ describe('Secret Settings access', () => {
     expect(menu).toBeInTheDocument();
 
     // Change a setting inside the menu to mirror real usage
-    const themeSelect = await screen.findByLabelText(/theme mode/i);
-    await userEvent.selectOptions(themeSelect, 'light');
+    const recognitionDelay = (await screen.findByLabelText(
+      /recognition delay/i
+    )) as HTMLInputElement;
+    fireEvent.change(recognitionDelay, { target: { value: '1200' } });
 
     // Close the menu via close button
     const closeButton = screen.getByLabelText(/close settings menu/i);

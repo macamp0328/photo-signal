@@ -30,26 +30,26 @@ describe('useCustomSettings', () => {
     it('should load default settings with correct values', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      const themeSetting = result.current.settings.find((s) => s.id === 'theme-mode');
-      expect(themeSetting?.value).toBe('dark');
+      const profileSetting = result.current.settings.find((s) => s.id === 'config-profile');
+      expect(profileSetting?.value).toBe('custom');
 
-      const uiStyleSetting = result.current.settings.find((s) => s.id === 'ui-style');
-      expect(uiStyleSetting?.value).toBe('modern');
+      const recognitionDelay = result.current.settings.find((s) => s.id === 'recognition-delay');
+      expect(recognitionDelay?.value).toBe(1000);
     });
 
     it('should load saved settings from localStorage', () => {
       const savedSettings = [
         {
-          id: 'theme-mode',
-          name: 'Theme Mode',
+          id: 'config-profile',
+          name: 'Config Profile',
           description: 'Test description',
           type: 'select',
-          value: 'light',
+          value: 'baseline-phash',
           options: [
-            { label: 'Dark', value: 'dark' },
-            { label: 'Light', value: 'light' },
+            { label: 'Custom (manual control)', value: 'custom' },
+            { label: 'Baseline · pHash', value: 'baseline-phash' },
           ],
-          category: 'ui',
+          category: 'recognition',
         },
       ];
 
@@ -57,8 +57,8 @@ describe('useCustomSettings', () => {
 
       const { result } = renderHook(() => useCustomSettings());
 
-      const themeSetting = result.current.settings.find((s) => s.id === 'theme-mode');
-      expect(themeSetting?.value).toBe('light');
+      const profileSetting = result.current.settings.find((s) => s.id === 'config-profile');
+      expect(profileSetting?.value).toBe('baseline-phash');
     });
   });
 
@@ -66,14 +66,14 @@ describe('useCustomSettings', () => {
     it('should update a string setting value', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      const settingId = 'theme-mode';
+      const settingId = 'config-profile';
 
       act(() => {
-        result.current.updateSetting(settingId, 'light');
+        result.current.updateSetting(settingId, 'baseline-phash');
       });
 
       const updatedSetting = result.current.settings.find((s) => s.id === settingId);
-      expect(updatedSetting?.value).toBe('light');
+      expect(updatedSetting?.value).toBe('baseline-phash');
     });
 
     it('should update a number setting value', () => {
@@ -93,10 +93,10 @@ describe('useCustomSettings', () => {
     it('should persist setting value to localStorage', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      const settingId = 'theme-mode';
+      const settingId = 'config-profile';
 
       act(() => {
-        result.current.updateSetting(settingId, 'light');
+        result.current.updateSetting(settingId, 'baseline-phash');
       });
 
       const saved = localStorage.getItem('photo-signal-custom-settings');
@@ -104,20 +104,20 @@ describe('useCustomSettings', () => {
 
       const parsed = JSON.parse(saved!);
       const savedSetting = parsed.find((s: { id: string }) => s.id === settingId);
-      expect(savedSetting.value).toBe('light');
+      expect(savedSetting.value).toBe('baseline-phash');
     });
 
     it('should only update the specified setting', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      const settingId = 'theme-mode';
-      const otherSettingId = 'ui-style';
+      const settingId = 'config-profile';
+      const otherSettingId = 'recognition-delay';
       const otherOriginalValue = result.current.settings.find(
         (s) => s.id === otherSettingId
       )?.value;
 
       act(() => {
-        result.current.updateSetting(settingId, 'light');
+        result.current.updateSetting(settingId, 'baseline-phash');
       });
 
       const otherSetting = result.current.settings.find((s) => s.id === otherSettingId);
@@ -129,8 +129,8 @@ describe('useCustomSettings', () => {
     it('should return the value of an existing setting', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      const value = result.current.getSetting('theme-mode');
-      expect(value).toBe('dark');
+      const value = result.current.getSetting('config-profile');
+      expect(value).toBe('custom');
     });
 
     it('should return undefined for non-existent setting', () => {
@@ -144,19 +144,31 @@ describe('useCustomSettings', () => {
       const { result } = renderHook(() => useCustomSettings());
 
       act(() => {
-        result.current.updateSetting('theme-mode', 'light');
+        result.current.updateSetting('config-profile', 'baseline-phash');
       });
 
-      const value = result.current.getSetting('theme-mode');
-      expect(value).toBe('light');
+      const value = result.current.getSetting('config-profile');
+      expect(value).toBe('baseline-phash');
     });
 
     it('should work with type parameter', () => {
       const { result } = renderHook(() => useCustomSettings());
 
-      const value = result.current.getSetting<string>('theme-mode');
-      expect(typeof value).toBe('string');
-      expect(value).toBe('dark');
+      const value = result.current.getSetting<number>('recognition-delay');
+      expect(typeof value).toBe('number');
+      expect(value).toBe(1000);
+    });
+
+    it('should return numeric values after updates', () => {
+      const { result } = renderHook(() => useCustomSettings());
+
+      act(() => {
+        result.current.updateSetting('recognition-delay', 1500);
+      });
+
+      const value = result.current.getSetting<number>('recognition-delay');
+      expect(typeof value).toBe('number');
+      expect(value).toBe(1500);
     });
   });
 
@@ -166,13 +178,13 @@ describe('useCustomSettings', () => {
 
       // Update all settings
       act(() => {
-        result.current.updateSetting('theme-mode', 'light');
-        result.current.updateSetting('ui-style', 'classic');
+        result.current.updateSetting('config-profile', 'baseline-phash');
+        result.current.updateSetting('recognition-delay', 1500);
       });
 
       // Verify settings are updated
-      expect(result.current.getSetting('theme-mode')).toBe('light');
-      expect(result.current.getSetting('ui-style')).toBe('classic');
+      expect(result.current.getSetting('config-profile')).toBe('baseline-phash');
+      expect(result.current.getSetting('recognition-delay')).toBe(1500);
 
       // Reset
       act(() => {
@@ -180,8 +192,8 @@ describe('useCustomSettings', () => {
       });
 
       // Verify settings are back to defaults
-      expect(result.current.getSetting('theme-mode')).toBe('dark');
-      expect(result.current.getSetting('ui-style')).toBe('modern');
+      expect(result.current.getSetting('config-profile')).toBe('custom');
+      expect(result.current.getSetting('recognition-delay')).toBe(1000);
     });
   });
 

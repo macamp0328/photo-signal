@@ -23,10 +23,10 @@ const STORAGE_KEY = 'photo-signal-custom-settings';
  * const { settings, updateSetting, getSetting } = useCustomSettings();
  *
  * // Get a setting value
- * const theme = getSetting<string>('theme-mode');
+ * const delay = getSetting<number>('recognition-delay');
  *
  * // Update a setting
- * updateSetting('theme-mode', 'light');
+ * updateSetting('recognition-delay', 1200);
  * ```
  */
 export function useCustomSettings() {

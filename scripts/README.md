@@ -495,7 +495,7 @@ npm run update-recognition-data -- \
 
 **Highlights:**
 
-- Reads from `assets/test-data/concerts.dev.json` (override via `--input`)
+- Reads from `public/data.json` (override via `--input`)
 - Writes refreshed data back to the source file unless `--dry-run`
 - Mirrors updated entries into `public/data.json` unless `--skip-public`
 - Regenerates pHash values (three exposure variants)
@@ -540,13 +540,13 @@ node scripts/create-photo-csv.js
 # Custom paths
 node scripts/create-photo-csv.js \
   --input=assets/prod-photographs \
-  --output=assets/test-data/prod-photographs.csv \
+  --output=assets/prod-photographs/prod-photographs-details.csv \
   --imageBasePath=/assets/prod-photographs
 ```
 
 - **What it does:**
 
-- Writes `assets/test-data/prod-photographs.csv` (configurable) with headers:
+- Writes `assets/prod-photographs/prod-photographs-details.csv` (configurable) with headers:
   `id, band, venue, date, audioFile, imageFile, shutterSpeed, camera, aperture, focalLength, iso`
 - Auto-increments `id` based on alphabetical filename ordering so spreadsheets stay stable between runs
 - Prefills `imageFile` using the provided `--imageBasePath` so downstream tooling already references the final public path
@@ -902,7 +902,7 @@ Checking Concert #1: The Midnight Echoes
 npm run validate-audio
 
 # Validate test data
-npm run validate-audio -- --source=assets/test-data/concerts.json
+npm run validate-audio -- --source=public/data.json
 ```
 
 **When to use:**

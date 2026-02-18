@@ -5,7 +5,7 @@ import process from 'node:process';
 import exifr from 'exifr';
 
 const DEFAULT_PHOTO_DIR = path.resolve('assets/prod-photographs');
-const DEFAULT_OUTPUT_FILE = path.resolve('assets/test-data/prod-photographs.csv');
+const DEFAULT_OUTPUT_FILE = path.resolve('assets/prod-photographs/prod-photographs-details.csv');
 const CSV_HEADERS = [
   'id',
   'band',

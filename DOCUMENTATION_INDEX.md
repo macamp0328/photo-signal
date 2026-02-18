@@ -60,18 +60,15 @@ Each module has a README defining its API contract:
 ## Scripts & Workflows
 
 - **[scripts/README.md](./scripts/README.md)** — Helper scripts documentation
-- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline
+- **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline + deterministic clean-slate reset/run/verify
 - **[scripts/audio-workflow/download/README.md](./scripts/audio-workflow/download/README.md)** — yt-dlp downloader guide
 - **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** — Opus encoding playbook
 - **[tests/visual/README.md](./tests/visual/README.md)** — Visual regression testing guide
 
 ## Asset Documentation
 
-- **[assets/test-images/README.md](./assets/test-images/README.md)** — Test images for development
-- **[assets/test-audio/README.md](./assets/test-audio/README.md)** — Test audio files
-- **[assets/test-data/README.md](./assets/test-data/README.md)** — Test data files
-- **[assets/example-real-songs/README.md](./assets/example-real-songs/README.md)** — Real-world Opus library for test mode
-- **[assets/example-real-photos/README.md](./assets/example-real-photos/README.md)** — Real concert photos for testing
+- **assets/prod-photographs/** — Canonical production photo source materials
+- **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical photo-to-band metadata and EXIF details
 
 ## Issue Drafts
 

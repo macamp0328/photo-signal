@@ -13,7 +13,7 @@ import { vi } from 'vitest';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const concertsFixturePath = resolve(__dirname, '../../assets/test-data/concerts.dev.json');
+const concertsFixturePath = resolve(__dirname, '../../public/data.json');
 const concertsFixture = JSON.parse(readFileSync(concertsFixturePath, 'utf-8')) as Record<
   string,
   unknown

@@ -31,7 +31,7 @@ class DataService {
   private inFlightRequest: Promise<Concert[]> | null = null;
   private isTestMode = false;
   private readonly productionDataUrl = '/data.json';
-  private readonly developmentDataUrl = '/assets/test-data/concerts.dev.json';
+  private readonly developmentDataUrl = this.productionDataUrl;
   private readonly testDataUrl = this.developmentDataUrl;
   private listeners: Array<() => void> = [];
 

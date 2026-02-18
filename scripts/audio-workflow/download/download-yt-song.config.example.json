@@ -3,7 +3,7 @@
   "output-dir": "~/Music/photo-signal",
   "file-template": "%(playlist_index)02d - %(title)s.%(ext)s",
   "download-archive": "~/Music/photo-signal/.yt-dlp-archive.txt",
-  "format-order": "opus,webm,m4a,mp3",
+  "format-order": "opus,m4a,mp3",
   "sleep-requests": 0.5,
   "rate-limit": "3M",
   "metadata": true,

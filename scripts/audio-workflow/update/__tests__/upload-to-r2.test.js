@@ -7,6 +7,7 @@ import {
   resolveConfigFromEnvAndArgs,
   collectFiles,
   buildObjectKey,
+  resolveObjectKeyForFile,
   getContentType,
   getCacheControl,
   computeSha256,
@@ -38,6 +39,11 @@ describe('upload-to-r2 helpers', () => {
     expect(args.concurrency).toBe('8');
   });
 
+  it('preserves full values that contain additional equals signs', () => {
+    const args = parseArgs(['--shared-secret=abc=def=ghi']);
+    expect(args['shared-secret']).toBe('abc=def=ghi');
+  });
+
   it('resolves config from args + defaults', () => {
     const config = resolveConfigFromEnvAndArgs({
       bucket: 'test-bucket',
@@ -64,6 +70,7 @@ describe('upload-to-r2 helpers', () => {
   });
 
   it('derives endpoint from account id when needed', () => {
+    delete process.env.R2_ENDPOINT;
     const config = resolveConfigFromEnvAndArgs({
       bucket: 'photo-signal-audio',
       account: '12345',
@@ -105,6 +112,16 @@ describe('upload-to-r2 helpers', () => {
   it('builds object keys with prefixes and normalizes slashes', () => {
     const key = buildObjectKey('folder/file.opus', 'prod/audio');
     expect(key).toBe('prod/audio/folder/file.opus');
+  });
+
+  it('keeps opus files flat under prefix', () => {
+    const key = resolveObjectKeyForFile({ relativePath: 'ps-example-track.opus' }, 'prod/audio');
+    expect(key).toBe('prod/audio/ps-example-track.opus');
+  });
+
+  it('keeps non-opus files flat under prefix', () => {
+    const key = resolveObjectKeyForFile({ relativePath: 'audio-index.json' }, 'prod/audio');
+    expect(key).toBe('prod/audio/audio-index.json');
   });
 
   it('returns accurate content types and cache headers', () => {

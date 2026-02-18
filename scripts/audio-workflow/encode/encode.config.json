@@ -5,6 +5,7 @@
   "opus": {
     "bitrateKbps": 160,
     "minBitrateFloorKbps": 96,
+    "vbrMode": "constrained",
     "complexity": 10,
     "frameSizeMs": 20
   },

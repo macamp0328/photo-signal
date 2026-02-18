@@ -66,6 +66,7 @@ async function main() {
   if (config?.opus?.minBitrateFloorKbps) {
     console.log(`  Opus bitrate floor: ${config.opus.minBitrateFloorKbps} kbps`);
   }
+  console.log(`  Opus VBR mode: ${normalizeOpusVbrMode(config?.opus?.vbrMode)}`);
   console.log('');
 
   // Find all downloaded files
@@ -285,9 +286,14 @@ function resolveAudioPathFromInfo(infoPath) {
   const baseName = basename(basePath);
   try {
     const siblings = readdirSync(dir);
-    const match = siblings.find(
-      (file) => file.startsWith(`${baseName}.`) && !file.endsWith('.info.json')
-    );
+    const match = siblings.find((file) => {
+      if (!file.startsWith(`${baseName}.`) || file.endsWith('.info.json')) {
+        return false;
+      }
+
+      const ext = file.split('.').pop()?.toLowerCase();
+      return ext ? AUDIO_EXTENSIONS.includes(ext) : false;
+    });
     if (match) {
       return join(dir, match);
     }
@@ -306,6 +312,7 @@ async function processAudioFile(download, config, options) {
 
   const metadata = applyMetadataOverrides(download.metadata, download, metadataOverrides);
   const track = metadata.track ?? {};
+  const photoId = resolvePhotoIdFromMetadata(metadata);
 
   const band = determineBandName(metadata);
   const title = sanitizeString(track.title ?? 'Unknown Title');
@@ -353,6 +360,7 @@ async function processAudioFile(download, config, options) {
     return {
       ...download,
       success: true,
+      photoId,
       slug,
       outputFile: outputFileName,
       bitrateKbps: bitrateInfo.targetBitrateKbps,
@@ -416,6 +424,7 @@ async function processAudioFile(download, config, options) {
   return {
     ...download,
     success: true,
+    photoId,
     slug,
     outputFile: outputFileName,
     outputPath,
@@ -439,6 +448,24 @@ async function processAudioFile(download, config, options) {
     categories: musicDetails.categories,
     credits: musicDetails.credits,
   };
+}
+
+function resolvePhotoIdFromMetadata(metadata) {
+  const candidates = [
+    metadata?.photoId,
+    metadata?.playlist?.index,
+    metadata?.track?.playlistIndex,
+    metadata?.track?.playlist_index,
+  ];
+
+  for (const candidate of candidates) {
+    const parsed = Number.parseInt(String(candidate ?? ''), 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -677,6 +704,7 @@ function encodeToOpus(inputPath, outputPath, config, metadata, targetBitrateKbps
       metadata.album && metadata.album !== 'Unknown Album' ? metadata.album : defaults.album;
     const genreTag = metadata.genre ?? defaults.genre;
     const bitrate = targetBitrateKbps ?? config.opus.bitrateKbps;
+    const vbrMode = normalizeOpusVbrMode(config?.opus?.vbrMode);
 
     const args = [
       '-i',
@@ -686,7 +714,7 @@ function encodeToOpus(inputPath, outputPath, config, metadata, targetBitrateKbps
       '-b:a',
       `${bitrate}k`,
       '-vbr',
-      'on',
+      vbrMode,
       '-compression_level',
       config.opus.complexity.toString(),
       '-frame_duration',
@@ -828,14 +856,121 @@ function probeBitrateKbps(filePath) {
       }
 
       const bitsPerSecond = Number(stdout.trim());
-      if (!Number.isFinite(bitsPerSecond) || bitsPerSecond <= 0) {
-        resolve(null);
+      if (Number.isFinite(bitsPerSecond) && bitsPerSecond > 0) {
+        resolve(bitsPerSecond / 1000);
         return;
       }
 
-      resolve(bitsPerSecond / 1000);
+      const formatArgs = [
+        '-v',
+        'error',
+        '-show_entries',
+        'format=bit_rate,size,duration',
+        '-of',
+        'default=noprint_wrappers=1',
+        filePath,
+      ];
+
+      const formatProbe = spawn('ffprobe', formatArgs, { stdio: 'pipe' });
+      let formatStdout = '';
+      let formatStderr = '';
+
+      formatProbe.stdout.on('data', (data) => {
+        formatStdout += data.toString();
+      });
+
+      formatProbe.stderr.on('data', (data) => {
+        formatStderr += data.toString();
+      });
+
+      formatProbe.on('close', (formatCode) => {
+        if (formatCode !== 0) {
+          if (formatStderr.trim()) {
+            console.warn(
+              `⚠️  ffprobe format stats failed for ${basename(filePath)}: ${formatStderr.trim()}`
+            );
+          }
+          resolve(null);
+          return;
+        }
+
+        const parsed = parseFfprobeFormatStats(formatStdout);
+        if (Number.isFinite(parsed.bitRateBps) && parsed.bitRateBps > 0) {
+          resolve(parsed.bitRateBps / 1000);
+          return;
+        }
+
+        if (
+          Number.isFinite(parsed.sizeBytes) &&
+          parsed.sizeBytes > 0 &&
+          Number.isFinite(parsed.durationSeconds) &&
+          parsed.durationSeconds > 0
+        ) {
+          const estimatedBitsPerSecond = (parsed.sizeBytes * 8) / parsed.durationSeconds;
+          resolve(estimatedBitsPerSecond / 1000);
+          return;
+        }
+
+        resolve(null);
+      });
     });
   });
+}
+
+function parseFfprobeFormatStats(output) {
+  const result = {
+    bitRateBps: null,
+    sizeBytes: null,
+    durationSeconds: null,
+  };
+
+  const lines = String(output ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const [rawKey, rawValue] = line.split('=', 2);
+    if (!rawKey || rawValue === undefined) {
+      continue;
+    }
+
+    const key = rawKey.trim().toLowerCase();
+    const value = rawValue.trim();
+
+    if (key === 'bit_rate') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        result.bitRateBps = parsed;
+      }
+      continue;
+    }
+
+    if (key === 'size') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        result.sizeBytes = parsed;
+      }
+      continue;
+    }
+
+    if (key === 'duration') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        result.durationSeconds = parsed;
+      }
+    }
+  }
+
+  return result;
+}
+
+function normalizeOpusVbrMode(value) {
+  const normalized = String(value ?? 'constrained').toLowerCase();
+  if (normalized === 'on' || normalized === 'off' || normalized === 'constrained') {
+    return normalized;
+  }
+  return 'constrained';
 }
 
 /**
@@ -858,6 +993,7 @@ export function createAudioIndex(results, config = {}) {
       .filter((r) => r.success && !r.dryRun)
       .map((r) => ({
         id: r.slug,
+        photoId: r.photoId ?? null,
         band: r.band,
         album: r.album,
         date: r.date,
@@ -899,12 +1035,12 @@ export function createPhotoAudioMap(results) {
   return {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
-    note: 'Photo ID mapping to be implemented when photo manifest is available',
+    note: 'Photo ID mapping is inferred from playlist index metadata when available.',
     mappings: results
       .filter((r) => r.success && !r.dryRun)
       .map((r) => ({
         audioId: r.slug,
-        photoId: null, // To be linked with photo manifest
+        photoId: r.photoId ?? null,
         band: r.band,
         album: r.album,
         date: r.date,
@@ -967,7 +1103,7 @@ function generateReport(results, outputDir) {
   report += '- [ ] Filenames follow naming convention\n';
   report += '- [ ] Spot-check ffprobe bitrate matches audio-index\n';
   report += '- [ ] Checksums calculated\n';
-  report += '- [ ] Photo ID mapping pending\n';
+  report += '- [ ] Photo ID mapping verified\n';
 
   const reportPath = join(outputDir, 'encode-report.md');
   writeFileSync(reportPath, report);
@@ -1140,6 +1276,8 @@ function getDefaultConfig() {
     lraTarget: 11,
     opus: {
       bitrateKbps: 160,
+      minBitrateFloorKbps: 96,
+      vbrMode: 'constrained',
       complexity: 10,
       frameSizeMs: 20,
     },

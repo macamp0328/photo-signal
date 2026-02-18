@@ -14,8 +14,15 @@ export function parseArgs(argv) {
   const args = {};
   for (const arg of argv) {
     if (arg.startsWith('--')) {
-      const [key, value] = arg.includes('=') ? arg.slice(2).split('=') : [arg.slice(2), 'true'];
-      args[key] = value;
+      if (arg.includes('=')) {
+        const raw = arg.slice(2);
+        const separatorIndex = raw.indexOf('=');
+        const key = raw.slice(0, separatorIndex);
+        const value = raw.slice(separatorIndex + 1);
+        args[key] = value;
+      } else {
+        args[arg.slice(2)] = 'true';
+      }
     }
   }
   return args;
@@ -182,6 +189,10 @@ export function buildObjectKey(relativePath, prefix) {
   return [prefix, cleanRelative].filter(Boolean).join('/');
 }
 
+export function resolveObjectKeyForFile(file, prefix) {
+  return buildObjectKey(file.relativePath, prefix);
+}
+
 export function getContentType(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   switch (ext) {
@@ -236,7 +247,7 @@ export async function shouldSkipUpload(s3Client, bucket, key, { sha256, size }) 
 }
 
 export async function uploadSingleFile({ file, config, s3Client }) {
-  const key = buildObjectKey(file.relativePath, config.prefix);
+  const key = file.objectKey ?? buildObjectKey(file.relativePath, config.prefix);
   const sha256 = await computeSha256(file.fullPath);
   const metadata = {
     sha256,
@@ -357,6 +368,11 @@ async function main() {
     process.exit(0);
   }
 
+  files = files.map((file) => ({
+    ...file,
+    objectKey: resolveObjectKeyForFile(file, config.prefix),
+  }));
+
   console.log('🎧 Cloudflare R2 Upload Script');
   console.log('');
   console.log('Configuration:');
@@ -368,6 +384,7 @@ async function main() {
   console.log(`  Concurrency:  ${config.concurrency}`);
   console.log(`  Dry run:      ${config.dryRun ? 'yes' : 'no'}`);
   console.log(`  Skip existing:${config.skipExisting ? 'yes' : 'no'}`);
+  console.log('  Upload shape: flat (prefix/fileName)');
   console.log('');
   console.log(`Discovered ${files.length} file(s)`);
   console.log('');

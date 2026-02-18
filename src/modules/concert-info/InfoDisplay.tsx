@@ -34,40 +34,51 @@ export function InfoDisplay({
     { label: 'ISO', value: concert.iso },
   ].filter((item) => Boolean(item.value));
   const progressPercentage = Math.round(Math.min(Math.max(progressValue, 0), 1) * 100);
-  const progressStyle = {
-    backgroundImage: `linear-gradient(90deg, var(--color-accent) ${progressPercentage}%, rgba(255, 255, 255, 0.25) ${progressPercentage}%)`,
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    // Fallback solid color so text remains visible if background-clip is unsupported
-    color: progressColor ?? 'var(--color-accent)',
-    WebkitTextFillColor: 'transparent',
+  const timelineStyle = {
+    width: `${progressPercentage}%`,
+    backgroundColor: progressColor ?? 'var(--color-accent)',
   } as const;
 
   return (
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
       <div className={styles.metaRow}>
-        <span className={styles.badge}>{statusLabel}</span>
-        <span className={styles.archiveTag}>{archiveNumber}</span>
+        <span className={styles.badge}>Signal: {statusLabel}</span>
+        <span className={styles.archiveTag}>Archive {archiveNumber}</span>
       </div>
 
-      {nowPlayingLine ? (
-        <div className={styles.nowPlayingRow} aria-label="Now playing status">
-          <span
-            className={styles.nowPlayingDot}
-            style={{ backgroundColor: progressColor ?? 'var(--color-accent)' }}
-            aria-hidden="true"
-          />
-          <p className={styles.nowPlaying} style={progressStyle}>
-            {nowPlayingLine}
-          </p>
-        </div>
-      ) : null}
+      <div className={styles.headlineBlock}>
+        <p className={styles.kicker}>Live Capture</p>
+        <h2 className={styles.bandName}>{concert.band}</h2>
+      </div>
 
-      <h2 className={styles.bandName}>{concert.band}</h2>
+      <section className={styles.transportBlock} aria-label="Playback controls and progress">
+        {nowPlayingLine ? (
+          <div className={styles.nowPlayingRow} aria-label="Now playing status">
+            <span
+              className={styles.nowPlayingDot}
+              style={{ backgroundColor: progressColor ?? 'var(--color-accent)' }}
+              aria-hidden="true"
+            />
+            <p className={styles.nowPlaying}>{nowPlayingLine}</p>
+          </div>
+        ) : null}
+
+        <div className={styles.timelineWrap} aria-label="Song progress tracker">
+          <div className={styles.timelineRail}>
+            <div className={styles.timelineFill} style={timelineStyle} />
+          </div>
+          <div className={styles.timelineMeta}>
+            <span>Tracker</span>
+            <span>{progressPercentage}%</span>
+          </div>
+        </div>
+
+        {actions ? <div className={styles.actions}>{actions}</div> : null}
+      </section>
 
       <div className={styles.detailGrid}>
         {detailItems.map((item) => (
-          <div key={item.label}>
+          <div key={item.label} className={styles.detailItem}>
             <p className={styles.detailLabel}>{item.label}</p>
             <p className={styles.detailValue}>{item.value}</p>
           </div>
@@ -75,8 +86,6 @@ export function InfoDisplay({
       </div>
 
       <p className={styles.prompt}>{promptText}</p>
-
-      {actions ? <div className={styles.actions}>{actions}</div> : null}
     </section>
   );
 }

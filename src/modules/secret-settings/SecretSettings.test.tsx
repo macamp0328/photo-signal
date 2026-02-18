@@ -40,8 +40,8 @@ describe('SecretSettings', () => {
     it('should display custom settings from config', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByText(/Theme Mode/i)).toBeInTheDocument();
-      expect(screen.getByText(/UI Style/i)).toBeInTheDocument();
+      expect(screen.getByText(/Config Profile/i)).toBeInTheDocument();
+      expect(screen.getByText(/Recognition Delay/i)).toBeInTheDocument();
     });
 
     it('should display developer information', () => {
@@ -124,8 +124,8 @@ describe('SecretSettings', () => {
       await user.selectOptions(profileSelect, 'baseline-phash');
       expect(profileSelect.value).toBe('baseline-phash');
 
-      const themeSelect = screen.getByRole('combobox', { name: /theme mode/i });
-      await user.selectOptions(themeSelect, 'light');
+      const similarityThreshold = screen.getByLabelText(/similarity threshold/i);
+      fireEvent.change(similarityThreshold, { target: { value: '10' } });
 
       expect(profileSelect.value).toBe('custom');
     });
@@ -273,7 +273,7 @@ describe('SecretSettings', () => {
         'custom-settings-description'
       );
       expect(
-        screen.getByText(/tune recognition, performance, and appearance behavior/i)
+        screen.getByText(/tune recognition, frame quality, and performance behavior/i)
       ).toHaveAttribute('id', 'custom-settings-description');
     });
 
@@ -469,8 +469,8 @@ describe('SecretSettings', () => {
         render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
         // Change a custom setting
-        const themeSelect = screen.getByRole('combobox', { name: /theme mode/i });
-        await user.selectOptions(themeSelect, 'light');
+        const profileSelect = screen.getByRole('combobox', { name: /config profile/i });
+        await user.selectOptions(profileSelect, 'baseline-phash');
 
         // Click Save & Reload
         const button = screen.getByText(/Save & Reload/i);
@@ -480,8 +480,8 @@ describe('SecretSettings', () => {
         const saved = localStorage.getItem('photo-signal-custom-settings');
         expect(saved).toBeTruthy();
         const settings = JSON.parse(saved!);
-        const themeSetting = settings.find((s: { id: string }) => s.id === 'theme-mode');
-        expect(themeSetting?.value).toBe('light');
+        const profileSetting = settings.find((s: { id: string }) => s.id === 'config-profile');
+        expect(profileSetting?.value).toBe('baseline-phash');
 
         await new Promise((resolve) => setTimeout(resolve, 150));
         expect(reloadSpy).toHaveBeenCalled();

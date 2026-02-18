@@ -70,19 +70,19 @@ describe('InfoDisplay', () => {
     it('should display "Now Playing" label', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.getByText('Now Playing')).toBeInTheDocument();
+      expect(screen.getByText(/Signal:\s*Now Playing/i)).toBeInTheDocument();
     });
 
     it('should display a zero-padded archive number', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.getByText('#01')).toBeInTheDocument();
+      expect(screen.getByText(/Archive\s*#01/i)).toBeInTheDocument();
     });
 
     it('should allow a custom status label', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} statusLabel="Now Viewing" />);
 
-      expect(screen.getByText('Now Viewing')).toBeInTheDocument();
+      expect(screen.getByText(/Signal:\s*Now Viewing/i)).toBeInTheDocument();
     });
 
     it('should render optional actions when provided', () => {

@@ -67,71 +67,41 @@ src/modules/secret-settings/
 
 ### Custom Settings
 
+> **Note (Feb 2026):** `theme-mode` and `ui-style` were removed. The app now enforces a single curated appearance (`data-theme='dark'`, `data-ui-style='modern'`).
+
 1. **Config Profile** (`config-profile`)
 
 - Apply curated baselines (Baseline · pHash / dHash / ORB) from the Photo Recognition Deep Dive
 - Selecting a profile updates all relevant settings plus the rectangle detection flag
 - Manual tweaks automatically switch the profile back to `custom`
 
-2. **Theme Mode** (`theme-mode`)
-
-- Switch between light and dark visual themes via the `data-theme` attribute
-
-3. **UI Style** (`ui-style`)
-
-- Toggle between modern UI and classic retro gallery experience via `data-ui-style`
-
-4. **Recognition Delay** (`recognition-delay`)
+2. **Recognition Delay** (`recognition-delay`)
 
 - Milliseconds a photo must stay steady before the match is confirmed (500–5000ms)
 
-5. **Similarity Threshold** (`similarity-threshold`)
+3. **Similarity Threshold** (`similarity-threshold`)
 
 - Maximum Hamming distance allowed for perceptual hashes. Lower = stricter, higher = more lenient
 
-6. **Recognition Engine** (`recognition-mode`)
-
-- Switch between perceptual hashing (dHash/pHash) and ORB feature matching workflows
-
-7. **Perceptual Hash Algorithm** (`hash-algorithm`)
-
-- Choose the active perceptual hash when the recognition engine is set to `perceptual`
-
-8. **Frame Scan Interval** (`recognition-check-interval`)
+4. **Frame Scan Interval** (`recognition-check-interval`)
 
 - How often frames are hashed (ms). Lower values improve responsiveness at a CPU cost
 
-9. **Sharpness Threshold** (`sharpness-threshold`)
+5. **Sharpness Threshold** (`sharpness-threshold`)
 
 - Minimum Laplacian variance required to accept a frame (higher value rejects more blur)
 
-10. **Glare Pixel Threshold** (`glare-threshold`)
+6. **Glare Pixel Threshold** (`glare-threshold`)
 
 - Pixel intensity above this value is considered glare (default 250)
 
-11. **Glare Coverage Threshold** (`glare-percentage-threshold`)
+7. **Glare Coverage Threshold** (`glare-percentage-threshold`)
 
 - Maximum % of pixels allowed to exceed the glare threshold before skipping the frame
 
-12. **Rectangle Detection Confidence** (`rectangle-detection-confidence-threshold`)
+8. **Rectangle Detection Confidence** (`rectangle-detection-confidence-threshold`)
 
 - Minimum confidence (0–1) before applying the detected crop
-
-13. **ORB Max Features** (`orb-max-features`)
-
-- Cap on how many FAST keypoints ORB retains (default 500)
-
-14. **ORB FAST Threshold** (`orb-fast-threshold`)
-
-- FAST corner sensitivity. Lower values capture more keypoints but add noise
-
-15. **ORB Min Matches** (`orb-min-match-count`)
-
-- Minimum descriptor matches required before declaring an ORB success
-
-16. **ORB Match Ratio** (`orb-match-ratio-threshold`)
-
-- Lowe’s ratio threshold (0–1). Lower values are stricter comparisons
 
 > **Profile workflow:** the Config Profile select is the first control in the Custom Settings section.
 > Selecting a baseline instantly writes the predetermined values to every related setting and sets the

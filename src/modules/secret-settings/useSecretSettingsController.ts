@@ -47,12 +47,6 @@ const SETTING_GROUP_DEFINITIONS: SettingGroupDefinition[] = [
       'rectangle-detection-confidence-threshold',
     ],
   },
-  {
-    id: 'appearance',
-    title: 'Look & Feel',
-    description: 'Visual and UI polish.',
-    settingIds: ['theme-mode', 'ui-style'],
-  },
 ];
 
 export function useSecretSettingsController(onClose: () => void) {

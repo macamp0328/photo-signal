@@ -9,7 +9,7 @@
 The Secret Settings module implements a hidden menu that can be activated by triple-tapping or triple-clicking in the center of the screen. This menu provides:
 
 - **Feature Flags**: Toggle experimental and creative features on/off
-- **Custom Settings**: Adjust advanced parameters and UI preferences
+- **Custom Settings**: Adjust advanced recognition and performance parameters
 
 ### Implemented Features
 
@@ -22,29 +22,21 @@ The Secret Settings module implements a hidden menu that can be activated by tri
 
 **Custom Settings:**
 
-1. **Config Profile** - Apply curated baselines (pHash/dHash/ORB) from the Photo Recognition Deep Dive
-2. **Theme Mode** - Switch between light and dark visual themes
-3. **UI Style** - Toggle between modern UI and classic retro gallery experience
-4. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
-5. **Similarity Threshold** - Tune the required hash distance to declare a match
-6. **Recognition Engine** - Switch between perceptual hashing (dHash + pHash) or ORB feature matching
-7. **Perceptual Hash Algorithm** - Choose between dHash (fast) and pHash (robust) when using perceptual mode
-8. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
-9. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
-10. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
-11. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
-12. **Rectangle Detection Confidence** - Adjust how confident the detector must be before cropping
-13. **ORB Max Features** - Cap how many keypoints ORB will keep
-14. **ORB FAST Threshold** - Control FAST corner sensitivity in ORB mode
-15. **ORB Min Matches** - Require a minimum descriptor match count before confirming
-16. **ORB Match Ratio** - Tune Lowe’s ratio threshold (stricter vs more lenient matching)
+1. **Config Profile** - Apply curated baseline (`Baseline · pHash`) from the Photo Recognition Deep Dive
+2. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
+3. **Similarity Threshold** - Tune the required hash distance to declare a match
+4. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
+5. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
+6. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
+7. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
+8. **Rectangle Detection Confidence** - Adjust how confident the detector must be before cropping
 
 ### Config Profiles
 
 The new **Config Profile** select applies the baseline configurations from the
-_Photo Recognition Deep Dive_ with a single tap. Choosing **Baseline · pHash**, **Baseline · dHash**, or
-**Baseline · ORB** instantly updates the relevant settings (recognition delay, thresholds, hash selection,
-and ORB tuning) and ensures rectangle detection stays enabled, matching the documentation. Any manual tweak
+_Photo Recognition Deep Dive_ with a single tap. Choosing **Baseline · pHash** instantly updates the
+relevant settings (recognition delay, thresholds, and frame-quality filters) and ensures rectangle detection
+stays enabled, matching the documentation. Any manual tweak
 to the settings panel automatically switches the profile back to **Custom**, making it obvious when values
 no longer match the preset.
 
@@ -271,11 +263,9 @@ import { useCustomSettings } from './modules/secret-settings';
 
 function App() {
   const { getSetting } = useCustomSettings();
-  const theme = getSetting<string>('theme-mode');
+  const delay = getSetting<number>('recognition-delay');
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme || 'dark');
-  }, [theme]);
+  console.log('Recognition delay:', delay);
 }
 ```
 
@@ -310,14 +300,11 @@ function App() {
     },
   });
 
-  // Apply theme changes
+  // Apply fixed app appearance
   useEffect(() => {
-    const theme = getSetting<string>('theme-mode') ?? 'dark';
-    const uiStyle = getSetting<string>('ui-style') ?? 'modern';
-
-    document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-ui-style', uiStyle);
-  }, [getSetting]);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-ui-style', 'modern');
+  }, []);
 
   return (
     <>
@@ -333,9 +320,9 @@ function App() {
 }
 ```
 
-### Step 2: Add CSS Theme Support
+### Step 2: Keep the Curated Theme
 
-Update your global CSS (e.g., `index.css`) to support theme switching:
+The app ships with one curated visual style. Keep global CSS focused on that single mode.
 
 ```css
 :root {
@@ -344,27 +331,12 @@ Update your global CSS (e.g., `index.css`) to support theme switching:
   --color-accent: #4a90e2;
 }
 
-[data-theme='light'] {
-  --color-background: #f5f5f4;
-  --color-text: #0f172a;
-  --color-accent: #2563eb;
-}
-
-[data-ui-style='modern'] {
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', ...;
-  --border-radius: 8px;
-}
-
-[data-ui-style='classic'] {
-  --font-family: 'Courier New', monospace;
-  --border-radius: 0px;
-}
-
 body {
   background: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-family);
-  transition: all 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 ```
 
@@ -378,8 +350,9 @@ body {
    - **Multi-Scale Recognition**: Relaxed photo framing
    - **Rectangle Detection**: Auto-detect photo boundaries
    - **Grayscale Mode**: Convert frames to black and white
-   - **Theme Mode**: Switch between dark/light
-   - **UI Style**: Switch between modern/classic
+
+- **Custom Settings**: Tune delay, thresholds, and frame quality filters
+
 5. Click **"Send It 🚀"** to apply changes and reload the page
 6. Verify all changes persist after reload
 
@@ -388,7 +361,6 @@ body {
 Some feature flags require a full page reload to take effect properly:
 
 - Camera settings (require reinitializing MediaStream)
-- Theme changes (require re-rendering React tree)
 - Audio playback settings (require reinitializing Howler.js)
 
 The "Send It" button ensures all changes are guaranteed to work by:
@@ -436,16 +408,26 @@ The guide includes:
 
 ### Custom Settings
 
-3. **Theme Mode** (`theme-mode`)
-   - Options: Dark (default), Light
-   - Global theme switching via `data-theme` attribute
-   - Smooth 0.3s transitions
-   - Affects background, text, and accent colors
-4. **UI Style** (`ui-style`)
-   - Options: Modern (default), Classic
-   - Global UI style switching via `data-ui-style` attribute
-   - Classic mode: Monospace fonts, sharp edges, no texture
-   - Modern mode: System fonts, rounded corners, textured backgrounds
+1. **Config Profile** (`config-profile`)
+
+- Options: `custom` (manual control), `baseline-phash`
+- Applies curated baseline values in one action
+
+2. **Recognition Delay** (`recognition-delay`)
+
+- Milliseconds a frame must remain stable before lock
+
+3. **Similarity Threshold** (`similarity-threshold`)
+
+- pHash distance threshold (lower is stricter)
+
+4. **Frame Scan Interval** (`recognition-check-interval`)
+
+- Hashing cadence for responsiveness vs CPU use
+
+5. **Frame Quality Filters**
+
+- `sharpness-threshold`, `glare-threshold`, `glare-percentage-threshold`, `rectangle-detection-confidence-threshold`
 
 ---
 
@@ -454,7 +436,7 @@ The guide includes:
 - Modal is keyboard accessible
 - ARIA attributes for screen readers (`role="dialog"`, `aria-modal="true"`)
 - Clear visual focus indicators
-- Both themes meet WCAG AA contrast standards (4.5:1)
+- Curated default theme meets WCAG AA contrast standards (4.5:1)
 
 ---
 

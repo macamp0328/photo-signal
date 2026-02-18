@@ -121,6 +121,16 @@ The root cause is **dataset/object mismatch**, not a Howler runtime bug:
 - **Browser/Howler integration:** healthy for valid keys (`200/206` responses play normally)
 - **Primary failing component:** data/R2 object coverage (missing object for URL present in dataset)
 
+If debug overlay shows:
+
+- `fetch: 200`
+- `cors: No header` (or `Not exposed to browser`)
+- `playback: load-error`
+- `Content-Type: audio/ogg; codecs=opus`
+
+that means network reachability is fine, and the likely app/runtime issue is **codec decode support**
+on the current browser (for example, browsers that do not decode Ogg Opus).
+
 ### Feature-by-feature reproduction
 
 1. **Auto play (photo detected):** detect a concert whose `audioFile` is `/prod/audio/concert-4.opus` → playback fails with load error.

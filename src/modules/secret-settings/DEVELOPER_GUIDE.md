@@ -67,7 +67,7 @@ src/modules/secret-settings/
 
 ### Custom Settings
 
-> **Note (Feb 2026):** `theme-mode` and `ui-style` were removed. The app now enforces a single curated appearance (`data-theme='dark'`, `data-ui-style='modern'`).
+> **Note (Feb 2026):** `theme-mode` and `ui-style` were removed. The app now enforces a single curated appearance (`data-theme='dark'`).
 
 1. **Config Profile** (`config-profile`)
 

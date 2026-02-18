@@ -25,6 +25,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
+  max-width: min(92vw, 28rem);
 }
 
 .icon {
@@ -36,7 +37,8 @@
   color: white;
   font-size: 16px;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
 }
 
 /* Slide in animation */

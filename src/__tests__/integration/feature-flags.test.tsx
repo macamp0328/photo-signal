@@ -10,6 +10,9 @@ import { render, screen } from '@testing-library/react';
 import App from '../../App';
 import { setupBrowserMocks } from './setup';
 
+const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
+const CUSTOM_SETTINGS_STORAGE_KEY = 'photo-signal-custom-settings';
+
 describe('Feature Flags → Module Behavior Integration', () => {
   beforeEach(() => {
     setupBrowserMocks();
@@ -23,10 +26,13 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
   it('should use test data when test-mode flag is enabled', () => {
     localStorage.setItem(
-      'feature-flags',
-      JSON.stringify({
-        'test-mode': true,
-      })
+      FEATURE_FLAGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'test-mode',
+          enabled: true,
+        },
+      ])
     );
 
     render(<App />);
@@ -37,10 +43,13 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
   it('should use production data when test-mode flag is disabled', () => {
     localStorage.setItem(
-      'feature-flags',
-      JSON.stringify({
-        'test-mode': false,
-      })
+      FEATURE_FLAGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'test-mode',
+          enabled: false,
+        },
+      ])
     );
 
     render(<App />);
@@ -58,23 +67,34 @@ describe('Feature Flags → Module Behavior Integration', () => {
   });
 
   it('should persist feature flags to localStorage', () => {
-    const flags = {
-      'test-mode': true,
-      'debug-overlay': true,
-    };
+    const flags = [
+      {
+        id: 'test-mode',
+        enabled: true,
+      },
+      {
+        id: 'grayscale-mode',
+        enabled: true,
+      },
+    ];
 
-    localStorage.setItem('feature-flags', JSON.stringify(flags));
+    localStorage.setItem(FEATURE_FLAGS_STORAGE_KEY, JSON.stringify(flags));
 
     render(<App />);
 
     // Verify flags are persisted
-    const storedFlags = localStorage.getItem('feature-flags');
-    expect(storedFlags).toBe(JSON.stringify(flags));
+    const storedFlags = localStorage.getItem(FEATURE_FLAGS_STORAGE_KEY);
+    const parsedFlags = storedFlags
+      ? (JSON.parse(storedFlags) as Array<{ id: string; enabled: boolean }>)
+      : [];
+
+    expect(parsedFlags.find((flag) => flag.id === 'test-mode')?.enabled).toBe(true);
+    expect(parsedFlags.find((flag) => flag.id === 'grayscale-mode')?.enabled).toBe(true);
   });
 
   it('should handle invalid feature flag data gracefully', () => {
     // Set invalid JSON in localStorage
-    localStorage.setItem('feature-flags', 'invalid-json');
+    localStorage.setItem(FEATURE_FLAGS_STORAGE_KEY, 'invalid-json');
 
     render(<App />);
 
@@ -84,10 +104,13 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
   it('should enable debug overlay when test-mode is enabled', () => {
     localStorage.setItem(
-      'feature-flags',
-      JSON.stringify({
-        'test-mode': true,
-      })
+      FEATURE_FLAGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'test-mode',
+          enabled: true,
+        },
+      ])
     );
 
     render(<App />);
@@ -98,10 +121,13 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
   it('should not show debug overlay when test-mode is disabled', () => {
     localStorage.setItem(
-      'feature-flags',
-      JSON.stringify({
-        'test-mode': false,
-      })
+      FEATURE_FLAGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'test-mode',
+          enabled: false,
+        },
+      ])
     );
 
     render(<App />);
@@ -110,43 +136,40 @@ describe('Feature Flags → Module Behavior Integration', () => {
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 
-  it('should apply theme mode from custom settings', () => {
+  it('should enforce curated dark theme mode', () => {
     localStorage.setItem(
-      'custom-settings',
-      JSON.stringify({
-        'theme-mode': 'light',
-      })
+      CUSTOM_SETTINGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'recognition-delay',
+          value: 1200,
+        },
+      ])
     );
 
     render(<App />);
 
-    // Verify theme is applied to document
-    // The theme is set via setAttribute on document.documentElement
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
-  });
-
-  it('should apply UI style from custom settings', () => {
-    localStorage.setItem(
-      'custom-settings',
-      JSON.stringify({
-        'ui-style': 'classic',
-      })
-    );
-
-    render(<App />);
-
-    // Verify UI style is applied
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 
   it('should handle multiple feature flags simultaneously', () => {
     localStorage.setItem(
-      'feature-flags',
-      JSON.stringify({
-        'test-mode': true,
-        'grayscale-mode': true,
-        'multi-scale-recognition': true,
-      })
+      FEATURE_FLAGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'test-mode',
+          enabled: true,
+        },
+        {
+          id: 'grayscale-mode',
+          enabled: true,
+        },
+        {
+          id: 'multi-scale-recognition',
+          enabled: true,
+        },
+      ])
     );
 
     render(<App />);

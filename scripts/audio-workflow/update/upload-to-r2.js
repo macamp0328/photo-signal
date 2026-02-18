@@ -215,18 +215,8 @@ function requireTextFile(filePath) {
 }
 
 export function resolveObjectKeyForFile(file, prefix, photoIdByFileName) {
-  const ext = path.extname(file.relativePath).toLowerCase();
-  if (ext !== '.opus') {
-    return buildObjectKey(file.relativePath, prefix);
-  }
-
-  const fileName = path.basename(file.relativePath);
-  const photoId = photoIdByFileName.get(fileName);
-  if (!photoId) {
-    return buildObjectKey(file.relativePath, prefix);
-  }
-
-  return [prefix, String(photoId), fileName].filter(Boolean).join('/');
+  void photoIdByFileName;
+  return buildObjectKey(file.relativePath, prefix);
 }
 
 export function getContentType(filePath) {
@@ -404,8 +394,7 @@ async function main() {
     process.exit(0);
   }
 
-  const audioIndexPath = path.join(config.inputDir, 'audio-index.json');
-  const photoIdByFileName = loadPhotoIdByFileName(audioIndexPath);
+  const photoIdByFileName = new Map();
   files = files.map((file) => ({
     ...file,
     objectKey: resolveObjectKeyForFile(file, config.prefix, photoIdByFileName),
@@ -422,9 +411,7 @@ async function main() {
   console.log(`  Concurrency:  ${config.concurrency}`);
   console.log(`  Dry run:      ${config.dryRun ? 'yes' : 'no'}`);
   console.log(`  Skip existing:${config.skipExisting ? 'yes' : 'no'}`);
-  console.log(
-    `  ID-scoped map:${photoIdByFileName.size > 0 ? `yes (${photoIdByFileName.size} track(s))` : 'no'}`
-  );
+  console.log('  Upload shape: flat (prefix/fileName)');
   console.log('');
   console.log(`Discovered ${files.length} file(s)`);
   console.log('');

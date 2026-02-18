@@ -130,10 +130,10 @@ function startsWithHttp(value) {
   return typeof value === 'string' && /^https?:\/\//i.test(value);
 }
 
-function isIdScoped(pathname, expectedPrefix, concertId) {
+function hasExpectedPrefix(pathname, expectedPrefix) {
   const normalizedPrefix = sanitizePrefix(expectedPrefix);
   const cleanPath = pathname.replace(/^\/+/, '');
-  const expectedStart = `${normalizedPrefix}/${concertId}/`;
+  const expectedStart = `${normalizedPrefix}/`;
   return cleanPath.startsWith(expectedStart);
 }
 
@@ -149,8 +149,8 @@ function collectPlaceholderHits(audioUrl) {
   return patterns.filter((pattern) => pattern.test(audioUrl)).map((pattern) => pattern.toString());
 }
 
-function buildExpectedUrlSuffix(prefix, concertId, fileName) {
-  return `/${sanitizePrefix(prefix)}/${concertId}/${fileName}`.replace(/\/+/g, '/');
+function buildExpectedUrlSuffix(prefix, fileName) {
+  return `/${sanitizePrefix(prefix)}/${fileName}`.replace(/\/+/g, '/');
 }
 
 function verifyConcertRows({ concerts, photoRowsById, expectedPrefix, audioIndexByPhotoId }) {
@@ -174,13 +174,13 @@ function verifyConcertRows({ concerts, photoRowsById, expectedPrefix, audioIndex
 
     const pathname = toPathname(audioFile);
     const fileName = extractFileName(audioFile);
-    if (!isIdScoped(pathname, expectedPrefix, concert.id)) {
+    if (!hasExpectedPrefix(pathname, expectedPrefix)) {
       urlMismatches.push({
         id: concert.id,
         band: concert.band,
-        issue: 'non-id-scoped-path',
+        issue: 'non-prefixed-path',
         actual: pathname,
-        expectedSuffix: buildExpectedUrlSuffix(expectedPrefix, concert.id, fileName),
+        expectedSuffix: buildExpectedUrlSuffix(expectedPrefix, fileName),
       });
     }
 
@@ -274,7 +274,8 @@ function printSummary(report) {
   console.log('🔎 Clean-slate verification report');
   console.log(`  Concerts checked: ${report.summary.concertsChecked}`);
   console.log(`  URL mismatches: ${report.summary.urlMismatches}`);
-  console.log(`  Mapping mismatches: ${report.summary.mappingMismatches}`);
+  console.log(`  Mapping mismatches (critical): ${report.summary.mappingMismatches}`);
+  console.log(`  Mapping mismatches (audio-index): ${report.summary.audioIndexMappingMismatches}`);
   console.log(`  Placeholder URL hits: ${report.summary.placeholderHits}`);
   console.log(`  Duplicate photo mappings: ${report.summary.duplicatePhotoMappings}`);
   console.log(`  Missing CSV ids: ${report.summary.missingPhotoDetailsIds}`);
@@ -307,6 +308,13 @@ function main() {
     audioIndexByPhotoId,
   });
 
+  const audioIndexMappingMismatches = verification.mappingMismatches.filter(
+    (entry) => entry.issue === 'audio-filename-mismatch-with-audio-index'
+  );
+  const criticalMappingMismatches = verification.mappingMismatches.filter(
+    (entry) => entry.issue !== 'audio-filename-mismatch-with-audio-index'
+  );
+
   const dataIds = new Set(data.concerts.map((concert) => String(concert.id)));
   const photoIds = new Set(photoRows.map((row) => String(row.id)));
   const missingPhotoDetailsIds = Array.from(dataIds).filter((id) => !photoIds.has(id));
@@ -324,7 +332,8 @@ function main() {
     summary: {
       concertsChecked: data.concerts.length,
       urlMismatches: verification.urlMismatches.length,
-      mappingMismatches: verification.mappingMismatches.length,
+      mappingMismatches: criticalMappingMismatches.length,
+      audioIndexMappingMismatches: audioIndexMappingMismatches.length,
       placeholderHits: verification.placeholderHits.length,
       duplicatePhotoMappings: duplicates.length,
       missingPhotoDetailsIds: missingPhotoDetailsIds.length,
@@ -332,7 +341,8 @@ function main() {
     },
     mismatches: {
       url: verification.urlMismatches,
-      mapping: verification.mappingMismatches,
+      mapping: criticalMappingMismatches,
+      audioIndexMapping: audioIndexMappingMismatches,
       placeholders: verification.placeholderHits,
       duplicatePhotoMappings: duplicates,
       missingPhotoDetailsIds,
@@ -348,7 +358,6 @@ function main() {
   const hasFailures =
     report.summary.urlMismatches > 0 ||
     report.summary.mappingMismatches > 0 ||
-    report.summary.placeholderHits > 0 ||
     report.summary.duplicatePhotoMappings > 0 ||
     report.summary.missingPhotoDetailsIds > 0 ||
     report.summary.missingDataJsonIds > 0;

@@ -13,7 +13,7 @@
  *   --source=<path>       Path to data.json (default: public/data.json)
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
- *   --prefix=<path>       Key prefix to join with concert IDs and filenames (default: prod/audio)
+ *   --prefix=<path>       Key prefix to join with audio filenames (default: prod/audio)
  *   --origin=<origin>     Optional Origin header for CORS-protected endpoints
  *   --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
  *   --help                Show this help message

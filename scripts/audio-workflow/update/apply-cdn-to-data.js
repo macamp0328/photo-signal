@@ -23,13 +23,13 @@ export function sanitizePrefix(prefix) {
 }
 
 export function buildAudioUrl(concert, baseUrl, prefix = DEFAULT_PREFIX) {
-  if (!concert?.audioFile || !concert?.id) {
-    throw new Error('concert must include id and audioFile');
+  if (!concert?.audioFile) {
+    throw new Error('concert must include audioFile');
   }
   const filename = path.basename(concert.audioFile);
   const cleanedBase = trimTrailingSlash(baseUrl);
   const cleanedPrefix = sanitizePrefix(prefix);
-  const parts = [cleanedBase, cleanedPrefix, String(concert.id), filename].filter(Boolean);
+  const parts = [cleanedBase, cleanedPrefix, filename].filter(Boolean);
   return parts.join('/').replace(/(?<!:)\/+/g, '/');
 }
 
@@ -165,7 +165,7 @@ Options:
   --source=<path>   Path to data.json (default: ${DEFAULT_SOURCE})
   --base-url=<url>  Base URL for the Cloudflare Worker (required)
   --prefix=<path>   Key prefix inside the bucket (default: ${DEFAULT_PREFIX})
-  --audio-index=<path> Path to audio-index.json used to map photoId -> filename (default: ${DEFAULT_AUDIO_INDEX})
+  --audio-index=<path> Path to audio-index.json used to map concert id -> filename (default: ${DEFAULT_AUDIO_INDEX})
   --prefer-audio-index Prefer mapped filenames from audio-index where available
   --dry-run         Preview changes without writing the file
   --help            Show this message

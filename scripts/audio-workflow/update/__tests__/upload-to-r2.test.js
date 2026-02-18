@@ -115,13 +115,13 @@ describe('upload-to-r2 helpers', () => {
     expect(key).toBe('prod/audio/folder/file.opus');
   });
 
-  it('maps opus files into id-scoped keys when photoId is available', () => {
+  it('keeps opus files flat under prefix', () => {
     const key = resolveObjectKeyForFile(
       { relativePath: 'ps-example-track.opus' },
       'prod/audio',
       new Map([['ps-example-track.opus', 42]])
     );
-    expect(key).toBe('prod/audio/42/ps-example-track.opus');
+    expect(key).toBe('prod/audio/ps-example-track.opus');
   });
 
   it('keeps non-opus files flat under prefix', () => {

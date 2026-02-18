@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 const OUTPUT_DIR = path.resolve('scripts/audio-workflow/output');
 const CHECKPOINT_FILE = path.resolve(OUTPUT_DIR, 'clean-slate-checkpoints.json');
 
-const PHASES = ['download', 'encode', 'upload', 'apply-cdn', 'validate'];
+const PHASES = ['download', 'encode', 'upload', 'build-data', 'validate'];
 const AUDIO_EXTENSIONS = new Set([
   '.opus',
   '.webm',
@@ -55,8 +55,8 @@ function writeCheckpoints(summary) {
 }
 
 function resolvePhaseRange(fromPhase, toPhase) {
-  const from = fromPhase ?? PHASES[0];
-  const to = toPhase ?? PHASES[PHASES.length - 1];
+  const from = normalizePhaseName(fromPhase ?? PHASES[0]);
+  const to = normalizePhaseName(toPhase ?? PHASES[PHASES.length - 1]);
 
   const fromIndex = PHASES.indexOf(from);
   const toIndex = PHASES.indexOf(to);
@@ -67,6 +67,13 @@ function resolvePhaseRange(fromPhase, toPhase) {
   }
 
   return PHASES.slice(fromIndex, toIndex + 1);
+}
+
+function normalizePhaseName(phase) {
+  if (phase === 'apply-cdn') {
+    return 'build-data';
+  }
+  return phase;
 }
 
 function buildCommand(phase, args) {
@@ -122,11 +129,11 @@ function buildCommand(phase, args) {
     return `npm run upload-audio -- ${extraUploadArgs}`.trim();
   }
 
-  if (phase === 'apply-cdn') {
+  if (phase === 'build-data') {
     if (!baseUrl) {
-      throw new Error('Phase apply-cdn requires --base-url or AUDIO_WORKER_BASE_URL');
+      throw new Error('Phase build-data requires --base-url or AUDIO_WORKER_BASE_URL');
     }
-    return `npm run apply-cdn-to-data -- --base-url=${baseUrl} --prefix=${prefix} --prefer-audio-index --audio-index=scripts/audio-workflow/encode/output/audio-index.json`;
+    return `npm run audio:build-data -- --base-url=${baseUrl} --prefix=${prefix}`;
   }
 
   if (phase === 'validate') {
@@ -262,8 +269,8 @@ Usage:
   npm run audio:clean-slate -- [options]
 
 Options:
-  --from=<phase>             Start phase (download|encode|upload|apply-cdn|validate)
-  --to=<phase>               End phase (download|encode|upload|apply-cdn|validate)
+  --from=<phase>             Start phase (download|encode|upload|build-data|validate)
+  --to=<phase>               End phase (download|encode|upload|build-data|validate)
   --base-url=<url>           Worker base URL for apply-cdn/validate phases
   --prefix=<path>            Audio key prefix (default: prod/audio)
   --download-max-items=<n>   Limit download phase to first n playlist items
@@ -285,6 +292,9 @@ Options:
   --force-full-validate       Run validate phase even for smoke runs without ID filter
   --dry-run                  Print commands only
   --help                     Show this message
+
+Notes:
+  Legacy phase name "apply-cdn" is accepted as an alias for "build-data".
 `);
 }
 

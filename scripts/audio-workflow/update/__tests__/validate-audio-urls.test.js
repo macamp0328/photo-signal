@@ -387,13 +387,13 @@ describe('validate-audio-urls', () => {
         'prod/audio'
       );
 
-      expect(url).toBe('https://audio.example.com/prod/audio/1/test.opus');
+      expect(url).toBe('https://audio.example.com/prod/audio/test.opus');
     });
 
-    it('should append prefix and concert id when missing', () => {
+    it('should append prefix when missing', () => {
       const url = resolveAudioUrl('/audio/test.opus', 5, 'https://audio.example.com', 'prod/audio');
 
-      expect(url).toBe('https://audio.example.com/prod/audio/5/test.opus');
+      expect(url).toBe('https://audio.example.com/prod/audio/test.opus');
     });
   });
 

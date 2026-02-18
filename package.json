@@ -44,6 +44,8 @@
     "encode-audio": "node scripts/audio-workflow/encode/encode-audio.js",
     "upload-audio": "node scripts/audio-workflow/update/upload-to-r2.js",
     "upload-audio:local": "bash scripts/audio-workflow/update/upload-audio-local.sh",
+    "audio:build-data": "node scripts/audio-workflow/update/build-data-from-photo-csv.js",
+    "audio:remap-by-band": "node scripts/audio-workflow/update/remap-audio-by-band.js",
     "audio:reset": "node scripts/audio-workflow/reset-clean-slate.js",
     "audio:verify": "node scripts/audio-workflow/verify-clean-slate.js",
     "audio:clean-slate": "node scripts/audio-workflow/run-clean-slate.js",
@@ -52,7 +54,8 @@
     "audio:phase:download:smoke": "node scripts/audio-workflow/run-clean-slate.js --from=download --to=download --download-max-items=10",
     "audio:phase:encode": "node scripts/audio-workflow/run-clean-slate.js --from=encode --to=encode",
     "audio:phase:upload": "node scripts/audio-workflow/run-clean-slate.js --from=upload --to=upload",
-    "audio:phase:apply-cdn": "node scripts/audio-workflow/run-clean-slate.js --from=apply-cdn --to=apply-cdn",
+    "audio:phase:build-data": "node scripts/audio-workflow/run-clean-slate.js --from=build-data --to=build-data",
+    "audio:phase:apply-cdn": "node scripts/audio-workflow/run-clean-slate.js --from=build-data --to=build-data",
     "audio:phase:validate": "node scripts/audio-workflow/run-clean-slate.js --from=validate --to=validate",
     "pre-commit": "npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh",
     "prepare": "husky"

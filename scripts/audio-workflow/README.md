@@ -41,8 +41,11 @@ You can also run individual phases via:
 - `npm run audio:phase:download:smoke`
 - `npm run audio:phase:encode`
 - `npm run audio:phase:upload`
+- `npm run audio:phase:build-data`
 - `npm run audio:phase:apply-cdn`
 - `npm run audio:phase:validate`
+
+`audio:phase:apply-cdn` is kept as a compatibility alias and currently runs the same behavior as `audio:phase:build-data`.
 
 ## Metadata Philosophy: Capture Once, Store Outside
 
@@ -182,6 +185,17 @@ npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/
 - Keeps existing `audioFileFallback` values (or sets them from the previous `audioFile`)
 - Supports dry runs and automatic backups before writing
 
+### `update/build-data-from-photo-csv.js`
+
+```bash
+npm run audio:build-data -- --base-url=https://photo-signal-audio-worker.example.workers.dev --prefix=prod/audio
+```
+
+- Builds `public/data.json` from `assets/prod-photographs/prod-photographs-details.csv`
+- Uses `scripts/audio-workflow/encode/output/audio-index.json` as the audio metadata source
+- Applies strict band-name matching (exact + curated alias support; conservative fallback)
+- Emits stable, reproducible output so `public/data.json` can be deleted and regenerated
+
 ### `update/validate-audio-urls.js`
 
 ```bash
@@ -219,11 +233,12 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
    - Edit `assets/prod-photographs/prod-photographs-details.csv` (add/fix `band`, resolve typos, add new photos)
    - Re-run `node scripts/audio-workflow/build-photo-audio-map.js` until ambiguous/missing rows are resolved to your satisfaction.
 
-5. **Publish mapping:**
-   - Use `node scripts/audio-workflow/sync-photo-audio-map.js` to regenerate `encode/output/photo-audio-map.json` from the finalized CSV. Only `status == matched_single` rows are applied; others remain `photoId: null` for safety.
-   - Use `node scripts/audio-workflow/sync-audio-index-paths.js` to backfill `photoId` and `filePath` in `audio-index.json` so manifests align with the per-photo folder layout.
+5. **Build runtime dataset from CSV:**
+   - Run `npm run audio:build-data -- --base-url=<worker-url> --prefix=prod/audio` to regenerate `public/data.json` deterministically from `prod-photographs-details.csv` + `audio-index.json`.
 
-6. **(Optional) Reorganize encoded files into per-photo folders:**
-   - `node scripts/audio-workflow/reorg-audio-by-photo.js [--dry-run]`
-   - Reads `encode/output/photo-audio-map.json` and moves mapped `.opus` files into `encode/output/<photoId>/`.
-   - Unmapped entries (`photoId: null`) are left in place.
+6. **Regenerate recognition hashes:**
+   - Run `npm run update-recognition-data -- --input public/data.json --public public/data.json --batch-size 2` (or adjust batch size for your environment).
+
+7. **Upload and verify:**
+   - Upload generated assets: `npm run upload-audio -- --prefix=prod/audio`
+   - Verify consistency: `npm run audio:verify`

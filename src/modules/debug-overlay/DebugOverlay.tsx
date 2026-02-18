@@ -124,9 +124,11 @@ export function DebugOverlay({
 
   const dataBadgeText = isTestMode ? 'TEST DATA' : 'LIVE DATA';
   const isCollapsedView = isCollapsed || !enabled;
+  const statusCode = testResult?.diagnostic.httpStatus;
+  const isSuccessfulFetch = typeof statusCode === 'number' && statusCode >= 200 && statusCode < 300;
   const corsDisplay = testResult
     ? (testResult.diagnostic.corsOrigin ??
-      (testResult.diagnostic.httpStatus !== null ? 'Not exposed to browser' : 'No header'))
+      (isSuccessfulFetch ? 'Not exposed to browser' : 'No header'))
     : null;
 
   useEffect(() => {

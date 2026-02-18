@@ -215,8 +215,12 @@ function requireTextFile(filePath) {
 }
 
 export function resolveObjectKeyForFile(file, prefix, photoIdByFileName) {
-  void photoIdByFileName;
-  return buildObjectKey(file.relativePath, prefix);
+  const baseName = path.posix.basename(file.relativePath);
+  const mappedPhotoId = photoIdByFileName?.get(baseName);
+  const ext = path.posix.extname(baseName);
+  const finalName =
+    Number.isInteger(mappedPhotoId) && mappedPhotoId > 0 ? `${mappedPhotoId}${ext}` : baseName;
+  return buildObjectKey(finalName, prefix);
 }
 
 export function getContentType(filePath) {

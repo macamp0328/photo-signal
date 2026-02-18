@@ -33,7 +33,6 @@ class DataService {
   private readonly productionDataUrl = '/data.json';
   private readonly developmentDataUrl = this.productionDataUrl;
   private readonly testDataUrl = this.developmentDataUrl;
-  private listeners: Array<() => void> = [];
 
   /**
    * Set test mode flag state.
@@ -56,17 +55,6 @@ class DataService {
    */
   getTestMode(): boolean {
     return this.isTestMode;
-  }
-
-  /**
-   * Subscribe to data source changes
-   * Returns an unsubscribe function
-   */
-  subscribe(listener: () => void): () => void {
-    this.listeners.push(listener);
-    return () => {
-      this.listeners = this.listeners.filter((l) => l !== listener);
-    };
   }
 
   /**

@@ -137,20 +137,6 @@ export function usePhotoRecognition(
         console.error('Failed to load concert data:', error);
         setConcerts([]);
       });
-
-    const unsubscribe = dataService.subscribe(() => {
-      dataService
-        .getConcerts()
-        .then((loadedConcerts) => {
-          setConcerts(loadedConcerts);
-        })
-        .catch((error) => {
-          console.error('Failed to reload concert data:', error);
-          setConcerts([]);
-        });
-    });
-
-    return unsubscribe;
   }, []);
 
   const eligibleConcerts = useMemo(

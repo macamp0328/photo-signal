@@ -618,39 +618,6 @@ describe('DataService', () => {
     });
   });
 
-  describe('data source change notifications', () => {
-    it('should not notify subscribers when test mode changes', () => {
-      const listener1 = vi.fn();
-      const listener2 = vi.fn();
-
-      // Ensure a known starting state
-      dataService.setTestMode(false);
-
-      // Subscribe
-      const unsubscribe1 = dataService.subscribe(listener1);
-      const unsubscribe2 = dataService.subscribe(listener2);
-
-      // Change test mode
-      dataService.setTestMode(true);
-
-      // Mode toggles are inert and should not trigger subscribers
-      expect(listener1).not.toHaveBeenCalled();
-      expect(listener2).not.toHaveBeenCalled();
-
-      // Unsubscribe one listener
-      unsubscribe1();
-
-      // Change test mode again
-      dataService.setTestMode(false);
-
-      expect(listener1).not.toHaveBeenCalled();
-      expect(listener2).not.toHaveBeenCalled();
-
-      // Clean up
-      unsubscribe2();
-    });
-  });
-
   describe('concurrent request deduplication', () => {
     it('should deduplicate concurrent calls to getConcerts', async () => {
       // Mock fetch to track how many times it's called

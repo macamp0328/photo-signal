@@ -24,7 +24,7 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
  *
  * Manages concert data loading and caching.
  * Currently loads from static JSON, designed for easy PostgreSQL migration.
- * Supports switching between production and test data sources.
+ * Test mode is retained as a feature flag but does not change the data source.
  */
 class DataService {
   private cache: Concert[] | null = null;
@@ -36,8 +36,10 @@ class DataService {
   private listeners: Array<() => void> = [];
 
   /**
-   * Set test mode - switches data source between production and test data
-   * Clears cache to force reload with new data source
+   * Set test mode flag state.
+   *
+   * The flag is retained for compatibility with feature-flag flows,
+   * but data loading remains pinned to a single URL.
    */
   setTestMode(enabled: boolean): void {
     if (this.isTestMode !== enabled) {
@@ -46,8 +48,6 @@ class DataService {
         `[DataService] Data will be loaded from: ${enabled ? this.testDataUrl : this.productionDataUrl}`
       );
       this.isTestMode = enabled;
-      this.clearCache();
-      this.notifyListeners();
     }
   }
 
@@ -67,13 +67,6 @@ class DataService {
     return () => {
       this.listeners = this.listeners.filter((l) => l !== listener);
     };
-  }
-
-  /**
-   * Notify all listeners of data source change
-   */
-  private notifyListeners(): void {
-    this.listeners.forEach((listener) => listener());
   }
 
   /**
@@ -178,9 +171,7 @@ class DataService {
       } catch (error) {
         console.error('[DataService] Failed to load concert data:', error);
         console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
-        console.error(
-          `[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}. Try ${this.isTestMode ? 'disabling' : 'enabling'} it in Secret Settings.`
-        );
+        console.error(`[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}.`);
         return [];
       } finally {
         // Clear the in-flight request after it completes (success or failure)

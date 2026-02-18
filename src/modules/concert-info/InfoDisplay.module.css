@@ -212,13 +212,70 @@
 }
 
 @media (max-width: 480px) {
+  .card {
+    padding: 0.85rem;
+    gap: 0.8rem;
+  }
+
   .metaRow {
     align-items: center;
     text-align: center;
   }
 
+  .headlineBlock {
+    padding: 0.65rem;
+  }
+
+  .kicker {
+    font-size: 0.66rem;
+  }
+
+  .bandName {
+    font-size: clamp(1.3rem, 8vw, 2rem);
+  }
+
+  .transportBlock {
+    padding: 0.7rem;
+    gap: 0.65rem;
+  }
+
+  .timelineRail {
+    height: 0.65rem;
+  }
+
+  .timelineMeta {
+    font-size: 0.68rem;
+  }
+
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .detailItem {
+    padding: 0.45rem 0.5rem;
+  }
+
+  .detailLabel {
+    font-size: 0.62rem;
+  }
+
+  .detailValue {
+    font-size: 0.9rem;
+  }
+
+  .prompt {
+    font-size: 0.76rem;
+    padding: 0.5rem 0.6rem;
+  }
+
   .actions > div {
     grid-template-columns: 1fr;
+  }
+
+  .actions button {
+    min-height: 2.45rem;
+    font-size: 0.72rem;
   }
 }
 

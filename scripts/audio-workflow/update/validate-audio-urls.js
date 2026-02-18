@@ -39,78 +39,6 @@ const projectRoot = path.resolve(__dirname, '../../..');
 const DEFAULT_PREFIX = 'prod/audio';
 const DEFAULT_ENCODE_OUTPUT_DIR = 'scripts/audio-workflow/encode/output';
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const options = {
-  source: 'public/data.json',
-  timeout: 10000,
-  baseUrl: '',
-  prefix: 'prod/audio',
-  origin: '',
-  sharedSecret: '',
-  trace: false,
-  concertId: null,
-  help: false,
-};
-
-for (const arg of args) {
-  if (arg === '--help') {
-    options.help = true;
-  } else if (arg.startsWith('--source=')) {
-    const value = arg.split('=')[1];
-    if (!value) {
-      console.error('❌ Error: --source requires a value');
-      process.exit(1);
-    }
-    options.source = value;
-  } else if (arg.startsWith('--timeout=')) {
-    const value = arg.split('=')[1];
-    if (!value || isNaN(parseInt(value, 10)) || parseInt(value, 10) <= 0) {
-      console.error('❌ Error: --timeout requires a positive integer value');
-      process.exit(1);
-    }
-    options.timeout = parseInt(value, 10);
-  } else if (arg.startsWith('--base-url=')) {
-    const value = arg.split('=')[1];
-    if (!value) {
-      console.error('❌ Error: --base-url requires a value');
-      process.exit(1);
-    }
-    options.baseUrl = trimTrailingSlash(value);
-  } else if (arg.startsWith('--prefix=')) {
-    const value = arg.split('=')[1];
-    if (!value) {
-      console.error('❌ Error: --prefix requires a value');
-      process.exit(1);
-    }
-    options.prefix = sanitizePrefix(value);
-  } else if (arg.startsWith('--origin=')) {
-    const value = arg.split('=')[1];
-    if (!value) {
-      console.error('❌ Error: --origin requires a value');
-      process.exit(1);
-    }
-    options.origin = value;
-  } else if (arg.startsWith('--shared-secret=')) {
-    const value = arg.split('=')[1];
-    if (!value) {
-      console.error('❌ Error: --shared-secret requires a value');
-      process.exit(1);
-    }
-    options.sharedSecret = value;
-  } else if (arg === '--trace') {
-    options.trace = true;
-  } else if (arg.startsWith('--concert-id=')) {
-    const value = arg.split('=')[1];
-    const parsed = Number.parseInt(value, 10);
-    if (!value || Number.isNaN(parsed)) {
-      console.error('❌ Error: --concert-id requires an integer value');
-      process.exit(1);
-    }
-    options.concertId = parsed;
-  }
-}
-
 export function normalizeBaseUrl(baseUrl) {
   return trimTrailingSlash(baseUrl);
 }
@@ -304,40 +232,6 @@ export function inferLikelyFailure(result) {
   }
 
   return 'Unknown failure. Check worker logs, object key, and response headers.';
-}
-
-// Show help
-if (options.help) {
-  console.log(`
-Audio URL Validation Script
-
-This script validates that all audio URLs in data.json are accessible.
-
-Usage:
-  node scripts/audio-workflow/update/validate-audio-urls.js [options]
-
-Options:
-  --source=<path>       Path to data.json (default: public/data.json)
-  --timeout=<ms>        Request timeout in milliseconds (default: 10000)
-  --base-url=<url>      Override audioFile with CDN base URL
-  --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
-  --trace               Print deep diagnostics for one concert
-  --concert-id=<id>     Concert ID to trace (default: first concert with audio)
-  --origin=<origin>     Optional Origin header for CORS-protected endpoints
-  --shared-secret=<s>   Optional X-PS-Shared-Secret header for worker bypass
-  --help                Show this help message
-
-Examples:
-  # Validate production data.json
-  node scripts/audio-workflow/update/validate-audio-urls.js
-
-  # Validate test data
-  node scripts/audio-workflow/update/validate-audio-urls.js --source=assets/test-data/concerts.json
-
-  # Deep trace one concert end-to-end
-  node scripts/audio-workflow/update/validate-audio-urls.js --trace --concert-id=1 --origin=https://www.whoisduck2.com
-`);
-  process.exit(0);
 }
 
 /**

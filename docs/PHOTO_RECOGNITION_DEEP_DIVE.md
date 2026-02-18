@@ -48,10 +48,11 @@ From the project audit:
 - `sharpnessThreshold`: default `100`
 - `glareThreshold`: default `250`
 - `glarePercentageThreshold`: default `20`
-- `matchMarginThreshold`: default `3` (minimum best-vs-second distance margin)
-- `switchMatchMarginThreshold`: default `4` (stricter margin while switching)
-- `switchDistanceThreshold`: default `8`
+- `matchMarginThreshold`: default `4` (minimum best-vs-second distance margin)
+- `switchMatchMarginThreshold`: default `5` (stricter margin while switching)
+- `switchDistanceThreshold`: default `7`
 - `switchRecognitionDelayMultiplier`: default `1.8` (switch hold time multiplier)
+- `rectangleConfidenceThreshold`: default `0.35` (minimum confidence for perspective crop)
 - Instant confirm distances:
   - initial: `<= 5` (or 2 consecutive strong frames)
   - switch mode: `<= 3` plus 3 consecutive strong frames
@@ -91,6 +92,9 @@ This keeps diagnostics intact while removing algorithm-branch complexity.
 - Tune threshold only after collecting failure telemetry from real camera sessions
 - If false positives occur, lower threshold (stricter)
 - If false negatives occur, raise threshold slightly
+- Mobile tuning baseline:
+  - iPhone Safari: keep defaults, prioritize stability over aggressive switching.
+  - Android Chrome: defaults are balanced; only relax switch distance to `8` for very sparse layouts.
 
 ## Future extensions
 

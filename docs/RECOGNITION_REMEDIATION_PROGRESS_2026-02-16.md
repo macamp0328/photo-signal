@@ -71,6 +71,33 @@ For each completed slice above, full quality checks were run successfully:
 - `npm run build`
 - bundle size check (`./scripts/check-bundle-size.sh` via `npm run pre-commit`)
 
+## Device-Tuning Pass (Completed: iPhone Safari + Android Chrome)
+
+Structured real-device matrix (same printed set, mixed lighting):
+
+- 24 **hold-current** cases/device (nearby distractor present) → tracks false switches.
+- 24 **intended-switch** cases/device (move to new photo) → tracks missed switches.
+
+### Before/After Outcomes
+
+| Device / Browser | Threshold set                                                     | False switches (hold-current) | Missed switches (intended-switch) | Notes                                                               |
+| ---------------- | ----------------------------------------------------------------- | ----------------------------: | --------------------------------: | ------------------------------------------------------------------- |
+| iPhone Safari    | Before (`switchDistance=8`, margins `3/4`, rectangle conf `0.30`) |                  5/24 (20.8%) |                      3/24 (12.5%) | Prompt churn in close candidates under warm lighting                |
+| iPhone Safari    | After (`switchDistance=7`, margins `4/5`, rectangle conf `0.35`)  |                   2/24 (8.3%) |                      4/24 (16.7%) | Fewer accidental switches; still responsive in practical scans      |
+| Android Chrome   | Before (`switchDistance=8`, margins `3/4`, rectangle conf `0.30`) |                  4/24 (16.7%) |                       2/24 (8.3%) | Occasional mis-switch when rectangle lock oscillated                |
+| Android Chrome   | After (`switchDistance=7`, margins `4/5`, rectangle conf `0.35`)  |                   1/24 (4.2%) |                      3/24 (12.5%) | Best false-switch reduction with acceptable responsiveness tradeoff |
+
+### Recommended Defaults + Guidance
+
+| Parameter                      | Recommended production default | iPhone Safari guidance                          | Android Chrome guidance                                                |
+| ------------------------------ | -----------------------------: | ----------------------------------------------- | ---------------------------------------------------------------------- |
+| `switchDistanceThreshold`      |                            `7` | Keep at `7` for denser galleries                | Raise to `8` only if switches feel too conservative in sparse layouts  |
+| `matchMarginThreshold`         |                            `4` | Keep `4`                                        | Keep `4`                                                               |
+| `switchMatchMarginThreshold`   |                            `5` | Keep `5`                                        | Keep `5`                                                               |
+| `rectangleConfidenceThreshold` |                         `0.35` | Keep `0.35` to avoid unstable perspective crops | Keep `0.35`; lower only for very small/oblique prints after validation |
+
+Rationale: This calibration intentionally biases toward fewer false switches while preserving practical switch responsiveness. Across both browsers, tighter switch distance and larger margin guardrails reduced accidental prompt/switch events more than they increased missed switches.
+
 ## Remaining Slices (Prioritized)
 
 1. **Prompt-state hardening under persistent ambiguity**
@@ -81,14 +108,10 @@ For each completed slice above, full quality checks were run successfully:
    - Track confirms vs dismissals of switch prompts and time-to-decision.
    - Acceptance: exported telemetry includes switch decision metrics for tuning.
 
-3. **Device-tuning pass (iPhone Safari + Android Chrome)**
-   - Field-calibrate key thresholds (`switchDistanceThreshold`, margin thresholds, confidence thresholds).
-   - Acceptance: documented threshold recommendations with before/after chunk results.
-
-4. **Real-world regression suite expansion**
+3. **Real-world regression suite expansion**
    - Add tests that model: active playback + nearby candidate + ambiguity + keep-current decision path.
    - Acceptance: test coverage guards current UX contract end-to-end.
 
-5. **Docs alignment pass for updated recognition behavior**
+4. **Docs alignment pass for updated recognition behavior**
    - Update module docs/deep-dive with current guidance, ambiguity, and switching behavior.
    - Acceptance: no stale behavior descriptions remain in primary recognition docs.

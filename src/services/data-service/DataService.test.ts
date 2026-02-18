@@ -56,6 +56,7 @@ describe('DataService', () => {
 
     // Clear cache before each test to ensure isolation
     dataService.clearCache();
+    dataService.setTestMode(false);
 
     // Clear all mock call history
     vi.clearAllMocks();
@@ -145,9 +146,7 @@ describe('DataService', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[DataService] Attempted to load from: /data.json'
       );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[DataService] Test mode is DISABLED. Try enabling it in Secret Settings.'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Test mode is DISABLED.');
       expect(concerts).toEqual([]);
 
       consoleErrorSpy.mockRestore();
@@ -529,7 +528,7 @@ describe('DataService', () => {
     });
   });
 
-  describe('setTestMode() and test data loading', () => {
+  describe('setTestMode() behavior', () => {
     it('should switch data source when test mode is enabled', async () => {
       // Enable test mode
       dataService.setTestMode(true);
@@ -569,7 +568,7 @@ describe('DataService', () => {
       expect(dataService.getTestMode()).toBe(false);
     });
 
-    it('should clear cache when switching test mode', async () => {
+    it('should not clear cache when switching test mode', async () => {
       // Load production data
       const mockFetch1 = vi.fn().mockResolvedValue({
         ok: true,
@@ -585,21 +584,11 @@ describe('DataService', () => {
       // Switch to test mode
       dataService.setTestMode(true);
 
-      // Load test data
-      const testMockData = [{ ...mockConcerts[0], band: 'Test Band' }];
-      const mockFetch2 = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: testMockData }),
-      });
-      global.fetch = mockFetch2;
-
+      // Load again - should still use cache from first request
       const concerts = await dataService.getConcerts();
 
-      // Should fetch from test URL with new data
-      expect(mockFetch2).toHaveBeenCalledTimes(1);
-      expect(mockFetch2).toHaveBeenCalledWith('/data.json');
-      expect(concerts[0].band).toBe('Test Band');
+      expect(mockFetch1).toHaveBeenCalledTimes(1);
+      expect(concerts[0].band).toBe(mockConcerts[0].band);
     });
 
     it('should log when test mode changes', () => {
@@ -626,40 +615,6 @@ describe('DataService', () => {
 
       // Should not log again
       expect(consoleLogSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('data source change notifications', () => {
-    it('should notify subscribers when test mode changes', () => {
-      const listener1 = vi.fn();
-      const listener2 = vi.fn();
-
-      // Ensure a known starting state
-      dataService.setTestMode(false);
-
-      // Subscribe
-      const unsubscribe1 = dataService.subscribe(listener1);
-      const unsubscribe2 = dataService.subscribe(listener2);
-
-      // Change test mode
-      dataService.setTestMode(true);
-
-      // Both listeners should be called
-      expect(listener1).toHaveBeenCalledTimes(1);
-      expect(listener2).toHaveBeenCalledTimes(1);
-
-      // Unsubscribe one listener
-      unsubscribe1();
-
-      // Change test mode again
-      dataService.setTestMode(false);
-
-      // Only listener2 should be called again
-      expect(listener1).toHaveBeenCalledTimes(1); // Still 1
-      expect(listener2).toHaveBeenCalledTimes(2); // Now 2
-
-      // Clean up
-      unsubscribe2();
     });
   });
 

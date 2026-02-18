@@ -372,7 +372,6 @@ describe('App playback flow', () => {
   });
 
   it('avoids switch prompt churn during persistent ambiguity and prompts once after it clears', async () => {
-    enabledFlags.add('test-mode');
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -528,8 +527,7 @@ describe('App playback flow', () => {
     expect(screen.getByText('Playback Error')).toBeInTheDocument();
   });
 
-  it('captures switch shown/dismiss telemetry with latency and confidence snapshot in test mode', async () => {
-    enabledFlags.add('test-mode');
+  it('captures switch shown/dismiss telemetry with latency and confidence snapshot', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;

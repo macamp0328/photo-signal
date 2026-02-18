@@ -250,7 +250,7 @@ function AppContent() {
   );
   const rectangleDetectionConfidenceThresholdValue = coerceNumberSetting(
     getSetting<number>('rectangle-detection-confidence-threshold'),
-    0.3 // Reduced from 0.6 to 0.3 for better real-world detection
+    0.35 // Calibrated default for mobile browser reliability
   );
 
   // Module: Photo Recognition (paused when secret menu is open)
@@ -276,7 +276,7 @@ function AppContent() {
     rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
     continuousRecognition: true,
     switchRecognitionDelayMultiplier: 1.8,
-    switchDistanceThreshold: 8,
+    switchDistanceThreshold: 7,
     enabled: !showSecretSettings,
   });
 

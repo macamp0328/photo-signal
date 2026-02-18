@@ -33,11 +33,11 @@ options?: {
   recognitionDelay?: number;              // default 300ms (borderline matches)
   enabled?: boolean;                      // default true
   similarityThreshold?: number;           // pHash distance threshold, default 12
-  matchMarginThreshold?: number;          // min best-vs-second margin, default 3
-  switchMatchMarginThreshold?: number;    // stricter switch margin, default 4
+  matchMarginThreshold?: number;          // min best-vs-second margin, default 4
+  switchMatchMarginThreshold?: number;    // stricter switch margin, default 5
   continuousRecognition?: boolean;        // default false (enables switch-mode behavior)
   switchRecognitionDelayMultiplier?: number; // default 1.8x recognitionDelay
-  switchDistanceThreshold?: number;       // default 8 (stricter than base threshold)
+  switchDistanceThreshold?: number;       // default 7 (stricter than base threshold)
   checkInterval?: number;                 // default 180ms
   enableDebugInfo?: boolean;              // default false
   aspectRatio?: '3:2' | '2:3' | '1:1' | 'auto';
@@ -47,7 +47,7 @@ options?: {
   minBrightness?: number;                 // default 50
   maxBrightness?: number;                 // default 220
   enableRectangleDetection?: boolean;     // default false
-  rectangleConfidenceThreshold?: number;  // default 0.6
+  rectangleConfidenceThreshold?: number;  // default 0.35
   displayAspectRatio?: number;            // default 1
 }
 ```

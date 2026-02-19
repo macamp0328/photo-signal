@@ -9,6 +9,7 @@ const DEFAULT_OUTPUT_FILE = path.resolve('assets/prod-photographs/prod-photograp
 const CSV_HEADERS = [
   'id',
   'band',
+  'songTitle',
   'venue',
   'date',
   'audioFile',
@@ -41,6 +42,7 @@ async function main() {
       const row = new Map();
       row.set('id', String(index + 1));
       row.set('band', '');
+      row.set('songTitle', '');
       row.set('venue', '');
       row.set('date', metadata.dateTaken ?? '');
       row.set('audioFile', '');

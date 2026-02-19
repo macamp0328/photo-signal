@@ -22,7 +22,6 @@ export function InfoDisplay({
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
 
-  const archiveNumber = `#${String(concert.id).padStart(2, '0')}`;
   const formattedDate = formatConcertTimestamp(concert.date);
   const detailItems = [
     { label: 'Recorded', value: formattedDate },
@@ -43,7 +42,6 @@ export function InfoDisplay({
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
       <div className={styles.metaRow}>
         <span className={styles.badge}>Signal: {statusLabel}</span>
-        <span className={styles.archiveTag}>Archive {archiveNumber}</span>
       </div>
 
       <div className={styles.headlineBlock}>

@@ -18,6 +18,7 @@ const mockConcerts: Concert[] = [
   {
     id: 1,
     band: 'The Midnight Echoes',
+    songTitle: 'Night Lines',
     venue: 'The Fillmore',
     date: '2023-08-15T20:00:00-05:00',
     audioFile: '/audio/sample.opus',
@@ -25,6 +26,7 @@ const mockConcerts: Concert[] = [
   {
     id: 2,
     band: 'Electric Dreams',
+    songTitle: 'Neon Hearts',
     venue: 'Red Rocks Amphitheatre',
     date: '2023-09-22T20:00:00-05:00',
     audioFile: '/audio/sample.opus',
@@ -32,6 +34,7 @@ const mockConcerts: Concert[] = [
   {
     id: 3,
     band: 'Velvet Revolution',
+    songTitle: 'City Pulse',
     venue: 'Madison Square Garden',
     date: '2023-10-10T20:00:00-05:00',
     audioFile: '/audio/sample.opus',
@@ -98,6 +101,7 @@ describe('DataService', () => {
       expect(concerts[0]).toHaveProperty('venue');
       expect(concerts[0]).toHaveProperty('date');
       expect(concerts[0]).toHaveProperty('audioFile');
+      expect(concerts[0]).toHaveProperty('songTitle');
     });
 
     it('should return cached data on subsequent calls without fetching', async () => {

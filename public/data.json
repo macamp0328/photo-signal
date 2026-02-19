@@ -3,6 +3,7 @@
     {
       "id": 1,
       "band": "Teddy and the Rough Riders",
+      "songTitle": "Catfish Summer",
       "venue": "The White Horse",
       "date": "2025-03-15T10:39:37-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-teddy-and-the-rough-riders-catfish-summer-catfish-summer.opus",
@@ -25,6 +26,7 @@
     {
       "id": 2,
       "band": "Jonny Fritz",
+      "songTitle": "Goodbye Summer",
       "venue": "The White Horse",
       "date": "2025-03-15T12:42:07-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jonny-fritz-goodbye-summer-dad-country.opus",
@@ -47,6 +49,7 @@
     {
       "id": 3,
       "band": "Jo Alice",
+      "songTitle": "Give Me Some Good News When I Call",
       "venue": "The Belmont",
       "date": "2025-03-15T14:21:24-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call.opus",
@@ -69,6 +72,7 @@
     {
       "id": 4,
       "band": "Maz",
+      "songTitle": "",
       "venue": "The Belmont",
       "date": "2025-03-15T15:30:11-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -91,6 +95,7 @@
     {
       "id": 5,
       "band": "Ramesh",
+      "songTitle": "Revolution",
       "venue": "The Belmont",
       "date": "2025-03-15T16:06:49-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ramesh-revolution-eternal-spring.opus",
@@ -113,6 +118,7 @@
     {
       "id": 6,
       "band": "Twin Shadow",
+      "songTitle": "As Soon As You Can",
       "venue": "The Belmont",
       "date": "2025-03-15T17:20:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-twin-shadow-as-soon-as-you-can-georgie.opus",
@@ -135,6 +141,7 @@
     {
       "id": 7,
       "band": "SNACKTIME",
+      "songTitle": "SDTS",
       "venue": "The Belmont",
       "date": "2025-03-15T19:11:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-snacktime-sdts-this-is-dance-music.opus",
@@ -157,6 +164,7 @@
     {
       "id": 8,
       "band": "Ringo Deathstarr",
+      "songTitle": "Kaleidoscope",
       "venue": "Try Hard Coffee",
       "date": "2022-03-17T13:34:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ringo-deathstarr-kaleidoscope-colour-trip.opus",
@@ -179,6 +187,7 @@
     {
       "id": 9,
       "band": "Buffalo Rose",
+      "songTitle": "",
       "venue": "Fairmont Austin",
       "date": "2022-03-18T12:29:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -201,6 +210,7 @@
     {
       "id": 10,
       "band": "Primo the Alien",
+      "songTitle": "",
       "venue": "Downright Austin",
       "date": "2022-03-18T14:24:03-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -223,6 +233,7 @@
     {
       "id": 11,
       "band": "Croy and the Boys",
+      "songTitle": "",
       "venue": "Hotel Vegas",
       "date": "2022-03-19T07:28:55-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -245,6 +256,7 @@
     {
       "id": 12,
       "band": "Heavy Meddo",
+      "songTitle": "",
       "venue": "The Volstead Lounge",
       "date": "2022-03-19T08:19:18-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -267,6 +279,7 @@
     {
       "id": 13,
       "band": "Thelma and the Sleaze",
+      "songTitle": "",
       "venue": "Mohawk",
       "date": "2022-03-19T09:53:27-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -289,6 +302,7 @@
     {
       "id": 14,
       "band": "Croy and the Boys",
+      "songTitle": "",
       "venue": "Saddle Up + BBQ",
       "date": "2022-03-19T14:16:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -311,6 +325,7 @@
     {
       "id": 15,
       "band": "White Denim",
+      "songTitle": "Magazin",
       "venue": "High Noon",
       "date": "2022-03-19T17:49:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-magazin-performance.opus",
@@ -333,6 +348,7 @@
     {
       "id": 16,
       "band": "Overcoats",
+      "songTitle": "",
       "venue": "Cheer Up Charlies",
       "date": "2023-03-14T13:04:22-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -355,6 +371,7 @@
     {
       "id": 17,
       "band": "Cas Haley",
+      "songTitle": "",
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -377,6 +394,7 @@
     {
       "id": 18,
       "band": "Le Ren",
+      "songTitle": "",
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T15:40:33-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -399,6 +417,7 @@
     {
       "id": 19,
       "band": "Thao & the Get Down Stay Down",
+      "songTitle": "",
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T17:56:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -421,6 +440,7 @@
     {
       "id": 20,
       "band": "Charlie John",
+      "songTitle": "",
       "venue": "The Lucky Duck",
       "date": "2023-03-16T12:09:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -443,6 +463,7 @@
     {
       "id": 21,
       "band": "Voxtrot",
+      "songTitle": "Mothers Sisters Daughters and Wives",
       "venue": "Mohawk",
       "date": "2023-03-16T14:27:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-mothers-sisters-daughters-and-wives-early-music.opus",
@@ -465,6 +486,7 @@
     {
       "id": 22,
       "band": "Arya",
+      "songTitle": "",
       "venue": "French Legation",
       "date": "2023-03-17T08:46:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -487,6 +509,7 @@
     {
       "id": 23,
       "band": "Cheekface",
+      "songTitle": "",
       "venue": "High Noon",
       "date": "2023-03-17T10:14:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -509,6 +532,7 @@
     {
       "id": 24,
       "band": "dog petting",
+      "songTitle": "",
       "venue": "",
       "date": "2023-03-17T11:03:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -531,6 +555,7 @@
     {
       "id": 25,
       "band": "David Ramirez",
+      "songTitle": "",
       "venue": "The White Horse",
       "date": "2023-03-17T12:11:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -553,6 +578,7 @@
     {
       "id": 26,
       "band": "Crumbsnatchers",
+      "songTitle": "",
       "venue": "Parish",
       "date": "2023-03-18T07:44:19-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -575,6 +601,7 @@
     {
       "id": 27,
       "band": "Izzy Heltai",
+      "songTitle": "",
       "venue": "Parish",
       "date": "2023-03-18T08:20:11-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -597,6 +624,7 @@
     {
       "id": 28,
       "band": "Riley Downing",
+      "songTitle": "",
       "venue": "Parish",
       "date": "2023-03-18T09:21:35-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -619,6 +647,7 @@
     {
       "id": 29,
       "band": "Matthew Logan Vasquez",
+      "songTitle": "",
       "venue": "C-Boy's Heart & Soul",
       "date": "2023-03-18T13:09:48-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -641,6 +670,7 @@
     {
       "id": 30,
       "band": "Willow Parlo",
+      "songTitle": "Cant Get Enough",
       "venue": "Parkside",
       "date": "2024-03-11T13:41:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-cant-get-enough-see-u-whenever.opus",
@@ -663,6 +693,7 @@
     {
       "id": 31,
       "band": "Ace Park",
+      "songTitle": "MY BOP",
       "venue": "Vaquero Taquero",
       "date": "2024-03-11T14:48:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-my-bop-mifits-in-the-park.opus",
@@ -685,6 +716,7 @@
     {
       "id": 32,
       "band": "Red Axes",
+      "songTitle": "",
       "venue": "Mohawk",
       "date": "2024-03-11T15:53:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -707,6 +739,7 @@
     {
       "id": 33,
       "band": "Jo Alice",
+      "songTitle": "Give Me Some Good News When I Call",
       "venue": "Mohawk",
       "date": "2024-03-11T18:12:07-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call.opus",
@@ -729,6 +762,7 @@
     {
       "id": 34,
       "band": "Telescreens",
+      "songTitle": "",
       "venue": "Mohawk",
       "date": "2024-03-11T19:46:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -751,6 +785,7 @@
     {
       "id": 35,
       "band": "Sea_n Barna",
+      "songTitle": "Disco Nap",
       "venue": "The Iron Bear",
       "date": "2024-03-12T15:03:20-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sen-barna-disco-nap-an-evening-at-macri-park.opus",
@@ -773,6 +808,7 @@
     {
       "id": 36,
       "band": "Bootsy Collins",
+      "songTitle": "",
       "venue": "Mohawk",
       "date": "2024-03-12T16:51:05-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -795,6 +831,7 @@
     {
       "id": 37,
       "band": "FANTAAZMA",
+      "songTitle": "Rocketship feat Bootsy Collins and Kokane",
       "venue": "Mohawk",
       "date": "2024-03-12T16:56:58-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane.opus",
@@ -817,6 +854,7 @@
     {
       "id": 38,
       "band": "Witworth",
+      "songTitle": "World War",
       "venue": "The White Horse",
       "date": "2024-03-13T10:25:34-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-whitworth-world-war-world-war.opus",
@@ -839,6 +877,7 @@
     {
       "id": 39,
       "band": "Mugger",
+      "songTitle": "",
       "venue": "Hotel Vegas",
       "date": "2024-03-13T10:49:22-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -861,6 +900,7 @@
     {
       "id": 40,
       "band": "chokecherry",
+      "songTitle": "",
       "venue": "Hotel Vegas",
       "date": "2024-03-13T11:51:43-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -883,6 +923,7 @@
     {
       "id": 41,
       "band": "Sextile",
+      "songTitle": "Crassy Mel",
       "venue": "Hotel Vegas",
       "date": "2024-03-13T12:05:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-crassy-mel-push.opus",
@@ -905,6 +946,7 @@
     {
       "id": 42,
       "band": "Bad Bad Hats",
+      "songTitle": "TPA",
       "venue": "Mohawk",
       "date": "2024-03-13T15:20:44-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-tpa-bad-bad-hats.opus",
@@ -927,6 +969,7 @@
     {
       "id": 43,
       "band": "SNACKTIME",
+      "songTitle": "SNACKMFTIME",
       "venue": "Mohawk",
       "date": "2024-03-13T16:41:20-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-snacktime-snackmftime-sounds-from-the-street-live.opus",
@@ -949,6 +992,7 @@
     {
       "id": 44,
       "band": "Balthvs",
+      "songTitle": "Sun and Moon",
       "venue": "Mohawk",
       "date": "2024-03-13T17:27:46-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-and-moon-sun-and-moon.opus",
@@ -971,6 +1015,7 @@
     {
       "id": 45,
       "band": "Thus Love",
+      "songTitle": "Put On Dog",
       "venue": "Mohawk",
       "date": "2024-03-13T18:29:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-put-on-dog.opus",
@@ -993,6 +1038,7 @@
     {
       "id": 46,
       "band": "Voxtrot",
+      "songTitle": "My Peace",
       "venue": "Mohawk",
       "date": "2024-03-13T19:20:58-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-my-peace-esprit-de-cur.opus",
@@ -1015,6 +1061,7 @@
     {
       "id": 47,
       "band": "",
+      "songTitle": "",
       "venue": "",
       "date": "2024-03-14T09:38:25-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1037,6 +1084,7 @@
     {
       "id": 48,
       "band": "",
+      "songTitle": "",
       "venue": "",
       "date": "2024-03-14T10:34:06-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1059,6 +1107,7 @@
     {
       "id": 49,
       "band": "Reyna Tropical",
+      "songTitle": "Conocerla",
       "venue": "Hotel Vegas",
       "date": "2024-03-14T10:45:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-malegra.opus",
@@ -1081,6 +1130,7 @@
     {
       "id": 50,
       "band": "cumgirl8",
+      "songTitle": "cursed angel",
       "venue": "Hotel Vegas",
       "date": "2024-03-14T11:24:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-cursed-angel-phantasea-pharm.opus",
@@ -1103,6 +1153,7 @@
     {
       "id": 51,
       "band": "Telescreens",
+      "songTitle": "",
       "venue": "The Volstead Lounge",
       "date": "2024-03-14T11:41:07-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1125,6 +1176,7 @@
     {
       "id": 52,
       "band": "Eyeam",
+      "songTitle": "Breaking Down",
       "venue": "Austin Garden & Studio",
       "date": "2024-03-14T13:42:38-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-eyeam-breaking-down-breaking-down.opus",
@@ -1147,6 +1199,7 @@
     {
       "id": 53,
       "band": "Dry Cleaning",
+      "songTitle": "Strong Feelings",
       "venue": "Renaissance Hotel",
       "date": "2024-03-14T15:08:31-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-strong-feelings-new-long-leg.opus",
@@ -1169,6 +1222,7 @@
     {
       "id": 54,
       "band": "Voxtrot",
+      "songTitle": "My Peace",
       "venue": "Stubb's Bar-B-Q",
       "date": "2024-03-14T16:28:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-my-peace-my-peace.opus",
@@ -1191,6 +1245,7 @@
     {
       "id": 55,
       "band": "Babe Corner",
+      "songTitle": "Caught on the Double",
       "venue": "Swan Dive",
       "date": "2024-03-14T17:18:05-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-babe-corner-caught-on-the-double-crybaby.opus",
@@ -1213,6 +1268,7 @@
     {
       "id": 56,
       "band": "Super Duty Tough Work",
+      "songTitle": "Guillotine Dreams",
       "venue": "Swan Dive",
       "date": "2024-03-14T17:44:00-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-super-duty-tough-work-guillotine-dreams-paradigm-shift.opus",
@@ -1235,6 +1291,7 @@
     {
       "id": 57,
       "band": "Hinds",
+      "songTitle": "Coffee",
       "venue": "High Noon",
       "date": "2024-03-15T06:21:48-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-hinds-coffee-coffee.opus",
@@ -1257,6 +1314,7 @@
     {
       "id": 58,
       "band": "Shower Curtain",
+      "songTitle": "",
       "venue": "High Noon",
       "date": "2024-03-15T06:50:29-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1279,6 +1337,7 @@
     {
       "id": 59,
       "band": "The Barr Brothers",
+      "songTitle": "Red Moth Solar Companion",
       "venue": "The Coral Snake",
       "date": "2024-03-15T07:50:55-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-barr-brothers-red-moth-solar-companion-red-moth-solar-companion.opus",
@@ -1301,6 +1360,7 @@
     {
       "id": 60,
       "band": "Mamalarkey",
+      "songTitle": "You Know I Know",
       "venue": "The Coral Snake",
       "date": "2024-03-15T08:28:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mamalarky-you-know-i-know-pocket-fantasy.opus",
@@ -1323,6 +1383,7 @@
     {
       "id": 61,
       "band": "City of the Sun",
+      "songTitle": "",
       "venue": "The Coral Snake",
       "date": "2024-03-15T10:45:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1345,6 +1406,7 @@
     {
       "id": 62,
       "band": "The Deslondes",
+      "songTitle": "South Dakota Wild One",
       "venue": "High Noon",
       "date": "2024-03-15T11:36:40-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-south-dakota-wild-one-ways-and-means.opus",
@@ -1367,6 +1429,7 @@
     {
       "id": 63,
       "band": "Squirrel Flower",
+      "songTitle": "Alley Light",
       "venue": "High Noon",
       "date": "2024-03-15T12:15:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-squirrel-flower-alley-light-alley-light.opus",
@@ -1389,6 +1452,7 @@
     {
       "id": 64,
       "band": "Lucky Lo",
+      "songTitle": "",
       "venue": "Swan Dive",
       "date": "2024-03-15T16:39:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1411,6 +1475,7 @@
     {
       "id": 65,
       "band": "Divorce",
+      "songTitle": "Gears",
       "venue": "Swan Dive",
       "date": "2024-03-15T17:17:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-gears-gears.opus",
@@ -1433,6 +1498,7 @@
     {
       "id": 66,
       "band": "Ang�lica Garcia",
+      "songTitle": "",
       "venue": "Swan Dive",
       "date": "2024-03-15T18:40:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1455,6 +1521,7 @@
     {
       "id": 67,
       "band": "Urban Heat",
+      "songTitle": "Right Time of Night",
       "venue": "The Coral Snake",
       "date": "2024-03-16T09:29:03-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-urban-heat-right-time-of-night-right-time-of-night.opus",
@@ -1477,6 +1544,7 @@
     {
       "id": 68,
       "band": "The Tender Things",
+      "songTitle": "That Texas Touch",
       "venue": "High Noon",
       "date": "2024-03-16T10:12:36-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-tender-things-that-texas-touch-that-texas-touch.opus",
@@ -1499,6 +1567,7 @@
     {
       "id": 69,
       "band": "Vera Ellen",
+      "songTitle": "Broadway Junction",
       "venue": "Lazarus Brewing Co.",
       "date": "2024-03-16T12:36:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-vera-ellen-broadway-junction-ideal-home-noise.opus",
@@ -1521,6 +1590,7 @@
     {
       "id": 70,
       "band": "Ramesh",
+      "songTitle": "The Fool",
       "venue": "Lazarus Brewing Co.",
       "date": "2024-03-16T13:50:56-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ramesh-the-fool-eternal-spring.opus",
@@ -1543,6 +1613,7 @@
     {
       "id": 71,
       "band": "Emily Barker",
+      "songTitle": "Wild to be Sharing This Moment",
       "venue": "Swan Dive",
       "date": "2024-03-16T16:43:56-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-emily-barker-wild-to-be-sharing-this-moment-fragile-as-humans.opus",
@@ -1565,6 +1636,7 @@
     {
       "id": 72,
       "band": "Hinds",
+      "songTitle": "Riding Solo",
       "venue": "Swan Dive",
       "date": "2024-03-16T17:54:47-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-hinds-riding-solo-the-prettiest-curse.opus",
@@ -1587,6 +1659,7 @@
     {
       "id": 73,
       "band": "Dale Watson",
+      "songTitle": "South Of Round Rock Texas",
       "venue": "3Ten ACL",
       "date": "2025-03-08T10:37:05-06:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dale-watson-south-of-round-rock-texas-cheatin-heart-attack.opus",
@@ -1609,6 +1682,7 @@
     {
       "id": 74,
       "band": "Sir Woman",
+      "songTitle": "Get Out Of My Mind",
       "venue": "Augustine Cocktail Bar ??",
       "date": "2025-03-09T11:16:00-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sir-woman-get-out-of-my-mind-get-out-of-my-mind.opus",
@@ -1631,6 +1705,7 @@
     {
       "id": 75,
       "band": "Otis Wilkins",
+      "songTitle": "Belong To The Sea",
       "venue": "Hotel Vegas",
       "date": "2025-03-09T14:48:33-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-otis-wilkins-belong-to-the-sea-belong-to-the-sea.opus",
@@ -1653,6 +1728,7 @@
     {
       "id": 76,
       "band": "SKLOSS",
+      "songTitle": "The Pattern Speaks",
       "venue": "The Volstead Lounge",
       "date": "2025-03-09T15:20:36-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-skloss-the-pattern-speaks-the-pattern-speaks.opus",
@@ -1675,6 +1751,7 @@
     {
       "id": 77,
       "band": "Croy and the Boys",
+      "songTitle": "",
       "venue": "The White Horse",
       "date": "2025-03-11T14:11:53-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1697,6 +1774,7 @@
     {
       "id": 78,
       "band": "Random Band",
+      "songTitle": "",
       "venue": "Hotel Vegas",
       "date": "2025-03-11T14:53:40-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1719,6 +1797,7 @@
     {
       "id": 79,
       "band": "Big Girl",
+      "songTitle": "DIY GOD",
       "venue": "The Liberty",
       "date": "2025-03-11T16:26:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-big-girl-diy-god-diy-god.opus",
@@ -1741,6 +1820,7 @@
     {
       "id": 80,
       "band": "Stop Motion Orchestra",
+      "songTitle": "Blue Fog",
       "venue": "The Liberty",
       "date": "2025-03-11T17:32:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-stop-motion-orchestra-blue-fog-hydnora.opus",
@@ -1763,6 +1843,7 @@
     {
       "id": 81,
       "band": "Die Spitz",
+      "songTitle": "Hair of Dog",
       "venue": "The 13th floor",
       "date": "2025-03-13T13:26:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-die-spitz-hair-of-dog-teeth.opus",
@@ -1785,6 +1866,7 @@
     {
       "id": 82,
       "band": "Shoganai",
+      "songTitle": "Carving",
       "venue": "Lizard House",
       "date": "2025-03-13T14:47:34-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shoganai-carving-shoganai.opus",
@@ -1807,6 +1889,7 @@
     {
       "id": 83,
       "band": "STEEF",
+      "songTitle": "Thats How I Feel",
       "venue": "Lizard House",
       "date": "2025-03-13T15:31:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-steef-thats-how-i-feel-frozen-in-place-thats-how-i-feel.opus",
@@ -1829,6 +1912,7 @@
     {
       "id": 84,
       "band": "Blah Spa",
+      "songTitle": "",
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:13:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1851,6 +1935,7 @@
     {
       "id": 85,
       "band": "Big Girl",
+      "songTitle": "Instructions 2 Say Sorry",
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:34:29-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-big-girl-instructions-2-say-sorry-instructions-2-say-sorry.opus",
@@ -1873,6 +1958,7 @@
     {
       "id": 86,
       "band": "Teenage Sequence",
+      "songTitle": "All This Art",
       "venue": "King Bee",
       "date": "2025-03-13T17:11:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-teenage-sequence-all-this-art-teenage-sequence.opus",
@@ -1895,6 +1981,7 @@
     {
       "id": 87,
       "band": "Rankydank",
+      "songTitle": "Feelin Sexual",
       "venue": "King Bee",
       "date": "2025-03-13T18:05:38-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-rankydank-feelin-sexual-feelin-sexual.opus",
@@ -1917,6 +2004,7 @@
     {
       "id": 88,
       "band": "Majvi Superstar",
+      "songTitle": "Fever Dreaming",
       "venue": "Lizard House",
       "date": "2025-03-14T14:54:18-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-majvi-superstar-fever-dreaming-fever-dreaming.opus",
@@ -1939,6 +2027,7 @@
     {
       "id": 89,
       "band": "Maruja",
+      "songTitle": "Aon",
       "venue": "Mohawk",
       "date": "2025-03-14T17:41:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-maruja-aon-aon.opus",
@@ -1961,6 +2050,7 @@
     {
       "id": 90,
       "band": "Bon Enfant",
+      "songTitle": "Minimum",
       "venue": "Mohawk",
       "date": "2025-03-14T18:13:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bon-enfant-minimum-demande-spciale.opus",
@@ -1983,6 +2073,7 @@
     {
       "id": 91,
       "band": "Voxtrot",
+      "songTitle": "Mothers Sisters Daughters and Wives",
       "venue": "Mohawk",
       "date": "2025-03-14T19:12:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-mothers-sisters-daughters-and-wives-early-music.opus",

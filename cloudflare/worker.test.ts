@@ -76,6 +76,28 @@ describe('Cloudflare worker', () => {
     expect(await response.text()).toBe('audio-data');
   });
 
+  it('serves audio for requests without an Origin header', async () => {
+    const env = createEnv();
+    const response = await worker.fetch(createRequest('/prod/audio/test.opus'), env);
+
+    expect(response.status).toBe(200);
+    expect(env.AUDIO.head).toHaveBeenCalledWith('prod/audio/test.opus');
+    expect(env.AUDIO.get).toHaveBeenCalledWith('prod/audio/test.opus', undefined);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
+    expect(response.headers.get('Access-Control-Expose-Headers')).toBe(
+      'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+    );
+  });
+
+  it('rejects requests without Origin when shared secret is configured', async () => {
+    const env = createEnv({ sharedSecret: 'secret' });
+    const response = await worker.fetch(createRequest('/prod/audio/test.opus'), env);
+
+    expect(response.status).toBe(403);
+    expect(env.AUDIO.head).not.toHaveBeenCalled();
+    expect(env.AUDIO.get).not.toHaveBeenCalled();
+  });
+
   it('allows wildcard origins that match the configured pattern', async () => {
     const env = createEnv({ allowedOrigins: 'https://photo-signal-*.vercel.app' });
     const response = await worker.fetch(

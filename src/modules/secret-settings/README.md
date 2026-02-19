@@ -211,7 +211,7 @@ Compatibility no-op hook. Recognition parameters are intentionally hardcoded and
 
 ```typescript
 function useCustomSettings(): {
-  settings: [];
+  settings: CustomSetting[];
   updateSetting: (id: string, value: string | number | boolean) => void;
   getSetting: <T>(id: string) => T | undefined;
   resetSettings: () => void;

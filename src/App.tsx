@@ -459,7 +459,9 @@ function AppContent() {
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
   const nowPlayingLine = activeConcert
-    ? `${activeConcert.band} • ${Math.round(progress * 100)}% through the cut`
+    ? activeConcert.songTitle
+      ? `${activeConcert.band} — ${activeConcert.songTitle}`
+      : activeConcert.band
     : isPlaying
       ? 'Deck is running — waiting on a stable band lock'
       : 'Receiver idle — lift the camera to wake playback';
@@ -504,9 +506,6 @@ function AppContent() {
           <p>
             Live now: {activeConcert?.band}. Confirm switch to {pendingSwitchConcert?.band}.
           </p>
-        ) : null}
-        {activeConcert && isInfoActive && !isPlaying ? (
-          <p>Deck paused. Tap play to roll again.</p>
         ) : null}
       </>
     ) : null;

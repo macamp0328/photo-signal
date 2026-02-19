@@ -73,10 +73,10 @@ describe('InfoDisplay', () => {
       expect(screen.getByText(/Signal:\s*Now Playing/i)).toBeInTheDocument();
     });
 
-    it('should display a zero-padded archive number', () => {
+    it('should not display archive tag copy', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.getByText(/Archive\s*#01/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Archive\s*#01/i)).not.toBeInTheDocument();
     });
 
     it('should allow a custom status label', () => {

@@ -213,7 +213,7 @@ Refer to the corresponding sections inside [scripts/README.md](../README.md) for
 Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally CSV-driven so you can edit in Excel and re-run deterministically.
 
 1. **Generate/refresh photo catalog (optional):**
-   - Run `npm run create-photo-csv` to rebuild `assets/prod-photographs/prod-photographs-details.csv` from EXIF in `assets/prod-photographs/` (fills `imageFile`, date, camera fields; `band`/`venue` remain manual).
+   - Run `npm run create-photo-csv` to rebuild `assets/prod-photographs/prod-photographs-details.csv` from EXIF in `assets/prod-photographs/` (fills `imageFile`, date, camera fields; `band`/`venue`/`songTitle` remain manual).
 
 2. **Run band-only matcher:**
    - `node scripts/audio-workflow/build-photo-audio-map.js`
@@ -235,6 +235,7 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
 
 5. **Build runtime dataset from CSV:**
    - Run `npm run audio:build-data -- --base-url=<worker-url> --prefix=prod/audio` to regenerate `public/data.json` deterministically from `prod-photographs-details.csv` + `audio-index.json`.
+   - `songTitle` in `public/data.json` is sourced from CSV (`songTitle`) first, then falls back to `audio-index.json` track title.
 
 6. **Regenerate recognition hashes:**
    - Run `npm run update-recognition-data -- --input public/data.json --public public/data.json --batch-size 2` (or adjust batch size for your environment).

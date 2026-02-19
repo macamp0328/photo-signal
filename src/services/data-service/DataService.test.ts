@@ -102,6 +102,7 @@ describe('DataService', () => {
       expect(concerts[0]).toHaveProperty('date');
       expect(concerts[0]).toHaveProperty('audioFile');
       expect(concerts[0]).toHaveProperty('songTitle');
+      expect(concerts[0].songTitle).toBe('Night Lines');
     });
 
     it('should return cached data on subsequent calls without fetching', async () => {

@@ -13,6 +13,17 @@ import type { RecognitionDebugInfo } from '../photo-recognition/types';
 export type RecognitionStatus = 'IDLE' | 'CHECKING' | 'MATCHING' | 'RECOGNIZED';
 
 /**
+ * Controls for the 30-second telemetry recording flow embedded in the debug overlay.
+ */
+export interface TelemetryRecordingControls {
+  state: 'idle' | 'recording' | 'done';
+  secondsRemaining: number;
+  onStart: () => void;
+  onDownload: () => void;
+  onDiscard: () => void;
+}
+
+/**
  * Props for DebugOverlay component
  */
 export interface DebugOverlayProps {
@@ -34,4 +45,6 @@ export interface DebugOverlayProps {
   onReset?: () => void;
   /** Audio URL to use for the Test Song diagnostic button */
   testAudioUrl?: string | null;
+  /** Controls for the 30-second telemetry recording flow */
+  telemetryRecording: TelemetryRecordingControls;
 }

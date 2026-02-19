@@ -3,13 +3,26 @@ import type {
   FailureCategory,
   FailureDiagnostic,
   FrameQualityInfo,
+  FrameQualityStats,
   GuidanceType,
+  HammingDistanceLog,
   RecognitionTelemetry,
 } from './types';
 
 export const PHASH_HEX_LENGTH = 16;
 export const PHASH_MAX_DISTANCE = PHASH_HEX_LENGTH * 4;
 const PHASH_HEX_PATTERN = /^[0-9a-f]+$/i;
+
+const emptyFrameQualityStats = (): FrameQualityStats => ({
+  blur: { sharpnessSum: 0, sampleCount: 0 },
+  glare: { glarePercentSum: 0, sampleCount: 0 },
+  lighting: { brightnessSum: 0, sampleCount: 0 },
+});
+
+const emptyHammingDistanceLog = (): HammingDistanceLog => ({
+  nearMisses: [],
+  matchedFrameDistances: { min: null, max: null, sum: 0, count: 0 },
+});
 
 export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   totalFrames: 0,
@@ -72,6 +85,8 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
       shownAt: null,
     },
   },
+  frameQualityStats: emptyFrameQualityStats(),
+  hammingDistanceLog: emptyHammingDistanceLog(),
 });
 
 export const similarityPercent = (distance: number): number =>
@@ -105,7 +120,7 @@ export const recordFailure = (
     timestamp: Date.now(),
   };
   telemetry.failureHistory.push(diagnostic);
-  if (telemetry.failureHistory.length > 10) {
+  if (telemetry.failureHistory.length > 50) {
     telemetry.failureHistory.shift();
   }
 };

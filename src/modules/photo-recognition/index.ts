@@ -8,8 +8,8 @@
 
 export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';
 export { FrameQualityIndicator } from './FrameQualityIndicator';
-export { TelemetryExport } from './TelemetryExport';
 export { GuidanceMessage } from './GuidanceMessage';
+export { computeActiveSettings, computeAiRecommendations } from './telemetryAnalysis';
 export type {
   PhotoRecognitionHook,
   PhotoRecognitionOptions,
@@ -22,4 +22,8 @@ export type {
   FailureCategory,
   FailureDiagnostic,
   HashAlgorithm,
+  FrameQualityStats,
+  HammingDistanceLog,
+  NearMissEntry,
 } from './types';
+export type { ActiveSettings, AiRecommendation } from './telemetryAnalysis';

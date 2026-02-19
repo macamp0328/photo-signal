@@ -269,6 +269,10 @@ export function usePhotoRecognition(
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null);
 
+  const resetTelemetry = useCallback(() => {
+    telemetryRef.current = createEmptyTelemetry();
+  }, []);
+
   const reset = useCallback(() => {
     recognizedConcertRef.current = null;
     lastMatchedConcertRef.current = null;
@@ -423,12 +427,19 @@ export function usePhotoRecognition(
         if (!quality.isSharp) {
           telemetryRef.current.blurRejections += 1;
           recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
+          telemetryRef.current.frameQualityStats.blur.sharpnessSum += sharpness;
+          telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
         } else if (quality.hasGlare) {
           telemetryRef.current.glareRejections += 1;
           recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+          telemetryRef.current.frameQualityStats.glare.glarePercentSum += glare.glarePercentage;
+          telemetryRef.current.frameQualityStats.glare.sampleCount += 1;
         } else {
           telemetryRef.current.lightingRejections += 1;
           recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+          telemetryRef.current.frameQualityStats.lighting.brightnessSum +=
+            lighting.averageBrightness;
+          telemetryRef.current.frameQualityStats.lighting.sampleCount += 1;
         }
 
         lastMatchedConcertRef.current = null;
@@ -673,6 +684,31 @@ export function usePhotoRecognition(
           return;
         }
 
+        // Accumulate hamming distance data for quality-passing frames
+        if (bestMatch !== null) {
+          const dist = bestMatch.distance;
+          const hdLog = telemetryRef.current.hammingDistanceLog;
+          hdLog.matchedFrameDistances.count += 1;
+          hdLog.matchedFrameDistances.sum += dist;
+          if (hdLog.matchedFrameDistances.min === null || dist < hdLog.matchedFrameDistances.min) {
+            hdLog.matchedFrameDistances.min = dist;
+          }
+          if (hdLog.matchedFrameDistances.max === null || dist > hdLog.matchedFrameDistances.max) {
+            hdLog.matchedFrameDistances.max = dist;
+          }
+          // Near-miss: above threshold but close enough to be informative for tuning
+          if (dist > similarityThreshold && dist <= similarityThreshold + 8) {
+            hdLog.nearMisses.push({
+              distance: dist,
+              frameHash: currentHash,
+              timestamp: Date.now(),
+            });
+            if (hdLog.nearMisses.length > 20) {
+              hdLog.nearMisses.shift();
+            }
+          }
+        }
+
         // Stability progress for debug overlay
         const stability = computeStability(activeMatch, isSwitchMode, now);
 
@@ -911,6 +947,7 @@ export function usePhotoRecognition(
     recognizedConcert,
     isRecognizing,
     reset,
+    resetTelemetry,
     debugInfo,
     frameQuality,
     activeGuidance,

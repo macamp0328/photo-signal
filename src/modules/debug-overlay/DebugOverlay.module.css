@@ -638,3 +638,66 @@
   color: var(--debug-text);
   outline: none;
 }
+
+/* Telemetry Recording Section */
+.telemetrySection {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.telemetryButton {
+  background: color-mix(in srgb, var(--debug-accent) 15%, transparent);
+  color: var(--debug-accent);
+  border: 1px solid color-mix(in srgb, var(--debug-accent) 45%, transparent);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.telemetryButton:hover,
+.telemetryButton:focus-visible {
+  background: color-mix(in srgb, var(--debug-accent) 35%, transparent);
+  color: var(--debug-text);
+  border-color: color-mix(in srgb, var(--debug-accent) 70%, transparent);
+  outline: none;
+}
+
+.telemetryButtonSecondary {
+  background: transparent;
+  color: var(--debug-muted);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.6875rem;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.telemetryButtonSecondary:hover,
+.telemetryButtonSecondary:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--debug-text);
+  outline: none;
+}
+
+.telemetryRecording {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--debug-warning);
+  font-style: italic;
+}
+
+.telemetryActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

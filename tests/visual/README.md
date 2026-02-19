@@ -61,8 +61,9 @@ npm run test:visual:report
 Workflow: `.github/workflows/visual-regression.yml`
 
 - **Blocking**: `@smoke` on `Mobile Chrome` + `Mobile Safari`
-- **Informational**: `@extended` runs after smoke and uploads artifacts
-- **PR outcome**: smoke failures fail the workflow; extended failures are reported for review
+- **Extended coverage**: `@extended` runs after smoke across configured projects
+- **PR outcome**: any detected visual change (smoke or extended) fails the workflow to provide a clear visual-change signal
+- **Diagnostics**: artifacts and PR comment are emitted on failures to support intentional snapshot updates vs unexpected regressions
 
 ## Snapshot Acceptance Criteria
 

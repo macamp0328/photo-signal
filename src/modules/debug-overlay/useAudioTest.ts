@@ -18,7 +18,7 @@ export interface UseAudioTestReturn {
 }
 
 const TEST_PLAYBACK_TIMEOUT_MS = 5000;
-const TEST_VOLUME = 0.15;
+const TEST_VOLUME = 0.8;
 
 function canPlayContentType(contentType: string | null): boolean | null {
   if (!contentType || typeof Audio === 'undefined') {
@@ -154,16 +154,11 @@ export function useAudioTest(): UseAudioTestReturn {
           timeoutRef.current = null;
         }
 
-        // Stop immediately — we just wanted to confirm playback works
-        sound.stop();
-        sound.unload();
-        testSoundRef.current = null;
-
         if (isMountedRef.current) {
           setTestResult({
             diagnostic,
             playbackOutcome: 'success',
-            playbackDetail: 'Audio loaded and played successfully.',
+            playbackDetail: 'Audio started successfully and is now playing.',
             durationMs: Date.now() - startTime,
           });
           setIsTestRunning(false);

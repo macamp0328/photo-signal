@@ -327,12 +327,12 @@ function main() {
 
       const selectedFile = selectedTrack?.fileName ?? 'concert-4.opus';
       const csvSongTitle = String(row.songTitle ?? '').trim();
-      const songTitle = csvSongTitle || selectedTrack?.songTitle || '';
+      const songTitle = csvSongTitle || selectedTrack?.songTitle || undefined;
 
       return {
         id,
         band: sourceBand,
-        songTitle,
+        ...(songTitle !== undefined && { songTitle }),
         venue: String(row.venue ?? ''),
         date: String(row.date ?? ''),
         audioFile: formatAudioUrl(baseUrl, prefix, selectedFile),

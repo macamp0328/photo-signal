@@ -226,16 +226,19 @@ export default {
     const url = new URL(request.url);
     const allowedOrigins = parseAllowedOrigins(env.ALLOWED_ORIGINS);
     const origin = request.headers.get('Origin');
+    const isNonCorsRequest = !origin;
     const matchedOrigin = matchAllowedOrigin(origin, allowedOrigins);
+    const requiresSecretForNonCors = isNonCorsRequest && Boolean(env.SHARED_SECRET);
     const hasSharedSecret =
       Boolean(env.SHARED_SECRET) &&
       safeCompare(request.headers.get('X-PS-Shared-Secret'), env.SHARED_SECRET);
     const allowAnyOrigin = hasSharedSecret;
-    const originAllowed = Boolean(matchedOrigin) || allowAnyOrigin;
+    const nonCorsAllowed = isNonCorsRequest && (!requiresSecretForNonCors || hasSharedSecret);
+    const originAllowed = Boolean(matchedOrigin) || allowAnyOrigin || nonCorsAllowed;
     const corsOrigin = allowAnyOrigin ? (origin ?? matchedOrigin) : matchedOrigin;
 
     if (request.method === 'OPTIONS') {
-      if (!originAllowed) {
+      if (!origin || !originAllowed) {
         return new Response('Forbidden', { status: 403, headers: { Vary: 'Origin' } });
       }
       return new Response(null, {

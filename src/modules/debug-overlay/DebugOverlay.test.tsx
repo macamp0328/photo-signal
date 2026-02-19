@@ -115,6 +115,13 @@ describe('DebugOverlay', () => {
     debugInfo: mockDebugInfo,
     threshold: undefined,
     onReset: undefined,
+    telemetryRecording: {
+      state: 'idle',
+      secondsRemaining: 30,
+      onStart: vi.fn(),
+      onDownload: vi.fn(),
+      onDiscard: vi.fn(),
+    },
   };
 
   beforeEach(() => {

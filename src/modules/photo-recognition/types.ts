@@ -144,6 +144,7 @@ export interface PhotoRecognitionHook {
   recognizedConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;
+  resetTelemetry: () => void;
   debugInfo: RecognitionDebugInfo | null;
   frameQuality: FrameQualityInfo | null;
   activeGuidance: GuidanceType;

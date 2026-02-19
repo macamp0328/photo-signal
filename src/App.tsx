@@ -15,7 +15,8 @@ import {
   usePhotoRecognition,
   FrameQualityIndicator,
   GuidanceMessage,
-  TelemetryExport,
+  computeActiveSettings,
+  computeAiRecommendations,
 } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
@@ -144,6 +145,14 @@ function AppContent() {
   // Track whether debug overlay is currently visible/expanded
   const [isDebugOverlayVisible, setIsDebugOverlayVisible] = useState(true);
 
+  // Telemetry recording state
+  const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'done'>('idle');
+  const [secondsRemaining, setSecondsRemaining] = useState(30);
+  const capturedTelemetryRef = useRef<RecognitionTelemetry | null>(null);
+  // Always up-to-date ref — lets the countdown effect snapshot telemetry without adding
+  // telemetryForExport to its dependency array (which would re-schedule the timer every frame).
+  const liveTelemetryRef = useRef<RecognitionTelemetry | null>(null);
+
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
@@ -201,7 +210,9 @@ function AppContent() {
 
   // Module: Photo Recognition (paused when secret menu is open)
   const recognitionOptions: PhotoRecognitionOptions = {
-    enableDebugInfo: isDebugOverlayVisible,
+    // Keep debug info (and telemetry) active during a recording session even if the overlay
+    // is collapsed so no frames are missed.
+    enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
     aspectRatio: 'auto',
     enableRectangleDetection: isEnabled('rectangle-detection'),
     continuousRecognition: true,
@@ -213,6 +224,7 @@ function AppContent() {
   const {
     recognizedConcert,
     reset: resetRecognition,
+    resetTelemetry,
     debugInfo,
     isRecognizing,
     frameQuality,
@@ -564,6 +576,168 @@ function AppContent() {
       }
     : null;
 
+  // Keep liveTelemetryRef in sync every render so the countdown effect can read the latest
+  // value without it appearing in the effect's dependency array.
+  liveTelemetryRef.current = telemetryForExport;
+
+  const startRecording = useCallback(() => {
+    resetTelemetry();
+    switchDecisionTelemetryRef.current = createEmptySwitchDecisionTelemetry();
+    capturedTelemetryRef.current = null;
+    setSecondsRemaining(30);
+    setRecordingState('recording');
+  }, [resetTelemetry]);
+
+  // Countdown — counts down once per second, then captures a snapshot.
+  useEffect(() => {
+    if (recordingState !== 'recording') return;
+    if (secondsRemaining <= 0) {
+      capturedTelemetryRef.current = liveTelemetryRef.current;
+      setRecordingState('done');
+      return;
+    }
+    const timer = setTimeout(() => setSecondsRemaining((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [recordingState, secondsRemaining]);
+
+  const handleTelemetryDownload = useCallback(() => {
+    const telemetry = capturedTelemetryRef.current;
+    if (!telemetry) return;
+
+    const activeSettings = computeActiveSettings(recognitionOptions);
+    const aiRecommendations = computeAiRecommendations(telemetry, activeSettings);
+    const switchDecision = telemetry.switchDecision ?? {
+      shownCount: 0,
+      confirmCount: 0,
+      dismissCount: 0,
+      decisionLatenciesMs: [],
+      averageDecisionLatencyMs: null,
+      lastDecisionLatencyMs: null,
+      lastPromptSnapshot: {
+        activeConcertId: null,
+        candidateConcertId: null,
+        confidence: null,
+        margin: null,
+        shownAt: null,
+      },
+    };
+    const latencyValues = switchDecision.decisionLatenciesMs;
+    const latencyMin = latencyValues.length > 0 ? Math.min(...latencyValues) : null;
+    const latencyMax = latencyValues.length > 0 ? Math.max(...latencyValues) : null;
+
+    const { blur, glare, lighting } = telemetry.frameQualityStats;
+    const { matchedFrameDistances, nearMisses } = telemetry.hammingDistanceLog;
+
+    const report = {
+      timestamp: new Date().toISOString(),
+      sessionInfo: { userAgent: navigator.userAgent, exportedAt: new Date().toISOString() },
+      activeSettings,
+      aiRecommendations,
+      summary: {
+        totalFrames: telemetry.totalFrames,
+        qualityFrames: telemetry.qualityFrames,
+        qualityFrameRate:
+          telemetry.totalFrames > 0
+            ? ((telemetry.qualityFrames / telemetry.totalFrames) * 100).toFixed(1) + '%'
+            : '0%',
+        blurRejections: telemetry.blurRejections,
+        blurRejectionRate:
+          telemetry.totalFrames > 0
+            ? ((telemetry.blurRejections / telemetry.totalFrames) * 100).toFixed(1) + '%'
+            : '0%',
+        glareRejections: telemetry.glareRejections,
+        glareRejectionRate:
+          telemetry.totalFrames > 0
+            ? ((telemetry.glareRejections / telemetry.totalFrames) * 100).toFixed(1) + '%'
+            : '0%',
+        successfulRecognitions: telemetry.successfulRecognitions,
+        failedAttempts: telemetry.failedAttempts,
+        recognitionSuccessRate:
+          telemetry.successfulRecognitions + telemetry.failedAttempts > 0
+            ? (
+                (telemetry.successfulRecognitions /
+                  (telemetry.successfulRecognitions + telemetry.failedAttempts)) *
+                100
+              ).toFixed(1) + '%'
+            : '0%',
+      },
+      frameQualityStats: {
+        blur: {
+          ...blur,
+          averageSharpness: blur.sampleCount > 0 ? blur.sharpnessSum / blur.sampleCount : null,
+        },
+        glare: {
+          ...glare,
+          averageGlarePercent:
+            glare.sampleCount > 0 ? glare.glarePercentSum / glare.sampleCount : null,
+        },
+        lighting: {
+          ...lighting,
+          averageBrightness:
+            lighting.sampleCount > 0 ? lighting.brightnessSum / lighting.sampleCount : null,
+        },
+      },
+      hammingDistanceLog: {
+        nearMisses,
+        matchedFrameDistances: {
+          ...matchedFrameDistances,
+          average:
+            matchedFrameDistances.count > 0
+              ? matchedFrameDistances.sum / matchedFrameDistances.count
+              : null,
+        },
+      },
+      failuresByCategory: Object.entries(telemetry.failureByCategory)
+        .filter(([, count]) => count > 0)
+        .map(([category, count]) => ({
+          category,
+          count,
+          percentage:
+            telemetry.totalFrames > 0
+              ? ((count / telemetry.totalFrames) * 100).toFixed(1) + '%'
+              : '0%',
+        })),
+      recentFailures: telemetry.failureHistory.map((failure) => ({
+        category: failure.category,
+        reason: failure.reason,
+        frameHash: failure.frameHash,
+        timestamp: new Date(failure.timestamp).toISOString(),
+      })),
+      switchDecisionMetrics: {
+        shownCount: switchDecision.shownCount,
+        confirmCount: switchDecision.confirmCount,
+        dismissCount: switchDecision.dismissCount,
+        decisionLatencyMs: {
+          average: switchDecision.averageDecisionLatencyMs,
+          last: switchDecision.lastDecisionLatencyMs,
+          min: latencyMin,
+          max: latencyMax,
+          samples: latencyValues,
+        },
+        lastPromptSnapshot: switchDecision.lastPromptSnapshot,
+      },
+      rawData: telemetry,
+    };
+
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `photo-signal-telemetry-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    capturedTelemetryRef.current = null;
+    setRecordingState('idle');
+  }, [recognitionOptions]);
+
+  const handleTelemetryDiscard = useCallback(() => {
+    capturedTelemetryRef.current = null;
+    setRecordingState('idle');
+  }, []);
+
   return (
     <>
       <GalleryLayout
@@ -603,11 +777,15 @@ function AppContent() {
             onReset={resetRecognition}
             onVisibilityChange={setIsDebugOverlayVisible}
             testAudioUrl={testAudioUrl}
+            telemetryRecording={{
+              state: recordingState,
+              secondsRemaining,
+              onStart: startRecording,
+              onDownload: handleTelemetryDownload,
+              onDiscard: handleTelemetryDiscard,
+            }}
           />
         </Suspense>
-      )}
-      {!showSecretSettings && telemetryForExport && (
-        <TelemetryExport telemetry={telemetryForExport} options={recognitionOptions} />
       )}
     </>
   );

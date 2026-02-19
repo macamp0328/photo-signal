@@ -269,6 +269,10 @@ export function usePhotoRecognition(
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null);
 
+  const resetTelemetry = useCallback(() => {
+    telemetryRef.current = createEmptyTelemetry();
+  }, []);
+
   const reset = useCallback(() => {
     recognizedConcertRef.current = null;
     lastMatchedConcertRef.current = null;
@@ -943,6 +947,7 @@ export function usePhotoRecognition(
     recognizedConcert,
     isRecognizing,
     reset,
+    resetTelemetry,
     debugInfo,
     frameQuality,
     activeGuidance,

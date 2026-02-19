@@ -24,6 +24,7 @@ export function DebugOverlay({
   threshold,
   onReset,
   testAudioUrl,
+  telemetryRecording,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
@@ -385,6 +386,44 @@ export function DebugOverlay({
               )}
             </div>
           )}
+          {/* Telemetry Recording */}
+          <div className={styles.telemetrySection}>
+            {telemetryRecording.state === 'idle' && (
+              <button
+                type="button"
+                className={styles.telemetryButton}
+                onClick={telemetryRecording.onStart}
+                aria-label="Start 30-second telemetry recording"
+              >
+                Record 30s
+              </button>
+            )}
+            {telemetryRecording.state === 'recording' && (
+              <p className={styles.telemetryRecording}>
+                Recording… {telemetryRecording.secondsRemaining}s
+              </p>
+            )}
+            {telemetryRecording.state === 'done' && (
+              <div className={styles.telemetryActions}>
+                <button
+                  type="button"
+                  className={styles.telemetryButton}
+                  onClick={telemetryRecording.onDownload}
+                  aria-label="Download telemetry report"
+                >
+                  Download Report
+                </button>
+                <button
+                  type="button"
+                  className={styles.telemetryButtonSecondary}
+                  onClick={telemetryRecording.onDiscard}
+                  aria-label="Discard telemetry recording"
+                >
+                  Discard
+                </button>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>

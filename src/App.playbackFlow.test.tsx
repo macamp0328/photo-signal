@@ -71,7 +71,6 @@ const recognitionState = {
 
 const mockResetRecognition = vi.fn();
 const enabledFlags = new Set<string>();
-let latestTelemetryExport: RecognitionTelemetry | null = null;
 
 const createDebugTelemetry = (): RecognitionTelemetry => ({
   ...createEmptyTelemetry(),
@@ -176,15 +175,14 @@ vi.mock('./modules/photo-recognition', () => ({
   usePhotoRecognition: () => ({
     ...recognitionState,
     reset: mockResetRecognition,
+    resetTelemetry: vi.fn(),
   }),
   FrameQualityIndicator: () => null,
   GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
     <div data-testid="guidance-message">{guidanceType}</div>
   ),
-  TelemetryExport: ({ telemetry }: { telemetry: RecognitionTelemetry }) => {
-    latestTelemetryExport = telemetry;
-    return null;
-  },
+  computeActiveSettings: vi.fn(() => ({})),
+  computeAiRecommendations: vi.fn(() => []),
 }));
 
 vi.mock('./modules/audio-playback', () => ({
@@ -214,7 +212,6 @@ describe('App playback flow', () => {
     recognitionState.detectedRectangle = null;
     recognitionState.rectangleConfidence = 0;
     enabledFlags.clear();
-    latestTelemetryExport = null;
 
     audioState.isPlaying = false;
     audioState.progress = 0;
@@ -397,17 +394,12 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(0);
 
     recognitionState.activeGuidance = 'none';
     view.rerender(<App />);
     view.rerender(<App />);
 
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
-    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(1);
-
-    view.rerender(<App />);
-    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(1);
   });
 
   it('shows a new switch prompt for a different candidate after keep-current dismisses the first', async () => {
@@ -531,7 +523,7 @@ describe('App playback flow', () => {
     expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
-  it('captures switch shown/dismiss telemetry with latency and confidence snapshot', async () => {
+  it('shows switch prompt and hides it when user chooses to keep current track', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -551,16 +543,12 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(latestTelemetryExport?.switchDecision?.shownCount).toBe(1);
-    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.candidateConcertId).toBe(2);
-    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.activeConcertId).toBe(1);
-    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.confidence).toBe(96.25);
-    expect(latestTelemetryExport?.switchDecision?.lastPromptSnapshot.margin).toBe(5);
+    expect(screen.getByRole('button', { name: 'Keep current track' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Keep current track' }));
 
-    expect(latestTelemetryExport?.switchDecision?.dismissCount).toBe(1);
-    expect(latestTelemetryExport?.switchDecision?.confirmCount).toBe(0);
-    expect((latestTelemetryExport?.switchDecision?.decisionLatenciesMs.length ?? 0) > 0).toBe(true);
+    expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
   });
 });

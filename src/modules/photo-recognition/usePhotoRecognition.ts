@@ -30,21 +30,190 @@ import type {
   RecognitionDebugInfo,
   RecognitionTelemetry,
   GuidanceType,
+  StabilityDebugInfo,
 } from './types';
 
+/**
+ * pHash Hamming distance threshold for initial recognition.
+ * pHash produces a 64-bit hash; distances range 0–64, where 0 = identical.
+ * ≤12 ≈ 81% similarity — enough to absorb print variation and moderate
+ * lighting differences without generating excessive false positives.
+ */
 const DEFAULT_SIMILARITY_THRESHOLD = 12;
+
+/**
+ * Default polling cadence in milliseconds.
+ * Adaptive scheduling uses this value for the idle (no candidate) rate and
+ * drops to 80 ms when a candidate is being tracked. Tests that supply a
+ * custom checkInterval bypass adaptive logic entirely.
+ */
 const DEFAULT_CHECK_INTERVAL = 180;
+
+/**
+ * Milliseconds a candidate match must remain the best match before it is
+ * confirmed. Acts as a debounce — the camera must dwell on the photo long
+ * enough to rule out transient camera movement or an accidental close pass
+ * next to a different print.
+ */
 const DEFAULT_RECOGNITION_DELAY = 300;
+
+/** Assumed display aspect ratio when none is specified (1 = square/portrait). */
 const DEFAULT_DISPLAY_ASPECT_RATIO = 1;
+
+/**
+ * pHash distance at which a match is confirmed in a single frame, skipping
+ * recognitionDelay entirely. ≤5/64 bits ≈ ≥92% similarity — effectively the
+ * same image. Paired with CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM as a
+ * two-frame fallback for slightly weaker (but still very strong) matches.
+ */
 const INSTANT_DISTANCE_THRESHOLD = 5;
+
+/**
+ * When the best-match distance falls at or below this value the frame is
+ * almost certainly correct. Expensive quality checks (blur, glare, lighting)
+ * are skipped to avoid rejecting a valid close-distance frame on quality
+ * grounds.
+ */
 const QUALITY_GATING_DISTANCE_THRESHOLD = 8;
+
+/**
+ * Consecutive frames returning the same match needed for the "instant
+ * consecutive" confirmation path — used when distance is between
+ * INSTANT_DISTANCE_THRESHOLD and the normal similarity threshold.
+ */
 const CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM = 2;
+
+/**
+ * Switch-mode confirmation delay is this multiple of the base recognitionDelay.
+ * Switching concert is treated more conservatively than initial recognition to
+ * prevent flickering when two prints are in close proximity.
+ */
 const DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER = 1.8;
+
+/**
+ * Maximum pHash distance allowed for a switch-mode candidate. Deliberately
+ * tighter than DEFAULT_SIMILARITY_THRESHOLD — a strong signal is required
+ * before interrupting an active playback session.
+ */
 const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
+
+/**
+ * Minimum Hamming distance gap between the top two matches. A narrow margin
+ * means two concerts look very similar in the current frame; we wait for a
+ * clearer signal rather than risk picking the wrong one.
+ */
 const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
+
+/** Stricter margin requirement in switch mode — see DEFAULT_MATCH_MARGIN_THRESHOLD. */
 const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 5;
+
+/**
+ * Distance at which a switch-mode match is confirmed in a single frame.
+ * Tighter than INSTANT_DISTANCE_THRESHOLD because switching carries more risk
+ * (≤3/64 bits ≈ ≥95% similarity).
+ */
 const SWITCH_INSTANT_DISTANCE_THRESHOLD = 3;
+
+/**
+ * Consecutive frames required for switch-mode "instant consecutive"
+ * confirmation. One more than the initial-recognition counterpart to reduce
+ * accidental switches.
+ */
 const CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM = 3;
+
+// ---------------------------------------------------------------------------
+// Module-level pure helpers (no React state, no refs)
+// ---------------------------------------------------------------------------
+
+/** Compact type used throughout the matching pipeline. */
+type MatchCandidate = { concert: Concert; distance: number };
+
+/**
+ * Scans concertHashList and returns the best and second-best pHash matches for
+ * the given frame hash. Pure function with no side-effects.
+ */
+function findBestMatches(
+  currentHash: string,
+  concertHashList: ReadonlyArray<{ hash: string; concert: Concert }>
+): { bestMatch: MatchCandidate | null; secondBestMatch: MatchCandidate | null } {
+  let bestMatch: MatchCandidate | null = null;
+  let secondBestMatch: MatchCandidate | null = null;
+
+  for (const { hash, concert } of concertHashList) {
+    const distance = hammingDistance(currentHash, hash);
+    if (!bestMatch || distance < bestMatch.distance) {
+      secondBestMatch = bestMatch;
+      bestMatch = { concert, distance };
+    } else if (
+      !secondBestMatch ||
+      (distance < secondBestMatch.distance && distance !== bestMatch.distance)
+    ) {
+      secondBestMatch = { concert, distance };
+    }
+  }
+
+  return { bestMatch, secondBestMatch };
+}
+
+interface BuildDebugInfoArgs {
+  currentHash: string;
+  bestMatch: MatchCandidate | null;
+  secondBestMatch: MatchCandidate | null;
+  bestMargin: number | null;
+  now: number;
+  concertCount: number;
+  frameCount: number;
+  checkInterval: number;
+  aspectRatio: AspectRatio;
+  framedRegion: { width: number; height: number };
+  stability: StabilityDebugInfo | null;
+  similarityThreshold: number;
+  recognitionDelay: number;
+  frameQuality: FrameQualityInfo | null;
+  telemetry: RecognitionTelemetry;
+}
+
+/**
+ * Constructs a RecognitionDebugInfo snapshot from the current frame's pipeline
+ * values. Pass `stability: null` on early-exit paths (e.g. quality rejection)
+ * and the computed StabilityDebugInfo on the normal path.
+ */
+function buildDebugInfo(args: BuildDebugInfoArgs): RecognitionDebugInfo {
+  return {
+    lastFrameHash: args.currentHash,
+    bestMatch:
+      args.bestMatch !== null
+        ? {
+            concert: args.bestMatch.concert,
+            distance: args.bestMatch.distance,
+            similarity: similarityPercent(args.bestMatch.distance),
+            algorithm: 'phash',
+          }
+        : null,
+    secondBestMatch:
+      args.secondBestMatch !== null
+        ? {
+            concert: args.secondBestMatch.concert,
+            distance: args.secondBestMatch.distance,
+            similarity: similarityPercent(args.secondBestMatch.distance),
+            algorithm: 'phash',
+          }
+        : null,
+    bestMatchMargin: args.bestMargin,
+    lastCheckTime: args.now,
+    concertCount: args.concertCount,
+    frameCount: args.frameCount,
+    checkInterval: args.checkInterval,
+    aspectRatio: args.aspectRatio,
+    frameSize: { width: args.framedRegion.width, height: args.framedRegion.height },
+    stability: args.stability,
+    similarityThreshold: args.similarityThreshold,
+    recognitionDelay: args.recognitionDelay,
+    frameQuality: args.frameQuality,
+    telemetry: args.telemetry,
+    hashAlgorithm: 'phash',
+  };
+}
 
 export { calculateFramedRegion } from './framing';
 
@@ -186,6 +355,145 @@ export function usePhotoRecognition(
       switchConsecutiveMatchCountRef.current = 0;
     };
 
+    // -----------------------------------------------------------------------
+    // Inner helper: quality filtering
+    // Runs sharpness, glare, and lighting checks; updates ambient refs and
+    // telemetry; resets match tracking when a frame is rejected.
+    // Returns { rejected: true, quality } to signal an early-exit, or
+    // { rejected: false, quality } (quality may be null if check was bypassed).
+    // -----------------------------------------------------------------------
+    const processQualityFilters = (
+      imageData: ImageData,
+      shouldRunQualityCheck: boolean
+    ): { rejected: boolean; quality: FrameQualityInfo | null } => {
+      if (!shouldRunQualityCheck) {
+        setFrameQuality(null);
+        setActiveGuidance('none');
+        return { rejected: false, quality: null };
+      }
+
+      const sharpness = computeLaplacianVariance(imageData);
+      const isSharp = sharpness >= sharpnessThreshold;
+      const averageBrightness = calculateAverageBrightness(imageData);
+
+      ambientBrightnessRef.current =
+        ambientBrightnessRef.current === null
+          ? averageBrightness
+          : ambientBrightnessRef.current * 0.85 + averageBrightness * 0.15;
+
+      const adaptiveThresholds = calculateAdaptiveQualityThresholds(
+        minBrightness,
+        maxBrightness,
+        glarePercentageThreshold,
+        ambientBrightnessRef.current,
+        ambientGlarePercentageRef.current
+      );
+
+      const glare = detectGlare(
+        imageData,
+        glareThreshold,
+        adaptiveThresholds.glarePercentageThreshold
+      );
+
+      ambientGlarePercentageRef.current =
+        ambientGlarePercentageRef.current === null
+          ? glare.glarePercentage
+          : ambientGlarePercentageRef.current * 0.85 + glare.glarePercentage * 0.15;
+
+      const lighting = detectPoorLighting(
+        imageData,
+        adaptiveThresholds.minBrightness,
+        adaptiveThresholds.maxBrightness
+      );
+
+      const quality: FrameQualityInfo = {
+        sharpness,
+        isSharp,
+        glarePercentage: glare.glarePercentage,
+        hasGlare: glare.hasGlare,
+        averageBrightness: lighting.averageBrightness,
+        hasPoorLighting: lighting.hasPoorLighting,
+        lightingType: lighting.type,
+      };
+
+      setFrameQuality(quality);
+      setActiveGuidance(pickGuidance(quality));
+
+      if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
+        if (!quality.isSharp) {
+          telemetryRef.current.blurRejections += 1;
+          recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
+        } else if (quality.hasGlare) {
+          telemetryRef.current.glareRejections += 1;
+          recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+        } else {
+          telemetryRef.current.lightingRejections += 1;
+          recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+        }
+
+        lastMatchedConcertRef.current = null;
+        consecutiveMatchCountRef.current = 0;
+        matchStartTimeRef.current = null;
+        clearSwitchTracking();
+        setIsRecognizing(false);
+
+        return { rejected: true, quality };
+      }
+
+      telemetryRef.current.qualityFrames += 1;
+      return { rejected: false, quality };
+    };
+
+    // -----------------------------------------------------------------------
+    // Inner helper: stability progress
+    // Returns a StabilityDebugInfo snapshot showing how far along the
+    // recognition (or switch) dwell timer is, or null when not applicable.
+    // -----------------------------------------------------------------------
+    const computeStability = (
+      activeMatch: Concert | null,
+      isSwitchMode: boolean,
+      now: number
+    ): StabilityDebugInfo | null => {
+      if (!activeMatch) return null;
+
+      if (isSwitchMode) {
+        if (
+          switchCandidateStartTimeRef.current !== null &&
+          switchCandidateConcertRef.current?.id === activeMatch.id
+        ) {
+          const elapsedMs = now - switchCandidateStartTimeRef.current;
+          return {
+            concert: activeMatch,
+            elapsedMs,
+            remainingMs: Math.max(switchRecognitionDelay - elapsedMs, 0),
+            requiredMs: switchRecognitionDelay,
+            progress:
+              switchRecognitionDelay > 0 ? Math.min(elapsedMs / switchRecognitionDelay, 1) : 1,
+          };
+        }
+        return null;
+      }
+
+      if (
+        matchStartTimeRef.current !== null &&
+        lastMatchedConcertRef.current?.id === activeMatch.id
+      ) {
+        const elapsedMs = now - matchStartTimeRef.current;
+        return {
+          concert: activeMatch,
+          elapsedMs,
+          remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
+          requiredMs: recognitionDelay,
+          progress: recognitionDelay > 0 ? Math.min(elapsedMs / recognitionDelay, 1) : 1,
+        };
+      }
+
+      return null;
+    };
+
+    // -----------------------------------------------------------------------
+    // Per-frame pipeline
+    // -----------------------------------------------------------------------
     const checkFrame = () => {
       if (recognizedConcertRef.current && !continuousRecognition) {
         return;
@@ -315,25 +623,13 @@ export function usePhotoRecognition(
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
+        // Hash matching
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
-        let bestMatch: { concert: Concert; distance: number } | null = null;
-        let secondBestMatch: { concert: Concert; distance: number } | null = null;
-
-        for (const { hash, concert } of concertHashList) {
-          const distance = hammingDistance(currentHash, hash);
-          if (!bestMatch || distance < bestMatch.distance) {
-            secondBestMatch = bestMatch;
-            bestMatch = { concert, distance };
-          } else if (
-            !secondBestMatch ||
-            (distance < secondBestMatch.distance && distance !== bestMatch.distance)
-          ) {
-            secondBestMatch = { concert, distance };
-          }
-        }
+        const { bestMatch, secondBestMatch } = findBestMatches(currentHash, concertHashList);
         algorithmMs = performance.now() - algorithmStartAt;
 
+        // Decision variables
         const now = Date.now();
         const isSwitchMode = continuousRecognition && !!recognizedConcertRef.current;
         const activeThreshold = isSwitchMode
@@ -347,195 +643,59 @@ export function usePhotoRecognition(
         const isAmbiguousMatchCandidate = isWithinThreshold && !hasSufficientMargin;
         const activeMatch = isWithinThreshold && hasSufficientMargin ? bestMatch!.concert : null;
 
+        // Quality filtering — bypassed when match distance is very low
         const shouldRunQualityCheck =
           !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
-        let quality: FrameQualityInfo | null = null;
+        const { rejected, quality } = processQualityFilters(imageData, shouldRunQualityCheck);
 
-        if (shouldRunQualityCheck) {
-          const sharpness = computeLaplacianVariance(imageData);
-          const isSharp = sharpness >= sharpnessThreshold;
-          const averageBrightness = calculateAverageBrightness(imageData);
-
-          ambientBrightnessRef.current =
-            ambientBrightnessRef.current === null
-              ? averageBrightness
-              : ambientBrightnessRef.current * 0.85 + averageBrightness * 0.15;
-
-          const adaptiveThresholds = calculateAdaptiveQualityThresholds(
-            minBrightness,
-            maxBrightness,
-            glarePercentageThreshold,
-            ambientBrightnessRef.current,
-            ambientGlarePercentageRef.current
-          );
-
-          const glare = detectGlare(
-            imageData,
-            glareThreshold,
-            adaptiveThresholds.glarePercentageThreshold
-          );
-
-          ambientGlarePercentageRef.current =
-            ambientGlarePercentageRef.current === null
-              ? glare.glarePercentage
-              : ambientGlarePercentageRef.current * 0.85 + glare.glarePercentage * 0.15;
-
-          const lighting = detectPoorLighting(
-            imageData,
-            adaptiveThresholds.minBrightness,
-            adaptiveThresholds.maxBrightness
-          );
-
-          quality = {
-            sharpness,
-            isSharp,
-            glarePercentage: glare.glarePercentage,
-            hasGlare: glare.hasGlare,
-            averageBrightness: lighting.averageBrightness,
-            hasPoorLighting: lighting.hasPoorLighting,
-            lightingType: lighting.type,
-          };
-
-          setFrameQuality(quality);
-          setActiveGuidance(pickGuidance(quality));
-
-          if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
-            if (!quality.isSharp) {
-              telemetryRef.current.blurRejections += 1;
-              recordFailure(
-                telemetryRef.current,
-                'motion-blur',
-                'Sharpness below threshold',
-                'N/A'
-              );
-            } else if (quality.hasGlare) {
-              telemetryRef.current.glareRejections += 1;
-              recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
-            } else {
-              telemetryRef.current.lightingRejections += 1;
-              recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
-            }
-
-            lastMatchedConcertRef.current = null;
-            consecutiveMatchCountRef.current = 0;
-            matchStartTimeRef.current = null;
-            clearSwitchTracking();
-            setIsRecognizing(false);
-
-            if (enableDebugInfo) {
-              setDebugInfo({
-                lastFrameHash: currentHash,
-                bestMatch:
-                  bestMatch !== null
-                    ? {
-                        concert: bestMatch.concert,
-                        distance: bestMatch.distance,
-                        similarity: similarityPercent(bestMatch.distance),
-                        algorithm: 'phash',
-                      }
-                    : null,
-                secondBestMatch:
-                  secondBestMatch !== null
-                    ? {
-                        concert: secondBestMatch.concert,
-                        distance: secondBestMatch.distance,
-                        similarity: similarityPercent(secondBestMatch.distance),
-                        algorithm: 'phash',
-                      }
-                    : null,
-                bestMatchMargin: bestMargin,
-                lastCheckTime: now,
+        if (rejected) {
+          if (enableDebugInfo) {
+            setDebugInfo(
+              buildDebugInfo({
+                currentHash,
+                bestMatch,
+                secondBestMatch,
+                bestMargin,
+                now,
                 concertCount: eligibleConcerts.length,
                 frameCount: frameCountRef.current,
                 checkInterval,
                 aspectRatio: chosenAspectRatio,
-                frameSize: { width: framedRegion.width, height: framedRegion.height },
+                framedRegion,
                 stability: null,
                 similarityThreshold,
                 recognitionDelay,
                 frameQuality: quality,
                 telemetry: { ...telemetryRef.current },
-                hashAlgorithm: 'phash',
-              });
-            }
-
-            return;
+              })
+            );
           }
-
-          telemetryRef.current.qualityFrames += 1;
-        } else {
-          setFrameQuality(null);
-          setActiveGuidance('none');
+          return;
         }
 
-        const stability =
-          activeMatch && isSwitchMode
-            ? switchCandidateStartTimeRef.current &&
-              switchCandidateConcertRef.current?.id === activeMatch.id
-              ? (() => {
-                  const elapsedMs = now - switchCandidateStartTimeRef.current;
-                  return {
-                    concert: activeMatch,
-                    elapsedMs,
-                    remainingMs: Math.max(switchRecognitionDelay - elapsedMs, 0),
-                    requiredMs: switchRecognitionDelay,
-                    progress:
-                      switchRecognitionDelay > 0
-                        ? Math.min(elapsedMs / switchRecognitionDelay, 1)
-                        : 1,
-                  };
-                })()
-              : null
-            : activeMatch &&
-                matchStartTimeRef.current &&
-                lastMatchedConcertRef.current?.id === activeMatch.id
-              ? (() => {
-                  const elapsedMs = now - matchStartTimeRef.current;
-                  return {
-                    concert: activeMatch,
-                    elapsedMs,
-                    remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
-                    requiredMs: recognitionDelay,
-                    progress: recognitionDelay > 0 ? Math.min(elapsedMs / recognitionDelay, 1) : 1,
-                  };
-                })()
-              : null;
+        // Stability progress for debug overlay
+        const stability = computeStability(activeMatch, isSwitchMode, now);
 
         if (enableDebugInfo) {
-          setDebugInfo({
-            lastFrameHash: currentHash,
-            bestMatch:
-              bestMatch !== null
-                ? {
-                    concert: bestMatch.concert,
-                    distance: bestMatch.distance,
-                    similarity: similarityPercent(bestMatch.distance),
-                    algorithm: 'phash',
-                  }
-                : null,
-            secondBestMatch:
-              secondBestMatch !== null
-                ? {
-                    concert: secondBestMatch.concert,
-                    distance: secondBestMatch.distance,
-                    similarity: similarityPercent(secondBestMatch.distance),
-                    algorithm: 'phash',
-                  }
-                : null,
-            bestMatchMargin: bestMargin,
-            lastCheckTime: now,
-            concertCount: eligibleConcerts.length,
-            frameCount: frameCountRef.current,
-            checkInterval,
-            aspectRatio: chosenAspectRatio,
-            frameSize: { width: framedRegion.width, height: framedRegion.height },
-            stability,
-            similarityThreshold,
-            recognitionDelay,
-            frameQuality: quality,
-            telemetry: { ...telemetryRef.current },
-            hashAlgorithm: 'phash',
-          });
+          setDebugInfo(
+            buildDebugInfo({
+              currentHash,
+              bestMatch,
+              secondBestMatch,
+              bestMargin,
+              now,
+              concertCount: eligibleConcerts.length,
+              frameCount: frameCountRef.current,
+              checkInterval,
+              aspectRatio: chosenAspectRatio,
+              framedRegion,
+              stability,
+              similarityThreshold,
+              recognitionDelay,
+              frameQuality: quality,
+              telemetry: { ...telemetryRef.current },
+            })
+          );
         }
 
         if (activeMatch) {
@@ -571,7 +731,7 @@ export function usePhotoRecognition(
 
             if (isSameSwitchCandidate) {
               if (
-                (switchCandidateStartTimeRef.current &&
+                (switchCandidateStartTimeRef.current !== null &&
                   now - switchCandidateStartTimeRef.current >= switchRecognitionDelay) ||
                 (isInstantSwitchDistance && hasConsecutiveSwitchConfidence)
               ) {
@@ -618,7 +778,10 @@ export function usePhotoRecognition(
           }
 
           if (isSameConcert) {
-            if (matchStartTimeRef.current && now - matchStartTimeRef.current >= recognitionDelay) {
+            if (
+              matchStartTimeRef.current !== null &&
+              now - matchStartTimeRef.current >= recognitionDelay
+            ) {
               recognizedConcertRef.current = activeMatch;
               confirmedMatch = true;
               setRecognizedConcert(activeMatch);

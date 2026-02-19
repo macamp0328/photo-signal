@@ -66,6 +66,9 @@ describe('Cloudflare worker', () => {
     expect(env.AUDIO.head).toHaveBeenCalledWith('prod/audio/test.opus');
     expect(env.AUDIO.get).toHaveBeenCalledWith('prod/audio/test.opus', undefined);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173');
+    expect(response.headers.get('Access-Control-Expose-Headers')).toBe(
+      'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+    );
     expect(response.headers.get('Content-Type')).toBe('audio/ogg; codecs=opus');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
     expect(response.headers.get('ETag')).toBe('"abc"');
@@ -170,6 +173,9 @@ describe('Cloudflare worker', () => {
     expect(env.AUDIO.head).not.toHaveBeenCalled();
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173');
     expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, HEAD, OPTIONS');
+    expect(response.headers.get('Access-Control-Expose-Headers')).toBe(
+      'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+    );
   });
 
   it('rejects OPTIONS when origin is forbidden', async () => {

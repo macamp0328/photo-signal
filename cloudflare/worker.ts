@@ -140,6 +140,10 @@ function buildCorsHeaders(origin: string | null) {
     'Access-Control-Allow-Headers',
     'Content-Type, If-None-Match, Range, X-Requested-With, X-PS-Shared-Secret'
   );
+  headers.set(
+    'Access-Control-Expose-Headers',
+    'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+  );
   headers.set('Vary', 'Origin');
   return headers;
 }

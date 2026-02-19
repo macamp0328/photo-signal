@@ -117,7 +117,7 @@ The debug overlay appears in the bottom-right corner showing:
 
 This overlay updates in real-time as the photo recognition system processes frames, making it easy to see what's happening under the hood.
 
-Need a faster or slower confirmation window? Open the Secret Settings menu, scroll to **Custom Settings → Recognition Delay**, and move the slider. The countdown panel immediately reflects the new duration after you tap “Send It 🚀”.
+Recognition timing is currently fixed in app defaults (no user-facing tuning controls). Use **Save & Reload 🚀** after changing feature flags.
 
 Need something even easier to match? Run `npm run create-easy-images` to regenerate the bold bullseye / diagonal / checkerboard PNGs, then reprint them.
 

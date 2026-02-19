@@ -20,10 +20,9 @@ const DIALOG_MODE_STATUS_ID = 'secret-settings-mode-status';
 interface FeatureFlagsSectionProps {
   flags: FeatureFlag[];
   onToggleFlag: (id: string) => void;
-  onResetFlags: () => void;
 }
 
-function FeatureFlagsSection({ flags, onToggleFlag, onResetFlags }: FeatureFlagsSectionProps) {
+function FeatureFlagsSection({ flags, onToggleFlag }: FeatureFlagsSectionProps) {
   return (
     <section className={styles.section} aria-describedby="feature-flags-description">
       <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
@@ -52,9 +51,6 @@ function FeatureFlagsSection({ flags, onToggleFlag, onResetFlags }: FeatureFlags
               </div>
             ))}
           </div>
-          <button onClick={onResetFlags} className={styles.resetButton} type="button">
-            Reset Feature Flags
-          </button>
         </>
       ) : (
         <div className={styles.placeholder}>
@@ -102,8 +98,7 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const { flags, toggleFlag, resetFlags, isEnabled, handleSendIt } =
-    useSecretSettingsController(onClose);
+  const { flags, toggleFlag, isEnabled, handleSendIt } = useSecretSettingsController(onClose);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -211,7 +206,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
             </p>
           </div>
 
-          <FeatureFlagsSection flags={flags} onToggleFlag={toggleFlag} onResetFlags={resetFlags} />
+          <FeatureFlagsSection flags={flags} onToggleFlag={toggleFlag} />
           <SaveAndReloadSection onSaveAndReload={handleSendIt} />
         </div>
       </div>

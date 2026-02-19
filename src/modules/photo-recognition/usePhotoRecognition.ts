@@ -126,13 +126,13 @@ const CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM = 3;
 // ---------------------------------------------------------------------------
 
 /** Compact type used throughout the matching pipeline. */
-type MatchCandidate = { concert: Concert; distance: number };
+export type MatchCandidate = { concert: Concert; distance: number };
 
 /**
  * Scans concertHashList and returns the best and second-best pHash matches for
  * the given frame hash. Pure function with no side-effects.
  */
-function findBestMatches(
+export function findBestMatches(
   currentHash: string,
   concertHashList: ReadonlyArray<{ hash: string; concert: Concert }>
 ): { bestMatch: MatchCandidate | null; secondBestMatch: MatchCandidate | null } {
@@ -145,8 +145,8 @@ function findBestMatches(
       secondBestMatch = bestMatch;
       bestMatch = { concert, distance };
     } else if (
-      !secondBestMatch ||
-      (distance < secondBestMatch.distance && distance !== bestMatch.distance)
+      distance !== bestMatch.distance &&
+      (!secondBestMatch || distance < secondBestMatch.distance)
     ) {
       secondBestMatch = { concert, distance };
     }
@@ -155,7 +155,7 @@ function findBestMatches(
   return { bestMatch, secondBestMatch };
 }
 
-interface BuildDebugInfoArgs {
+export interface BuildDebugInfoArgs {
   currentHash: string;
   bestMatch: MatchCandidate | null;
   secondBestMatch: MatchCandidate | null;
@@ -178,7 +178,7 @@ interface BuildDebugInfoArgs {
  * values. Pass `stability: null` on early-exit paths (e.g. quality rejection)
  * and the computed StabilityDebugInfo on the normal path.
  */
-function buildDebugInfo(args: BuildDebugInfoArgs): RecognitionDebugInfo {
+export function buildDebugInfo(args: BuildDebugInfoArgs): RecognitionDebugInfo {
   return {
     lastFrameHash: args.currentHash,
     bestMatch:

@@ -54,18 +54,18 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Run blocking visual smoke checks (Mobile Chrome + Mobile Safari)
-        run: npm run test:visual:smoke
+      - name: Run smoke visual checks (Mobile Chrome + Mobile Safari)
+        run: npx cross-env CI=1 NODE_ENV=production PLAYWRIGHT_HTML_OPEN=never playwright test --grep @smoke --project "Mobile Chrome" --project "Mobile Safari"
         continue-on-error: true
         id: smoke
 
-      - name: Run informational visual checks (non-blocking)
-        run: npm run test:visual:extended
+      - name: Run extended visual checks (all projects)
+        run: npx cross-env CI=1 NODE_ENV=production PLAYWRIGHT_HTML_OPEN=never playwright test --grep @extended
         continue-on-error: true
         id: extended
 
       - name: Upload test results
-        if: always()
+        if: always() && (steps.smoke.outcome == 'failure' || steps.extended.outcome == 'failure')
         uses: actions/upload-artifact@v6
         with:
           name: playwright-report
@@ -73,7 +73,8 @@ jobs:
           retention-days: 30
 
       - name: Upload visual diff artifacts
-        if: always()
+        if: always() && (steps.smoke.outcome == 'failure' || steps.extended.outcome == 'failure') && hashFiles('test-results/**/*-diff.png') != ''
+        continue-on-error: true
         uses: actions/upload-artifact@v6
         with:
           name: visual-diff-results
@@ -81,7 +82,7 @@ jobs:
           retention-days: 30
 
       - name: Comment PR with results
-        if: (steps.smoke.outcome == 'failure' || steps.extended.outcome == 'failure') && github.event_name == 'pull_request'
+        if: always() && (steps.smoke.outcome == 'failure' || steps.extended.outcome == 'failure') && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -122,9 +123,7 @@ jobs:
             const smokeFailed = '${{ steps.smoke.outcome }}' === 'failure';
             const extendedFailed = '${{ steps.extended.outcome }}' === 'failure';
 
-            const statusHeader = smokeFailed
-              ? '## ❌ Blocking visual smoke checks failed'
-              : '## ⚠️ Informational visual checks found differences';
+            const statusHeader = '## ❌ Visual changes detected';
 
             const tierSummary = `\n- Blocking smoke tier: ${smokeFailed ? 'FAILED' : 'PASSED'}\n- Informational extended tier: ${extendedFailed ? 'FAILED' : 'PASSED'}`;
 
@@ -152,6 +151,6 @@ jobs:
               body: comment
             });
 
-      - name: Fail if blocking smoke tests failed
-        if: steps.smoke.outcome == 'failure'
+      - name: Fail if any visual checks detected changes
+        if: steps.smoke.outcome == 'failure' || steps.extended.outcome == 'failure'
         run: exit 1

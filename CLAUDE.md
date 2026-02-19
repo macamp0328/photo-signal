@@ -14,7 +14,7 @@ A husky pre-commit hook enforces this automatically, but you must also verify ma
 
 ## Project Overview
 
-Photo Signal is a camera-based gallery that plays music when you point a device at a printed photo. It uses perceptual hashing (dHash, pHash) and ORB feature matching to recognize photos — no QR codes or visible markers. Mobile-first, deployed as a static site on Vercel with audio served via Cloudflare R2/Workers.
+Photo Signal is a camera-based gallery that plays music when you point a device at a printed photo. It uses pHash (perceptual hashing) to recognize photos — no QR codes or visible markers. Mobile-first, deployed as a static site on Vercel with audio served via Cloudflare R2/Workers.
 
 ## Tech Stack
 
@@ -49,9 +49,8 @@ npm run test:coverage    # Coverage report (70% minimum threshold)
 npm run test:visual      # Playwright visual regression (builds first)
 
 # Photo recognition data
-npm run update-recognition-data   # Regenerate all hashes + ORB features
+npm run update-recognition-data   # Regenerate pHash hashes for all photos
 npm run generate-hashes           # Hash generation only
-npm run generate-orb-features     # ORB features only
 
 # Audio workflow
 npm run download-song    # Download from YouTube
@@ -87,7 +86,7 @@ src/
 │   ├── debug-overlay/        # Real-time recognition diagnostics
 │   ├── gallery-layout/       # Zine-like gallery UI
 │   ├── motion-detection/     # Camera movement detection via pixel analysis
-│   ├── photo-recognition/    # dHash/pHash/ORB recognition algorithms
+│   ├── photo-recognition/    # pHash photo recognition
 │   ├── photo-rectangle-detection/  # Dynamic rectangle detection
 │   └── secret-settings/      # Triple-tap hidden settings menu
 ├── services/                 # Data service for concert metadata
@@ -129,15 +128,14 @@ Each module in `src/modules/` is self-contained with:
 
 ### Data Layer
 
-- Production: Static JSON at `/public/data.json` (~9.6 MB, includes hashes + ORB features)
+- Production: Static JSON at `/public/data.json` (~9.6 MB, includes pHash hashes per photo)
 - Development: `/assets/test-data/concerts.dev.json` (Test Data Mode)
 - Service abstraction in `src/services/data-service.ts`
 
 ### Key Types (`src/types/index.ts`)
 
-- `Concert` — Band, venue, date, audio file, photo hashes, ORB features
-- `HashSet` — pHash and dHash variants per photo
-- `ORBFeaturePayload` — Keypoints and base64-encoded BRIEF descriptors
+- `Concert` — Band, venue, date, audio file, and pHash variants per photo
+- `HashSet` — pHash variants (dark/normal/bright exposures) per photo
 
 ## Code Conventions
 
@@ -169,7 +167,7 @@ Each module in `src/modules/` is self-contained with:
 
 - Single-algorithm runtime: pHash (64-bit) matching
 - Multi-exposure variants (dark/normal/bright) for lighting robustness
-- Legacy dHash/ORB/parallel docs retained in `docs/archive/` for historical reference
+- Original algorithm research retained in `docs/archive/` for historical reference
 - See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for current behavior
 
 ## CI/CD

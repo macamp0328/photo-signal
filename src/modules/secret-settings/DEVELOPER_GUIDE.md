@@ -71,7 +71,7 @@ src/modules/secret-settings/
 
 1. **Config Profile** (`config-profile`)
 
-- Apply curated baselines (Baseline · pHash / dHash / ORB) from the Photo Recognition Deep Dive
+- Apply curated baselines (Baseline · pHash) from the Photo Recognition Deep Dive
 - Selecting a profile updates all relevant settings plus the rectangle detection flag
 - Manual tweaks automatically switch the profile back to `custom`
 
@@ -421,9 +421,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
 ];
 ```
 
-> Tip: To keep the UI focused, you can limit a setting to specific recognition engines by adding an
-> `engines` array (e.g., `engines: ['perceptual', 'parallel']`). The setting will only be shown when
-> that engine is selected in the menu.
+> Tip: Keep custom setting IDs in `kebab-case` and make sure defaults match the values documented in `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`.
 
 ### Step 2: Create State Management Hook
 

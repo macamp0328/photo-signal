@@ -995,6 +995,7 @@ export function createAudioIndex(results, config = {}) {
         id: r.slug,
         photoId: r.photoId ?? null,
         band: r.band,
+        songTitle: r.title,
         album: r.album,
         date: r.date,
         releaseDate: r.releaseDate,

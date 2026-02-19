@@ -274,6 +274,7 @@ function main() {
     .map((track) => ({
       id: String(track.id ?? ''),
       band: String(track.band),
+      songTitle: String(track.songTitle ?? track.title ?? '').trim(),
       fileName: String(track.fileName),
       normBand: normalizeBand(String(track.band)),
     }))
@@ -325,10 +326,13 @@ function main() {
       }
 
       const selectedFile = selectedTrack?.fileName ?? 'concert-4.opus';
+      const csvSongTitle = String(row.songTitle ?? '').trim();
+      const songTitle = csvSongTitle || selectedTrack?.songTitle || undefined;
 
       return {
         id,
         band: sourceBand,
+        ...(songTitle !== undefined && { songTitle }),
         venue: String(row.venue ?? ''),
         date: String(row.date ?? ''),
         audioFile: formatAudioUrl(baseUrl, prefix, selectedFile),

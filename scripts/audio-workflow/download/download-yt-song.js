@@ -973,6 +973,7 @@ function createMetadataIndex({ downloadedFilePath, audioFormat, planLabel }) {
     track: {
       id: infoData?.id ?? null,
       title: infoData?.title ?? null,
+      songTitle: infoData?.title ?? null,
       album: infoData?.album ?? infoData?.track ?? null,
       artist: infoData?.artist ?? infoData?.uploader ?? null,
       description: infoData?.description ?? null,

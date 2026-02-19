@@ -21,6 +21,8 @@ export interface Concert {
   date: string;
   /** Path or URL to audio file (Opus) - supports both local paths and remote URLs */
   audioFile: string;
+  /** Song title for the currently mapped audio track */
+  songTitle?: string;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
   /** Camera make/model extracted from EXIF */

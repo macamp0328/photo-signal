@@ -165,6 +165,7 @@ describe('encode-audio', () => {
           dryRun: false,
           slug: 'band-a-venue-a',
           band: 'Band A',
+          title: 'Track A',
           album: 'Venue A',
           date: '2023-08-15',
           releaseDate: '2023-08-15',
@@ -201,6 +202,7 @@ describe('encode-audio', () => {
       expect(index.tracks).toHaveLength(1);
       expect(index.tracks[0].id).toBe('band-a-venue-a');
       expect(index.tracks[0].band).toBe('Band A');
+      expect(index.tracks[0].songTitle).toBe('Track A');
       expect(index.tracks[0].lufsIntegrated).toBe(-14.0);
       expect(index.tracks[0].lra).toBe(8.5);
       expect(index.tracks[0].durationMs).toBe(185300);

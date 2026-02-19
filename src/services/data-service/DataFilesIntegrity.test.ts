@@ -17,6 +17,7 @@ interface RawConcert {
   venue: string;
   date: string;
   audioFile: string;
+  songTitle?: string;
   imageFile?: string;
   photoHashes?: RawHashSet;
 }
@@ -95,6 +96,9 @@ describe('Data files integrity', () => {
       seenIds.add(concert.id);
 
       expect(typeof concert.audioFile).toBe('string');
+      if (concert.songTitle !== undefined) {
+        expect(typeof concert.songTitle).toBe('string');
+      }
       if (!isRemoteAsset(concert.audioFile)) {
         ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
       }

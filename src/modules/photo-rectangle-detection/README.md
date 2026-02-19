@@ -317,7 +317,7 @@ The rectangle detection module is designed to work seamlessly with the photo rec
 
 ```typescript
 import { RectangleDetectionService } from '@/modules/photo-rectangle-detection';
-import { computeDHash } from '@/modules/photo-recognition/algorithms/dhash';
+import { computePHash } from '@/modules/photo-recognition/algorithms/phash';
 
 // 1. Detect rectangle
 const detector = new RectangleDetectionService();
@@ -342,7 +342,7 @@ if (result.detected && result.rectangle) {
   const croppedImageData = croppedCtx.getImageData(0, 0, cropWidth, cropHeight);
 
   // 4. Compute hash on cropped region
-  const hash = computeDHash(croppedImageData);
+  const hash = computePHash(croppedImageData);
   console.log('Hash of detected photo:', hash);
 }
 ```

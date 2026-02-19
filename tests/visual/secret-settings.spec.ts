@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { bootstrapVisualState, gotoLanding, openSecretSettings } from './utils/visual-helpers';
+import { getMaxDiffPixelRatio, VISUAL_MAX_DIFF_RATIO_LENIENT } from './utils/visual-thresholds';
 
 /**
  * Visual Regression Tests for Secret Settings Menu
@@ -31,8 +32,14 @@ test.describe('Secret Settings Menu', () => {
     await expect(testModeToggle).toBeChecked();
 
     const dialog = page.getByRole('dialog');
+    const maxDiffPixelRatio = getMaxDiffPixelRatio(
+      test.info().project.name,
+      {},
+      VISUAL_MAX_DIFF_RATIO_LENIENT
+    );
+
     await expect(dialog).toHaveScreenshot('secret-settings-test-mode-enabled.png', {
-      maxDiffPixelRatio: 0.05,
+      maxDiffPixelRatio,
     });
   });
 });

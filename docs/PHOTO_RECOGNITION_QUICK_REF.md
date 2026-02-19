@@ -50,11 +50,11 @@ Photo Signal runtime recognition uses **pHash only**.
   "similarityThreshold": 14, // +2 from baseline
   "sharpnessThreshold": 80, // -20 from baseline
   "glarePercentageThreshold": 25, // +5 from baseline
-  "recognitionDelay": 1500, // +500ms from baseline
-  "enableMultiScale": true,
-  "multiScaleVariants": [0.7, 0.8, 0.9, 0.95]
+  "recognitionDelay": 1500 // +500ms from baseline
 }
 ```
+
+**Note**: Enable the "Dynamic Rectangle Detection" feature flag for better auto-cropping while handheld.
 
 ### Gallery Wall (Mounted)
 

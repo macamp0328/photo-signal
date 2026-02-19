@@ -57,9 +57,10 @@ export function hammingDistance(hash1: string, hash2: string): number {
     const chunk1 = hash1.slice(i, i + 8);
     const chunk2 = hash2.slice(i, i + 8);
 
-    // parseInt handles strings shorter than 8 chars correctly; the result is
-    // a left-aligned bit pattern.  Both sides are padded identically (with
-    // implicit leading significance), so XOR on the extra bits is always 0.
+    // parseInt handles strings shorter than 8 chars by simply interpreting
+    // the available hex digits (e.g. "a" → 0x0000000a). Both chunks are
+    // parsed identically, so any difference in length affects both sides
+    // equally and the XOR still correctly reflects the bit differences.
     const n1 = parseInt(chunk1, 16) >>> 0;
     const n2 = parseInt(chunk2, 16) >>> 0;
 

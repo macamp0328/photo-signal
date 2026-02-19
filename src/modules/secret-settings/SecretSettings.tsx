@@ -1,18 +1,14 @@
 /**
  * Secret Settings Module - Settings Page Component
  *
- * A modal/page that displays feature flags and custom settings
- * for advanced users and developers.
+ * A modal/page that displays feature flags for advanced users and developers.
+ * Opened by triple-tapping the center of the screen.
  */
 
 import type { SecretSettingsProps } from './types';
 import { useCallback, useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
-import { CONFIG_PROFILE_SETTING_ID, type ConfigProfileId } from './config';
-import {
-  useSecretSettingsController,
-  type ResolvedSettingGroup,
-} from './useSecretSettingsController';
+import { useSecretSettingsController } from './useSecretSettingsController';
 import styles from './SecretSettings.module.css';
 import type { FeatureFlag } from './types';
 
@@ -20,8 +16,6 @@ const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const DIALOG_DESCRIPTION_ID = 'secret-settings-intro-description';
 const DIALOG_MODE_STATUS_ID = 'secret-settings-mode-status';
-
-type ConfigProfile = ReturnType<typeof useSecretSettingsController>['currentProfile'];
 
 interface FeatureFlagsSectionProps {
   flags: FeatureFlag[];
@@ -71,126 +65,6 @@ function FeatureFlagsSection({ flags, onToggleFlag, onResetFlags }: FeatureFlags
   );
 }
 
-interface CustomSettingsSectionProps {
-  settingGroups: ResolvedSettingGroup[];
-  currentProfile?: ConfigProfile;
-  onSettingValue: (id: string, value: string | number | boolean) => void;
-  onProfileSelection: (profileId: ConfigProfileId) => void;
-  onResetSettings: () => void;
-}
-
-function CustomSettingsSection({
-  settingGroups,
-  currentProfile,
-  onSettingValue,
-  onProfileSelection,
-  onResetSettings,
-}: CustomSettingsSectionProps) {
-  return (
-    <section className={styles.section} aria-describedby="custom-settings-description">
-      <h2 className={styles.sectionTitle}>⚙️ Custom Settings</h2>
-      <p id="custom-settings-description" className={styles.sectionDescription}>
-        Tune recognition, frame quality, and performance behavior.
-      </p>
-
-      {settingGroups.length > 0 ? (
-        <>
-          <div className={styles.settingList}>
-            {settingGroups.map((group) => (
-              <div key={group.id} className={styles.settingGroup}>
-                <div className={styles.settingGroupHeader}>
-                  <h3 className={styles.settingGroupTitle}>{group.title}</h3>
-                  {group.description && (
-                    <p className={styles.settingGroupDescription}>{group.description}</p>
-                  )}
-                </div>
-                <div className={styles.settingGroupItems}>
-                  {group.settings.map((setting) => (
-                    <div key={setting.id} className={styles.settingItem}>
-                      <label className={styles.settingLabel}>
-                        <div className={styles.settingInfo}>
-                          <span className={styles.settingName}>{setting.name}</span>
-                          <span className={styles.settingDescription}>{setting.description}</span>
-                          {setting.category && (
-                            <span className={styles.settingCategory}>{setting.category}</span>
-                          )}
-                        </div>
-
-                        {setting.type === 'number' && (
-                          <div className={styles.settingControl}>
-                            <input
-                              type="range"
-                              min={setting.min}
-                              max={setting.max}
-                              step={setting.step ?? 100}
-                              value={setting.value as number}
-                              onChange={(event) =>
-                                onSettingValue(setting.id, parseFloat(event.target.value))
-                              }
-                              className={styles.settingRange}
-                            />
-                            <div className={styles.settingValueGroup}>
-                              <span className={styles.settingValue}>{setting.value}</span>
-                              {setting.unit && (
-                                <span className={styles.settingUnit}>{setting.unit}</span>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {setting.type === 'select' && (
-                          <div className={styles.settingControl}>
-                            <select
-                              value={setting.value as string}
-                              onChange={(event) =>
-                                setting.id === CONFIG_PROFILE_SETTING_ID
-                                  ? onProfileSelection(event.target.value as ConfigProfileId)
-                                  : onSettingValue(setting.id, event.target.value)
-                              }
-                              className={styles.settingSelect}
-                            >
-                              {setting.options?.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                            {setting.id === CONFIG_PROFILE_SETTING_ID && currentProfile && (
-                              <p className={styles.profileHelper}>{currentProfile.description}</p>
-                            )}
-                          </div>
-                        )}
-
-                        {setting.type === 'boolean' && (
-                          <div className={styles.settingControl}>
-                            <input
-                              type="checkbox"
-                              checked={setting.value as boolean}
-                              onChange={(event) => onSettingValue(setting.id, event.target.checked)}
-                              className={styles.flagCheckbox}
-                            />
-                          </div>
-                        )}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <button onClick={onResetSettings} className={styles.resetButton} type="button">
-            Reset Custom Settings
-          </button>
-        </>
-      ) : (
-        <div className={styles.placeholder}>
-          <p className={styles.placeholderText}>No custom settings configured yet.</p>
-        </div>
-      )}
-    </section>
-  );
-}
-
 interface SaveAndReloadSectionProps {
   onSaveAndReload: () => void;
 }
@@ -213,33 +87,11 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
   );
 }
 
-function DeveloperInfoSection() {
-  return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>📚 For Developers</h2>
-      <p className={styles.sectionDescription}>
-        This module is designed for extensibility. See{' '}
-        <code>src/modules/secret-settings/DEVELOPER_GUIDE.md</code> for:
-      </p>
-      <ul className={styles.devList}>
-        <li>How to add new feature flags</li>
-        <li>How to add custom settings</li>
-        <li>Type definitions and examples</li>
-        <li>Best practices for UI integration</li>
-      </ul>
-    </section>
-  );
-}
-
 /**
  * Secret Settings Page Component
  *
- * Displays a modal with:
- * - Feature flags (experimental features on/off)
- * - Custom settings (adjustable parameters)
- *
- * @param props - Component props
- * @returns React component
+ * Displays a modal with feature flags (experimental features on/off).
+ * All recognition parameters are hardcoded and self-tune at runtime.
  *
  * @example
  * ```tsx
@@ -250,18 +102,8 @@ function DeveloperInfoSection() {
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const {
-    flags,
-    toggleFlag,
-    resetFlags,
-    isEnabled,
-    settingGroups,
-    currentProfile,
-    setSettingValue,
-    handleProfileSelection,
-    resetSettings,
-    handleSendIt,
-  } = useSecretSettingsController(onClose);
+  const { flags, toggleFlag, resetFlags, isEnabled, handleSendIt } =
+    useSecretSettingsController(onClose);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -370,15 +212,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           </div>
 
           <FeatureFlagsSection flags={flags} onToggleFlag={toggleFlag} onResetFlags={resetFlags} />
-          <CustomSettingsSection
-            settingGroups={settingGroups}
-            currentProfile={currentProfile}
-            onSettingValue={setSettingValue}
-            onProfileSelection={handleProfileSelection}
-            onResetSettings={resetSettings}
-          />
           <SaveAndReloadSection onSaveAndReload={handleSendIt} />
-          <DeveloperInfoSection />
         </div>
       </div>
     </div>

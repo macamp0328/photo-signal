@@ -22,7 +22,6 @@ describe('SecretSettings', () => {
 
       expect(screen.getByText(/Secret Settings/i)).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: /Feature Flags/i })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: /Custom Settings/i })).toBeInTheDocument();
     });
 
     it('should not render when isVisible is false', () => {
@@ -35,21 +34,6 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(screen.getByText(/Test Data Mode/i)).toBeInTheDocument();
-    });
-
-    it('should display custom settings from config', () => {
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByText(/Config Profile/i)).toBeInTheDocument();
-      expect(screen.getByText(/Recognition Delay/i)).toBeInTheDocument();
-    });
-
-    it('should display developer information', () => {
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByText(/For Developers/i)).toBeInTheDocument();
-      expect(screen.getByText(/How to add new feature flags/i)).toBeInTheDocument();
-      expect(screen.getByText(/How to add custom settings/i)).toBeInTheDocument();
     });
   });
 
@@ -88,46 +72,6 @@ describe('SecretSettings', () => {
       await user.click(modalContent);
 
       expect(onClose).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Config profile workflow', () => {
-    it('should apply Photo Recognition baseline when selecting a profile', async () => {
-      const user = userEvent.setup();
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      const profileSelect = screen.getByRole('combobox', { name: /config profile/i });
-      await user.selectOptions(profileSelect, 'baseline-phash');
-
-      await waitFor(() => {
-        const saved = localStorage.getItem('photo-signal-custom-settings');
-        expect(saved).toBeTruthy();
-        const settings = JSON.parse(saved!);
-        const similarity = settings.find((s: { id: string }) => s.id === 'similarity-threshold');
-        expect(similarity?.value).toBe(12);
-      });
-
-      const flagsRaw = localStorage.getItem('photo-signal-feature-flags');
-      expect(flagsRaw).toBeTruthy();
-      const flags = JSON.parse(flagsRaw!);
-      const rectangleFlag = flags.find((f: { id: string }) => f.id === 'rectangle-detection');
-      expect(rectangleFlag?.enabled).toBe(true);
-    });
-
-    it('should revert to Custom profile when manual tweaks are made', async () => {
-      const user = userEvent.setup();
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      const profileSelect = screen.getByRole('combobox', {
-        name: /config profile/i,
-      }) as HTMLSelectElement;
-      await user.selectOptions(profileSelect, 'baseline-phash');
-      expect(profileSelect.value).toBe('baseline-phash');
-
-      const similarityThreshold = screen.getByLabelText(/similarity threshold/i);
-      fireEvent.change(similarityThreshold, { target: { value: '10' } });
-
-      expect(profileSelect.value).toBe('custom');
     });
   });
 
@@ -249,14 +193,13 @@ describe('SecretSettings', () => {
       ).toBeInTheDocument();
     });
 
-    it('should display reset buttons', () => {
+    it('should display Reset Feature Flags button', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(screen.getByRole('button', { name: /reset feature flags/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /reset custom settings/i })).toBeInTheDocument();
     });
 
-    it('should associate section descriptions with sections for screen readers', () => {
+    it('should associate feature flags section description for screen readers', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       const featureFlagsHeading = screen.getByRole('heading', { name: /feature flags/i });
@@ -265,16 +208,6 @@ describe('SecretSettings', () => {
       expect(
         screen.getByText(/toggle feature flags used for experiments and troubleshooting/i)
       ).toHaveAttribute('id', 'feature-flags-description');
-
-      const customSettingsHeading = screen.getByRole('heading', { name: /custom settings/i });
-      const customSettingsSection = customSettingsHeading.closest('section');
-      expect(customSettingsSection).toHaveAttribute(
-        'aria-describedby',
-        'custom-settings-description'
-      );
-      expect(
-        screen.getByText(/tune recognition, frame quality, and performance behavior/i)
-      ).toHaveAttribute('id', 'custom-settings-description');
     });
 
     it('should display feature flag checkboxes', () => {
@@ -284,30 +217,11 @@ describe('SecretSettings', () => {
       expect(checkboxes.length).toBeGreaterThan(0);
     });
 
-    it('should display custom setting selects', () => {
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      const selects = screen.getAllByRole('combobox');
-      expect(selects.length).toBeGreaterThan(0);
-    });
-
     it('should display mode badge', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       // Should show production mode by default (test-mode flag is off by default)
       expect(screen.getByText(/Production Mode/i)).toBeInTheDocument();
-    });
-  });
-
-  describe('Recognition settings visibility', () => {
-    it('should show pHash-relevant controls and hide legacy engine controls', () => {
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByText(/Similarity Threshold/i)).toBeInTheDocument();
-      expect(screen.queryByText(/Perceptual Hash Algorithm/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Recognition Engine/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/Parallel dHash Weight/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/ORB Max Features/i)).not.toBeInTheDocument();
     });
   });
 
@@ -417,7 +331,6 @@ describe('SecretSettings', () => {
         await new Promise((resolve) => setTimeout(resolve, 150));
 
         // Reload should still be called even though component was unmounted
-        // This is the fix for the bug - reload must happen regardless of unmount
         expect(reloadSpy).toHaveBeenCalled();
       } finally {
         (window as { location: unknown }).location = originalLocation;
@@ -449,39 +362,6 @@ describe('SecretSettings', () => {
         const flags = JSON.parse(saved!);
         const testModeFlag = flags.find((f: { id: string }) => f.id === 'test-mode');
         expect(testModeFlag?.enabled).toBe(true);
-
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        expect(reloadSpy).toHaveBeenCalled();
-      } finally {
-        (window as { location: unknown }).location = originalLocation;
-      }
-    });
-
-    it('should persist custom setting changes before reload', async () => {
-      const user = userEvent.setup();
-      const reloadSpy = vi.fn();
-      const originalLocation = window.location;
-
-      try {
-        delete (window as { location?: unknown }).location;
-        (window as { location: unknown }).location = { ...originalLocation, reload: reloadSpy };
-
-        render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-        // Change a custom setting
-        const profileSelect = screen.getByRole('combobox', { name: /config profile/i });
-        await user.selectOptions(profileSelect, 'baseline-phash');
-
-        // Click Save & Reload
-        const button = screen.getByText(/Save & Reload/i);
-        await user.click(button);
-
-        // Check that the change was persisted to localStorage before reload
-        const saved = localStorage.getItem('photo-signal-custom-settings');
-        expect(saved).toBeTruthy();
-        const settings = JSON.parse(saved!);
-        const profileSetting = settings.find((s: { id: string }) => s.id === 'config-profile');
-        expect(profileSetting?.value).toBe('baseline-phash');
 
         await new Promise((resolve) => setTimeout(resolve, 150));
         expect(reloadSpy).toHaveBeenCalled();
@@ -557,7 +437,6 @@ describe('SecretSettings', () => {
         await user.click(button);
 
         // Simulate parent re-render after onClose sets isVisible=false
-        // This is what happens in real App.tsx when setShowSecretSettings(false) is called
         rerender(<SecretSettings isVisible={false} onClose={handleClose} />);
 
         // Component is now unmounted (returns null when isVisible=false)

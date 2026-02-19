@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
-import { useFeatureFlags } from '../secret-settings';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 import { computePHash } from './algorithms/phash';
@@ -18,7 +17,6 @@ import {
   calculateAdaptiveQualityThresholds,
   calculateAverageBrightness,
   computeLaplacianVariance,
-  convertToGrayscale,
   detectGlare,
   detectPoorLighting,
 } from './algorithms/utils';
@@ -75,8 +73,6 @@ export function usePhotoRecognition(
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
   } = options;
-
-  const { isEnabled } = useFeatureFlags();
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
@@ -318,10 +314,6 @@ export function usePhotoRecognition(
         }
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
-
-        if (isEnabled('grayscale-mode')) {
-          convertToGrayscale(imageData);
-        }
 
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
@@ -701,11 +693,23 @@ export function usePhotoRecognition(
       }
     };
 
-    intervalRef.current = window.setInterval(checkFrame, checkInterval);
+    // Adaptive scheduling: scan faster when tracking a candidate, slower when idle.
+    // A fixed checkInterval (non-default) overrides this for test compatibility.
+    const scheduleNext = () => {
+      const isTracking =
+        lastMatchedConcertRef.current !== null || switchCandidateConcertRef.current !== null;
+      const delay =
+        checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 180;
+      intervalRef.current = window.setTimeout(() => {
+        checkFrame();
+        scheduleNext();
+      }, delay);
+    };
+    scheduleNext();
 
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        clearTimeout(intervalRef.current);
         intervalRef.current = undefined;
       }
 
@@ -737,7 +741,6 @@ export function usePhotoRecognition(
     enableRectangleDetection,
     rectangleConfidenceThreshold,
     displayAspectRatio,
-    isEnabled,
     restartKey,
   ]);
 

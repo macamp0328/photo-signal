@@ -49,6 +49,29 @@ export interface FailureDiagnostic {
   timestamp: number;
 }
 
+export interface FrameQualityStats {
+  blur: { sharpnessSum: number; sampleCount: number };
+  glare: { glarePercentSum: number; sampleCount: number };
+  lighting: { brightnessSum: number; sampleCount: number };
+}
+
+export interface NearMissEntry {
+  distance: number;
+  frameHash: string;
+  timestamp: number;
+}
+
+export interface HammingDistanceLog {
+  /** Frames whose best-match distance was just above the threshold (capped at 20). */
+  nearMisses: NearMissEntry[];
+  matchedFrameDistances: {
+    min: number | null;
+    max: number | null;
+    sum: number;
+    count: number;
+  };
+}
+
 export type GuidanceType =
   | 'motion-blur'
   | 'glare'
@@ -92,6 +115,10 @@ export interface RecognitionTelemetry {
     lastShown: Record<GuidanceType, number>;
   };
   switchDecision?: SwitchDecisionTelemetry;
+  /** Running sums and counts for quality measurements of rejected frames. */
+  frameQualityStats: FrameQualityStats;
+  /** Hamming distance distribution for quality-passing frames. */
+  hammingDistanceLog: HammingDistanceLog;
 }
 
 export interface RecognitionDebugInfo {

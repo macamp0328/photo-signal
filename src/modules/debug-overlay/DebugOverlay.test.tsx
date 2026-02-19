@@ -4,6 +4,7 @@ import { DebugOverlay } from './DebugOverlay';
 import type { DebugOverlayProps } from './types';
 import type { Concert } from '../../types';
 import type { RecognitionDebugInfo } from '../photo-recognition/types';
+import { createEmptyTelemetry } from '../photo-recognition/helpers';
 
 const mockRunTest = vi.fn();
 const mockResetTest = vi.fn();
@@ -56,6 +57,7 @@ describe('DebugOverlay', () => {
       hasGlare: false,
     },
     telemetry: {
+      ...createEmptyTelemetry(),
       totalFrames: 42,
       blurRejections: 5,
       glareRejections: 2,
@@ -494,53 +496,7 @@ describe('DebugOverlay', () => {
         similarityThreshold: 40,
         recognitionDelay: 3000,
         frameQuality: null,
-        telemetry: {
-          totalFrames: 0,
-          blurRejections: 0,
-          glareRejections: 0,
-          lightingRejections: 0,
-          qualityFrames: 0,
-          successfulRecognitions: 0,
-          failedAttempts: 0,
-          failureHistory: [],
-          failureByCategory: {
-            'motion-blur': 0,
-            glare: 0,
-            'poor-quality': 0,
-            'no-match': 0,
-            collision: 0,
-            unknown: 0,
-          },
-          guidanceTracking: {
-            shown: {
-              'motion-blur': 0,
-              glare: 0,
-              'poor-lighting': 0,
-              'ambiguous-match': 0,
-              distance: 0,
-              'off-center': 0,
-              none: 0,
-            },
-            duration: {
-              'motion-blur': 0,
-              glare: 0,
-              'poor-lighting': 0,
-              'ambiguous-match': 0,
-              distance: 0,
-              'off-center': 0,
-              none: 0,
-            },
-            lastShown: {
-              'motion-blur': 0,
-              glare: 0,
-              'poor-lighting': 0,
-              'ambiguous-match': 0,
-              distance: 0,
-              'off-center': 0,
-              none: 0,
-            },
-          },
-        },
+        telemetry: createEmptyTelemetry(),
         hashAlgorithm: 'phash',
       };
 

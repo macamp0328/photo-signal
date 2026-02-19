@@ -8,6 +8,7 @@ import {
   exportGuidanceTelemetry,
   calculateGuidanceEffectiveness,
 } from './telemetryUtils';
+import { createEmptyTelemetry } from '../modules/photo-recognition/helpers';
 import type {
   RecognitionTelemetry,
   GuidanceType,
@@ -79,10 +80,19 @@ function createSwitchDecisionTelemetry(
   };
 }
 
+/**
+ * Convenience wrapper — returns createEmptyTelemetry() merged with overrides.
+ * Ensures the new required fields (frameQualityStats, hammingDistanceLog) are
+ * always present even in tests that predate them.
+ */
+function makeTelemetry(overrides: Partial<RecognitionTelemetry>): RecognitionTelemetry {
+  return { ...createEmptyTelemetry(), ...overrides };
+}
+
 describe('telemetryUtils', () => {
   describe('formatGuidanceTelemetry', () => {
     it('should format complete telemetry report', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 75,
         blurRejections: 15,
@@ -96,7 +106,7 @@ describe('telemetryUtils', () => {
         }),
         failureByCategory: createFailureByCategory({ 'no-match': 2 }),
         failureHistory: [],
-      };
+      });
 
       const output = formatGuidanceTelemetry(telemetry);
 
@@ -109,7 +119,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should handle zero guidance shown', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 50,
         qualityFrames: 50,
         blurRejections: 0,
@@ -120,7 +130,7 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const output = formatGuidanceTelemetry(telemetry);
 
@@ -131,7 +141,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should calculate percentages correctly', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 200,
         qualityFrames: 150,
         blurRejections: 30,
@@ -142,7 +152,7 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const output = formatGuidanceTelemetry(telemetry);
 
@@ -155,7 +165,7 @@ describe('telemetryUtils', () => {
 
   describe('exportGuidanceTelemetry', () => {
     it('should export valid JSON', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 80,
         blurRejections: 10,
@@ -169,7 +179,7 @@ describe('telemetryUtils', () => {
         }),
         failureByCategory: createFailureByCategory({ 'no-match': 1 }),
         failureHistory: [],
-      };
+      });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
@@ -183,7 +193,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should include switch prompt decision metrics and latency', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 60,
         qualityFrames: 40,
         blurRejections: 10,
@@ -209,7 +219,7 @@ describe('telemetryUtils', () => {
             shownAt: 1735689600000,
           },
         }),
-      };
+      });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
@@ -225,7 +235,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should calculate frame stats percentages', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 75,
         blurRejections: 15,
@@ -236,7 +246,7 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
@@ -249,7 +259,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should calculate success rate', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 100,
         blurRejections: 0,
@@ -260,7 +270,7 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
@@ -271,7 +281,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should handle zero recognitions without dividing by zero', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 50,
         qualityFrames: 50,
         blurRejections: 0,
@@ -282,7 +292,7 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
@@ -291,7 +301,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should convert duration to seconds', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 100,
         blurRejections: 0,
@@ -305,7 +315,7 @@ describe('telemetryUtils', () => {
         }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
@@ -317,7 +327,7 @@ describe('telemetryUtils', () => {
 
   describe('calculateGuidanceEffectiveness', () => {
     it('should calculate reduction in failure rates', () => {
-      const before: RecognitionTelemetry = {
+      const before: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 50,
         blurRejections: 30,
@@ -328,9 +338,9 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
-      const after: RecognitionTelemetry = {
+      const after: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 80,
         blurRejections: 10,
@@ -344,7 +354,7 @@ describe('telemetryUtils', () => {
         }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const effectiveness = calculateGuidanceEffectiveness(before, after);
 
@@ -355,7 +365,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should handle improvement in quality', () => {
-      const before: RecognitionTelemetry = {
+      const before: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 60,
         blurRejections: 40,
@@ -366,9 +376,9 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
-      const after: RecognitionTelemetry = {
+      const after: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 90,
         blurRejections: 10,
@@ -382,7 +392,7 @@ describe('telemetryUtils', () => {
         }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const effectiveness = calculateGuidanceEffectiveness(before, after);
 
@@ -391,7 +401,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should handle no change', () => {
-      const telemetry: RecognitionTelemetry = {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 80,
         blurRejections: 10,
@@ -402,7 +412,7 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const effectiveness = calculateGuidanceEffectiveness(telemetry, telemetry);
 
@@ -413,7 +423,7 @@ describe('telemetryUtils', () => {
     });
 
     it('should handle negative reduction (worse performance)', () => {
-      const before: RecognitionTelemetry = {
+      const before: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 90,
         blurRejections: 10,
@@ -424,9 +434,9 @@ describe('telemetryUtils', () => {
         guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
-      const after: RecognitionTelemetry = {
+      const after: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 70,
         blurRejections: 30,
@@ -440,7 +450,7 @@ describe('telemetryUtils', () => {
         }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
-      };
+      });
 
       const effectiveness = calculateGuidanceEffectiveness(before, after);
 

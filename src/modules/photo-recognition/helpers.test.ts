@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Concert } from '../../types';
-import { getPHashes } from './helpers';
+import { createEmptyTelemetry, getPHashes } from './helpers';
 
 const buildConcert = (phash?: unknown): Concert => ({
   id: 1,
@@ -12,6 +12,27 @@ const buildConcert = (phash?: unknown): Concert => ({
 });
 
 describe('helpers', () => {
+  describe('createEmptyTelemetry', () => {
+    it('initializes frameQualityStats with zero values', () => {
+      const telemetry = createEmptyTelemetry();
+      expect(telemetry.frameQualityStats.blur.sharpnessSum).toBe(0);
+      expect(telemetry.frameQualityStats.blur.sampleCount).toBe(0);
+      expect(telemetry.frameQualityStats.glare.glarePercentSum).toBe(0);
+      expect(telemetry.frameQualityStats.glare.sampleCount).toBe(0);
+      expect(telemetry.frameQualityStats.lighting.brightnessSum).toBe(0);
+      expect(telemetry.frameQualityStats.lighting.sampleCount).toBe(0);
+    });
+
+    it('initializes hammingDistanceLog with zero values and empty nearMisses', () => {
+      const telemetry = createEmptyTelemetry();
+      expect(telemetry.hammingDistanceLog.nearMisses).toEqual([]);
+      expect(telemetry.hammingDistanceLog.matchedFrameDistances.min).toBeNull();
+      expect(telemetry.hammingDistanceLog.matchedFrameDistances.max).toBeNull();
+      expect(telemetry.hammingDistanceLog.matchedFrameDistances.sum).toBe(0);
+      expect(telemetry.hammingDistanceLog.matchedFrameDistances.count).toBe(0);
+    });
+  });
+
   describe('getPHashes', () => {
     it('returns valid 16-char hex pHashes', () => {
       const concert = buildConcert(['abcdef1234567890', 'ABCDEF1234567890']);

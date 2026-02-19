@@ -25,6 +25,7 @@ import type { Concert } from './types';
 import type {
   RecognitionTelemetry,
   SwitchDecisionTelemetry,
+  PhotoRecognitionOptions,
 } from './modules/photo-recognition/types';
 import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
@@ -199,6 +200,16 @@ function AppContent() {
   });
 
   // Module: Photo Recognition (paused when secret menu is open)
+  const recognitionOptions: PhotoRecognitionOptions = {
+    enableDebugInfo: isDebugOverlayVisible,
+    aspectRatio: 'auto',
+    enableRectangleDetection: isEnabled('rectangle-detection'),
+    continuousRecognition: true,
+    switchRecognitionDelayMultiplier: 1.8,
+    switchDistanceThreshold: 7,
+    enabled: !showSecretSettings,
+  };
+
   const {
     recognizedConcert,
     reset: resetRecognition,
@@ -208,15 +219,7 @@ function AppContent() {
     activeGuidance,
     detectedRectangle,
     rectangleConfidence,
-  } = usePhotoRecognition(stream, {
-    enableDebugInfo: isDebugOverlayVisible,
-    aspectRatio: 'auto',
-    enableRectangleDetection: isEnabled('rectangle-detection'),
-    continuousRecognition: true,
-    switchRecognitionDelayMultiplier: 1.8,
-    switchDistanceThreshold: 7,
-    enabled: !showSecretSettings,
-  });
+  } = usePhotoRecognition(stream, recognitionOptions);
 
   useEffect(() => {
     if (showSecretSettings) {
@@ -604,7 +607,7 @@ function AppContent() {
         </Suspense>
       )}
       {!showSecretSettings && telemetryForExport && (
-        <TelemetryExport telemetry={telemetryForExport} />
+        <TelemetryExport telemetry={telemetryForExport} options={recognitionOptions} />
       )}
     </>
   );

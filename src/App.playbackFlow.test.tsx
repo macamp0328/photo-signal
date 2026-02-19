@@ -8,6 +8,7 @@ import type {
   RecognitionDebugInfo,
   RecognitionTelemetry,
 } from './modules/photo-recognition/types';
+import { createEmptyTelemetry } from './modules/photo-recognition/helpers';
 
 const concertOne: Concert = {
   id: 1,
@@ -73,6 +74,7 @@ const enabledFlags = new Set<string>();
 let latestTelemetryExport: RecognitionTelemetry | null = null;
 
 const createDebugTelemetry = (): RecognitionTelemetry => ({
+  ...createEmptyTelemetry(),
   totalFrames: 1,
   blurRejections: 0,
   glareRejections: 0,

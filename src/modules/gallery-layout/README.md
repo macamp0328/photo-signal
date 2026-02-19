@@ -35,7 +35,7 @@ interface GalleryLayoutProps {
 }
 ```
 
-**Note**: The `showInfoSection` prop now defaults to `true`, which renders the info section directly below the camera. Set it to `false` only when you need the legacy overlay experience inside the camera frame.
+**Note**: The `showInfoSection` prop defaults to `true`, which renders the info section directly below the camera in the current curated layout.
 
 ## Usage
 
@@ -59,34 +59,6 @@ function App() {
       cameraView={cameraView}
       infoDisplay={infoDisplay}
       onActivate={() => setIsActive(true)}
-    />
-  );
-}
-```
-
-### Overlay Mode (Optional)
-
-```tsx
-import { GalleryLayout } from './modules/gallery-layout';
-
-function App() {
-  const [isActive, setIsActive] = useState(false);
-
-  const cameraView = (
-    <CameraView
-      stream={stream}
-      concertInfo={recognizedConcert}
-      showConcertOverlay={!!recognizedConcert && isPlaying}
-    />
-  );
-
-  return (
-    <GalleryLayout
-      isActive={isActive}
-      cameraView={cameraView}
-      infoDisplay={null}
-      onActivate={() => setIsActive(true)}
-      showInfoSection={false} // Hide info section, use overlay instead
     />
   );
 }

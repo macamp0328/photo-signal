@@ -567,8 +567,7 @@ function AppContent() {
       hasPermission={hasPermission}
       onRetry={retry}
       grayscale={isEnabled('grayscale-mode')}
-      concertInfo={displayedConcert}
-      showConcertOverlay={false}
+      showInstructions={!displayedConcert}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       rectangleDetectionConfidenceThreshold={rectangleDetectionConfidenceThresholdValue}

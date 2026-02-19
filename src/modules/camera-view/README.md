@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Render camera video feed with optional grayscale and info overlays.
+Render camera video feed with optional grayscale and instructional guidance.
 
 ## Responsibility
 
@@ -11,7 +11,7 @@ Render camera video feed with optional grayscale and info overlays.
 - Displaying video stream in viewport
 - Showing instructions to user
 - Displaying permission errors
-- **Rendering concert info overlay (when provided)**
+- Rectangle detection overlay rendering
 
 **Does NOT** handle:
 
@@ -35,8 +35,7 @@ Render camera video feed with optional grayscale and info overlays.
   hasPermission: boolean | null;      // Permission state
   onRetry?: () => void;               // Retry callback for errors
   grayscale?: boolean;                // Apply grayscale filter to camera view (default false)
-  concertInfo?: Concert | null;       // Concert info to display as overlay (optional)
-  showConcertOverlay?: boolean;       // Control visibility of concert overlay (default false)
+  showInstructions?: boolean;         // Control visibility of instructional text (default true)
 }
 ```
 
@@ -48,7 +47,6 @@ Render camera video feed with optional grayscale and info overlays.
 
 - Full viewport video display
 - **Grayscale filter support**
-- **Concert info overlay** (semi-transparent, positioned absolutely)
 - Rectangle detection overlay (when provided)
 - Instruction text
 - Permission error handling
@@ -100,18 +98,16 @@ function App() {
 }
 ```
 
-### With Concert Info Overlay
+### Hide Instructions While Matched
 
 ```typescript
 import { useCameraAccess } from '@/modules/camera-access';
 import { usePhotoRecognition } from '@/modules/photo-recognition';
-import { useAudioPlayback } from '@/modules/audio-playback';
 import { CameraView } from '@/modules/camera-view';
 
 function App() {
   const { stream, error, hasPermission, retry } = useCameraAccess();
   const { recognizedConcert } = usePhotoRecognition(stream);
-  const { isPlaying } = useAudioPlayback();
 
   return (
     <CameraView
@@ -119,14 +115,11 @@ function App() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      concertInfo={recognizedConcert}
-      showConcertOverlay={!!recognizedConcert && isPlaying}
+      showInstructions={!recognizedConcert}
     />
   );
 }
 ```
-
-**Note**: The concert overlay is positioned absolutely within the camera container, so it does not affect the camera's dimensions or the underlying video stream. This prevents the overlay from disrupting photo recognition when it appears.
 
 ---
 

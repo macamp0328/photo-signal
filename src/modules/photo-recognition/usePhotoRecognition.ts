@@ -144,6 +144,18 @@ export function usePhotoRecognition(
     [concerts]
   );
 
+  /**
+   * Pre-flattened list of all valid concert hashes, computed once when
+   * eligible concerts change.  Moving getPHashes() (which includes a regex
+   * validation pass) out of the per-frame hot path avoids redundant work on
+   * every camera tick.
+   */
+  const concertHashList = useMemo(
+    () =>
+      eligibleConcerts.flatMap((concert) => getPHashes(concert).map((hash) => ({ hash, concert }))),
+    [eligibleConcerts]
+  );
+
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {
       return;
@@ -316,19 +328,16 @@ export function usePhotoRecognition(
         let bestMatch: { concert: Concert; distance: number } | null = null;
         let secondBestMatch: { concert: Concert; distance: number } | null = null;
 
-        for (const concert of eligibleConcerts) {
-          const hashes = getPHashes(concert);
-          for (const hash of hashes) {
-            const distance = hammingDistance(currentHash, hash);
-            if (!bestMatch || distance < bestMatch.distance) {
-              secondBestMatch = bestMatch;
-              bestMatch = { concert, distance };
-            } else if (
-              !secondBestMatch ||
-              (distance < secondBestMatch.distance && distance !== bestMatch.distance)
-            ) {
-              secondBestMatch = { concert, distance };
-            }
+        for (const { hash, concert } of concertHashList) {
+          const distance = hammingDistance(currentHash, hash);
+          if (!bestMatch || distance < bestMatch.distance) {
+            secondBestMatch = bestMatch;
+            bestMatch = { concert, distance };
+          } else if (
+            !secondBestMatch ||
+            (distance < secondBestMatch.distance && distance !== bestMatch.distance)
+          ) {
+            secondBestMatch = { concert, distance };
           }
         }
         algorithmMs = performance.now() - algorithmStartAt;
@@ -709,6 +718,7 @@ export function usePhotoRecognition(
     stream,
     enabled,
     eligibleConcerts,
+    concertHashList,
     checkInterval,
     recognitionDelay,
     similarityThreshold,

@@ -16,7 +16,35 @@ test.describe('Secret Settings Menu', () => {
     await openSecretSettings(page);
 
     const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
-    await expect(modalDocument).toHaveScreenshot('secret-settings-dialog.png');
+    const maxDiffPixelRatio = getMaxDiffPixelRatio(
+      test.info().project.name,
+      {},
+      VISUAL_MAX_DIFF_RATIO_LENIENT
+    );
+
+    await expect(modalDocument).toHaveScreenshot('secret-settings-dialog.png', {
+      maxDiffPixelRatio,
+    });
+  });
+
+  test('@extended expected feature flags are visible', async ({ page }) => {
+    await bootstrapVisualState(page);
+    await gotoLanding(page);
+    await openSecretSettings(page);
+
+    await expect(page.getByText('Test Data Mode')).toBeVisible();
+    await expect(page.getByText('Dynamic Rectangle Detection')).toBeVisible();
+
+    const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
+    const maxDiffPixelRatio = getMaxDiffPixelRatio(
+      test.info().project.name,
+      {},
+      VISUAL_MAX_DIFF_RATIO_LENIENT
+    );
+
+    await expect(modalDocument).toHaveScreenshot('secret-settings-feature-flags-visible.png', {
+      maxDiffPixelRatio,
+    });
   });
 
   test('@extended test mode toggle remains visible and checked', async ({ page }) => {

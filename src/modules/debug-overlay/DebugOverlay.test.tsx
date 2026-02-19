@@ -274,7 +274,7 @@ describe('DebugOverlay', () => {
         />
       );
 
-      expect(screen.getByText('IDLE')).toBeInTheDocument();
+      expect(screen.getByText('Idle')).toBeInTheDocument();
       expect(screen.getByText('⚪')).toBeInTheDocument();
     });
 
@@ -288,7 +288,7 @@ describe('DebugOverlay', () => {
         />
       );
 
-      expect(screen.getByText('CHECKING')).toBeInTheDocument();
+      expect(screen.getByText('Checking')).toBeInTheDocument();
       expect(screen.getByText('🔵')).toBeInTheDocument();
     });
 
@@ -302,7 +302,7 @@ describe('DebugOverlay', () => {
         />
       );
 
-      expect(screen.getByText('MATCHING')).toBeInTheDocument();
+      expect(screen.getByText('Matching')).toBeInTheDocument();
       expect(screen.getByText('🟡')).toBeInTheDocument();
     });
 
@@ -316,7 +316,7 @@ describe('DebugOverlay', () => {
         />
       );
 
-      expect(screen.getByText('RECOGNIZED')).toBeInTheDocument();
+      expect(screen.getByText('Recognized')).toBeInTheDocument();
       expect(screen.getByText('🟢')).toBeInTheDocument();
     });
   });

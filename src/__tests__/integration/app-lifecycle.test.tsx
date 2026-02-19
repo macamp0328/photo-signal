@@ -11,7 +11,7 @@ import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
 
 const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
-const CUSTOM_SETTINGS_STORAGE_KEY = 'photo-signal-custom-settings';
+const LEGACY_CUSTOM_SETTINGS_STORAGE_KEY = 'photo-signal-custom-settings';
 
 describe('App Lifecycle Integration', () => {
   beforeEach(() => {
@@ -97,10 +97,10 @@ describe('App Lifecycle Integration', () => {
       ])
     );
     localStorage.setItem(
-      CUSTOM_SETTINGS_STORAGE_KEY,
+      LEGACY_CUSTOM_SETTINGS_STORAGE_KEY,
       JSON.stringify([
         {
-          id: 'recognition-delay',
+          id: 'legacy-setting',
           value: 1250,
         },
       ])
@@ -108,12 +108,14 @@ describe('App Lifecycle Integration', () => {
 
     render(<App />);
 
-    // App should load with feature flags and custom settings
+    // App should load with feature flags; legacy custom settings should not break initialization
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
 
-    // Verify localStorage was accessed (data loaded)
+    // Verify localStorage values remain readable for backward compatibility
     const flags = localStorage.getItem(FEATURE_FLAGS_STORAGE_KEY);
-    const settings = localStorage.getItem(CUSTOM_SETTINGS_STORAGE_KEY);
+    const settings = localStorage.getItem(LEGACY_CUSTOM_SETTINGS_STORAGE_KEY);
     expect(flags).toBeTruthy();
     expect(settings).toBeTruthy();
   });

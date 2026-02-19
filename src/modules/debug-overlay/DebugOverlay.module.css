@@ -75,6 +75,14 @@
     border-color 0.2s ease;
 }
 
+.toggleButton,
+.resetButton,
+.collapsedButton,
+.testButton,
+.testClearButton {
+  min-height: 2rem;
+}
+
 .toggleButton:hover,
 .toggleButton:focus-visible {
   background: color-mix(in srgb, var(--debug-accent) 18%, transparent);
@@ -386,12 +394,6 @@
   gap: 0.5rem;
 }
 
-.collapsedLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--debug-subtext);
-}
-
 .collapsedButton {
   background: color-mix(in srgb, var(--debug-accent) 15%, transparent);
   color: var(--debug-accent);
@@ -505,10 +507,6 @@
 
   .concertDate {
     font-size: 0.625rem;
-  }
-
-  .collapsedLabel {
-    font-size: 0.6875rem;
   }
 
   .collapsedButton {

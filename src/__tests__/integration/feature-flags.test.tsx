@@ -11,7 +11,6 @@ import App from '../../App';
 import { setupBrowserMocks } from './setup';
 
 const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
-const CUSTOM_SETTINGS_STORAGE_KEY = 'photo-signal-custom-settings';
 
 describe('Feature Flags → Module Behavior Integration', () => {
   beforeEach(() => {
@@ -73,7 +72,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
         enabled: true,
       },
       {
-        id: 'grayscale-mode',
+        id: 'rectangle-detection',
         enabled: true,
       },
     ];
@@ -89,7 +88,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
       : [];
 
     expect(parsedFlags.find((flag) => flag.id === 'test-mode')?.enabled).toBe(true);
-    expect(parsedFlags.find((flag) => flag.id === 'grayscale-mode')?.enabled).toBe(true);
+    expect(parsedFlags.find((flag) => flag.id === 'rectangle-detection')?.enabled).toBe(true);
   });
 
   it('should handle invalid feature flag data gracefully', () => {
@@ -137,19 +136,10 @@ describe('Feature Flags → Module Behavior Integration', () => {
   });
 
   it('should enforce curated dark theme mode', () => {
-    localStorage.setItem(
-      CUSTOM_SETTINGS_STORAGE_KEY,
-      JSON.stringify([
-        {
-          id: 'recognition-delay',
-          value: 1200,
-        },
-      ])
-    );
-
     render(<App />);
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 
@@ -162,11 +152,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
           enabled: true,
         },
         {
-          id: 'grayscale-mode',
-          enabled: true,
-        },
-        {
-          id: 'multi-scale-recognition',
+          id: 'rectangle-detection',
           enabled: true,
         },
       ])

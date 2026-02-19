@@ -109,6 +109,13 @@ export function DebugOverlay({
     RECOGNIZED: '🟢',
   };
 
+  const statusLabel: Record<RecognitionStatus, string> = {
+    IDLE: 'Idle',
+    CHECKING: 'Checking',
+    MATCHING: 'Matching',
+    RECOGNIZED: 'Recognized',
+  };
+
   const displayHash = lastFrameHash
     ? `${lastFrameHash.slice(0, 6)}...${lastFrameHash.slice(-4)}`
     : 'N/A';
@@ -185,7 +192,7 @@ export function DebugOverlay({
               <span className={`${styles.statusIndicator} ${statusColors[status]}`}>
                 {statusEmoji[status]}
               </span>
-              <span className={styles.statusText}>{status}</span>
+              <span className={styles.statusText}>{statusLabel[status]}</span>
             </div>
           </div>
 

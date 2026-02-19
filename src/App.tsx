@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useState, useRef } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { useMotionDetection } from './modules/motion-detection';
 import {
@@ -209,17 +209,20 @@ function AppContent() {
   });
 
   // Module: Photo Recognition (paused when secret menu is open)
-  const recognitionOptions: PhotoRecognitionOptions = {
-    // Keep debug info (and telemetry) active during a recording session even if the overlay
-    // is collapsed so no frames are missed.
-    enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
-    aspectRatio: 'auto',
-    enableRectangleDetection: isEnabled('rectangle-detection'),
-    continuousRecognition: true,
-    switchRecognitionDelayMultiplier: 1.8,
-    switchDistanceThreshold: 7,
-    enabled: !showSecretSettings,
-  };
+  const recognitionOptions: PhotoRecognitionOptions = useMemo(
+    () => ({
+      // Keep debug info (and telemetry) active during a recording session even if the overlay
+      // is collapsed so no frames are missed.
+      enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
+      aspectRatio: 'auto',
+      enableRectangleDetection: isEnabled('rectangle-detection'),
+      continuousRecognition: true,
+      switchRecognitionDelayMultiplier: 1.8,
+      switchDistanceThreshold: 7,
+      enabled: !showSecretSettings,
+    }),
+    [isDebugOverlayVisible, recordingState, isEnabled, showSecretSettings]
+  );
 
   const {
     recognizedConcert,

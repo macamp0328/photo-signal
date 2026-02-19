@@ -66,11 +66,36 @@ describe('Cloudflare worker', () => {
     expect(env.AUDIO.head).toHaveBeenCalledWith('prod/audio/test.opus');
     expect(env.AUDIO.get).toHaveBeenCalledWith('prod/audio/test.opus', undefined);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173');
+    expect(response.headers.get('Access-Control-Expose-Headers')).toBe(
+      'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+    );
     expect(response.headers.get('Content-Type')).toBe('audio/ogg; codecs=opus');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
     expect(response.headers.get('ETag')).toBe('"abc"');
     expect(response.headers.get('Accept-Ranges')).toBe('bytes');
     expect(await response.text()).toBe('audio-data');
+  });
+
+  it('serves audio for requests without an Origin header', async () => {
+    const env = createEnv();
+    const response = await worker.fetch(createRequest('/prod/audio/test.opus'), env);
+
+    expect(response.status).toBe(200);
+    expect(env.AUDIO.head).toHaveBeenCalledWith('prod/audio/test.opus');
+    expect(env.AUDIO.get).toHaveBeenCalledWith('prod/audio/test.opus', undefined);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
+    expect(response.headers.get('Access-Control-Expose-Headers')).toBe(
+      'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+    );
+  });
+
+  it('rejects requests without Origin when shared secret is configured', async () => {
+    const env = createEnv({ sharedSecret: 'secret' });
+    const response = await worker.fetch(createRequest('/prod/audio/test.opus'), env);
+
+    expect(response.status).toBe(403);
+    expect(env.AUDIO.head).not.toHaveBeenCalled();
+    expect(env.AUDIO.get).not.toHaveBeenCalled();
   });
 
   it('allows wildcard origins that match the configured pattern', async () => {
@@ -170,6 +195,9 @@ describe('Cloudflare worker', () => {
     expect(env.AUDIO.head).not.toHaveBeenCalled();
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173');
     expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, HEAD, OPTIONS');
+    expect(response.headers.get('Access-Control-Expose-Headers')).toBe(
+      'Content-Length, Content-Range, Content-Type, ETag, Accept-Ranges'
+    );
   });
 
   it('rejects OPTIONS when origin is forbidden', async () => {

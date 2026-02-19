@@ -1,44 +1,17 @@
 # Secret Settings Module
 
-> **Purpose**: Provides a hidden settings menu activated by triple-tap/click for feature flags and custom settings.
+> **Purpose**: Provides a hidden settings menu activated by triple-tap/click for toggling feature flags.
 
 ---
 
 ## Overview
 
-The Secret Settings module implements a hidden menu that can be activated by triple-tapping or triple-clicking in the center of the screen. This menu provides:
+The Secret Settings module implements a hidden menu that can be activated by triple-tapping or triple-clicking in the center of the screen. This menu provides feature flag toggles for experimental functionality. All recognition parameters are hardcoded with sensible defaults — no numeric tuning is exposed to the user.
 
-- **Feature Flags**: Toggle experimental and creative features on/off
-- **Custom Settings**: Adjust advanced recognition and performance parameters
+### Implemented Feature Flags
 
-### Implemented Features
-
-**Feature Flags:**
-
-1. **Test Data Mode** - Use test concert data with working photo hashes and sample assets
-2. **Multi-Scale Recognition** - Support imprecise photo alignment with multiple crop scales
-3. **Dynamic Rectangle Detection** - Automatically detect photo boundaries in camera feed
-4. **Grayscale Conversion** - Convert frames to black and white before recognition
-
-**Custom Settings:**
-
-1. **Config Profile** - Apply curated baseline (`Baseline · pHash`) from the Photo Recognition Deep Dive
-2. **Recognition Delay** - Adjust how long a photo must stay steady before it counts as a match
-3. **Similarity Threshold** - Tune the required hash distance to declare a match
-4. **Frame Scan Interval** - Control how often frames are hashed to balance responsiveness and battery
-5. **Sharpness Threshold** - Gate frames by minimum Laplacian variance to fight motion blur
-6. **Glare Pixel Threshold** - Set how bright a pixel must be to count as glare
-7. **Glare Coverage Threshold** - Limit what percentage of pixels can be blown out before skipping a frame
-8. **Rectangle Detection Confidence** - Adjust how confident the detector must be before cropping
-
-### Config Profiles
-
-The new **Config Profile** select applies the baseline configurations from the
-_Photo Recognition Deep Dive_ with a single tap. Choosing **Baseline · pHash** instantly updates the
-relevant settings (recognition delay, thresholds, and frame-quality filters) and ensures rectangle detection
-stays enabled, matching the documentation. Any manual tweak
-to the settings panel automatically switches the profile back to **Custom**, making it obvious when values
-no longer match the preset.
+1. **Test Data Mode** (`test-mode`) - Use test concert data with working photo hashes and sample assets
+2. **Dynamic Rectangle Detection** (`rectangle-detection`) - Automatically detect photo boundaries in the camera feed
 
 ---
 
@@ -50,10 +23,10 @@ src/modules/secret-settings/
 ├── DEVELOPER_GUIDE.md             # Comprehensive guide for adding features
 ├── index.ts                        # Public API exports
 ├── types.ts                        # TypeScript interfaces
-├── config.ts                       # Unified configuration (feature flags + custom settings)
+├── config.ts                       # Feature flag configuration
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
-├── useCustomSettings.ts           # Custom settings state management
+├── useCustomSettings.ts           # Compatibility no-op hook (no user-tweakable settings)
 ├── SecretSettings.tsx             # Settings UI component
 ├── SecretSettings.module.css      # Component styles
 └── *.test.ts(x)                   # Test files
@@ -142,7 +115,7 @@ function MyComponent() {
 
 ### `SecretSettings` Component
 
-Modal/page component that displays feature flags and custom settings.
+Modal/page component that displays feature flags.
 
 **Type Signature:**
 
@@ -164,13 +137,9 @@ interface SecretSettingsProps {
 
 - Full-screen modal overlay
 - Feature flag toggles with instant preview
-- Custom setting controls with instant preview
 - **"Send It 🚀" button** - Applies all changes and reloads page
-- Reset buttons for flags and settings
 - Responsive design (mobile and desktop)
 - Keyboard accessible (ESC to close - future feature)
-- Placeholder sections for future features
-- Developer documentation built-in
 - Retro sound integration
 
 **Example:**
@@ -212,7 +181,7 @@ function useFeatureFlags(): {
 
 - `flags`: Array of all feature flags with current state
 - `toggleFlag(id)`: Toggle a specific flag on/off
-- `setFlagState(id, enabled)`: Explicitly set a flag to a desired state (used by config profiles)
+- `setFlagState(id, enabled)`: Explicitly set a flag to a desired state
 - `isEnabled(id)`: Check if a flag is currently enabled
 - `resetFlags()`: Reset all flags to default values
 
@@ -236,7 +205,7 @@ function MyComponent() {
 
 ### `useCustomSettings` Hook
 
-Manages custom settings state with localStorage persistence.
+Compatibility no-op hook. Recognition parameters are intentionally hardcoded and self-tune at runtime.
 
 **Type Signature:**
 
@@ -251,10 +220,10 @@ function useCustomSettings(): {
 
 **Returns:**
 
-- `settings`: Array of all custom settings with current values
-- `updateSetting(id, value)`: Update a specific setting value
-- `getSetting<T>(id)`: Get current value of a setting
-- `resetSettings()`: Reset all settings to default values
+- `settings`: Always empty
+- `updateSetting(id, value)`: No-op helper
+- `getSetting<T>(id)`: Always returns `undefined`
+- `resetSettings()`: No-op helper
 
 **Example:**
 
@@ -282,15 +251,13 @@ import {
   useTripleTap,
   SecretSettings,
   useFeatureFlags,
-  useCustomSettings,
 } from './modules/secret-settings';
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
 
-  // Feature flags & custom settings
+  // Feature flags
   const { isEnabled } = useFeatureFlags();
-  const { getSetting } = useCustomSettings();
 
   // Detect triple-tap to open settings
   useTripleTap({
@@ -345,14 +312,9 @@ body {
 1. Open the app in a browser
 2. Triple-click rapidly in the center of the screen
 3. The secret settings menu should appear
-4. Try toggling each feature:
-   - **Test Data Mode**: Use test concert data
-   - **Multi-Scale Recognition**: Relaxed photo framing
-   - **Rectangle Detection**: Auto-detect photo boundaries
-   - **Grayscale Mode**: Convert frames to black and white
-
-- **Custom Settings**: Tune delay, thresholds, and frame quality filters
-
+4. Try toggling each feature flag:
+   - **Test Data Mode**: Use test concert data with sample hashes and assets
+   - **Dynamic Rectangle Detection**: Auto-detect photo boundaries in the camera feed
 5. Click **"Send It 🚀"** to apply changes and reload the page
 6. Verify all changes persist after reload
 
@@ -373,12 +335,11 @@ The "Send It" button ensures all changes are guaranteed to work by:
 
 ## Adding New Features
 
-For detailed information on adding new feature flags and custom settings, see **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)**.
+For detailed information on adding new feature flags, see **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)**.
 
 The guide includes:
 
 - Step-by-step instructions for adding feature flags
-- Step-by-step instructions for adding custom settings
 - Best practices and patterns
 - Testing guidelines
 - Complete code examples
@@ -390,44 +351,17 @@ The guide includes:
 ### Feature Flags
 
 1. **Test Data Mode** (`test-mode`)
-   - Use test concert data with working photo hashes
+   - Use test concert data with working photo hashes and sample assets
    - Enable debug overlay for development
    - Automatically reset recognition after matches
-2. **Multi-Scale Recognition** (`multi-scale-recognition`)
-   - Support imprecise photo alignment
-   - Test multiple crop scales (75%, 80%, 85%, 90%)
-   - More forgiving for handheld use
-3. **Dynamic Rectangle Detection** (`rectangle-detection`)
-   - Automatically detect photo boundaries
-   - Visual feedback when rectangle detected
-   - Dynamic cropping instead of fixed guides
-4. **Grayscale Conversion** (`grayscale-mode`)
-   - Convert frames to black and white
-   - May improve accuracy with monochrome prints
-   - Reduce noise in low-light conditions
+2. **Dynamic Rectangle Detection** (`rectangle-detection`)
+   - Automatically detect photo boundaries in the camera feed
+   - Visual feedback when a rectangle is detected
+   - Dynamic cropping instead of fixed aspect-ratio guides
 
 ### Custom Settings
 
-1. **Config Profile** (`config-profile`)
-
-- Options: `custom` (manual control), `baseline-phash`
-- Applies curated baseline values in one action
-
-2. **Recognition Delay** (`recognition-delay`)
-
-- Milliseconds a frame must remain stable before lock
-
-3. **Similarity Threshold** (`similarity-threshold`)
-
-- pHash distance threshold (lower is stricter)
-
-4. **Frame Scan Interval** (`recognition-check-interval`)
-
-- Hashing cadence for responsiveness vs CPU use
-
-5. **Frame Quality Filters**
-
-- `sharpness-threshold`, `glare-threshold`, `glare-percentage-threshold`, `rectangle-detection-confidence-threshold`
+No custom settings are currently defined. All recognition parameters (thresholds, delays, scan interval) are hardcoded with sensible defaults and self-tune at runtime. See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for the rationale behind each value.
 
 ---
 
@@ -522,20 +456,6 @@ function PhotoRecognitionModule() {
     // Use stable code
     return <StableComponent />;
   }
-}
-```
-
-### Using Custom Settings in Your Code
-
-```typescript
-import { useCustomSettings } from './modules/secret-settings';
-
-function MotionDetectionModule() {
-  const { getSetting } = useCustomSettings();
-  const sensitivity = getSetting<number>('motion-sensitivity') ?? 50;
-
-  // Use sensitivity value in motion detection algorithm
-  const { isMoving } = useMotionDetection(stream, { sensitivity });
 }
 ```
 

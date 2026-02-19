@@ -26,7 +26,7 @@ import type {
   RecognitionTelemetry,
   SwitchDecisionTelemetry,
 } from './modules/photo-recognition/types';
-import { useTripleTap, useFeatureFlags, useCustomSettings } from './modules/secret-settings';
+import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
 
 const SecretSettings = lazy(async () => {
@@ -133,10 +133,6 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
-const coerceNumberSetting = (value: unknown, fallback: number): number => {
-  return typeof value === 'number' && !Number.isNaN(value) ? value : fallback;
-};
-
 function AppContent() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -162,9 +158,8 @@ function AppContent() {
   const lastPromptConcertIdRef = useRef<number | null>(null);
   const promptShownAtRef = useRef<number | null>(null);
 
-  // Module: Feature Flags & Custom Settings
+  // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
-  const { getSetting } = useCustomSettings();
 
   // Module: Secret Settings - Triple-tap detection
   useTripleTap({
@@ -203,40 +198,6 @@ function AppContent() {
     enabled: !showSecretSettings,
   });
 
-  const rawRecognitionDelay = getSetting<number>('recognition-delay');
-  const recognitionDelayValue =
-    rawRecognitionDelay === undefined || rawRecognitionDelay === 3000
-      ? 1000
-      : coerceNumberSetting(rawRecognitionDelay, 1000);
-  const defaultSimilarityThreshold = 12;
-  const rawSimilarityThreshold = getSetting<number>('similarity-threshold');
-  const similarityThresholdValue = coerceNumberSetting(
-    rawSimilarityThreshold === undefined ||
-      rawSimilarityThreshold === 40 ||
-      rawSimilarityThreshold === 24
-      ? defaultSimilarityThreshold
-      : rawSimilarityThreshold,
-    defaultSimilarityThreshold
-  );
-  const rawFrameScanInterval = getSetting<number>('recognition-check-interval');
-  const frameScanIntervalValue =
-    rawFrameScanInterval === undefined || rawFrameScanInterval === 1000
-      ? 250
-      : coerceNumberSetting(rawFrameScanInterval, 250);
-  const sharpnessThresholdValue = coerceNumberSetting(
-    getSetting<number>('sharpness-threshold'),
-    100
-  );
-  const glareThresholdValue = coerceNumberSetting(getSetting<number>('glare-threshold'), 250);
-  const glarePercentageThresholdValue = coerceNumberSetting(
-    getSetting<number>('glare-percentage-threshold'),
-    20
-  );
-  const rectangleDetectionConfidenceThresholdValue = coerceNumberSetting(
-    getSetting<number>('rectangle-detection-confidence-threshold'),
-    0.35 // Calibrated default for mobile browser reliability
-  );
-
   // Module: Photo Recognition (paused when secret menu is open)
   const {
     recognizedConcert,
@@ -248,16 +209,9 @@ function AppContent() {
     detectedRectangle,
     rectangleConfidence,
   } = usePhotoRecognition(stream, {
-    recognitionDelay: recognitionDelayValue,
-    similarityThreshold: similarityThresholdValue,
-    checkInterval: frameScanIntervalValue,
-    sharpnessThreshold: sharpnessThresholdValue,
-    glareThreshold: glareThresholdValue,
-    glarePercentageThreshold: glarePercentageThresholdValue,
     enableDebugInfo: isDebugOverlayVisible,
     aspectRatio: 'auto',
     enableRectangleDetection: isEnabled('rectangle-detection'),
-    rectangleConfidenceThreshold: rectangleDetectionConfidenceThresholdValue,
     continuousRecognition: true,
     switchRecognitionDelayMultiplier: 1.8,
     switchDistanceThreshold: 7,
@@ -566,11 +520,9 @@ function AppContent() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      grayscale={isEnabled('grayscale-mode')}
       showInstructions={!displayedConcert}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
-      rectangleDetectionConfidenceThreshold={rectangleDetectionConfidenceThresholdValue}
       showRectangleOverlay={isEnabled('rectangle-detection')}
     />
   );
@@ -644,7 +596,6 @@ function AppContent() {
             isTestMode={false}
             recognizedConcert={recognizedConcert}
             isRecognizing={isRecognizing}
-            threshold={similarityThresholdValue}
             debugInfo={debugInfo}
             onReset={resetRecognition}
             onVisibilityChange={setIsDebugOverlayVisible}

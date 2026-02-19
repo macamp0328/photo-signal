@@ -143,6 +143,11 @@ describe('useAudioTest', () => {
     expect(result.current.isTestRunning).toBe(false);
     expect(result.current.testResult).not.toBeNull();
     expect(result.current.testResult!.playbackOutcome).toBe('success');
+    expect(result.current.testResult!.playbackDetail).toContain('is now playing');
+
+    const instances = getMockedHowlClass().instances;
+    expect(instances[0].stop).not.toHaveBeenCalled();
+    expect(instances[0].unload).not.toHaveBeenCalled();
   });
 
   it('should report load-error when Howler fails to load', async () => {

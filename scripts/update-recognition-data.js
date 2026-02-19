@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import {
   loadImageData,
   generateHashVariants,
-  DEFAULT_EXPOSURE_OFFSETS,
+  DEFAULT_GAMMA_VARIANTS,
 } from './lib/photoHashUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,7 +22,8 @@ const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
 const DEFAULT_IMAGE_DIR = path.resolve(repoRoot, 'assets/prod-photographs');
 const VALID_ALGORITHMS = new Set(['phash']);
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
-const EXPOSURE_LABELS = ['dark', 'normal', 'bright'];
+// Labels for each gamma variant in DEFAULT_GAMMA_VARIANTS order [2.0, 1.4, 1.0, 0.7, 0.5]
+const EXPOSURE_LABELS = ['very-dark', 'dark', 'normal', 'bright', 'very-bright'];
 
 function parseIds(value, bucket) {
   if (!bucket) {
@@ -348,7 +349,7 @@ async function processConcert(concert, options) {
   if (options.tasks.hashes) {
     try {
       const imageData = await ensureImageData();
-      const hashVariants = generateHashVariants(imageData, DEFAULT_EXPOSURE_OFFSETS);
+      const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS);
       const hashStore = ensurePhotoHashesStructure(concert);
 
       if (options.algorithms.has('phash')) {
@@ -492,7 +493,7 @@ async function runPathsMode(options) {
     try {
       const imageData = await loadImageData(absolutePath);
       const { width, height } = imageData;
-      const hashVariants = generateHashVariants(imageData, DEFAULT_EXPOSURE_OFFSETS);
+      const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS);
       const photoHashes = {};
 
       for (const algorithm of options.algorithms) {

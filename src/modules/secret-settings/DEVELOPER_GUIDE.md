@@ -1,6 +1,6 @@
 # Secret Settings - Developer Guide
 
-> **Purpose**: Comprehensive guide for developers and AI agents on how to extend the secret settings menu with feature flags and custom settings.
+> **Purpose**: Comprehensive guide for developers and AI agents on how to extend the secret settings menu with feature flags.
 
 ---
 
@@ -8,7 +8,7 @@
 
 1. [Quick Start](#quick-start)
 2. [Adding Feature Flags](#adding-feature-flags)
-3. [Adding Custom Settings](#adding-custom-settings)
+3. [Custom Settings Status](#custom-settings-status)
 4. [Implemented Features](#implemented-features)
 5. [Best Practices](#best-practices)
 6. [Testing](#testing)
@@ -21,7 +21,6 @@
 The secret settings menu is activated by triple-tapping/clicking in the center of the screen. It provides:
 
 - **Feature Flags**: Boolean toggles for experimental and creative features
-- **Custom Settings**: Adjustable parameters (numbers, strings, selects)
 
 ### Module Location
 
@@ -30,10 +29,10 @@ src/modules/secret-settings/
 ├── README.md                       # API contract and usage
 ├── DEVELOPER_GUIDE.md             # This file
 ├── types.ts                        # TypeScript interfaces
-├── config.ts                       # Unified configuration (feature flags + custom settings)
+├── config.ts                       # Feature flag configuration
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
-├── useCustomSettings.ts           # Custom settings state management
+├── useCustomSettings.ts           # Compatibility no-op hook (no active settings)
 ├── SecretSettings.tsx             # Settings UI component
 ├── SecretSettings.module.css      # Component styles
 ├── index.ts                        # Public API exports
@@ -52,62 +51,13 @@ src/modules/secret-settings/
    - Enable debug overlay for development
    - Toggles on/off from Feature Flags section
 
-2. **Multi-Scale Recognition** (`multi-scale-recognition`)
-   - Support imprecise photo alignment
-   - Test multiple crop scales for better matching
-   - More forgiving for handheld use
-
-3. **Dynamic Rectangle Detection** (`rectangle-detection`)
+2. **Dynamic Rectangle Detection** (`rectangle-detection`)
    - Automatically detect photo boundaries
    - Visual feedback when rectangle detected
 
-4. **Grayscale Conversion** (`grayscale-mode`)
-   - Convert frames to black and white before recognition
-   - May improve accuracy with monochrome prints
+### Custom Settings Status
 
-### Custom Settings
-
-> **Note (Feb 2026):** `theme-mode` and `ui-style` were removed. The app now enforces a single curated appearance (`data-theme='dark'`).
-
-1. **Config Profile** (`config-profile`)
-
-- Apply curated baselines (Baseline · pHash / dHash / ORB) from the Photo Recognition Deep Dive
-- Selecting a profile updates all relevant settings plus the rectangle detection flag
-- Manual tweaks automatically switch the profile back to `custom`
-
-2. **Recognition Delay** (`recognition-delay`)
-
-- Milliseconds a photo must stay steady before the match is confirmed (500–5000ms)
-
-3. **Similarity Threshold** (`similarity-threshold`)
-
-- Maximum Hamming distance allowed for perceptual hashes. Lower = stricter, higher = more lenient
-
-4. **Frame Scan Interval** (`recognition-check-interval`)
-
-- How often frames are hashed (ms). Lower values improve responsiveness at a CPU cost
-
-5. **Sharpness Threshold** (`sharpness-threshold`)
-
-- Minimum Laplacian variance required to accept a frame (higher value rejects more blur)
-
-6. **Glare Pixel Threshold** (`glare-threshold`)
-
-- Pixel intensity above this value is considered glare (default 250)
-
-7. **Glare Coverage Threshold** (`glare-percentage-threshold`)
-
-- Maximum % of pixels allowed to exceed the glare threshold before skipping the frame
-
-8. **Rectangle Detection Confidence** (`rectangle-detection-confidence-threshold`)
-
-- Minimum confidence (0–1) before applying the detected crop
-
-> **Profile workflow:** the Config Profile select is the first control in the Custom Settings section.
-> Selecting a baseline instantly writes the predetermined values to every related setting and sets the
-> rectangle detection feature flag to match the Photo Recognition Deep Dive defaults. Any manual edit
-> (slider, select, checkbox) automatically sets the profile back to `custom`, signalling that the current
-> configuration deviates from the preset.
+Custom settings are currently not exposed in the UI. Recognition parameters are hardcoded with curated defaults and runtime safeguards. Profile-based configuration is removed.
 
 ---
 
@@ -421,9 +371,7 @@ export const CUSTOM_SETTINGS: CustomSetting[] = [
 ];
 ```
 
-> Tip: To keep the UI focused, you can limit a setting to specific recognition engines by adding an
-> `engines` array (e.g., `engines: ['perceptual', 'parallel']`). The setting will only be shown when
-> that engine is selected in the menu.
+> Tip: Keep custom setting IDs in `kebab-case` and make sure defaults match the values documented in `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`.
 
 ### Step 2: Create State Management Hook
 

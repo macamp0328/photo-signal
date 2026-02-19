@@ -2,7 +2,7 @@
  * Secret Settings Module
  *
  * Provides a hidden menu activated by triple-tap/click gestures.
- * Designed to hold feature flags and custom settings for advanced users.
+ * Designed to hold feature flags for advanced users.
  *
  * @module secret-settings
  */

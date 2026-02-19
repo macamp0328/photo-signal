@@ -2,7 +2,65 @@
 
 import { createCanvas, loadImage } from 'canvas';
 
+// ---------------------------------------------------------------------------
+// Exposure variant configuration
+// ---------------------------------------------------------------------------
+
+/**
+ * Default gamma values used to generate multi-exposure pHash variants.
+ *
+ * Five variants cover the realistic range of "phone camera pointing at a
+ * printed photo under varying ambient light":
+ *
+ *   2.0  — very dark (dim bar, candlelight)
+ *   1.4  — slightly dark
+ *   1.0  — reference exposure (no adjustment)
+ *   0.7  — slightly bright (well-lit room / daylight)
+ *   0.5  — very bright (direct sunlight, overexposed)
+ *
+ * Gamma adjustment (`pixel/255)^gamma * 255`) is physically more accurate
+ * than a linear brightness offset because:
+ *   - It preserves shadow/highlight detail that a linear ±delta clips to 0/255.
+ *   - It models how phone camera auto-exposure and ambient light actually
+ *     affect perceived brightness (logarithmic / power-law, not additive).
+ *
+ * @type {number[]}
+ */
+export const DEFAULT_GAMMA_VARIANTS = [2.0, 1.4, 1.0, 0.7, 0.5];
+
+/**
+ * Legacy linear exposure offsets — kept so callers that explicitly pass
+ * these continue to work.  New code should use DEFAULT_GAMMA_VARIANTS.
+ *
+ * @deprecated Use DEFAULT_GAMMA_VARIANTS instead.
+ */
 export const DEFAULT_EXPOSURE_OFFSETS = [-50, 0, 50];
+
+// ---------------------------------------------------------------------------
+// Internal image-processing helpers
+// ---------------------------------------------------------------------------
+
+const DCT_SIZE = 32;
+const DCT_LOW_FREQ_SIZE = 8;
+
+/**
+ * Precomputed cosine lookup table for the DCT-II basis functions.
+ * COS_TABLE[u * DCT_SIZE + x] = cos((2x+1)*u*π / (2*DCT_SIZE))
+ * Matches the browser runtime exactly so script-generated hashes are
+ * bit-for-bit identical to hashes computed by the browser on the same image.
+ */
+const COS_TABLE = new Float64Array(DCT_SIZE * DCT_SIZE);
+for (let u = 0; u < DCT_SIZE; u++) {
+  for (let x = 0; x < DCT_SIZE; x++) {
+    COS_TABLE[u * DCT_SIZE + x] = Math.cos(((2 * x + 1) * u * Math.PI) / (2 * DCT_SIZE));
+  }
+}
+
+/** DCT-II orthonormal scale factors: 1/√2 for u=0, 1 otherwise. */
+const ALPHA = new Float64Array(DCT_SIZE);
+for (let i = 0; i < DCT_SIZE; i++) {
+  ALPHA[i] = i === 0 ? 1 / Math.sqrt(2) : 1;
+}
 
 function resizeImageData(imageData, width, height) {
   if (imageData.width === width && imageData.height === height) {
@@ -48,31 +106,9 @@ function binaryToHex(binary) {
   return hex;
 }
 
-function computeDCT(matrix, size) {
-  const dct = Array(size)
-    .fill(0)
-    .map(() => Array(size).fill(0));
-
-  for (let u = 0; u < size; u++) {
-    for (let v = 0; v < size; v++) {
-      let sum = 0;
-
-      for (let x = 0; x < size; x++) {
-        for (let y = 0; y < size; y++) {
-          const cosU = Math.cos(((2 * x + 1) * u * Math.PI) / (2 * size));
-          const cosV = Math.cos(((2 * y + 1) * v * Math.PI) / (2 * size));
-          sum += matrix[x][y] * cosU * cosV;
-        }
-      }
-
-      const alphaU = u === 0 ? 1 / Math.sqrt(2) : 1;
-      const alphaV = v === 0 ? 1 / Math.sqrt(2) : 1;
-      dct[u][v] = (alphaU * alphaV * sum) / 2;
-    }
-  }
-
-  return dct;
-}
+// ---------------------------------------------------------------------------
+// Hash algorithms
+// ---------------------------------------------------------------------------
 
 export function computeDHash(imageData) {
   const resized = resizeImageData(imageData, 17, 8);
@@ -92,22 +128,49 @@ export function computeDHash(imageData) {
   return binaryToHex(binaryHash);
 }
 
+/**
+ * Compute pHash using a separable 2D DCT with a precomputed cosine lookup
+ * table.  This is mathematically equivalent to the naive 2D DCT but uses
+ * O(n³) multiply-adds instead of O(n⁴), and avoids all Math.cos() calls.
+ *
+ * The implementation mirrors the browser runtime (src/modules/photo-recognition/
+ * algorithms/phash.ts) so that script-generated reference hashes and
+ * browser-computed query hashes are computed identically.
+ */
 export function computePHash(imageData) {
-  const resized = resizeImageData(imageData, 32, 32);
-  const grayscaleArray = toGrayscale(resized);
-  const matrix = [];
-  for (let i = 0; i < 32; i++) {
-    matrix[i] = grayscaleArray.slice(i * 32, (i + 1) * 32);
+  const resized = resizeImageData(imageData, DCT_SIZE, DCT_SIZE);
+  const grayscale = toGrayscale(resized);
+
+  // Step 1: 1D DCT along each row, keeping only DCT_LOW_FREQ_SIZE components.
+  // intermediate[x * DCT_LOW_FREQ_SIZE + v]
+  //   = Σ_y grayscale[x * DCT_SIZE + y] * COS_TABLE[v * DCT_SIZE + y]
+  const intermediate = new Float64Array(DCT_SIZE * DCT_LOW_FREQ_SIZE);
+  for (let x = 0; x < DCT_SIZE; x++) {
+    const rowOffset = x * DCT_SIZE;
+    const outRowOffset = x * DCT_LOW_FREQ_SIZE;
+    for (let v = 0; v < DCT_LOW_FREQ_SIZE; v++) {
+      let sum = 0;
+      const cosVOffset = v * DCT_SIZE;
+      for (let y = 0; y < DCT_SIZE; y++) {
+        sum += grayscale[rowOffset + y] * COS_TABLE[cosVOffset + y];
+      }
+      intermediate[outRowOffset + v] = sum;
+    }
   }
 
-  const dct = computeDCT(matrix, 32);
+  // Step 2: 1D DCT along each column, keeping only DCT_LOW_FREQ_SIZE rows.
+  // Inline median computation into lowFreq array.
   const lowFreq = [];
-  for (let u = 0; u < 8; u++) {
-    for (let v = 0; v < 8; v++) {
-      if (u === 0 && v === 0) {
-        continue;
+  for (let u = 0; u < DCT_LOW_FREQ_SIZE; u++) {
+    const alphaU = ALPHA[u];
+    const cosUOffset = u * DCT_SIZE;
+    for (let v = 0; v < DCT_LOW_FREQ_SIZE; v++) {
+      if (u === 0 && v === 0) continue; // Skip DC component
+      let sum = 0;
+      for (let x = 0; x < DCT_SIZE; x++) {
+        sum += intermediate[x * DCT_LOW_FREQ_SIZE + v] * COS_TABLE[cosUOffset + x];
       }
-      lowFreq.push(dct[u][v]);
+      lowFreq.push((alphaU * ALPHA[v] * sum) / 2);
     }
   }
 
@@ -122,6 +185,20 @@ export function computePHash(imageData) {
   return binaryToHex(binaryHash);
 }
 
+// ---------------------------------------------------------------------------
+// Exposure simulation
+// ---------------------------------------------------------------------------
+
+/**
+ * Adjust image brightness with a linear offset (legacy / deprecated).
+ *
+ * Clips each RGB channel to [0, 255] after adding delta.  Does not preserve
+ * highlight/shadow detail at the extremes — prefer adjustGamma for new code.
+ *
+ * @param {ImageData} imageData
+ * @param {number} delta  Value to add to each R/G/B channel (positive = brighter)
+ * @returns {ImageData}
+ */
 export function adjustBrightness(imageData, delta) {
   const { width, height, data } = imageData;
   const canvas = createCanvas(width, height);
@@ -138,32 +215,96 @@ export function adjustBrightness(imageData, delta) {
   return adjusted;
 }
 
-export async function loadImageData(imagePath) {
-  const image = await loadImage(imagePath);
-  const canvas = createCanvas(image.width, image.height);
+/**
+ * Adjust image brightness using a gamma power curve.
+ *
+ * Applies `output = round((input / 255) ^ gamma * 255)` per RGB channel.
+ *
+ *   gamma < 1  → brightens  (e.g. 0.5 simulates phone overexposure / sunlight)
+ *   gamma = 1  → no change
+ *   gamma > 1  → darkens    (e.g. 2.0 simulates dim ambient / dark venue)
+ *
+ * Unlike a linear offset, gamma adjustment preserves detail in shadows and
+ * highlights (no clipping at extremes) and models how camera exposure
+ * compensation and ambient light actually affect image brightness.
+ *
+ * @param {ImageData} imageData
+ * @param {number} gamma  Power-curve exponent (positive number)
+ * @returns {ImageData}
+ */
+export function adjustGamma(imageData, gamma) {
+  const { width, height, data } = imageData;
+  const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(image, 0, 0);
-  return ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const adjusted = ctx.createImageData(width, height);
+
+  // Build a 256-entry lookup table so we only compute Math.pow once per level.
+  const lut = new Uint8Array(256);
+  for (let i = 0; i < 256; i++) {
+    lut[i] = Math.round(Math.pow(i / 255, gamma) * 255);
+  }
+
+  for (let i = 0; i < data.length; i += 4) {
+    adjusted.data[i] = lut[data[i]];
+    adjusted.data[i + 1] = lut[data[i + 1]];
+    adjusted.data[i + 2] = lut[data[i + 2]];
+    adjusted.data[i + 3] = data[i + 3];
+  }
+
+  return adjusted;
 }
 
-export function createExposureVariants(imageData, offsets = DEFAULT_EXPOSURE_OFFSETS) {
-  return offsets.map((offset) => {
-    if (offset === 0) {
+// ---------------------------------------------------------------------------
+// Variant generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Create gamma-adjusted exposure variants of an image.
+ *
+ * @param {ImageData} imageData
+ * @param {number[]} gammas  Array of gamma exponents (default: DEFAULT_GAMMA_VARIANTS)
+ * @returns {ImageData[]}
+ */
+export function createExposureVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS) {
+  return gammas.map((gamma) => {
+    if (gamma === 1.0) {
       return imageData;
     }
-    return adjustBrightness(imageData, offset);
+    return adjustGamma(imageData, gamma);
   });
 }
 
-export function generateHashVariants(imageData, offsets = DEFAULT_EXPOSURE_OFFSETS) {
-  const variants = createExposureVariants(imageData, offsets);
+/**
+ * Generate pHash (and dHash) variants for multiple gamma-adjusted exposures.
+ *
+ * @param {ImageData} imageData
+ * @param {number[]} gammas  Array of gamma exponents (default: DEFAULT_GAMMA_VARIANTS)
+ * @returns {{ phash: string[], dhash: string[] }}
+ */
+export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS) {
+  const variants = createExposureVariants(imageData, gammas);
   return {
     phash: variants.map((variant) => computePHash(variant)),
     dhash: variants.map((variant) => computeDHash(variant)),
   };
 }
 
-export async function generateHashesForFile(imagePath, offsets = DEFAULT_EXPOSURE_OFFSETS) {
+/**
+ * Load an image from disk and generate hash variants.
+ *
+ * @param {string} imagePath
+ * @param {number[]} gammas
+ * @returns {Promise<{ phash: string[], dhash: string[] }>}
+ */
+export async function generateHashesForFile(imagePath, gammas = DEFAULT_GAMMA_VARIANTS) {
   const imageData = await loadImageData(imagePath);
-  return generateHashVariants(imageData, offsets);
+  return generateHashVariants(imageData, gammas);
+}
+
+export async function loadImageData(imagePath) {
+  const image = await loadImage(imagePath);
+  const canvas = createCanvas(image.width, image.height);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(image, 0, 0);
+  return ctx.getImageData(0, 0, canvas.width, canvas.height);
 }

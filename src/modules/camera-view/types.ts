@@ -2,7 +2,7 @@
  * Camera View Module Types
  */
 
-import type { AspectRatio as AspectRatioType, Concert } from '../../types';
+import type { AspectRatio as AspectRatioType } from '../../types';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 
 export type AspectRatio = AspectRatioType;
@@ -18,10 +18,8 @@ export interface CameraViewProps {
   onRetry?: () => void;
   /** Apply grayscale filter to camera view */
   grayscale?: boolean;
-  /** Concert info to display as overlay (optional) */
-  concertInfo?: Concert | null;
-  /** Control visibility of concert overlay independently */
-  showConcertOverlay?: boolean;
+  /** Show instruction text at the bottom of the camera frame */
+  showInstructions?: boolean;
   /** Detected rectangle (for rectangle detection overlay) */
   detectedRectangle?: DetectedRectangle | null;
   /** Rectangle detection confidence (0-1) */

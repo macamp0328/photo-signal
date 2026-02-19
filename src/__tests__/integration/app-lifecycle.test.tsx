@@ -10,6 +10,9 @@ import { render, screen } from '@testing-library/react';
 import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
 
+const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
+const LEGACY_CUSTOM_SETTINGS_STORAGE_KEY = 'photo-signal-custom-settings';
+
 describe('App Lifecycle Integration', () => {
   beforeEach(() => {
     setupBrowserMocks();
@@ -85,26 +88,34 @@ describe('App Lifecycle Integration', () => {
 
   it('should initialize with localStorage data when available', () => {
     localStorage.setItem(
-      'feature-flags',
-      JSON.stringify({
-        'test-mode': true,
-      })
+      FEATURE_FLAGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'test-mode',
+          enabled: true,
+        },
+      ])
     );
     localStorage.setItem(
-      'custom-settings',
-      JSON.stringify({
-        'theme-mode': 'dark',
-      })
+      LEGACY_CUSTOM_SETTINGS_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'legacy-setting',
+          value: 1250,
+        },
+      ])
     );
 
     render(<App />);
 
-    // App should load with feature flags and custom settings
+    // App should load with feature flags; legacy custom settings should not break initialization
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
 
-    // Verify localStorage was accessed (data loaded)
-    const flags = localStorage.getItem('feature-flags');
-    const settings = localStorage.getItem('custom-settings');
+    // Verify localStorage values remain readable for backward compatibility
+    const flags = localStorage.getItem(FEATURE_FLAGS_STORAGE_KEY);
+    const settings = localStorage.getItem(LEGACY_CUSTOM_SETTINGS_STORAGE_KEY);
     expect(flags).toBeTruthy();
     expect(settings).toBeTruthy();
   });

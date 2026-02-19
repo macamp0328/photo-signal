@@ -171,7 +171,6 @@ function AppContent() {
   // Enforce a single curated visual system for all users
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'dark');
-    document.documentElement.setAttribute('data-ui-style', 'modern');
   }, []);
 
   // Load the first available audio URL for the debug overlay's Test Song button
@@ -521,8 +520,7 @@ function AppContent() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      concertInfo={displayedConcert}
-      showConcertOverlay={false}
+      showInstructions={!displayedConcert}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       showRectangleOverlay={isEnabled('rectangle-detection')}

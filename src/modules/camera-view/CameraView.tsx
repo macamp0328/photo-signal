@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import type { CameraViewProps } from './types';
 import { RectangleOverlay } from '../photo-rectangle-detection';
 import styles from './CameraView.module.css';
-import { formatConcertTimestamp } from '../../utils/dateUtils';
 
 /**
  * Camera View Component
@@ -15,8 +14,7 @@ export function CameraView({
   hasPermission,
   onRetry,
   grayscale = false,
-  concertInfo = null,
-  showConcertOverlay = false,
+  showInstructions = true,
   detectedRectangle = null,
   rectangleConfidence = 0,
   rectangleDetectionConfidenceThreshold = 0.6,
@@ -69,26 +67,6 @@ export function CameraView({
         className={`${styles.video} ${grayscale ? styles.grayscale : ''}`}
       />
 
-      {/* Concert Info Overlay */}
-      {concertInfo && showConcertOverlay && (
-        <div className={styles.concertOverlay}>
-          <div className={styles.concertCard}>
-            <div className={styles.concertHeader}>
-              <h2 className={styles.concertBandName}>{concertInfo.band}</h2>
-            </div>
-            <div className={styles.concertDetails}>
-              <p className={styles.concertVenue}>{concertInfo.venue}</p>
-              <p className={styles.concertDate}>
-                {formatConcertTimestamp(concertInfo.date, { includeTime: false })}
-              </p>
-            </div>
-            <div className={styles.concertFooter}>
-              <p className={styles.concertNowPlaying}>Now Playing</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Rectangle Detection Overlay */}
       {showRectangleOverlay && videoRef.current && (
         <RectangleOverlay
@@ -104,7 +82,7 @@ export function CameraView({
       )}
 
       {/* Instructions */}
-      {!concertInfo && (
+      {showInstructions && (
         <div className={styles.instructions}>
           <p className={styles.instructionsText}>Point camera at a photo to play music</p>
         </div>

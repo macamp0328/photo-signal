@@ -162,6 +162,13 @@ npm run preview
 
 ## Configuration
 
+### Runtime Settings Policy
+
+- Theme is single curated mode: app always sets `data-theme='dark'`
+- Legacy `data-ui-style` modes are removed
+- Runtime toggles persist in localStorage key `photo-signal-feature-flags`
+- Legacy `photo-signal-custom-settings` may exist but is not used for active runtime tuning
+
 ### Concert Data
 
 Edit `public/data.json` to add your own concert data:

@@ -6,12 +6,21 @@
  */
 
 .overlay {
+  --debug-bg: color-mix(in srgb, var(--overlay-bg, rgba(0, 0, 0, 0.85)) 92%, black 8%);
+  --debug-text: var(--color-main-text, #f5f5f5);
+  --debug-subtext: var(--color-sub-text, #cbd5e1);
+  --debug-muted: var(--color-text-muted, #a8a8a8);
+  --debug-accent: var(--color-accent, #4a90e2);
+  --debug-border: color-mix(in srgb, var(--debug-accent) 28%, white 72%);
+  --debug-warning: var(--color-warning, #fbbf24);
+  --debug-success: var(--color-success, #22c55e);
+  --debug-error: var(--color-error, #ef4444);
   position: fixed;
-  bottom: 0.625rem;
+  bottom: calc(env(safe-area-inset-bottom) + 0.625rem);
   right: 0.625rem;
-  background: rgba(0, 0, 0, 0.85);
+  background: var(--debug-bg);
   backdrop-filter: blur(0.625rem);
-  color: #fff;
+  color: var(--debug-text);
   border-radius: 0.75rem;
   padding: 0.75rem;
   min-width: 15rem;
@@ -19,10 +28,21 @@
   font-size: 0.75rem;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.3);
   z-index: 9999;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  transition: all 0.3s ease;
+  border: 1px solid var(--debug-border);
+  font-family: var(
+    --font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif
+  );
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .header {
@@ -42,8 +62,8 @@
 
 .toggleButton {
   background: transparent;
-  color: #cbd5e0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--debug-subtext);
+  border: 1px solid color-mix(in srgb, var(--debug-border) 75%, transparent);
   border-radius: 0.375rem;
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
@@ -55,23 +75,31 @@
     border-color 0.2s ease;
 }
 
+.toggleButton,
+.resetButton,
+.collapsedButton,
+.testButton,
+.testClearButton {
+  min-height: 2rem;
+}
+
 .toggleButton:hover,
 .toggleButton:focus-visible {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
+  background: color-mix(in srgb, var(--debug-accent) 18%, transparent);
+  border-color: var(--debug-border);
+  color: var(--debug-text);
   outline: none;
 }
 
 .title {
   font-weight: 700;
   font-size: 0.8125rem;
-  color: #fff;
+  color: var(--debug-text);
 }
 
 .badge {
-  background: #4a5568;
-  color: #fff;
+  background: color-mix(in srgb, var(--debug-accent) 25%, transparent);
+  color: var(--debug-text);
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.625rem;
@@ -81,8 +109,8 @@
 
 .resetButton {
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--debug-text);
+  border: 1px solid color-mix(in srgb, var(--debug-border) 75%, transparent);
   border-radius: 0.375rem;
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
@@ -96,8 +124,8 @@
 
 .resetButton:hover:not(:disabled),
 .resetButton:focus-visible:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: color-mix(in srgb, var(--debug-accent) 18%, transparent);
+  border-color: var(--debug-border);
   outline: none;
 }
 
@@ -137,15 +165,15 @@
 
 /* Status color indicators */
 .statusIndicator.statusChecking {
-  color: #3182ce; /* Blue - checking frame */
+  color: var(--debug-accent);
 }
 
 .statusIndicator.statusMatching {
-  color: #ecc94b; /* Yellow - potential match */
+  color: var(--debug-warning);
 }
 
 .statusIndicator.statusRecognized {
-  color: #38a169; /* Green - confirmed match */
+  color: var(--debug-success);
 }
 
 @keyframes pulse {
@@ -170,7 +198,7 @@
 .label {
   font-size: 0.6875rem;
   text-transform: uppercase;
-  color: #a0aec0;
+  color: var(--debug-muted);
   margin-bottom: 0.375rem;
   font-weight: 600;
   letter-spacing: 0.03125rem;
@@ -179,14 +207,14 @@
 .hash {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.75rem;
-  color: #63b3ed;
+  color: var(--debug-accent);
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
 
 .hint {
   font-size: 0.6875rem;
-  color: #718096;
+  color: var(--debug-muted);
   font-style: italic;
 }
 
@@ -194,7 +222,7 @@
 .matchName {
   font-weight: 600;
   font-size: 0.875rem;
-  color: #fff;
+  color: var(--debug-text);
   margin-bottom: 0.5rem;
 }
 
@@ -211,7 +239,7 @@
 
 .statLabel {
   font-size: 0.625rem;
-  color: #a0aec0;
+  color: var(--debug-muted);
   text-transform: uppercase;
   letter-spacing: 0.03125rem;
 }
@@ -219,7 +247,7 @@
 .statValue {
   font-weight: 700;
   font-size: 0.875rem;
-  color: #fbbf24;
+  color: var(--debug-warning);
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
@@ -248,13 +276,18 @@
 
 .progressBar {
   height: 100%;
-  background: linear-gradient(90deg, #63b3ed, #f6ad55, #68d391);
+  background: linear-gradient(
+    90deg,
+    var(--debug-accent),
+    var(--debug-warning),
+    var(--debug-success)
+  );
   transition: width 0.2s ease-out;
 }
 
 .timerHint {
   font-size: 0.6875rem;
-  color: #a0aec0;
+  color: var(--debug-muted);
   font-style: italic;
 }
 
@@ -273,7 +306,7 @@
 
 .metricLabel {
   font-size: 0.625rem;
-  color: #a0aec0;
+  color: var(--debug-muted);
   text-transform: uppercase;
   letter-spacing: 0.03125rem;
 }
@@ -281,21 +314,21 @@
 .metricValue {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #edf2f7;
+  color: var(--debug-text);
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 /* Threshold Section */
 .thresholdInfo {
   font-size: 0.75rem;
-  color: #cbd5e0;
+  color: var(--debug-subtext);
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 /* Recognized Concert Section */
 .recognized {
-  background: rgba(72, 187, 120, 0.1);
-  border: 1px solid rgba(72, 187, 120, 0.3);
+  background: color-mix(in srgb, var(--debug-success) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--debug-success) 42%, transparent);
   border-radius: 0.5rem;
   padding: 0.75rem;
 }
@@ -303,24 +336,25 @@
 .concertName {
   font-weight: 700;
   font-size: 0.9375rem;
-  color: #68d391;
+  color: var(--debug-success);
   margin-bottom: 0.25rem;
 }
 
 .concertVenue {
   font-size: 0.75rem;
-  color: #e2e8f0;
+  color: var(--debug-text);
   margin-bottom: 0.125rem;
 }
 
 .concertDate {
   font-size: 0.6875rem;
-  color: #a0aec0;
+  color: var(--debug-muted);
 }
 
 /* Accessibility: Ensure focus is visible */
 .overlay:focus-within {
-  outline: 2px solid #63b3ed;
+  outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)
+    var(--focus-ring-color, var(--debug-accent));
   outline-offset: 2px;
 }
 
@@ -360,39 +394,10 @@
   gap: 0.5rem;
 }
 
-.collapsedHint {
-  font-size: 0.6875rem;
-  color: #a0aec0;
-}
-
-.inactive {
-  opacity: 0.92;
-  border-style: dashed;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.inactiveContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.inactiveMessage {
-  font-size: 0.75rem;
-  color: #cbd5e0;
-  line-height: 1.4;
-}
-
-.collapsedLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #cbd5e0;
-}
-
 .collapsedButton {
-  background: rgba(99, 179, 237, 0.15);
-  color: #63b3ed;
-  border: 1px solid rgba(99, 179, 237, 0.4);
+  background: color-mix(in srgb, var(--debug-accent) 15%, transparent);
+  color: var(--debug-accent);
+  border: 1px solid color-mix(in srgb, var(--debug-accent) 45%, transparent);
   border-radius: 0.375rem;
   padding: 0.25rem 0.75rem;
   font-size: 0.6875rem;
@@ -406,16 +411,16 @@
 
 .collapsedButton:hover,
 .collapsedButton:focus-visible {
-  background: rgba(99, 179, 237, 0.35);
-  color: #fff;
-  border-color: rgba(99, 179, 237, 0.8);
+  background: color-mix(in srgb, var(--debug-accent) 35%, transparent);
+  color: var(--debug-text);
+  border-color: color-mix(in srgb, var(--debug-accent) 70%, transparent);
   outline: none;
 }
 
 /* Mobile responsive improvements */
 @media (max-width: 768px) {
   .overlay {
-    bottom: 10px;
+    bottom: calc(env(safe-area-inset-bottom) + 10px);
     right: 10px;
     left: 10px;
     min-width: auto;
@@ -504,10 +509,6 @@
     font-size: 0.625rem;
   }
 
-  .collapsedLabel {
-    font-size: 0.6875rem;
-  }
-
   .collapsedButton {
     font-size: 0.625rem;
     padding: 0.1875rem 0.625rem;
@@ -535,9 +536,9 @@
 
 /* Audio Test Section */
 .testButton {
-  background: rgba(99, 179, 237, 0.15);
-  color: #63b3ed;
-  border: 1px solid rgba(99, 179, 237, 0.4);
+  background: color-mix(in srgb, var(--debug-accent) 15%, transparent);
+  color: var(--debug-accent);
+  border: 1px solid color-mix(in srgb, var(--debug-accent) 45%, transparent);
   border-radius: 0.375rem;
   padding: 0.375rem 0.75rem;
   font-size: 0.6875rem;
@@ -551,15 +552,15 @@
 
 .testButton:hover,
 .testButton:focus-visible {
-  background: rgba(99, 179, 237, 0.35);
-  color: #fff;
-  border-color: rgba(99, 179, 237, 0.8);
+  background: color-mix(in srgb, var(--debug-accent) 35%, transparent);
+  color: var(--debug-text);
+  border-color: color-mix(in srgb, var(--debug-accent) 70%, transparent);
   outline: none;
 }
 
 .testRunning {
   font-size: 0.75rem;
-  color: #fbbf24;
+  color: var(--debug-warning);
   font-style: italic;
 }
 
@@ -577,7 +578,7 @@
 
 .testLabel {
   font-size: 0.625rem;
-  color: #a0aec0;
+  color: var(--debug-muted);
   text-transform: uppercase;
   letter-spacing: 0.03125rem;
   min-width: 4rem;
@@ -585,40 +586,40 @@
 
 .testValue {
   font-size: 0.75rem;
-  color: #edf2f7;
+  color: var(--debug-text);
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .testSuccess {
   font-size: 0.75rem;
-  color: #68d391;
+  color: var(--debug-success);
   font-weight: 600;
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .testError {
   font-size: 0.75rem;
-  color: #fc8181;
+  color: var(--debug-error);
   font-weight: 600;
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .testMessage {
   font-size: 0.6875rem;
-  color: #cbd5e0;
+  color: var(--debug-subtext);
   margin-top: 0.25rem;
   line-height: 1.4;
 }
 
 .testDuration {
   font-size: 0.625rem;
-  color: #718096;
+  color: var(--debug-muted);
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .testClearButton {
   background: transparent;
-  color: #a0aec0;
+  color: var(--debug-muted);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.375rem;
   padding: 0.1875rem 0.5rem;
@@ -634,6 +635,6 @@
 .testClearButton:hover,
 .testClearButton:focus-visible {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--debug-text);
   outline: none;
 }

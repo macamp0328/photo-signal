@@ -318,185 +318,30 @@ describe('CameraView', () => {
     });
   });
 
-  describe('Concert Info Overlay', () => {
+  describe('Instruction Visibility', () => {
     let mockStream: MediaStream;
-    const mockConcert = {
-      id: 1,
-      band: 'The Beatles',
-      venue: 'Shea Stadium',
-      date: '1965-08-15T19:30:00-05:00',
-      audioFile: '/audio/beatles.opus',
-    };
 
     beforeEach(() => {
       mockStream = new MediaStream();
     });
 
-    it('should not render concert overlay when concertInfo is null', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={null}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
-    });
-
-    it('should not render concert overlay when showConcertOverlay is false', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={mockConcert}
-          showConcertOverlay={false}
-        />
-      );
-
-      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
-    });
-
-    it('should render concert overlay when both concertInfo and showConcertOverlay are provided', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={mockConcert}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.getByText('The Beatles')).toBeInTheDocument();
-      expect(screen.getByText('Shea Stadium')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 1965')).toBeInTheDocument();
-      expect(screen.getByText('Now Playing')).toBeInTheDocument();
-    });
-
-    it('should format date correctly in concert overlay', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={mockConcert}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.getByText('August 15, 1965')).toBeInTheDocument();
-    });
-
-    it('should show only the date portion when concertInfo includes a timestamp', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={{ ...mockConcert, date: '1965-08-15T19:30:00-05:00' }}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.getByText('August 15, 1965')).toBeInTheDocument();
-    });
-
-    it('should render concert overlay with proper structure', () => {
-      const { container } = render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={mockConcert}
-          showConcertOverlay={true}
-        />
-      );
-
-      const overlay = container.querySelector('[class*="concertOverlay"]');
-      const card = container.querySelector('[class*="concertCard"]');
-      const header = container.querySelector('[class*="concertHeader"]');
-      const details = container.querySelector('[class*="concertDetails"]');
-      const footer = container.querySelector('[class*="concertFooter"]');
-
-      expect(overlay).toBeInTheDocument();
-      expect(card).toBeInTheDocument();
-      expect(header).toBeInTheDocument();
-      expect(details).toBeInTheDocument();
-      expect(footer).toBeInTheDocument();
-    });
-
-    it('should not render concert overlay when camera is in error state', () => {
-      render(
-        <CameraView
-          stream={null}
-          error="Camera access denied"
-          hasPermission={false}
-          concertInfo={mockConcert}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
-    });
-
-    it('should not render concert overlay when camera is in loading state', () => {
-      render(
-        <CameraView
-          stream={null}
-          error={null}
-          hasPermission={null}
-          concertInfo={mockConcert}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.queryByText('The Beatles')).not.toBeInTheDocument();
-    });
-
-    it('should hide instructions when concert overlay is shown', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={mockConcert}
-          showConcertOverlay={true}
-        />
-      );
-
-      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
-    });
-
-    it('should hide instructions when concert is recognized but overlay is disabled', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={mockConcert}
-          showConcertOverlay={false}
-        />
-      );
-
-      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
-    });
-
-    it('should show instructions while awaiting a match', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          concertInfo={null}
-          showConcertOverlay={false}
-        />
-      );
+    it('should show instructions by default during active camera state', () => {
+      render(<CameraView stream={mockStream} error={null} hasPermission={true} />);
 
       expect(screen.getByText('Point camera at a photo to play music')).toBeInTheDocument();
+    });
+
+    it('should hide instructions when showInstructions is false', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showInstructions={false}
+        />
+      );
+
+      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });
   });
 });

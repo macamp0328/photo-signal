@@ -193,12 +193,6 @@ describe('SecretSettings', () => {
       ).toBeInTheDocument();
     });
 
-    it('should display Reset Feature Flags button', () => {
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByRole('button', { name: /reset feature flags/i })).toBeInTheDocument();
-    });
-
     it('should associate feature flags section description for screen readers', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 

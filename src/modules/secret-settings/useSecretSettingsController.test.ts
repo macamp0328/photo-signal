@@ -27,7 +27,6 @@ describe('useSecretSettingsController', () => {
 
       expect(result.current.flags).toBeDefined();
       expect(result.current.toggleFlag).toBeDefined();
-      expect(result.current.resetFlags).toBeDefined();
       expect(result.current.isEnabled).toBeDefined();
       expect(result.current.handleSendIt).toBeDefined();
     });
@@ -57,23 +56,6 @@ describe('useSecretSettingsController', () => {
       });
 
       expect(result.current.isEnabled('test-mode')).toBe(!initialTestModeState);
-    });
-
-    it('should reset feature flags via resetFlags', () => {
-      const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
-
-      // Toggle a flag to a non-default state
-      act(() => {
-        result.current.toggleFlag('test-mode');
-      });
-
-      // Reset all flags
-      act(() => {
-        result.current.resetFlags();
-      });
-
-      // test-mode default is false
-      expect(result.current.isEnabled('test-mode')).toBe(false);
     });
 
     it('should return false for unknown flag ids', () => {

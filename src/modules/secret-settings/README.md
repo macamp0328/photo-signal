@@ -23,10 +23,10 @@ src/modules/secret-settings/
 ├── DEVELOPER_GUIDE.md             # Comprehensive guide for adding features
 ├── index.ts                        # Public API exports
 ├── types.ts                        # TypeScript interfaces
-├── config.ts                       # Unified configuration (feature flags + custom settings)
+├── config.ts                       # Feature flag configuration
 ├── useTripleTap.ts                # Triple-tap detection hook
 ├── useFeatureFlags.ts             # Feature flags state management
-├── useCustomSettings.ts           # Custom settings state management
+├── useCustomSettings.ts           # Compatibility no-op hook (no user-tweakable settings)
 ├── SecretSettings.tsx             # Settings UI component
 ├── SecretSettings.module.css      # Component styles
 └── *.test.ts(x)                   # Test files
@@ -115,7 +115,7 @@ function MyComponent() {
 
 ### `SecretSettings` Component
 
-Modal/page component that displays feature flags and custom settings.
+Modal/page component that displays feature flags.
 
 **Type Signature:**
 
@@ -138,7 +138,6 @@ interface SecretSettingsProps {
 - Full-screen modal overlay
 - Feature flag toggles with instant preview
 - **"Send It 🚀" button** - Applies all changes and reloads page
-- Reset button for flags
 - Responsive design (mobile and desktop)
 - Keyboard accessible (ESC to close - future feature)
 - Retro sound integration
@@ -182,7 +181,7 @@ function useFeatureFlags(): {
 
 - `flags`: Array of all feature flags with current state
 - `toggleFlag(id)`: Toggle a specific flag on/off
-- `setFlagState(id, enabled)`: Explicitly set a flag to a desired state (used by config profiles)
+- `setFlagState(id, enabled)`: Explicitly set a flag to a desired state
 - `isEnabled(id)`: Check if a flag is currently enabled
 - `resetFlags()`: Reset all flags to default values
 
@@ -206,7 +205,7 @@ function MyComponent() {
 
 ### `useCustomSettings` Hook
 
-Manages custom settings state with localStorage persistence.
+Compatibility no-op hook. Recognition parameters are intentionally hardcoded and self-tune at runtime.
 
 **Type Signature:**
 
@@ -221,10 +220,10 @@ function useCustomSettings(): {
 
 **Returns:**
 
-- `settings`: Array of all custom settings with current values
-- `updateSetting(id, value)`: Update a specific setting value
-- `getSetting<T>(id)`: Get current value of a setting
-- `resetSettings()`: Reset all settings to default values
+- `settings`: Always empty
+- `updateSetting(id, value)`: No-op helper
+- `getSetting<T>(id)`: Always returns `undefined`
+- `resetSettings()`: No-op helper
 
 **Example:**
 

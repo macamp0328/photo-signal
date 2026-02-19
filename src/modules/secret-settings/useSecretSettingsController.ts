@@ -4,7 +4,7 @@ import { useFeatureFlags } from './useFeatureFlags';
 const SEND_IT_RELOAD_DELAY_MS = 100;
 
 export function useSecretSettingsController(onClose: () => void) {
-  const { flags, toggleFlag, resetFlags, isEnabled } = useFeatureFlags();
+  const { flags, toggleFlag, isEnabled } = useFeatureFlags();
 
   const handleSendIt = useCallback(() => {
     onClose();
@@ -17,7 +17,6 @@ export function useSecretSettingsController(onClose: () => void) {
   return {
     flags,
     toggleFlag,
-    resetFlags,
     isEnabled,
     handleSendIt,
   };

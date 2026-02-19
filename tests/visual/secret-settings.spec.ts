@@ -15,8 +15,8 @@ test.describe('Secret Settings Menu', () => {
     await gotoLanding(page);
     await openSecretSettings(page);
 
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toHaveScreenshot('secret-settings-dialog.png');
+    const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
+    await expect(modalDocument).toHaveScreenshot('secret-settings-dialog.png');
   });
 
   test('@extended test mode toggle remains visible and checked', async ({ page }) => {
@@ -31,14 +31,18 @@ test.describe('Secret Settings Menu', () => {
     await testModeToggle.check();
     await expect(testModeToggle).toBeChecked();
 
-    const dialog = page.getByRole('dialog');
+    const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
+    await modalDocument.evaluate((element) => {
+      element.scrollTop = 0;
+    });
+
     const maxDiffPixelRatio = getMaxDiffPixelRatio(
       test.info().project.name,
       {},
       VISUAL_MAX_DIFF_RATIO_LENIENT
     );
 
-    await expect(dialog).toHaveScreenshot('secret-settings-test-mode-enabled.png', {
+    await expect(modalDocument).toHaveScreenshot('secret-settings-test-mode-enabled.png', {
       maxDiffPixelRatio,
     });
   });

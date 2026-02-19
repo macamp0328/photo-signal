@@ -192,149 +192,6 @@ export function TelemetryExport({ telemetry, options }: TelemetryExportProps) {
     );
   };
 
-  const buildMarkdownReport = (): string => {
-    const activeSettings = computeActiveSettings(options ?? {});
-    const aiRecommendations = computeAiRecommendations(telemetry, activeSettings);
-    const totalFrames = telemetry.totalFrames || 1;
-
-    const { blur, glare, lighting } = telemetry.frameQualityStats;
-    const { matchedFrameDistances, nearMisses } = telemetry.hammingDistanceLog;
-
-    const avgSharpness =
-      blur.sampleCount > 0 ? (blur.sharpnessSum / blur.sampleCount).toFixed(1) : 'n/a';
-    const avgGlare =
-      glare.sampleCount > 0 ? (glare.glarePercentSum / glare.sampleCount).toFixed(1) + '%' : 'n/a';
-    const avgBrightness =
-      lighting.sampleCount > 0 ? (lighting.brightnessSum / lighting.sampleCount).toFixed(1) : 'n/a';
-    const avgNearMissDist =
-      nearMisses.length > 0
-        ? (nearMisses.reduce((s, nm) => s + nm.distance, 0) / nearMisses.length).toFixed(1)
-        : 'n/a';
-    const avgMatchDist =
-      matchedFrameDistances.count > 0
-        ? (matchedFrameDistances.sum / matchedFrameDistances.count).toFixed(1)
-        : 'n/a';
-
-    const recLines =
-      aiRecommendations.length === 0
-        ? '*No issues detected — recognition appears to be working well.*'
-        : aiRecommendations
-            .map(
-              (rec, idx) =>
-                `${idx + 1}. **[${rec.priority.toUpperCase()}]** ${rec.issue}\n` +
-                `   - ${rec.recommendation}\n` +
-                `   - Suggested change: \`${rec.parameterChange}\``
-            )
-            .join('\n\n');
-
-    return `# Photo Signal Telemetry Report
-
-**Generated**: ${new Date().toISOString()}
-
----
-
-## AI Agent Briefing
-
-*Share this report with an AI assistant to get specific parameter-change recommendations.*
-
-### Active Settings
-
-| Parameter | Value |
-|-----------|-------|
-| similarityThreshold | ${activeSettings.similarityThreshold} |
-| matchMarginThreshold | ${activeSettings.matchMarginThreshold} |
-| sharpnessThreshold | ${activeSettings.sharpnessThreshold} |
-| glareThreshold | ${activeSettings.glareThreshold} |
-| glarePercentageThreshold | ${activeSettings.glarePercentageThreshold}% |
-| minBrightness | ${activeSettings.minBrightness} |
-| maxBrightness | ${activeSettings.maxBrightness} |
-| recognitionDelay | ${activeSettings.recognitionDelay}ms |
-| checkInterval | ${activeSettings.checkInterval}ms |
-| switchDistanceThreshold | ${activeSettings.switchDistanceThreshold} |
-| switchMatchMarginThreshold | ${activeSettings.switchMatchMarginThreshold} |
-| continuousRecognition | ${String(activeSettings.continuousRecognition)} |
-
-### Recommended Parameter Changes
-
-${recLines}
-
-### Quality Diagnostics
-
-| Metric | Value | Threshold |
-|--------|-------|-----------|
-| Avg sharpness of blur-rejected frames | ${avgSharpness} | ${activeSettings.sharpnessThreshold} (lower is blurrier) |
-| Avg glare% of glare-rejected frames | ${avgGlare} | ${activeSettings.glarePercentageThreshold}% |
-| Avg brightness of lighting-rejected frames | ${avgBrightness} | ${activeSettings.minBrightness}–${activeSettings.maxBrightness} |
-| Near-miss frames (just above threshold) | ${nearMisses.length} | — |
-| Avg Hamming distance of near-misses | ${avgNearMissDist} | threshold: ${activeSettings.similarityThreshold} |
-| Avg Hamming distance of all matched frames | ${avgMatchDist} | — |
-
----
-
-## Summary Statistics
-
-| Metric | Value | Percentage |
-|--------|-------|------------|
-| Total Frames | ${telemetry.totalFrames} | 100% |
-| Quality Frames | ${telemetry.qualityFrames} | ${((telemetry.qualityFrames / totalFrames) * 100).toFixed(1)}% |
-| Blur Rejections | ${telemetry.blurRejections} | ${((telemetry.blurRejections / totalFrames) * 100).toFixed(1)}% |
-| Glare Rejections | ${telemetry.glareRejections} | ${((telemetry.glareRejections / totalFrames) * 100).toFixed(1)}% |
-| Lighting Rejections | ${telemetry.lightingRejections} | ${((telemetry.lightingRejections / totalFrames) * 100).toFixed(1)}% |
-| Successful Recognitions | ${telemetry.successfulRecognitions} | — |
-| Failed Attempts | ${telemetry.failedAttempts} | — |
-
-## Failure Categories
-
-| Category | Count | Percentage of Total Frames |
-|----------|-------|----------------------------|
-${Object.entries(telemetry.failureByCategory)
-  .filter(([, count]) => count > 0)
-  .map(
-    ([category, count]) =>
-      `| ${category} | ${count} | ${((count / totalFrames) * 100).toFixed(1)}% |`
-  )
-  .join('\n')}
-
-## Recent Failures (Last ${telemetry.failureHistory.length})
-
-${
-  telemetry.failureHistory.length > 0
-    ? `| Timestamp | Category | Reason | Frame Hash |
-|-----------|----------|--------|------------|
-${telemetry.failureHistory
-  .slice(-20)
-  .map(
-    (failure) =>
-      `| ${new Date(failure.timestamp).toISOString()} | ${failure.category} | ${failure.reason} | ${failure.frameHash} |`
-  )
-  .join('\n')}`
-    : '*No failures recorded*'
-}
-
-## Near-Miss Frames
-
-${
-  nearMisses.length > 0
-    ? `Frames whose best match was just above the similarity threshold (${activeSettings.similarityThreshold}). These are the closest misses.
-
-| Timestamp | Hamming Distance | Frame Hash |
-|-----------|-----------------|------------|
-${nearMisses
-  .map((nm) => `| ${new Date(nm.timestamp).toISOString()} | ${nm.distance} | ${nm.frameHash} |`)
-  .join('\n')}`
-    : `*No near-misses recorded. This means either all quality frames matched well, or all failures were far above the threshold (${activeSettings.similarityThreshold}). If recognition is failing, the issue is likely with frame quality rather than the similarity threshold.*`
-}
-`;
-  };
-
-  const exportMarkdownTable = () => {
-    triggerDownload(
-      buildMarkdownReport(),
-      `photo-signal-telemetry-report-${Date.now()}.md`,
-      'text/markdown'
-    );
-  };
-
   // Calculate summary stats for display
   const qualityRate =
     telemetry.totalFrames > 0
@@ -405,16 +262,9 @@ ${nearMisses
             <button
               onClick={exportTelemetry}
               className={styles.button}
-              aria-label="Export telemetry as JSON"
+              aria-label="Download telemetry report"
             >
-              📥 Export JSON
-            </button>
-            <button
-              onClick={exportMarkdownTable}
-              className={styles.button}
-              aria-label="Export telemetry as Markdown report"
-            >
-              📝 Export Report
+              📥 Download Report
             </button>
           </div>
 

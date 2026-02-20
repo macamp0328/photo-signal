@@ -330,18 +330,5 @@ describe('CameraView', () => {
 
       expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });
-
-    it('should hide instructions when showInstructions is false', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          showInstructions={false}
-        />
-      );
-
-      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
-    });
   });
 });

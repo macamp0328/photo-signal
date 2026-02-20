@@ -14,14 +14,12 @@ export function CameraView({
   hasPermission,
   onRetry,
   grayscale = false,
-  showInstructions = true,
   detectedRectangle = null,
   rectangleConfidence = 0,
   rectangleDetectionConfidenceThreshold = 0.6,
   showRectangleOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  void showInstructions;
 
   // Update video element when stream changes
   useEffect(() => {

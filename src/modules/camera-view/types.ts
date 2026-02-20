@@ -18,8 +18,6 @@ export interface CameraViewProps {
   onRetry?: () => void;
   /** Apply grayscale filter to camera view */
   grayscale?: boolean;
-  /** Show instruction text at the bottom of the camera frame */
-  showInstructions?: boolean;
   /** Detected rectangle (for rectangle detection overlay) */
   detectedRectangle?: DetectedRectangle | null;
   /** Rectangle detection confidence (0-1) */

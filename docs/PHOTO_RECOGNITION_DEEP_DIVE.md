@@ -42,19 +42,19 @@ From the project audit:
 
 ## Key thresholds
 
-- `similarityThreshold`: default `12` (pHash distance)
-- `checkInterval`: default `180ms`
-- `recognitionDelay`: default `300ms`
+- `similarityThreshold`: default `14` (pHash distance)
+- `checkInterval`: default `120ms` idle, adaptive `80ms` while tracking a candidate
+- `recognitionDelay`: default `200ms`
 - `sharpnessThreshold`: default `100`
 - `glareThreshold`: default `250`
 - `glarePercentageThreshold`: default `20`
-- `matchMarginThreshold`: default `4` (minimum best-vs-second distance margin)
-- `switchMatchMarginThreshold`: default `5` (stricter margin while switching)
+- `matchMarginThreshold`: default `3` (plus dynamic `+1` near threshold edge)
+- `switchMatchMarginThreshold`: default `6` (plus dynamic `+1` near threshold edge)
 - `switchDistanceThreshold`: default `7`
 - `switchRecognitionDelayMultiplier`: default `1.8` (switch hold time multiplier)
 - `rectangleConfidenceThreshold`: default `0.35` (minimum confidence for perspective crop)
 - Instant confirm distances:
-  - initial: `<= 5` (or 2 consecutive strong frames)
+  - initial: `<= 10` (or 2 consecutive strong frames)
   - switch mode: `<= 3` plus 3 consecutive strong frames
 
 ## Data expectations
@@ -72,7 +72,24 @@ Legacy fields such as `photoHashes.dhash` and `orbFeatures` may remain in data f
 - `debugInfo` (last hash, best candidate, frame stats)
 - `frameQuality` (sharpness, glare, lighting)
 - telemetry counters and failure categories, including ambiguity/collision outcomes
+- collision diagnostics: ambiguous vs near-threshold collisions, margin histogram, and top ambiguous band pairs
 - switch decision telemetry consumed by `App` (`shownCount`, `confirmCount`, `dismissCount`, decision latency, last prompt confidence/margin snapshot)
+
+## Iterative tuning loop (recommended)
+
+Use this loop when validating field performance on real devices:
+
+1. Capture two 30s telemetry exports in Test Mode from the same environment/device.
+2. Compare `collisionStats` (`ambiguousMarginHistogram`, `topAmbiguousPairs`, `ambiguousCount`).
+3. If collisions are low-margin dominated (`0-1` / `2` bins), raise `matchMarginThreshold` by 1.
+4. If collisions are not low-margin dominated, prioritize hash refresh and print/image alignment checks.
+5. Re-run the offline audit script using runtime-aligned settings:
+
+```bash
+node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 3 --summary-json tmp/recognition-audit.json
+```
+
+6. Repeat until collision rate and recognition success meet acceptance targets.
 
 This keeps diagnostics intact while removing algorithm-branch complexity.
 

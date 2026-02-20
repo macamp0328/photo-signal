@@ -72,6 +72,25 @@ export interface HammingDistanceLog {
   };
 }
 
+export interface CollisionMarginHistogram {
+  '0-1': number;
+  '2': number;
+  '3-4': number;
+  '5+': number;
+  unknown: number;
+}
+
+export interface CollisionStats {
+  /** Collision failures caused by low best-vs-second margin while within threshold. */
+  ambiguousCount: number;
+  /** Collision failures caused by weak out-of-threshold best matches near the boundary. */
+  nearThresholdCount: number;
+  /** Margin distribution for ambiguous collisions. */
+  ambiguousMarginHistogram: CollisionMarginHistogram;
+  /** Frequency map for ambiguous pairings: "Best vs Second" -> count. */
+  ambiguousPairCounts: Record<string, number>;
+}
+
 export type GuidanceType =
   | 'motion-blur'
   | 'glare'
@@ -122,6 +141,8 @@ export interface RecognitionTelemetry {
   frameQualityStats: FrameQualityStats;
   /** Hamming distance distribution for quality-passing frames. */
   hammingDistanceLog: HammingDistanceLog;
+  /** Detailed collision diagnostics to improve telemetry-driven tuning. */
+  collisionStats: CollisionStats;
 }
 
 export interface RecognitionDebugInfo {
@@ -145,6 +166,7 @@ export interface RecognitionDebugInfo {
 
 export interface PhotoRecognitionHook {
   recognizedConcert: Concert | null;
+  switchCandidateConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;
   resetTelemetry: () => void;

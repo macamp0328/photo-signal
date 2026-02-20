@@ -10,7 +10,6 @@
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useCameraAccess } from './modules/camera-access';
-import { useMotionDetection } from './modules/motion-detection';
 import {
   usePhotoRecognition,
   FrameQualityIndicator,
@@ -161,7 +160,7 @@ function AppContent() {
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
 
-  const previousRecognizedIdRef = useRef<number | null>(null);
+  const previousAutoplayIdRef = useRef<number | null>(null);
   const switchDecisionTelemetryRef = useRef<SwitchDecisionTelemetry>(
     createEmptySwitchDecisionTelemetry()
   );
@@ -201,13 +200,6 @@ function AppContent() {
     autoStart: isActive,
   });
 
-  // Module: Motion Detection (paused when secret menu is open)
-  const { isMoving } = useMotionDetection(stream, {
-    sensitivity: 50,
-    checkInterval: 500,
-    enabled: !showSecretSettings,
-  });
-
   // Module: Photo Recognition (paused when secret menu is open)
   const recognitionOptions: PhotoRecognitionOptions = useMemo(
     () => ({
@@ -226,6 +218,7 @@ function AppContent() {
 
   const {
     recognizedConcert,
+    switchCandidateConcert,
     reset: resetRecognition,
     resetTelemetry,
     debugInfo,
@@ -253,7 +246,7 @@ function AppContent() {
     playbackError,
     clearPlaybackError,
   } = useAudioPlayback({
-    volume: 0.8,
+    volume: 1.0,
     fadeTime: 1000,
   });
 
@@ -274,8 +267,10 @@ function AppContent() {
 
   // Auto-play newly recognized concerts whenever nothing is currently playing.
   useEffect(() => {
-    if (!recognizedConcert) {
-      previousRecognizedIdRef.current = null;
+    const autoplayConcert = switchCandidateConcert ?? recognizedConcert;
+
+    if (!autoplayConcert) {
+      previousAutoplayIdRef.current = null;
       return;
     }
 
@@ -283,48 +278,45 @@ function AppContent() {
       return;
     }
 
-    const isNewRecognition = previousRecognizedIdRef.current !== recognizedConcert.id;
-    previousRecognizedIdRef.current = recognizedConcert.id;
+    const isNewAutoplayConcert = previousAutoplayIdRef.current !== autoplayConcert.id;
+    previousAutoplayIdRef.current = autoplayConcert.id;
 
-    if (!isNewRecognition || isPlaying) {
+    if (!isNewAutoplayConcert || isPlaying) {
       return;
     }
 
-    const selectedAudioUrl = recognizedConcert.audioFile;
+    const selectedAudioUrl = autoplayConcert.audioFile;
     if (!selectedAudioUrl) {
       return;
     }
 
     play(selectedAudioUrl);
-    setActiveConcert(recognizedConcert);
+    setActiveConcert(autoplayConcert);
     setPendingSwitchConcert(null);
     setDismissedSwitchConcertId(null);
-  }, [isActive, recognizedConcert, isPlaying, play]);
+  }, [isActive, switchCandidateConcert, recognizedConcert, isPlaying, play]);
 
-  // Track a switch candidate while music is already playing.
+  // Track a switch candidate whenever a different concert is detected while one is active.
   useEffect(() => {
-    if (!recognizedConcert || !activeConcert || !isPlaying) {
+    const switchPromptConcert = switchCandidateConcert ?? recognizedConcert;
+
+    if (!switchPromptConcert || !activeConcert) {
       setPendingSwitchConcert(null);
       return;
     }
 
-    if (activeGuidance === 'ambiguous-match') {
+    if (switchPromptConcert.id === activeConcert.id) {
       setPendingSwitchConcert(null);
       return;
     }
 
-    if (recognizedConcert.id === activeConcert.id) {
+    if (dismissedSwitchConcertId === switchPromptConcert.id) {
       setPendingSwitchConcert(null);
       return;
     }
 
-    if (dismissedSwitchConcertId === recognizedConcert.id) {
-      setPendingSwitchConcert(null);
-      return;
-    }
-
-    setPendingSwitchConcert(recognizedConcert);
-  }, [recognizedConcert, activeConcert, isPlaying, dismissedSwitchConcertId, activeGuidance]);
+    setPendingSwitchConcert(switchPromptConcert);
+  }, [switchCandidateConcert, recognizedConcert, activeConcert, dismissedSwitchConcertId]);
 
   useEffect(() => {
     if (!pendingSwitchConcert) {
@@ -351,15 +343,18 @@ function AppContent() {
     lastPromptConcertIdRef.current = pendingSwitchConcert.id;
   }, [activeConcert, debugInfo, pendingSwitchConcert]);
 
-  // Clear dismissed switch preference when user starts moving to a new area.
-  const previousMovementRef = useRef(false);
+  // Clear dismissed switch preference only after a different candidate is seen.
   useEffect(() => {
-    if (isMoving && !previousMovementRef.current && activeConcert) {
+    const currentCandidateId = (switchCandidateConcert ?? recognizedConcert)?.id ?? null;
+
+    if (
+      dismissedSwitchConcertId !== null &&
+      currentCandidateId !== null &&
+      currentCandidateId !== dismissedSwitchConcertId
+    ) {
       setDismissedSwitchConcertId(null);
     }
-
-    previousMovementRef.current = isMoving;
-  }, [isMoving, activeConcert]);
+  }, [switchCandidateConcert, recognizedConcert, dismissedSwitchConcertId]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =
@@ -629,6 +624,10 @@ function AppContent() {
 
     const { blur, glare, lighting } = telemetry.frameQualityStats;
     const { matchedFrameDistances, nearMisses } = telemetry.hammingDistanceLog;
+    const topCollisionPairs = Object.entries(telemetry.collisionStats.ambiguousPairCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([pair, count]) => ({ pair, count }));
 
     const report = {
       timestamp: new Date().toISOString(),
@@ -688,6 +687,10 @@ function AppContent() {
               ? matchedFrameDistances.sum / matchedFrameDistances.count
               : null,
         },
+      },
+      collisionStats: {
+        ...telemetry.collisionStats,
+        topAmbiguousPairs: topCollisionPairs,
       },
       failuresByCategory: Object.entries(telemetry.failureByCategory)
         .filter(([, count]) => count > 0)

@@ -1,5 +1,6 @@
 import type { Concert } from '../../types';
 import type {
+  CollisionStats,
   FailureCategory,
   FailureDiagnostic,
   FrameQualityInfo,
@@ -22,6 +23,19 @@ const emptyFrameQualityStats = (): FrameQualityStats => ({
 const emptyHammingDistanceLog = (): HammingDistanceLog => ({
   nearMisses: [],
   matchedFrameDistances: { min: null, max: null, sum: 0, count: 0 },
+});
+
+const emptyCollisionStats = (): CollisionStats => ({
+  ambiguousCount: 0,
+  nearThresholdCount: 0,
+  ambiguousMarginHistogram: {
+    '0-1': 0,
+    '2': 0,
+    '3-4': 0,
+    '5+': 0,
+    unknown: 0,
+  },
+  ambiguousPairCounts: {},
 });
 
 export const createEmptyTelemetry = (): RecognitionTelemetry => ({
@@ -90,6 +104,7 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   },
   frameQualityStats: emptyFrameQualityStats(),
   hammingDistanceLog: emptyHammingDistanceLog(),
+  collisionStats: emptyCollisionStats(),
 });
 
 export const similarityPercent = (distance: number): number =>
@@ -126,6 +141,41 @@ export const recordFailure = (
   if (telemetry.failureHistory.length > 50) {
     telemetry.failureHistory.shift();
   }
+};
+
+export const recordCollisionDetails = (
+  telemetry: RecognitionTelemetry,
+  args: {
+    isAmbiguous: boolean;
+    margin: number | null;
+    bestBand: string;
+    secondBand: string | null;
+  }
+): void => {
+  if (args.isAmbiguous) {
+    telemetry.collisionStats.ambiguousCount += 1;
+
+    if (args.margin === null) {
+      telemetry.collisionStats.ambiguousMarginHistogram.unknown += 1;
+    } else if (args.margin <= 1) {
+      telemetry.collisionStats.ambiguousMarginHistogram['0-1'] += 1;
+    } else if (args.margin === 2) {
+      telemetry.collisionStats.ambiguousMarginHistogram['2'] += 1;
+    } else if (args.margin <= 4) {
+      telemetry.collisionStats.ambiguousMarginHistogram['3-4'] += 1;
+    } else {
+      telemetry.collisionStats.ambiguousMarginHistogram['5+'] += 1;
+    }
+
+    const rival = args.secondBand ?? 'Unknown rival';
+    const pairKey =
+      args.bestBand <= rival ? `${args.bestBand} vs ${rival}` : `${rival} vs ${args.bestBand}`;
+    telemetry.collisionStats.ambiguousPairCounts[pairKey] =
+      (telemetry.collisionStats.ambiguousPairCounts[pairKey] ?? 0) + 1;
+    return;
+  }
+
+  telemetry.collisionStats.nearThresholdCount += 1;
 };
 
 export const pickGuidance = (quality: FrameQualityInfo): GuidanceType => {

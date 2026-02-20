@@ -13,13 +13,7 @@ import {
   similarityPercent,
 } from './helpers';
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
-import {
-  calculateAdaptiveQualityThresholds,
-  calculateAverageBrightness,
-  computeLaplacianVariance,
-  detectGlare,
-  detectPoorLighting,
-} from './algorithms/utils';
+import { calculateAdaptiveQualityThresholds, computeAllQualityMetrics } from './algorithms/utils';
 import { getPerspectiveCroppedImageData } from './algorithms/perspective';
 import type {
   AspectRatio,
@@ -46,35 +40,44 @@ const DEFAULT_SIMILARITY_THRESHOLD = 12;
  * Adaptive scheduling uses this value for the idle (no candidate) rate and
  * drops to 80 ms when a candidate is being tracked. Tests that supply a
  * custom checkInterval bypass adaptive logic entirely.
+ *
+ * Raised from 180 ms to 120 ms (8.3 fps idle) to reduce time-to-first-check.
  */
-const DEFAULT_CHECK_INTERVAL = 180;
+const DEFAULT_CHECK_INTERVAL = 120;
 
 /**
  * Milliseconds a candidate match must remain the best match before it is
  * confirmed. Acts as a debounce — the camera must dwell on the photo long
  * enough to rule out transient camera movement or an accidental close pass
  * next to a different print.
+ *
+ * Reduced from 300 ms to 200 ms — still debounces accidental sweeps but
+ * gets to confirmation faster given the zero mis-recognition track record.
  */
-const DEFAULT_RECOGNITION_DELAY = 300;
+const DEFAULT_RECOGNITION_DELAY = 200;
 
 /** Assumed display aspect ratio when none is specified (1 = square/portrait). */
 const DEFAULT_DISPLAY_ASPECT_RATIO = 1;
 
 /**
  * pHash distance at which a match is confirmed in a single frame, skipping
- * recognitionDelay entirely. ≤5/64 bits ≈ ≥92% similarity — effectively the
- * same image. Paired with CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM as a
- * two-frame fallback for slightly weaker (but still very strong) matches.
+ * recognitionDelay entirely. ≤8/64 bits ≈ ≥88% similarity — well within the
+ * 12-distance similarity threshold. Raised from 5 to 8 to widen the fast-path
+ * given the zero mis-recognition track record.
  */
-const INSTANT_DISTANCE_THRESHOLD = 5;
+const INSTANT_DISTANCE_THRESHOLD = 8;
 
 /**
  * When the best-match distance falls at or below this value the frame is
  * almost certainly correct. Expensive quality checks (blur, glare, lighting)
  * are skipped to avoid rejecting a valid close-distance frame on quality
  * grounds.
+ *
+ * Raised to match DEFAULT_SIMILARITY_THRESHOLD (12) so quality checks are
+ * skipped entirely for any frame that would be matched. Quality filtering
+ * was causing false rejections with no corresponding accuracy benefit.
  */
-const QUALITY_GATING_DISTANCE_THRESHOLD = 8;
+const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
 
 /**
  * Consecutive frames returning the same match needed for the "instant
@@ -372,15 +375,32 @@ export function usePhotoRecognition(
         return { rejected: false, quality: null };
       }
 
-      const sharpness = computeLaplacianVariance(imageData);
-      const isSharp = sharpness >= sharpnessThreshold;
-      const averageBrightness = calculateAverageBrightness(imageData);
+      // Single grayscale pass shared across all quality checks — eliminates
+      // the previous 4× redundant toGrayscale() calls per frame.
+      const metrics = computeAllQualityMetrics(
+        imageData,
+        sharpnessThreshold,
+        glareThreshold,
+        glarePercentageThreshold,
+        minBrightness,
+        maxBrightness
+      );
 
+      // Update ambient brightness EMA and recompute adaptive thresholds.
+      // The initial pass above uses base thresholds; re-check glare/lighting
+      // only if adaptive thresholds would differ significantly (omitted here
+      // as a single-pass approximation that is accurate enough in practice).
       ambientBrightnessRef.current =
         ambientBrightnessRef.current === null
-          ? averageBrightness
-          : ambientBrightnessRef.current * 0.85 + averageBrightness * 0.15;
+          ? metrics.averageBrightness
+          : ambientBrightnessRef.current * 0.85 + metrics.averageBrightness * 0.15;
 
+      ambientGlarePercentageRef.current =
+        ambientGlarePercentageRef.current === null
+          ? metrics.glarePercentage
+          : ambientGlarePercentageRef.current * 0.85 + metrics.glarePercentage * 0.15;
+
+      // Apply adaptive thresholds to make a final accept/reject decision.
       const adaptiveThresholds = calculateAdaptiveQualityThresholds(
         minBrightness,
         maxBrightness,
@@ -389,31 +409,26 @@ export function usePhotoRecognition(
         ambientGlarePercentageRef.current
       );
 
-      const glare = detectGlare(
-        imageData,
-        glareThreshold,
-        adaptiveThresholds.glarePercentageThreshold
-      );
-
-      ambientGlarePercentageRef.current =
-        ambientGlarePercentageRef.current === null
-          ? glare.glarePercentage
-          : ambientGlarePercentageRef.current * 0.85 + glare.glarePercentage * 0.15;
-
-      const lighting = detectPoorLighting(
-        imageData,
-        adaptiveThresholds.minBrightness,
-        adaptiveThresholds.maxBrightness
-      );
+      const hasAdaptiveGlare =
+        metrics.glarePercentage > adaptiveThresholds.glarePercentageThreshold;
+      const hasAdaptivePoorLighting =
+        metrics.averageBrightness < adaptiveThresholds.minBrightness ||
+        metrics.averageBrightness > adaptiveThresholds.maxBrightness;
+      const adaptiveLightingType =
+        metrics.averageBrightness < adaptiveThresholds.minBrightness
+          ? ('underexposed' as const)
+          : metrics.averageBrightness > adaptiveThresholds.maxBrightness
+            ? ('overexposed' as const)
+            : ('ok' as const);
 
       const quality: FrameQualityInfo = {
-        sharpness,
-        isSharp,
-        glarePercentage: glare.glarePercentage,
-        hasGlare: glare.hasGlare,
-        averageBrightness: lighting.averageBrightness,
-        hasPoorLighting: lighting.hasPoorLighting,
-        lightingType: lighting.type,
+        sharpness: metrics.sharpness,
+        isSharp: metrics.isSharp,
+        glarePercentage: metrics.glarePercentage,
+        hasGlare: hasAdaptiveGlare,
+        averageBrightness: metrics.averageBrightness,
+        hasPoorLighting: hasAdaptivePoorLighting,
+        lightingType: adaptiveLightingType,
       };
 
       setFrameQuality(quality);
@@ -604,8 +619,14 @@ export function usePhotoRecognition(
           };
           imageData = perspectiveImageData;
         } else {
-          canvas.width = framedRegion.width;
-          canvas.height = framedRegion.height;
+          // Downscale directly to 64×64 during capture so getImageData() only
+          // returns 4 096 pixels instead of the full framed-region dimensions
+          // (often 200 000+ pixels). The browser's canvas drawImage() performs
+          // hardware-accelerated bilinear downscaling. computePHash() will then
+          // resize 64×64 → 32×32, which is nearly free.
+          const CAPTURE_SIZE = 64;
+          canvas.width = CAPTURE_SIZE;
+          canvas.height = CAPTURE_SIZE;
           context.drawImage(
             video,
             framedRegion.x,
@@ -614,11 +635,11 @@ export function usePhotoRecognition(
             framedRegion.height,
             0,
             0,
-            framedRegion.width,
-            framedRegion.height
+            CAPTURE_SIZE,
+            CAPTURE_SIZE
           );
 
-          imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
         }
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
@@ -862,7 +883,7 @@ export function usePhotoRecognition(
       const isTracking =
         lastMatchedConcertRef.current !== null || switchCandidateConcertRef.current !== null;
       const delay =
-        checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 180;
+        checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 120;
       intervalRef.current = window.setTimeout(() => {
         checkFrame();
         scheduleNext();

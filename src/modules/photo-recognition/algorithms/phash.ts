@@ -23,7 +23,7 @@
  * - Bundle: +8-10KB for DCT implementation
  */
 
-import { resizeImageData, toGrayscale, binaryToHex } from './utils';
+import { resizeImageData, toGrayscale } from './utils';
 
 /** Full image size used for DCT (must match training data generation) */
 const DCT_SIZE = 32;
@@ -138,13 +138,17 @@ export function computePHash(imageData: ImageData): string {
   const sorted = [...lowFreq].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
 
-  // Step 5: Generate 64-bit hash
-  // Each bit is 1 if coefficient > median, 0 otherwise
-  let binaryHash = '';
-  for (const coeff of lowFreq) {
-    binaryHash += coeff > median ? '1' : '0';
+  // Step 5: Generate 64-bit hash as hex directly, without building an
+  // intermediate 63-character binary string.
+  // Process 4 coefficients at a time → one hex nibble per group.
+  let hex = '';
+  for (let i = 0; i < lowFreq.length; i += 4) {
+    const nibble =
+      (lowFreq[i] > median ? 8 : 0) |
+      (lowFreq[i + 1] > median ? 4 : 0) |
+      (lowFreq[i + 2] > median ? 2 : 0) |
+      (lowFreq[i + 3] > median ? 1 : 0);
+    hex += nibble.toString(16);
   }
-
-  // Convert binary to hexadecimal (64 bits = 16 hex characters)
-  return binaryToHex(binaryHash);
+  return hex;
 }

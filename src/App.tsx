@@ -246,7 +246,7 @@ function AppContent() {
     playbackError,
     clearPlaybackError,
   } = useAudioPlayback({
-    volume: 0.8,
+    volume: 1.0,
     fadeTime: 1000,
   });
 

@@ -61,6 +61,7 @@ const audioState = {
 
 const recognitionState = {
   recognizedConcert: null as Concert | null,
+  switchCandidateConcert: null as Concert | null,
   isRecognizing: false,
   debugInfo: null as RecognitionDebugInfo | null,
   frameQuality: null,
@@ -205,6 +206,7 @@ vi.mock('./modules/audio-playback', () => ({
 describe('App playback flow', () => {
   beforeEach(() => {
     recognitionState.recognizedConcert = null;
+    recognitionState.switchCandidateConcert = null;
     recognitionState.isRecognizing = false;
     recognitionState.debugInfo = null;
     recognitionState.frameQuality = null;
@@ -289,7 +291,7 @@ describe('App playback flow', () => {
     expect(screen.getByTestId('guidance-message')).toHaveTextContent('ambiguous-match');
   });
 
-  it('suppresses switch prompt while ambiguity guidance is active', async () => {
+  it('shows switch prompt from switchCandidateConcert while recognizedConcert remains active', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -304,41 +306,17 @@ describe('App playback flow', () => {
 
     audioState.isPlaying = true;
 
-    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.switchCandidateConcert = concertTwo;
     recognitionState.activeGuidance = 'ambiguous-match';
     view.rerender(<App />);
 
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-  });
-
-  it('shows switch prompt again once ambiguity guidance clears', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    const view = render(<App />);
-
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    audioState.isPlaying = true;
-
-    recognitionState.recognizedConcert = concertTwo;
-    recognitionState.activeGuidance = 'ambiguous-match';
-    view.rerender(<App />);
-
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-
-    recognitionState.activeGuidance = 'none';
-    view.rerender(<App />);
-
+    expect(
+      screen.getByText('Current cut: Band One. Fresh lock found: Band Two.')
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
   });
 
-  it('keeps switch prompt dismissed through ambiguous oscillation after keep-current', async () => {
+  it('keeps same candidate dismissed after keep-current and re-prompts when a different candidate arrives', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -352,54 +330,24 @@ describe('App playback flow', () => {
     );
 
     audioState.isPlaying = true;
-    recognitionState.recognizedConcert = concertTwo;
+
+    recognitionState.switchCandidateConcert = concertTwo;
     view.rerender(<App />);
+
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Keep current track' }));
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
 
-    recognitionState.activeGuidance = 'none';
-    recognitionState.recognizedConcert = concertOne;
-    view.rerender(<App />);
-
-    recognitionState.activeGuidance = 'ambiguous-match';
-    recognitionState.recognizedConcert = concertTwo;
-    view.rerender(<App />);
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-
-    recognitionState.activeGuidance = 'none';
-    view.rerender(<App />);
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-  });
-
-  it('avoids switch prompt churn during persistent ambiguity and prompts once after it clears', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    recognitionState.debugInfo = createDebugInfo(concertOne);
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    const view = render(<App />);
-
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    audioState.isPlaying = true;
-    recognitionState.recognizedConcert = concertTwo;
-    recognitionState.debugInfo = createDebugInfo(concertTwo, 3);
     recognitionState.activeGuidance = 'ambiguous-match';
     view.rerender(<App />);
-    view.rerender(<App />);
-
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
 
+    recognitionState.switchCandidateConcert = concertThree;
     recognitionState.activeGuidance = 'none';
     view.rerender(<App />);
-    view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch to Band Three' })).toBeInTheDocument();
   });
 
   it('shows a new switch prompt for a different candidate after keep-current dismisses the first', async () => {

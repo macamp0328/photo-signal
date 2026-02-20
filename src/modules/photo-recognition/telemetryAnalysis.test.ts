@@ -48,7 +48,7 @@ describe('computeActiveSettings', () => {
   it('returns all defaults when given empty options', () => {
     const settings = computeActiveSettings({});
     expect(settings.similarityThreshold).toBe(14);
-    expect(settings.matchMarginThreshold).toBe(3);
+    expect(settings.matchMarginThreshold).toBe(4);
     expect(settings.sharpnessThreshold).toBe(100);
     expect(settings.glarePercentageThreshold).toBe(20);
     expect(settings.glareThreshold).toBe(250);
@@ -69,7 +69,7 @@ describe('computeActiveSettings', () => {
     expect(settings.similarityThreshold).toBe(16);
     expect(settings.sharpnessThreshold).toBe(75);
     // defaults preserved for unspecified fields
-    expect(settings.matchMarginThreshold).toBe(3);
+    expect(settings.matchMarginThreshold).toBe(4);
     expect(settings.recognitionDelay).toBe(200);
   });
 
@@ -278,8 +278,8 @@ describe('computeAiRecommendations', () => {
       const recs = computeAiRecommendations(telemetry, defaultSettings);
       const collisionRec = recs.find((r) => r.parameterChange.startsWith('matchMarginThreshold'));
       expect(collisionRec?.priority).toBe('high');
-      // low-margin-dominated collisions suggest +1 margin step (3 -> 4)
-      expect(collisionRec?.parameterChange).toBe('matchMarginThreshold: 4');
+      // low-margin-dominated collisions suggest +1 margin step (4 -> 5)
+      expect(collisionRec?.parameterChange).toBe('matchMarginThreshold: 5');
     });
 
     it('returns medium-priority collision recommendation when collision rate 10–20%', () => {

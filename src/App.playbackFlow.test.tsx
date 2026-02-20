@@ -291,7 +291,7 @@ describe('App playback flow', () => {
     expect(screen.getByTestId('guidance-message')).toHaveTextContent('ambiguous-match');
   });
 
-  it('shows switch prompt from switchCandidateConcert while recognizedConcert remains active', async () => {
+  it('shows switch prompt when recognizedConcert changes while song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -306,8 +306,7 @@ describe('App playback flow', () => {
 
     audioState.isPlaying = true;
 
-    recognitionState.switchCandidateConcert = concertTwo;
-    recognitionState.activeGuidance = 'ambiguous-match';
+    recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
     expect(
@@ -331,7 +330,7 @@ describe('App playback flow', () => {
 
     audioState.isPlaying = true;
 
-    recognitionState.switchCandidateConcert = concertTwo;
+    recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
@@ -343,7 +342,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
 
-    recognitionState.switchCandidateConcert = concertThree;
+    recognitionState.recognizedConcert = concertThree;
     recognitionState.activeGuidance = 'none';
     view.rerender(<App />);
 

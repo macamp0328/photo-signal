@@ -13,6 +13,8 @@ import { useAudioTest } from './useAudioTest';
 
 // Display "waiting for frame" message if no frame received in 2x the normal check interval (≈1s)
 const FRAME_TIMEOUT_THRESHOLD = 2;
+const DEFAULT_SIMILARITY_THRESHOLD = 14;
+const PHASH_DISTANCE_RANGE = 64;
 
 export function DebugOverlay({
   recognizedConcert,
@@ -35,7 +37,8 @@ export function DebugOverlay({
   const bestMatch = debugInfo?.bestMatch ?? null;
   const secondBestMatch = debugInfo?.secondBestMatch ?? null;
   const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
-  const derivedThreshold = threshold ?? debugInfo?.similarityThreshold ?? 40;
+  const derivedThreshold =
+    threshold ?? debugInfo?.similarityThreshold ?? DEFAULT_SIMILARITY_THRESHOLD;
   const stability = debugInfo?.stability ?? null;
   const frameSize = debugInfo?.frameSize;
   const frameCount = debugInfo?.frameCount;
@@ -121,7 +124,10 @@ export function DebugOverlay({
     ? `${lastFrameHash.slice(0, 6)}...${lastFrameHash.slice(-4)}`
     : 'N/A';
 
-  const similarityThreshold = ((256 - derivedThreshold) / 256) * 100;
+  const similarityThreshold =
+    ((PHASH_DISTANCE_RANGE - Math.min(derivedThreshold, PHASH_DISTANCE_RANGE)) /
+      PHASH_DISTANCE_RANGE) *
+    100;
   const countdownText = recognitionDelayMs
     ? `${(recognitionDelayMs / 1000).toFixed(1)}s hold required`
     : 'Hold steady to confirm match';

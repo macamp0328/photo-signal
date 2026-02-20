@@ -14,7 +14,7 @@ Photo Signal's telemetry system tracks photo recognition performance and failure
 2. Start scanning photos with the camera
 3. Telemetry widget appears in bottom-right corner showing live stats
 4. Click **"📥 Export JSON"** for raw structured data
-5. Click **"📝 Export Markdown Report"** for formatted table report
+5. Share the JSON export directly for AI tuning and cross-session comparison
 
 ### Automated Validation (CI/CD)
 
@@ -216,7 +216,7 @@ Shows last 10 failures with timestamps and reasons. **Look for**:
 **Common Causes**:
 
 - Hashes in database are incorrect (regenerate with `npm run hashes:paths`)
-- Similarity threshold too strict (try increasing from 40 to 50)
+- Similarity threshold too strict (try increasing from 14 to 18)
 - Photos are too different from reference (lighting, printing quality)
 
 ### Scenario 2: High Blur Rejection Rate
@@ -280,7 +280,7 @@ Use this exact cycle for repeated tuning passes:
 4. Run the offline audit for regression guardrails:
 
 ```bash
-node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 3 --summary-json tmp/recognition-audit.json
+node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 4 --summary-json tmp/recognition-audit.json
 ```
 
 5. Share telemetry JSON + audit summary for the next tuning iteration.

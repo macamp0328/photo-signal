@@ -14,7 +14,7 @@ import type { PhotoRecognitionOptions, RecognitionTelemetry } from './types';
 const DEFAULTS = {
   recognitionDelay: 200,
   similarityThreshold: 14,
-  matchMarginThreshold: 3,
+  matchMarginThreshold: 4,
   switchMatchMarginThreshold: 6,
   continuousRecognition: false,
   switchRecognitionDelayMultiplier: 1.8,
@@ -174,9 +174,15 @@ export function computeAiRecommendations(
   // ── No-match recommendation ───────────────────────────────────────────────
   if (noMatchRate > NO_MATCH_RATE_MEDIUM) {
     const { nearMisses } = telemetry.hammingDistanceLog;
-    const hasNearMisses = nearMisses.length > 0;
+    const initialNearMisses = nearMisses.filter(
+      (entry) =>
+        entry.mode !== 'switch' &&
+        (entry.thresholdUsed ?? settings.similarityThreshold) >= settings.similarityThreshold
+    );
+    const nearMissSamples = initialNearMisses.length > 0 ? initialNearMisses : nearMisses;
+    const hasNearMisses = nearMissSamples.length > 0;
     const avgNearMiss = hasNearMisses
-      ? nearMisses.reduce((sum, nm) => sum + nm.distance, 0) / nearMisses.length
+      ? nearMissSamples.reduce((sum, nm) => sum + nm.distance, 0) / nearMissSamples.length
       : null;
     const suggestedThreshold =
       avgNearMiss !== null ? Math.round(avgNearMiss * 1.1) : settings.similarityThreshold + 3;
@@ -185,7 +191,7 @@ export function computeAiRecommendations(
       priority: noMatchRate > NO_MATCH_RATE_HIGH ? 'high' : 'medium',
       issue: `High no-match rate: ${(noMatchRate * 100).toFixed(1)}% of frames found no match within the similarity threshold`,
       recommendation: hasNearMisses
-        ? `Raise similarityThreshold from ${settings.similarityThreshold} to ${suggestedThreshold} — ${nearMisses.length} near-miss frames logged with avg distance ${avgNearMiss?.toFixed(1)}`
+        ? `Raise similarityThreshold from ${settings.similarityThreshold} to ${suggestedThreshold} — ${nearMissSamples.length} near-miss frames logged with avg distance ${avgNearMiss?.toFixed(1)}`
         : `Raise similarityThreshold from ${settings.similarityThreshold} to ${suggestedThreshold} (no near-miss data; move camera closer to the photo or check that the photo hash is in data.json)`,
       parameterChange: `similarityThreshold: ${suggestedThreshold}`,
     });

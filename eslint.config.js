@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default [
-  { ignores: ['dist', 'playwright-report', 'test-results'] },
+  { ignores: ['dist', 'playwright-report', 'test-results', '.claude/worktrees/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

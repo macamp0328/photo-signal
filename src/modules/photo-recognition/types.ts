@@ -59,6 +59,8 @@ export interface NearMissEntry {
   distance: number;
   frameHash: string;
   timestamp: number;
+  thresholdUsed?: number;
+  mode?: 'initial' | 'switch';
 }
 
 export interface HammingDistanceLog {
@@ -187,9 +189,9 @@ export interface PhotoRecognitionOptions {
   /** pHash Hamming distance threshold — frames at or below this are match candidates. Default: 14.
    *  Empirically tuned; changing requires re-running the field evaluation in PHOTO_RECOGNITION_DEEP_DIVE.md. */
   similarityThreshold?: number;
-  /** Minimum gap between best and second-best match distance (ambiguity guard). Default: 2 */
+  /** Minimum gap between best and second-best match distance (ambiguity guard). Default: 4 */
   matchMarginThreshold?: number;
-  /** Stricter margin required to switch away from an already-confirmed match. Default: 5 */
+  /** Stricter margin required to switch away from an already-confirmed match. Default: 6 */
   switchMatchMarginThreshold?: number;
   /** Allow switching to a different match after one is confirmed. Default: false */
   continuousRecognition?: boolean;

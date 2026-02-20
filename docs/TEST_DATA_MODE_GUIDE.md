@@ -143,14 +143,14 @@ Data loading logs are the same in both modes because both states fetch `/data.js
 Frame Hash: a5b3c7d9e1f20486
 Frame Size: 640 × 480 px
 Concerts Checked: 4
-Threshold: 40 (similarity ≥ 84.4%)
+Threshold: 14 (similarity ≥ 78.1%)
 
 Results:
   ✓ The Midnight Echoes: distance=6, similarity=90.6% ← BEST MATCH
   ✗ Electric Dreams: distance=24, similarity=62.5%
 
 Match Decision: POTENTIAL MATCH (The Midnight Echoes)
-  Stability Timer: 1.2s / 3.0s required
+   Stability Timer: 0.1s / 0.2s required
 ============================================================
 ```
 

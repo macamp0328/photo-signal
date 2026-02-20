@@ -33,7 +33,7 @@ import type {
  * ≤12 ≈ 81% similarity — enough to absorb print variation and moderate
  * lighting differences without generating excessive false positives.
  */
-const DEFAULT_SIMILARITY_THRESHOLD = 12;
+const DEFAULT_SIMILARITY_THRESHOLD = 14;
 
 /**
  * Default polling cadence in milliseconds.
@@ -61,11 +61,11 @@ const DEFAULT_DISPLAY_ASPECT_RATIO = 1;
 
 /**
  * pHash distance at which a match is confirmed in a single frame, skipping
- * recognitionDelay entirely. ≤8/64 bits ≈ ≥88% similarity — well within the
- * 12-distance similarity threshold. Raised from 5 to 8 to widen the fast-path
- * given the zero mis-recognition track record.
+ * recognitionDelay entirely. ≤10/64 bits ≈ ≥84% similarity — well within the
+ * 14-distance similarity threshold. Raised proportionally with the similarity
+ * threshold to maintain the same fast-path ratio.
  */
-const INSTANT_DISTANCE_THRESHOLD = 8;
+const INSTANT_DISTANCE_THRESHOLD = 10;
 
 /**
  * When the best-match distance falls at or below this value the frame is
@@ -73,11 +73,10 @@ const INSTANT_DISTANCE_THRESHOLD = 8;
  * are skipped to avoid rejecting a valid close-distance frame on quality
  * grounds.
  *
- * Raised to match DEFAULT_SIMILARITY_THRESHOLD (12) so quality checks are
- * skipped entirely for any frame that would be matched. Quality filtering
- * was causing false rejections with no corresponding accuracy benefit.
+ * Kept in sync with DEFAULT_SIMILARITY_THRESHOLD (14) so quality checks are
+ * skipped entirely for any frame that would be matched.
  */
-const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
+const QUALITY_GATING_DISTANCE_THRESHOLD = 14;
 
 /**
  * Consecutive frames returning the same match needed for the "instant
@@ -101,11 +100,16 @@ const DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER = 1.8;
 const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
 
 /**
- * Minimum Hamming distance gap between the top two matches. A narrow margin
- * means two concerts look very similar in the current frame; we wait for a
- * clearer signal rather than risk picking the wrong one.
+ * Minimum Hamming distance gap between the best match and the best match from
+ * a *different* concert. With Change A (cross-concert secondBestMatch), same-
+ * concert sibling hashes no longer compete for this slot, so a margin of 2 is
+ * meaningful: the winning concert must be at least 2 bits closer than its
+ * nearest rival from any other concert.
+ *
+ * Lowered from 4 to 2 — telemetry showed real-world cross-concert margins
+ * consistently at 2 bits; requiring 4 blocked all recognition.
  */
-const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
+const DEFAULT_MATCH_MARGIN_THRESHOLD = 2;
 
 /** Stricter margin requirement in switch mode — see DEFAULT_MATCH_MARGIN_THRESHOLD. */
 const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 5;
@@ -134,6 +138,12 @@ export type MatchCandidate = { concert: Concert; distance: number };
 /**
  * Scans concertHashList and returns the best and second-best pHash matches for
  * the given frame hash. Pure function with no side-effects.
+ *
+ * `secondBestMatch` is the closest match from a *different* concert than
+ * `bestMatch`. Multiple exposure variants of the same concert (dark/normal/
+ * bright) share the same concert.id and are never placed into secondBestMatch,
+ * so the margin check only measures disambiguation against rival concerts —
+ * not against the winning concert's own variant hashes.
  */
 export function findBestMatches(
   currentHash: string,
@@ -145,9 +155,14 @@ export function findBestMatches(
   for (const { hash, concert } of concertHashList) {
     const distance = hammingDistance(currentHash, hash);
     if (!bestMatch || distance < bestMatch.distance) {
-      secondBestMatch = bestMatch;
+      // Only carry the displaced best into secondBestMatch when it belongs to
+      // a different concert — same-concert sibling hashes are not rivals.
+      if (bestMatch && bestMatch.concert.id !== concert.id) {
+        secondBestMatch = bestMatch;
+      }
       bestMatch = { concert, distance };
     } else if (
+      concert.id !== bestMatch.concert.id && // cross-concert entries only
       distance !== bestMatch.distance &&
       (!secondBestMatch || distance < secondBestMatch.distance)
     ) {

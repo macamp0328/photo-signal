@@ -128,8 +128,9 @@ describe('findBestMatches', () => {
     expect(bestMatch?.concert).toBe(concert);
   });
 
-  it('allows the same concert to appear as both best and second-best via different hashes', () => {
-    // A single concert with multiple pHash variants; closer variant wins best.
+  it('does not place a same-concert sibling hash into secondBestMatch', () => {
+    // A concert's own exposure variants (dark/normal/bright) are not rivals —
+    // they must not occupy secondBestMatch and trigger a false collision.
     const concert = makeConcert(1);
     mockHD.mockReturnValueOnce(3).mockReturnValueOnce(9);
 
@@ -139,7 +140,27 @@ describe('findBestMatches', () => {
     ]);
 
     expect(bestMatch).toEqual({ concert, distance: 3 });
-    expect(secondBestMatch).toEqual({ concert, distance: 9 });
+    expect(secondBestMatch).toBeNull();
+  });
+
+  it('places a cross-concert entry into secondBestMatch even when same-concert variants exist', () => {
+    // concertA has two variants; concertB is a different concert.
+    // secondBestMatch should be concertB, not concertA's second variant.
+    const concertA = makeConcert(1);
+    const concertB = makeConcert(2);
+    mockHD
+      .mockReturnValueOnce(3) // concertA variant 1 — best
+      .mockReturnValueOnce(7) // concertA variant 2 — same concert, excluded
+      .mockReturnValueOnce(10); // concertB — different concert, becomes secondBestMatch
+
+    const { bestMatch, secondBestMatch } = findBestMatches('hash', [
+      { hash: 'h1', concert: concertA },
+      { hash: 'h2', concert: concertA },
+      { hash: 'h3', concert: concertB },
+    ]);
+
+    expect(bestMatch).toEqual({ concert: concertA, distance: 3 });
+    expect(secondBestMatch).toEqual({ concert: concertB, distance: 10 });
   });
 
   it('passes the current hash string to hammingDistance for every entry', () => {

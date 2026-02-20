@@ -49,8 +49,8 @@ npm run test:coverage    # Coverage report (70% minimum threshold)
 npm run test:visual      # Playwright visual regression (builds first)
 
 # Photo recognition data
-npm run update-recognition-data   # Regenerate pHash hashes for all photos
-npm run generate-hashes           # Hash generation only
+npm run hashes:refresh            # Regenerate pHash hashes for all photos (safe batching)
+npm run hashes:paths              # Hash generation for specific files/folders
 
 # Audio workflow
 npm run download-song    # Download from YouTube

@@ -214,7 +214,7 @@ See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.m
 For automated hash generation from photo files:
 
 ```bash
-npm run generate-hashes
+npm run hashes:paths
 ```
 
 ---

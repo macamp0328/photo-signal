@@ -74,7 +74,7 @@ function main() {
   console.log('  2. Take a clear, well-lit photo (or extract frame from screenshot)');
   console.log('  3. Crop to just the photo region (remove background)');
   console.log('  4. Save to a temp folder (e.g., assets/camera-captured)');
-  console.log('  5. Generate hashes: npm run generate-hashes assets/camera-captured');
+  console.log('  5. Generate hashes: npm run hashes:paths -- --paths assets/camera-captured');
   console.log('  6. Copy the output hashes to replace existing hashes in data.json');
   console.log('');
   console.log('  This gives you hashes that match your ACTUAL setup:');
@@ -114,7 +114,7 @@ function main() {
   console.log('  # ... save camera-captured photos there ...');
   console.log('');
   console.log('  # Generate hashes');
-  console.log('  npm run generate-hashes assets/camera-captured');
+  console.log('  npm run hashes:paths -- --paths assets/camera-captured');
   console.log('');
   console.log('  # Output will show:');
   console.log('  # {');

@@ -147,7 +147,7 @@ async function main() {
   console.log('');
   console.log('  1. Take a clear photo of each printed concert photo');
   console.log('  2. Save to assets/example-real-photos/');
-  console.log('  3. Run: npm run generate-hashes assets/example-real-photos');
+  console.log('  3. Run: npm run hashes:paths -- --paths assets/example-real-photos');
   console.log('  4. Copy the generated hashes to public/data.json');
   console.log('  5. Test again in the app');
   console.log('');

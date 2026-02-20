@@ -100,7 +100,7 @@ Add to data.json:
 
 ```bash
 # Place photos in assets/reference-photos/
-npm run generate-hashes
+npm run hashes:paths
 
 # Copy output to data.json
 ```
@@ -268,10 +268,10 @@ Triple-tap/click anywhere → Secret Settings → Enable "Test Data Mode"
 ### Generate Hashes
 
 ```bash
-npm run generate-hashes
+npm run hashes:paths
 
 # Hash a different folder (comma-separated)
-npm run generate-hashes -- --paths assets/example-real-photos,assets/new-print-tests
+npm run hashes:paths -- --paths assets/example-real-photos,assets/new-print-tests
 
 # Full CLI access for power users
 node scripts/update-recognition-data.js --paths-mode --paths assets/test-images --algorithms phash
@@ -280,7 +280,7 @@ node scripts/update-recognition-data.js --paths-mode --paths assets/test-images 
 ### Rebuild All Hashes
 
 ```bash
-npm run update-recognition-data -- --hashes-only
+npm run hashes:refresh -- --hashes-only
 ```
 
 ### Check Data Structure

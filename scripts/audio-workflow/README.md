@@ -237,7 +237,7 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
    - Run `npm run audio:build-data -- --base-url=<worker-url> --prefix=prod/audio` to regenerate `public/data.json` deterministically from `prod-photographs-details.csv` + `audio-index.json`.
 
 6. **Regenerate recognition hashes:**
-   - Run `npm run update-recognition-data -- --input public/data.json --public public/data.json --batch-size 2` (or adjust batch size for your environment).
+   - Run `npm run hashes:refresh -- --input public/data.json --public public/data.json` (or adjust batch size for your environment).
 
 7. **Upload and verify:**
    - Upload generated assets: `npm run upload-audio -- --prefix=prod/audio`

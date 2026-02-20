@@ -163,8 +163,8 @@ When testing, you may discover features that are **planned but not yet implement
 ~~❓ **Photo Hash Generation**~~ ✅ **IMPLEMENTED**
 
 - ✅ Browser-based HTML tool: `scripts/generate-photo-hashes.html`
-- ✅ Node.js CLI: `scripts/update-recognition-data.js --paths-mode` (`npm run generate-hashes`)
-- ✅ NPM command: `npm run generate-hashes`
+- ✅ Node.js CLI: `scripts/update-recognition-data.js --paths-mode` (`npm run hashes:paths`)
+- ✅ NPM command: `npm run hashes:paths`
 - See scripts/README.md for usage instructions
 
 ~~❓ **Photo Hash Computation Tools**~~ ✅ **IMPLEMENTED**
@@ -275,9 +275,9 @@ When testing, you may discover features that are **planned but not yet implement
 
    ```bash
    # Place images in assets/test-images/ (default) or pass --paths for other folders
-   npm run generate-hashes
+   npm run hashes:paths
    # or
-   npm run generate-hashes -- --paths assets/example-real-photos
+   npm run hashes:paths -- --paths assets/example-real-photos
    # Copy the output hashes to concerts.json
    ```
 

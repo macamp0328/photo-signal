@@ -191,7 +191,7 @@ Shows last 10 failures with timestamps and reasons. **Look for**:
 
 **Common Causes**:
 
-- Hashes in database are incorrect (regenerate with `npm run generate-hashes`)
+- Hashes in database are incorrect (regenerate with `npm run hashes:paths`)
 - Similarity threshold too strict (try increasing from 40 to 50)
 - Photos are too different from reference (lighting, printing quality)
 

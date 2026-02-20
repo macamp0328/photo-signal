@@ -406,7 +406,7 @@ See the [audio workflow README](./audio-workflow/README.md#stage-3-update-ready)
 
 ### `update-recognition-data.js --paths-mode` - Generate Photo Hashes
 
-`npm run generate-hashes` now routes through the unified recognition CLI. Passing `--paths-mode` turns `scripts/update-recognition-data.js` into a lightweight hash generator for arbitrary files or folders, so you get the same multi-exposure fingerprints without touching the concert dataset.
+`npm run hashes:paths` now routes through the unified recognition CLI. Passing `--paths-mode` turns `scripts/update-recognition-data.js` into a lightweight hash generator for arbitrary files or folders, so you get the same multi-exposure fingerprints without touching the concert dataset.
 
 **Requirements:** Node.js and the existing project dependencies (no extra scripts required)
 
@@ -414,7 +414,7 @@ See the [audio workflow README](./audio-workflow/README.md#stage-3-update-ready)
 
 ```bash
 # Recommended npm alias
-npm run generate-hashes -- --paths assets/example-real-photos
+npm run hashes:paths -- --paths assets/example-real-photos
 
 # Direct invocation with custom flags
 node scripts/update-recognition-data.js \
@@ -428,8 +428,8 @@ node scripts/update-recognition-data.js --paths-mode --path assets/test-images/c
 
 **What it does:**
 
-- Accepts any mix of files or directories (defaults to `assets/test-images/`)
-- Generates three exposure-adjusted hashes (dark, normal, bright) per algorithm
+- Accepts any mix of files or directories (defaults to `assets/prod-photographs/`)
+- Generates five exposure-adjusted hashes per algorithm
 - Supports the production pHash pipeline (`--algorithms phash`)
 - Prints human-friendly output plus ready-to-paste JSON payloads for `photoHashes`
 - Skips public sync automatically so it runs fast and read-only
@@ -482,10 +482,10 @@ Single entry point for keeping every concert's recognition metadata current with
 
 ```bash
 # Full refresh (pHash + public sync)
-npm run update-recognition-data
+npm run hashes:refresh
 
 # Targeted update examples
-npm run update-recognition-data -- \
+npm run hashes:refresh -- \
   --ids 6,7 \
   --hashes-only \
   --algorithms phash \
@@ -501,7 +501,7 @@ npm run update-recognition-data -- \
 - Regenerates pHash values (three exposure variants)
 - Supports targeted runs via `--id` / `--ids`
 - Offers hash-focused toggles such as `--hashes-only`
-- Includes a fast `--paths-mode` for ad-hoc hash generation (used by `npm run generate-hashes`)
+- Includes a fast `--paths-mode` for ad-hoc hash generation (used by `npm run hashes:paths`)
 - Provides a safe `--dry-run` preview before writing any files
 
 Lean on this script whenever reference photos change, recognition parameters shift, or the two concert data files need to be re-synchronized.
@@ -749,19 +749,19 @@ These scripts are used by:
 
 ---
 
-### `npm run generate-hashes` - Quick Reference
+### `npm run hashes:paths` - Quick Reference
 
-The legacy `generate-photo-hashes.js` script has been folded into `update-recognition-data.js`. Use the existing npm alias to generate hashes without remembering the full flag list.
+The legacy `generate-photo-hashes.js` script has been folded into `update-recognition-data.js`. Use the npm alias below to generate hashes without remembering the full flag list.
 
 ```bash
-# Default: hash everything under assets/test-images/
-npm run generate-hashes
+# Default: hash everything under assets/prod-photographs/
+npm run hashes:paths
 
 # Point to additional folders or files
-npm run generate-hashes -- --paths assets/example-real-photos,new-shots.jpg
+npm run hashes:paths -- --paths assets/example-real-photos,new-shots.jpg
 
-# Switch algorithms
-npm run generate-hashes -- --algorithms phash
+# Regenerate all concert hashes in public/data.json
+npm run hashes:refresh
 ```
 
 Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mode ...`, which prints per-image details and a ready-to-paste JSON block exactly like the full CLI. Re-run with `--algorithms phash` whenever you update photos used by Test Mode.

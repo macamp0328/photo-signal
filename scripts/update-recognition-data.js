@@ -248,11 +248,17 @@ function runChildBatch(childArgs, batchLabel) {
       reject(error);
     });
 
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       if (code === 0) {
         resolve({ stdout, stderr });
       } else {
-        reject(new Error(`Batch ${batchLabel} failed (exit code ${code})\n${stderr}`));
+        const failureReason = signal ? `signal ${signal}` : `exit code ${code}`;
+        const error = new Error(`Batch ${batchLabel} failed (${failureReason})\n${stderr}`);
+        error.code = code;
+        error.signal = signal;
+        error.stdout = stdout;
+        error.stderr = stderr;
+        reject(error);
       }
     });
   });
@@ -271,16 +277,41 @@ async function runBatchedProcessing(options, targets) {
   let totalHashes = 0;
   let totalSkipped = 0;
 
+  async function processBatchIds(ids, label) {
+    console.log(`\n📦 Batch ${label} → ids: ${ids.join(', ')}`);
+    const childArgs = [...baseArgs, '--ids', ids.join(',')];
+
+    try {
+      const { stdout } = await runChildBatch(childArgs, label);
+      const summary = parseSummaryStats(stdout);
+      totalHashes += summary.hashes;
+      totalSkipped += summary.skipped;
+    } catch (error) {
+      if (ids.length <= 1) {
+        const singleId = ids[0];
+        const detail = error?.message || String(error);
+        throw new Error(
+          `Concert id ${singleId} failed during batched processing. ` +
+            `Run with --ids ${singleId} to debug further.\n${detail}`
+        );
+      }
+
+      const midpoint = Math.ceil(ids.length / 2);
+      const left = ids.slice(0, midpoint);
+      const right = ids.slice(midpoint);
+      console.warn(
+        `⚠️  Batch ${label} failed; retrying in smaller groups (${left.length} + ${right.length}).`
+      );
+      await processBatchIds(left, `${label}.1`);
+      await processBatchIds(right, `${label}.2`);
+    }
+  }
+
   for (let index = 0; index < batches.length; index++) {
     const batch = batches[index];
     const ids = batch.map((concert) => concert.id);
     const label = `${index + 1}/${batches.length}`;
-    console.log(`\n📦 Batch ${label} → ids: ${ids.join(', ')}`);
-    const childArgs = [...baseArgs, '--ids', ids.join(',')];
-    const { stdout } = await runChildBatch(childArgs, label);
-    const summary = parseSummaryStats(stdout);
-    totalHashes += summary.hashes;
-    totalSkipped += summary.skipped;
+    await processBatchIds(ids, label);
   }
 
   console.log('\n' + '━'.repeat(60));

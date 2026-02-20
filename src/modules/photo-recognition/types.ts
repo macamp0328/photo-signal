@@ -145,6 +145,7 @@ export interface RecognitionDebugInfo {
 
 export interface PhotoRecognitionHook {
   recognizedConcert: Concert | null;
+  switchCandidateConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;
   resetTelemetry: () => void;

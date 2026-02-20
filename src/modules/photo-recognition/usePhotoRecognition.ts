@@ -288,6 +288,7 @@ export function usePhotoRecognition(
   } = options;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
+  const [switchCandidateConcert, setSwitchCandidateConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
@@ -331,6 +332,7 @@ export function usePhotoRecognition(
     telemetryRef.current = createEmptyTelemetry();
 
     setRecognizedConcert(null);
+    setSwitchCandidateConcert(null);
     setIsRecognizing(false);
     setDebugInfo(null);
     setFrameQuality(null);
@@ -401,6 +403,7 @@ export function usePhotoRecognition(
       switchCandidateConcertRef.current = null;
       switchCandidateStartTimeRef.current = null;
       switchConsecutiveMatchCountRef.current = 0;
+      setSwitchCandidateConcert(null);
     };
 
     // -----------------------------------------------------------------------
@@ -873,6 +876,10 @@ export function usePhotoRecognition(
               const confirmedByInstantConfidence =
                 isInstantSwitchDistance && hasConsecutiveSwitchConfidence;
 
+              if (hasConsecutiveSwitchConfidence) {
+                setSwitchCandidateConcert(activeMatch);
+              }
+
               if (confirmedByDelay || confirmedByInstantConfidence) {
                 recognizedConcertRef.current = activeMatch;
                 confirmedMatch = true;
@@ -891,6 +898,7 @@ export function usePhotoRecognition(
               return;
             }
 
+            setSwitchCandidateConcert(null);
             switchCandidateConcertRef.current = activeMatch;
             switchCandidateStartTimeRef.current = now;
             switchConsecutiveMatchCountRef.current = 1;
@@ -1056,6 +1064,7 @@ export function usePhotoRecognition(
 
   return {
     recognizedConcert,
+    switchCandidateConcert,
     isRecognizing,
     reset,
     resetTelemetry,

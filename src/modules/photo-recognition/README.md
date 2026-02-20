@@ -57,6 +57,7 @@ Returns:
 ```ts
 {
   recognizedConcert: Concert | null;
+  switchCandidateConcert: Concert | null; // stable switch candidate after consecutive confidence in switch mode
   isRecognizing: boolean;
   reset: () => void;
   debugInfo: RecognitionDebugInfo | null;
@@ -92,7 +93,7 @@ Only `photoHashes.phash` is required by runtime recognition.
 - Continuous switch confirmation: only for stronger candidates (distance <= 7 + margin >= 5), then 3 consistent frames and either delay completion or instant distance <= 3
 - Quality checks are bypassed for close matches at distance <= 12 and run for weaker candidates (distance 13–14); this gap preserves quality filtering for borderline matches while skipping it for highly confident ones
 - Ambiguous candidates (within threshold but low margin) emit `ambiguous-match` guidance and are not promoted
-- App-level switch prompt is suppressed while `ambiguous-match` guidance is active
+- App-level switch prompt can be driven by `switchCandidateConcert` once switch stability is reached
 - Telemetry includes switch prompt decisions (`shownCount`, `confirmCount`, `dismissCount`, decision latency, confidence/margin snapshot)
 - **Threshold tuning**: `similarityThreshold`, `matchMarginThreshold`, and related constants are based on empirical field evaluation; if you change them, re-run the recognition evaluation described in `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` and validate with real-world photos before deploying
 - Kept for matching: `algorithms/phash.ts`, `algorithms/hamming.ts`, `algorithms/utils.ts`

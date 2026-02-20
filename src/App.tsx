@@ -428,8 +428,22 @@ function AppContent() {
     pause();
   };
 
+  const attemptPortraitOrientationLock = () => {
+    const orientation = window.screen?.orientation as
+      | (ScreenOrientation & {
+          lock?: (orientation: 'portrait-primary') => Promise<void>;
+        })
+      | undefined;
+    if (!orientation?.lock) {
+      return;
+    }
+
+    void orientation.lock('portrait-primary').catch(() => {});
+  };
+
   // Handle activation from landing view
   const handleActivate = () => {
+    attemptPortraitOrientationLock();
     setIsActive(true);
   };
 

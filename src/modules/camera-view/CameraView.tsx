@@ -21,6 +21,7 @@ export function CameraView({
   showRectangleOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  void showInstructions;
 
   // Update video element when stream changes
   useEffect(() => {
@@ -79,13 +80,6 @@ export function CameraView({
                 : 'idle'
           }
         />
-      )}
-
-      {/* Instructions */}
-      {showInstructions && (
-        <div className={styles.instructions}>
-          <p className={styles.instructionsText}>Point camera at a photo to play music</p>
-        </div>
       )}
     </div>
   );

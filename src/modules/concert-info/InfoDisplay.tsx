@@ -23,15 +23,20 @@ export function InfoDisplay({
   if (!concert || !isVisible) return null;
 
   const formattedDate = formatConcertTimestamp(concert.date);
-  const detailItems = [
-    { label: 'Recorded', value: formattedDate },
+  const primaryDetailItems = [
+    { label: 'Date', value: formattedDate },
+    { label: 'Song', value: concert.songTitle },
     { label: 'Venue', value: concert.venue },
-    { label: 'Camera', value: concert.camera },
-    { label: 'Focal Length', value: concert.focalLength },
-    { label: 'Aperture (f-stop)', value: concert.aperture },
-    { label: 'Shutter', value: concert.shutterSpeed },
-    { label: 'ISO', value: concert.iso },
   ].filter((item) => Boolean(item.value));
+  const secondaryMeta = [
+    concert.camera ? `Camera: ${concert.camera}` : null,
+    concert.focalLength,
+    concert.aperture,
+    concert.shutterSpeed,
+    concert.iso ? `ISO ${concert.iso}` : null,
+  ]
+    .filter((item): item is string => Boolean(item))
+    .join(' · ');
   const progressPercentage = Math.round(Math.min(Math.max(progressValue, 0), 1) * 100);
   const timelineStyle = {
     width: `${progressPercentage}%`,
@@ -75,13 +80,15 @@ export function InfoDisplay({
       </section>
 
       <div className={styles.detailGrid}>
-        {detailItems.map((item) => (
+        {primaryDetailItems.map((item) => (
           <div key={item.label} className={styles.detailItem}>
             <p className={styles.detailLabel}>{item.label}</p>
             <p className={styles.detailValue}>{item.value}</p>
           </div>
         ))}
       </div>
+
+      {secondaryMeta ? <p className={styles.metaCompact}>{secondaryMeta}</p> : null}
 
       <p className={styles.prompt}>{promptText}</p>
     </section>

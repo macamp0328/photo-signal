@@ -27,7 +27,7 @@
   background-color: var(--color-button-bg);
   color: var(--color-button-text);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 0;
   cursor: pointer;
   transition: background-color 0.2s;
   font-weight: 500;
@@ -97,42 +97,3 @@
 }
 
 /* Instructions */
-.instructions {
-  position: absolute;
-  bottom: 1rem;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: #fff;
-  font-size: 0.75rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  pointer-events: none;
-}
-
-.instructionsText {
-  background-color: rgba(0, 0, 0, 0.5);
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-}
-
-/* Responsive: Larger instructions on bigger screens */
-@media (min-width: 768px) {
-  .instructions {
-    bottom: 2rem;
-    font-size: 0.875rem;
-  }
-}
-
-/* Landscape orientation adjustments for mobile devices */
-@media (max-height: 500px) and (orientation: landscape) {
-  .instructions {
-    bottom: 0.5rem;
-    font-size: 0.625rem;
-  }
-
-  .instructionsText {
-    padding: 0.25rem 0.5rem;
-  }
-}

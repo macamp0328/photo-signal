@@ -113,6 +113,7 @@ describe('InfoDisplay', () => {
     it('should display EXIF metadata when available', () => {
       const exifConcert: Concert = {
         ...mockConcert,
+        songTitle: 'Here Comes the Sun',
         camera: 'RICOH GR II',
         focalLength: '18.3mm',
         aperture: 'f/2.8',
@@ -122,16 +123,13 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={exifConcert} isVisible={true} />);
 
-      expect(screen.getByText('Camera')).toBeInTheDocument();
-      expect(screen.getByText('RICOH GR II')).toBeInTheDocument();
-      expect(screen.getByText('Focal Length')).toBeInTheDocument();
-      expect(screen.getByText('18.3mm')).toBeInTheDocument();
-      expect(screen.getByText('Aperture (f-stop)')).toBeInTheDocument();
-      expect(screen.getByText('f/2.8')).toBeInTheDocument();
-      expect(screen.getByText('Shutter')).toBeInTheDocument();
-      expect(screen.getByText('1/125')).toBeInTheDocument();
-      expect(screen.getByText('ISO')).toBeInTheDocument();
-      expect(screen.getByText('1600')).toBeInTheDocument();
+      expect(screen.getByText('Here Comes the Sun')).toBeInTheDocument();
+      const detailsCard = screen.getByLabelText('Concert details');
+      expect(detailsCard).toHaveTextContent('Camera: RICOH GR II');
+      expect(detailsCard).toHaveTextContent('18.3mm');
+      expect(detailsCard).toHaveTextContent('f/2.8');
+      expect(detailsCard).toHaveTextContent('1/125');
+      expect(detailsCard).toHaveTextContent('ISO 1600');
     });
   });
 

@@ -1,3 +1,6 @@
+# Telemetry data files (session-specific diagnostics)
+temp_files/photo-signal-telemetry-*.json
+
 # Logs
 logs
 *.log

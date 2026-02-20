@@ -480,7 +480,7 @@ describe('usePhotoRecognition', () => {
     }
   });
 
-  it('bypasses quality checks for close matches (distance 12) and confirms recognition', async () => {
+  it('bypasses quality checks for close matches (distance 12, within quality-gating threshold of 12) and confirms recognition', async () => {
     const originalCreateElement = document.createElement.bind(document);
 
     const mockContext = {
@@ -537,7 +537,6 @@ describe('usePhotoRecognition', () => {
       const { result } = renderHook(() =>
         usePhotoRecognition(mockStream, {
           enabled: true,
-          similarityThreshold: 20,
           recognitionDelay: 120,
           checkInterval: 50,
         })
@@ -562,7 +561,7 @@ describe('usePhotoRecognition', () => {
     }
   });
 
-  it('runs quality checks for farther matches (distance 16), recaptures at 128, and rejects poor quality', async () => {
+  it('runs quality checks for farther matches (distance 16, above quality-gating threshold of 12), recaptures at 128, and rejects poor quality', async () => {
     const originalCreateElement = document.createElement.bind(document);
 
     const mockContext = {
@@ -616,6 +615,10 @@ describe('usePhotoRecognition', () => {
       vi.mocked(dataService.getConcerts).mockResolvedValue(closeConcerts);
       activeFrameHash = 'aaaaaaaaaaaabbbb';
 
+      // similarityThreshold: 20 keeps the match within threshold (distance 16 ≤ 20) so
+      // that the quality-gating path is exercised — the test verifies that frames above
+      // QUALITY_GATING_DISTANCE_THRESHOLD (12) still trigger the 128×128 re-capture,
+      // and that poor-quality frames are correctly rejected even when within similarity.
       const { result } = renderHook(() =>
         usePhotoRecognition(mockStream, {
           enabled: true,

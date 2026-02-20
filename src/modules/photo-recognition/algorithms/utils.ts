@@ -6,7 +6,11 @@
 
 // ---------------------------------------------------------------------------
 // Module-level canvas cache — reused across calls to avoid per-frame DOM
-// element creation overhead.
+// element creation overhead. JavaScript is single-threaded, so sharing these
+// canvases across calls is safe as long as no caller yields the event loop
+// between setting canvas dimensions and reading back pixel data. All callers
+// in this module follow that contract. Tests that run in parallel processes
+// each have their own module scope, so there is no cross-test contamination.
 // ---------------------------------------------------------------------------
 let _sourceCanvas: HTMLCanvasElement | null = null;
 let _sourceCtx: CanvasRenderingContext2D | null = null;

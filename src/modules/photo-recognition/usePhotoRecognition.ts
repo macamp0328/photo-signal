@@ -30,8 +30,15 @@ import type {
 /**
  * pHash Hamming distance threshold for initial recognition.
  * pHash produces a 64-bit hash; distances range 0–64, where 0 = identical.
- * ≤12 ≈ 81% similarity — enough to absorb print variation and moderate
- * lighting differences without generating excessive false positives.
+ * A distance of 14 corresponds to roughly 78% similarity — tuned to absorb
+ * print variation, device noise, and typical lighting differences without
+ * introducing unacceptable false positives for the current dataset.
+ *
+ * This value was chosen based on empirical evaluation (offline test sets and
+ * field validation). If you change it, re-run the evaluation described in
+ * docs/PHOTO_RECOGNITION_DEEP_DIVE.md and adjust related thresholds
+ * (INSTANT_DISTANCE_THRESHOLD and QUALITY_GATING_DISTANCE_THRESHOLD) as
+ * needed to preserve the intended ratios.
  */
 const DEFAULT_SIMILARITY_THRESHOLD = 14;
 
@@ -73,10 +80,11 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
  * are skipped to avoid rejecting a valid close-distance frame on quality
  * grounds.
  *
- * Kept in sync with DEFAULT_SIMILARITY_THRESHOLD (14) so quality checks are
- * skipped entirely for any frame that would be matched.
+ * Kept 2 below DEFAULT_SIMILARITY_THRESHOLD (14) so that borderline matches
+ * (distance 13–14) still pass through quality filtering, while very confident
+ * matches (≤12) skip it entirely.
  */
-const QUALITY_GATING_DISTANCE_THRESHOLD = 14;
+const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
 
 if (import.meta.env.DEV && QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD) {
   throw new Error(
@@ -120,8 +128,12 @@ const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
  * meaningful: the winning concert must be at least 2 bits closer than its
  * nearest rival from any other concert.
  *
- * Lowered from 4 to 2 — telemetry showed real-world cross-concert margins
- * consistently at 2 bits; requiring 4 blocked all recognition.
+ * Lowered from 4 to 2 — field telemetry recorded with margin=4 showed 0%
+ * recognition success because real-world cross-concert margins were
+ * consistently at 2 bits. The telemetry AI recommended raising to 6, but this
+ * is the wrong direction; the root cause was margin=4 being too strict given
+ * the actual dataset distances. Margin=2 enables recognition while still
+ * requiring the winning concert to be meaningfully closer than any rival.
  */
 const DEFAULT_MATCH_MARGIN_THRESHOLD = 2;
 

@@ -371,9 +371,9 @@ These edge-case assertions are also exercised in standard CI test runs.
 - **Home gallery** (typical): Target >70% quality frames, >75% recognition
 - **Challenging** (outdoor, varied): Target >60% quality frames, >65% recognition
 
-### Q: Why can collision percentage exceed 100%?
+### Q: How should I interpret collision percentage?
 
-**A**: Collision counts are failure events, not unique frames. Multiple collision events can be logged while tracking the same unstable scene. Use `collisionStats` (especially margin histogram + top pairs) to interpret root cause, not just raw percentage.
+**A**: The exported collision percentage is calculated as `collisionCount / totalFrames`, so it is capped at 100% (per-frame failure rate). Collision counts are failure events, not unique photos, and multiple collision events can be logged across frames while tracking an unstable scene. Use `collisionStats` (especially margin histogram + top pairs) to interpret root cause and patterns over time, not just the raw percentage.
 
 ## References
 

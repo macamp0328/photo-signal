@@ -263,6 +263,17 @@ describe('computeAiRecommendations', () => {
           collision: 25,
           unknown: 0,
         },
+        collisionStats: {
+          ...createEmptyTelemetry().collisionStats,
+          ambiguousCount: 20,
+          ambiguousMarginHistogram: {
+            '0-1': 10,
+            '2': 6,
+            '3-4': 3,
+            '5+': 1,
+            unknown: 0,
+          },
+        },
       });
       const recs = computeAiRecommendations(telemetry, defaultSettings);
       const collisionRec = recs.find((r) => r.parameterChange.startsWith('matchMarginThreshold'));
@@ -281,6 +292,17 @@ describe('computeAiRecommendations', () => {
           'poor-quality': 0,
           collision: 15,
           unknown: 0,
+        },
+        collisionStats: {
+          ...createEmptyTelemetry().collisionStats,
+          ambiguousCount: 10,
+          ambiguousMarginHistogram: {
+            '0-1': 4,
+            '2': 3,
+            '3-4': 2,
+            '5+': 1,
+            unknown: 0,
+          },
         },
       });
       const recs = computeAiRecommendations(telemetry, defaultSettings);
@@ -301,6 +323,7 @@ describe('computeAiRecommendations', () => {
         },
         collisionStats: {
           ...createEmptyTelemetry().collisionStats,
+          ambiguousCount: 16,
           ambiguousMarginHistogram: {
             '0-1': 2,
             '2': 2,
@@ -317,6 +340,29 @@ describe('computeAiRecommendations', () => {
           r.parameterChange.startsWith('matchMarginThreshold')
       );
       expect(collisionRec?.parameterChange).toBe('refreshHashes: true');
+    });
+
+    it('recommends threshold/hash remediation when collisions are near-threshold without ambiguity', () => {
+      const telemetry = makeTestTelemetry({
+        totalFrames: 100,
+        failureByCategory: {
+          'no-match': 0,
+          'motion-blur': 0,
+          glare: 0,
+          'poor-quality': 0,
+          collision: 24,
+          unknown: 0,
+        },
+        collisionStats: {
+          ...createEmptyTelemetry().collisionStats,
+          ambiguousCount: 0,
+          nearThresholdCount: 24,
+        },
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      const collisionRec = recs.find((r) => r.issue.includes('collision rate'));
+      expect(collisionRec?.parameterChange).toBe('refreshHashes: true');
+      expect(collisionRec?.recommendation).toContain('similarity threshold');
     });
   });
 

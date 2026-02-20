@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Concert } from '../../types';
-import { createEmptyTelemetry, getPHashes } from './helpers';
+import { createEmptyTelemetry, getPHashes, recordCollisionDetails } from './helpers';
 
 const buildConcert = (phash?: unknown): Concert => ({
   id: 1,
@@ -88,6 +88,29 @@ describe('helpers', () => {
       const concert = buildConcert(['@#$%^&*()123456']);
 
       expect(getPHashes(concert)).toEqual([]);
+    });
+  });
+
+  describe('recordCollisionDetails', () => {
+    it('normalizes pair keys so rival order aggregates to one entry', () => {
+      const telemetry = createEmptyTelemetry();
+
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 2,
+        bestBand: 'Band A',
+        secondBand: 'Band B',
+      });
+
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 2,
+        bestBand: 'Band B',
+        secondBand: 'Band A',
+      });
+
+      expect(telemetry.collisionStats.ambiguousPairCounts['Band A vs Band B']).toBe(2);
+      expect(Object.keys(telemetry.collisionStats.ambiguousPairCounts)).toHaveLength(1);
     });
   });
 });

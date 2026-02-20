@@ -961,7 +961,7 @@ export function usePhotoRecognition(
         }
 
         if (bestMatch) {
-          const isAmbiguousCollision = !hasSufficientMargin;
+          const isAmbiguousCollision = isAmbiguousMatchCandidate;
           const isNearThresholdNoMatch =
             !isAmbiguousCollision && bestMatch.distance <= similarityThreshold + 2;
 

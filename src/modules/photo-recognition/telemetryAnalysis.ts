@@ -193,22 +193,34 @@ export function computeAiRecommendations(
 
   // ── Collision recommendation ──────────────────────────────────────────────
   if (collisionRate > COLLISION_RATE_MEDIUM) {
-    const ambiguousMargins = telemetry.collisionStats.ambiguousMarginHistogram;
-    const lowMarginBias = ambiguousMargins['0-1'] + ambiguousMargins['2'];
-    const highMarginBias = ambiguousMargins['3-4'] + ambiguousMargins['5+'];
-    const hasMarginSignal = lowMarginBias + highMarginBias + ambiguousMargins.unknown > 0;
-    const shouldRaiseMargin = !hasMarginSignal || lowMarginBias > highMarginBias;
-    const suggestedMargin = shouldRaiseMargin
-      ? Math.min(settings.matchMarginThreshold + 1, settings.switchMatchMarginThreshold)
-      : settings.matchMarginThreshold;
+    const { ambiguousMarginHistogram, ambiguousPairCounts, ambiguousCount, nearThresholdCount } =
+      telemetry.collisionStats;
 
-    const topPair = Object.entries(telemetry.collisionStats.ambiguousPairCounts).sort(
-      (a, b) => b[1] - a[1]
-    )[0];
+    let shouldRaiseMargin = false;
+    let suggestedMargin = settings.matchMarginThreshold;
+    let recommendationBody: string;
 
-    const recommendationBody = shouldRaiseMargin
-      ? `Raise matchMarginThreshold from ${settings.matchMarginThreshold} to ${suggestedMargin}; collision margins are mostly low (0–2), indicating weak separation between best and second-best matches.`
-      : `Keep matchMarginThreshold at ${settings.matchMarginThreshold}; collisions are not dominated by low margins, so prioritize refreshing photo hashes and verifying print/image alignment.`;
+    const topPair = Object.entries(ambiguousPairCounts).sort((a, b) => b[1] - a[1])[0];
+
+    if (ambiguousCount > 0) {
+      const lowMarginBias = ambiguousMarginHistogram['0-1'] + ambiguousMarginHistogram['2'];
+      const highMarginBias = ambiguousMarginHistogram['3-4'] + ambiguousMarginHistogram['5+'];
+      const hasMarginSignal = lowMarginBias + highMarginBias + ambiguousMarginHistogram.unknown > 0;
+
+      shouldRaiseMargin = hasMarginSignal ? lowMarginBias > highMarginBias : true;
+      suggestedMargin = shouldRaiseMargin
+        ? Math.min(settings.matchMarginThreshold + 1, settings.switchMatchMarginThreshold)
+        : settings.matchMarginThreshold;
+
+      recommendationBody = shouldRaiseMargin
+        ? `Raise matchMarginThreshold from ${settings.matchMarginThreshold} to ${suggestedMargin}; collision margins are mostly low (0–2), indicating weak separation between best and second-best matches.`
+        : `Keep matchMarginThreshold at ${settings.matchMarginThreshold}; collisions are not dominated by low margins, so prioritize refreshing photo hashes and verifying print/image alignment.`;
+    } else {
+      recommendationBody =
+        nearThresholdCount > 0
+          ? 'Collision events are primarily near the similarity threshold with no clear ambiguous second-best match. Prefer lowering similarityThreshold slightly or refreshing photo hashes and verifying print/image alignment rather than adjusting matchMarginThreshold.'
+          : `Collisions lack clear ambiguity margin data; prioritize refreshing photo hashes and verifying print/image alignment before changing matchMarginThreshold.`;
+    }
 
     recommendations.push({
       priority: collisionRate > COLLISION_RATE_HIGH ? 'high' : 'medium',

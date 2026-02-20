@@ -168,7 +168,8 @@ export const recordCollisionDetails = (
     }
 
     const rival = args.secondBand ?? 'Unknown rival';
-    const pairKey = `${args.bestBand} vs ${rival}`;
+    const pairKey =
+      args.bestBand <= rival ? `${args.bestBand} vs ${rival}` : `${rival} vs ${args.bestBand}`;
     telemetry.collisionStats.ambiguousPairCounts[pairKey] =
       (telemetry.collisionStats.ambiguousPairCounts[pairKey] ?? 0) + 1;
     return;

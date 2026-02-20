@@ -141,13 +141,16 @@ export function computePHash(imageData: ImageData): string {
   // Step 5: Generate 64-bit hash as hex directly, without building an
   // intermediate 63-character binary string.
   // Process 4 coefficients at a time → one hex nibble per group.
+  // lowFreq has 63 elements (DC coefficient skipped), so the last group is
+  // a partial group of 3; bounds-check positions i+1, i+2, i+3 to avoid
+  // reading undefined values (which would produce NaN comparisons).
   let hex = '';
   for (let i = 0; i < lowFreq.length; i += 4) {
-    const nibble =
-      (lowFreq[i] > median ? 8 : 0) |
-      (lowFreq[i + 1] > median ? 4 : 0) |
-      (lowFreq[i + 2] > median ? 2 : 0) |
-      (lowFreq[i + 3] > median ? 1 : 0);
+    let nibble = 0;
+    if (lowFreq[i] > median) nibble |= 8;
+    if (i + 1 < lowFreq.length && lowFreq[i + 1] > median) nibble |= 4;
+    if (i + 2 < lowFreq.length && lowFreq[i + 2] > median) nibble |= 2;
+    if (i + 3 < lowFreq.length && lowFreq[i + 3] > median) nibble |= 1;
     hex += nibble.toString(16);
   }
   return hex;

@@ -443,15 +443,26 @@ export function usePhotoRecognition(
           : metrics.averageBrightness > adaptiveThresholds.maxBrightness
             ? ('overexposed' as const)
             : ('ok' as const);
-
-      const quality: FrameQualityInfo = {
-        sharpness: metrics.sharpness,
-        isSharp: metrics.isSharp,
+      const sharpness = metrics.sharpness;
+      const isSharp = metrics.isSharp;
+      const glare = {
         glarePercentage: metrics.glarePercentage,
         hasGlare: hasAdaptiveGlare,
+      };
+      const lighting = {
         averageBrightness: metrics.averageBrightness,
         hasPoorLighting: hasAdaptivePoorLighting,
-        lightingType: adaptiveLightingType,
+        type: adaptiveLightingType,
+      };
+
+      const quality: FrameQualityInfo = {
+        sharpness,
+        isSharp,
+        glarePercentage: glare.glarePercentage,
+        hasGlare: glare.hasGlare,
+        averageBrightness: lighting.averageBrightness,
+        hasPoorLighting: lighting.hasPoorLighting,
+        lightingType: lighting.type,
       };
 
       setFrameQuality(quality);

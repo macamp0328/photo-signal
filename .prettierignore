@@ -3,6 +3,7 @@ node_modules
 package-lock.json
 test-results
 playwright-report
+.claude/worktrees
 
 # Skip large binary/media assets to avoid wasted formatting work
 public/audio/*.{opus,mp3,wav,flac,aac,m4a,jpg,jpeg,png,webp,gif,bmp,tiff,svg}

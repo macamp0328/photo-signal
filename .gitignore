@@ -52,3 +52,6 @@ output/
 *.njsproj
 *.sln
 *.sw?
+
+# Local AI worktree clones (not part of project source)
+.claude/worktrees/

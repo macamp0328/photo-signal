@@ -238,7 +238,7 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
    - `songTitle` in `public/data.json` is sourced from CSV (`songTitle`) first, then falls back to `audio-index.json` track title.
 
 6. **Regenerate recognition hashes:**
-   - Run `npm run update-recognition-data -- --input public/data.json --public public/data.json --batch-size 2` (or adjust batch size for your environment).
+   - Run `npm run hashes:refresh -- --input public/data.json --public public/data.json` (or adjust batch size for your environment).
 
 7. **Upload and verify:**
    - Upload generated assets: `npm run upload-audio -- --prefix=prod/audio`

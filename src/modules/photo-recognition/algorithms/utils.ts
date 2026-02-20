@@ -4,6 +4,41 @@
  * Provides helper functions for image manipulation needed by hashing algorithms.
  */
 
+// ---------------------------------------------------------------------------
+// Module-level canvas cache — reused across calls to avoid per-frame DOM
+// element creation overhead. JavaScript is single-threaded, so sharing these
+// canvases across calls is safe as long as no caller yields the event loop
+// between setting canvas dimensions and reading back pixel data. All callers
+// in this module follow that contract. Tests that run in parallel processes
+// each have their own module scope, so there is no cross-test contamination.
+// ---------------------------------------------------------------------------
+let _sourceCanvas: HTMLCanvasElement | null = null;
+let _sourceCtx: CanvasRenderingContext2D | null = null;
+let _targetCanvas: HTMLCanvasElement | null = null;
+let _targetCtx: CanvasRenderingContext2D | null = null;
+
+function getSourceCanvas(): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+  if (!_sourceCanvas || !_sourceCtx) {
+    _sourceCanvas = document.createElement('canvas');
+    _sourceCtx = _sourceCanvas.getContext('2d', { willReadFrequently: true });
+    if (!_sourceCtx) {
+      throw new Error('Failed to get 2D context for source canvas');
+    }
+  }
+  return { canvas: _sourceCanvas, ctx: _sourceCtx };
+}
+
+function getTargetCanvas(): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+  if (!_targetCanvas || !_targetCtx) {
+    _targetCanvas = document.createElement('canvas');
+    _targetCtx = _targetCanvas.getContext('2d', { willReadFrequently: true });
+    if (!_targetCtx) {
+      throw new Error('Failed to get 2D context for target canvas');
+    }
+  }
+  return { canvas: _targetCanvas, ctx: _targetCtx };
+}
+
 /**
  * Resize an ImageData object to specified dimensions
  *
@@ -18,27 +53,15 @@ export function resizeImageData(imageData: ImageData, width: number, height: num
     return imageData;
   }
 
-  // Create canvas with original image
-  const sourceCanvas = document.createElement('canvas');
+  // Reuse cached canvases to avoid per-call DOM element allocation.
+  const { canvas: sourceCanvas, ctx: sourceCtx } = getSourceCanvas();
   sourceCanvas.width = imageData.width;
   sourceCanvas.height = imageData.height;
-  const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
-
-  if (!sourceCtx) {
-    throw new Error('Failed to get 2D context for source canvas');
-  }
-
   sourceCtx.putImageData(imageData, 0, 0);
 
-  // Create target canvas with desired size
-  const targetCanvas = document.createElement('canvas');
+  const { canvas: targetCanvas, ctx: targetCtx } = getTargetCanvas();
   targetCanvas.width = width;
   targetCanvas.height = height;
-  const targetCtx = targetCanvas.getContext('2d', { willReadFrequently: true });
-
-  if (!targetCtx) {
-    throw new Error('Failed to get 2D context for target canvas');
-  }
 
   // Draw resized image
   targetCtx.drawImage(sourceCanvas, 0, 0, width, height);
@@ -56,24 +79,21 @@ const LUMA_BLUE = 0.114;
 /**
  * Convert ImageData to grayscale array using luminance formula
  *
- * Uses ITU-R BT.601 luma coefficients for perceptually accurate grayscale conversion
+ * Uses ITU-R BT.601 luma coefficients for perceptually accurate grayscale conversion.
+ * Returns a pre-allocated Uint8Array for better memory locality and no boxing overhead.
  *
  * @param imageData - Image data to convert
- * @returns Array of grayscale values (0-255)
+ * @returns Typed array of grayscale values (0-255)
  */
-export function toGrayscale(imageData: ImageData): number[] {
-  const grayscale: number[] = [];
+export function toGrayscale(imageData: ImageData): Uint8Array {
+  const pixelCount = imageData.data.length >> 2; // divide by 4
+  const grayscale = new Uint8Array(pixelCount);
   const { data } = imageData;
 
   // Process RGBA pixels (4 bytes per pixel)
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-
+  for (let i = 0, j = 0; i < data.length; i += 4, j++) {
     // ITU-R BT.601 luma calculation for perceptual brightness
-    const luma = Math.floor(LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b);
-    grayscale.push(luma);
+    grayscale[j] = LUMA_RED * data[i] + LUMA_GREEN * data[i + 1] + LUMA_BLUE * data[i + 2];
   }
 
   return grayscale;
@@ -158,11 +178,15 @@ export function hexToBinary(hex: string): string {
  * Pech-Pacheco et al., 2000, "Diatom autofocusing in brightfield microscopy"
  *
  * @param imageData - Image data to analyze
+ * @param precomputedGrayscale - Optional pre-computed grayscale array to avoid recomputing
  * @returns Variance value (higher = sharper, lower = blurrier)
  */
-export function computeLaplacianVariance(imageData: ImageData): number {
+export function computeLaplacianVariance(
+  imageData: ImageData,
+  precomputedGrayscale?: Uint8Array
+): number {
   const { width, height } = imageData;
-  const grayscale = toGrayscale(imageData);
+  const grayscale = precomputedGrayscale ?? toGrayscale(imageData);
 
   // Laplacian kernel (3x3):
   // [ 0  1  0 ]
@@ -206,14 +230,16 @@ export function computeLaplacianVariance(imageData: ImageData): number {
  * @param imageData - Image data to analyze
  * @param threshold - Brightness threshold for blown-out pixels (0-255), default 250
  * @param percentageThreshold - Percentage of image that must be blown out to trigger detection (0-100), default 20
+ * @param precomputedGrayscale - Optional pre-computed grayscale array to avoid recomputing
  * @returns Object with glare detection results
  */
 export function detectGlare(
   imageData: ImageData,
   threshold: number = 250,
-  percentageThreshold: number = 20
+  percentageThreshold: number = 20,
+  precomputedGrayscale?: Uint8Array
 ): { hasGlare: boolean; glarePercentage: number } {
-  const grayscale = toGrayscale(imageData);
+  const grayscale = precomputedGrayscale ?? toGrayscale(imageData);
   let blownOutPixels = 0;
   const totalPixels = grayscale.length;
 
@@ -262,15 +288,22 @@ export function adjustBrightness(imageData: ImageData, factor: number): ImageDat
  * Used for detecting poor lighting conditions (underexposure/overexposure).
  *
  * @param imageData - Image data to analyze
+ * @param precomputedGrayscale - Optional pre-computed grayscale array to avoid recomputing
  * @returns Average brightness value (0-255)
  */
-export function calculateAverageBrightness(imageData: ImageData): number {
-  const grayscale = toGrayscale(imageData);
+export function calculateAverageBrightness(
+  imageData: ImageData,
+  precomputedGrayscale?: Uint8Array
+): number {
+  const grayscale = precomputedGrayscale ?? toGrayscale(imageData);
   if (grayscale.length === 0) {
     return 0;
   }
 
-  const sum = grayscale.reduce((acc, val) => acc + val, 0);
+  let sum = 0;
+  for (let i = 0; i < grayscale.length; i++) {
+    sum += grayscale[i];
+  }
   return sum / grayscale.length;
 }
 
@@ -282,18 +315,20 @@ export function calculateAverageBrightness(imageData: ImageData): number {
  * @param imageData - Image data to analyze
  * @param minBrightness - Minimum acceptable average brightness (default 50)
  * @param maxBrightness - Maximum acceptable average brightness (default 220)
+ * @param precomputedGrayscale - Optional pre-computed grayscale array to avoid recomputing
  * @returns Object indicating if lighting is poor and the type
  */
 export function detectPoorLighting(
   imageData: ImageData,
   minBrightness: number = 50,
-  maxBrightness: number = 220
+  maxBrightness: number = 220,
+  precomputedGrayscale?: Uint8Array
 ): {
   hasPoorLighting: boolean;
   averageBrightness: number;
   type: 'underexposed' | 'overexposed' | 'ok';
 } {
-  const averageBrightness = calculateAverageBrightness(imageData);
+  const averageBrightness = calculateAverageBrightness(imageData, precomputedGrayscale);
 
   if (averageBrightness < minBrightness) {
     return {
@@ -377,5 +412,59 @@ export function calculateAdaptiveQualityThresholds(
     minBrightness: adjustedMinBrightness,
     maxBrightness: adjustedMaxBrightness,
     glarePercentageThreshold: adjustedGlarePercentageThreshold,
+  };
+}
+
+/**
+ * Run all three quality checks (sharpness, glare, lighting) with a single
+ * grayscale conversion pass instead of four separate ones.
+ *
+ * @param imageData - Frame to analyse
+ * @param sharpnessThreshold - Minimum Laplacian variance for a sharp frame
+ * @param glareThreshold - Per-pixel brightness above which a pixel is "blown out"
+ * @param glarePercentageThreshold - % of blown-out pixels that constitutes glare
+ * @param minBrightness - Lower bound for acceptable average brightness
+ * @param maxBrightness - Upper bound for acceptable average brightness
+ */
+export function computeAllQualityMetrics(
+  imageData: ImageData,
+  sharpnessThreshold: number,
+  glareThreshold: number,
+  glarePercentageThreshold: number,
+  minBrightness: number,
+  maxBrightness: number
+): {
+  sharpness: number;
+  isSharp: boolean;
+  glarePercentage: number;
+  hasGlare: boolean;
+  averageBrightness: number;
+  hasPoorLighting: boolean;
+  lightingType: 'underexposed' | 'overexposed' | 'ok';
+} {
+  // Single grayscale pass shared by all three checks.
+  const grayscale = toGrayscale(imageData);
+
+  const sharpness = computeLaplacianVariance(imageData, grayscale);
+  const { glarePercentage, hasGlare } = detectGlare(
+    imageData,
+    glareThreshold,
+    glarePercentageThreshold,
+    grayscale
+  );
+  const {
+    averageBrightness,
+    hasPoorLighting,
+    type: lightingType,
+  } = detectPoorLighting(imageData, minBrightness, maxBrightness, grayscale);
+
+  return {
+    sharpness,
+    isSharp: sharpness >= sharpnessThreshold,
+    glarePercentage,
+    hasGlare,
+    averageBrightness,
+    hasPoorLighting,
+    lightingType,
   };
 }

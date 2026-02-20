@@ -30,7 +30,10 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   glareRejections: 0,
   lightingRejections: 0,
   qualityFrames: 0,
+  qualityBypassFrames: 0,
   successfulRecognitions: 0,
+  instantConfirmations: 0,
+  instantSwitchConfirmations: 0,
   failedAttempts: 0,
   failureHistory: [],
   failureByCategory: {

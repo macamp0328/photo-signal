@@ -23,7 +23,7 @@
  * - Bundle: +8-10KB for DCT implementation
  */
 
-import { resizeImageData, toGrayscale, binaryToHex } from './utils';
+import { resizeImageData, toGrayscale } from './utils';
 
 /** Full image size used for DCT (must match training data generation) */
 const DCT_SIZE = 32;
@@ -138,13 +138,20 @@ export function computePHash(imageData: ImageData): string {
   const sorted = [...lowFreq].sort((a, b) => a - b);
   const median = sorted[Math.floor(sorted.length / 2)];
 
-  // Step 5: Generate 64-bit hash
-  // Each bit is 1 if coefficient > median, 0 otherwise
-  let binaryHash = '';
-  for (const coeff of lowFreq) {
-    binaryHash += coeff > median ? '1' : '0';
+  // Step 5: Generate 64-bit hash as hex directly, without building an
+  // intermediate 63-character binary string.
+  // Process 4 coefficients at a time → one hex nibble per group.
+  // lowFreq has 63 elements (DC coefficient skipped), so the last group is
+  // a partial group of 3; bounds-check positions i+1, i+2, i+3 to avoid
+  // reading undefined values (which would produce NaN comparisons).
+  let hex = '';
+  for (let i = 0; i < lowFreq.length; i += 4) {
+    let nibble = 0;
+    if (lowFreq[i] > median) nibble |= 8;
+    if (i + 1 < lowFreq.length && lowFreq[i + 1] > median) nibble |= 4;
+    if (i + 2 < lowFreq.length && lowFreq[i + 2] > median) nibble |= 2;
+    if (i + 3 < lowFreq.length && lowFreq[i + 3] > median) nibble |= 1;
+    hex += nibble.toString(16);
   }
-
-  // Convert binary to hexadecimal (64 bits = 16 hex characters)
-  return binaryToHex(binaryHash);
+  return hex;
 }

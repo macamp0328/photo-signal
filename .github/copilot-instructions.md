@@ -42,6 +42,15 @@ Prefer `gh` CLI for GitHub collaboration tasks (PR creation, PR updates, PR comm
 - Keep commits focused and descriptive, and ensure `npm run pre-commit` passes before each commit.
 - Open or update the PR with `gh` when implementation is complete.
 
+### `gh` CLI Safety Notes (Avoid Broken PR Bodies/Comments)
+
+- Prefer `--body-file` for any multiline PR body/comment content. Do not put long Markdown directly in `--body`.
+- Create body files with a quoted heredoc (`<<'EOF'`) so shell characters and backticks are not interpreted.
+- Avoid command substitution for Markdown payloads (for example `$(cat file.md)`) when `--body-file` is available.
+- After creating or editing a PR, verify formatting with `gh pr view <number> --json title,body`.
+- After posting comments, verify with `gh pr view <number> --comments` (or `--json comments`) before finishing.
+- If a comment must be edited, use `gh api repos/<owner>/<repo>/issues/comments/<id> --method PATCH --field body=...` with text sourced from a file.
+
 ## Project Overview
 
 Photo Signal is a camera-based gallery that plays music when you point a device at a printed photo. It uses perceptual hashing (pHash) to recognize photos — no QR codes or markers. Mobile-first, deployed as a static site on Vercel with audio via Cloudflare R2/Workers.

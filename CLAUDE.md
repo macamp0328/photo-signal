@@ -227,6 +227,15 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 4. Keep `git` commits focused with clear messages, and run `npm run pre-commit` before each commit.
 5. Open or update the PR with `gh` when implementation is complete.
 
+### `gh` CLI Safety Notes (MANDATORY)
+
+1. For multiline PR bodies/comments, use `--body-file` instead of inline `--body`.
+2. Create body files with a quoted heredoc (`<<'EOF'`) so backticks and shell tokens are not expanded.
+3. Avoid command substitution for Markdown payloads (for example `$(cat file.md)`) when `--body-file` is available.
+4. After PR create/edit, verify with `gh pr view <number> --json title,body`.
+5. After comment create/edit, verify with `gh pr view <number> --comments` (or `--json comments`).
+6. For editing an existing comment, use `gh api repos/<owner>/<repo>/issues/comments/<id> --method PATCH --field body=...` with content sourced from a file.
+
 ### Before Modifying Any Module
 
 1. Read the module's `README.md` for its contract (API, props, responsibilities)

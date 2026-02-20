@@ -177,10 +177,10 @@ describe('CameraView', () => {
       mockStream = new MediaStream();
     });
 
-    it('should render instruction text when camera is active', () => {
+    it('should not render instruction text when camera is active', () => {
       render(<CameraView stream={mockStream} error={null} hasPermission={true} />);
 
-      expect(screen.getByText('Point camera at a photo to play music')).toBeInTheDocument();
+      expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });
 
     it('should hide instructions when error state is shown', () => {
@@ -325,21 +325,8 @@ describe('CameraView', () => {
       mockStream = new MediaStream();
     });
 
-    it('should show instructions by default during active camera state', () => {
+    it('should not show instructions by default during active camera state', () => {
       render(<CameraView stream={mockStream} error={null} hasPermission={true} />);
-
-      expect(screen.getByText('Point camera at a photo to play music')).toBeInTheDocument();
-    });
-
-    it('should hide instructions when showInstructions is false', () => {
-      render(
-        <CameraView
-          stream={mockStream}
-          error={null}
-          hasPermission={true}
-          showInstructions={false}
-        />
-      );
 
       expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });

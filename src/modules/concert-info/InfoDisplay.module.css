@@ -2,12 +2,12 @@
 .card {
   background-color: var(--color-sub-background);
   border: 2px solid var(--color-accent);
-  border-radius: 1.25rem;
-  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.35);
-  padding: clamp(1rem, 3vw, 1.6rem);
+  border-radius: 0;
+  box-shadow: none;
+  padding: clamp(0.7rem, 2vw, 1rem);
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 0.6rem;
 }
 
 .metaRow {
@@ -20,31 +20,30 @@
 .badge {
   background-color: var(--color-accent);
   color: var(--color-background);
-  padding: 0.35rem 0.75rem;
-  border-radius: 0.35rem;
-  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0;
+  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 700;
 }
 
 .headlineBlock {
-  padding: 0.75rem;
-  border: 1px dashed rgba(255, 255, 255, 0.35);
-  border-radius: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+  background: transparent;
 }
 
 .kicker {
   margin: 0 0 0.35rem;
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-bonus-text);
 }
 
 .bandName {
-  font-size: clamp(1.6rem, 5vw, 2.7rem);
+  font-size: clamp(1.45rem, 4.6vw, 2.2rem);
   font-weight: 700;
   color: var(--color-main-text);
   line-height: 1.05;
@@ -54,11 +53,11 @@
 .transportBlock {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  padding: 0.9rem;
+  gap: 0.55rem;
+  padding: 0.55rem;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 0.85rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border-radius: 0;
+  background: transparent;
 }
 
 .nowPlayingRow {
@@ -70,15 +69,15 @@
 .nowPlayingDot {
   width: 0.75rem;
   height: 0.75rem;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 0.45rem rgba(255, 255, 255, 0.2);
+  box-shadow: none;
 }
 
 .nowPlaying {
   margin: 0;
   color: var(--color-main-text);
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   font-weight: 600;
@@ -92,8 +91,8 @@
 
 .timelineRail {
   width: 100%;
-  height: 0.8rem;
-  border-radius: 999px;
+  height: 0.65rem;
+  border-radius: 0;
   border: 1px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -109,7 +108,7 @@
 .timelineMeta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.74rem;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-bonus-text);
@@ -117,19 +116,19 @@
 
 .detailGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
 }
 
 .detailItem {
   border-left: 2px solid var(--color-accent);
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 0.35rem;
-  padding: 0.55rem 0.65rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0;
+  padding: 0.35rem 0.45rem;
 }
 
 .detailLabel {
-  font-size: 0.7rem;
+  font-size: 0.58rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-bonus-text);
@@ -137,20 +136,30 @@
 }
 
 .detailValue {
-  font-size: clamp(0.95rem, 2.1vw, 1.2rem);
+  font-size: clamp(0.74rem, 1.8vw, 0.92rem);
   color: var(--color-main-text);
   margin: 0;
+  line-height: 1.3;
+}
+
+.metaCompact {
+  margin: 0;
+  font-size: 0.66rem;
   line-height: 1.2;
+  color: var(--color-bonus-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .prompt {
-  font-size: 0.82rem;
+  font-size: 0.7rem;
   color: var(--color-main-text);
   margin: 0;
-  padding: 0.6rem 0.75rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 0.55rem;
-  border: 1px dashed var(--color-accent);
+  padding: 0.35rem 0;
+  background: transparent;
+  border-radius: 0;
+  border-top: 1px dashed var(--color-accent);
   letter-spacing: 0.02em;
 }
 
@@ -170,7 +179,7 @@
   background-color: var(--color-accent);
   color: var(--color-background);
   border: 1px solid transparent;
-  border-radius: 0.65rem;
+  border-radius: 0;
   min-height: 2.75rem;
   padding: 0.55rem 0.8rem;
   font-weight: 700;
@@ -185,8 +194,8 @@
 }
 
 .actions button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0.65rem 1rem rgba(0, 0, 0, 0.25);
+  transform: none;
+  box-shadow: none;
 }
 
 .actions button[data-variant='secondary'] {
@@ -203,8 +212,8 @@
 
 @media (max-width: 480px) {
   .card {
-    padding: 0.85rem;
-    gap: 0.8rem;
+    padding: 0.6rem;
+    gap: 0.45rem;
   }
 
   .metaRow {
@@ -213,50 +222,54 @@
   }
 
   .headlineBlock {
-    padding: 0.65rem;
+    padding: 0.3rem 0;
   }
 
   .kicker {
-    font-size: 0.66rem;
+    font-size: 0.58rem;
   }
 
   .bandName {
-    font-size: clamp(1.3rem, 8vw, 2rem);
+    font-size: clamp(1.1rem, 6.2vw, 1.5rem);
   }
 
   .transportBlock {
-    padding: 0.7rem;
-    gap: 0.65rem;
+    padding: 0.5rem;
+    gap: 0.45rem;
   }
 
   .timelineRail {
-    height: 0.65rem;
+    height: 0.55rem;
   }
 
   .timelineMeta {
-    font-size: 0.68rem;
-  }
-
-  .detailGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-  }
-
-  .detailItem {
-    padding: 0.45rem 0.5rem;
-  }
-
-  .detailLabel {
     font-size: 0.62rem;
   }
 
+  .detailGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .detailItem {
+    padding: 0.3rem 0.4rem;
+  }
+
+  .detailLabel {
+    font-size: 0.55rem;
+  }
+
   .detailValue {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
+  }
+
+  .metaCompact {
+    font-size: 0.6rem;
   }
 
   .prompt {
-    font-size: 0.76rem;
-    padding: 0.5rem 0.6rem;
+    font-size: 0.64rem;
+    padding: 0.3rem 0;
   }
 
   .actions > div {
@@ -271,10 +284,10 @@
 
 @media (min-width: 768px) {
   .detailGrid {
-    gap: 0.9rem;
+    gap: 0.6rem;
   }
 
   .prompt {
-    font-size: 0.9rem;
+    font-size: 0.74rem;
   }
 }

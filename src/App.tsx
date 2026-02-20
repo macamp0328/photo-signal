@@ -428,8 +428,24 @@ function AppContent() {
     pause();
   };
 
+  const attemptPortraitOrientationLock = () => {
+    const orientation = window.screen?.orientation as
+      | (ScreenOrientation & {
+          lock?: unknown;
+        })
+      | undefined;
+    if (typeof orientation?.lock !== 'function') {
+      return;
+    }
+
+    void (orientation.lock as (orientation: 'portrait-primary') => Promise<void>)(
+      'portrait-primary'
+    ).catch(() => {});
+  };
+
   // Handle activation from landing view
   const handleActivate = () => {
+    attemptPortraitOrientationLock();
     setIsActive(true);
   };
 
@@ -523,16 +539,12 @@ function AppContent() {
       </>
     ) : null;
 
-  // Render camera view
-  const displayedConcert = recognizedConcert ?? activeConcert;
-
   const cameraView = (
     <CameraView
       stream={stream}
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      showInstructions={!displayedConcert}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       showRectangleOverlay={isEnabled('rectangle-detection')}

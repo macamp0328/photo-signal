@@ -14,7 +14,6 @@ export function CameraView({
   hasPermission,
   onRetry,
   grayscale = false,
-  showInstructions = true,
   detectedRectangle = null,
   rectangleConfidence = 0,
   rectangleDetectionConfidenceThreshold = 0.6,
@@ -79,13 +78,6 @@ export function CameraView({
                 : 'idle'
           }
         />
-      )}
-
-      {/* Instructions */}
-      {showInstructions && (
-        <div className={styles.instructions}>
-          <p className={styles.instructionsText}>Point camera at a photo to play music</p>
-        </div>
       )}
     </div>
   );

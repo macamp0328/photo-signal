@@ -5,9 +5,29 @@
  * and clear contracts between components.
  */
 
+/**
+ * Named crop regions used for partial-photo recognition.
+ * Center crops handle the common case where the user is too close (edges cut off).
+ * Corner crops handle off-center framing where one corner is outside the frame.
+ */
+export type CropRegionKey =
+  | 'center-80'
+  | 'center-60'
+  | 'center-50'
+  | 'top-left-70'
+  | 'top-right-70'
+  | 'bottom-left-70'
+  | 'bottom-right-70';
+
 export interface PhotoHashes {
   /** Primary pHash variants (dark/normal/bright) */
   phash?: string[];
+  /**
+   * pHash variants for named crop sub-regions (partial photo recognition).
+   * Each entry is an array of 5 gamma-variant hashes, same order as phash[].
+   * Absent in legacy records — runtime falls back gracefully.
+   */
+  cropPhashes?: Partial<Record<CropRegionKey, string[]>>;
 }
 
 export interface Concert {

@@ -301,6 +301,74 @@ export async function generateHashesForFile(imagePath, gammas = DEFAULT_GAMMA_VA
   return generateHashVariants(imageData, gammas);
 }
 
+// ---------------------------------------------------------------------------
+// Crop-based partial photo recognition
+// ---------------------------------------------------------------------------
+
+/**
+ * Named crop sub-regions used for partial-photo recognition.
+ * Each region is defined as fractional offsets from the image origin.
+ * Matches CropRegionKey in src/types/index.ts.
+ *
+ * Center crops cover the case where the user is too close (edges fall outside
+ * the camera frame). Corner crops cover off-center framing.
+ *
+ * @type {Record<string, { xOffset: number, yOffset: number, w: number, h: number }>}
+ */
+export const CROP_REGIONS = {
+  'center-80': { xOffset: 0.1, yOffset: 0.1, w: 0.8, h: 0.8 },
+  'center-60': { xOffset: 0.2, yOffset: 0.2, w: 0.6, h: 0.6 },
+  'center-50': { xOffset: 0.25, yOffset: 0.25, w: 0.5, h: 0.5 },
+  'top-left-70': { xOffset: 0.0, yOffset: 0.0, w: 0.7, h: 0.7 },
+  'top-right-70': { xOffset: 0.3, yOffset: 0.0, w: 0.7, h: 0.7 },
+  'bottom-left-70': { xOffset: 0.0, yOffset: 0.3, w: 0.7, h: 0.7 },
+  'bottom-right-70': { xOffset: 0.3, yOffset: 0.3, w: 0.7, h: 0.7 },
+};
+
+/**
+ * Extract a named crop region from ImageData.
+ *
+ * @param {ImageData} imageData  Full-resolution source image
+ * @param {string} regionKey  Key from CROP_REGIONS
+ * @returns {ImageData}  Cropped sub-region as a new ImageData
+ */
+export function extractCrop(imageData, regionKey) {
+  const region = CROP_REGIONS[regionKey];
+  if (!region) throw new Error(`Unknown crop region: ${regionKey}`);
+
+  const { width: srcW, height: srcH } = imageData;
+  const cropX = Math.round(region.xOffset * srcW);
+  const cropY = Math.round(region.yOffset * srcH);
+  const cropW = Math.round(region.w * srcW);
+  const cropH = Math.round(region.h * srcH);
+
+  const srcCanvas = createCanvas(srcW, srcH);
+  srcCanvas.getContext('2d', { willReadFrequently: true }).putImageData(imageData, 0, 0);
+
+  const dst = createCanvas(cropW, cropH);
+  dst
+    .getContext('2d', { willReadFrequently: true })
+    .drawImage(srcCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+  return dst.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cropW, cropH);
+}
+
+/**
+ * Generate gamma-variant pHashes for all named crop regions of an image.
+ *
+ * @param {ImageData} imageData  Full-resolution source image
+ * @param {number[]} gammas  Array of gamma exponents (default: DEFAULT_GAMMA_VARIANTS)
+ * @returns {Record<string, string[]>}  Map of cropRegionKey -> array of pHash hex strings
+ */
+export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS) {
+  const result = {};
+  for (const regionKey of Object.keys(CROP_REGIONS)) {
+    const cropped = extractCrop(imageData, regionKey);
+    const variants = createExposureVariants(cropped, gammas);
+    result[regionKey] = variants.map((v) => computePHash(v));
+  }
+  return result;
+}
+
 export async function loadImageData(imagePath) {
   const image = await loadImage(imagePath);
   const canvas = createCanvas(image.width, image.height);

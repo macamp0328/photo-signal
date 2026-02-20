@@ -1,9 +1,8 @@
 /**
  * Photo Recognition Module
  *
- * Identifies photos from camera stream and matches to concert data.
- * Current: Placeholder implementation
- * Future: ML-based image recognition
+ * Identifies printed photos from a camera stream using pHash (perceptual hashing)
+ * and maps matches to concert entries. See docs/PHOTO_RECOGNITION_DEEP_DIVE.md.
  */
 
 export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';

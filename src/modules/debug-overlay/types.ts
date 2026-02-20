@@ -35,7 +35,8 @@ export interface DebugOverlayProps {
   enabled: boolean;
   /** Whether the app is currently using the test dataset */
   isTestMode: boolean;
-  /** Notify parent when overlay visibility changes (open/closed) */
+  /** Notify parent when overlay visibility changes (open/closed).
+   *  Wire to enableDebugInfo so telemetry only runs while the overlay is visible. */
   onVisibilityChange?: (isVisible: boolean) => void;
   /** Current similarity threshold */
   threshold?: number;

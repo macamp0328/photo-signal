@@ -296,7 +296,7 @@ function AppContent() {
     setDismissedSwitchConcertId(null);
   }, [isActive, switchCandidateConcert, recognizedConcert, isPlaying, play]);
 
-  // Track a switch candidate while music is already playing.
+  // Track a switch candidate whenever a different concert is detected while one is active.
   useEffect(() => {
     const switchPromptConcert = switchCandidateConcert ?? recognizedConcert;
 

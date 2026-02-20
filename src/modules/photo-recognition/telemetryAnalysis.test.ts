@@ -47,17 +47,17 @@ const makeTestTelemetry = (overrides: Partial<RecognitionTelemetry>): Recognitio
 describe('computeActiveSettings', () => {
   it('returns all defaults when given empty options', () => {
     const settings = computeActiveSettings({});
-    expect(settings.similarityThreshold).toBe(12);
-    expect(settings.matchMarginThreshold).toBe(4);
+    expect(settings.similarityThreshold).toBe(14);
+    expect(settings.matchMarginThreshold).toBe(3);
     expect(settings.sharpnessThreshold).toBe(100);
     expect(settings.glarePercentageThreshold).toBe(20);
     expect(settings.glareThreshold).toBe(250);
     expect(settings.minBrightness).toBe(50);
     expect(settings.maxBrightness).toBe(220);
-    expect(settings.recognitionDelay).toBe(300);
-    expect(settings.checkInterval).toBe(180);
+    expect(settings.recognitionDelay).toBe(200);
+    expect(settings.checkInterval).toBe(120);
     expect(settings.switchDistanceThreshold).toBe(7);
-    expect(settings.switchMatchMarginThreshold).toBe(5);
+    expect(settings.switchMatchMarginThreshold).toBe(6);
     expect(settings.switchRecognitionDelayMultiplier).toBe(1.8);
     expect(settings.continuousRecognition).toBe(false);
     expect(settings.enableRectangleDetection).toBe(false);
@@ -69,14 +69,14 @@ describe('computeActiveSettings', () => {
     expect(settings.similarityThreshold).toBe(16);
     expect(settings.sharpnessThreshold).toBe(75);
     // defaults preserved for unspecified fields
-    expect(settings.matchMarginThreshold).toBe(4);
-    expect(settings.recognitionDelay).toBe(300);
+    expect(settings.matchMarginThreshold).toBe(3);
+    expect(settings.recognitionDelay).toBe(200);
   });
 
   it('handles partial options without errors', () => {
     const settings = computeActiveSettings({ continuousRecognition: true });
     expect(settings.continuousRecognition).toBe(true);
-    expect(settings.similarityThreshold).toBe(12);
+    expect(settings.similarityThreshold).toBe(14);
   });
 
   it('returns an object with no undefined values', () => {
@@ -246,8 +246,8 @@ describe('computeAiRecommendations', () => {
       });
       const recs = computeAiRecommendations(telemetry, defaultSettings);
       const noMatchRec = recs.find((r) => r.parameterChange.startsWith('similarityThreshold'));
-      // fallback: current + 3 = 12 + 3 = 15
-      expect(noMatchRec?.parameterChange).toBe('similarityThreshold: 15');
+      // fallback: current + 3 = 14 + 3 = 17
+      expect(noMatchRec?.parameterChange).toBe('similarityThreshold: 17');
     });
   });
 
@@ -267,8 +267,8 @@ describe('computeAiRecommendations', () => {
       const recs = computeAiRecommendations(telemetry, defaultSettings);
       const collisionRec = recs.find((r) => r.parameterChange.startsWith('matchMarginThreshold'));
       expect(collisionRec?.priority).toBe('high');
-      // suggest current + 2 = 4 + 2 = 6
-      expect(collisionRec?.parameterChange).toBe('matchMarginThreshold: 6');
+      // low-margin-dominated collisions suggest +1 margin step (3 -> 4)
+      expect(collisionRec?.parameterChange).toBe('matchMarginThreshold: 4');
     });
 
     it('returns medium-priority collision recommendation when collision rate 10–20%', () => {
@@ -286,6 +286,37 @@ describe('computeAiRecommendations', () => {
       const recs = computeAiRecommendations(telemetry, defaultSettings);
       const collisionRec = recs.find((r) => r.parameterChange.startsWith('matchMarginThreshold'));
       expect(collisionRec?.priority).toBe('medium');
+    });
+
+    it('recommends hash refresh when collisions are not margin-dominated', () => {
+      const telemetry = makeTestTelemetry({
+        totalFrames: 100,
+        failureByCategory: {
+          'no-match': 0,
+          'motion-blur': 0,
+          glare: 0,
+          'poor-quality': 0,
+          collision: 30,
+          unknown: 0,
+        },
+        collisionStats: {
+          ...createEmptyTelemetry().collisionStats,
+          ambiguousMarginHistogram: {
+            '0-1': 2,
+            '2': 2,
+            '3-4': 8,
+            '5+': 4,
+            unknown: 0,
+          },
+        },
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      const collisionRec = recs.find(
+        (r) =>
+          r.parameterChange === 'refreshHashes: true' ||
+          r.parameterChange.startsWith('matchMarginThreshold')
+      );
+      expect(collisionRec?.parameterChange).toBe('refreshHashes: true');
     });
   });
 

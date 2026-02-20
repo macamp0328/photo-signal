@@ -12,14 +12,14 @@ import type { PhotoRecognitionOptions, RecognitionTelemetry } from './types';
 // module is self-contained (avoids a circular import).
 // ---------------------------------------------------------------------------
 const DEFAULTS = {
-  recognitionDelay: 300,
-  similarityThreshold: 12,
-  matchMarginThreshold: 4,
-  switchMatchMarginThreshold: 5,
+  recognitionDelay: 200,
+  similarityThreshold: 14,
+  matchMarginThreshold: 3,
+  switchMatchMarginThreshold: 6,
   continuousRecognition: false,
   switchRecognitionDelayMultiplier: 1.8,
   switchDistanceThreshold: 7,
-  checkInterval: 180,
+  checkInterval: 120,
   sharpnessThreshold: 100,
   glareThreshold: 250,
   glarePercentageThreshold: 20,
@@ -193,11 +193,32 @@ export function computeAiRecommendations(
 
   // ── Collision recommendation ──────────────────────────────────────────────
   if (collisionRate > COLLISION_RATE_MEDIUM) {
+    const ambiguousMargins = telemetry.collisionStats.ambiguousMarginHistogram;
+    const lowMarginBias = ambiguousMargins['0-1'] + ambiguousMargins['2'];
+    const highMarginBias = ambiguousMargins['3-4'] + ambiguousMargins['5+'];
+    const hasMarginSignal = lowMarginBias + highMarginBias + ambiguousMargins.unknown > 0;
+    const shouldRaiseMargin = !hasMarginSignal || lowMarginBias > highMarginBias;
+    const suggestedMargin = shouldRaiseMargin
+      ? Math.min(settings.matchMarginThreshold + 1, settings.switchMatchMarginThreshold)
+      : settings.matchMarginThreshold;
+
+    const topPair = Object.entries(telemetry.collisionStats.ambiguousPairCounts).sort(
+      (a, b) => b[1] - a[1]
+    )[0];
+
+    const recommendationBody = shouldRaiseMargin
+      ? `Raise matchMarginThreshold from ${settings.matchMarginThreshold} to ${suggestedMargin}; collision margins are mostly low (0–2), indicating weak separation between best and second-best matches.`
+      : `Keep matchMarginThreshold at ${settings.matchMarginThreshold}; collisions are not dominated by low margins, so prioritize refreshing photo hashes and verifying print/image alignment.`;
+
     recommendations.push({
       priority: collisionRate > COLLISION_RATE_HIGH ? 'high' : 'medium',
       issue: `High collision rate: ${(collisionRate * 100).toFixed(1)}% of frames had two photos too similar to distinguish`,
-      recommendation: `Raise matchMarginThreshold from ${settings.matchMarginThreshold} to ${settings.matchMarginThreshold + 2} to require a larger Hamming distance gap between the best and second-best match`,
-      parameterChange: `matchMarginThreshold: ${settings.matchMarginThreshold + 2}`,
+      recommendation: `${recommendationBody}${
+        topPair ? ` Most frequent ambiguous pair: ${topPair[0]} (${topPair[1]} frames).` : ''
+      }`,
+      parameterChange: shouldRaiseMargin
+        ? `matchMarginThreshold: ${suggestedMargin}`
+        : 'refreshHashes: true',
     });
   }
 

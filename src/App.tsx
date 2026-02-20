@@ -624,6 +624,10 @@ function AppContent() {
 
     const { blur, glare, lighting } = telemetry.frameQualityStats;
     const { matchedFrameDistances, nearMisses } = telemetry.hammingDistanceLog;
+    const topCollisionPairs = Object.entries(telemetry.collisionStats.ambiguousPairCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([pair, count]) => ({ pair, count }));
 
     const report = {
       timestamp: new Date().toISOString(),
@@ -683,6 +687,10 @@ function AppContent() {
               ? matchedFrameDistances.sum / matchedFrameDistances.count
               : null,
         },
+      },
+      collisionStats: {
+        ...telemetry.collisionStats,
+        topAmbiguousPairs: topCollisionPairs,
       },
       failuresByCategory: Object.entries(telemetry.failureByCategory)
         .filter(([, count]) => count > 0)

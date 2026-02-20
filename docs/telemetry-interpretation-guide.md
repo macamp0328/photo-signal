@@ -22,6 +22,18 @@ Edge case accuracy thresholds are validated as part of standard CI test runs.
 
 ## Telemetry Data Structure
 
+Current exports include these top-level blocks:
+
+- `activeSettings`: effective runtime settings used during capture
+- `aiRecommendations`: recommendation list derived from telemetry + active settings
+- `summary`: high-level frame and recognition outcomes
+- `frameQualityStats`: aggregates for rejected-frame quality metrics
+- `hammingDistanceLog`: near misses + matched distance distribution
+- `collisionStats`: ambiguity-specific diagnostics (margin bins + top rival pairs)
+- `failuresByCategory` and `recentFailures`: categorized failure details
+- `switchDecisionMetrics`: prompt and decision behavior while audio is active
+- `rawData`: full telemetry object used by runtime
+
 ### Summary Metrics
 
 | Metric                      | Description                         | Good Value       | Poor Value       |
@@ -145,6 +157,18 @@ Use `confirmRate` and `dismissRate` (derived in JSON export) to evaluate whether
    - **Action**: Review `switchDecisionMetrics.lastPromptSnapshot` confidence/margin with nearby failures
    - **Improvement**: Field-tune switch thresholds (`switchDistanceThreshold`, margin thresholds, delay multiplier)
 
+6. **High Collision Rate with low-margin dominance**
+
+- **Diagnosis**: `collisionStats.ambiguousMarginHistogram` shows most collisions in `0-1` and `2` bins
+- **Action**: raise `matchMarginThreshold` one step (e.g. 3 → 4), then re-test
+- **Improvement**: confirm drop in `collisionStats.ambiguousCount` without large no-match increase
+
+7. **High Collision Rate without low-margin dominance**
+
+- **Diagnosis**: collisions concentrate in `3-4` / `5+` bins, often same top pairs
+- **Action**: refresh photo hashes and inspect listed `topAmbiguousPairs` for dataset-level similarity
+- **Improvement**: reduce recurring pair collisions before further threshold tightening
+
 ## Interpreting Markdown Report
 
 ### Sample Report Sections
@@ -246,6 +270,21 @@ Shows last 10 failures with timestamps and reasons. **Look for**:
 
 ## Regression Testing with Telemetry
 
+### Iterative AI Tuning Cycle
+
+Use this exact cycle for repeated tuning passes:
+
+1. Capture two fresh 30s telemetry exports on the target phone/device.
+2. Compare `activeSettings`, `summary`, `collisionStats`, and `recentFailures`.
+3. Apply one tuning change at a time (threshold/margin/hash refresh), then re-test.
+4. Run the offline audit for regression guardrails:
+
+```bash
+node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 3 --summary-json tmp/recognition-audit.json
+```
+
+5. Share telemetry JSON + audit summary for the next tuning iteration.
+
 ### Edge Case Accuracy Tests
 
 The automated test suite (`edgeCaseAccuracy.test.ts`) validates recognition against expected thresholds:
@@ -332,12 +371,16 @@ These edge-case assertions are also exercised in standard CI test runs.
 - **Home gallery** (typical): Target >70% quality frames, >75% recognition
 - **Challenging** (outdoor, varied): Target >60% quality frames, >65% recognition
 
+### Q: How should I interpret collision percentage?
+
+**A**: The exported collision percentage is calculated as `collisionCount / totalFrames`, so it is capped at 100% (per-frame failure rate). Collision counts are failure events, not unique photos, and multiple collision events can be logged across frames while tracking an unstable scene. Use `collisionStats` (especially margin histogram + top pairs) to interpret root cause and patterns over time, not just the raw percentage.
+
 ## References
 
 - **Test Implementation**: `src/modules/photo-recognition/__tests__/edgeCaseAccuracy.test.ts`
 - **Telemetry Types**: `src/modules/photo-recognition/types.ts`
-- **Export Component**: `src/modules/photo-recognition/TelemetryExport.tsx`
+- **Telemetry Export Path**: `src/App.tsx` (`handleTelemetryDownload`)
 
 ---
 
-**Last Updated**: 2024-11-16
+**Last Updated**: 2026-02-20

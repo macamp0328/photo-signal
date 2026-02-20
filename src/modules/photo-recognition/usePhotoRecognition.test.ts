@@ -554,6 +554,19 @@ describe('usePhotoRecognition', () => {
       expect(result.current.debugInfo?.bestMatch?.concert.id).toBe(1);
       expect(result.current.debugInfo?.secondBestMatch?.concert.id).toBe(2);
       expect((result.current.debugInfo?.bestMatchMargin ?? 99) < 5).toBe(true);
+      expect(
+        result.current.debugInfo?.telemetry.collisionStats.ambiguousCount
+      ).toBeGreaterThanOrEqual(0);
+      expect(result.current.debugInfo?.telemetry.collisionStats.ambiguousMarginHistogram).toEqual(
+        expect.objectContaining({
+          '0-1': expect.any(Number),
+          '2': expect.any(Number),
+          '3-4': expect.any(Number),
+          '5+': expect.any(Number),
+          unknown: expect.any(Number),
+        })
+      );
+      expect(result.current.debugInfo?.telemetry.collisionStats.ambiguousPairCounts).toBeDefined();
     } finally {
       createElementSpy.mockRestore();
     }

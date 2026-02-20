@@ -9,6 +9,7 @@ import {
   createEmptyTelemetry,
   getPHashes,
   pickGuidance,
+  recordCollisionDetails,
   recordFailure,
   similarityPercent,
 } from './helpers';
@@ -128,17 +129,15 @@ const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
  * meaningful: the winning concert must be at least 2 bits closer than its
  * nearest rival from any other concert.
  *
- * Lowered from 4 to 2 — field telemetry recorded with margin=4 showed 0%
- * recognition success because real-world cross-concert margins were
- * consistently at 2 bits. The telemetry AI recommended raising to 6, but this
- * is the wrong direction; the root cause was margin=4 being too strict given
- * the actual dataset distances. Margin=2 enables recognition while still
- * requiring the winning concert to be meaningfully closer than any rival.
+ * Set to 3 as a balanced baseline for faster-yet-accurate recognition cycles.
+ * Runtime logic applies an additional +1 margin requirement for borderline
+ * distances near the active threshold, so strong close-distance matches remain
+ * responsive while noisy threshold-edge matches are filtered more strictly.
  */
-const DEFAULT_MATCH_MARGIN_THRESHOLD = 2;
+const DEFAULT_MATCH_MARGIN_THRESHOLD = 3;
 
 /** Stricter margin requirement in switch mode — see DEFAULT_MATCH_MARGIN_THRESHOLD. */
-const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 5;
+const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 6;
 
 /**
  * Distance at which a switch-mode match is confirmed in a single frame.
@@ -727,7 +726,10 @@ export function usePhotoRecognition(
         const bestMargin =
           bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
         const requiredMargin = isSwitchMode ? switchMatchMarginThreshold : matchMarginThreshold;
-        const hasSufficientMargin = bestMargin === null || bestMargin >= requiredMargin;
+        const marginBoostNearThreshold =
+          bestMatch && bestMatch.distance >= Math.max(activeThreshold - 1, 0) ? 1 : 0;
+        const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
+        const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveRequiredMargin;
         const isWithinThreshold = !!bestMatch && bestMatch.distance <= activeThreshold;
         const isAmbiguousMatchCandidate = isWithinThreshold && !hasSufficientMargin;
         const activeMatch = isWithinThreshold && hasSufficientMargin ? bestMatch!.concert : null;
@@ -959,7 +961,9 @@ export function usePhotoRecognition(
         }
 
         if (bestMatch) {
-          const isAmbiguousCollision = !hasSufficientMargin;
+          const isAmbiguousCollision = isAmbiguousMatchCandidate;
+          const isNearThresholdNoMatch =
+            !isAmbiguousCollision && bestMatch.distance <= similarityThreshold + 2;
 
           if (isAmbiguousMatchCandidate) {
             setActiveGuidance('ambiguous-match');
@@ -968,14 +972,22 @@ export function usePhotoRecognition(
           }
 
           const category: FailureCategory =
-            isAmbiguousCollision || bestMatch.distance <= similarityThreshold + 10
-              ? 'collision'
-              : 'no-match';
+            isAmbiguousCollision || isNearThresholdNoMatch ? 'collision' : 'no-match';
+
+          if (category === 'collision') {
+            recordCollisionDetails(telemetryRef.current, {
+              isAmbiguous: isAmbiguousCollision,
+              margin: bestMargin,
+              bestBand: bestMatch.concert.band,
+              secondBand: secondBestMatch?.concert.band ?? null,
+            });
+          }
+
           recordFailure(
             telemetryRef.current,
             category,
             isAmbiguousCollision
-              ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band} (margin ${bestMargin ?? 0})`
+              ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band} (margin ${bestMargin ?? 0}, required ${effectiveRequiredMargin})`
               : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
             currentHash
           );

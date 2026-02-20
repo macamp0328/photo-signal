@@ -33,8 +33,8 @@ options?: {
   recognitionDelay?: number;              // default 200ms (borderline matches)
   enabled?: boolean;                      // default true
   similarityThreshold?: number;           // pHash distance threshold, default 14
-  matchMarginThreshold?: number;          // min best-vs-second margin, default 2
-  switchMatchMarginThreshold?: number;    // stricter switch margin, default 5
+  matchMarginThreshold?: number;          // min best-vs-second margin, default 3 (+1 near threshold)
+  switchMatchMarginThreshold?: number;    // stricter switch margin, default 6 (+1 near threshold)
   continuousRecognition?: boolean;        // default false (enables switch-mode behavior)
   switchRecognitionDelayMultiplier?: number; // default 1.8x recognitionDelay
   switchDistanceThreshold?: number;       // default 7 (stricter than base threshold)
@@ -90,7 +90,7 @@ Only `photoHashes.phash` is required by runtime recognition.
 
 - Chosen runtime algorithm: **pHash only**
 - Initial match confirmation: immediate when distance <= 10, otherwise 2 consecutive strong matches or short delay hold
-- Continuous switch confirmation: only for stronger candidates (distance <= 7 + margin >= 5), then 3 consistent frames and either delay completion or instant distance <= 3
+- Continuous switch confirmation: only for stronger candidates (distance <= 7 + margin >= 6), then 3 consistent frames and either delay completion or instant distance <= 3
 - Quality checks are bypassed for close matches at distance <= 12 and run for weaker candidates (distance 13–14); this gap preserves quality filtering for borderline matches while skipping it for highly confident ones
 - Ambiguous candidates (within threshold but low margin) emit `ambiguous-match` guidance and are not promoted
 - App-level switch prompt can be driven by `switchCandidateConcert` once switch stability is reached

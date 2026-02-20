@@ -209,8 +209,8 @@ function AppContent() {
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
       continuousRecognition: true,
-      switchRecognitionDelayMultiplier: 1.8,
-      switchDistanceThreshold: 7,
+      switchRecognitionDelayMultiplier: 1.0,
+      switchDistanceThreshold: 14,
       enabled: !showSecretSettings,
     }),
     [isDebugOverlayVisible, recordingState, isEnabled, showSecretSettings]
@@ -218,7 +218,6 @@ function AppContent() {
 
   const {
     recognizedConcert,
-    switchCandidateConcert,
     reset: resetRecognition,
     resetTelemetry,
     debugInfo,
@@ -267,7 +266,7 @@ function AppContent() {
 
   // Auto-play newly recognized concerts whenever nothing is currently playing.
   useEffect(() => {
-    const autoplayConcert = switchCandidateConcert ?? recognizedConcert;
+    const autoplayConcert = recognizedConcert;
 
     if (!autoplayConcert) {
       previousAutoplayIdRef.current = null;
@@ -294,11 +293,11 @@ function AppContent() {
     setActiveConcert(autoplayConcert);
     setPendingSwitchConcert(null);
     setDismissedSwitchConcertId(null);
-  }, [isActive, switchCandidateConcert, recognizedConcert, isPlaying, play]);
+  }, [isActive, recognizedConcert, isPlaying, play]);
 
   // Track a switch candidate whenever a different concert is detected while one is active.
   useEffect(() => {
-    const switchPromptConcert = switchCandidateConcert ?? recognizedConcert;
+    const switchPromptConcert = recognizedConcert;
 
     if (!switchPromptConcert || !activeConcert) {
       setPendingSwitchConcert(null);
@@ -316,7 +315,7 @@ function AppContent() {
     }
 
     setPendingSwitchConcert(switchPromptConcert);
-  }, [switchCandidateConcert, recognizedConcert, activeConcert, dismissedSwitchConcertId]);
+  }, [recognizedConcert, activeConcert, dismissedSwitchConcertId]);
 
   useEffect(() => {
     if (!pendingSwitchConcert) {
@@ -345,7 +344,7 @@ function AppContent() {
 
   // Clear dismissed switch preference only after a different candidate is seen.
   useEffect(() => {
-    const currentCandidateId = (switchCandidateConcert ?? recognizedConcert)?.id ?? null;
+    const currentCandidateId = recognizedConcert?.id ?? null;
 
     if (
       dismissedSwitchConcertId !== null &&
@@ -354,7 +353,7 @@ function AppContent() {
     ) {
       setDismissedSwitchConcertId(null);
     }
-  }, [switchCandidateConcert, recognizedConcert, dismissedSwitchConcertId]);
+  }, [recognizedConcert, dismissedSwitchConcertId]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =

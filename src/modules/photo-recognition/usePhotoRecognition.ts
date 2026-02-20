@@ -79,6 +79,14 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
 const QUALITY_GATING_DISTANCE_THRESHOLD = 14;
 
 /**
+ * Resolution used for quality-check captures (sharpness, glare, lighting).
+ * Larger than the 64×64 hash capture so that resolution-sensitive metrics
+ * (especially Laplacian variance for sharpness) remain accurate, while still
+ * being far smaller than the full framed-region dimensions.
+ */
+const QUALITY_CAPTURE_SIZE = 128;
+
+/**
  * Consecutive frames returning the same match needed for the "instant
  * consecutive" confirmation path — used when distance is between
  * INSTANT_DISTANCE_THRESHOLD and the normal similarity threshold.
@@ -682,7 +690,33 @@ export function usePhotoRecognition(
         // Quality filtering — bypassed when match distance is very low
         const shouldRunQualityCheck =
           !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
-        const { rejected, quality } = processQualityFilters(imageData, shouldRunQualityCheck);
+
+        // When quality checks are needed and we used the 64×64 hash capture,
+        // re-capture at QUALITY_CAPTURE_SIZE so that resolution-sensitive
+        // metrics (especially Laplacian variance for sharpness) are not
+        // distorted by the downscaled hash image.
+        let qualityImageData = imageData;
+        if (shouldRunQualityCheck && !perspectiveImageData) {
+          canvas.width = QUALITY_CAPTURE_SIZE;
+          canvas.height = QUALITY_CAPTURE_SIZE;
+          context.drawImage(
+            video,
+            framedRegion.x,
+            framedRegion.y,
+            framedRegion.width,
+            framedRegion.height,
+            0,
+            0,
+            QUALITY_CAPTURE_SIZE,
+            QUALITY_CAPTURE_SIZE
+          );
+          qualityImageData = context.getImageData(0, 0, QUALITY_CAPTURE_SIZE, QUALITY_CAPTURE_SIZE);
+        }
+
+        const { rejected, quality } = processQualityFilters(
+          qualityImageData,
+          shouldRunQualityCheck
+        );
 
         if (rejected) {
           if (enableDebugInfo) {

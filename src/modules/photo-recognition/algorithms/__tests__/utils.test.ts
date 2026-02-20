@@ -15,6 +15,7 @@ import {
   calculateAdaptiveQualityThresholds,
   calculateAverageBrightness,
   detectPoorLighting,
+  computeAllQualityMetrics,
 } from '../utils';
 
 describe('Image Processing Utilities', () => {
@@ -834,6 +835,90 @@ describe('Image Processing Utilities', () => {
       expect(thresholds.maxBrightness).toBeGreaterThan(220);
       expect(thresholds.minBrightness).toBeGreaterThanOrEqual(50);
       expect(thresholds.glarePercentageThreshold).toBeGreaterThanOrEqual(20);
+    });
+  });
+
+  describe('computeAllQualityMetrics', () => {
+    function makeImageData(width: number, height: number, fillValue: number): ImageData {
+      const data = new Uint8ClampedArray(width * height * 4);
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = fillValue; // R
+        data[i + 1] = fillValue; // G
+        data[i + 2] = fillValue; // B
+        data[i + 3] = 255; // A
+      }
+      return new ImageData(data, width, height);
+    }
+
+    it('matches individual metric functions for a normal-brightness image', () => {
+      const imageData = makeImageData(8, 8, 128);
+      const sharpnessThreshold = 100;
+      const glareThreshold = 250;
+      const glarePercentageThreshold = 20;
+      const minBrightness = 50;
+      const maxBrightness = 220;
+
+      const all = computeAllQualityMetrics(
+        imageData,
+        sharpnessThreshold,
+        glareThreshold,
+        glarePercentageThreshold,
+        minBrightness,
+        maxBrightness
+      );
+
+      expect(all.sharpness).toBe(computeLaplacianVariance(imageData));
+      expect(all.isSharp).toBe(all.sharpness >= sharpnessThreshold);
+
+      const glareResult = detectGlare(imageData, glareThreshold, glarePercentageThreshold);
+      expect(all.glarePercentage).toBe(glareResult.glarePercentage);
+      expect(all.hasGlare).toBe(glareResult.hasGlare);
+
+      const lightingResult = detectPoorLighting(imageData, minBrightness, maxBrightness);
+      expect(all.averageBrightness).toBe(lightingResult.averageBrightness);
+      expect(all.hasPoorLighting).toBe(lightingResult.hasPoorLighting);
+      expect(all.lightingType).toBe(lightingResult.type);
+    });
+
+    it('detects poor lighting for a very dark image', () => {
+      const imageData = makeImageData(8, 8, 10);
+      const all = computeAllQualityMetrics(imageData, 100, 250, 20, 50, 220);
+
+      expect(all.hasPoorLighting).toBe(true);
+      expect(all.lightingType).toBe('underexposed');
+    });
+
+    it('detects glare for an over-bright image', () => {
+      const imageData = makeImageData(8, 8, 255);
+      const all = computeAllQualityMetrics(imageData, 100, 250, 5, 50, 220);
+
+      expect(all.hasGlare).toBe(true);
+      expect(all.glarePercentage).toBe(100);
+    });
+
+    it('produces the same result regardless of call order of individual functions', () => {
+      // Create a checkerboard pattern for a non-trivial image
+      const data = new Uint8ClampedArray(4 * 4 * 4);
+      for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 4; x++) {
+          const idx = (y * 4 + x) * 4;
+          const v = (x + y) % 2 === 0 ? 200 : 50;
+          data[idx] = v;
+          data[idx + 1] = v;
+          data[idx + 2] = v;
+          data[idx + 3] = 255;
+        }
+      }
+      const imageData = new ImageData(data, 4, 4);
+
+      const all = computeAllQualityMetrics(imageData, 100, 250, 20, 50, 220);
+
+      // Verify consistency with individual calls
+      expect(all.sharpness).toBe(computeLaplacianVariance(imageData));
+      const g = detectGlare(imageData, 250, 20);
+      expect(all.glarePercentage).toBe(g.glarePercentage);
+      const l = detectPoorLighting(imageData, 50, 220);
+      expect(all.averageBrightness).toBe(l.averageBrightness);
     });
   });
 });

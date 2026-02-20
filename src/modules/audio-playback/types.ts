@@ -13,7 +13,8 @@ export interface AudioPlaybackHook {
   stop: () => void;
   /** Fade out over duration (ms) */
   fadeOut: (duration?: number) => void;
-  /** Crossfade to new audio track */
+  /** Crossfade to new audio track. If nothing is playing, acts like play().
+   *  Same URL: seeks to beginning. Crossfade already in progress: cancels the old one. */
   crossfade: (newUrl: string, duration?: number) => void;
   /** Current playback state */
   isPlaying: boolean;

@@ -156,23 +156,46 @@ export interface PhotoRecognitionHook {
 }
 
 export interface PhotoRecognitionOptions {
+  /** Delay (ms) before confirming a borderline match (distance 11–14). Default: 200.
+   *  Strong matches (distance ≤ 10) are confirmed instantly, bypassing this delay.
+   *  See docs/PHOTO_RECOGNITION_DEEP_DIVE.md before tuning any threshold values. */
   recognitionDelay?: number;
+  /** Enable/disable recognition processing. Default: true */
   enabled?: boolean;
+  /** pHash Hamming distance threshold — frames at or below this are match candidates. Default: 14.
+   *  Empirically tuned; changing requires re-running the field evaluation in PHOTO_RECOGNITION_DEEP_DIVE.md. */
   similarityThreshold?: number;
+  /** Minimum gap between best and second-best match distance (ambiguity guard). Default: 2 */
   matchMarginThreshold?: number;
+  /** Stricter margin required to switch away from an already-confirmed match. Default: 5 */
   switchMatchMarginThreshold?: number;
+  /** Allow switching to a different match after one is confirmed. Default: false */
   continuousRecognition?: boolean;
+  /** Multiplier applied to recognitionDelay when evaluating a switch candidate. Default: 1.8 */
   switchRecognitionDelayMultiplier?: number;
+  /** Stricter distance threshold applied only during switch-mode evaluation. Default: 7 */
   switchDistanceThreshold?: number;
+  /** Frame sampling interval (ms). Adaptive: ~80ms while tracking, ~120ms idle. Default: 120 */
   checkInterval?: number;
+  /** Collect and return debug telemetry. Default: false.
+   *  Enable only while the debug overlay is open to avoid unnecessary computation. */
   enableDebugInfo?: boolean;
+  /** Expected aspect ratio of the target photo. Default: 'auto' */
   aspectRatio?: AspectRatio;
+  /** Minimum Laplacian variance to accept a frame as sharp. Default: 100 */
   sharpnessThreshold?: number;
+  /** Pixel brightness level above which a pixel counts toward glare. Default: 250 */
   glareThreshold?: number;
+  /** Maximum percentage of glare pixels before a frame is rejected. Default: 20 */
   glarePercentageThreshold?: number;
+  /** Minimum average brightness to accept a frame (rejects underexposed). Default: 50 */
   minBrightness?: number;
+  /** Maximum average brightness to accept a frame (rejects overexposed). Default: 220 */
   maxBrightness?: number;
+  /** Use rectangle detection to crop to the photo boundary before hashing. Default: false */
   enableRectangleDetection?: boolean;
+  /** Minimum rectangle detection confidence required to use the detected crop. Default: 0.35 */
   rectangleConfidenceThreshold?: number;
+  /** Aspect ratio of the display viewport, used to compute crop regions. Default: 1 */
   displayAspectRatio?: number;
 }

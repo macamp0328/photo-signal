@@ -99,3 +99,79 @@ This keeps diagnostics intact while removing algorithm-branch complexity.
 ## Future extensions
 
 If future audits show a need for richer matching, add a second algorithm only behind an explicit experimental flag and benchmark gate. Keep the default production path single and deterministic.
+
+---
+
+## Quick reference
+
+### Adding hashes to data.json
+
+**Camera capture method (preferred):**
+
+1. Enable Test Mode (triple-tap → "Test Data Mode")
+2. Point camera at the photo; wait for "Good" quality indicator
+3. Copy hash from debug overlay (`Frame Hash` field)
+4. Add to `data.json` under `photoHashes.phash`
+
+**Script method:**
+
+```bash
+# Place photos in assets/reference-photos/
+npm run hashes:paths
+
+# Target specific paths
+npm run hashes:paths -- --paths assets/example-real-photos,assets/new-print-tests
+
+# Rebuild all hashes
+npm run hashes:refresh -- --hashes-only
+```
+
+**Multi-exposure strategy** — capture 3 hashes per photo (bright / normal / dim lighting):
+
+```json
+{
+  "photoHashes": {
+    "phash": ["hash-bright", "hash-normal", "hash-dim"]
+  }
+}
+```
+
+### Hamming distance → similarity
+
+| Distance | Similarity | Interpretation     |
+| -------- | ---------- | ------------------ |
+| 0        | 100%       | Exact match        |
+| 0–10     | >84%       | Strong match       |
+| 11–14    | >78%       | Borderline (delay) |
+| 15–20    | >69%       | Below threshold    |
+| >30      | <53%       | Hash mismatch      |
+
+### Troubleshooting
+
+| Symptom                | Diagnosis                             | Fix                                          |
+| ---------------------- | ------------------------------------- | -------------------------------------------- |
+| Not recognized         | Distance >30                          | Regenerate hash via camera capture           |
+| Not recognized         | Distance 11–20                        | Increase `similarityThreshold` by 2–4        |
+| Wrong photo recognized | Two hashes too similar                | Decrease `similarityThreshold` by 2          |
+| >30% blur rejections   | Camera shake or threshold too strict  | Decrease `sharpnessThreshold` (try 80)       |
+| >25% glare rejections  | Lighting or photo surface             | Increase `glarePercentageThreshold` (try 30) |
+| Slow recognition (>5s) | `recognitionDelay` or `checkInterval` | Lower `recognitionDelay` (try 800)           |
+
+### Common failure categories
+
+| Category     | Cause                    | Fix                                            |
+| ------------ | ------------------------ | ---------------------------------------------- |
+| motion-blur  | Camera shake             | Lower `sharpnessThreshold`, hold steadier      |
+| glare        | Specular reflections     | Adjust lighting, tilt photo, raise threshold   |
+| no-match     | Hash not in database     | Regenerate hash, raise `similarityThreshold`   |
+| collision    | Multiple similar matches | Lower `similarityThreshold`, use distinct refs |
+| poor-quality | Low-quality frame        | Improve lighting, check camera                 |
+
+### Telemetry health thresholds
+
+| Metric             | Healthy | Investigate |
+| ------------------ | ------- | ----------- |
+| Quality frame rate | >70%    | <60%        |
+| Blur rejections    | <20%    | >30%        |
+| Glare rejections   | <15%    | >25%        |
+| Recognition rate   | >85%    | <70%        |

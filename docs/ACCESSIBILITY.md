@@ -245,21 +245,58 @@ The application also supports a "classic" UI style with different typography and
 - Status indicators use distinct colors
 - Background provides sufficient contrast for all text
 
-## Future Improvements
+## Developer quick reference
 
-### Planned Enhancements
+### CSS variable usage
 
-1. **High Contrast Mode**: Support for Windows High Contrast mode
-2. **Reduced Motion**: Enhanced support for `prefers-reduced-motion` (partially implemented)
-3. **Color Blind Mode**: Additional color palette for color vision deficiencies
-4. **Font Scaling**: Better support for user font size preferences
-5. **Focus Trapping**: Improved focus management in modal dialogs
+Always use CSS custom properties — never hardcode colors:
 
-### Under Consideration
+```css
+/* Text */
+color: var(--color-main-text); /* Primary headings, body */
+color: var(--color-sub-text); /* Secondary text */
+color: var(--color-bonus-text); /* Tertiary labels */
+color: var(--color-text-muted); /* Hints, muted info */
 
-- WCAG AAA compliance for critical UI elements
-- Increased touch target sizes for mobile
-- Additional theme options (high contrast, sepia, etc.)
+/* Backgrounds */
+background-color: var(--color-background);
+background-color: var(--color-sub-background);
+background-color: var(--modal-bg);
+
+/* Interactive */
+background-color: var(--color-button-bg);
+color: var(--color-button-text);
+background-color: var(--color-button-hover-bg); /* hover */
+background-color: var(--color-button-disabled-bg); /* disabled */
+```
+
+### Common mistakes
+
+```css
+/* ❌ Don't: hardcoded colors */
+color: #fff;
+background: #000;
+button:focus {
+  outline: none;
+} /* Never remove without replacement */
+
+/* ✅ Do: use pre-tested variables */
+color: var(--color-main-text);
+background: var(--color-background);
+button:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+}
+```
+
+### Checklist for new components
+
+- Use semantic HTML (`<button>`, `<nav>`, `<main>`, `<label>`)
+- Reference CSS variables, not hardcoded colors
+- Verify focus indicators in both light and dark themes
+- Support keyboard navigation (Tab, Enter, Escape)
+- Touch targets ≥ 44×44px on mobile
+- Associate every `<input>` with a `<label>`
+- Run Lighthouse accessibility audit before shipping
 
 ## Resources
 

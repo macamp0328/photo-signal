@@ -14,6 +14,7 @@ export interface CameraAccessHook {
 }
 
 export interface CameraAccessOptions {
-  /** Whether to automatically start camera on mount (default: true) */
+  /** Whether to automatically start camera on mount. Default: true.
+   *  When false, camera won't start until retry() is called explicitly. */
   autoStart?: boolean;
 }

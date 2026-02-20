@@ -479,4 +479,171 @@ describe('usePhotoRecognition', () => {
       createElementSpy.mockRestore();
     }
   });
+
+  it('bypasses quality checks for close matches (distance 12) and confirms recognition', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(
+        (_: number, __: number, width: number, height: number) => new ImageData(width, height)
+      ),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const closeConcerts: Concert[] = [
+        {
+          id: 1,
+          band: 'Gate Band',
+          venue: 'Gate Venue',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/gate.opus',
+          photoHashes: {
+            phash: ['aaaaaaaaaaaaaaaa'],
+          },
+        },
+      ];
+
+      vi.mocked(dataService.getConcerts).mockResolvedValue(closeConcerts);
+      activeFrameHash = 'aaaaaaaaaaaaabbb';
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          similarityThreshold: 20,
+          recognitionDelay: 120,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+
+      const imageDataCalls = vi.mocked(mockContext.getImageData).mock.calls;
+      expect(imageDataCalls.some(([, , width, height]) => width === 128 && height === 128)).toBe(
+        false
+      );
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('runs quality checks for farther matches (distance 16), recaptures at 128, and rejects poor quality', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(
+        (_: number, __: number, width: number, height: number) => new ImageData(width, height)
+      ),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const closeConcerts: Concert[] = [
+        {
+          id: 1,
+          band: 'Gate Band',
+          venue: 'Gate Venue',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/gate.opus',
+          photoHashes: {
+            phash: ['aaaaaaaaaaaaaaaa'],
+          },
+        },
+      ];
+
+      vi.mocked(dataService.getConcerts).mockResolvedValue(closeConcerts);
+      activeFrameHash = 'aaaaaaaaaaaabbbb';
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          similarityThreshold: 20,
+          recognitionDelay: 120,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(350);
+      });
+
+      expect(result.current.recognizedConcert).toBeNull();
+
+      const imageDataCalls = vi.mocked(mockContext.getImageData).mock.calls;
+      expect(imageDataCalls.some(([, , width, height]) => width === 64 && height === 64)).toBe(
+        true
+      );
+      expect(imageDataCalls.some(([, , width, height]) => width === 128 && height === 128)).toBe(
+        true
+      );
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
 });

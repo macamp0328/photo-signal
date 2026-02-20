@@ -78,6 +78,12 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
  */
 const QUALITY_GATING_DISTANCE_THRESHOLD = 14;
 
+if (import.meta.env.DEV && QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD) {
+  throw new Error(
+    'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
+  );
+}
+
 /**
  * Resolution used for quality-check captures (sharpness, glare, lighting).
  * Larger than the 64×64 hash capture so that resolution-sensitive metrics
@@ -393,6 +399,8 @@ export function usePhotoRecognition(
       shouldRunQualityCheck: boolean
     ): { rejected: boolean; quality: FrameQualityInfo | null } => {
       if (!shouldRunQualityCheck) {
+        telemetryRef.current.qualityBypassFrames =
+          (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
         setFrameQuality(null);
         setActiveGuidance('none');
         return { rejected: false, quality: null };
@@ -811,13 +819,19 @@ export function usePhotoRecognition(
               switchConsecutiveMatchCountRef.current >= CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM;
 
             if (isSameSwitchCandidate) {
-              if (
-                (switchCandidateStartTimeRef.current !== null &&
-                  now - switchCandidateStartTimeRef.current >= switchRecognitionDelay) ||
-                (isInstantSwitchDistance && hasConsecutiveSwitchConfidence)
-              ) {
+              const confirmedByDelay =
+                switchCandidateStartTimeRef.current !== null &&
+                now - switchCandidateStartTimeRef.current >= switchRecognitionDelay;
+              const confirmedByInstantConfidence =
+                isInstantSwitchDistance && hasConsecutiveSwitchConfidence;
+
+              if (confirmedByDelay || confirmedByInstantConfidence) {
                 recognizedConcertRef.current = activeMatch;
                 confirmedMatch = true;
+                if (confirmedByInstantConfidence) {
+                  telemetryRef.current.instantSwitchConfirmations =
+                    (telemetryRef.current.instantSwitchConfirmations ?? 0) + 1;
+                }
                 setRecognizedConcert(activeMatch);
                 setIsRecognizing(false);
                 telemetryRef.current.successfulRecognitions += 1;
@@ -848,6 +862,10 @@ export function usePhotoRecognition(
           if (isInstantDistance || hasConsecutiveInstantConfidence) {
             recognizedConcertRef.current = activeMatch;
             confirmedMatch = true;
+            if (isInstantDistance) {
+              telemetryRef.current.instantConfirmations =
+                (telemetryRef.current.instantConfirmations ?? 0) + 1;
+            }
             setRecognizedConcert(activeMatch);
             setIsRecognizing(false);
             telemetryRef.current.successfulRecognitions += 1;

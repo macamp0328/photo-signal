@@ -30,15 +30,15 @@ This module does not handle:
 stream: MediaStream | null
 
 options?: {
-  recognitionDelay?: number;              // default 300ms (borderline matches)
+  recognitionDelay?: number;              // default 200ms (borderline matches)
   enabled?: boolean;                      // default true
-  similarityThreshold?: number;           // pHash distance threshold, default 12
-  matchMarginThreshold?: number;          // min best-vs-second margin, default 4
+  similarityThreshold?: number;           // pHash distance threshold, default 14
+  matchMarginThreshold?: number;          // min best-vs-second margin, default 2
   switchMatchMarginThreshold?: number;    // stricter switch margin, default 5
   continuousRecognition?: boolean;        // default false (enables switch-mode behavior)
   switchRecognitionDelayMultiplier?: number; // default 1.8x recognitionDelay
   switchDistanceThreshold?: number;       // default 7 (stricter than base threshold)
-  checkInterval?: number;                 // default 180ms
+  checkInterval?: number;                 // default 120ms (idle), adaptive 80ms while tracking
   enableDebugInfo?: boolean;              // default false
   aspectRatio?: '3:2' | '2:3' | '1:1' | 'auto';
   sharpnessThreshold?: number;            // default 100
@@ -88,8 +88,9 @@ Only `photoHashes.phash` is required by runtime recognition.
 ## Notes
 
 - Chosen runtime algorithm: **pHash only**
-- Initial match confirmation: immediate when distance <= 5, otherwise 2 consecutive strong matches or short delay hold
-- Continuous switch confirmation: only for stronger candidates (distance <= 8 + margin >= 4), then 3 consistent frames and either delay completion or instant distance <= 3
+- Initial match confirmation: immediate when distance <= 10, otherwise 2 consecutive strong matches or short delay hold
+- Continuous switch confirmation: only for stronger candidates (distance <= 7 + margin >= 5), then 3 consistent frames and either delay completion or instant distance <= 3
+- Quality checks are bypassed for close matches at distance <= 14 and run for weaker/ambiguous candidates
 - Ambiguous candidates (within threshold but low margin) emit `ambiguous-match` guidance and are not promoted
 - App-level switch prompt is suppressed while `ambiguous-match` guidance is active
 - Telemetry includes switch prompt decisions (`shownCount`, `confirmCount`, `dismissCount`, decision latency, confidence/margin snapshot)

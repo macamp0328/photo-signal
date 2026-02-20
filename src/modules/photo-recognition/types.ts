@@ -82,7 +82,10 @@ export interface RecognitionTelemetry {
   glareRejections: number;
   lightingRejections: number;
   qualityFrames: number;
+  qualityBypassFrames?: number;
   successfulRecognitions: number;
+  instantConfirmations?: number;
+  instantSwitchConfirmations?: number;
   failedAttempts: number;
   failureHistory: FailureDiagnostic[];
   failureByCategory: Record<FailureCategory, number>;

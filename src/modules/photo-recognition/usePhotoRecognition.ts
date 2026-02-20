@@ -129,12 +129,12 @@ const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
  * meaningful: the winning concert must be at least 2 bits closer than its
  * nearest rival from any other concert.
  *
- * Set to 3 as a balanced baseline for faster-yet-accurate recognition cycles.
+ * Set to 4 as a balanced baseline for collision-first tuning.
  * Runtime logic applies an additional +1 margin requirement for borderline
  * distances near the active threshold, so strong close-distance matches remain
  * responsive while noisy threshold-edge matches are filtered more strictly.
  */
-const DEFAULT_MATCH_MARGIN_THRESHOLD = 3;
+const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
 
 /** Stricter margin requirement in switch mode — see DEFAULT_MATCH_MARGIN_THRESHOLD. */
 const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 6;
@@ -802,12 +802,15 @@ export function usePhotoRecognition(
           if (hdLog.matchedFrameDistances.max === null || dist > hdLog.matchedFrameDistances.max) {
             hdLog.matchedFrameDistances.max = dist;
           }
-          // Near-miss: above threshold but close enough to be informative for tuning
-          if (dist > similarityThreshold && dist <= similarityThreshold + 8) {
+          // Near-miss: above the active threshold but close enough to be
+          // informative for tuning (captures both initial and switch mode).
+          if (dist > activeThreshold && dist <= activeThreshold + 8) {
             hdLog.nearMisses.push({
               distance: dist,
               frameHash: currentHash,
               timestamp: Date.now(),
+              thresholdUsed: activeThreshold,
+              mode: isSwitchMode ? 'switch' : 'initial',
             });
             if (hdLog.nearMisses.length > 20) {
               hdLog.nearMisses.shift();
@@ -963,7 +966,7 @@ export function usePhotoRecognition(
         if (bestMatch) {
           const isAmbiguousCollision = isAmbiguousMatchCandidate;
           const isNearThresholdNoMatch =
-            !isAmbiguousCollision && bestMatch.distance <= similarityThreshold + 2;
+            !isAmbiguousCollision && bestMatch.distance <= activeThreshold + 2;
 
           if (isAmbiguousMatchCandidate) {
             setActiveGuidance('ambiguous-match');
@@ -973,6 +976,10 @@ export function usePhotoRecognition(
 
           const category: FailureCategory =
             isAmbiguousCollision || isNearThresholdNoMatch ? 'collision' : 'no-match';
+
+          const collisionReason = isAmbiguousCollision
+            ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band ?? 'unknown'} (margin ${bestMargin ?? 0}, required ${effectiveRequiredMargin}, distance ${bestMatch.distance}, threshold ${activeThreshold}, mode ${isSwitchMode ? 'switch' : 'initial'})`
+            : `Near-threshold miss: ${bestMatch.concert.band} (distance ${bestMatch.distance}, threshold ${activeThreshold}, mode ${isSwitchMode ? 'switch' : 'initial'})`;
 
           if (category === 'collision') {
             recordCollisionDetails(telemetryRef.current, {
@@ -986,9 +993,9 @@ export function usePhotoRecognition(
           recordFailure(
             telemetryRef.current,
             category,
-            isAmbiguousCollision
-              ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band} (margin ${bestMargin ?? 0}, required ${effectiveRequiredMargin})`
-              : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
+            category === 'collision'
+              ? collisionReason
+              : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance}, threshold ${activeThreshold}, mode ${isSwitchMode ? 'switch' : 'initial'})`,
             currentHash
           );
         } else {

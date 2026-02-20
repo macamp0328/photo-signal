@@ -11,7 +11,7 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 const DATA_PATH = path.join(REPO_ROOT, 'public', 'data.json');
 
 const DEFAULT_PHASH_THRESHOLD = 14;
-const DEFAULT_MARGIN_THRESHOLD = 3;
+const DEFAULT_MARGIN_THRESHOLD = 4;
 const PHASH_LENGTH = 16;
 
 function parseArgs(argv) {

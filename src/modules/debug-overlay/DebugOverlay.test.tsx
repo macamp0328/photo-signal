@@ -48,8 +48,8 @@ describe('DebugOverlay', () => {
     aspectRatio: '3:2',
     frameSize: { width: 640, height: 480 },
     stability: null,
-    similarityThreshold: 40,
-    recognitionDelay: 3000,
+    similarityThreshold: 14,
+    recognitionDelay: 200,
     frameQuality: {
       sharpness: 150,
       isSharp: true,
@@ -160,11 +160,11 @@ describe('DebugOverlay', () => {
     it('should display debugInfo threshold when threshold prop is not provided', () => {
       render(<DebugOverlay {...defaultProps} threshold={undefined} />);
 
-      // Should use debugInfo.similarityThreshold which is 40
-      expect(screen.getByText(/Distance ≤ 40/)).toBeInTheDocument();
+      // Should use debugInfo.similarityThreshold which is 14
+      expect(screen.getByText(/Distance ≤ 14/)).toBeInTheDocument();
     });
 
-    it('should default to 40 when neither threshold prop nor debugInfo.similarityThreshold is available', () => {
+    it('should default to 14 when neither threshold prop nor debugInfo.similarityThreshold is available', () => {
       const debugInfoWithoutThreshold = {
         ...mockDebugInfo,
       };
@@ -179,8 +179,8 @@ describe('DebugOverlay', () => {
         />
       );
 
-      // Should default to 40
-      expect(screen.getByText(/Distance ≤ 40/)).toBeInTheDocument();
+      // Should default to 14
+      expect(screen.getByText(/Distance ≤ 14/)).toBeInTheDocument();
     });
 
     it('should prioritize threshold prop over debugInfo.similarityThreshold', () => {
@@ -201,10 +201,10 @@ describe('DebugOverlay', () => {
     });
 
     it('should calculate correct similarity percentage from threshold', () => {
-      render(<DebugOverlay {...defaultProps} threshold={40} />);
+      render(<DebugOverlay {...defaultProps} threshold={14} />);
 
-      // Similarity = ((256 - 40) / 256) * 100 = 84.375%
-      expect(screen.getByText(/≥ 84% similarity/)).toBeInTheDocument();
+      // Similarity = ((64 - 14) / 64) * 100 = 78.125%
+      expect(screen.getByText(/≥ 78% similarity/)).toBeInTheDocument();
     });
   });
 

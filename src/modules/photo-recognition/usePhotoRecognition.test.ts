@@ -759,7 +759,7 @@ describe('usePhotoRecognition', () => {
   describe('crop fallback matching', () => {
     // Frame hash that has distance 64 from all full-image hashes (triggers crop pass)
     // but distance 4 from concert 1's crop hashes (within CROP_SIMILARITY_THRESHOLD=10).
-    const CROP_FRAME_HASH = 'f5b3c7d9e1f20486'; // 1 char diff from concert-1 crop hash
+    const CROP_FRAME_HASH = 'f5b3c7d9e1f20486'; // exact match with concert-1 crop hash
     const CONCERT1_CROP_HASH = 'f5b3c7d9e1f20486'; // exact match → distance 0
 
     const makeConcertsWithCrops = (): Concert[] => {

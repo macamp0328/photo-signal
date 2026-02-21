@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import type { DebugOverlayProps, RecognitionStatus, RoutineType } from './types';
+import type { DebugOverlayProps, RecognitionStatus } from './types';
 import { ROUTINE_DEFINITIONS } from './routineDefinitions';
 import styles from './DebugOverlay.module.css';
 import { formatConcertTimestamp } from '../../utils/dateUtils';
@@ -144,6 +144,9 @@ export function DebugOverlay({
   const corsDisplay = testResult
     ? (testResult.diagnostic.corsOrigin ??
       (isSuccessfulFetch ? 'Not exposed to browser' : 'No header'))
+    : null;
+  const selectedRoutineDefinition = telemetryRecording.selectedRoutine
+    ? (ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine) ?? null)
     : null;
 
   useEffect(() => {
@@ -403,8 +406,9 @@ export function DebugOverlay({
                     className={styles.routineSelect}
                     value=""
                     onChange={(e) => {
-                      if (e.target.value) {
-                        telemetryRecording.onSelectRoutine(e.target.value as RoutineType);
+                      const routine = ROUTINE_DEFINITIONS.find((r) => r.type === e.target.value);
+                      if (routine) {
+                        telemetryRecording.onSelectRoutine(routine.type);
                       }
                     }}
                     aria-label="Select test routine"
@@ -421,17 +425,9 @@ export function DebugOverlay({
                 </div>
               ) : (
                 <div className={styles.routineReady}>
-                  <div className={styles.label}>
-                    {
-                      ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine)
-                        ?.label
-                    }
-                  </div>
+                  <div className={styles.label}>{selectedRoutineDefinition?.label}</div>
                   <p className={styles.routineInstructions}>
-                    {
-                      ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine)
-                        ?.instructions
-                    }
+                    {selectedRoutineDefinition?.instructions}
                   </p>
                   <div className={styles.telemetryActions}>
                     <button
@@ -457,10 +453,7 @@ export function DebugOverlay({
               <div className={styles.routineReady}>
                 {telemetryRecording.selectedRoutine && (
                   <div className={styles.routineActiveLabel}>
-                    {
-                      ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine)
-                        ?.label
-                    }
+                    {selectedRoutineDefinition?.label}
                   </div>
                 )}
                 <p className={styles.telemetryRecording}>
@@ -472,10 +465,7 @@ export function DebugOverlay({
               <div className={styles.telemetryActions}>
                 {telemetryRecording.selectedRoutine && (
                   <div className={styles.routineActiveLabel}>
-                    {
-                      ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine)
-                        ?.label
-                    }
+                    {selectedRoutineDefinition?.label}
                   </div>
                 )}
                 <button

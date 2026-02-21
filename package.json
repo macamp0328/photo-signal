@@ -48,6 +48,7 @@
     "audio:remap-by-band": "node scripts/audio-workflow/update/remap-audio-by-band.js",
     "audio:reset": "node scripts/audio-workflow/reset-clean-slate.js",
     "audio:verify": "node scripts/audio-workflow/verify-clean-slate.js",
+    "audio:pipeline": "node scripts/audio-workflow/audio-pipeline.js",
     "audio:clean-slate": "node scripts/audio-workflow/run-clean-slate.js",
     "audio:clean-slate:smoke": "node scripts/audio-workflow/run-clean-slate.js --download-max-items=10",
     "audio:phase:download": "node scripts/audio-workflow/run-clean-slate.js --from=download --to=download",

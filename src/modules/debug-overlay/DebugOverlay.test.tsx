@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DebugOverlay } from './DebugOverlay';
+import { ROUTINE_DEFINITIONS } from './routineDefinitions';
 import type { DebugOverlayProps } from './types';
 import type { Concert } from '../../types';
 import type { RecognitionDebugInfo } from '../photo-recognition/types';
@@ -118,6 +119,9 @@ describe('DebugOverlay', () => {
     telemetryRecording: {
       state: 'idle',
       secondsRemaining: 30,
+      selectedRoutine: null,
+      onSelectRoutine: vi.fn(),
+      onClearRoutine: vi.fn(),
       onStart: vi.fn(),
       onDownload: vi.fn(),
       onDiscard: vi.fn(),
@@ -560,6 +564,133 @@ describe('DebugOverlay', () => {
       render(<DebugOverlay {...defaultProps} testAudioUrl="https://audio.example.com/song.opus" />);
 
       expect(screen.getByText('Audio Test')).toBeInTheDocument();
+    });
+  });
+
+  describe('Routine Picker', () => {
+    it('should show the routine selector when no routine is selected and state is idle', () => {
+      render(<DebugOverlay {...defaultProps} />);
+
+      expect(screen.getByLabelText('Select test routine')).toBeInTheDocument();
+      expect(screen.getByText('Choose a routine…')).toBeInTheDocument();
+    });
+
+    it('should not show "Record 30s" button before a routine is selected', () => {
+      render(<DebugOverlay {...defaultProps} />);
+
+      expect(screen.queryByText('Record 30s')).not.toBeInTheDocument();
+    });
+
+    it('should call onSelectRoutine when user picks a routine from the dropdown', () => {
+      const onSelectRoutine = vi.fn();
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          telemetryRecording={{ ...defaultProps.telemetryRecording, onSelectRoutine }}
+        />
+      );
+
+      fireEvent.change(screen.getByLabelText('Select test routine'), {
+        target: { value: 'baseline' },
+      });
+
+      expect(onSelectRoutine).toHaveBeenCalledWith('baseline');
+    });
+
+    it('should show routine label, instructions and "Record 30s" after a routine is selected', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          telemetryRecording={{
+            ...defaultProps.telemetryRecording,
+            selectedRoutine: 'baseline',
+          }}
+        />
+      );
+
+      expect(screen.getByText('Baseline (steady hold)')).toBeInTheDocument();
+      expect(screen.getByText(/Hold the camera steady/)).toBeInTheDocument();
+      expect(screen.getByText('Record 30s')).toBeInTheDocument();
+    });
+
+    it('should call onClearRoutine when "Change" button is clicked', () => {
+      const onClearRoutine = vi.fn();
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          telemetryRecording={{
+            ...defaultProps.telemetryRecording,
+            selectedRoutine: 'glare',
+            onClearRoutine,
+          }}
+        />
+      );
+
+      fireEvent.click(screen.getByText('Change'));
+
+      expect(onClearRoutine).toHaveBeenCalled();
+    });
+
+    it('should show routine label during recording', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          telemetryRecording={{
+            ...defaultProps.telemetryRecording,
+            state: 'recording',
+            secondsRemaining: 25,
+            selectedRoutine: 'motion-blur',
+          }}
+        />
+      );
+
+      expect(screen.getByText('Motion blur (shaky camera)')).toBeInTheDocument();
+      expect(screen.getByText(/Recording… 25s/)).toBeInTheDocument();
+    });
+
+    it('should show routine label in done state', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          telemetryRecording={{
+            ...defaultProps.telemetryRecording,
+            state: 'done',
+            selectedRoutine: 'collision',
+          }}
+        />
+      );
+
+      expect(screen.getByText('Collision test (visually similar photos)')).toBeInTheDocument();
+      expect(screen.getByText('Download Report')).toBeInTheDocument();
+    });
+  });
+
+  describe('ROUTINE_DEFINITIONS', () => {
+    it('should export exactly 6 routine definitions', () => {
+      expect(ROUTINE_DEFINITIONS).toHaveLength(6);
+    });
+
+    it('should have non-empty labels and instructions for every routine', () => {
+      ROUTINE_DEFINITIONS.forEach((r) => {
+        expect(r.label.length).toBeGreaterThan(0);
+        expect(r.instructions.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should have unique type values', () => {
+      const types = ROUTINE_DEFINITIONS.map((r) => r.type);
+      const uniqueTypes = new Set(types);
+      expect(uniqueTypes.size).toBe(ROUTINE_DEFINITIONS.length);
+    });
+
+    it('should include all expected routine types', () => {
+      const types = ROUTINE_DEFINITIONS.map((r) => r.type);
+      expect(types).toContain('baseline');
+      expect(types).toContain('glare');
+      expect(types).toContain('motion-blur');
+      expect(types).toContain('poor-lighting');
+      expect(types).toContain('multi-photo-switch');
+      expect(types).toContain('collision');
     });
   });
 });

@@ -7,6 +7,7 @@ import {
   formatGuidanceTelemetry,
   exportGuidanceTelemetry,
   calculateGuidanceEffectiveness,
+  buildTemporalSnapshot,
 } from './telemetryUtils';
 import { createEmptyTelemetry } from '../modules/photo-recognition/helpers';
 import type {
@@ -456,6 +457,63 @@ describe('telemetryUtils', () => {
 
       expect(effectiveness.motionBlurReduction).toBe(-20); // Worse: 10% -> 30%
       expect(effectiveness.overallReduction).toBe(-20);
+    });
+  });
+
+  describe('buildTemporalSnapshot', () => {
+    it('should map all fields correctly from a telemetry object', () => {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
+        totalFrames: 83,
+        qualityFrames: 60,
+        blurRejections: 7,
+        glareRejections: 14,
+        lightingRejections: 2,
+        successfulRecognitions: 4,
+        failedAttempts: 2,
+        instantConfirmations: 3,
+        instantSwitchConfirmations: 1,
+        qualityBypassFrames: 2,
+      });
+
+      const snapshot = buildTemporalSnapshot(telemetry, 10);
+
+      expect(snapshot.elapsedSeconds).toBe(10);
+      expect(snapshot.cumulativeCounts.totalFrames).toBe(83);
+      expect(snapshot.cumulativeCounts.qualityFrames).toBe(60);
+      expect(snapshot.cumulativeCounts.blurRejections).toBe(7);
+      expect(snapshot.cumulativeCounts.glareRejections).toBe(14);
+      expect(snapshot.cumulativeCounts.lightingRejections).toBe(2);
+      expect(snapshot.cumulativeCounts.successfulRecognitions).toBe(4);
+      expect(snapshot.cumulativeCounts.failedAttempts).toBe(2);
+      expect(snapshot.cumulativeCounts.instantConfirmations).toBe(3);
+      expect(snapshot.cumulativeCounts.instantSwitchConfirmations).toBe(1);
+      expect(snapshot.cumulativeCounts.qualityBypassFrames).toBe(2);
+    });
+
+    it('should default optional fields to 0 when absent', () => {
+      const telemetry: RecognitionTelemetry = makeTelemetry({
+        totalFrames: 50,
+        qualityFrames: 40,
+        blurRejections: 5,
+        glareRejections: 3,
+        lightingRejections: 2,
+        successfulRecognitions: 2,
+        failedAttempts: 1,
+        // instantConfirmations, instantSwitchConfirmations, qualityBypassFrames omitted
+      });
+
+      const snapshot = buildTemporalSnapshot(telemetry, 20);
+
+      expect(snapshot.cumulativeCounts.instantConfirmations).toBe(0);
+      expect(snapshot.cumulativeCounts.instantSwitchConfirmations).toBe(0);
+      expect(snapshot.cumulativeCounts.qualityBypassFrames).toBe(0);
+    });
+
+    it('should pass elapsedSeconds through correctly', () => {
+      const telemetry: RecognitionTelemetry = makeTelemetry({ totalFrames: 10 });
+
+      expect(buildTemporalSnapshot(telemetry, 10).elapsedSeconds).toBe(10);
+      expect(buildTemporalSnapshot(telemetry, 20).elapsedSeconds).toBe(20);
     });
   });
 });

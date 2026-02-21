@@ -5,4 +5,5 @@
  */
 
 export { DebugOverlay } from './DebugOverlay';
-export type { DebugOverlayProps, RecognitionStatus } from './types';
+export { ROUTINE_DEFINITIONS } from './routineDefinitions';
+export type { DebugOverlayProps, RecognitionStatus, RoutineType, RoutineDefinition } from './types';

@@ -51,7 +51,17 @@ export function InfoDisplay({
 
       <div className={styles.headlineBlock}>
         <p className={styles.kicker}>Live Capture</p>
-        <h2 className={styles.bandName}>{concert.band}</h2>
+        <div className={styles.headlineRow}>
+          {concert.albumCoverUrl ? (
+            <img
+              src={concert.albumCoverUrl}
+              alt={`${concert.band} album cover`}
+              className={styles.albumCover}
+              loading="lazy"
+            />
+          ) : null}
+          <h2 className={styles.bandName}>{concert.band}</h2>
+        </div>
       </div>
 
       <section className={styles.transportBlock} aria-label="Playback controls and progress">

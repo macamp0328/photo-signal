@@ -57,6 +57,8 @@ export interface Concert {
   iso?: string;
   /** Perceptual hash storage */
   photoHashes?: PhotoHashes;
+  /** R2 CDN URL for the album cover (small WebP, ~200×200) */
+  albumCoverUrl?: string;
 }
 
 /**

@@ -5,8 +5,10 @@ import { GalleryLayout } from './GalleryLayout';
 
 describe('GalleryLayout', () => {
   const mockOnActivate = vi.fn();
+  const mockOnSettingsClick = vi.fn();
   const mockCameraView = <div data-testid="camera-view">Camera View</div>;
   const mockInfoDisplay = <div data-testid="info-display">Info Display</div>;
+  const mockAudioControls = <div data-testid="audio-controls">Audio Controls</div>;
 
   it('renders landing view when not active', () => {
     render(
@@ -15,6 +17,7 @@ describe('GalleryLayout', () => {
         cameraView={mockCameraView}
         infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
       />
     );
 
@@ -38,6 +41,7 @@ describe('GalleryLayout', () => {
         cameraView={mockCameraView}
         infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
       />
     );
 
@@ -56,6 +60,7 @@ describe('GalleryLayout', () => {
         cameraView={mockCameraView}
         infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
       />
     );
 
@@ -73,6 +78,53 @@ describe('GalleryLayout', () => {
     expect(screen.queryByRole('button', { name: 'Begin' })).toBeNull();
   });
 
+  it('renders settings button in header when active', async () => {
+    const user = userEvent.setup();
+    render(
+      <GalleryLayout
+        isActive={true}
+        cameraView={mockCameraView}
+        infoDisplay={mockInfoDisplay}
+        onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
+      />
+    );
+
+    const settingsButton = screen.getByRole('button', { name: 'Open settings' });
+    expect(settingsButton).toBeTruthy();
+    await user.click(settingsButton);
+    expect(mockOnSettingsClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders audio controls section when provided', () => {
+    render(
+      <GalleryLayout
+        isActive={true}
+        cameraView={mockCameraView}
+        infoDisplay={mockInfoDisplay}
+        onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
+        audioControls={mockAudioControls}
+      />
+    );
+
+    expect(screen.getByTestId('audio-controls')).toBeTruthy();
+  });
+
+  it('does not render audio controls section when not provided', () => {
+    render(
+      <GalleryLayout
+        isActive={true}
+        cameraView={mockCameraView}
+        infoDisplay={mockInfoDisplay}
+        onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
+      />
+    );
+
+    expect(screen.queryByTestId('audio-controls')).toBeNull();
+  });
+
   it('hides info section when showInfoSection is false', () => {
     render(
       <GalleryLayout
@@ -80,6 +132,7 @@ describe('GalleryLayout', () => {
         cameraView={mockCameraView}
         infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
         showInfoSection={false}
       />
     );

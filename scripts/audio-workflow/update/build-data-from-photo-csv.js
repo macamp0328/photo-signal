@@ -223,6 +223,9 @@ export function buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix) {
   const selectedFile = selectedTrack?.fileName ?? 'concert-4.opus';
   const csvSongTitle = String(row.songTitle ?? '').trim();
   const songTitle = csvSongTitle || selectedTrack?.songTitle || undefined;
+  const albumCoverUrl = selectedTrack?.coverFile
+    ? formatAudioUrl(baseUrl, prefix, selectedTrack.coverFile)
+    : undefined;
 
   return {
     id,
@@ -231,6 +234,7 @@ export function buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix) {
     venue: String(row.venue ?? ''),
     date: String(row.date ?? ''),
     audioFile: formatAudioUrl(baseUrl, prefix, selectedFile),
+    ...(albumCoverUrl !== undefined && { albumCoverUrl }),
     imageFile: String(row.imageFile ?? ''),
     photoHashes: {},
     camera: String(row.camera ?? ''),
@@ -288,6 +292,9 @@ export function buildExpandedConcerts(extraTracks, baseUrl, prefix, startId) {
 
   for (const { track, sourceRow } of extraTracks) {
     const songTitle = String(track.songTitle ?? '').trim() || undefined;
+    const albumCoverUrl = track.coverFile
+      ? formatAudioUrl(baseUrl, prefix, track.coverFile)
+      : undefined;
 
     entries.push({
       id: nextId++,
@@ -296,6 +303,7 @@ export function buildExpandedConcerts(extraTracks, baseUrl, prefix, startId) {
       venue: String(sourceRow.venue ?? ''),
       date: String(sourceRow.date ?? ''),
       audioFile: formatAudioUrl(baseUrl, prefix, track.fileName),
+      ...(albumCoverUrl !== undefined && { albumCoverUrl }),
       // Reuse the same imageFile so the song is visually associated with the artist
       imageFile: String(sourceRow.imageFile ?? ''),
       // No photo hashes — this entry exists for playlist continuity, not recognition

@@ -669,7 +669,6 @@ function AppContent() {
       nowPlayingLine={nowPlayingLine}
       progressValue={progress}
       progressColor={progressColor}
-      actions={actions}
     />
   );
 
@@ -902,15 +901,9 @@ function AppContent() {
         cameraView={cameraView}
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
+        onSettingsClick={() => setShowSecretSettings(true)}
+        audioControls={actions}
       />
-      <button
-        type="button"
-        className="floating-settings-button"
-        onClick={() => setShowSecretSettings(true)}
-        aria-label="Open settings"
-      >
-        Settings
-      </button>
       {frameQualityIndicator}
       {guidanceMessage}
       {showSecretSettings && (
@@ -923,7 +916,7 @@ function AppContent() {
           />
         </Suspense>
       )}
-      {!showSecretSettings && (
+      {!showSecretSettings && isEnabled('show-debug-overlay') && (
         <Suspense fallback={null}>
           <DebugOverlay
             enabled

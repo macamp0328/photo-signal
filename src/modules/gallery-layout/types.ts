@@ -20,6 +20,12 @@ export interface GalleryLayoutProps {
   /** Callback when user wants to activate camera */
   onActivate: () => void;
 
+  /** Callback when user taps the settings button in the header */
+  onSettingsClick: () => void;
+
+  /** Audio controls rendered in a dedicated section below the info card */
+  audioControls?: ReactNode;
+
   /** Whether to show the info section (defaults to true for stacked layout, set false for overlay mode) */
   showInfoSection?: boolean;
 }

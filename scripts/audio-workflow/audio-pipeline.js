@@ -37,6 +37,7 @@ import { spawnSync } from 'node:child_process';
 // ---------------------------------------------------------------------------
 
 const CONFIG_FILE = path.resolve(process.cwd(), 'audio-pipeline.config.json');
+const ENV_LOCAL_FILE = path.resolve(process.cwd(), '.env.local');
 
 const DEFAULT_CSV_PATH = 'assets/prod-photographs/prod-photographs-details.csv';
 const DEFAULT_BASE_URL = 'https://photo-signal-audio-worker.whoisduck2.workers.dev';
@@ -78,6 +79,43 @@ function loadConfig(configPath) {
     console.warn(`⚠️  Could not parse config file ${configPath}: ${err.message}`);
     return {};
   }
+}
+
+function loadEnvLocal(envPath) {
+  if (!envPath || !fs.existsSync(envPath)) {
+    return { loaded: false, loadedCount: 0, filePath: envPath };
+  }
+
+  const content = fs.readFileSync(envPath, 'utf8');
+  const lines = content.split(/\r?\n/);
+  let loadedCount = 0;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    const withoutExport = line.startsWith('export ') ? line.slice(7).trim() : line;
+    const eqIndex = withoutExport.indexOf('=');
+    if (eqIndex === -1) continue;
+
+    const key = withoutExport.slice(0, eqIndex).trim();
+    if (!key) continue;
+
+    let value = withoutExport.slice(eqIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+      loadedCount += 1;
+    }
+  }
+
+  return { loaded: true, loadedCount, filePath: envPath };
 }
 
 // ---------------------------------------------------------------------------
@@ -163,6 +201,7 @@ Config file (audio-pipeline.config.json at project root):
   }
 
 R2 upload credentials (read from environment — upload is skipped if missing):
+  .env.local             Auto-loaded from project root if present
   R2_ACCOUNT_ID           Cloudflare account ID
   R2_ACCESS_KEY_ID        R2 access key ID
   R2_SECRET_ACCESS_KEY    R2 secret access key
@@ -197,6 +236,7 @@ async function main() {
 
   // Load config file, then let CLI args override
   const fileConfig = loadConfig(CONFIG_FILE);
+  const envLocalStatus = loadEnvLocal(ENV_LOCAL_FILE);
   const dryRun = toBoolean(args['dry-run']);
   const skipDownload = toBoolean(args['skip-download']);
   const skipEncode = toBoolean(args['skip-encode']);
@@ -236,6 +276,9 @@ async function main() {
   console.log(`   Prefix       : ${prefix}`);
   console.log(
     `   Upload       : ${canUpload ? 'yes (R2 credentials found)' : 'skipped (no R2 credentials)'}`
+  );
+  console.log(
+    `   Env file     : ${envLocalStatus.loaded ? `.env.local (${envLocalStatus.loadedCount} vars loaded)` : 'not found (.env.local)'}`
   );
   console.log(`   Dry run      : ${dryRun ? 'yes' : 'no'}`);
   console.log('');

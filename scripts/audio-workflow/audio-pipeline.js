@@ -26,6 +26,11 @@
  * R2 upload credentials are read from environment variables:
  *   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
  *   (upload phase is skipped if any are missing — safe for local-only runs)
+ *
+ * .env.local support:
+ *   If a .env.local file exists at the project root, its values are loaded
+ *   automatically before credentials are checked. Variables already set in the
+ *   shell environment always take precedence.
  */
 
 import fs from 'node:fs';
@@ -77,6 +82,46 @@ function loadConfig(configPath) {
   } catch (err) {
     console.warn(`⚠️  Could not parse config file ${configPath}: ${err.message}`);
     return {};
+  }
+}
+
+// ---------------------------------------------------------------------------
+// .env.local loader
+// ---------------------------------------------------------------------------
+
+/**
+ * Reads `.env.local` from the project root and sets any missing variables in
+ * `process.env`. Variables already present in the environment are not
+ * overwritten, so shell exports always take precedence.
+ *
+ * @param {string} root - project root directory (parameterised for testability)
+ */
+function loadEnvLocal(root) {
+  const envFile = path.resolve(root, '.env.local');
+  if (!fs.existsSync(envFile)) return;
+  let contents;
+  try {
+    contents = fs.readFileSync(envFile, 'utf8');
+  } catch {
+    return;
+  }
+  for (const line of contents.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let value = trimmed.slice(eqIdx + 1).trim();
+    // Strip surrounding quotes (single or double) from the value
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (key && !(key in process.env)) {
+      process.env[key] = value;
+    }
   }
 }
 
@@ -194,6 +239,9 @@ async function main() {
     printHelp();
     return;
   }
+
+  // Load .env.local before anything else so credentials are available
+  loadEnvLocal(process.cwd());
 
   // Load config file, then let CLI args override
   const fileConfig = loadConfig(CONFIG_FILE);

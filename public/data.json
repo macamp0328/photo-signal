@@ -225,7 +225,6 @@
     {
       "id": 4,
       "band": "Maz",
-      "songTitle": "",
       "venue": "The Belmont",
       "date": "2025-03-15T15:30:11-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -595,7 +594,6 @@
     {
       "id": 9,
       "band": "Buffalo Rose",
-      "songTitle": "",
       "venue": "Fairmont Austin",
       "date": "2022-03-18T12:29:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -669,10 +667,10 @@
     {
       "id": 10,
       "band": "Primo the Alien",
-      "songTitle": "",
+      "songTitle": "Do It Again",
       "venue": "Downright Austin",
       "date": "2022-03-18T14:24:03-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-primo-the-alien-do-it-again-do-it-again.opus",
       "imageFile": "/assets/prod-photographs/R0043553.jpg",
       "photoHashes": {
         "phash": [
@@ -743,7 +741,6 @@
     {
       "id": 11,
       "band": "Croy and the Boys",
-      "songTitle": "",
       "venue": "Hotel Vegas",
       "date": "2022-03-19T07:28:55-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -817,10 +814,10 @@
     {
       "id": 12,
       "band": "Heavy Meddo",
-      "songTitle": "",
+      "songTitle": "Atonal Choir File",
       "venue": "The Volstead Lounge",
       "date": "2022-03-19T08:19:18-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-heavy-meddo-atonal-choir-file-atonal-choir-file.opus",
       "imageFile": "/assets/prod-photographs/R0043676.jpg",
       "photoHashes": {
         "phash": [
@@ -891,10 +888,10 @@
     {
       "id": 13,
       "band": "Thelma and the Sleaze",
-      "songTitle": "",
+      "songTitle": "Eating Ass",
       "venue": "Mohawk",
       "date": "2022-03-19T09:53:27-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thelma-and-the-sleaze-eating-ass-aint-country.opus",
       "imageFile": "/assets/prod-photographs/R0043706.jpg",
       "photoHashes": {
         "phash": [
@@ -965,7 +962,6 @@
     {
       "id": 14,
       "band": "Croy and the Boys",
-      "songTitle": "",
       "venue": "Saddle Up + BBQ",
       "date": "2022-03-19T14:16:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1039,10 +1035,10 @@
     {
       "id": 15,
       "band": "White Denim",
-      "songTitle": "Magazin",
+      "songTitle": "God Created Lock and Key",
       "venue": "High Noon",
       "date": "2022-03-19T17:49:17-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-magazin-performance.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-god-created-lock-and-key-god-created-lock-and-key.opus",
       "imageFile": "/assets/prod-photographs/R0043815.jpg",
       "photoHashes": {
         "phash": [
@@ -1113,10 +1109,10 @@
     {
       "id": 16,
       "band": "Overcoats",
-      "songTitle": "",
+      "songTitle": "heckler",
       "venue": "Cheer Up Charlies",
       "date": "2023-03-14T13:04:22-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-overcoats-heckler-heckler.opus",
       "imageFile": "/assets/prod-photographs/R0051464.jpg",
       "photoHashes": {
         "phash": [
@@ -1187,10 +1183,10 @@
     {
       "id": 17,
       "band": "Cas Haley",
-      "songTitle": "",
+      "songTitle": "Always Waiting For You",
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-always-waiting-for-you-the-front-porch.opus",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "photoHashes": {
         "phash": [
@@ -1261,10 +1257,10 @@
     {
       "id": 18,
       "band": "Le Ren",
-      "songTitle": "",
+      "songTitle": "Dyan",
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T15:40:33-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-le-ren-dyan-leftovers.opus",
       "imageFile": "/assets/prod-photographs/R0051507.jpg",
       "photoHashes": {
         "phash": [
@@ -1335,7 +1331,6 @@
     {
       "id": 19,
       "band": "Thao & the Get Down Stay Down",
-      "songTitle": "",
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T17:56:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1409,10 +1404,10 @@
     {
       "id": 20,
       "band": "Charlie John",
-      "songTitle": "",
+      "songTitle": "Over My Head",
       "venue": "The Lucky Duck",
       "date": "2023-03-16T12:09:09-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-charlie-john-over-my-head-charlie.opus",
       "imageFile": "/assets/prod-photographs/R0051545.jpg",
       "photoHashes": {
         "phash": [
@@ -1557,7 +1552,6 @@
     {
       "id": 22,
       "band": "Arya",
-      "songTitle": "",
       "venue": "French Legation",
       "date": "2023-03-17T08:46:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1631,10 +1625,10 @@
     {
       "id": 23,
       "band": "Cheekface",
-      "songTitle": "",
+      "songTitle": "Living Lo-Fi",
       "venue": "High Noon",
       "date": "2023-03-17T10:14:39-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cheekface-living-lo-fi-middle-spoon.opus",
       "imageFile": "/assets/prod-photographs/R0051602.jpg",
       "photoHashes": {
         "phash": [
@@ -1705,7 +1699,6 @@
     {
       "id": 24,
       "band": "dog petting",
-      "songTitle": "",
       "venue": "",
       "date": "2023-03-17T11:03:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -1779,10 +1772,10 @@
     {
       "id": 25,
       "band": "David Ramirez",
-      "songTitle": "",
+      "songTitle": "New Way of Living",
       "venue": "The White Horse",
       "date": "2023-03-17T12:11:50-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-david-ramirez-new-way-of-living-fables.opus",
       "imageFile": "/assets/prod-photographs/R0051632.jpg",
       "photoHashes": {
         "phash": [
@@ -1853,10 +1846,10 @@
     {
       "id": 26,
       "band": "Crumbsnatchers",
-      "songTitle": "",
+      "songTitle": "One Call",
       "venue": "Parish",
       "date": "2023-03-18T07:44:19-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-crumbsnatchers-one-call-one-call.opus",
       "imageFile": "/assets/prod-photographs/R0051657.jpg",
       "photoHashes": {
         "phash": [
@@ -1927,10 +1920,10 @@
     {
       "id": 27,
       "band": "Izzy Heltai",
-      "songTitle": "",
+      "songTitle": "25",
       "venue": "Parish",
       "date": "2023-03-18T08:20:11-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-izzy-heltai-25-25.opus",
       "imageFile": "/assets/prod-photographs/R0051663.jpg",
       "photoHashes": {
         "phash": [
@@ -2001,10 +1994,10 @@
     {
       "id": 28,
       "band": "Riley Downing",
-      "songTitle": "",
+      "songTitle": "Start It Over",
       "venue": "Parish",
       "date": "2023-03-18T09:21:35-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-riley-downing-start-it-over-start-it-over.opus",
       "imageFile": "/assets/prod-photographs/R0051681.jpg",
       "photoHashes": {
         "phash": [
@@ -2075,10 +2068,10 @@
     {
       "id": 29,
       "band": "Matthew Logan Vasquez",
-      "songTitle": "",
+      "songTitle": "Blue Eyes - Franks Full Moon Saloon",
       "venue": "C-Boy's Heart & Soul",
       "date": "2023-03-18T13:09:48-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-matthew-logan-vasquez-blue-eyes-franks-full-moon-saloon-blue-eyes-franks-full-moon-saloon.opus",
       "imageFile": "/assets/prod-photographs/R0051704.jpg",
       "photoHashes": {
         "phash": [
@@ -2223,10 +2216,10 @@
     {
       "id": 31,
       "band": "Ace Park",
-      "songTitle": "MY BOP",
+      "songTitle": "KOOL KUPS 2",
       "venue": "Vaquero Taquero",
       "date": "2024-03-11T14:48:12-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-my-bop-mifits-in-the-park.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-kool-kups-2-i-just-wanna-be-fly-forever.opus",
       "imageFile": "/assets/prod-photographs/R0055149.jpg",
       "photoHashes": {
         "phash": [
@@ -2297,10 +2290,10 @@
     {
       "id": 32,
       "band": "Red Axes",
-      "songTitle": "",
+      "songTitle": "Goodbye Mary",
       "venue": "Mohawk",
       "date": "2024-03-11T15:53:02-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-red-axes-goodbye-mary-one-more-city.opus",
       "imageFile": "/assets/prod-photographs/R0055167.jpg",
       "photoHashes": {
         "phash": [
@@ -2445,10 +2438,10 @@
     {
       "id": 34,
       "band": "Telescreens",
-      "songTitle": "",
+      "songTitle": "Lost Ants",
       "venue": "Mohawk",
       "date": "2024-03-11T19:46:32-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-lost-ants-7.opus",
       "imageFile": "/assets/prod-photographs/R0055227.jpg",
       "photoHashes": {
         "phash": [
@@ -2593,10 +2586,10 @@
     {
       "id": 36,
       "band": "Bootsy Collins",
-      "songTitle": "",
+      "songTitle": "Hip Hop Lollipop feat FANTAAZMA and Victor Wooten",
       "venue": "Mohawk",
       "date": "2024-03-12T16:51:05-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bootsy-collins-hip-hop-lollipop-feat-fantaazma-and-victor-wooten-hip-hop-lollipop-feat-fantaazma-and-victor-wooten.opus",
       "imageFile": "/assets/prod-photographs/R0055319.jpg",
       "photoHashes": {
         "phash": [
@@ -2667,10 +2660,10 @@
     {
       "id": 37,
       "band": "FANTAAZMA",
-      "songTitle": "Rocketship feat Bootsy Collins and Kokane",
+      "songTitle": "Attitude",
       "venue": "Mohawk",
       "date": "2024-03-12T16:56:58-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-attitude-fantasma-goria.opus",
       "imageFile": "/assets/prod-photographs/R0055333.jpg",
       "photoHashes": {
         "phash": [
@@ -2815,10 +2808,10 @@
     {
       "id": 39,
       "band": "Mugger",
-      "songTitle": "",
+      "songTitle": "Dickhead Logic",
       "venue": "Hotel Vegas",
       "date": "2024-03-13T10:49:22-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mugger-dickhead-logic-luck-forever.opus",
       "imageFile": "/assets/prod-photographs/R0055419.jpg",
       "photoHashes": {
         "phash": [
@@ -2889,10 +2882,10 @@
     {
       "id": 40,
       "band": "chokecherry",
-      "songTitle": "",
+      "songTitle": "Glass Jaw",
       "venue": "Hotel Vegas",
       "date": "2024-03-13T11:51:43-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-chokecherry-glass-jaw-glass-jaw.opus",
       "imageFile": "/assets/prod-photographs/R0055467.jpg",
       "photoHashes": {
         "phash": [
@@ -3037,10 +3030,10 @@
     {
       "id": 42,
       "band": "Bad Bad Hats",
-      "songTitle": "TPA",
+      "songTitle": "Happy",
       "venue": "Mohawk",
       "date": "2024-03-13T15:20:44-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-tpa-bad-bad-hats.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-happy-bad-bad-hats.opus",
       "imageFile": "/assets/prod-photographs/R0055488.jpg",
       "photoHashes": {
         "phash": [
@@ -3185,10 +3178,10 @@
     {
       "id": 44,
       "band": "Balthvs",
-      "songTitle": "Sun and Moon",
+      "songTitle": "Flesh and Soul",
       "venue": "Mohawk",
       "date": "2024-03-13T17:27:46-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-and-moon-sun-and-moon.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-flesh-and-soul-flesh-and-soul.opus",
       "imageFile": "/assets/prod-photographs/R0055518.jpg",
       "photoHashes": {
         "phash": [
@@ -3407,7 +3400,6 @@
     {
       "id": 47,
       "band": "",
-      "songTitle": "",
       "venue": "",
       "date": "2024-03-14T09:38:25-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -3481,7 +3473,6 @@
     {
       "id": 48,
       "band": "",
-      "songTitle": "",
       "venue": "",
       "date": "2024-03-14T10:34:06-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -3703,10 +3694,10 @@
     {
       "id": 51,
       "band": "Telescreens",
-      "songTitle": "",
+      "songTitle": "Melancholy Dreaming",
       "venue": "The Volstead Lounge",
       "date": "2024-03-14T11:41:07-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-melancholy-dreaming-the-return.opus",
       "imageFile": "/assets/prod-photographs/R0055632.jpg",
       "photoHashes": {
         "phash": [
@@ -4221,7 +4212,6 @@
     {
       "id": 58,
       "band": "Shower Curtain",
-      "songTitle": "",
       "venue": "High Noon",
       "date": "2024-03-15T06:50:29-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -4443,7 +4433,6 @@
     {
       "id": 61,
       "band": "City of the Sun",
-      "songTitle": "",
       "venue": "The Coral Snake",
       "date": "2024-03-15T10:45:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -4517,10 +4506,10 @@
     {
       "id": 62,
       "band": "The Deslondes",
-      "songTitle": "South Dakota Wild One",
+      "songTitle": "Low Down and Lonesome",
       "venue": "High Noon",
       "date": "2024-03-15T11:36:40-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-south-dakota-wild-one-ways-and-means.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-low-down-and-lonesome-holy-cross-blues.opus",
       "imageFile": "/assets/prod-photographs/R0055832.jpg",
       "photoHashes": {
         "phash": [
@@ -4665,7 +4654,6 @@
     {
       "id": 64,
       "band": "Lucky Lo",
-      "songTitle": "",
       "venue": "Swan Dive",
       "date": "2024-03-15T16:39:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -4813,7 +4801,6 @@
     {
       "id": 66,
       "band": "Ang�lica Garcia",
-      "songTitle": "",
       "venue": "Swan Dive",
       "date": "2024-03-15T18:40:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -5627,7 +5614,6 @@
     {
       "id": 77,
       "band": "Croy and the Boys",
-      "songTitle": "",
       "venue": "The White Horse",
       "date": "2025-03-11T14:11:53-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -5701,7 +5687,6 @@
     {
       "id": 78,
       "band": "Random Band",
-      "songTitle": "",
       "venue": "Hotel Vegas",
       "date": "2025-03-11T14:53:40-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -6145,7 +6130,6 @@
     {
       "id": 84,
       "band": "Blah Spa",
-      "songTitle": "",
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:13:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
@@ -6733,6 +6717,2818 @@
       "aperture": "f/2.8",
       "shutterSpeed": "1/60",
       "iso": "3200"
+    },
+    {
+      "id": 92,
+      "band": "Willow Parlo",
+      "songTitle": "I Love You Always Forever",
+      "venue": "Parkside",
+      "date": "2024-03-11T13:41:17-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-i-love-you-always-forever-i-love-you-always-forever.opus",
+      "imageFile": "/assets/prod-photographs/R0055134.jpg",
+      "photoHashes": {
+        "phash": [
+          "2b2b224ed6c69d16",
+          "0b2b264edeee8d10",
+          "0b2b260edeee8d14",
+          "0b2b261edeee0d50",
+          "0b2a261edeee0d54"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "0b2367d4f0c6ccc6",
+            "1f2367c4d0c6ccc6",
+            "1f2367c4f0c6ccc2",
+            "1f2367c4f0c6ccc2",
+            "1f2367c4f0c2ecc2"
+          ],
+          "center-60": [
+            "893b239931033f75",
+            "093b639931033f75",
+            "093b639931033f75",
+            "093b638935813f75",
+            "813b638935813f75"
+          ],
+          "center-50": [
+            "8d37c19fb1818fc0",
+            "8937c19fb1818fc1",
+            "8937c19fb5818fc0",
+            "8937c19fb5818fc0",
+            "8937c19fb5818fc0"
+          ],
+          "top-left-70": [
+            "375a90fa9b232943",
+            "375a18fa93236943",
+            "371a18fa93237943",
+            "371a1afa13273943",
+            "371a18fa13633963"
+          ],
+          "top-right-70": [
+            "aba87850f5c1af21",
+            "abacf840b1c1bf21",
+            "ab2cf848b143bf21",
+            "ab3cf848b143bd21",
+            "a93cf84cb143bd21"
+          ],
+          "bottom-left-70": [
+            "3766cc591366ec84",
+            "3767cc511766ec04",
+            "3567cc511766ee04",
+            "3567ce1115e6ee04",
+            "3567ce1115e6ce84"
+          ],
+          "bottom-right-70": [
+            "e3032c3df3414357",
+            "e1812c3df3434b47",
+            "e1812d3df3034b47",
+            "e1812d3df3034b47",
+            "e1812d3df3034b47"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/50",
+      "iso": "3200"
+    },
+    {
+      "id": 93,
+      "band": "Willow Parlo",
+      "songTitle": "Silver Screens",
+      "venue": "Parkside",
+      "date": "2024-03-11T13:41:17-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-silver-screens-silver-screens.opus",
+      "imageFile": "/assets/prod-photographs/R0055134.jpg",
+      "photoHashes": {
+        "phash": [
+          "2b2b224ed6c69d16",
+          "0b2b264edeee8d10",
+          "0b2b260edeee8d14",
+          "0b2b261edeee0d50",
+          "0b2a261edeee0d54"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "0b2367d4f0c6ccc6",
+            "1f2367c4d0c6ccc6",
+            "1f2367c4f0c6ccc2",
+            "1f2367c4f0c6ccc2",
+            "1f2367c4f0c2ecc2"
+          ],
+          "center-60": [
+            "893b239931033f75",
+            "093b639931033f75",
+            "093b639931033f75",
+            "093b638935813f75",
+            "813b638935813f75"
+          ],
+          "center-50": [
+            "8d37c19fb1818fc0",
+            "8937c19fb1818fc1",
+            "8937c19fb5818fc0",
+            "8937c19fb5818fc0",
+            "8937c19fb5818fc0"
+          ],
+          "top-left-70": [
+            "375a90fa9b232943",
+            "375a18fa93236943",
+            "371a18fa93237943",
+            "371a1afa13273943",
+            "371a18fa13633963"
+          ],
+          "top-right-70": [
+            "aba87850f5c1af21",
+            "abacf840b1c1bf21",
+            "ab2cf848b143bf21",
+            "ab3cf848b143bd21",
+            "a93cf84cb143bd21"
+          ],
+          "bottom-left-70": [
+            "3766cc591366ec84",
+            "3767cc511766ec04",
+            "3567cc511766ee04",
+            "3567ce1115e6ee04",
+            "3567ce1115e6ce84"
+          ],
+          "bottom-right-70": [
+            "e3032c3df3414357",
+            "e1812c3df3434b47",
+            "e1812d3df3034b47",
+            "e1812d3df3034b47",
+            "e1812d3df3034b47"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/50",
+      "iso": "3200"
+    },
+    {
+      "id": 94,
+      "band": "Ace Park",
+      "songTitle": "Kraken ChopNotSlop Remix",
+      "venue": "Vaquero Taquero",
+      "date": "2024-03-11T14:48:12-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-kraken-chopnotslop-remix-texas-hold-em.opus",
+      "imageFile": "/assets/prod-photographs/R0055149.jpg",
+      "photoHashes": {
+        "phash": [
+          "9998666725919b96",
+          "b9b84e6725819396",
+          "b9b84e4f25819396",
+          "b9384e5f25819396",
+          "b9384e5f25819396"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "9d9e62426c61b396",
+            "bdba42426c61b396",
+            "bf3a52426c60b396",
+            "bb3a52526c709396",
+            "bb3a52522c70d396"
+          ],
+          "center-60": [
+            "9f8ed0d24e7070f0",
+            "9f8ed0d24e7870e0",
+            "9f0ed0d24e78f0e0",
+            "1f0ed0d24e78f0e1",
+            "1f0ed0924e7cf0e1"
+          ],
+          "center-50": [
+            "8786f0c54e7a7074",
+            "0786f0c74e7a7074",
+            "070af8974e7a7074",
+            "070af8974e7a7074",
+            "070af8974e78f072"
+          ],
+          "top-left-70": [
+            "22dcdd132d32d2c6",
+            "22ccdd532d32d2c6",
+            "22dcdd530d32d2c6",
+            "22cedd538532d2c6",
+            "22cefd1385b2d286"
+          ],
+          "top-right-70": [
+            "807e7f91cfe03007",
+            "806e7f91cff03007",
+            "806c7f91cff03047",
+            "84684f91eff03067",
+            "85284f91eff03067"
+          ],
+          "bottom-left-70": [
+            "232327acad3b3331",
+            "232327acad3b3331",
+            "2323278cadbb3331",
+            "232306ceadbb3331",
+            "232302ceadbb3371"
+          ],
+          "bottom-right-70": [
+            "8181c1cecfc9f1f0",
+            "818181eecfc9f1f0",
+            "8181a1eecec9f1f0",
+            "8181b0eececbf1b0",
+            "8581b06ececbf1b0"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/125",
+      "iso": "3200"
+    },
+    {
+      "id": 95,
+      "band": "Ace Park",
+      "songTitle": "MY BOP",
+      "venue": "Vaquero Taquero",
+      "date": "2024-03-11T14:48:12-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-my-bop-mifits-in-the-park.opus",
+      "imageFile": "/assets/prod-photographs/R0055149.jpg",
+      "photoHashes": {
+        "phash": [
+          "9998666725919b96",
+          "b9b84e6725819396",
+          "b9b84e4f25819396",
+          "b9384e5f25819396",
+          "b9384e5f25819396"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "9d9e62426c61b396",
+            "bdba42426c61b396",
+            "bf3a52426c60b396",
+            "bb3a52526c709396",
+            "bb3a52522c70d396"
+          ],
+          "center-60": [
+            "9f8ed0d24e7070f0",
+            "9f8ed0d24e7870e0",
+            "9f0ed0d24e78f0e0",
+            "1f0ed0d24e78f0e1",
+            "1f0ed0924e7cf0e1"
+          ],
+          "center-50": [
+            "8786f0c54e7a7074",
+            "0786f0c74e7a7074",
+            "070af8974e7a7074",
+            "070af8974e7a7074",
+            "070af8974e78f072"
+          ],
+          "top-left-70": [
+            "22dcdd132d32d2c6",
+            "22ccdd532d32d2c6",
+            "22dcdd530d32d2c6",
+            "22cedd538532d2c6",
+            "22cefd1385b2d286"
+          ],
+          "top-right-70": [
+            "807e7f91cfe03007",
+            "806e7f91cff03007",
+            "806c7f91cff03047",
+            "84684f91eff03067",
+            "85284f91eff03067"
+          ],
+          "bottom-left-70": [
+            "232327acad3b3331",
+            "232327acad3b3331",
+            "2323278cadbb3331",
+            "232306ceadbb3331",
+            "232302ceadbb3371"
+          ],
+          "bottom-right-70": [
+            "8181c1cecfc9f1f0",
+            "818181eecfc9f1f0",
+            "8181a1eecec9f1f0",
+            "8181b0eececbf1b0",
+            "8581b06ececbf1b0"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/125",
+      "iso": "3200"
+    },
+    {
+      "id": 96,
+      "band": "FANTAAZMA",
+      "songTitle": "Rocketship feat Bootsy Collins and Kokane",
+      "venue": "Mohawk",
+      "date": "2024-03-12T16:56:58-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane.opus",
+      "imageFile": "/assets/prod-photographs/R0055333.jpg",
+      "photoHashes": {
+        "phash": [
+          "9392ec6d333232c6",
+          "9392e46c3b3272c6",
+          "9392646d2b3a72c6",
+          "93b0646d2a3a76c6",
+          "93b0646d2a3a7746"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "9390eccd8b333332",
+            "9390eccd1b333332",
+            "9390e4ed1b333532",
+            "91b0eced9a323532",
+            "91b0eced9a3a3512"
+          ],
+          "center-60": [
+            "93b2eccccc313391",
+            "93b2eccccc71b380",
+            "93b2eccccc71b184",
+            "b3b2eccdc871b104",
+            "b3b2eccdc071b105"
+          ],
+          "center-50": [
+            "b3326ccccc793330",
+            "b3b26cccccf83230",
+            "b3b26ccecc70b230",
+            "b3b06ccec878b234",
+            "b3b06dcec878b230"
+          ],
+          "top-left-70": [
+            "2dd2d32d6c929526",
+            "2d52d36c6c929726",
+            "2d52d32c6c9695a6",
+            "2952d32c6d9695a6",
+            "2970db246d9695a6"
+          ],
+          "top-right-70": [
+            "87b0718f0e7071c7",
+            "8790718f0e7075c7",
+            "8f92718e0e7065c7",
+            "8f92718e0b7264c7",
+            "8b9271ae0b7264e6"
+          ],
+          "bottom-left-70": [
+            "2d2d2d68dad29293",
+            "2d2d2d48db939293",
+            "2d2d6c48db939293",
+            "292d6858db9392b3",
+            "292168d8db9392f3"
+          ],
+          "bottom-right-70": [
+            "8f8f8f0e78707070",
+            "8f8f8e1e3870f070",
+            "8f8f8e1a38f1f060",
+            "8f8f8e1a19f1f060",
+            "8f8b8e1a19f1f260"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/180",
+      "iso": "3200"
+    },
+    {
+      "id": 97,
+      "band": "Overcoats",
+      "songTitle": "Leave The Light On",
+      "venue": "Cheer Up Charlies",
+      "date": "2023-03-14T13:04:22-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-overcoats-leave-the-light-on-young.opus",
+      "imageFile": "/assets/prod-photographs/R0051464.jpg",
+      "photoHashes": {
+        "phash": [
+          "bf924c591ac64b91",
+          "af964c591ac64b91",
+          "af964e1b0ac64b91",
+          "af964e1a2ac64b91",
+          "af964e1a2ac46b91"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a3b6441d1ec65715",
+            "a3b64c1d064e1797",
+            "a3b64e1d064e1787",
+            "a3964e1d064e5787",
+            "ab964e1d064e1787"
+          ],
+          "center-60": [
+            "a1a4de3f286da063",
+            "a1a4df3f286da023",
+            "a1a4df3f2879a023",
+            "a3a0df3f285ba023",
+            "a3a0df9f285ba023"
+          ],
+          "center-50": [
+            "b1e0d7bf5e10a061",
+            "b1e0d79f5e11a061",
+            "b1e0d78f5e11a071",
+            "b3e0d78f5e11a070",
+            "b3e0978f5e11a851"
+          ],
+          "top-left-70": [
+            "283a6f289b67c6d0",
+            "383a7f089967c5d0",
+            "383a7d589963c5d0",
+            "383a7d589d63c5c0",
+            "383a7d589d63c5c0"
+          ],
+          "top-right-70": [
+            "9edc09be7d083215",
+            "9edc493e6f881215",
+            "8edc4b3e6f881215",
+            "8edc4b3e6f881215",
+            "8edc4b3e67881615"
+          ],
+          "bottom-left-70": [
+            "d929109ee7770643",
+            "dd28189ee7750643",
+            "dd2a989ee7710243",
+            "dd2a989e67710263",
+            "dd2a989e67710263"
+          ],
+          "bottom-right-70": [
+            "bf9af4744dcb8800",
+            "bf98bcf44dcb8400",
+            "bf98bcd44ddb8400",
+            "bf88bcd44ddb8402",
+            "bf88bcd44ddb8402"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "200"
+    },
+    {
+      "id": 98,
+      "band": "Cas Haley",
+      "songTitle": "Have You Ever Seen The Rain Reggae Cover",
+      "venue": "Antone's",
+      "date": "2023-03-14T14:10:50-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-have-you-ever-seen-the-rain-reggae-cover-boots-rock-reggae-vol-1.opus",
+      "imageFile": "/assets/prod-photographs/R0051481.jpg",
+      "photoHashes": {
+        "phash": [
+          "85846a73338c9e57",
+          "85846a73339c1e57",
+          "8784ea73131c1e57",
+          "a784ea73121c1e57",
+          "a784ea73121c1e57"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a58cfe7371210c56",
+            "a5ac7e7371210c56",
+            "a7ac5e7361210e56",
+            "a3ac5e7371210e56",
+            "a3ac567371231a56"
+          ],
+          "center-60": [
+            "ab8e467471a52786",
+            "ab8e447671352786",
+            "ab8e047c713527a6",
+            "ab8e047c713527a6",
+            "ab8e1478713527a6"
+          ],
+          "center-50": [
+            "8184cede7d356261",
+            "81c4ce5a7d376261",
+            "81c0ce5afd376261",
+            "a1c8c64afd376261",
+            "a1c8ce42fd366271"
+          ],
+          "top-left-70": [
+            "1bd2cd0c34b70b55",
+            "0bd2cd0c34b78b55",
+            "0bd2cd0c34bd8b55",
+            "0bd2cd8c34bd8b54",
+            "0b92ed8c34bd8b54"
+          ],
+          "top-right-70": [
+            "9e780d86e2639d94",
+            "9f680d86e2639d94",
+            "9f680d06e2539d96",
+            "9f680d06e2539d96",
+            "9f680d42e2539597"
+          ],
+          "bottom-left-70": [
+            "2b333332b2b4b4a3",
+            "2b333332b2b4b683",
+            "2b3332b2b2b4b683",
+            "2b1732b232b4b687",
+            "2917b2b232b496c7"
+          ],
+          "bottom-right-70": [
+            "9793f1e068686a47",
+            "9793f0e0e8687a43",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a5a42"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 99,
+      "band": "Cas Haley",
+      "songTitle": "Kids Forever",
+      "venue": "Antone's",
+      "date": "2023-03-14T14:10:50-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-kids-forever-the-front-porch.opus",
+      "imageFile": "/assets/prod-photographs/R0051481.jpg",
+      "photoHashes": {
+        "phash": [
+          "85846a73338c9e57",
+          "85846a73339c1e57",
+          "8784ea73131c1e57",
+          "a784ea73121c1e57",
+          "a784ea73121c1e57"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a58cfe7371210c56",
+            "a5ac7e7371210c56",
+            "a7ac5e7361210e56",
+            "a3ac5e7371210e56",
+            "a3ac567371231a56"
+          ],
+          "center-60": [
+            "ab8e467471a52786",
+            "ab8e447671352786",
+            "ab8e047c713527a6",
+            "ab8e047c713527a6",
+            "ab8e1478713527a6"
+          ],
+          "center-50": [
+            "8184cede7d356261",
+            "81c4ce5a7d376261",
+            "81c0ce5afd376261",
+            "a1c8c64afd376261",
+            "a1c8ce42fd366271"
+          ],
+          "top-left-70": [
+            "1bd2cd0c34b70b55",
+            "0bd2cd0c34b78b55",
+            "0bd2cd0c34bd8b55",
+            "0bd2cd8c34bd8b54",
+            "0b92ed8c34bd8b54"
+          ],
+          "top-right-70": [
+            "9e780d86e2639d94",
+            "9f680d86e2639d94",
+            "9f680d06e2539d96",
+            "9f680d06e2539d96",
+            "9f680d42e2539597"
+          ],
+          "bottom-left-70": [
+            "2b333332b2b4b4a3",
+            "2b333332b2b4b683",
+            "2b3332b2b2b4b683",
+            "2b1732b232b4b687",
+            "2917b2b232b496c7"
+          ],
+          "bottom-right-70": [
+            "9793f1e068686a47",
+            "9793f0e0e8687a43",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a5a42"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 100,
+      "band": "Cas Haley",
+      "songTitle": "Patience For The Process",
+      "venue": "Antone's",
+      "date": "2023-03-14T14:10:50-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-patience-for-the-process-the-front-porch.opus",
+      "imageFile": "/assets/prod-photographs/R0051481.jpg",
+      "photoHashes": {
+        "phash": [
+          "85846a73338c9e57",
+          "85846a73339c1e57",
+          "8784ea73131c1e57",
+          "a784ea73121c1e57",
+          "a784ea73121c1e57"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a58cfe7371210c56",
+            "a5ac7e7371210c56",
+            "a7ac5e7361210e56",
+            "a3ac5e7371210e56",
+            "a3ac567371231a56"
+          ],
+          "center-60": [
+            "ab8e467471a52786",
+            "ab8e447671352786",
+            "ab8e047c713527a6",
+            "ab8e047c713527a6",
+            "ab8e1478713527a6"
+          ],
+          "center-50": [
+            "8184cede7d356261",
+            "81c4ce5a7d376261",
+            "81c0ce5afd376261",
+            "a1c8c64afd376261",
+            "a1c8ce42fd366271"
+          ],
+          "top-left-70": [
+            "1bd2cd0c34b70b55",
+            "0bd2cd0c34b78b55",
+            "0bd2cd0c34bd8b55",
+            "0bd2cd8c34bd8b54",
+            "0b92ed8c34bd8b54"
+          ],
+          "top-right-70": [
+            "9e780d86e2639d94",
+            "9f680d86e2639d94",
+            "9f680d06e2539d96",
+            "9f680d06e2539d96",
+            "9f680d42e2539597"
+          ],
+          "bottom-left-70": [
+            "2b333332b2b4b4a3",
+            "2b333332b2b4b683",
+            "2b3332b2b2b4b683",
+            "2b1732b232b4b687",
+            "2917b2b232b496c7"
+          ],
+          "bottom-right-70": [
+            "9793f1e068686a47",
+            "9793f0e0e8687a43",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a5a42"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 101,
+      "band": "Cas Haley",
+      "songTitle": "Push Away",
+      "venue": "Antone's",
+      "date": "2023-03-14T14:10:50-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-push-away-the-front-porch.opus",
+      "imageFile": "/assets/prod-photographs/R0051481.jpg",
+      "photoHashes": {
+        "phash": [
+          "85846a73338c9e57",
+          "85846a73339c1e57",
+          "8784ea73131c1e57",
+          "a784ea73121c1e57",
+          "a784ea73121c1e57"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a58cfe7371210c56",
+            "a5ac7e7371210c56",
+            "a7ac5e7361210e56",
+            "a3ac5e7371210e56",
+            "a3ac567371231a56"
+          ],
+          "center-60": [
+            "ab8e467471a52786",
+            "ab8e447671352786",
+            "ab8e047c713527a6",
+            "ab8e047c713527a6",
+            "ab8e1478713527a6"
+          ],
+          "center-50": [
+            "8184cede7d356261",
+            "81c4ce5a7d376261",
+            "81c0ce5afd376261",
+            "a1c8c64afd376261",
+            "a1c8ce42fd366271"
+          ],
+          "top-left-70": [
+            "1bd2cd0c34b70b55",
+            "0bd2cd0c34b78b55",
+            "0bd2cd0c34bd8b55",
+            "0bd2cd8c34bd8b54",
+            "0b92ed8c34bd8b54"
+          ],
+          "top-right-70": [
+            "9e780d86e2639d94",
+            "9f680d86e2639d94",
+            "9f680d06e2539d96",
+            "9f680d06e2539d96",
+            "9f680d42e2539597"
+          ],
+          "bottom-left-70": [
+            "2b333332b2b4b4a3",
+            "2b333332b2b4b683",
+            "2b3332b2b2b4b683",
+            "2b1732b232b4b687",
+            "2917b2b232b496c7"
+          ],
+          "bottom-right-70": [
+            "9793f1e068686a47",
+            "9793f0e0e8687a43",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a5a42"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 102,
+      "band": "Cas Haley",
+      "songTitle": "Roundabout",
+      "venue": "Antone's",
+      "date": "2023-03-14T14:10:50-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-roundabout-the-front-porch.opus",
+      "imageFile": "/assets/prod-photographs/R0051481.jpg",
+      "photoHashes": {
+        "phash": [
+          "85846a73338c9e57",
+          "85846a73339c1e57",
+          "8784ea73131c1e57",
+          "a784ea73121c1e57",
+          "a784ea73121c1e57"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a58cfe7371210c56",
+            "a5ac7e7371210c56",
+            "a7ac5e7361210e56",
+            "a3ac5e7371210e56",
+            "a3ac567371231a56"
+          ],
+          "center-60": [
+            "ab8e467471a52786",
+            "ab8e447671352786",
+            "ab8e047c713527a6",
+            "ab8e047c713527a6",
+            "ab8e1478713527a6"
+          ],
+          "center-50": [
+            "8184cede7d356261",
+            "81c4ce5a7d376261",
+            "81c0ce5afd376261",
+            "a1c8c64afd376261",
+            "a1c8ce42fd366271"
+          ],
+          "top-left-70": [
+            "1bd2cd0c34b70b55",
+            "0bd2cd0c34b78b55",
+            "0bd2cd0c34bd8b55",
+            "0bd2cd8c34bd8b54",
+            "0b92ed8c34bd8b54"
+          ],
+          "top-right-70": [
+            "9e780d86e2639d94",
+            "9f680d86e2639d94",
+            "9f680d06e2539d96",
+            "9f680d06e2539d96",
+            "9f680d42e2539597"
+          ],
+          "bottom-left-70": [
+            "2b333332b2b4b4a3",
+            "2b333332b2b4b683",
+            "2b3332b2b2b4b683",
+            "2b1732b232b4b687",
+            "2917b2b232b496c7"
+          ],
+          "bottom-right-70": [
+            "9793f1e068686a47",
+            "9793f0e0e8687a43",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a7a40",
+            "9f93f0e0e86a5a42"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 103,
+      "band": "Le Ren",
+      "songTitle": "Early Morning Rain feat Buck Meek",
+      "venue": "Central Presbyterian Church",
+      "date": "2023-03-14T15:40:33-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-le-ren-early-morning-rain-feat-buck-meek-early-morning-rain-feat-buck-meek.opus",
+      "imageFile": "/assets/prod-photographs/R0051507.jpg",
+      "photoHashes": {
+        "phash": [
+          "b778e6c92326c903",
+          "b778e6cb2326c901",
+          "b778e4cb2326cb01",
+          "b75ae4cb2326cb01",
+          "b75ae4c3a326cb01"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "355ae6d93468c2d1",
+            "b55ae6d93448c2d1",
+            "b55ae6d93468e051",
+            "b55aa6d134e8e053",
+            "b55aa6d124e9e053"
+          ],
+          "center-60": [
+            "3f5ad0912d2ab6c2",
+            "3f5ed8912d0ab642",
+            "bd5ad8912d0ab662",
+            "ad5ad8912c8bb662",
+            "ad5ad8912c8bb662"
+          ],
+          "center-50": [
+            "2f52d0b56f1a24d4",
+            "2f52d0b54f9a2cd0",
+            "2f52d8b54f922cd0",
+            "2f52c8b54f926cd0",
+            "2f52c8b64f926cd0"
+          ],
+          "top-left-70": [
+            "6ed4814a9c097df4",
+            "6ed4814a9c097df4",
+            "6ed4854a8c097df4",
+            "6cdc8d4a8c093df4",
+            "2cdc8d4a8d0d3d74"
+          ],
+          "top-right-70": [
+            "8e74cf98662d9446",
+            "8e74cf08672db486",
+            "8e74cf08672db486",
+            "8e74cf08672db486",
+            "8e74cf08672da4a6"
+          ],
+          "bottom-left-70": [
+            "6bfd5a94840aa553",
+            "6bed5a9c850aa551",
+            "2bedd89c850aa553",
+            "0be5d09e850abd53",
+            "0be5d09e810afd53"
+          ],
+          "bottom-right-70": [
+            "99473274669c67b0",
+            "99673270679867b0",
+            "99673274679865b0",
+            "9967327067986db0",
+            "9947b270678a6db0"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 104,
+      "band": "Charlie John",
+      "songTitle": "The Best Is Yet To Come",
+      "venue": "The Lucky Duck",
+      "date": "2023-03-16T12:09:09-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-charlie-john-the-best-is-yet-to-come-the-best-is-yet-to-come.opus",
+      "imageFile": "/assets/prod-photographs/R0051545.jpg",
+      "photoHashes": {
+        "phash": [
+          "81406f337ccc7a95",
+          "91406f327ccd7895",
+          "91606f326ccf6895",
+          "91606f326ccf6895",
+          "91606f726ccf4895"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "b1e06176e8657b24",
+            "b1e86176a8657b24",
+            "b1e86176a0657b64",
+            "b1e86176a1655b64",
+            "91e86176a16d5b64"
+          ],
+          "center-60": [
+            "bfd8e130ac8c3265",
+            "b7d8e130ac8c3365",
+            "97d8f130ae8c3265",
+            "97d8f132ae842365",
+            "97d8f132ae842365"
+          ],
+          "center-50": [
+            "90dafd368c8e1a85",
+            "90dafd368e8e1285",
+            "90dafd36ae8e1085",
+            "90dafd36ae8e1085",
+            "90dafd36ae8e1085"
+          ],
+          "top-left-70": [
+            "865d62d2f8389b46",
+            "045d42f6fab8b246",
+            "054d42f6fea8b246",
+            "054d42f6fea8b246",
+            "054d42f6fea8b246"
+          ],
+          "top-right-70": [
+            "c73328746ec2f093",
+            "c73328746ec2d893",
+            "c73328746ec2d493",
+            "c73328746ec2d493",
+            "c72328766ec2d493"
+          ],
+          "bottom-left-70": [
+            "03849c9f616d5f91",
+            "23849c9f616d5e91",
+            "23849c9f616d5ab1",
+            "23a49c9f606d5ab1",
+            "23849c9f646d5ab1"
+          ],
+          "bottom-right-70": [
+            "cfd6722b2b031274",
+            "cfd6762b2a0b1264",
+            "cfd6762b2a0b1264",
+            "cfd6362b2a8b12c4",
+            "cdd6362b2a8b12e4"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "1600"
+    },
+    {
+      "id": 105,
+      "band": "Cheekface",
+      "songTitle": "You Always Want to Bomb the Middle East",
+      "venue": "High Noon",
+      "date": "2023-03-17T10:14:39-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cheekface-you-always-want-to-bomb-the-middle-east-too-much-to-ask.opus",
+      "imageFile": "/assets/prod-photographs/R0051602.jpg",
+      "photoHashes": {
+        "phash": [
+          "6954a41a9aad8d97",
+          "6954a45a9aad0d97",
+          "6954a45a9ba50d97",
+          "6954a4589ba54d97",
+          "6954a45c9ba44d97"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "7d74a85256a8d2a3",
+            "7ff4a85256a850a3",
+            "7fd4a85ad6a850a1",
+            "7fd4a85ad62851a1",
+            "7fd4a05ad62951a1"
+          ],
+          "center-60": [
+            "57ec6a16a44fa0d1",
+            "57ec6a16a44fa0d1",
+            "57ec6a16a44fa0d1",
+            "57a96a96a44fa0d1",
+            "57a96a96a04fa0f1"
+          ],
+          "center-50": [
+            "534b58b42a55e0e7",
+            "514b5cb42a55e0e7",
+            "514b5cb42a5d60e7",
+            "51eb5cb4225d60c7",
+            "11ea5cb42a5d60e7"
+          ],
+          "top-left-70": [
+            "c116a92b1f2ad791",
+            "c116ab2b1f28d792",
+            "c116bb291f28d792",
+            "c116bb211f28d796",
+            "c11ebb211f28d792"
+          ],
+          "top-right-70": [
+            "6b94cdc8b58d3170",
+            "6b90c5c9b5cc3171",
+            "6b90c5c9b5cc3171",
+            "6b90c5c9b5cc3171",
+            "6f9045c9b5cc3171"
+          ],
+          "bottom-left-70": [
+            "41c11716bd6a4ad7",
+            "41e11716bd6a0af3",
+            "41a11756bd6a0af3",
+            "41a11756bd6a0af3",
+            "41a1175ebd6a08f3"
+          ],
+          "bottom-right-70": [
+            "6b6ab0b476cc9c22",
+            "6f4ab0b467cc9c22",
+            "2f4ab1b467cc9c22",
+            "2f4ab1b467cc9c22",
+            "2f4ab1b447ccdc22"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.5",
+      "shutterSpeed": "1/125",
+      "iso": "200"
+    },
+    {
+      "id": 106,
+      "band": "David Ramirez",
+      "songTitle": "Nobody Meant To Slow You Down",
+      "venue": "The White Horse",
+      "date": "2023-03-17T12:11:50-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-david-ramirez-nobody-meant-to-slow-you-down-all-the-not-so-gentle-reminders.opus",
+      "imageFile": "/assets/prod-photographs/R0051632.jpg",
+      "photoHashes": {
+        "phash": [
+          "0d9ef0b8d12cda62",
+          "0d9af2b8d92cda22",
+          "0f9af0b8dd24da22",
+          "0f9af098fd34ca22",
+          "0f8af09afd16ca22"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "0d97629e3d1ec164",
+            "0d97609e3d9ec164",
+            "0fd7609a3d9ec144",
+            "0fc7f09a3d9ec140",
+            "0fd3f19a3d96c140"
+          ],
+          "center-60": [
+            "05e166353c970e97",
+            "05e172373c970e96",
+            "05e1723f3c970696",
+            "05e9b2b73c970296",
+            "05e9b2bf2c970296"
+          ],
+          "center-50": [
+            "c5ebf61c3131c1a1",
+            "c5ebf61e2131c1a1",
+            "c5ebf61e293181a1",
+            "c5fbf68c293181a1",
+            "45fbb68d29b105a1"
+          ],
+          "top-left-70": [
+            "338ce4e68a4f6b30",
+            "338ce6e48a4f6b30",
+            "338ca6f4884e6b74",
+            "338caef4884e6a74",
+            "3b8cae74884e6a74"
+          ],
+          "top-right-70": [
+            "f1de0672d0059fe0",
+            "f1ce867254059fe0",
+            "a1cec6725e058fe0",
+            "a1cec6725e258fa0",
+            "a1cec6724e358ee0"
+          ],
+          "bottom-left-70": [
+            "333b9d10aa4546e7",
+            "333add128a4546e7",
+            "333acd0a8a4746e7",
+            "33bacd0a8a4706e7",
+            "33bac50a8a4716e7"
+          ],
+          "bottom-right-70": [
+            "b1f8fbb0cc330047",
+            "b1f87bb4cc332046",
+            "b1f87ba4cc332047",
+            "b1f85b84ec336047",
+            "b1e85b84ecb36047"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "3200"
+    },
+    {
+      "id": 107,
+      "band": "Crumbsnatchers",
+      "songTitle": "Saturday",
+      "venue": "Parish",
+      "date": "2023-03-18T07:44:19-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-crumbsnatchers-saturday-petway.opus",
+      "imageFile": "/assets/prod-photographs/R0051657.jpg",
+      "photoHashes": {
+        "phash": [
+          "326ed497e94c12d2",
+          "326ed497e94812f2",
+          "3a66d49de94812f2",
+          "3a66d48de94813f2",
+          "3a66d4ade94812f2"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "32648cb17f539c23",
+            "32648cb1ff439c23",
+            "32649ca1ff41dc23",
+            "32649ca1ff41dc23",
+            "32649ca1ff41dc23"
+          ],
+          "center-60": [
+            "364ca9b847d923b4",
+            "364ca8ba47d923b4",
+            "3664a9ba42d923f4",
+            "3664a9ba42d923f4",
+            "3664a93a42d923f6"
+          ],
+          "center-50": [
+            "364d892ed2d93332",
+            "364d892ad2d933b2",
+            "3665a92ad0d933b2",
+            "3665a92ad0d933b2",
+            "3665a92ad0d933b2"
+          ],
+          "top-left-70": [
+            "6a972cd807f98645",
+            "6a972dd807798645",
+            "6a9725d80779a645",
+            "6a9725f80769a654",
+            "6a9735f00769a654"
+          ],
+          "top-right-70": [
+            "8c72c32ddad46585",
+            "0c72c32dda94e785",
+            "0c72c32dc994e7a5",
+            "0c72c32dc99ce725",
+            "0c72c32dc99ce725"
+          ],
+          "bottom-left-70": [
+            "68da92162dd15be2",
+            "68da92162ed07be2",
+            "68da92122ed17be2",
+            "28de92122ed17be2",
+            "28ded2022e717be2"
+          ],
+          "bottom-right-70": [
+            "8c2c70db92f31ce1",
+            "8c2c70db82f39ce1",
+            "8c2871da82f3dce1",
+            "8c2871dac2bbdcc1",
+            "8d28715ac2bbdcc1"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "3200"
+    },
+    {
+      "id": 108,
+      "band": "Sextile",
+      "songTitle": "Disco",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-13T12:05:13-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-disco-3.opus",
+      "imageFile": "/assets/prod-photographs/R0055482.jpg",
+      "photoHashes": {
+        "phash": [
+          "8d2c7a585cd67116",
+          "ad2c7a585cc67116",
+          "ad2c7a585cc67186",
+          "ad2d7a507c467186",
+          "ad2d7a507c467186"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "8d2e525e1cd05ec3",
+            "ad2e527e1c505e43",
+            "a92f537e0c507e41",
+            "a92f537e0c107e43",
+            "a92f537e0e107e41"
+          ],
+          "center-60": [
+            "8f69f10702396dc3",
+            "8f69f10703396cc3",
+            "8f69f10783396c43",
+            "8b69f10783396d43",
+            "8b69f10783396d43"
+          ],
+          "center-50": [
+            "81e0f365b7196d42",
+            "8960f765b7196d02",
+            "8960f365bf196d02",
+            "8960b765bf196d02",
+            "8960b765bf196d02"
+          ],
+          "top-left-70": [
+            "135ce2308d3a6dd3",
+            "13fce0328d0a6dd3",
+            "13fca0328d0b6dd3",
+            "13fca032ad0b65d3",
+            "13fca032ad0b65d3"
+          ],
+          "top-right-70": [
+            "b12e4cd247d98732",
+            "b12e4c5a47d98732",
+            "b16e4c5a47d88732",
+            "b16e4c5a47d88732",
+            "b16e4d5a47d88632"
+          ],
+          "bottom-left-70": [
+            "3313dc8dc13b1a35",
+            "3313f88dc13b1a35",
+            "2313f88dc1bb1a33",
+            "2313f88dc1bb1a33",
+            "2313f98dc19b1933"
+          ],
+          "bottom-right-70": [
+            "b1b39e662578d8c0",
+            "b1b31e672578d8c0",
+            "b1b32a6725f8d8c0",
+            "a1b32a6725f8dcc0",
+            "a1b32a6725f8dcc0"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/1250",
+      "iso": "400"
+    },
+    {
+      "id": 109,
+      "band": "Sextile",
+      "songTitle": "Women Respond to Bass",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-13T12:05:13-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-women-respond-to-bass-yes-please.opus",
+      "imageFile": "/assets/prod-photographs/R0055482.jpg",
+      "photoHashes": {
+        "phash": [
+          "8d2c7a585cd67116",
+          "ad2c7a585cc67116",
+          "ad2c7a585cc67186",
+          "ad2d7a507c467186",
+          "ad2d7a507c467186"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "8d2e525e1cd05ec3",
+            "ad2e527e1c505e43",
+            "a92f537e0c507e41",
+            "a92f537e0c107e43",
+            "a92f537e0e107e41"
+          ],
+          "center-60": [
+            "8f69f10702396dc3",
+            "8f69f10703396cc3",
+            "8f69f10783396c43",
+            "8b69f10783396d43",
+            "8b69f10783396d43"
+          ],
+          "center-50": [
+            "81e0f365b7196d42",
+            "8960f765b7196d02",
+            "8960f365bf196d02",
+            "8960b765bf196d02",
+            "8960b765bf196d02"
+          ],
+          "top-left-70": [
+            "135ce2308d3a6dd3",
+            "13fce0328d0a6dd3",
+            "13fca0328d0b6dd3",
+            "13fca032ad0b65d3",
+            "13fca032ad0b65d3"
+          ],
+          "top-right-70": [
+            "b12e4cd247d98732",
+            "b12e4c5a47d98732",
+            "b16e4c5a47d88732",
+            "b16e4c5a47d88732",
+            "b16e4d5a47d88632"
+          ],
+          "bottom-left-70": [
+            "3313dc8dc13b1a35",
+            "3313f88dc13b1a35",
+            "2313f88dc1bb1a33",
+            "2313f88dc1bb1a33",
+            "2313f98dc19b1933"
+          ],
+          "bottom-right-70": [
+            "b1b39e662578d8c0",
+            "b1b31e672578d8c0",
+            "b1b32a6725f8d8c0",
+            "a1b32a6725f8dcc0",
+            "a1b32a6725f8dcc0"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/1250",
+      "iso": "400"
+    },
+    {
+      "id": 110,
+      "band": "Izzy Heltai",
+      "songTitle": "my best friend sam",
+      "venue": "Parish",
+      "date": "2023-03-18T08:20:11-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-izzy-heltai-my-best-friend-sam-my-best-friend-sam.opus",
+      "imageFile": "/assets/prod-photographs/R0051663.jpg",
+      "photoHashes": {
+        "phash": [
+          "865c39a586d117c7",
+          "865eb124c6d117c7",
+          "865eb124ce5117c7",
+          "864eb124ce5117e7",
+          "864eb024cf5117e7"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "c2563d28e8bf81e4",
+            "c2543d28e8bf85e4",
+            "c2dc3c2ae8be85c4",
+            "c2dcbc2ae8b685c4",
+            "c2dcbc2ae83685e4"
+          ],
+          "center-60": [
+            "e0c41f681fb7e015",
+            "e0cc1f681bb7e811",
+            "e0cc1f681bb7e811",
+            "e0cc17681bb7e815",
+            "e0cc17685bb7e811"
+          ],
+          "center-50": [
+            "f8c4277e13a1fa02",
+            "f8c4277e11a4fb02",
+            "f885277a11a4fb12",
+            "fa85255a11a4fb13",
+            "fa85255a11a4db53"
+          ],
+          "top-left-70": [
+            "9ce24f910ad4e396",
+            "9ca34e912ad4e396",
+            "9ca24e913ad4e396",
+            "9ca24c913ad5e396",
+            "9ca24c913ad5e396"
+          ],
+          "top-right-70": [
+            "7e4094f74a228df2",
+            "7e4094f74a228df2",
+            "fec0947f48228dd2",
+            "fac0947f48238dd2",
+            "fac0947f48238dd2"
+          ],
+          "bottom-left-70": [
+            "9d9ca2635ed46461",
+            "9d9ca2635ed46461",
+            "9c9ca2635ed4e461",
+            "8c9ca3635ed4e461",
+            "889ca3637ed4e461"
+          ],
+          "bottom-right-70": [
+            "ff7a49499b322203",
+            "ff7ac94998722203",
+            "ff7ac94998322283",
+            "ff7ac94998322283",
+            "bf7ac949983322a1"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "3200"
+    },
+    {
+      "id": 111,
+      "band": "The Deslondes",
+      "songTitle": "South Dakota Wild One",
+      "venue": "High Noon",
+      "date": "2024-03-15T11:36:40-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-south-dakota-wild-one-ways-and-means.opus",
+      "imageFile": "/assets/prod-photographs/R0055832.jpg",
+      "photoHashes": {
+        "phash": [
+          "2d24939abd958ba4",
+          "2d24939abd958ba4",
+          "2d24931abd959ba4",
+          "0d26931abd959ba4",
+          "0d66931abd959ba0"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "49641452ff9d22a7",
+            "49643452ff9522a7",
+            "49643452ff9432a7",
+            "49643452ff9432a7",
+            "49643452ff9432a7"
+          ],
+          "center-60": [
+            "4b68ac52aab95993",
+            "4b68ac52aab96993",
+            "4b68ac52abb96893",
+            "4b68ac52abb96893",
+            "4b68ac52abb96893"
+          ],
+          "center-50": [
+            "576baa54827b4887",
+            "5769ae54827b4887",
+            "5769ae54827b4097",
+            "5769ae54827b4097",
+            "5769ae54827b6087"
+          ],
+          "top-left-70": [
+            "157caf2315939516",
+            "157c2f2315939596",
+            "157c2f2b35839496",
+            "177c2f2b35839416",
+            "177c2f233d839416"
+          ],
+          "top-right-70": [
+            "27cac9d5c0aacb32",
+            "271ac9d5c1ab4b32",
+            "271ac9d5c1ab4b32",
+            "271ac9d5c1ab4b32",
+            "271acdd5c0af4332"
+          ],
+          "bottom-left-70": [
+            "175155153c5bb3a1",
+            "175155143e5bb3a1",
+            "175175142e4bf3a1",
+            "1751f5142c4bf3a1",
+            "1751f51428cbf3a1"
+          ],
+          "bottom-right-70": [
+            "35361b512a3ed8c5",
+            "35369b502a3ed8c5",
+            "35369b5028bed8c5",
+            "35369b500abed8c5",
+            "25369b508abed8c5"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/250",
+      "iso": "3200"
+    },
+    {
+      "id": 112,
+      "band": "Matthew Logan Vasquez",
+      "songTitle": "Red Fish",
+      "venue": "C-Boy's Heart & Soul",
+      "date": "2023-03-18T13:09:48-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-matthew-logan-vasquez-red-fish-red-fish.opus",
+      "imageFile": "/assets/prod-photographs/R0051704.jpg",
+      "photoHashes": {
+        "phash": [
+          "41373161b7a9b983",
+          "43373141b7ad3983",
+          "4b373140b7ad3983",
+          "493731c097ad7983",
+          "4937394097ad7983"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "49173f40c55e52d3",
+            "49173fc0e51c52d3",
+            "49173fc0a53c52d3",
+            "49173fc0a53c52d3",
+            "49173fe0a53c5253"
+          ],
+          "center-60": [
+            "59230df5ad0bf284",
+            "59230df5ad0bf284",
+            "5d230df7ad0af204",
+            "d9230df7ad0af204",
+            "d1230df7ad1af204"
+          ],
+          "center-50": [
+            "d7230cfd0951ab54",
+            "d7230cf50951ab56",
+            "d7230cf50951ab56",
+            "d5230cf50957aa56",
+            "d5230ef50853aa57"
+          ],
+          "top-left-70": [
+            "5f710559751f7104",
+            "1f71855bf51f4104",
+            "1f71855bf51b4184",
+            "9f71855be51b4184",
+            "9f71855be51b4184"
+          ],
+          "top-right-70": [
+            "2791359ba599b292",
+            "6791259ba599b292",
+            "6791259ba799b290",
+            "6f91259b2799b290",
+            "6f91249b2799b292"
+          ],
+          "bottom-left-70": [
+            "afde69b02c9b2070",
+            "8fde69f02c9b2070",
+            "8fde69f0ac9b2030",
+            "8fdf7960ac9b2030",
+            "8fdf7960ac9b2030"
+          ],
+          "bottom-right-70": [
+            "6778cf21447dc8e0",
+            "6778cf21447dc8e0",
+            "6759cf21447dc8e0",
+            "6759cf21447dc8e0",
+            "6759cf20447dc8e2"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/125",
+      "iso": "400"
+    },
+    {
+      "id": 113,
+      "band": "Red Axes",
+      "songTitle": "Hey feat ALonzo",
+      "venue": "Mohawk",
+      "date": "2024-03-11T15:53:02-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-red-axes-hey-feat-alonzo-hey-feat-alonzo.opus",
+      "imageFile": "/assets/prod-photographs/R0055167.jpg",
+      "photoHashes": {
+        "phash": [
+          "2d34d2db2d252663",
+          "2d34d2db2d252663",
+          "2db4d29b2d252663",
+          "29b4d39b2c272663",
+          "2ba4d39b0c2f2663"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "2b2c94d39b392d23",
+            "2b2c94d39b383d23",
+            "2b2cd4d39b983932",
+            "2bacd5d39f983820",
+            "2bacf5d39c9a3820"
+          ],
+          "center-60": [
+            "4b2ab49496dacb61",
+            "432ab495d69aca71",
+            "432ab4d5c792ca33",
+            "432ab5d58792ca33",
+            "432eb5d587928a33"
+          ],
+          "center-50": [
+            "436a2ca4b49ed2f1",
+            "436a2ca4b4dcd2f1",
+            "536a3ca4a4ddc2f0",
+            "534a3daca5d9c2e0",
+            "534a3daca5d9c2e0"
+          ],
+          "top-left-70": [
+            "512eab315c5aba92",
+            "112ead305d5abb92",
+            "112ead304f5abb92",
+            "196ead304d5a9b92",
+            "1966ad304d5b9b92"
+          ],
+          "top-right-70": [
+            "b68acda71a1c6c31",
+            "b79acda41a386c61",
+            "a792cda41b3c6c61",
+            "a792cda41b386d61",
+            "a792cda41b38ed60"
+          ],
+          "bottom-left-70": [
+            "5155544ccecb2ba5",
+            "5151564ece4b2ba5",
+            "1951564ece4b2ba5",
+            "195056cecc672ba5",
+            "195056cfcc770b85"
+          ],
+          "bottom-right-70": [
+            "b7b7121a1a58ccc6",
+            "b7b7121a1a19ccc6",
+            "a7b7121a1a19cdc6",
+            "afb6121a1a11ddc6",
+            "adb6121a1e11ddc6"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/60",
+      "iso": "3200"
+    },
+    {
+      "id": 114,
+      "band": "Telescreens",
+      "songTitle": "Phone Booth",
+      "venue": "Mohawk",
+      "date": "2024-03-11T19:46:32-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-phone-booth-phone-booth.opus",
+      "imageFile": "/assets/prod-photographs/R0055227.jpg",
+      "photoHashes": {
+        "phash": [
+          "b734c8c993b2b270",
+          "b7b4c8cd93929270",
+          "a7b448cd97929670",
+          "a5b448cd97b29670",
+          "a5b4484d97b29671"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "272448c9df969696",
+            "272648c9dd969696",
+            "a72448cadd969696",
+            "a726484add8696b6",
+            "ab26484add8e96b4"
+          ],
+          "center-60": [
+            "2724585b5bc35356",
+            "2324585b7fc153a6",
+            "2324585b7fc153a6",
+            "232c58537fc153a6",
+            "232c58537fc153a6"
+          ],
+          "center-50": [
+            "212c5c5e5ed37246",
+            "212cdc5e5ed17246",
+            "2128dc5e5ef17246",
+            "2128dc5e5ef17246",
+            "2128de5e6ef13246"
+          ],
+          "top-left-70": [
+            "2b36b52b6a46cd44",
+            "2b36b52a2a46cd74",
+            "2b16956a2a47cd74",
+            "0b1695622a47ddf4",
+            "0b1695622a47ddf4"
+          ],
+          "top-right-70": [
+            "9da063cd880337b7",
+            "9da063cd880237f7",
+            "9fa063c8d80237b7",
+            "9fa063d8d80237a7",
+            "97a063d8da0237a7"
+          ],
+          "bottom-left-70": [
+            "4b6b6b24b4e4c692",
+            "0b6b6a36b4e44792",
+            "096b6e36b0e44796",
+            "096b673638654796",
+            "096b6f3618654796"
+          ],
+          "bottom-right-70": [
+            "9f9d99f072622270",
+            "9f9d99f0f6460230",
+            "9f9d99f0fe060230",
+            "9f9f89e2fe060034",
+            "9f9f89a2fe070034"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.0",
+      "shutterSpeed": "1/125",
+      "iso": "3200"
+    },
+    {
+      "id": 115,
+      "band": "Bootsy Collins",
+      "songTitle": "Munchies for Your Love",
+      "venue": "Mohawk",
+      "date": "2024-03-12T16:51:05-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bootsy-collins-munchies-for-your-love-ahh-the-name-is-bootsy-baby.opus",
+      "imageFile": "/assets/prod-photographs/R0055319.jpg",
+      "photoHashes": {
+        "phash": [
+          "9bb2646d3932c2c6",
+          "9bb2646d3d32c2c4",
+          "9bb2666d6d0ac2c4",
+          "9bb2666d6d0ac2c4",
+          "9bb2666d6d0ac2c4"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "9392646c6b3333e2",
+            "9392646c2f3a71e2",
+            "9392646c2f3a71e2",
+            "9392646c2f3a71e2",
+            "9392646c2f3a71e2"
+          ],
+          "center-60": [
+            "9392ccc8693317b3",
+            "9392ccc84b1637b3",
+            "9392e8e94a163733",
+            "9392f8e942163733",
+            "9392fce902163f23"
+          ],
+          "center-50": [
+            "9796c8c8c856c7a5",
+            "9796e8c8c856c785",
+            "97b6e8c8c856c781",
+            "97b2f8c9c054c785",
+            "97b2f8c9c054c785"
+          ],
+          "top-left-70": [
+            "2cded769a8949161",
+            "2bded76988943861",
+            "2bded76a88943861",
+            "2bced77888943863",
+            "2bced77888943863"
+          ],
+          "top-right-70": [
+            "847a7985cc727782",
+            "845a7905ce72f782",
+            "851a33246eebf780",
+            "851a33246eebf684",
+            "851a33246eeaf6c4"
+          ],
+          "bottom-left-70": [
+            "29292da696979693",
+            "292929ac96979796",
+            "2929298cc6979797",
+            "2929288ec7979796",
+            "292928cec7879796"
+          ],
+          "bottom-right-70": [
+            "85858dcc78787875",
+            "85858dcc68787a75",
+            "85858cca4a6afbb1",
+            "85858c4a4a4bfbb5",
+            "8585cc4a4a4bdbb5"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/160",
+      "iso": "3200"
+    },
+    {
+      "id": 116,
+      "band": "Bad Bad Hats",
+      "songTitle": "Joseph Ratboys Version",
+      "venue": "Mohawk",
+      "date": "2024-03-13T15:20:44-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-joseph-ratboys-version-psychic-readings.opus",
+      "imageFile": "/assets/prod-photographs/R0055488.jpg",
+      "photoHashes": {
+        "phash": [
+          "2930d2dec96d2633",
+          "2930dadecd682633",
+          "2998dadecd282633",
+          "2998dadecda82623",
+          "2992dadecda82623"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "293096dedbc9a1a2",
+            "293096dedbc9a1a2",
+            "2930d6dedbd8a0a2",
+            "2930d6d6dbd8a0a6",
+            "2932d6d6dad8a0a6"
+          ],
+          "center-60": [
+            "3d3ca2a2d3d39311",
+            "3d3ca2a2d3d39311",
+            "3d3ca2a2d393b311",
+            "3d34a2a2d793b311",
+            "3d34a2a3d693b311"
+          ],
+          "center-50": [
+            "0d2d2c6ac6d6b331",
+            "0d2c2c6aced6b331",
+            "092c2c6aced7b391",
+            "092c246acef3bb91",
+            "092c246acef3bb91"
+          ],
+          "top-left-70": [
+            "2728b8b74a5ae866",
+            "2728b9974a5ae866",
+            "2728b9964b5ac966",
+            "2528b9964b5ae966",
+            "2528b9964b5a6b66"
+          ],
+          "top-right-70": [
+            "85ce7e6518182f27",
+            "85ca7ee518182f27",
+            "85ca7ee51c182d27",
+            "85ca7ee41c192d27",
+            "a5c85ae41d392d27"
+          ],
+          "bottom-left-70": [
+            "4747434b5b5a52d1",
+            "07474f4a595b52d1",
+            "07476e6a595b5291",
+            "07076e6a595b52d1",
+            "07076e6e595b5291"
+          ],
+          "bottom-right-70": [
+            "a5a585999b9898f4",
+            "a5a585999a99d874",
+            "b5b585989a99d870",
+            "b5b585889a9bd870",
+            "b5b58d889a9bd070"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/160",
+      "iso": "3200"
+    },
+    {
+      "id": 117,
+      "band": "Bad Bad Hats",
+      "songTitle": "Psychic Reader",
+      "venue": "Mohawk",
+      "date": "2024-03-13T15:20:44-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-psychic-reader-psychic-reader.opus",
+      "imageFile": "/assets/prod-photographs/R0055488.jpg",
+      "photoHashes": {
+        "phash": [
+          "2930d2dec96d2633",
+          "2930dadecd682633",
+          "2998dadecd282633",
+          "2998dadecda82623",
+          "2992dadecda82623"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "293096dedbc9a1a2",
+            "293096dedbc9a1a2",
+            "2930d6dedbd8a0a2",
+            "2930d6d6dbd8a0a6",
+            "2932d6d6dad8a0a6"
+          ],
+          "center-60": [
+            "3d3ca2a2d3d39311",
+            "3d3ca2a2d3d39311",
+            "3d3ca2a2d393b311",
+            "3d34a2a2d793b311",
+            "3d34a2a3d693b311"
+          ],
+          "center-50": [
+            "0d2d2c6ac6d6b331",
+            "0d2c2c6aced6b331",
+            "092c2c6aced7b391",
+            "092c246acef3bb91",
+            "092c246acef3bb91"
+          ],
+          "top-left-70": [
+            "2728b8b74a5ae866",
+            "2728b9974a5ae866",
+            "2728b9964b5ac966",
+            "2528b9964b5ae966",
+            "2528b9964b5a6b66"
+          ],
+          "top-right-70": [
+            "85ce7e6518182f27",
+            "85ca7ee518182f27",
+            "85ca7ee51c182d27",
+            "85ca7ee41c192d27",
+            "a5c85ae41d392d27"
+          ],
+          "bottom-left-70": [
+            "4747434b5b5a52d1",
+            "07474f4a595b52d1",
+            "07476e6a595b5291",
+            "07076e6a595b52d1",
+            "07076e6e595b5291"
+          ],
+          "bottom-right-70": [
+            "a5a585999b9898f4",
+            "a5a585999a99d874",
+            "b5b585989a99d870",
+            "b5b585889a9bd870",
+            "b5b58d889a9bd070"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/160",
+      "iso": "3200"
+    },
+    {
+      "id": 118,
+      "band": "Bad Bad Hats",
+      "songTitle": "TPA",
+      "venue": "Mohawk",
+      "date": "2024-03-13T15:20:44-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-tpa-bad-bad-hats.opus",
+      "imageFile": "/assets/prod-photographs/R0055488.jpg",
+      "photoHashes": {
+        "phash": [
+          "2930d2dec96d2633",
+          "2930dadecd682633",
+          "2998dadecd282633",
+          "2998dadecda82623",
+          "2992dadecda82623"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "293096dedbc9a1a2",
+            "293096dedbc9a1a2",
+            "2930d6dedbd8a0a2",
+            "2930d6d6dbd8a0a6",
+            "2932d6d6dad8a0a6"
+          ],
+          "center-60": [
+            "3d3ca2a2d3d39311",
+            "3d3ca2a2d3d39311",
+            "3d3ca2a2d393b311",
+            "3d34a2a2d793b311",
+            "3d34a2a3d693b311"
+          ],
+          "center-50": [
+            "0d2d2c6ac6d6b331",
+            "0d2c2c6aced6b331",
+            "092c2c6aced7b391",
+            "092c246acef3bb91",
+            "092c246acef3bb91"
+          ],
+          "top-left-70": [
+            "2728b8b74a5ae866",
+            "2728b9974a5ae866",
+            "2728b9964b5ac966",
+            "2528b9964b5ae966",
+            "2528b9964b5a6b66"
+          ],
+          "top-right-70": [
+            "85ce7e6518182f27",
+            "85ca7ee518182f27",
+            "85ca7ee51c182d27",
+            "85ca7ee41c192d27",
+            "a5c85ae41d392d27"
+          ],
+          "bottom-left-70": [
+            "4747434b5b5a52d1",
+            "07474f4a595b52d1",
+            "07476e6a595b5291",
+            "07076e6a595b52d1",
+            "07076e6e595b5291"
+          ],
+          "bottom-right-70": [
+            "a5a585999b9898f4",
+            "a5a585999a99d874",
+            "b5b585989a99d870",
+            "b5b585889a9bd870",
+            "b5b58d889a9bd070"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/160",
+      "iso": "3200"
+    },
+    {
+      "id": 119,
+      "band": "Mugger",
+      "songTitle": "Find Out",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-13T10:49:22-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mugger-find-out-get-a-clue.opus",
+      "imageFile": "/assets/prod-photographs/R0055419.jpg",
+      "photoHashes": {
+        "phash": [
+          "ab341b9a74e78095",
+          "ab341b9a74e78095",
+          "ab341b9a70e79095",
+          "eb340b9a70e79095",
+          "eb340b9a60e790b5"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "45ab459a7c64be81",
+            "45ab55927c64be81",
+            "45ab55927c64be81",
+            "65ab55927c64be80",
+            "65ab55927c64be80"
+          ],
+          "center-60": [
+            "6f19e196e86d0274",
+            "6f19e196686d2274",
+            "6f19e196686d2274",
+            "6f1bc196686d2274",
+            "6f1bc196686d2274"
+          ],
+          "center-50": [
+            "2379ed92cd254332",
+            "637ded9249254332",
+            "637daf9249254332",
+            "6b5daf9249254332",
+            "6f5da79249254332"
+          ],
+          "top-left-70": [
+            "6b142ac4832ddf74",
+            "6b1428c60b2ddf74",
+            "6b1438c70b2dd374",
+            "4b1438c70b2dd774",
+            "4b1538c70b2cd774"
+          ],
+          "top-right-70": [
+            "a996ca3239c73913",
+            "ad93ca3299c73912",
+            "a593ca329dc73912",
+            "a593ca329dc63913",
+            "a593ca329dc63913"
+          ],
+          "bottom-left-70": [
+            "df60459d20299cf3",
+            "df60459f28291ce3",
+            "df60459f29281ce3",
+            "df60479f29281ce1",
+            "df60479f29281ce1"
+          ],
+          "bottom-right-70": [
+            "2b94337984c6f664",
+            "2b94337984c6f664",
+            "2994337d84c6f664",
+            "2994337dc4c6f264",
+            "2994337dc4c6f264"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/100",
+      "iso": "400"
+    },
+    {
+      "id": 120,
+      "band": "chokecherry",
+      "songTitle": "Major Threat",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-13T11:51:43-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-chokecherry-major-threat-major-threat.opus",
+      "imageFile": "/assets/prod-photographs/R0055467.jpg",
+      "photoHashes": {
+        "phash": [
+          "0ba8746387897a73",
+          "0ba87463878d7a53",
+          "0ba87467878d7a13",
+          "0ba87ce787853a13",
+          "09a87ce783853b17"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "15a8fa63858974b3",
+            "15a8fa73858954b3",
+            "15a87a7385e954b1",
+            "15a87a73c1e954b1",
+            "15a85a73c1e956b1"
+          ],
+          "center-60": [
+            "1d985a66e5cd12b1",
+            "159a5a66e5cd12b1",
+            "151a5a66e5cf12b1",
+            "151a1a76e5cf12b1",
+            "170a1a36e5cf12b3"
+          ],
+          "center-50": [
+            "299a1274ef4f3690",
+            "099a1234ef4f36b2",
+            "099a1a34ef4b36b2",
+            "058a1a34ef4f36b2",
+            "058a1a34ef4f36b2"
+          ],
+          "top-left-70": [
+            "06f4db14245b9766",
+            "02f4cb1d245b9766",
+            "02f4cb1d245b9766",
+            "02f4cf19247b1766",
+            "02f4cf09247b5766"
+          ],
+          "top-right-70": [
+            "88f67bb1461b7105",
+            "28b63bb9471b7105",
+            "28b61bb9431f7505",
+            "28b61bbd438f3505",
+            "28b61bbd438f3505"
+          ],
+          "bottom-left-70": [
+            "1336b4e46c68da93",
+            "1306b4f46c68da97",
+            "0306b4f46e78da93",
+            "0306b4f46e78da93",
+            "0306b4f46e3c7a93"
+          ],
+          "bottom-right-70": [
+            "098ac6460e5ed6f3",
+            "09aae6460a4ed6f6",
+            "29aae6460a4a9ef6",
+            "29aae6460aca96f6",
+            "29aae6460aca96f6"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/20",
+      "iso": "3200"
+    },
+    {
+      "id": 121,
+      "band": "Balthvs",
+      "songTitle": "Sun and Moon",
+      "venue": "Mohawk",
+      "date": "2024-03-13T17:27:46-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-and-moon-sun-and-moon.opus",
+      "imageFile": "/assets/prod-photographs/R0055518.jpg",
+      "photoHashes": {
+        "phash": [
+          "2f0ed2c79c313263",
+          "2f0cd2cf8c307a63",
+          "2f0cd6cf8c303a63",
+          "2f0cd4cf8c303a73",
+          "2b28d44f8c313a77"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "0f0ed0c68d995a73",
+            "0f0ed0c788b95a73",
+            "0f0ed1c788b95a63",
+            "0f8cd1c7c8b91a63",
+            "0b8cd1c7c8b91e63"
+          ],
+          "center-60": [
+            "070ef4c2ebd88a72",
+            "070ef4c2ebd88a72",
+            "050ef5c2ebd8ca32",
+            "050ef5c2ebd8ca32",
+            "050af5c6ebd8ca32"
+          ],
+          "center-50": [
+            "050e2ee27bd99295",
+            "050e2fe27bd15296",
+            "050a2fe27bd17296",
+            "050a2fe07bd57296",
+            "050a2fe27bd57292"
+          ],
+          "top-left-70": [
+            "3b8c9d64665aa4b2",
+            "3b8c9d64665aa4b2",
+            "3b849d66665aa4b2",
+            "1b849d66665ae4b2",
+            "1bc49d66665ae4b0"
+          ],
+          "top-right-70": [
+            "bc527f83083cc2e3",
+            "acd27f83013cc2e3",
+            "acd27f83013cc2e3",
+            "a9d27f82013cc3f1",
+            "a9d27f820138c7f1"
+          ],
+          "bottom-left-70": [
+            "3b3366664ada4a45",
+            "3b3366665ada4a05",
+            "3b3364667ada4a05",
+            "3b32646d7ada4a05",
+            "1b22e46d3ada4b25"
+          ],
+          "bottom-right-70": [
+            "adad800d2c7c7c74",
+            "ada5820d6c7c7c54",
+            "ada8820d6c7c1dd6",
+            "ada8820d6d7c19d6",
+            "ada8c20d6d7a19c6"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/180",
+      "iso": "3200"
+    },
+    {
+      "id": 122,
+      "band": "Balthvs",
+      "songTitle": "Sun Colored Eyes",
+      "venue": "Mohawk",
+      "date": "2024-03-13T17:27:46-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-colored-eyes-harvest.opus",
+      "imageFile": "/assets/prod-photographs/R0055518.jpg",
+      "photoHashes": {
+        "phash": [
+          "2f0ed2c79c313263",
+          "2f0cd2cf8c307a63",
+          "2f0cd6cf8c303a63",
+          "2f0cd4cf8c303a73",
+          "2b28d44f8c313a77"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "0f0ed0c68d995a73",
+            "0f0ed0c788b95a73",
+            "0f0ed1c788b95a63",
+            "0f8cd1c7c8b91a63",
+            "0b8cd1c7c8b91e63"
+          ],
+          "center-60": [
+            "070ef4c2ebd88a72",
+            "070ef4c2ebd88a72",
+            "050ef5c2ebd8ca32",
+            "050ef5c2ebd8ca32",
+            "050af5c6ebd8ca32"
+          ],
+          "center-50": [
+            "050e2ee27bd99295",
+            "050e2fe27bd15296",
+            "050a2fe27bd17296",
+            "050a2fe07bd57296",
+            "050a2fe27bd57292"
+          ],
+          "top-left-70": [
+            "3b8c9d64665aa4b2",
+            "3b8c9d64665aa4b2",
+            "3b849d66665aa4b2",
+            "1b849d66665ae4b2",
+            "1bc49d66665ae4b0"
+          ],
+          "top-right-70": [
+            "bc527f83083cc2e3",
+            "acd27f83013cc2e3",
+            "acd27f83013cc2e3",
+            "a9d27f82013cc3f1",
+            "a9d27f820138c7f1"
+          ],
+          "bottom-left-70": [
+            "3b3366664ada4a45",
+            "3b3366665ada4a05",
+            "3b3364667ada4a05",
+            "3b32646d7ada4a05",
+            "1b22e46d3ada4b25"
+          ],
+          "bottom-right-70": [
+            "adad800d2c7c7c74",
+            "ada5820d6c7c7c54",
+            "ada8820d6c7c1dd6",
+            "ada8820d6d7c19d6",
+            "ada8c20d6d7a19c6"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/180",
+      "iso": "3200"
+    },
+    {
+      "id": 123,
+      "band": "Balthvs",
+      "songTitle": "Turkish Coffee",
+      "venue": "Mohawk",
+      "date": "2024-03-13T17:27:46-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-turkish-coffee-turkish-coffee.opus",
+      "imageFile": "/assets/prod-photographs/R0055518.jpg",
+      "photoHashes": {
+        "phash": [
+          "2f0ed2c79c313263",
+          "2f0cd2cf8c307a63",
+          "2f0cd6cf8c303a63",
+          "2f0cd4cf8c303a73",
+          "2b28d44f8c313a77"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "0f0ed0c68d995a73",
+            "0f0ed0c788b95a73",
+            "0f0ed1c788b95a63",
+            "0f8cd1c7c8b91a63",
+            "0b8cd1c7c8b91e63"
+          ],
+          "center-60": [
+            "070ef4c2ebd88a72",
+            "070ef4c2ebd88a72",
+            "050ef5c2ebd8ca32",
+            "050ef5c2ebd8ca32",
+            "050af5c6ebd8ca32"
+          ],
+          "center-50": [
+            "050e2ee27bd99295",
+            "050e2fe27bd15296",
+            "050a2fe27bd17296",
+            "050a2fe07bd57296",
+            "050a2fe27bd57292"
+          ],
+          "top-left-70": [
+            "3b8c9d64665aa4b2",
+            "3b8c9d64665aa4b2",
+            "3b849d66665aa4b2",
+            "1b849d66665ae4b2",
+            "1bc49d66665ae4b0"
+          ],
+          "top-right-70": [
+            "bc527f83083cc2e3",
+            "acd27f83013cc2e3",
+            "acd27f83013cc2e3",
+            "a9d27f82013cc3f1",
+            "a9d27f820138c7f1"
+          ],
+          "bottom-left-70": [
+            "3b3366664ada4a45",
+            "3b3366665ada4a05",
+            "3b3364667ada4a05",
+            "3b32646d7ada4a05",
+            "1b22e46d3ada4b25"
+          ],
+          "bottom-right-70": [
+            "adad800d2c7c7c74",
+            "ada5820d6c7c7c54",
+            "ada8820d6c7c1dd6",
+            "ada8820d6d7c19d6",
+            "ada8c20d6d7a19c6"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/180",
+      "iso": "3200"
+    },
+    {
+      "id": 124,
+      "band": "Squirrel Flower",
+      "songTitle": "Cortez the Killer Live in Austin TX",
+      "venue": "High Noon",
+      "date": "2024-03-15T12:15:28-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-squirrel-flower-cortez-the-killer-live-in-austin-tx-cortez-the-killer.opus",
+      "imageFile": "/assets/prod-photographs/R0055850.jpg",
+      "photoHashes": {
+        "phash": [
+          "87a70ececc4ccd11",
+          "87a60ececc4ccd51",
+          "83e60ececc4ccd51",
+          "83e704decc4ccd51",
+          "83e704decc4ccd51"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "a7a73091ceccc847",
+            "a7a33091ceccd847",
+            "a7a32891ceccd863",
+            "b7e32891ce8cd063",
+            "b7e328954e8cd063"
+          ],
+          "center-60": [
+            "a531333727836897",
+            "a53133b7278b6886",
+            "a5313bb5278b6886",
+            "a5713ab7258b6886",
+            "a5713ab7258b6886"
+          ],
+          "center-50": [
+            "ef7d313d25a32900",
+            "ad7d313d25f32900",
+            "a57d313f25f32900",
+            "a77d103f25d32912",
+            "a77c123f25d32892"
+          ],
+          "top-left-70": [
+            "8b189c949d4b6b65",
+            "891c9c949d4b2fe1",
+            "8b1c9c909d4b2fe1",
+            "891cbc909d493fe1",
+            "891cb490bd493fe1"
+          ],
+          "top-right-70": [
+            "9b9ef470660d8d14",
+            "9b9ee470660d9d14",
+            "9b96e270e60d9594",
+            "9b56e0f0e60d9714",
+            "9b56e070e60d9754"
+          ],
+          "bottom-left-70": [
+            "89c9167cade84327",
+            "89c9167ca5e943a3",
+            "83c9067ca5e953a3",
+            "03e9067ca5e953a3",
+            "03eb067ca4e95ba1"
+          ],
+          "bottom-right-70": [
+            "ab3f3306c70d14c6",
+            "ab1f3516c30d34c6",
+            "ab1f3516c30d3cc2",
+            "ab1f3516c30d3cc2",
+            "ab1f3516c30d3cc2"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/90",
+      "iso": "3200"
+    },
+    {
+      "id": 125,
+      "band": "White Denim",
+      "songTitle": "Light On",
+      "venue": "High Noon",
+      "date": "2022-03-19T17:49:17-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-light-on-12.opus",
+      "imageFile": "/assets/prod-photographs/R0043815.jpg",
+      "photoHashes": {
+        "phash": [
+          "273e36c2cd945932",
+          "273e36c3cd945922",
+          "273e36c3cf845922",
+          "2f3ca6c3cf84d122",
+          "2f3ca6c3cf84d122"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "213f36d3c0dc5cc4",
+            "211f36d3c0dc5ec4",
+            "011f36f3c9945ec1",
+            "011f36f3c9905ee1",
+            "011f3ef349d05ce1"
+          ],
+          "center-60": [
+            "3527277773ae0460",
+            "350626777bae4470",
+            "350e26777bae4460",
+            "350e26777bac4470",
+            "350e22777bac4871"
+          ],
+          "center-50": [
+            "3d082477f7056475",
+            "3d08247777056c75",
+            "3d00247777856c75",
+            "3d002473f7856c75",
+            "3d002473f7856c75"
+          ],
+          "top-left-70": [
+            "2b7a8d9435492f61",
+            "3f7a899431452e71",
+            "3f3a899423453e71",
+            "3f3ac99621413e71",
+            "3f32c99683413e71"
+          ],
+          "top-right-70": [
+            "89886ef2d3b59514",
+            "89886ef2d3b59514",
+            "89886ff2d1b78514",
+            "89886ff2d9b78114",
+            "8b886ff2d9b78110"
+          ],
+          "bottom-left-70": [
+            "0f377368e8418d87",
+            "0f377268e8518d27",
+            "0f373268e851ad27",
+            "0f373268e851ad27",
+            "0f373268e851cd27"
+          ],
+          "bottom-right-70": [
+            "998391da4d2daf84",
+            "a98391ca4d3daf84",
+            "b9c390ca4d3da784",
+            "3d4390ce4d35af84",
+            "3d43904e4937afc4"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/20",
+      "iso": "3200"
+    },
+    {
+      "id": 126,
+      "band": "White Denim",
+      "songTitle": "Magazin",
+      "venue": "High Noon",
+      "date": "2022-03-19T17:49:17-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-magazin-performance.opus",
+      "imageFile": "/assets/prod-photographs/R0043815.jpg",
+      "photoHashes": {
+        "phash": [
+          "273e36c2cd945932",
+          "273e36c3cd945922",
+          "273e36c3cf845922",
+          "2f3ca6c3cf84d122",
+          "2f3ca6c3cf84d122"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "213f36d3c0dc5cc4",
+            "211f36d3c0dc5ec4",
+            "011f36f3c9945ec1",
+            "011f36f3c9905ee1",
+            "011f3ef349d05ce1"
+          ],
+          "center-60": [
+            "3527277773ae0460",
+            "350626777bae4470",
+            "350e26777bae4460",
+            "350e26777bac4470",
+            "350e22777bac4871"
+          ],
+          "center-50": [
+            "3d082477f7056475",
+            "3d08247777056c75",
+            "3d00247777856c75",
+            "3d002473f7856c75",
+            "3d002473f7856c75"
+          ],
+          "top-left-70": [
+            "2b7a8d9435492f61",
+            "3f7a899431452e71",
+            "3f3a899423453e71",
+            "3f3ac99621413e71",
+            "3f32c99683413e71"
+          ],
+          "top-right-70": [
+            "89886ef2d3b59514",
+            "89886ef2d3b59514",
+            "89886ff2d1b78514",
+            "89886ff2d9b78114",
+            "8b886ff2d9b78110"
+          ],
+          "bottom-left-70": [
+            "0f377368e8418d87",
+            "0f377268e8518d27",
+            "0f373268e851ad27",
+            "0f373268e851ad27",
+            "0f373268e851cd27"
+          ],
+          "bottom-right-70": [
+            "998391da4d2daf84",
+            "a98391ca4d3daf84",
+            "b9c390ca4d3da784",
+            "3d4390ce4d35af84",
+            "3d43904e4937afc4"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/20",
+      "iso": "3200"
+    },
+    {
+      "id": 127,
+      "band": "Primo the Alien",
+      "songTitle": "Youre the One That I Want",
+      "venue": "Downright Austin",
+      "date": "2022-03-18T14:24:03-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-primo-the-alien-youre-the-one-that-i-want-youre-the-one-that-i-want.opus",
+      "imageFile": "/assets/prod-photographs/R0043553.jpg",
+      "photoHashes": {
+        "phash": [
+          "3b32e4c8d8d392b2",
+          "1936a4f8d8d392b2",
+          "1b26a4f8d8d392b2",
+          "1b06a0fadad39236",
+          "1b06e0fadac39236"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "1d246cdacac5b2b1",
+            "1d246c5acac5b6b1",
+            "1d246c5acac5b5b1",
+            "1d246d1a4ec5b533",
+            "1524691a4fc7b533"
+          ],
+          "center-60": [
+            "1b2d6c5848cd95b6",
+            "1b2d6d184acd85b6",
+            "0b2d6d184acd85b7",
+            "0b296d184acd8db7",
+            "0b296d184acdc9b7"
+          ],
+          "center-50": [
+            "132f2f1248c7cdc6",
+            "136d2b124cd3cdc6",
+            "136d29124cd3cdd6",
+            "0b6d29124cd3cdd6",
+            "0b6da9104cd3cdd6"
+          ],
+          "top-left-70": [
+            "2552ecab2b689393",
+            "3552ecab2a689393",
+            "3552ecab8a689393",
+            "3550ecab8a6a9393",
+            "3550eca38a6a9793"
+          ],
+          "top-right-70": [
+            "8338e4dcd88e71e4",
+            "8b38a45cd98e71e4",
+            "8338a45cd98e71e5",
+            "8338a45cdb8e71e4",
+            "8338a45cdb8671e5"
+          ],
+          "bottom-left-70": [
+            "2d294b4b6d6d6462",
+            "252b4b4b6d6d6462",
+            "25234b4b6d6d6466",
+            "2523534b6d6d6466",
+            "351343c36d6d6076"
+          ],
+          "bottom-right-70": [
+            "cb8b19998b8e94b2",
+            "cb8b19998b8e94b2",
+            "c3db19998b8e84b2",
+            "cbdb19998b8694a2",
+            "c3db1991cb86b4a2"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.5",
+      "shutterSpeed": "1/250",
+      "iso": "2000"
+    },
+    {
+      "id": 128,
+      "band": "Heavy Meddo",
+      "songTitle": "tronald dump",
+      "venue": "The Volstead Lounge",
+      "date": "2022-03-19T08:19:18-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-heavy-meddo-tronald-dump-tronald-dump.opus",
+      "imageFile": "/assets/prod-photographs/R0043676.jpg",
+      "photoHashes": {
+        "phash": [
+          "614e3937667cc2c1",
+          "614e393366f8e2c1",
+          "614e393366f8e2c1",
+          "604c3933aef8e2e1",
+          "604c1933eef8e2e1"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "794f19230d3d8b83",
+            "784f19230f1d8b93",
+            "784f19230f1d8b93",
+            "784e19230f1d9b93",
+            "784e19230f1d9b93"
+          ],
+          "center-60": [
+            "78469f710c390bb3",
+            "7846bf710c190bb3",
+            "7c463f710e090bb3",
+            "7c463ff10e090ba3",
+            "7c463ff10e090ba3"
+          ],
+          "center-50": [
+            "70c495f00e18dbf5",
+            "78c0b5f00e18cbf5",
+            "78c0b5f10e184be7",
+            "78c035f10e584be7",
+            "78c035f30e584b67"
+          ],
+          "top-left-70": [
+            "40734dd0c4cad6d7",
+            "42736dd0c4cac6d3",
+            "42736df0e0cac6d1",
+            "42336df0e0cac6d3",
+            "42336df0e4cac6d1"
+          ],
+          "top-right-70": [
+            "2f299b326e7c1035",
+            "2f219f326e7c1035",
+            "2f019f326e7c1037",
+            "2f019f326e7c3035",
+            "2f019f326e7c3035"
+          ],
+          "bottom-left-70": [
+            "44d0b3a78d8b2b65",
+            "44d0b3a78d8b2b65",
+            "44d0b2e78d8b2b65",
+            "44d0b2e78d8b2b65",
+            "44d8b2e78d0b2b65"
+          ],
+          "bottom-right-70": [
+            "277e61444ffd8904",
+            "277e71404fdd8d04",
+            "237e71400fdfcd04",
+            "237e71400fdfcd04",
+            "237e71400fdfcd04"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/90",
+      "iso": "3200"
+    },
+    {
+      "id": 129,
+      "band": "Thelma and the Sleaze",
+      "songTitle": "High Class Woman",
+      "venue": "Mohawk",
+      "date": "2022-03-19T09:53:27-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thelma-and-the-sleaze-high-class-woman-these-boots-wont-lick-themselves-ep.opus",
+      "imageFile": "/assets/prod-photographs/R0043706.jpg",
+      "photoHashes": {
+        "phash": [
+          "295a479fa08f3037",
+          "215a679fa08f3037",
+          "015a679fa08f3237",
+          "015a67dfe00f3037",
+          "015a67dee00f3237"
+        ],
+        "cropPhashes": {
+          "center-80": [
+            "1a7247dcad86bc11",
+            "1a7247dcad86bc11",
+            "1a7247dced86b411",
+            "1a7247dced86b411",
+            "1e7247dced86b401"
+          ],
+          "center-60": [
+            "107a441aeddceab1",
+            "107a441aeddccbb1",
+            "107a441aeddccbb1",
+            "107a441aeddccbb1",
+            "107a441ae5fccbb1"
+          ],
+          "center-50": [
+            "1236641aeccfe8b2",
+            "1236641aeccfe8b2",
+            "1236641beccfe0b2",
+            "1236641bec4fe8b2",
+            "1236641bec4fe8b2"
+          ],
+          "top-left-70": [
+            "2419f715287c81f7",
+            "2419f715287c81f7",
+            "2419f715287d80f7",
+            "2419ff15287c80f7",
+            "2019ff15287d80f7"
+          ],
+          "top-right-70": [
+            "0779f2b78d062961",
+            "0779f2b78d062961",
+            "0779f2f78d062941",
+            "0779f3f38d062941",
+            "0779f3f78c062941"
+          ],
+          "bottom-left-70": [
+            "236c4c18ee7c7c92",
+            "036c4c18ee7c78f2",
+            "032c4c38ee7c78f2",
+            "032c4c38ee7c78f2",
+            "032c4c38ee7cf8f0"
+          ],
+          "bottom-right-70": [
+            "a5c62d7d04438fa6",
+            "a5c62d7d04438fe2",
+            "b5c62d7d04438ea3",
+            "b1c62d7d04438ee3",
+            "b1c62d7d04438ee3"
+          ]
+        }
+      },
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/3.5",
+      "shutterSpeed": "1/250",
+      "iso": "400"
     }
   ]
 }

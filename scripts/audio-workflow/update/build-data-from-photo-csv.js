@@ -299,6 +299,7 @@ export function buildExpandedConcerts(extraTracks, baseUrl, prefix, startId) {
       // Reuse the same imageFile so the song is visually associated with the artist
       imageFile: String(sourceRow.imageFile ?? ''),
       // No photo hashes — this entry exists for playlist continuity, not recognition
+      recognitionEnabled: false,
       photoHashes: {},
       camera: String(sourceRow.camera ?? ''),
       focalLength: String(sourceRow.focalLength ?? ''),
@@ -467,9 +468,11 @@ function main() {
   console.log('✅ Wrote data.json');
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(`❌ ${error.message}`);
-  process.exitCode = 1;
+if (import.meta.url === `file://${process.argv[1]}`) {
+  try {
+    main();
+  } catch (error) {
+    console.error(`❌ ${error.message}`);
+    process.exitCode = 1;
+  }
 }

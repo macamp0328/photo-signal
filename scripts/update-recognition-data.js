@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import {
   loadImageData,
   generateHashVariants,
+  generateCropHashVariants,
   DEFAULT_GAMMA_VARIANTS,
 } from './lib/photoHashUtils.js';
 
@@ -385,6 +386,7 @@ async function processConcert(concert, options) {
 
       if (options.algorithms.has('phash')) {
         hashStore.phash = hashVariants.phash;
+        hashStore.cropPhashes = generateCropHashVariants(imageData, DEFAULT_GAMMA_VARIANTS);
       }
 
       status.hashes = true;

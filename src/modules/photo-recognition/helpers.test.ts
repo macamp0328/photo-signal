@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { Concert } from '../../types';
-import { createEmptyTelemetry, getPHashes, recordCollisionDetails } from './helpers';
+import type { Concert, CropRegionKey } from '../../types';
+import {
+  createEmptyTelemetry,
+  getCropHashes,
+  getPHashes,
+  recordCollisionDetails,
+  VALID_CROP_REGION_KEYS,
+} from './helpers';
 
 const buildConcert = (phash?: unknown): Concert => ({
   id: 1,
@@ -9,6 +15,26 @@ const buildConcert = (phash?: unknown): Concert => ({
   date: '2026-01-01T00:00:00-06:00',
   audioFile: '/audio/test.opus',
   photoHashes: phash === undefined ? undefined : { phash: phash as string[] },
+});
+
+const VALID_HASH = 'abcdef1234567890';
+const VALID_HASHES_5 = [
+  'abcdef1234567890',
+  'bbcdef1234567890',
+  'cbcdef1234567890',
+  'dbcdef1234567890',
+  'ebcdef1234567890',
+];
+
+const buildConcertWithCrops = (
+  cropPhashes?: Partial<Record<CropRegionKey, string[]>>
+): Concert => ({
+  id: 2,
+  band: 'Crop Test Band',
+  venue: 'Test Venue',
+  date: '2026-01-01T00:00:00-06:00',
+  audioFile: '/audio/test.opus',
+  photoHashes: { cropPhashes },
 });
 
 describe('helpers', () => {
@@ -88,6 +114,79 @@ describe('helpers', () => {
       const concert = buildConcert(['@#$%^&*()123456']);
 
       expect(getPHashes(concert)).toEqual([]);
+    });
+  });
+
+  describe('getCropHashes', () => {
+    it('returns empty array when photoHashes is undefined', () => {
+      const concert = buildConcert(undefined);
+      expect(getCropHashes(concert)).toEqual([]);
+    });
+
+    it('returns empty array when cropPhashes is absent', () => {
+      const concert = buildConcertWithCrops(undefined);
+      expect(getCropHashes(concert)).toEqual([]);
+    });
+
+    it('returns empty array when cropPhashes is empty object', () => {
+      const concert = buildConcertWithCrops({});
+      expect(getCropHashes(concert)).toEqual([]);
+    });
+
+    it('returns validated hashes for a single crop region', () => {
+      const concert = buildConcertWithCrops({ 'center-80': VALID_HASHES_5 });
+      const result = getCropHashes(concert);
+      expect(result).toHaveLength(5);
+      result.forEach(({ hash, cropKey }) => {
+        expect(hash).toMatch(/^[0-9a-f]{16}$/i);
+        expect(cropKey).toBe('center-80');
+      });
+    });
+
+    it('flattens all 7 crop regions into a single array', () => {
+      const allRegions = Object.fromEntries(
+        VALID_CROP_REGION_KEYS.map((key) => [key, [VALID_HASH]])
+      ) as Partial<Record<CropRegionKey, string[]>>;
+      const concert = buildConcertWithCrops(allRegions);
+      const result = getCropHashes(concert);
+      expect(result).toHaveLength(7);
+      const keys = result.map(({ cropKey }) => cropKey);
+      expect(keys).toEqual(VALID_CROP_REGION_KEYS);
+    });
+
+    it('filters out hashes with wrong length', () => {
+      const concert = buildConcertWithCrops({
+        'center-60': ['abc', 'abcdef1234567890', 'tooooooooolong1'],
+      });
+      const result = getCropHashes(concert);
+      expect(result).toHaveLength(1);
+      expect(result[0].hash).toBe('abcdef1234567890');
+    });
+
+    it('filters out hashes with non-hex characters', () => {
+      const concert = buildConcertWithCrops({
+        'center-50': ['zzzzzzzzzzzzzzzz', 'abcdef1234567890'],
+      });
+      const result = getCropHashes(concert);
+      expect(result).toHaveLength(1);
+      expect(result[0].hash).toBe('abcdef1234567890');
+    });
+
+    it('filters out non-string entries in crop hash arrays', () => {
+      const concert = buildConcertWithCrops({
+        'top-left-70': [null as unknown as string, 123 as unknown as string, 'abcdef1234567890'],
+      });
+      const result = getCropHashes(concert);
+      expect(result).toHaveLength(1);
+    });
+
+    it('includes cropKey in each result entry', () => {
+      const concert = buildConcertWithCrops({
+        'top-right-70': [VALID_HASH],
+        'bottom-left-70': [VALID_HASH],
+      });
+      const result = getCropHashes(concert);
+      expect(result.map((r) => r.cropKey)).toEqual(['top-right-70', 'bottom-left-70']);
     });
   });
 

@@ -7,6 +7,7 @@ import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import {
   createEmptyTelemetry,
+  getCropHashes,
   getPHashes,
   pickGuidance,
   recordCollisionDetails,
@@ -152,6 +153,35 @@ const SWITCH_INSTANT_DISTANCE_THRESHOLD = 3;
  * accidental switches.
  */
 const CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM = 3;
+
+// ---------------------------------------------------------------------------
+// Crop-based partial photo recognition thresholds
+// ---------------------------------------------------------------------------
+
+/**
+ * pHash Hamming distance threshold for crop-based partial-photo matching.
+ * Stricter than DEFAULT_SIMILARITY_THRESHOLD (14) because crop hashes cover
+ * less image content and are inherently less distinctive — a partial crop of
+ * one photo can coincidentally resemble a crop of a different photo.
+ */
+const CROP_SIMILARITY_THRESHOLD = 10;
+
+/**
+ * Full-image best-match distance above which the crop fallback pass activates.
+ * When the full-image pass already produces a strong match (distance ≤ this
+ * value), the crop pass is skipped entirely — no extra work needed.
+ * Set above DEFAULT_SIMILARITY_THRESHOLD so borderline full-image matches
+ * still win without triggering the crop pass.
+ */
+const CROP_FALLBACK_TRIGGER_DISTANCE = 18;
+
+/**
+ * Margin requirement for crop-based matches — stricter than
+ * DEFAULT_MATCH_MARGIN_THRESHOLD (4) to offset the reduced distinctiveness
+ * of crop hashes. The winning concert must be at least this many bits closer
+ * than the nearest rival from any other concert.
+ */
+const CROP_MATCH_MARGIN_THRESHOLD = 5;
 
 // ---------------------------------------------------------------------------
 // Module-level pure helpers (no React state, no refs)
@@ -367,6 +397,20 @@ export function usePhotoRecognition(
   const concertHashList = useMemo(
     () =>
       eligibleConcerts.flatMap((concert) => getPHashes(concert).map((hash) => ({ hash, concert }))),
+    [eligibleConcerts]
+  );
+
+  /**
+   * Pre-flattened list of all valid crop-region hashes, used by the two-pass
+   * crop fallback when the full-image pass fails to find a strong match.
+   * Computed once when eligible concerts change; empty for legacy records
+   * without cropPhashes, in which case the crop pass is skipped entirely.
+   */
+  const concertCropHashList = useMemo(
+    () =>
+      eligibleConcerts.flatMap((concert) =>
+        getCropHashes(concert).map(({ hash, cropKey }) => ({ hash, concert, cropKey }))
+      ),
     [eligibleConcerts]
   );
 
@@ -711,10 +755,37 @@ export function usePhotoRecognition(
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
-        // Hash matching
+        // Hash matching — two-pass: full-image first, crop fallback if needed
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
-        const { bestMatch, secondBestMatch } = findBestMatches(currentHash, concertHashList);
+
+        // Pass 1: full-image hashes (existing behavior)
+        const { bestMatch: bestFullMatch, secondBestMatch: bestFullSecondMatch } = findBestMatches(
+          currentHash,
+          concertHashList
+        );
+
+        let bestMatch = bestFullMatch;
+        let secondBestMatch = bestFullSecondMatch;
+        let matchedViaCrop = false;
+
+        // Pass 2: crop hashes — only when full-image result is weak
+        const shouldCheckCrops =
+          concertCropHashList.length > 0 &&
+          (!bestFullMatch || bestFullMatch.distance > CROP_FALLBACK_TRIGGER_DISTANCE);
+
+        if (shouldCheckCrops) {
+          const { bestMatch: bestCropMatch, secondBestMatch: bestCropSecondMatch } =
+            findBestMatches(currentHash, concertCropHashList);
+          if (bestCropMatch && bestCropMatch.distance <= CROP_SIMILARITY_THRESHOLD) {
+            if (!bestFullMatch || bestCropMatch.distance < bestFullMatch.distance) {
+              bestMatch = bestCropMatch;
+              secondBestMatch = bestCropSecondMatch ?? bestFullSecondMatch;
+              matchedViaCrop = true;
+            }
+          }
+        }
+
         algorithmMs = performance.now() - algorithmStartAt;
 
         // Decision variables
@@ -722,10 +793,16 @@ export function usePhotoRecognition(
         const isSwitchMode = continuousRecognition && !!recognizedConcertRef.current;
         const activeThreshold = isSwitchMode
           ? Math.min(similarityThreshold, switchDistanceThreshold)
-          : similarityThreshold;
+          : matchedViaCrop
+            ? CROP_SIMILARITY_THRESHOLD
+            : similarityThreshold;
         const bestMargin =
           bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
-        const requiredMargin = isSwitchMode ? switchMatchMarginThreshold : matchMarginThreshold;
+        const requiredMargin = isSwitchMode
+          ? switchMatchMarginThreshold
+          : matchedViaCrop
+            ? CROP_MATCH_MARGIN_THRESHOLD
+            : matchMarginThreshold;
         const marginBoostNearThreshold =
           bestMatch && bestMatch.distance >= Math.max(activeThreshold - 1, 0) ? 1 : 0;
         const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
@@ -916,7 +993,10 @@ export function usePhotoRecognition(
             ? consecutiveMatchCountRef.current + 1
             : 1;
 
-          const isInstantDistance = !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
+          // Crop matches never use the instant path — they always require dwell
+          // time to guard against the reduced distinctiveness of partial hashes.
+          const isInstantDistance =
+            !matchedViaCrop && !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
           const hasConsecutiveInstantConfidence =
             consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
 
@@ -1060,6 +1140,7 @@ export function usePhotoRecognition(
     enabled,
     eligibleConcerts,
     concertHashList,
+    concertCropHashList,
     checkInterval,
     recognitionDelay,
     similarityThreshold,

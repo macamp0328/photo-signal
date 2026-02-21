@@ -483,7 +483,7 @@ async function processAudioFile(download, config, options) {
  * Prefers the highest-resolution option from the thumbnails array.
  * Falls back to the direct thumbnail field from yt-dlp info.
  */
-function selectBestThumbnailUrl(metadata) {
+export function selectBestThumbnailUrl(metadata) {
   const thumbnails = metadata?.track?.thumbnails;
   if (Array.isArray(thumbnails) && thumbnails.length > 0) {
     // yt-dlp orders thumbnails best-last; pick the one with the largest area
@@ -510,7 +510,7 @@ function selectBestThumbnailUrl(metadata) {
 /**
  * Download a thumbnail URL and resize/convert to a 200×200 WebP using ffmpeg.
  */
-async function downloadAndResizeCover(thumbnailUrl, outputPath, workDir, slug) {
+export async function downloadAndResizeCover(thumbnailUrl, outputPath, workDir, slug) {
   const tempPath = join(workDir, `${slug}-thumb-raw`);
 
   // Download the thumbnail
@@ -535,10 +535,15 @@ async function downloadAndResizeCover(thumbnailUrl, outputPath, workDir, slug) {
       '80',
       outputPath,
     ];
-    const proc = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const proc = spawn('ffmpeg', args, { stdio: 'inherit' });
     proc.on('close', (code) => {
       rmSync(tempPath, { force: true });
       if (code === 0) {
+        // Validate that ffmpeg actually created the output file
+        if (!existsSync(outputPath)) {
+          reject(new Error(`ffmpeg produced no output file: ${outputPath}`));
+          return;
+        }
         resolve();
       } else {
         reject(new Error(`ffmpeg cover resize exited with code ${code}`));

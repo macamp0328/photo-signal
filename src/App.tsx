@@ -172,9 +172,11 @@ function AppContent() {
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
   const [dismissedSwitchConcertId, setDismissedSwitchConcertId] = useState<number | null>(null);
 
-  // Playlist state: ordered list of songs for the active artist
-  const [, setPlaylist] = useState<Concert[]>([]);
-  const [, setPlaylistIndex] = useState(0);
+  // Playlist bookkeeping — stored in refs because these values are never rendered;
+  // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
+  const playlistRef = useRef<Concert[]>([]);
+  const playlistIndexRef = useRef(0);
+  // activePlaylistBand IS rendered (used in effects and switch-prompt logic), so it stays state.
   const [activePlaylistBand, setActivePlaylistBand] = useState<string | null>(null);
   // Ref so onSongEnd can read it without stale closure
   const userPausedRef = useRef(false);
@@ -273,19 +275,15 @@ function AppContent() {
     fadeTime: 1000,
     onSongEnd: () => {
       if (userPausedRef.current) return;
-      setPlaylist((currentPlaylist) => {
-        setPlaylistIndex((currentIndex) => {
-          if (currentPlaylist.length <= 1) return currentIndex;
-          const nextIndex = (currentIndex + 1) % currentPlaylist.length;
-          const nextSong = currentPlaylist[nextIndex];
-          if (nextSong?.audioFile && playRef.current) {
-            playRef.current(nextSong.audioFile);
-            setActiveConcert(nextSong);
-          }
-          return nextIndex;
-        });
-        return currentPlaylist;
-      });
+      const currentPlaylist = playlistRef.current;
+      if (currentPlaylist.length <= 1) return;
+      const nextIndex = (playlistIndexRef.current + 1) % currentPlaylist.length;
+      const nextSong = currentPlaylist[nextIndex];
+      if (nextSong?.audioFile && playRef.current) {
+        playlistIndexRef.current = nextIndex;
+        playRef.current(nextSong.audioFile);
+        setActiveConcert(nextSong);
+      }
     },
   });
 
@@ -350,8 +348,8 @@ function AppContent() {
     }
 
     userPausedRef.current = false;
-    setPlaylist(newPlaylist);
-    setPlaylistIndex(0);
+    playlistRef.current = newPlaylist;
+    playlistIndexRef.current = 0;
     setActivePlaylistBand(autoplayConcert.band);
     play(firstSong.audioFile);
     setActiveConcert(firstSong);
@@ -441,8 +439,35 @@ function AppContent() {
 
     userPausedRef.current = false;
     clearPlaybackError();
-    play(selectedAudioUrl);
-    setActiveConcert(playbackTargetConcert);
+
+    if (playbackTargetConcert.band !== activePlaylistBand) {
+      // Different artist: rebuild the playlist so onSongEnd auto-advances within
+      // the correct band rather than continuing a stale playlist from a previous artist.
+      const songs = dataService.getConcertsByBand(playbackTargetConcert.band);
+      const newPlaylist = buildPlaylist(
+        songs.length > 0 ? songs : [playbackTargetConcert],
+        playbackTargetConcert.id
+      );
+      const firstSong = newPlaylist[0];
+      if (!firstSong?.audioFile) {
+        return;
+      }
+      playlistRef.current = newPlaylist;
+      playlistIndexRef.current = 0;
+      setActivePlaylistBand(playbackTargetConcert.band);
+      play(firstSong.audioFile);
+      setActiveConcert(firstSong);
+    } else {
+      // Same artist: sync the playlist index to the specific song being resumed
+      // so onSongEnd advances from the right position.
+      const idx = playlistRef.current.findIndex((s) => s.id === playbackTargetConcert.id);
+      if (idx !== -1) {
+        playlistIndexRef.current = idx;
+      }
+      play(selectedAudioUrl);
+      setActiveConcert(playbackTargetConcert);
+    }
+
     setPendingSwitchConcert(null);
     setDismissedSwitchConcertId(null);
   };
@@ -477,8 +502,8 @@ function AppContent() {
     }
 
     userPausedRef.current = false;
-    setPlaylist(newPlaylist);
-    setPlaylistIndex(0);
+    playlistRef.current = newPlaylist;
+    playlistIndexRef.current = 0;
     setActivePlaylistBand(pendingSwitchConcert.band);
     setActiveConcert(firstSong);
     setPendingSwitchConcert(null);

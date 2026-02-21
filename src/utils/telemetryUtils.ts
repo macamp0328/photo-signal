@@ -4,7 +4,11 @@
  * Helper functions for tracking and exporting guidance effectiveness metrics.
  */
 
-import type { RecognitionTelemetry, GuidanceType } from '../modules/photo-recognition/types';
+import type {
+  RecognitionTelemetry,
+  GuidanceType,
+  TemporalTelemetrySnapshot,
+} from '../modules/photo-recognition/types';
 
 const getLatencyBounds = (latencyValues: number[]): { min: number | null; max: number | null } => {
   if (latencyValues.length === 0) {
@@ -225,5 +229,30 @@ export function calculateGuidanceEffectiveness(
     glareReduction,
     lightingReduction,
     overallReduction,
+  };
+}
+
+/**
+ * Build a temporal snapshot from the current live telemetry at a given elapsed second.
+ * Used by the countdown useEffect in App.tsx to capture mid-session data points.
+ */
+export function buildTemporalSnapshot(
+  live: RecognitionTelemetry,
+  elapsedSeconds: number
+): TemporalTelemetrySnapshot {
+  return {
+    elapsedSeconds,
+    cumulativeCounts: {
+      totalFrames: live.totalFrames,
+      qualityFrames: live.qualityFrames,
+      blurRejections: live.blurRejections,
+      glareRejections: live.glareRejections,
+      lightingRejections: live.lightingRejections,
+      successfulRecognitions: live.successfulRecognitions,
+      failedAttempts: live.failedAttempts,
+      instantConfirmations: live.instantConfirmations ?? 0,
+      instantSwitchConfirmations: live.instantSwitchConfirmations ?? 0,
+      qualityBypassFrames: live.qualityBypassFrames ?? 0,
+    },
   };
 }

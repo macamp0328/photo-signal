@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import type { DebugOverlayProps, RecognitionStatus } from './types';
+import { ROUTINE_DEFINITIONS } from './routineDefinitions';
 import styles from './DebugOverlay.module.css';
 import { formatConcertTimestamp } from '../../utils/dateUtils';
 import { useAudioTest } from './useAudioTest';
@@ -143,6 +144,9 @@ export function DebugOverlay({
   const corsDisplay = testResult
     ? (testResult.diagnostic.corsOrigin ??
       (isSuccessfulFetch ? 'Not exposed to browser' : 'No header'))
+    : null;
+  const selectedRoutineDefinition = telemetryRecording.selectedRoutine
+    ? (ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine) ?? null)
     : null;
 
   useEffect(() => {
@@ -394,23 +398,76 @@ export function DebugOverlay({
           )}
           {/* Telemetry Recording */}
           <div className={styles.telemetrySection}>
-            {telemetryRecording.state === 'idle' && (
-              <button
-                type="button"
-                className={styles.telemetryButton}
-                onClick={telemetryRecording.onStart}
-                aria-label="Start 30-second telemetry recording"
-              >
-                Record 30s
-              </button>
-            )}
+            {telemetryRecording.state === 'idle' &&
+              (telemetryRecording.selectedRoutine === null ? (
+                <div className={styles.routinePicker}>
+                  <div className={styles.label}>Test Routine</div>
+                  <select
+                    className={styles.routineSelect}
+                    value=""
+                    onChange={(e) => {
+                      const routine = ROUTINE_DEFINITIONS.find((r) => r.type === e.target.value);
+                      if (routine) {
+                        telemetryRecording.onSelectRoutine(routine.type);
+                      }
+                    }}
+                    aria-label="Select test routine"
+                  >
+                    <option value="" disabled>
+                      Choose a routine…
+                    </option>
+                    {ROUTINE_DEFINITIONS.map((r) => (
+                      <option key={r.type} value={r.type}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className={styles.routineReady}>
+                  <div className={styles.label}>{selectedRoutineDefinition?.label}</div>
+                  <p className={styles.routineInstructions}>
+                    {selectedRoutineDefinition?.instructions}
+                  </p>
+                  <div className={styles.telemetryActions}>
+                    <button
+                      type="button"
+                      className={styles.telemetryButton}
+                      onClick={telemetryRecording.onStart}
+                      aria-label="Start 30-second telemetry recording"
+                    >
+                      Record 30s
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.telemetryButtonSecondary}
+                      onClick={telemetryRecording.onClearRoutine}
+                      aria-label="Change routine selection"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              ))}
             {telemetryRecording.state === 'recording' && (
-              <p className={styles.telemetryRecording}>
-                Recording… {telemetryRecording.secondsRemaining}s
-              </p>
+              <div className={styles.routineReady}>
+                {telemetryRecording.selectedRoutine && (
+                  <div className={styles.routineActiveLabel}>
+                    {selectedRoutineDefinition?.label}
+                  </div>
+                )}
+                <p className={styles.telemetryRecording}>
+                  Recording… {telemetryRecording.secondsRemaining}s
+                </p>
+              </div>
             )}
             {telemetryRecording.state === 'done' && (
               <div className={styles.telemetryActions}>
+                {telemetryRecording.selectedRoutine && (
+                  <div className={styles.routineActiveLabel}>
+                    {selectedRoutineDefinition?.label}
+                  </div>
+                )}
                 <button
                   type="button"
                   className={styles.telemetryButton}

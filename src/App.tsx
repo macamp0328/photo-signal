@@ -26,9 +26,13 @@ import type {
   RecognitionTelemetry,
   SwitchDecisionTelemetry,
   PhotoRecognitionOptions,
+  TemporalTelemetrySnapshot,
 } from './modules/photo-recognition/types';
 import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
+import { buildTemporalSnapshot } from './utils/telemetryUtils';
+import { ROUTINE_DEFINITIONS } from './modules/debug-overlay';
+import type { RoutineType } from './modules/debug-overlay';
 
 const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
@@ -46,6 +50,7 @@ const DebugOverlay = lazy(async () => {
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
 const MAX_SWITCH_DECISION_LATENCY_SAMPLES = 200;
+
 const createEmptySwitchDecisionTelemetry = (): SwitchDecisionTelemetry => ({
   shownCount: 0,
   confirmCount: 0,
@@ -147,7 +152,9 @@ function AppContent() {
   // Telemetry recording state
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'done'>('idle');
   const [secondsRemaining, setSecondsRemaining] = useState(30);
+  const [selectedRoutine, setSelectedRoutine] = useState<RoutineType | null>(null);
   const capturedTelemetryRef = useRef<RecognitionTelemetry | null>(null);
+  const temporalSnapshotsRef = useRef<TemporalTelemetrySnapshot[]>([]);
   // Always up-to-date ref — lets the countdown effect snapshot telemetry without adding
   // telemetryForExport to its dependency array (which would re-schedule the timer every frame).
   const liveTelemetryRef = useRef<RecognitionTelemetry | null>(null);
@@ -592,6 +599,7 @@ function AppContent() {
     resetTelemetry();
     switchDecisionTelemetryRef.current = createEmptySwitchDecisionTelemetry();
     capturedTelemetryRef.current = null;
+    temporalSnapshotsRef.current = [];
     setSecondsRemaining(30);
     setRecordingState('recording');
   }, [resetTelemetry]);
@@ -604,6 +612,19 @@ function AppContent() {
       setRecordingState('done');
       return;
     }
+
+    // Capture temporal snapshots at t=10s and t=20s (when secondsRemaining hits 20 and 10).
+    if (secondsRemaining === 20 || secondsRemaining === 10) {
+      const live = liveTelemetryRef.current;
+      if (live) {
+        const elapsedSeconds = 30 - secondsRemaining;
+        temporalSnapshotsRef.current = [
+          ...temporalSnapshotsRef.current,
+          buildTemporalSnapshot(live, elapsedSeconds),
+        ];
+      }
+    }
+
     const timer = setTimeout(() => setSecondsRemaining((s) => s - 1), 1000);
     return () => clearTimeout(timer);
   }, [recordingState, secondsRemaining]);
@@ -640,8 +661,20 @@ function AppContent() {
       .slice(0, 10)
       .map(([pair, count]) => ({ pair, count }));
 
+    const routineDef = selectedRoutine
+      ? (ROUTINE_DEFINITIONS.find((r) => r.type === selectedRoutine) ?? null)
+      : null;
+
+    const routineContext = {
+      routineType: selectedRoutine ?? 'unspecified',
+      routineLabel: routineDef?.label ?? 'No routine selected',
+      routineInstructions: routineDef?.instructions ?? '',
+    };
+
     const report = {
       timestamp: new Date().toISOString(),
+      recordingDurationMs: 30000,
+      routineContext,
       sessionInfo: { userAgent: navigator.userAgent, exportedAt: new Date().toISOString() },
       activeSettings,
       aiRecommendations,
@@ -672,7 +705,11 @@ function AppContent() {
                 100
               ).toFixed(1) + '%'
             : '0%',
+        instantConfirmations: telemetry.instantConfirmations ?? 0,
+        instantSwitchConfirmations: telemetry.instantSwitchConfirmations ?? 0,
+        qualityBypassFrames: telemetry.qualityBypassFrames ?? 0,
       },
+      temporalSnapshots: temporalSnapshotsRef.current,
       frameQualityStats: {
         blur: {
           ...blur,
@@ -747,10 +784,12 @@ function AppContent() {
 
     capturedTelemetryRef.current = null;
     setRecordingState('idle');
-  }, [recognitionOptions]);
+  }, [recognitionOptions, selectedRoutine]);
 
   const handleTelemetryDiscard = useCallback(() => {
     capturedTelemetryRef.current = null;
+    temporalSnapshotsRef.current = [];
+    setSelectedRoutine(null);
     setRecordingState('idle');
   }, []);
 
@@ -796,6 +835,9 @@ function AppContent() {
             telemetryRecording={{
               state: recordingState,
               secondsRemaining,
+              selectedRoutine,
+              onSelectRoutine: setSelectedRoutine,
+              onClearRoutine: () => setSelectedRoutine(null),
               onStart: startRecording,
               onDownload: handleTelemetryDownload,
               onDiscard: handleTelemetryDiscard,

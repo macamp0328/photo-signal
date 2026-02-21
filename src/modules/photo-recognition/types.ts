@@ -93,6 +93,27 @@ export interface CollisionStats {
   ambiguousPairCounts: Record<string, number>;
 }
 
+/**
+ * A cumulative telemetry snapshot taken mid-recording for trend analysis.
+ * Captured at t=10s and t=20s during a 30-second session.
+ */
+export interface TemporalTelemetrySnapshot {
+  /** Seconds elapsed since recording started when this snapshot was taken. */
+  elapsedSeconds: number;
+  cumulativeCounts: {
+    totalFrames: number;
+    qualityFrames: number;
+    blurRejections: number;
+    glareRejections: number;
+    lightingRejections: number;
+    successfulRecognitions: number;
+    failedAttempts: number;
+    instantConfirmations: number;
+    instantSwitchConfirmations: number;
+    qualityBypassFrames: number;
+  };
+}
+
 export type GuidanceType =
   | 'motion-blur'
   | 'glare'

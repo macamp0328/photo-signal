@@ -51,9 +51,6 @@ const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
 const MAX_SWITCH_DECISION_LATENCY_SAMPLES = 200;
 
-/** Seconds-remaining values at which to capture mid-session temporal snapshots. */
-const SNAPSHOT_AT_SECONDS_REMAINING = [20, 10] as const;
-
 const createEmptySwitchDecisionTelemetry = (): SwitchDecisionTelemetry => ({
   shownCount: 0,
   confirmCount: 0,
@@ -617,7 +614,7 @@ function AppContent() {
     }
 
     // Capture temporal snapshots at t=10s and t=20s (when secondsRemaining hits 20 and 10).
-    if ((SNAPSHOT_AT_SECONDS_REMAINING as readonly number[]).includes(secondsRemaining)) {
+    if (secondsRemaining === 20 || secondsRemaining === 10) {
       const live = liveTelemetryRef.current;
       if (live) {
         const elapsedSeconds = 30 - secondsRemaining;

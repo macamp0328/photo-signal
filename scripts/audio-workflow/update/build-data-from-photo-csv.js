@@ -33,7 +33,7 @@ function parseArgs(argv) {
   return args;
 }
 
-function normalizeBand(value) {
+export function normalizeBand(value) {
   if (!value || typeof value !== 'string') return '';
   return value
     .normalize('NFKD')
@@ -46,12 +46,12 @@ function normalizeBand(value) {
     .trim();
 }
 
-function sanitizePrefix(prefix) {
+export function sanitizePrefix(prefix) {
   if (!prefix) return '';
   return prefix.replace(/^\/+|\/+$/g, '').trim();
 }
 
-function trimTrailingSlash(value) {
+export function trimTrailingSlash(value) {
   if (!value) return value;
   return value.endsWith('/') ? value.replace(/\/+$/, '') : value;
 }
@@ -165,7 +165,7 @@ function similarityScore(a, b) {
   return Math.max(0, Math.min(1, score));
 }
 
-function groupBy(items, keySelector) {
+export function groupBy(items, keySelector) {
   const grouped = new Map();
   for (const item of items) {
     const key = keySelector(item);
@@ -206,13 +206,109 @@ function normalizeShutterSpeed(raw) {
   return value;
 }
 
-function formatAudioUrl(baseUrl, prefix, fileName) {
+export function formatAudioUrl(baseUrl, prefix, fileName) {
   const cleanBase = trimTrailingSlash(baseUrl);
   const cleanPrefix = sanitizePrefix(prefix);
   return [cleanBase, cleanPrefix, fileName]
     .filter(Boolean)
     .join('/')
     .replace(/(?<!:)\/+/g, '/');
+}
+
+/**
+ * Build a single concert object from a photo CSV row and a matched audio track.
+ * The `id` must be supplied by the caller (from the CSV or auto-generated).
+ */
+export function buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix) {
+  const selectedFile = selectedTrack?.fileName ?? 'concert-4.opus';
+  const csvSongTitle = String(row.songTitle ?? '').trim();
+  const songTitle = csvSongTitle || selectedTrack?.songTitle || undefined;
+
+  return {
+    id,
+    band: String(row.band ?? '').trim(),
+    ...(songTitle !== undefined && { songTitle }),
+    venue: String(row.venue ?? ''),
+    date: String(row.date ?? ''),
+    audioFile: formatAudioUrl(baseUrl, prefix, selectedFile),
+    imageFile: String(row.imageFile ?? ''),
+    photoHashes: {},
+    camera: String(row.camera ?? ''),
+    focalLength: String(row.focalLength ?? ''),
+    aperture: String(row.aperture ?? ''),
+    shutterSpeed: normalizeShutterSpeed(row.shutterSpeed),
+    iso: toNumberString(row.iso),
+  };
+}
+
+/**
+ * Find audio tracks that have no corresponding photo CSV row.
+ *
+ * When a band has more audio tracks than photo rows (exact-match only), the
+ * extra tracks are returned paired with the photo row they should clone metadata
+ * from (cycling through the available rows for that band).
+ *
+ * @param {Map<string, object[]>} photoRowsByNormBand
+ * @param {Map<string, object[]>} tracksByNormBand - tracks sorted by id ascending
+ * @returns {{ track: object, sourceRow: object }[]}
+ */
+export function findExtraTracks(photoRowsByNormBand, tracksByNormBand) {
+  const extras = [];
+
+  for (const [normBand, tracks] of tracksByNormBand) {
+    const photoRows = photoRowsByNormBand.get(normBand) ?? [];
+    if (photoRows.length === 0) continue; // No exact-match photos for this band — skip
+    if (tracks.length <= photoRows.length) continue; // All tracks already covered
+
+    // Tracks at indices [photoRows.length .. tracks.length-1] are not assigned
+    const uncoveredTracks = tracks.slice(photoRows.length);
+    for (let i = 0; i < uncoveredTracks.length; i++) {
+      const track = uncoveredTracks[i];
+      // Cycle through available photo rows for metadata (venue, date, imageFile, camera, …)
+      const sourceRow = photoRows[i % photoRows.length];
+      extras.push({ track, sourceRow });
+    }
+  }
+
+  return extras;
+}
+
+/**
+ * Build expanded concert entries for extra (uncovered) audio tracks.
+ *
+ * @param {{ track: object, sourceRow: object }[]} extraTracks
+ * @param {string} baseUrl
+ * @param {string} prefix
+ * @param {number} startId  First ID to use; incremented for each entry
+ * @returns {object[]}
+ */
+export function buildExpandedConcerts(extraTracks, baseUrl, prefix, startId) {
+  const entries = [];
+  let nextId = startId;
+
+  for (const { track, sourceRow } of extraTracks) {
+    const songTitle = String(track.songTitle ?? '').trim() || undefined;
+
+    entries.push({
+      id: nextId++,
+      band: String(sourceRow.band ?? '').trim(),
+      ...(songTitle !== undefined && { songTitle }),
+      venue: String(sourceRow.venue ?? ''),
+      date: String(sourceRow.date ?? ''),
+      audioFile: formatAudioUrl(baseUrl, prefix, track.fileName),
+      // Reuse the same imageFile so the song is visually associated with the artist
+      imageFile: String(sourceRow.imageFile ?? ''),
+      // No photo hashes — this entry exists for playlist continuity, not recognition
+      photoHashes: {},
+      camera: String(sourceRow.camera ?? ''),
+      focalLength: String(sourceRow.focalLength ?? ''),
+      aperture: String(sourceRow.aperture ?? ''),
+      shutterSpeed: normalizeShutterSpeed(sourceRow.shutterSpeed),
+      iso: toNumberString(sourceRow.iso),
+    });
+  }
+
+  return entries;
 }
 
 function printHelp() {
@@ -230,6 +326,13 @@ Options:
   --min-score=<0..1>    Fuzzy match threshold (default: ${DEFAULT_MIN_SCORE})
   --dry-run             Compute + report only, do not write output
   --help                Show this message
+
+Auto-expansion (default on):
+  When a band has more audio tracks than photo rows, extra concert entries are
+  automatically generated for the uncovered tracks. Each extra entry reuses the
+  photo metadata (venue, date, imageFile, camera) from the band's existing rows
+  and sets photoHashes to {} so it participates in playlist auto-advance without
+  being recognizable by camera.
 `);
 }
 
@@ -325,30 +428,18 @@ function main() {
         unmatched += 1;
       }
 
-      const selectedFile = selectedTrack?.fileName ?? 'concert-4.opus';
-      const csvSongTitle = String(row.songTitle ?? '').trim();
-      const songTitle = csvSongTitle || selectedTrack?.songTitle || undefined;
-
-      return {
-        id,
-        band: sourceBand,
-        ...(songTitle !== undefined && { songTitle }),
-        venue: String(row.venue ?? ''),
-        date: String(row.date ?? ''),
-        audioFile: formatAudioUrl(baseUrl, prefix, selectedFile),
-        imageFile: String(row.imageFile ?? ''),
-        photoHashes: {},
-        camera: String(row.camera ?? ''),
-        focalLength: String(row.focalLength ?? ''),
-        aperture: String(row.aperture ?? ''),
-        shutterSpeed: normalizeShutterSpeed(row.shutterSpeed),
-        iso: toNumberString(row.iso),
-      };
+      return buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix);
     })
     .filter(Boolean)
     .sort((a, b) => a.id - b.id);
 
-  const output = { concerts };
+  // Auto-expand: generate extra entries for bands with more audio tracks than photos
+  const extraTracks = findExtraTracks(photoRowsByNormBand, tracksByNormBand);
+  const maxPhotoId = concerts.reduce((max, c) => Math.max(max, c.id), 0);
+  const expandedConcerts = buildExpandedConcerts(extraTracks, baseUrl, prefix, maxPhotoId + 1);
+
+  const allConcerts = [...concerts, ...expandedConcerts].sort((a, b) => a.id - b.id);
+  const output = { concerts: allConcerts };
 
   console.log('🧱 Build data.json from photo CSV');
   console.log(`  Source CSV: ${path.relative(process.cwd(), sourceCsvPath)}`);
@@ -357,10 +448,14 @@ function main() {
   console.log(`  Base URL: ${baseUrl}`);
   console.log(`  Prefix: ${prefix}`);
   console.log(`  Min score: ${minScore}`);
-  console.log(`  Concerts: ${concerts.length}`);
+  console.log(`  Concerts (from photos): ${concerts.length}`);
   console.log(`  Exact matches: ${exactMatches}`);
   console.log(`  Fuzzy matches: ${fuzzyMatches}`);
   console.log(`  Unmatched: ${unmatched}`);
+  if (expandedConcerts.length > 0) {
+    console.log(`  Auto-expanded entries (extra songs): ${expandedConcerts.length}`);
+    console.log(`  Total concerts: ${allConcerts.length}`);
+  }
 
   if (dryRun) {
     console.log('⚠️  DRY RUN - no files were modified');

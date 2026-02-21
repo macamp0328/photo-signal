@@ -117,6 +117,28 @@ function replaceFileName(audioUrl, fileName) {
   return `${audioUrl.slice(0, lastSlash + 1)}${fileName}`;
 }
 
+/**
+ * Find audio tracks from the index that do not appear in any concert's audioFile.
+ *
+ * Useful for detecting songs that exist in the audio index but have been dropped
+ * from data.json (e.g. a band with more tracks than photo rows).
+ *
+ * @param {object[]} concerts  - Concert entries from data.json
+ * @param {object[]} tracks    - Tracks from audio-index (must have .fileName)
+ * @returns {object[]} Tracks whose fileName does not appear in any concert audioFile
+ */
+export function findUnmappedTracks(concerts, tracks) {
+  const coveredFileNames = new Set(
+    concerts
+      .filter((c) => c.audioFile)
+      .map((c) => {
+        const lastSlash = c.audioFile.lastIndexOf('/');
+        return lastSlash === -1 ? c.audioFile : c.audioFile.slice(lastSlash + 1);
+      })
+  );
+  return tracks.filter((track) => track.fileName && !coveredFileNames.has(track.fileName));
+}
+
 function pickBestTrack(concertNormBand, tracks, minScore) {
   let best = null;
   for (const track of tracks) {
@@ -520,6 +542,24 @@ function main() {
     }
     if (lowConfidence.length > 20) {
       console.log(`  ... and ${lowConfidence.length - 20} more`);
+    }
+  }
+
+  // Report tracks that are in the audio index but not referenced in any concert
+  const unmappedTracks = findUnmappedTracks(updatedConcerts, tracks);
+  if (unmappedTracks.length > 0) {
+    console.log('');
+    console.log(
+      `⚠️  Unmapped audio tracks (in index but not in data.json): ${unmappedTracks.length}`
+    );
+    console.log(
+      '   These songs will not play in any playlist. Run audio:build-data to include them.'
+    );
+    for (const track of unmappedTracks.slice(0, 20)) {
+      console.log(`  - "${track.band}" — ${track.fileName}`);
+    }
+    if (unmappedTracks.length > 20) {
+      console.log(`  ... and ${unmappedTracks.length - 20} more`);
     }
   }
 

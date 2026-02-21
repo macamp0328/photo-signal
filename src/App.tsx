@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import {
   usePhotoRecognition,
@@ -139,6 +139,21 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
+/**
+ * Build a shuffled playlist for an artist, optionally placing a preferred song first.
+ * The remaining songs are shuffled randomly behind it.
+ */
+function buildPlaylist(songs: Concert[], preferredId?: number): Concert[] {
+  if (songs.length <= 1) return [...songs];
+  const preferred = songs.find((s) => s.id === preferredId);
+  const rest = songs.filter((s) => s.id !== preferredId);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  return preferred ? [preferred, ...rest] : rest;
+}
+
 function AppContent() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -163,6 +178,17 @@ function AppContent() {
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
   const [dismissedSwitchConcertId, setDismissedSwitchConcertId] = useState<number | null>(null);
+
+  // Playlist bookkeeping — stored in refs because these values are never rendered;
+  // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
+  const playlistRef = useRef<Concert[]>([]);
+  const playlistIndexRef = useRef(0);
+  // activePlaylistBand IS rendered (used in effects and switch-prompt logic), so it stays state.
+  const [activePlaylistBand, setActivePlaylistBand] = useState<string | null>(null);
+  // Ref so onSongEnd can read it without stale closure
+  const userPausedRef = useRef(false);
+  // Ref to play fn so onSongEnd can call it without circular dep on useAudioPlayback return
+  const playRef = useRef<((url: string) => void) | null>(null);
 
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
@@ -254,7 +280,24 @@ function AppContent() {
   } = useAudioPlayback({
     volume: 1.0,
     fadeTime: 1000,
+    onSongEnd: () => {
+      if (userPausedRef.current) return;
+      const currentPlaylist = playlistRef.current;
+      if (currentPlaylist.length <= 1) return;
+      const nextIndex = (playlistIndexRef.current + 1) % currentPlaylist.length;
+      const nextSong = currentPlaylist[nextIndex];
+      if (nextSong?.audioFile && playRef.current) {
+        playlistIndexRef.current = nextIndex;
+        playRef.current(nextSong.audioFile);
+        setActiveConcert(nextSong);
+      }
+    },
   });
+
+  // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
+  useEffect(() => {
+    playRef.current = play;
+  }, [play]);
 
   // Begin streaming the recognized track immediately so playback feels instant
   useEffect(() => {
@@ -291,18 +334,37 @@ function AppContent() {
       return;
     }
 
-    const selectedAudioUrl = autoplayConcert.audioFile;
-    if (!selectedAudioUrl) {
+    if (!autoplayConcert.audioFile) {
       return;
     }
 
-    play(selectedAudioUrl);
-    setActiveConcert(autoplayConcert);
+    // Same artist is already in the active playlist — don't interrupt
+    if (autoplayConcert.band === activePlaylistBand) {
+      return;
+    }
+
+    // New artist: build a shuffled playlist starting from the recognized song
+    const songs = dataService.getConcertsByBand(autoplayConcert.band);
+    const newPlaylist = buildPlaylist(
+      songs.length > 0 ? songs : [autoplayConcert],
+      autoplayConcert.id
+    );
+    const firstSong = newPlaylist[0];
+    if (!firstSong?.audioFile) {
+      return;
+    }
+
+    userPausedRef.current = false;
+    playlistRef.current = newPlaylist;
+    playlistIndexRef.current = 0;
+    setActivePlaylistBand(autoplayConcert.band);
+    play(firstSong.audioFile);
+    setActiveConcert(firstSong);
     setPendingSwitchConcert(null);
     setDismissedSwitchConcertId(null);
-  }, [isActive, recognizedConcert, isPlaying, play]);
+  }, [isActive, recognizedConcert, isPlaying, play, activePlaylistBand]);
 
-  // Track a switch candidate whenever a different concert is detected while one is active.
+  // Track a switch candidate whenever a different artist is detected while one is active.
   useEffect(() => {
     const switchPromptConcert = recognizedConcert;
 
@@ -311,7 +373,8 @@ function AppContent() {
       return;
     }
 
-    if (switchPromptConcert.id === activeConcert.id) {
+    // Same artist as the active playlist — no switch needed
+    if (switchPromptConcert.band === activePlaylistBand) {
       setPendingSwitchConcert(null);
       return;
     }
@@ -322,7 +385,7 @@ function AppContent() {
     }
 
     setPendingSwitchConcert(switchPromptConcert);
-  }, [recognizedConcert, activeConcert, dismissedSwitchConcertId]);
+  }, [recognizedConcert, activeConcert, activePlaylistBand, dismissedSwitchConcertId]);
 
   useEffect(() => {
     if (!pendingSwitchConcert) {
@@ -376,13 +439,42 @@ function AppContent() {
     }
 
     if (isPlaying) {
+      userPausedRef.current = true;
       pause();
       return;
     }
 
+    userPausedRef.current = false;
     clearPlaybackError();
-    play(selectedAudioUrl);
-    setActiveConcert(playbackTargetConcert);
+
+    if (playbackTargetConcert.band !== activePlaylistBand) {
+      // Different artist: rebuild the playlist so onSongEnd auto-advances within
+      // the correct band rather than continuing a stale playlist from a previous artist.
+      const songs = dataService.getConcertsByBand(playbackTargetConcert.band);
+      const newPlaylist = buildPlaylist(
+        songs.length > 0 ? songs : [playbackTargetConcert],
+        playbackTargetConcert.id
+      );
+      const firstSong = newPlaylist[0];
+      if (!firstSong?.audioFile) {
+        return;
+      }
+      playlistRef.current = newPlaylist;
+      playlistIndexRef.current = 0;
+      setActivePlaylistBand(playbackTargetConcert.band);
+      play(firstSong.audioFile);
+      setActiveConcert(firstSong);
+    } else {
+      // Same artist: sync the playlist index to the specific song being resumed
+      // so onSongEnd advances from the right position.
+      const idx = playlistRef.current.findIndex((s) => s.id === playbackTargetConcert.id);
+      if (idx !== -1) {
+        playlistIndexRef.current = idx;
+      }
+      play(selectedAudioUrl);
+      setActiveConcert(playbackTargetConcert);
+    }
+
     setPendingSwitchConcert(null);
     setDismissedSwitchConcertId(null);
   };
@@ -392,25 +484,35 @@ function AppContent() {
       return;
     }
 
-    const selectedAudioUrl = pendingSwitchConcert.audioFile;
-    if (!selectedAudioUrl) {
-      return;
-    }
-
     const switchDecision = switchDecisionTelemetryRef.current;
     switchDecision.confirmCount += 1;
     recordSwitchDecisionLatency(switchDecision, promptShownAtRef.current);
     promptShownAtRef.current = null;
     lastPromptConcertIdRef.current = null;
 
-    if (activeConcert && isPlaying) {
-      crossfade(selectedAudioUrl);
-    } else {
-      clearPlaybackError();
-      play(selectedAudioUrl);
+    // Build a playlist for the new artist
+    const songs = dataService.getConcertsByBand(pendingSwitchConcert.band);
+    const newPlaylist = buildPlaylist(
+      songs.length > 0 ? songs : [pendingSwitchConcert],
+      pendingSwitchConcert.id
+    );
+    const firstSong = newPlaylist[0];
+    if (!firstSong?.audioFile) {
+      return;
     }
 
-    setActiveConcert(pendingSwitchConcert);
+    if (activeConcert && isPlaying) {
+      crossfade(firstSong.audioFile);
+    } else {
+      clearPlaybackError();
+      play(firstSong.audioFile);
+    }
+
+    userPausedRef.current = false;
+    playlistRef.current = newPlaylist;
+    playlistIndexRef.current = 0;
+    setActivePlaylistBand(pendingSwitchConcert.band);
+    setActiveConcert(firstSong);
     setPendingSwitchConcert(null);
     setDismissedSwitchConcertId(null);
   };

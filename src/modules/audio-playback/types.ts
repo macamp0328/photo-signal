@@ -39,6 +39,8 @@ export interface AudioPlaybackOptions {
   crossfadeDuration?: number;
   /** Enable crossfade functionality, default true */
   crossfadeEnabled?: boolean;
+  /** Called when a song finishes playing naturally (not on stop/pause) */
+  onSongEnd?: () => void;
 }
 
 export interface AudioDiagnosticResult {

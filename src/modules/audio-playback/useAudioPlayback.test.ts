@@ -741,6 +741,78 @@ describe('useAudioPlayback', () => {
     });
   });
 
+  describe('onSongEnd callback', () => {
+    it('should call onSongEnd when a song finishes naturally', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() => useAudioPlayback({ onSongEnd }));
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        HowlClass.instances[0].__triggerEnd();
+      });
+
+      expect(onSongEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call onSongEnd when stop() is called', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() => useAudioPlayback({ onSongEnd }));
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        result.current.stop();
+      });
+
+      expect(onSongEnd).not.toHaveBeenCalled();
+    });
+
+    it('should not call onSongEnd when pause() is called', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() => useAudioPlayback({ onSongEnd }));
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        result.current.pause();
+      });
+
+      expect(onSongEnd).not.toHaveBeenCalled();
+    });
+
+    it('should use the latest onSongEnd after it is updated', () => {
+      const onSongEndV1 = vi.fn();
+      const onSongEndV2 = vi.fn();
+      const { result, rerender } = renderHook(
+        ({ cb }: { cb: () => void }) => useAudioPlayback({ onSongEnd: cb }),
+        { initialProps: { cb: onSongEndV1 } }
+      );
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      // Update the callback
+      rerender({ cb: onSongEndV2 });
+
+      act(() => {
+        HowlClass.instances[0].__triggerEnd();
+      });
+
+      expect(onSongEndV1).not.toHaveBeenCalled();
+      expect(onSongEndV2).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Preload Functionality', () => {
     it('should preload audio without starting playback and reuse the cached instance', () => {
       const { result } = renderHook(() => useAudioPlayback());

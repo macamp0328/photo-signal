@@ -171,6 +171,14 @@ class DataService {
   }
 
   /**
+   * Get all concerts for a given band name (exact match)
+   */
+  getConcertsByBand(band: string): Concert[] {
+    if (!this.cache) return [];
+    return this.cache.filter((concert) => concert.band === band);
+  }
+
+  /**
    * Get concert by ID
    */
   getConcertById(id: number): Concert | null {

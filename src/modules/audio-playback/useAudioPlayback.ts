@@ -31,7 +31,13 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     fadeTime = 1000,
     crossfadeDuration = 2000,
     crossfadeEnabled = true,
+    onSongEnd,
   } = options;
+
+  const onSongEndRef = useRef(onSongEnd);
+  useEffect(() => {
+    onSongEndRef.current = onSongEnd;
+  }, [onSongEnd]);
 
   const soundRef = useRef<Howl | null>(null);
   const fadingOutSoundRef = useRef<Howl | null>(null);
@@ -185,6 +191,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           stopProgressLoop();
           setIsPlaying(false);
           setProgress(0);
+          onSongEndRef.current?.();
         }
       };
 

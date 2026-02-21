@@ -210,6 +210,64 @@ describe('DataService', () => {
     });
   });
 
+  describe('getConcertsByBand()', () => {
+    beforeEach(async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          concerts: [
+            ...mockConcerts,
+            {
+              id: 4,
+              band: 'The Midnight Echoes',
+              songTitle: 'Second Song',
+              venue: 'The Fillmore',
+              date: '2024-01-01T20:00:00-05:00',
+              audioFile: '/audio/sample2.opus',
+            },
+          ],
+        }),
+      });
+      global.fetch = mockFetch;
+      await dataService.getConcerts();
+    });
+
+    it('should return all concerts for a matching band', () => {
+      const results = dataService.getConcertsByBand('The Midnight Echoes');
+
+      expect(results).toHaveLength(2);
+      expect(results.every((c) => c.band === 'The Midnight Echoes')).toBe(true);
+    });
+
+    it('should return a single-element array for a band with one concert', () => {
+      const results = dataService.getConcertsByBand('Electric Dreams');
+
+      expect(results).toHaveLength(1);
+      expect(results[0].band).toBe('Electric Dreams');
+    });
+
+    it('should return empty array for an unknown band', () => {
+      const results = dataService.getConcertsByBand('Nonexistent Band');
+
+      expect(results).toEqual([]);
+    });
+
+    it('should return empty array when cache is empty', () => {
+      dataService.clearCache();
+
+      const results = dataService.getConcertsByBand('The Midnight Echoes');
+
+      expect(results).toEqual([]);
+    });
+
+    it('should use exact band name match (case-sensitive)', () => {
+      const results = dataService.getConcertsByBand('the midnight echoes');
+
+      expect(results).toHaveLength(0);
+    });
+  });
+
   describe('getConcertById()', () => {
     beforeEach(async () => {
       // Pre-load cache with mock data

@@ -29,7 +29,7 @@ export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
   }[state];
 
   return (
-    <div className={styles.overlay}>
+    <div className={styles.overlay} data-testid="rectangle-overlay">
       {/* Rectangle outline */}
       <div
         className={`${styles.rectangle} ${stateClass}`}

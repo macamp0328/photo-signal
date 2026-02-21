@@ -392,8 +392,7 @@ describe('CameraView', () => {
         />
       );
 
-      expect(screen.queryByText('Photo detected!')).not.toBeInTheDocument();
-      expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('rectangle-overlay')).not.toBeInTheDocument();
     });
 
     it('should not render overlay when detectedRectangle is null', () => {
@@ -408,8 +407,7 @@ describe('CameraView', () => {
         />
       );
 
-      expect(screen.queryByText('Photo detected!')).not.toBeInTheDocument();
-      expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('rectangle-overlay')).not.toBeInTheDocument();
     });
   });
 });

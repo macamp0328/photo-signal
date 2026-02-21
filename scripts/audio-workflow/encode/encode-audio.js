@@ -483,7 +483,7 @@ async function processAudioFile(download, config, options) {
  * Prefers the highest-resolution option from the thumbnails array.
  * Falls back to the direct thumbnail field from yt-dlp info.
  */
-function selectBestThumbnailUrl(metadata) {
+export function selectBestThumbnailUrl(metadata) {
   const thumbnails = metadata?.track?.thumbnails;
   if (Array.isArray(thumbnails) && thumbnails.length > 0) {
     // yt-dlp orders thumbnails best-last; pick the one with the largest area
@@ -510,45 +510,47 @@ function selectBestThumbnailUrl(metadata) {
 /**
  * Download a thumbnail URL and resize/convert to a 200×200 WebP using ffmpeg.
  */
-async function downloadAndResizeCover(thumbnailUrl, outputPath, workDir, slug) {
+export async function downloadAndResizeCover(thumbnailUrl, outputPath, workDir, slug) {
   const tempPath = join(workDir, `${slug}-thumb-raw`);
 
-  // Download the thumbnail
-  const response = await fetch(thumbnailUrl);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} fetching thumbnail: ${thumbnailUrl}`);
-  }
-  const writeStream = createWriteStream(tempPath);
-  await pipeline(response.body, writeStream);
+  try {
+    // Download the thumbnail
+    const response = await fetch(thumbnailUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} fetching thumbnail: ${thumbnailUrl}`);
+    }
+    const writeStream = createWriteStream(tempPath);
+    await pipeline(response.body, writeStream);
 
-  // Resize and convert to WebP with ffmpeg
-  await new Promise((resolve, reject) => {
-    const args = [
-      '-y',
-      '-i',
-      tempPath,
-      '-vf',
-      'scale=200:200:force_original_aspect_ratio=increase,crop=200:200',
-      '-c:v',
-      'libwebp',
-      '-quality',
-      '80',
-      outputPath,
-    ];
-    const proc = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-    proc.on('close', (code) => {
-      rmSync(tempPath, { force: true });
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`ffmpeg cover resize exited with code ${code}`));
-      }
+    // Resize and convert to WebP with ffmpeg
+    await new Promise((resolve, reject) => {
+      const args = [
+        '-y',
+        '-i',
+        tempPath,
+        '-vf',
+        'scale=200:200:force_original_aspect_ratio=increase,crop=200:200',
+        '-c:v',
+        'libwebp',
+        '-quality',
+        '80',
+        outputPath,
+      ];
+      const proc = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+      proc.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`ffmpeg cover resize exited with code ${code}`));
+        }
+      });
+      proc.on('error', (err) => {
+        reject(err);
+      });
     });
-    proc.on('error', (err) => {
-      rmSync(tempPath, { force: true });
-      reject(err);
-    });
-  });
+  } finally {
+    rmSync(tempPath, { force: true });
+  }
 }
 
 function resolvePhotoIdFromMetadata(metadata) {

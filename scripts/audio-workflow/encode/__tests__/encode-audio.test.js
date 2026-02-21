@@ -1,10 +1,64 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createWriteStream, rmSync } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
+import { spawn } from 'node:child_process';
 import {
   generateOutputFilename,
   parseLUFS,
   createAudioIndex,
   createPhotoAudioMap,
+  selectBestThumbnailUrl,
+  downloadAndResizeCover,
 } from '../encode-audio.js';
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal();
+  const mockCreateWriteStream = vi.fn();
+  const mockRmSync = vi.fn();
+  return {
+    ...actual,
+    createWriteStream: mockCreateWriteStream,
+    rmSync: mockRmSync,
+    default: {
+      ...(actual.default ?? actual),
+      createWriteStream: mockCreateWriteStream,
+      rmSync: mockRmSync,
+    },
+  };
+});
+
+vi.mock('node:stream/promises', async (importOriginal) => {
+  const actual = await importOriginal();
+  const mockPipeline = vi.fn();
+  return {
+    ...actual,
+    pipeline: mockPipeline,
+    default: { ...(actual.default ?? actual), pipeline: mockPipeline },
+  };
+});
+
+vi.mock('node:child_process', async (importOriginal) => {
+  const actual = await importOriginal();
+  const mockSpawn = vi.fn();
+  return {
+    ...actual,
+    spawn: mockSpawn,
+    default: { ...(actual.default ?? actual), spawn: mockSpawn },
+  };
+});
+
+/** Build a mock child process that emits 'close' or 'error' after the handler is registered. */
+function makeMockProcess({ closeCode = 0, error = null } = {}) {
+  return {
+    on: vi.fn((event, cb) => {
+      if (error && event === 'error') {
+        Promise.resolve().then(() => cb(error));
+      } else if (!error && event === 'close') {
+        Promise.resolve().then(() => cb(closeCode));
+      }
+    }),
+  };
+}
 
 describe('encode-audio', () => {
   describe('generateOutputFilename', () => {
@@ -373,5 +427,148 @@ describe('encode-audio', () => {
       expect(map.mappings).toHaveLength(1);
       expect(map.mappings[0].audioId).toBe('success');
     });
+  });
+});
+
+describe('selectBestThumbnailUrl', () => {
+  it('picks the thumbnail with the largest area', () => {
+    const metadata = {
+      track: {
+        thumbnails: [
+          { url: 'https://example.com/small.jpg', width: 100, height: 100 },
+          { url: 'https://example.com/large.jpg', width: 500, height: 500 },
+          { url: 'https://example.com/medium.jpg', width: 200, height: 200 },
+        ],
+      },
+    };
+    expect(selectBestThumbnailUrl(metadata)).toBe('https://example.com/large.jpg');
+  });
+
+  it('falls back to first entry with a URL when no dimensions are present', () => {
+    const metadata = {
+      track: {
+        thumbnails: [
+          { url: 'https://example.com/first.jpg' },
+          { url: 'https://example.com/second.jpg' },
+        ],
+      },
+    };
+    expect(selectBestThumbnailUrl(metadata)).toBe('https://example.com/first.jpg');
+  });
+
+  it('skips thumbnail entries without a url', () => {
+    const metadata = {
+      track: {
+        thumbnails: [
+          { width: 500, height: 500 }, // no url
+          { url: 'https://example.com/valid.jpg', width: 100, height: 100 },
+        ],
+      },
+    };
+    expect(selectBestThumbnailUrl(metadata)).toBe('https://example.com/valid.jpg');
+  });
+
+  it('falls back to track.thumbnail when thumbnails array is empty', () => {
+    const metadata = {
+      track: { thumbnails: [], thumbnail: 'https://example.com/direct.jpg' },
+    };
+    expect(selectBestThumbnailUrl(metadata)).toBe('https://example.com/direct.jpg');
+  });
+
+  it('falls back to metadata.thumbnail when track has no thumbnails or thumbnail', () => {
+    const metadata = { thumbnail: 'https://example.com/meta.jpg' };
+    expect(selectBestThumbnailUrl(metadata)).toBe('https://example.com/meta.jpg');
+  });
+
+  it('returns null when no thumbnail information is available', () => {
+    expect(selectBestThumbnailUrl({})).toBeNull();
+    expect(selectBestThumbnailUrl(null)).toBeNull();
+  });
+});
+
+describe('downloadAndResizeCover', () => {
+  beforeEach(() => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: {},
+    });
+    createWriteStream.mockReturnValue({});
+    pipeline.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('calls ffmpeg with correct arguments and resolves on exit code 0', async () => {
+    spawn.mockReturnValue(makeMockProcess({ closeCode: 0 }));
+
+    await expect(
+      downloadAndResizeCover('https://example.com/thumb.jpg', '/out/cover.webp', '/tmp', 'my-slug')
+    ).resolves.toBeUndefined();
+
+    expect(spawn).toHaveBeenCalledWith(
+      'ffmpeg',
+      expect.arrayContaining(['-quality', '80', '/out/cover.webp']),
+      expect.any(Object)
+    );
+  });
+
+  it('rejects when ffmpeg exits with a non-zero code', async () => {
+    spawn.mockReturnValue(makeMockProcess({ closeCode: 1 }));
+
+    await expect(
+      downloadAndResizeCover('https://example.com/thumb.jpg', '/out/cover.webp', '/tmp', 'my-slug')
+    ).rejects.toThrow('ffmpeg cover resize exited with code 1');
+  });
+
+  it('rejects when ffmpeg emits an error event', async () => {
+    spawn.mockReturnValue(makeMockProcess({ error: new Error('spawn ENOENT') }));
+
+    await expect(
+      downloadAndResizeCover('https://example.com/thumb.jpg', '/out/cover.webp', '/tmp', 'my-slug')
+    ).rejects.toThrow('spawn ENOENT');
+  });
+
+  it('rejects when the HTTP response is not ok', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({ ok: false, status: 404 });
+
+    await expect(
+      downloadAndResizeCover('https://example.com/thumb.jpg', '/out/cover.webp', '/tmp', 'my-slug')
+    ).rejects.toThrow('HTTP 404 fetching thumbnail');
+  });
+
+  it('cleans up the temp file on success', async () => {
+    spawn.mockReturnValue(makeMockProcess({ closeCode: 0 }));
+
+    await downloadAndResizeCover(
+      'https://example.com/thumb.jpg',
+      '/out/cover.webp',
+      '/tmp',
+      'my-slug'
+    );
+
+    expect(rmSync).toHaveBeenCalledWith('/tmp/my-slug-thumb-raw', { force: true });
+  });
+
+  it('cleans up the temp file even when ffmpeg fails', async () => {
+    spawn.mockReturnValue(makeMockProcess({ closeCode: 2 }));
+
+    await expect(
+      downloadAndResizeCover('https://example.com/thumb.jpg', '/out/cover.webp', '/tmp', 'my-slug')
+    ).rejects.toThrow();
+
+    expect(rmSync).toHaveBeenCalledWith('/tmp/my-slug-thumb-raw', { force: true });
+  });
+
+  it('cleans up the temp file when HTTP fetch fails', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({ ok: false, status: 500 });
+
+    await expect(
+      downloadAndResizeCover('https://example.com/thumb.jpg', '/out/cover.webp', '/tmp', 'my-slug')
+    ).rejects.toThrow();
+
+    expect(rmSync).toHaveBeenCalledWith('/tmp/my-slug-thumb-raw', { force: true });
   });
 });

@@ -164,6 +164,22 @@ describe('buildConcertFromRow', () => {
     const concert = buildConcertFromRow(row, 1, null, baseUrl, prefix);
     expect(concert.audioFile).toContain('concert-4.opus');
   });
+
+  it('includes albumCoverUrl when track has a coverFile', () => {
+    const trackWithCover = { ...track, coverFile: 'big-girl-cover.webp' };
+    const concert = buildConcertFromRow(row, 1, trackWithCover, baseUrl, prefix);
+    expect(concert.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/big-girl-cover.webp');
+  });
+
+  it('omits albumCoverUrl when track has no coverFile', () => {
+    const concert = buildConcertFromRow(row, 1, track, baseUrl, prefix);
+    expect(concert).not.toHaveProperty('albumCoverUrl');
+  });
+
+  it('omits albumCoverUrl when selectedTrack is null', () => {
+    const concert = buildConcertFromRow(row, 1, null, baseUrl, prefix);
+    expect(concert).not.toHaveProperty('albumCoverUrl');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -309,6 +325,23 @@ describe('buildExpandedConcerts', () => {
 
   it('returns empty array for empty input', () => {
     expect(buildExpandedConcerts([], baseUrl, prefix, 100)).toEqual([]);
+  });
+
+  it('includes albumCoverUrl when track has a coverFile', () => {
+    const extraTracks = [
+      {
+        track: { fileName: 'song2.opus', songTitle: 'Song Two', coverFile: 'song2-cover.webp' },
+        sourceRow,
+      },
+    ];
+    const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/song2-cover.webp');
+  });
+
+  it('omits albumCoverUrl when track has no coverFile', () => {
+    const extraTracks = [{ track: { fileName: 'song2.opus', songTitle: '' }, sourceRow }];
+    const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry).not.toHaveProperty('albumCoverUrl');
   });
 });
 

@@ -9,6 +9,13 @@ const DEFAULT_AUDIO_INDEX = 'scripts/audio-workflow/encode/output/audio-index.js
 const DEFAULT_MIN_SCORE = 0.45;
 const DEFAULT_REPORT_JSON = 'scripts/audio-workflow/output/mapping-report.json';
 const DEFAULT_REPORT_CSV = 'scripts/audio-workflow/output/mapping-report.csv';
+const BAND_ALIASES = new Map([
+  ['witworth', 'whitworth'],
+  ['sea n barna', 'sen barna'],
+  ['mamalarkey', 'mamalarky'],
+  ['thao and get down stay down', 'thao'],
+  ['arya', 'araya'],
+]);
 
 function parseArgs(argv) {
   const args = {};
@@ -38,6 +45,10 @@ function normalizeBand(value) {
     .replace(/\bthe\b/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function resolveBandAlias(value) {
+  return BAND_ALIASES.get(value) ?? value;
 }
 
 function tokenize(normalizedBand) {
@@ -325,7 +336,9 @@ function main() {
     groupedTracks.sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  const photoRowsByNormBand = groupBy(photoSourceRows, (row) => normalizeBand(row.band));
+  const photoRowsByNormBand = groupBy(photoSourceRows, (row) =>
+    resolveBandAlias(normalizeBand(row.band))
+  );
   for (const rows of photoRowsByNormBand.values()) {
     rows.sort((a, b) => Number(a.id) - Number(b.id));
   }
@@ -363,7 +376,7 @@ function main() {
 
     const sourceBand = String(sourceRow.band ?? '').trim();
     const sourceVenue = String(sourceRow.venue ?? '');
-    const normBand = normalizeBand(sourceBand);
+    const normBand = resolveBandAlias(normalizeBand(sourceBand));
     if (!normBand) {
       unmatched += 1;
       reportRows.push({

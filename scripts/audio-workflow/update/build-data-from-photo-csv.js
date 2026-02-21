@@ -14,6 +14,8 @@ const BAND_ALIASES = new Map([
   ['witworth', 'whitworth'],
   ['sea n barna', 'sen barna'],
   ['mamalarkey', 'mamalarky'],
+  ['thao and get down stay down', 'thao'],
+  ['arya', 'araya'],
 ]);
 
 function parseArgs(argv) {

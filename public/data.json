@@ -1331,9 +1331,10 @@
     {
       "id": 19,
       "band": "Thao & the Get Down Stay Down",
+      "songTitle": "Holy Roller",
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T17:56:28-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thao-holy-roller-we-the-common.opus",
       "imageFile": "/assets/prod-photographs/R0051522.jpg",
       "photoHashes": {
         "phash": [
@@ -1552,9 +1553,10 @@
     {
       "id": 22,
       "band": "Arya",
+      "songTitle": "MAKIMA",
       "venue": "French Legation",
       "date": "2023-03-17T08:46:02-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-araya-makima-anime.opus",
       "imageFile": "/assets/prod-photographs/R0051593.jpg",
       "photoHashes": {
         "phash": [

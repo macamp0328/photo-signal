@@ -601,14 +601,6 @@ function AppContent() {
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const showSwitchPrompt = !!pendingSwitchConcert;
 
-  const primaryActionLabel = isPlaying
-    ? isInfoActive
-      ? 'Pause Playback'
-      : 'Pause Current Track'
-    : isInfoActive
-      ? 'Play Track'
-      : 'Play Detected Track';
-
   const statusLabel = playbackError
     ? 'Playback Fault'
     : isInfoActive && isPlaying
@@ -641,6 +633,7 @@ function AppContent() {
       ? `${activeConcert.band} — ${activeConcert.songTitle}`
       : activeConcert.band
     : null;
+  const playbackButtonLabel = isPlaying ? 'Pause' : 'Play';
 
   const canNavigatePlaylist = playlistRef.current.length > 1;
   const shouldShowBottomPlayer = Boolean(activeConcert);
@@ -650,7 +643,17 @@ function AppContent() {
       <div className={styles.playerHeader}>
         <div className={styles.playerTitleBlock}>
           <p className={styles.playerEyebrow}>Now Playing</p>
-          <p className={styles.playerTitle}>{nowPlayingLine}</p>
+          <div className={styles.playerNowPlayingRow}>
+            {activeConcert?.albumCoverUrl ? (
+              <img
+                src={activeConcert.albumCoverUrl}
+                alt={`${activeConcert.band} album cover`}
+                className={styles.playerAlbumCover}
+                loading="lazy"
+              />
+            ) : null}
+            <p className={styles.playerTitle}>{nowPlayingLine}</p>
+          </div>
         </div>
         <p className={styles.playerProgress}>{progressPercentage}%</p>
       </div>
@@ -678,9 +681,9 @@ function AppContent() {
           type="button"
           className={styles.playerButtonPrimary}
           onClick={handleTogglePlayback}
-          aria-label={primaryActionLabel}
+          aria-label={playbackButtonLabel}
         >
-          {primaryActionLabel}
+          {playbackButtonLabel}
         </button>
         <button
           type="button"

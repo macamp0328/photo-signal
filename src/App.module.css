@@ -18,6 +18,21 @@
   gap: 0.2rem;
 }
 
+.playerNowPlayingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.playerAlbumCover {
+  width: 2.4rem;
+  height: 2.4rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .playerEyebrow {
   margin: 0;
   font-size: 0.62rem;
@@ -32,6 +47,7 @@
   color: var(--color-main-text);
   font-weight: 700;
   line-height: 1.25;
+  min-width: 0;
 }
 
 .playerProgress {
@@ -113,6 +129,19 @@
 @media (max-width: 767px) {
   .playerTransport,
   .playerSwitchRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .playerButtonPrimary,
+  .playerButtonSecondary {
+    min-height: 2.5rem;
+    padding: 0.5rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+  }
+
+  .playerAlbumCover {
+    width: 2.2rem;
+    height: 2.2rem;
   }
 }

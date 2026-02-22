@@ -214,7 +214,7 @@ describe('InfoDisplay', () => {
   });
 
   describe('Album Cover', () => {
-    it('renders album cover image when albumCoverUrl is set', () => {
+    it('does not render album cover image when albumCoverUrl is set', () => {
       const concert: Concert = {
         ...mockConcert,
         albumCoverUrl: 'https://cdn.example.com/cover.webp',
@@ -222,9 +222,7 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      const img = screen.getByRole('img', { name: /The Beatles album cover/i });
-      expect(img).toBeInTheDocument();
-      expect(img).toHaveAttribute('src', 'https://cdn.example.com/cover.webp');
+      expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
     });
 
     it('does not render album cover image when albumCoverUrl is absent', () => {

@@ -423,7 +423,7 @@ describe('App playback flow', () => {
     // Record call count before clicking Play button
     const callCountBefore = mockPlay.mock.calls.length;
 
-    await user.click(screen.getByRole('button', { name: 'Play Track' }));
+    await user.click(screen.getByRole('button', { name: /^Play$/ }));
 
     // Verify Play button click triggered a new play call
     expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);

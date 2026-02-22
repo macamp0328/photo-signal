@@ -298,6 +298,7 @@ describe('buildExpandedConcerts', () => {
   it('sets photoHashes to empty object (not recognizable by camera)', () => {
     const extraTracks = [{ track: { fileName: 'song2.opus', songTitle: '' }, sourceRow }];
     const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry.recognitionEnabled).toBe(false);
     expect(entry.photoHashes).toEqual({});
   });
 

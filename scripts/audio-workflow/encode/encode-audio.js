@@ -83,6 +83,11 @@ async function main() {
 
   const results = [];
   const dryRun = args['dry-run'] ?? false;
+  const skipExisting = resolveSkipExisting(args);
+  const existingIndexMap = skipExisting && !dryRun ? loadExistingAudioIndexMap(outputDir) : null;
+
+  console.log(`  Skip existing outputs: ${skipExisting ? 'yes' : 'no'}`);
+  console.log('');
 
   for (const download of downloads) {
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
@@ -94,6 +99,8 @@ async function main() {
         outputDir,
         workDir,
         dryRun,
+        skipExisting,
+        existingIndexMap,
         metadataOverrides,
       });
       results.push(result);
@@ -308,7 +315,7 @@ function resolveAudioPathFromInfo(infoPath) {
  * Process a single audio file
  */
 async function processAudioFile(download, config, options) {
-  const { outputDir, workDir, dryRun, metadataOverrides } = options;
+  const { outputDir, workDir, dryRun, skipExisting, existingIndexMap, metadataOverrides } = options;
 
   const metadata = applyMetadataOverrides(download.metadata, download, metadataOverrides);
   const track = metadata.track ?? {};
@@ -326,6 +333,7 @@ async function processAudioFile(download, config, options) {
   // Generate slug and filenames
   const slug = generateSlug(band, title, album);
   const outputFileName = `ps-${slug}.opus`;
+  const outputPath = join(outputDir, outputFileName);
 
   console.log(`  Band:  ${band}`);
   console.log(`  Title: ${title}`);
@@ -342,6 +350,74 @@ async function processAudioFile(download, config, options) {
   }
   console.log(`  Slug:  ${slug}`);
   console.log('');
+
+  if (!dryRun && skipExisting && existsSync(outputPath)) {
+    console.log('  1. Skipping encode (output already exists)');
+
+    const existingTrack = existingIndexMap?.get(slug) ?? null;
+    if (existingTrack) {
+      return {
+        ...download,
+        success: true,
+        skipped: true,
+        photoId: existingTrack.photoId ?? photoId,
+        slug,
+        outputFile: existingTrack.fileName ?? outputFileName,
+        outputPath,
+        band: existingTrack.band ?? band,
+        title: existingTrack.songTitle ?? title,
+        album: existingTrack.album ?? album,
+        date: existingTrack.date ?? date,
+        releaseDate: existingTrack.releaseDate ?? releaseDate,
+        durationMs: existingTrack.durationMs ?? null,
+        lufsIntegrated: existingTrack.lufsIntegrated ?? null,
+        truePeakDb: existingTrack.truePeakDb ?? null,
+        lra: existingTrack.lra ?? null,
+        checksum: existingTrack.checksum ?? null,
+        bitrateKbps: existingTrack.bitrateKbps ?? null,
+        sourceBitrateKbps: existingTrack.sourceBitrateKbps ?? null,
+        bitrateSource: existingTrack.sourceBitrateSource ?? null,
+        genre: existingTrack.genre ?? genre,
+        recordLabel: existingTrack.recordLabel ?? musicDetails.recordLabel,
+        distributor: existingTrack.distributor ?? musicDetails.distributor,
+        tags: existingTrack.tags ?? musicDetails.tags,
+        categories: existingTrack.categories ?? musicDetails.categories,
+        credits: existingTrack.credits ?? musicDetails.credits,
+      };
+    }
+
+    console.warn(
+      '  ⚠️  Existing output found but no matching audio-index metadata; preserving file'
+    );
+    return {
+      ...download,
+      success: true,
+      skipped: true,
+      photoId,
+      slug,
+      outputFile: outputFileName,
+      outputPath,
+      band,
+      title,
+      album,
+      date,
+      releaseDate,
+      durationMs: null,
+      lufsIntegrated: null,
+      truePeakDb: null,
+      lra: null,
+      checksum: null,
+      bitrateKbps: null,
+      sourceBitrateKbps: null,
+      bitrateSource: null,
+      genre,
+      recordLabel: musicDetails.recordLabel,
+      distributor: musicDetails.distributor,
+      tags: musicDetails.tags,
+      categories: musicDetails.categories,
+      credits: musicDetails.credits,
+    };
+  }
 
   const bitrateInfo = await determineTargetBitrate(download, config);
   if (bitrateInfo.sourceBitrateKbps) {
@@ -392,7 +468,6 @@ async function processAudioFile(download, config, options) {
   await applyFades(normalizedWavPath, fadedWavPath, config, duration);
 
   // Step 5: Encode to Opus
-  const outputPath = join(outputDir, outputFileName);
   console.log('  5. Encoding to Opus...');
   await encodeToOpus(
     fadedWavPath,
@@ -1251,6 +1326,39 @@ function parseArgs(argv) {
   return args;
 }
 
+function resolveSkipExisting(args) {
+  if (args['force-reencode']) {
+    return false;
+  }
+
+  if (args['skip-existing'] === undefined) {
+    return true;
+  }
+
+  const raw = String(args['skip-existing']).toLowerCase();
+  if (raw === 'false' || raw === '0' || raw === 'no') {
+    return false;
+  }
+
+  return true;
+}
+
+function loadExistingAudioIndexMap(outputDir) {
+  const indexPath = join(outputDir, 'audio-index.json');
+  if (!existsSync(indexPath)) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(indexPath, 'utf-8'));
+    const tracks = Array.isArray(parsed?.tracks) ? parsed.tracks : [];
+    return new Map(tracks.map((track) => [track.id, track]));
+  } catch (error) {
+    console.warn(`⚠️  Could not read existing audio-index (${indexPath}): ${error.message}`);
+    return null;
+  }
+}
+
 function loadConfig(configPath) {
   if (!existsSync(configPath)) {
     console.warn(`⚠️  Config file not found: ${configPath}`);
@@ -1786,6 +1894,8 @@ Options:
   --work-dir <path>        Directory for temporary files (default: from config)
   --config <path>          Path to config file (default: encode.config.json)
   --metadata-overrides <path>  JSON file with manual metadata overrides
+  --skip-existing[=true|false] Skip files that already have encoded output (default: true)
+  --force-reencode          Re-encode all files even when output exists
   --skip-prereq-check      Skip ffmpeg availability check
   --dry-run                Preview without encoding
   --help                   Show this help message
@@ -1800,6 +1910,9 @@ Examples:
 
   # Dry run to preview
   npm run encode-audio -- --dry-run
+
+  # Force full re-encode
+  npm run encode-audio -- --force-reencode
 
 Configuration:
   Edit scripts/audio-workflow/encode/encode.config.json to set:

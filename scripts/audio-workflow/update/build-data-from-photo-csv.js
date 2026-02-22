@@ -9,11 +9,17 @@ const DEFAULT_OUTPUT = 'public/data.json';
 const DEFAULT_BASE_URL = 'https://photo-signal-audio-worker.whoisduck2.workers.dev';
 const DEFAULT_PREFIX = 'prod/audio';
 const DEFAULT_MIN_SCORE = 0.8;
+const DEFAULT_PLACEHOLDER_AUDIO_FILE = 'concert-4.opus';
+const PLACEHOLDER_BAND_NORM = 'prince';
+const PLACEHOLDER_TITLE_NORM = 'i wanna be your lover';
 
 const BAND_ALIASES = new Map([
   ['witworth', 'whitworth'],
   ['sea n barna', 'sen barna'],
+  ['sean barna', 'sen barna'],
   ['mamalarkey', 'mamalarky'],
+  ['thao and get down stay down', 'thao'],
+  ['arya', 'araya'],
 ]);
 
 function parseArgs(argv) {
@@ -206,6 +212,37 @@ function normalizeShutterSpeed(raw) {
   return value;
 }
 
+function normalizeTitle(value) {
+  if (!value || typeof value !== 'string') return '';
+  return value
+    .normalize('NFKD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findPlaceholderTrack(tracks) {
+  const withBandAndTitle = tracks.find(
+    (track) =>
+      track.normBand === PLACEHOLDER_BAND_NORM &&
+      normalizeTitle(track.songTitle ?? '') === PLACEHOLDER_TITLE_NORM
+  );
+  if (withBandAndTitle) {
+    return withBandAndTitle;
+  }
+
+  const withTitleOnly = tracks.find(
+    (track) => normalizeTitle(track.songTitle ?? '') === PLACEHOLDER_TITLE_NORM
+  );
+  if (withTitleOnly) {
+    return withTitleOnly;
+  }
+
+  return tracks.find((track) => track.normBand === PLACEHOLDER_BAND_NORM) ?? null;
+}
+
 export function formatAudioUrl(baseUrl, prefix, fileName) {
   const cleanBase = trimTrailingSlash(baseUrl);
   const cleanPrefix = sanitizePrefix(prefix);
@@ -219,10 +256,18 @@ export function formatAudioUrl(baseUrl, prefix, fileName) {
  * Build a single concert object from a photo CSV row and a matched audio track.
  * The `id` must be supplied by the caller (from the CSV or auto-generated).
  */
-export function buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix) {
-  const selectedFile = selectedTrack?.fileName ?? 'concert-4.opus';
+export function buildConcertFromRow(
+  row,
+  id,
+  selectedTrack,
+  baseUrl,
+  prefix,
+  placeholderTrack = null
+) {
+  const fallbackTrack = selectedTrack ?? placeholderTrack;
+  const selectedFile = fallbackTrack?.fileName ?? DEFAULT_PLACEHOLDER_AUDIO_FILE;
   const csvSongTitle = String(row.songTitle ?? '').trim();
-  const songTitle = csvSongTitle || selectedTrack?.songTitle || undefined;
+  const songTitle = csvSongTitle || fallbackTrack?.songTitle || undefined;
 
   return {
     id,
@@ -299,6 +344,7 @@ export function buildExpandedConcerts(extraTracks, baseUrl, prefix, startId) {
       // Reuse the same imageFile so the song is visually associated with the artist
       imageFile: String(sourceRow.imageFile ?? ''),
       // No photo hashes — this entry exists for playlist continuity, not recognition
+      recognitionEnabled: false,
       photoHashes: {},
       camera: String(sourceRow.camera ?? ''),
       focalLength: String(sourceRow.focalLength ?? ''),
@@ -384,6 +430,8 @@ function main() {
     .filter((track) => track.normBand !== '');
 
   const tracksByNormBand = groupBy(tracks, (track) => track.normBand);
+  const placeholderTrack = findPlaceholderTrack(tracks);
+
   for (const bucket of tracksByNormBand.values()) {
     bucket.sort((a, b) => a.id.localeCompare(b.id));
   }
@@ -428,7 +476,7 @@ function main() {
         unmatched += 1;
       }
 
-      return buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix);
+      return buildConcertFromRow(row, id, selectedTrack, baseUrl, prefix, placeholderTrack);
     })
     .filter(Boolean)
     .sort((a, b) => a.id - b.id);
@@ -452,6 +500,16 @@ function main() {
   console.log(`  Exact matches: ${exactMatches}`);
   console.log(`  Fuzzy matches: ${fuzzyMatches}`);
   console.log(`  Unmatched: ${unmatched}`);
+  if (placeholderTrack) {
+    console.log(
+      `  Placeholder track for unmatched rows: ${placeholderTrack.band} — ${placeholderTrack.songTitle || placeholderTrack.fileName}`
+    );
+  } else {
+    console.log(
+      `  Placeholder track for unmatched rows: (fallback: ${DEFAULT_PLACEHOLDER_AUDIO_FILE})`
+    );
+    console.log('  ⚠️  Prince placeholder track not found in audio index.');
+  }
   if (expandedConcerts.length > 0) {
     console.log(`  Auto-expanded entries (extra songs): ${expandedConcerts.length}`);
     console.log(`  Total concerts: ${allConcerts.length}`);
@@ -467,9 +525,11 @@ function main() {
   console.log('✅ Wrote data.json');
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(`❌ ${error.message}`);
-  process.exitCode = 1;
+if (import.meta.url === `file://${process.argv[1]}`) {
+  try {
+    main();
+  } catch (error) {
+    console.error(`❌ ${error.message}`);
+    process.exitCode = 1;
+  }
 }

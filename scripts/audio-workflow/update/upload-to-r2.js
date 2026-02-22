@@ -5,6 +5,7 @@ import { createReadStream, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { loadProjectEnv } from './load-local-env.js';
 
 const DEFAULT_INPUT_DIR = 'scripts/audio-workflow/encode/output';
 const DEFAULT_INCLUDE_EXTENSIONS = [
@@ -357,6 +358,8 @@ Options:
 }
 
 async function main() {
+  loadProjectEnv(path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../..'));
+
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     printHelp();

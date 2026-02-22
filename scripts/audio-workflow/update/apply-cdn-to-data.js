@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadProjectEnv } from './load-local-env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,6 +127,8 @@ Options:
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  loadProjectEnv(projectRoot);
+
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     printHelp();
@@ -145,7 +148,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   const source = args.source ? String(args.source) : DEFAULT_SOURCE;
-  const baseUrl = args['base-url'] ? trimTrailingSlash(String(args['base-url'])) : '';
+  const baseUrl = trimTrailingSlash(
+    String(args['base-url'] ?? process.env.R2_BASE_URL ?? process.env.AUDIO_BASE_URL ?? '')
+  );
   const audioPrefix = args.prefix ? sanitizePrefix(String(args.prefix)) : DEFAULT_AUDIO_PREFIX;
   const photoPrefix = args['photo-prefix']
     ? sanitizePrefix(String(args['photo-prefix']))

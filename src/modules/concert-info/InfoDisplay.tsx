@@ -15,6 +15,8 @@ export function InfoDisplay({
   statusLabel = 'Now Playing',
   promptText = 'Hold steady to keep the story playing.',
   onClose,
+  onSwitch,
+  switchLabel = 'Drop the Needle',
 }: InfoDisplayProps) {
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
@@ -66,6 +68,17 @@ export function InfoDisplay({
       </div>
 
       {secondaryMeta ? <p className={styles.metaCompact}>{secondaryMeta}</p> : null}
+
+      {onSwitch ? (
+        <button
+          type="button"
+          className={styles.switchButton}
+          onClick={onSwitch}
+          aria-label={`Switch to ${concert.band}`}
+        >
+          {switchLabel}
+        </button>
+      ) : null}
 
       <p className={styles.prompt}>{promptText}</p>
     </section>

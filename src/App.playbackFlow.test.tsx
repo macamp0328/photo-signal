@@ -307,7 +307,7 @@ describe('App playback flow', () => {
     });
   });
 
-  it('shows matched details and keeps switch controls hidden while details are visible', async () => {
+  it('shows matched details and renders switch button while details are visible', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -330,8 +330,7 @@ describe('App playback flow', () => {
     expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
   });
@@ -353,7 +352,7 @@ describe('App playback flow', () => {
     expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
-  it('keeps switch prompt hidden when recognizedConcert changes while song is playing', async () => {
+  it('renders switch button when recognizedConcert changes while song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -372,7 +371,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
   });
 
   it('closes details and resets recognition when user taps close', async () => {
@@ -582,7 +581,7 @@ describe('App playback flow', () => {
     expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
-  it('does not render switch prompt controls in matched-details mode', async () => {
+  it('renders switch button in matched-details mode', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -602,8 +601,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries and resets recognition state', async () => {

@@ -17,4 +17,8 @@ export interface InfoDisplayProps {
   promptText?: string;
   /** Optional callback for closing the visible concert details card */
   onClose?: () => void;
+  /** Optional callback for switching to this concert's audio */
+  onSwitch?: () => void;
+  /** Optional label for the switch button (defaults to "Drop the Needle") */
+  switchLabel?: string;
 }

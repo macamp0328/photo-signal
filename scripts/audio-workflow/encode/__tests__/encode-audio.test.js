@@ -232,6 +232,27 @@ describe('encode-audio', () => {
       expect(index.tracks[0].coverFile).toBeNull();
     });
 
+    it('should preserve coverFile for skipped existing outputs', () => {
+      const results = [
+        {
+          success: true,
+          skipped: true,
+          dryRun: false,
+          slug: 'existing-track',
+          band: 'Existing Band',
+          title: 'Existing Song',
+          album: 'Existing Album',
+          date: '2024-01-01',
+          outputFile: 'ps-existing-track.opus',
+          coverFile: 'ps-existing-track-cover.webp',
+        },
+      ];
+
+      const index = createAudioIndex(results);
+
+      expect(index.tracks[0].coverFile).toBe('ps-existing-track-cover.webp');
+    });
+
     it('should include generation timestamp', () => {
       const results = [];
       const index = createAudioIndex(results);

@@ -1,16 +1,11 @@
 /**
  * Integration Test: Artist Audio Switch
  *
- * Covers two bugs in the switch-prompt flow:
- *
- * Bug 1 — Dismissal tracked by concert ID, not band:
- *   Dismissing Artist B concert #2 would be bypassed when Artist B concert #3 was
- *   detected (different ID, same band), causing the switch prompt to re-appear.
- *
- * Bug 2 — Stale recognition after confirming switch:
- *   After the user confirms a switch to Artist B, recognition can briefly still
- *   return Artist A. resetRecognition() must be called on confirm to clear that
- *   stale state before it triggers an immediate back-switch prompt.
+ * Covers the close-and-resume recognition UX:
+ * - A detected match shows details with an explicit close action.
+ * - Closing details resets recognition state and hides details.
+ * - The just-closed artist is suppressed briefly (per-concert cooldown), while
+ *   a genuinely different artist can still appear immediately.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -32,6 +27,7 @@ const MOCK_DATA = {
       venue: 'Venue A',
       date: '2023-01-01T20:00:00-06:00',
       audioFile: '/audio/a1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/a1.jpg',
       photoHashes: { phash: ['aaaa0000aaaa0000'] },
     },
     {
@@ -40,6 +36,7 @@ const MOCK_DATA = {
       venue: 'Venue B1',
       date: '2023-01-02T20:00:00-06:00',
       audioFile: '/audio/b1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/b1.jpg',
       photoHashes: { phash: ['bbbb0000bbbb0000'] },
     },
     {
@@ -48,6 +45,7 @@ const MOCK_DATA = {
       venue: 'Venue B2',
       date: '2023-01-03T20:00:00-06:00',
       audioFile: '/audio/b2.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/b2.jpg',
       photoHashes: { phash: ['cccc0000cccc0000'] },
     },
     {
@@ -56,6 +54,7 @@ const MOCK_DATA = {
       venue: 'Venue C',
       date: '2023-01-04T20:00:00-06:00',
       audioFile: '/audio/c1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/c1.jpg',
       photoHashes: { phash: ['dddd0000dddd0000'] },
     },
   ],
@@ -64,7 +63,6 @@ const MOCK_DATA = {
 const concertA = MOCK_DATA.concerts[0] as Concert;
 const concertB1 = MOCK_DATA.concerts[1] as Concert;
 const concertB2 = MOCK_DATA.concerts[2] as Concert;
-const concertC = MOCK_DATA.concerts[3] as Concert;
 
 // ─── Mock photo recognition ───────────────────────────────────────────────────
 // Uses React useState so that calling setMockRecognizedConcert() triggers a real
@@ -97,10 +95,8 @@ vi.mock('../../modules/photo-recognition', async (importOriginal) => {
 });
 
 // ─── Mock Howler with callback-firing play() ──────────────────────────────────
-// The default photo-to-audio mock never fires 'play' events, so isPlaying stays
-// false and every new artist triggers auto-play instead of a switch prompt.
-// This mock fires registered 'play' listeners synchronously so isPlaying becomes
-// true after the first artist auto-plays, enabling the switch prompt for artist B.
+// The default audio mock never fires 'play' events, so isPlaying stays false.
+// This mock fires play listeners synchronously so playback state reflects real use.
 
 vi.mock('howler', () => {
   class MockHowl {
@@ -220,74 +216,50 @@ describe('Artist Audio Switch', () => {
     } as Response);
   });
 
-  it('dismissing a switch suppresses the prompt for any other song by the same artist', async () => {
+  it('closing details hides the card and resets recognition state', async () => {
     await activateAndPlayArtistA();
     const user = userEvent.setup();
 
-    // Recognition detects Artist B concert #1 → switch prompt appears
+    expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Artist A scanned photograph' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /close concert details/i }));
+
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+    expect(mockReset).toHaveBeenCalled();
+  });
+
+  it('closing details applies cooldown only to the just-closed concert', async () => {
+    await activateAndPlayArtistA();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /close concert details/i }));
+
+    // Recognition detects Artist B concert #1
     await act(async () => {
       setMockRecognizedConcert(concertB1);
     });
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Switch to/i })).toBeInTheDocument();
+      expect(screen.getByText('Artist B')).toBeInTheDocument();
     });
 
-    // User dismisses — they want to keep Artist A
-    await user.click(screen.getByRole('button', { name: /Keep current/i }));
+    // Close Artist B details to start per-concert cooldown
+    await user.click(screen.getByRole('button', { name: /close concert details/i }));
 
-    // Recognition now sees Artist B concert #2 (same band, different ID)
+    // Immediate re-detection of the same closed concert is suppressed during cooldown
+    await act(async () => {
+      setMockRecognizedConcert(concertB1);
+    });
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+    });
+
+    // A different concert can still show immediately
     await act(async () => {
       setMockRecognizedConcert(concertB2);
     });
-
-    // The switch prompt must NOT re-appear: dismissal covers the whole artist band
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /Switch to/i })).not.toBeInTheDocument();
+      expect(screen.getByText('Venue B2')).toBeInTheDocument();
     });
-  });
-
-  it('dismissal is cleared when a genuinely different artist is recognized', async () => {
-    await activateAndPlayArtistA();
-    const user = userEvent.setup();
-
-    // Recognition detects Artist B → switch prompt appears
-    await act(async () => {
-      setMockRecognizedConcert(concertB1);
-    });
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Switch to/i })).toBeInTheDocument();
-    });
-
-    // User dismisses Artist B
-    await user.click(screen.getByRole('button', { name: /Keep current/i }));
-
-    // Recognition now locks onto Artist C — a genuinely different artist
-    await act(async () => {
-      setMockRecognizedConcert(concertC);
-    });
-
-    // Switch prompt should appear for Artist C (dismissal for Artist B is cleared)
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Switch to/i })).toBeInTheDocument();
-    });
-  });
-
-  it('confirming a switch calls resetRecognition to clear stale recognition state', async () => {
-    await activateAndPlayArtistA();
-    const user = userEvent.setup();
-
-    // Recognition detects Artist B → switch prompt appears
-    await act(async () => {
-      setMockRecognizedConcert(concertB1);
-    });
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Switch to/i })).toBeInTheDocument();
-    });
-
-    // User confirms the switch
-    await user.click(screen.getByRole('button', { name: /Switch to/i }));
-
-    // resetRecognition() must be called to flush stale Artist A frames
-    expect(mockReset).toHaveBeenCalled();
   });
 });

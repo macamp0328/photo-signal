@@ -15,4 +15,6 @@ export interface InfoDisplayProps {
   statusLabel?: string;
   /** Optional prompt or helper text shown below details */
   promptText?: string;
+  /** Optional callback for closing the visible concert details card */
+  onClose?: () => void;
 }

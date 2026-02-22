@@ -126,6 +126,30 @@
   color: var(--color-sub-text);
 }
 
+.scannedPhotoFrame {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background);
+}
+
+.scannedPhotoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.scannedPhotoPlaceholder {
+  border: 1px dashed var(--color-accent);
+  color: var(--color-bonus-text);
+  padding: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+}
+
 @media (max-width: 767px) {
   .playerTransport,
   .playerSwitchRow {

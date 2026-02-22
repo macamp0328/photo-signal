@@ -127,6 +127,8 @@ describe('upload-to-r2 helpers', () => {
   it('returns accurate content types and cache headers', () => {
     expect(getContentType('/tmp/file.opus')).toBe('audio/ogg; codecs=opus');
     expect(getCacheControl('/tmp/file.opus')).toContain('31536000');
+    expect(getContentType('/tmp/photo.jpg')).toBe('image/jpeg');
+    expect(getCacheControl('/tmp/photo.jpg')).toContain('31536000');
     expect(getContentType('/tmp/data.json')).toBe('application/json; charset=utf-8');
     expect(getCacheControl('/tmp/data.json')).toBe('public, max-age=300');
   });

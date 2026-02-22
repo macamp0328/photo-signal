@@ -22,7 +22,7 @@ export interface Env {
   SHARED_SECRET?: string;
 }
 
-const AUDIO_PREFIX = 'prod/audio';
+const ASSET_PREFIXES = ['prod/audio', 'prod/photos'];
 const DEFAULT_AUDIO_CONTENT_TYPE = 'audio/ogg; codecs=opus';
 const DEFAULT_CACHE_CONTROL_AUDIO = 'public, max-age=31536000, immutable';
 const DEFAULT_CACHE_CONTROL_METADATA = 'public, max-age=300';
@@ -155,6 +155,15 @@ function inferContentType(pathname: string) {
   if (pathname.endsWith('.webp')) {
     return 'image/webp';
   }
+  if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) {
+    return 'image/jpeg';
+  }
+  if (pathname.endsWith('.png')) {
+    return 'image/png';
+  }
+  if (pathname.endsWith('.avif')) {
+    return 'image/avif';
+  }
   if (pathname.endsWith('.json')) {
     return 'application/json; charset=utf-8';
   }
@@ -165,7 +174,14 @@ function inferContentType(pathname: string) {
 }
 
 function getCacheControl(pathname: string) {
-  if (pathname.endsWith('.opus') || pathname.endsWith('.webp')) {
+  if (
+    pathname.endsWith('.opus') ||
+    pathname.endsWith('.webp') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.jpeg') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.avif')
+  ) {
     return DEFAULT_CACHE_CONTROL_AUDIO;
   }
   return DEFAULT_CACHE_CONTROL_METADATA;
@@ -192,9 +208,13 @@ function parseRange(rangeHeader: string | null, size: number) {
   return { offset: start, length: end - start + 1, end };
 }
 
+function isAllowedAssetPrefix(key: string) {
+  return ASSET_PREFIXES.some((prefix) => key === prefix || key.startsWith(`${prefix}/`));
+}
+
 function getObjectKey(pathname: string) {
   const decoded = decodeURIComponent(pathname);
-  if (!decoded.startsWith(`/${AUDIO_PREFIX}`)) {
+  if (!ASSET_PREFIXES.some((prefix) => decoded.startsWith(`/${prefix}`))) {
     return null;
   }
 
@@ -217,7 +237,7 @@ function getObjectKey(pathname: string) {
   }
 
   const normalizedKey = normalizedSegments.join('/');
-  if (normalizedKey !== AUDIO_PREFIX && !normalizedKey.startsWith(`${AUDIO_PREFIX}/`)) {
+  if (!isAllowedAssetPrefix(normalizedKey)) {
     return null;
   }
 

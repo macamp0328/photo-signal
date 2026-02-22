@@ -58,6 +58,7 @@ export const mockConcertData = {
       venue: 'Test Venue 1',
       date: '2023-08-15T20:00:00-05:00',
       audioFile: '/audio/test1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/test1.jpg',
       photoHashes: {
         phash: ['aaaaaaaaaaaaaaaa'],
       },
@@ -68,6 +69,7 @@ export const mockConcertData = {
       venue: 'Test Venue 2',
       date: '2023-09-20T19:30:00-05:00',
       audioFile: '/audio/test2.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/test2.jpg',
       photoHashes: {
         phash: ['bbbbbbbbbbbbbbbb'],
       },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { InfoDisplay } from './InfoDisplay';
 import type { Concert } from '../../types';
 
@@ -256,6 +256,46 @@ describe('InfoDisplay', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
+    });
+
+    it('hides the album cover image and keeps band name visible after image load error', () => {
+      const concert: Concert = {
+        ...mockConcert,
+        albumCoverUrl: 'https://cdn.example.com/cover.webp',
+      };
+
+      render(<InfoDisplay concert={concert} isVisible={true} />);
+
+      const img = screen.getByRole('img', { name: /The Beatles album cover/i });
+      fireEvent.error(img);
+
+      expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
+      expect(screen.getByText('The Beatles')).toBeInTheDocument();
+    });
+
+    it('resets failed state and shows image when albumCoverUrl changes', () => {
+      const concert1: Concert = {
+        ...mockConcert,
+        albumCoverUrl: 'https://cdn.example.com/cover1.webp',
+      };
+      const concert2: Concert = {
+        ...mockConcert,
+        band: 'Led Zeppelin',
+        albumCoverUrl: 'https://cdn.example.com/cover2.webp',
+      };
+
+      const { rerender } = render(<InfoDisplay concert={concert1} isVisible={true} />);
+
+      // Trigger error on first concert's image
+      const img = screen.getByRole('img', { name: /The Beatles album cover/i });
+      fireEvent.error(img);
+      expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
+
+      // Switch to a new concert with a different album cover URL
+      rerender(<InfoDisplay concert={concert2} isVisible={true} />);
+
+      // Image should appear for the new concert
+      expect(screen.getByRole('img', { name: /Led Zeppelin album cover/i })).toBeInTheDocument();
     });
   });
 

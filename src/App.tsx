@@ -317,6 +317,7 @@ function AppContent() {
   const {
     play,
     pause,
+    stop,
     preload,
     crossfade,
     isPlaying,
@@ -672,6 +673,51 @@ function AppContent() {
     attemptPortraitOrientationLock();
     setIsActive(true);
   };
+
+  const shutdownExperience = useCallback(() => {
+    userPausedRef.current = true;
+    stop();
+    setIsActive(false);
+    setIsConcertInfoVisible(false);
+    setHasScannedPhotoLoadFailed(false);
+    setPendingSwitchConcert(null);
+    setDismissedSwitchBand(null);
+    setClosedConcertCooldown(null);
+    setActiveConcert(null);
+    setActivePlaylistBand(null);
+    playlistRef.current = [];
+    playlistIndexRef.current = 0;
+    previousAutoplayIdRef.current = null;
+    promptShownAtRef.current = null;
+    lastPromptConcertIdRef.current = null;
+    resetRecognition();
+  }, [resetRecognition, stop]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        shutdownExperience();
+      }
+    };
+
+    const handlePageHide = () => {
+      shutdownExperience();
+    };
+
+    const handleBeforeUnload = () => {
+      shutdownExperience();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [shutdownExperience]);
 
   const infoConcert = isConcertInfoVisible
     ? (pendingSwitchConcert ?? activeRecognitionConcert ?? activeConcert)

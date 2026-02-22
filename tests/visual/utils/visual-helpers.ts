@@ -38,8 +38,24 @@ export async function gotoLanding(page: Page): Promise<void> {
 }
 
 export async function openSecretSettings(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /open settings/i }).click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  const settingsButton = page.getByRole('button', { name: /open settings/i });
+
+  const openedViaButton = await settingsButton
+    .click({ timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!openedViaButton) {
+    const viewport = page.viewportSize();
+    const centerX = Math.floor((viewport?.width ?? 390) / 2);
+    const centerY = Math.floor((viewport?.height ?? 844) / 2);
+
+    for (let index = 0; index < 3; index += 1) {
+      await page.mouse.click(centerX, centerY);
+    }
+  }
+
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
 }
 
 export async function dismissDebugOverlay(page: Page): Promise<void> {

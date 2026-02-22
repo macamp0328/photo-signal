@@ -19,6 +19,7 @@ interface RawConcert {
   audioFile: string;
   songTitle?: string;
   imageFile?: string;
+  recognitionEnabled?: boolean;
   photoHashes?: RawHashSet;
 }
 
@@ -85,7 +86,7 @@ function getRepositoryRelativeAssetPath(assetPath: string): string {
 }
 
 describe('Data files integrity', () => {
-  it('public data has unique ids, pHash hashes, and local audio files', () => {
+  it('public data has unique ids, local audio files, and hashes for recognizable entries', () => {
     const concerts = loadConcerts('public/data.json');
     expect(concerts.length).toBeGreaterThanOrEqual(4);
     const seenIds = new Set<number>();
@@ -103,7 +104,9 @@ describe('Data files integrity', () => {
         ensureFileExists(getRepositoryRelativeAssetPath(concert.audioFile));
       }
 
-      expectHashSet(concert.photoHashes);
+      if (concert.recognitionEnabled !== false) {
+        expectHashSet(concert.photoHashes);
+      }
     });
   });
 });

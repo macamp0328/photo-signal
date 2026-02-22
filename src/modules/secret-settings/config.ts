@@ -25,4 +25,12 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     enabled: true,
     category: 'experimental',
   },
+  {
+    id: 'show-debug-overlay',
+    name: 'Debug Overlay',
+    description:
+      'Show the real-time photo recognition debug panel. Useful for diagnosing recognition issues or running telemetry sessions.',
+    enabled: false,
+    category: 'development',
+  },
 ];

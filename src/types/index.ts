@@ -45,6 +45,8 @@ export interface Concert {
   songTitle?: string;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
+  /** Whether this entry should be considered by camera recognition (defaults to true) */
+  recognitionEnabled?: boolean;
   /** Camera make/model extracted from EXIF */
   camera?: string;
   /** Aperture / f-stop extracted from EXIF (e.g., f/2.8) */
@@ -57,6 +59,8 @@ export interface Concert {
   iso?: string;
   /** Perceptual hash storage */
   photoHashes?: PhotoHashes;
+  /** R2 CDN URL for the album cover (small WebP, ~200×200) */
+  albumCoverUrl?: string;
 }
 
 /**

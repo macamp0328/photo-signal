@@ -197,6 +197,7 @@ The `audio-index.json` manifest contains **all metadata** sourced from `.metadat
 - **Audio specs**: durationMs, bitrateKbps, sourceBitrateKbps, sampleRate
 - **Quality metrics**: lufsIntegrated, truePeakDb, lra
 - **File info**: fileName, checksum
+- **Artwork**: coverFile (generated 200×200 WebP album cover when thumbnail is available)
 
 Example entry:
 

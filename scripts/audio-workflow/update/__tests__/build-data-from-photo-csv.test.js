@@ -164,6 +164,57 @@ describe('buildConcertFromRow', () => {
     const concert = buildConcertFromRow(row, 1, null, baseUrl, prefix);
     expect(concert.audioFile).toContain('concert-4.opus');
   });
+
+  it('uses placeholder cover for albumCoverUrl when selectedTrack is null', () => {
+    const placeholderTrack = {
+      fileName: 'concert-4.opus',
+      songTitle: 'Placeholder',
+      coverFile: 'concert-4-cover.webp',
+    };
+
+    const concert = buildConcertFromRow(row, 1, null, baseUrl, prefix, placeholderTrack);
+
+    expect(concert.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/concert-4-cover.webp');
+  });
+
+  it('includes albumCoverUrl when track has coverFile', () => {
+    const trackWithCover = { ...track, coverFile: 'ps-123-cover.webp' };
+    const concert = buildConcertFromRow(row, 42, trackWithCover, baseUrl, prefix);
+    expect(concert.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/ps-123-cover.webp');
+  });
+
+  it('omits albumCoverUrl when track has no coverFile', () => {
+    const concert = buildConcertFromRow(row, 42, track, baseUrl, prefix);
+    expect(concert.albumCoverUrl).toBeUndefined();
+  });
+
+  it('omits albumCoverUrl when coverFile is null', () => {
+    const trackWithNullCover = { ...track, coverFile: null };
+    const concert = buildConcertFromRow(row, 42, trackWithNullCover, baseUrl, prefix);
+    expect(concert.albumCoverUrl).toBeUndefined();
+  });
+
+  it('correctly formats albumCoverUrl with various base/prefix combinations', () => {
+    const trackWithCover = { ...track, coverFile: 'ps-test-cover.webp' };
+
+    // With trailing slash in base
+    const concert1 = buildConcertFromRow(
+      row,
+      1,
+      trackWithCover,
+      'https://cdn.example.com/',
+      'prod/audio'
+    );
+    expect(concert1.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/ps-test-cover.webp');
+
+    // With leading/trailing slashes in prefix
+    const concert2 = buildConcertFromRow(row, 1, trackWithCover, baseUrl, '/prod/audio/');
+    expect(concert2.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/ps-test-cover.webp');
+
+    // With empty prefix
+    const concert3 = buildConcertFromRow(row, 1, trackWithCover, baseUrl, '');
+    expect(concert3.albumCoverUrl).toBe('https://cdn.example.com/ps-test-cover.webp');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -298,6 +349,7 @@ describe('buildExpandedConcerts', () => {
   it('sets photoHashes to empty object (not recognizable by camera)', () => {
     const extraTracks = [{ track: { fileName: 'song2.opus', songTitle: '' }, sourceRow }];
     const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry.recognitionEnabled).toBe(false);
     expect(entry.photoHashes).toEqual({});
   });
 
@@ -309,6 +361,46 @@ describe('buildExpandedConcerts', () => {
 
   it('returns empty array for empty input', () => {
     expect(buildExpandedConcerts([], baseUrl, prefix, 100)).toEqual([]);
+  });
+
+  it('includes albumCoverUrl when track has coverFile', () => {
+    const extraTracks = [
+      {
+        track: { fileName: 'song2.opus', songTitle: 'Song Two', coverFile: 'ps-cover2.webp' },
+        sourceRow,
+      },
+    ];
+    const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/ps-cover2.webp');
+  });
+
+  it('omits albumCoverUrl when track has no coverFile', () => {
+    const extraTracks = [{ track: { fileName: 'song2.opus', songTitle: 'Song Two' }, sourceRow }];
+    const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry.albumCoverUrl).toBeUndefined();
+  });
+
+  it('omits albumCoverUrl when coverFile is null', () => {
+    const extraTracks = [
+      { track: { fileName: 'song2.opus', songTitle: 'Song Two', coverFile: null }, sourceRow },
+    ];
+    const [entry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+    expect(entry.albumCoverUrl).toBeUndefined();
+  });
+
+  it('matches URL format with buildConcertFromRow', () => {
+    const extraTracks = [
+      {
+        track: { fileName: 'song2.opus', songTitle: 'Song Two', coverFile: 'ps-cover2.webp' },
+        sourceRow,
+      },
+    ];
+    const [expandedEntry] = buildExpandedConcerts(extraTracks, baseUrl, prefix, 50);
+
+    const track = { fileName: 'song2.opus', songTitle: 'Song Two', coverFile: 'ps-cover2.webp' };
+    const directEntry = buildConcertFromRow(sourceRow, 50, track, baseUrl, prefix);
+
+    expect(expandedEntry.albumCoverUrl).toBe(directEntry.albumCoverUrl);
   });
 });
 

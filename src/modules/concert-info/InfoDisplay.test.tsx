@@ -238,6 +238,27 @@ describe('InfoDisplay', () => {
     });
   });
 
+  describe('Album Cover', () => {
+    it('renders album cover image when albumCoverUrl is set', () => {
+      const concert: Concert = {
+        ...mockConcert,
+        albumCoverUrl: 'https://cdn.example.com/cover.webp',
+      };
+
+      render(<InfoDisplay concert={concert} isVisible={true} />);
+
+      const img = screen.getByRole('img', { name: /The Beatles album cover/i });
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute('src', 'https://cdn.example.com/cover.webp');
+    });
+
+    it('does not render album cover image when albumCoverUrl is absent', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
+
+      expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle concert with empty string values', () => {
       const concert: Concert = {

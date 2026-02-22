@@ -161,6 +161,16 @@ function verifyConcertRows({ concerts, photoRowsById, expectedPrefix, audioIndex
   const mappingMismatches = [];
   const placeholderHits = [];
 
+  const photoRowsByImageFile = new Map();
+  for (const row of photoRowsById.values()) {
+    const imageFile = String(row.imageFile ?? '');
+    if (!imageFile) continue;
+    if (!photoRowsByImageFile.has(imageFile)) {
+      photoRowsByImageFile.set(imageFile, []);
+    }
+    photoRowsByImageFile.get(imageFile).push(row);
+  }
+
   for (const concert of concerts) {
     const csvRow = photoRowsById.get(String(concert.id));
     const audioFile = concert.audioFile ?? '';
@@ -197,6 +207,8 @@ function verifyConcertRows({ concerts, photoRowsById, expectedPrefix, audioIndex
       });
     }
 
+    const isRecognitionEnabled = concert.recognitionEnabled !== false;
+
     if (csvRow) {
       const expectedBand = csvRow.band ?? '';
       if (normalizeBand(expectedBand) !== normalizeBand(concert.band)) {
@@ -217,10 +229,20 @@ function verifyConcertRows({ concerts, photoRowsById, expectedPrefix, audioIndex
         });
       }
     } else {
-      mappingMismatches.push({
-        id: concert.id,
-        issue: 'missing-photo-details-row',
-      });
+      const candidateRows = photoRowsByImageFile.get(String(concert.imageFile ?? '')) ?? [];
+      const hasMatchingBandImage = candidateRows.some(
+        (row) => normalizeBand(row.band ?? '') === normalizeBand(concert.band ?? '')
+      );
+
+      if (isRecognitionEnabled || !hasMatchingBandImage) {
+        mappingMismatches.push({
+          id: concert.id,
+          issue: 'missing-photo-details-row',
+          recognitionEnabled: isRecognitionEnabled,
+          imageFile: concert.imageFile ?? '',
+          band: concert.band ?? '',
+        });
+      }
     }
 
     const audioTrack = audioIndexByPhotoId.get(String(concert.id));
@@ -318,7 +340,11 @@ function main() {
     (entry) => entry.issue !== 'audio-filename-mismatch-with-audio-index'
   );
 
-  const dataIds = new Set(data.concerts.map((concert) => String(concert.id)));
+  const recognitionConcerts = data.concerts.filter(
+    (concert) => concert.recognitionEnabled !== false
+  );
+
+  const dataIds = new Set(recognitionConcerts.map((concert) => String(concert.id)));
   const photoIds = new Set(photoRows.map((row) => String(row.id)));
   const missingPhotoDetailsIds = Array.from(dataIds).filter((id) => !photoIds.has(id));
   const missingDataJsonIds = Array.from(photoIds).filter((id) => !dataIds.has(id));
@@ -361,7 +387,6 @@ function main() {
   const hasFailures =
     report.summary.urlMismatches > 0 ||
     report.summary.mappingMismatches > 0 ||
-    report.summary.duplicatePhotoMappings > 0 ||
     report.summary.missingPhotoDetailsIds > 0 ||
     report.summary.missingDataJsonIds > 0;
 

@@ -1,8 +1,17 @@
 #!/usr/bin/env node
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
+import {
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+  rmSync,
+} from 'node:fs';
 import { createHash } from 'node:crypto';
 import { basename, dirname, join, resolve } from 'node:path';
+import { pipeline } from 'node:stream/promises';
 
 const DEFAULT_CONFIG_PATH = resolve(
   process.cwd(),
@@ -83,6 +92,11 @@ async function main() {
 
   const results = [];
   const dryRun = args['dry-run'] ?? false;
+  const skipExisting = resolveSkipExisting(args);
+  const existingIndexMap = skipExisting && !dryRun ? loadExistingAudioIndexMap(outputDir) : null;
+
+  console.log(`  Skip existing outputs: ${skipExisting ? 'yes' : 'no'}`);
+  console.log('');
 
   for (const download of downloads) {
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
@@ -94,6 +108,8 @@ async function main() {
         outputDir,
         workDir,
         dryRun,
+        skipExisting,
+        existingIndexMap,
         metadataOverrides,
       });
       results.push(result);
@@ -308,7 +324,7 @@ function resolveAudioPathFromInfo(infoPath) {
  * Process a single audio file
  */
 async function processAudioFile(download, config, options) {
-  const { outputDir, workDir, dryRun, metadataOverrides } = options;
+  const { outputDir, workDir, dryRun, skipExisting, existingIndexMap, metadataOverrides } = options;
 
   const metadata = applyMetadataOverrides(download.metadata, download, metadataOverrides);
   const track = metadata.track ?? {};
@@ -326,6 +342,7 @@ async function processAudioFile(download, config, options) {
   // Generate slug and filenames
   const slug = generateSlug(band, title, album);
   const outputFileName = `ps-${slug}.opus`;
+  const outputPath = join(outputDir, outputFileName);
 
   console.log(`  Band:  ${band}`);
   console.log(`  Title: ${title}`);
@@ -342,6 +359,74 @@ async function processAudioFile(download, config, options) {
   }
   console.log(`  Slug:  ${slug}`);
   console.log('');
+
+  if (!dryRun && skipExisting && existsSync(outputPath)) {
+    console.log('  1. Skipping encode (output already exists)');
+
+    const existingTrack = existingIndexMap?.get(slug) ?? null;
+    if (existingTrack) {
+      return {
+        ...download,
+        success: true,
+        skipped: true,
+        photoId: existingTrack.photoId ?? photoId,
+        slug,
+        outputFile: existingTrack.fileName ?? outputFileName,
+        outputPath,
+        band: existingTrack.band ?? band,
+        title: existingTrack.songTitle ?? title,
+        album: existingTrack.album ?? album,
+        date: existingTrack.date ?? date,
+        releaseDate: existingTrack.releaseDate ?? releaseDate,
+        durationMs: existingTrack.durationMs ?? null,
+        lufsIntegrated: existingTrack.lufsIntegrated ?? null,
+        truePeakDb: existingTrack.truePeakDb ?? null,
+        lra: existingTrack.lra ?? null,
+        checksum: existingTrack.checksum ?? null,
+        bitrateKbps: existingTrack.bitrateKbps ?? null,
+        sourceBitrateKbps: existingTrack.sourceBitrateKbps ?? null,
+        bitrateSource: existingTrack.sourceBitrateSource ?? null,
+        genre: existingTrack.genre ?? genre,
+        recordLabel: existingTrack.recordLabel ?? musicDetails.recordLabel,
+        distributor: existingTrack.distributor ?? musicDetails.distributor,
+        tags: existingTrack.tags ?? musicDetails.tags,
+        categories: existingTrack.categories ?? musicDetails.categories,
+        credits: existingTrack.credits ?? musicDetails.credits,
+      };
+    }
+
+    console.warn(
+      '  ⚠️  Existing output found but no matching audio-index metadata; preserving file'
+    );
+    return {
+      ...download,
+      success: true,
+      skipped: true,
+      photoId,
+      slug,
+      outputFile: outputFileName,
+      outputPath,
+      band,
+      title,
+      album,
+      date,
+      releaseDate,
+      durationMs: null,
+      lufsIntegrated: null,
+      truePeakDb: null,
+      lra: null,
+      checksum: null,
+      bitrateKbps: null,
+      sourceBitrateKbps: null,
+      bitrateSource: null,
+      genre,
+      recordLabel: musicDetails.recordLabel,
+      distributor: musicDetails.distributor,
+      tags: musicDetails.tags,
+      categories: musicDetails.categories,
+      credits: musicDetails.credits,
+    };
+  }
 
   const bitrateInfo = await determineTargetBitrate(download, config);
   if (bitrateInfo.sourceBitrateKbps) {
@@ -392,7 +477,6 @@ async function processAudioFile(download, config, options) {
   await applyFades(normalizedWavPath, fadedWavPath, config, duration);
 
   // Step 5: Encode to Opus
-  const outputPath = join(outputDir, outputFileName);
   console.log('  5. Encoding to Opus...');
   await encodeToOpus(
     fadedWavPath,
@@ -415,8 +499,26 @@ async function processAudioFile(download, config, options) {
   console.log('  6. Calculating checksum...');
   const checksum = calculateChecksum(outputPath);
 
-  // Step 7: Cleanup intermediate files
-  console.log('  7. Cleaning up...');
+  // Step 7: Process album cover (best-effort — failures are non-fatal)
+  const coverFileName = `ps-${slug}-cover.webp`;
+  const coverOutputPath = join(outputDir, coverFileName);
+  let coverFile = null;
+  console.log('  7. Processing album cover...');
+  try {
+    const thumbnailUrl = selectBestThumbnailUrl(metadata);
+    if (thumbnailUrl) {
+      await downloadAndResizeCover(thumbnailUrl, coverOutputPath, workDir, slug);
+      coverFile = coverFileName;
+      console.log(`     ✓ Cover: ${coverFileName}`);
+    } else {
+      console.log('     ⚠ No thumbnail URL found — skipping cover');
+    }
+  } catch (coverError) {
+    console.warn(`     ⚠ Cover processing failed: ${coverError.message}`);
+  }
+
+  // Step 8: Cleanup intermediate files
+  console.log('  8. Cleaning up...');
   rmSync(wavPath, { force: true });
   rmSync(normalizedWavPath, { force: true });
   rmSync(fadedWavPath, { force: true });
@@ -428,6 +530,7 @@ async function processAudioFile(download, config, options) {
     slug,
     outputFile: outputFileName,
     outputPath,
+    coverFile,
     band,
     title,
     album,
@@ -448,6 +551,84 @@ async function processAudioFile(download, config, options) {
     categories: musicDetails.categories,
     credits: musicDetails.credits,
   };
+}
+
+/**
+ * Pick the best thumbnail URL from track metadata.
+ * Prefers the highest-resolution option from the thumbnails array.
+ * Falls back to the direct thumbnail field from yt-dlp info.
+ */
+export function selectBestThumbnailUrl(metadata) {
+  const thumbnails = metadata?.track?.thumbnails;
+  if (Array.isArray(thumbnails) && thumbnails.length > 0) {
+    // yt-dlp orders thumbnails best-last; pick the one with the largest area
+    let best = null;
+    let bestArea = -1;
+    for (const t of thumbnails) {
+      if (!t?.url) continue;
+      const area = (t.width ?? 0) * (t.height ?? 0);
+      if (area > bestArea) {
+        bestArea = area;
+        best = t.url;
+      }
+    }
+    if (best) return best;
+    // Fallback: first entry with a URL
+    const first = thumbnails.find((t) => t?.url);
+    if (first?.url) return first.url;
+  }
+  // Fallback to direct thumbnail field stored by some metadata paths
+  const direct = metadata?.track?.thumbnail ?? metadata?.thumbnail;
+  return direct ?? null;
+}
+
+/**
+ * Download a thumbnail URL and resize/convert to a 200×200 WebP using ffmpeg.
+ */
+export async function downloadAndResizeCover(thumbnailUrl, outputPath, workDir, slug) {
+  const tempPath = join(workDir, `${slug}-thumb-raw`);
+
+  // Download the thumbnail
+  const response = await fetch(thumbnailUrl);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} fetching thumbnail: ${thumbnailUrl}`);
+  }
+  const writeStream = createWriteStream(tempPath);
+  await pipeline(response.body, writeStream);
+
+  // Resize and convert to WebP with ffmpeg
+  await new Promise((resolve, reject) => {
+    const args = [
+      '-y',
+      '-i',
+      tempPath,
+      '-vf',
+      'scale=200:200:force_original_aspect_ratio=increase,crop=200:200',
+      '-c:v',
+      'libwebp',
+      '-quality',
+      '80',
+      outputPath,
+    ];
+    const proc = spawn('ffmpeg', args, { stdio: 'inherit' });
+    proc.on('close', (code) => {
+      rmSync(tempPath, { force: true });
+      if (code === 0) {
+        // Validate that ffmpeg actually created the output file
+        if (!existsSync(outputPath)) {
+          reject(new Error(`ffmpeg produced no output file: ${outputPath}`));
+          return;
+        }
+        resolve();
+      } else {
+        reject(new Error(`ffmpeg cover resize exited with code ${code}`));
+      }
+    });
+    proc.on('error', (err) => {
+      rmSync(tempPath, { force: true });
+      reject(err);
+    });
+  });
 }
 
 function resolvePhotoIdFromMetadata(metadata) {
@@ -1014,6 +1195,7 @@ export function createAudioIndex(results, config = {}) {
         truePeakDb: r.truePeakDb,
         lra: r.lra,
         fileName: r.outputFile,
+        coverFile: r.coverFile ?? null,
         checksum: r.checksum,
       })),
   };
@@ -1249,6 +1431,39 @@ function parseArgs(argv) {
     }
   }
   return args;
+}
+
+function resolveSkipExisting(args) {
+  if (args['force-reencode']) {
+    return false;
+  }
+
+  if (args['skip-existing'] === undefined) {
+    return true;
+  }
+
+  const raw = String(args['skip-existing']).toLowerCase();
+  if (raw === 'false' || raw === '0' || raw === 'no') {
+    return false;
+  }
+
+  return true;
+}
+
+function loadExistingAudioIndexMap(outputDir) {
+  const indexPath = join(outputDir, 'audio-index.json');
+  if (!existsSync(indexPath)) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(indexPath, 'utf-8'));
+    const tracks = Array.isArray(parsed?.tracks) ? parsed.tracks : [];
+    return new Map(tracks.map((track) => [track.id, track]));
+  } catch (error) {
+    console.warn(`⚠️  Could not read existing audio-index (${indexPath}): ${error.message}`);
+    return null;
+  }
 }
 
 function loadConfig(configPath) {
@@ -1786,6 +2001,8 @@ Options:
   --work-dir <path>        Directory for temporary files (default: from config)
   --config <path>          Path to config file (default: encode.config.json)
   --metadata-overrides <path>  JSON file with manual metadata overrides
+  --skip-existing[=true|false] Skip files that already have encoded output (default: true)
+  --force-reencode          Re-encode all files even when output exists
   --skip-prereq-check      Skip ffmpeg availability check
   --dry-run                Preview without encoding
   --help                   Show this help message
@@ -1800,6 +2017,9 @@ Examples:
 
   # Dry run to preview
   npm run encode-audio -- --dry-run
+
+  # Force full re-encode
+  npm run encode-audio -- --force-reencode
 
 Configuration:
   Edit scripts/audio-workflow/encode/encode.config.json to set:

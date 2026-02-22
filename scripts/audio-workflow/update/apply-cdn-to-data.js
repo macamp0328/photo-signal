@@ -54,6 +54,9 @@ export function updateConcertWithCdn(
   const updatedAudioUrl = concert.audioFile
     ? buildAudioUrl(concert, baseUrl, audioPrefix)
     : concert.audioFile;
+  // If imageFile is absent, intentionally preserve any existing photoUrl.
+  // This supports manually curated or legacy photo URLs that should not be
+  // overwritten/cleared during audio-only remap runs.
   const updatedPhotoUrl = concert.imageFile
     ? buildPhotoUrl(concert, baseUrl, photoPrefix)
     : concert.photoUrl;

@@ -7,7 +7,16 @@ import process from 'node:process';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 
 const DEFAULT_INPUT_DIR = 'scripts/audio-workflow/encode/output';
-const DEFAULT_INCLUDE_EXTENSIONS = ['.opus', '.webp', '.json', '.md'];
+const DEFAULT_INCLUDE_EXTENSIONS = [
+  '.opus',
+  '.webp',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.avif',
+  '.json',
+  '.md',
+];
 const DEFAULT_CONCURRENCY = 4;
 
 export function parseArgs(argv) {
@@ -200,6 +209,13 @@ export function getContentType(filePath) {
       return 'audio/ogg; codecs=opus';
     case '.webp':
       return 'image/webp';
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.png':
+      return 'image/png';
+    case '.avif':
+      return 'image/avif';
     case '.json':
       return 'application/json; charset=utf-8';
     case '.md':
@@ -212,7 +228,7 @@ export function getContentType(filePath) {
 
 export function getCacheControl(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  if (ext === '.opus' || ext === '.webp') {
+  if (['.opus', '.webp', '.jpg', '.jpeg', '.png', '.avif'].includes(ext)) {
     return 'public, max-age=31536000, immutable';
   }
   return 'public, max-age=300';

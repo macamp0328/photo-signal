@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import {
   applyCdnToData,
   buildAudioUrl,
+  buildPhotoUrl,
   sanitizePrefix,
   trimTrailingSlash,
   updateConcertWithCdn,
@@ -50,18 +51,30 @@ describe('apply-cdn-to-data', () => {
   });
 
   it('updateConcertWithCdn should update audioFile to CDN URL', () => {
-    const concert = { id: 3, band: 'Test Band', audioFile: '/audio/sample.opus' };
+    const concert = {
+      id: 3,
+      band: 'Test Band',
+      audioFile: '/audio/sample.opus',
+      imageFile: '/assets/prod-photographs/sample.jpg',
+    };
     const updated = updateConcertWithCdn(concert, 'https://cdn.example.com', 'prod/audio');
 
     expect(updated.audioFile).toBe('https://cdn.example.com/prod/audio/sample.opus');
+    expect(updated.photoUrl).toBe('https://cdn.example.com/prod/photos/sample.jpg');
     expect(updated.audioFileFallback).toBeUndefined();
     expect(updated.audioFileSource).toBeUndefined();
+  });
+
+  it('buildPhotoUrl should include photo prefix and image filename', () => {
+    const concert = { id: 8, imageFile: '/assets/prod-photographs/P3150376.jpg' };
+    const url = buildPhotoUrl(concert, 'https://photo.example.com', 'prod/photos');
+    expect(url).toBe('https://photo.example.com/prod/photos/P3150376.jpg');
   });
 
   it('applyCdnToData should update all concerts with audio', () => {
     const data = {
       concerts: [
-        { id: 1, audioFile: '/audio/a.opus' },
+        { id: 1, audioFile: '/audio/a.opus', imageFile: '/assets/prod-photographs/a.jpg' },
         { id: 2, band: 'No Audio' },
       ],
     };
@@ -69,6 +82,7 @@ describe('apply-cdn-to-data', () => {
     const updated = applyCdnToData(data, 'https://audio.example.com', 'prod/audio');
 
     expect(updated.concerts[0].audioFile).toBe('https://audio.example.com/prod/audio/a.opus');
+    expect(updated.concerts[0].photoUrl).toBe('https://audio.example.com/prod/photos/a.jpg');
     expect(updated.concerts[0].audioFileFallback).toBeUndefined();
     expect(updated.concerts[1].audioFile).toBeUndefined();
   });

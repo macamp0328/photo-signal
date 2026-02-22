@@ -177,6 +177,7 @@ function AppContent() {
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [isConcertInfoVisible, setIsConcertInfoVisible] = useState(false);
+  const [hasScannedPhotoLoadFailed, setHasScannedPhotoLoadFailed] = useState(false);
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
   const [dismissedSwitchBand, setDismissedSwitchBand] = useState<string | null>(null);
   const [closedConcertCooldown, setClosedConcertCooldown] = useState<{
@@ -675,6 +676,16 @@ function AppContent() {
   const infoConcert = isConcertInfoVisible
     ? (pendingSwitchConcert ?? activeRecognitionConcert ?? activeConcert)
     : null;
+  const scannedPhotoUrl = infoConcert?.photoUrl ?? null;
+  const shouldShowPhotoPlaceholder =
+    !!isConcertInfoVisible && (!scannedPhotoUrl || hasScannedPhotoLoadFailed);
+  const shouldShowScannedPhoto =
+    !!isConcertInfoVisible && !!scannedPhotoUrl && !hasScannedPhotoLoadFailed;
+
+  useEffect(() => {
+    setHasScannedPhotoLoadFailed(false);
+  }, [scannedPhotoUrl]);
+
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const showSwitchPrompt = !!pendingSwitchConcert && !isConcertInfoVisible;
 
@@ -807,7 +818,21 @@ function AppContent() {
     </section>
   ) : null;
 
-  const cameraView = (
+  const cameraView = shouldShowScannedPhoto ? (
+    <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
+      <img
+        src={scannedPhotoUrl}
+        alt={`${infoConcert?.band ?? 'Matched concert'} scanned photograph`}
+        className={styles.scannedPhotoImage}
+        loading="eager"
+        onError={() => setHasScannedPhotoLoadFailed(true)}
+      />
+    </div>
+  ) : shouldShowPhotoPlaceholder ? (
+    <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">
+      <div className={styles.scannedPhotoPlaceholder}>Photo unavailable</div>
+    </div>
+  ) : (
     <CameraView
       stream={stream}
       error={error}

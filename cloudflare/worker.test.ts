@@ -340,4 +340,29 @@ describe('Cloudflare worker', () => {
     expect(response.headers.get('Content-Type')).toBe('application/json; charset=utf-8');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=300');
   });
+
+  it('serves photo assets from prod/photos prefix', async () => {
+    const env = createEnv();
+    const response = await worker.fetch(
+      createRequest('/prod/photos/P3150376.jpg', {
+        headers: { Origin: 'http://localhost:5173' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(200);
+    expect(env.AUDIO.head).toHaveBeenCalledWith('prod/photos/P3150376.jpg');
+    expect(env.AUDIO.get).toHaveBeenCalledWith('prod/photos/P3150376.jpg', undefined);
+  });
+
+  it('sets jpeg content headers and immutable cache for photo assets', async () => {
+    const env = createEnv({ headResult: { size: 123, etag: 'photo-etag' } });
+    const response = await worker.fetch(
+      createRequest('/prod/photos/photo.jpg', { headers: { Origin: 'http://localhost:5173' } }),
+      env
+    );
+
+    expect(response.headers.get('Content-Type')).toBe('image/jpeg');
+    expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
+  });
 });

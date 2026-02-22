@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import type { Concert } from './types';
@@ -18,6 +18,7 @@ const concertOne: Concert = {
   date: '2024-01-01T20:00:00-05:00',
   audioFile: '/audio/one.opus',
   imageFile: '/images/one.jpg',
+  photoUrl: 'https://photo-cdn.example.com/prod/photos/one.jpg',
   photoHashes: {
     phash: ['0123456789abcdef'],
   },
@@ -30,6 +31,7 @@ const concertTwo: Concert = {
   date: '2024-02-02T20:00:00-05:00',
   audioFile: '/audio/two.opus',
   imageFile: '/images/two.jpg',
+  photoUrl: 'https://photo-cdn.example.com/prod/photos/two.jpg',
   photoHashes: {
     phash: ['fedcba9876543210'],
   },
@@ -42,6 +44,7 @@ const concertThree: Concert = {
   date: '2024-03-03T20:00:00-05:00',
   audioFile: '/audio/three.opus',
   imageFile: '/images/three.jpg',
+  photoUrl: 'https://photo-cdn.example.com/prod/photos/three.jpg',
   photoHashes: {
     phash: ['0011223344556677'],
   },
@@ -290,6 +293,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
@@ -377,6 +381,25 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+  });
+
+  it('shows static placeholder when matched photo fails to load', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    const scannedPhoto = screen.getByRole('img', { name: 'Band One scanned photograph' });
+    fireEvent.error(scannedPhoto);
+
+    expect(screen.getByText('Photo unavailable')).toBeInTheDocument();
   });
 
   it('auto-plays a newly recognized match when no music is currently playing', async () => {

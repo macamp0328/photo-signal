@@ -9,7 +9,8 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
 
 const DEFAULT_SOURCE = 'public/data.json';
-const DEFAULT_PREFIX = 'prod/audio';
+const DEFAULT_AUDIO_PREFIX = 'prod/audio';
+const DEFAULT_PHOTO_PREFIX = 'prod/photos';
 
 export function trimTrailingSlash(value) {
   if (!value) return value;
@@ -21,7 +22,7 @@ export function sanitizePrefix(prefix) {
   return prefix.replace(/^\/+|\/+$/g, '');
 }
 
-export function buildAudioUrl(concert, baseUrl, prefix = DEFAULT_PREFIX) {
+export function buildAudioUrl(concert, baseUrl, prefix = DEFAULT_AUDIO_PREFIX) {
   if (!concert?.audioFile) {
     throw new Error('concert must include audioFile');
   }
@@ -32,26 +33,49 @@ export function buildAudioUrl(concert, baseUrl, prefix = DEFAULT_PREFIX) {
   return parts.join('/').replace(/(?<!:)\/+/g, '/');
 }
 
-export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) {
-  if (!concert.audioFile) {
-    return concert;
+export function buildPhotoUrl(concert, baseUrl, prefix = DEFAULT_PHOTO_PREFIX) {
+  if (!concert?.imageFile) {
+    throw new Error('concert must include imageFile');
   }
+  const filename = path.basename(concert.imageFile);
+  const cleanedBase = trimTrailingSlash(baseUrl);
+  const cleanedPrefix = sanitizePrefix(prefix);
+  const parts = [cleanedBase, cleanedPrefix, filename].filter(Boolean);
+  return parts.join('/').replace(/(?<!:)\/+/g, '/');
+}
 
-  const updatedAudioUrl = buildAudioUrl(concert, baseUrl, prefix);
+export function updateConcertWithCdn(
+  concert,
+  baseUrl,
+  audioPrefix = DEFAULT_AUDIO_PREFIX,
+  photoPrefix = DEFAULT_PHOTO_PREFIX
+) {
+  const updatedAudioUrl = concert.audioFile
+    ? buildAudioUrl(concert, baseUrl, audioPrefix)
+    : concert.audioFile;
+  const updatedPhotoUrl = concert.imageFile
+    ? buildPhotoUrl(concert, baseUrl, photoPrefix)
+    : concert.photoUrl;
 
   return {
     ...concert,
     audioFile: updatedAudioUrl,
+    photoUrl: updatedPhotoUrl,
   };
 }
 
-export function applyCdnToData(data, baseUrl, prefix = DEFAULT_PREFIX) {
+export function applyCdnToData(
+  data,
+  baseUrl,
+  audioPrefix = DEFAULT_AUDIO_PREFIX,
+  photoPrefix = DEFAULT_PHOTO_PREFIX
+) {
   if (!data?.concerts || !Array.isArray(data.concerts)) {
     throw new Error('Invalid data.json format: missing concerts array');
   }
 
   const updatedConcerts = data.concerts.map((concert) =>
-    updateConcertWithCdn(concert, baseUrl, prefix)
+    updateConcertWithCdn(concert, baseUrl, audioPrefix, photoPrefix)
   );
 
   return { ...data, concerts: updatedConcerts };
@@ -89,12 +113,13 @@ function printHelp() {
   console.log(`Apply Cloudflare Worker CDN URLs to data.json
 
 Usage:
-  npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
+  npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio --photo-prefix=prod/photos
 
 Options:
   --source=<path>   Path to data.json (default: ${DEFAULT_SOURCE})
   --base-url=<url>  Base URL for the Cloudflare Worker (required)
-  --prefix=<path>   Key prefix inside the bucket (default: ${DEFAULT_PREFIX})
+  --prefix=<path>   Audio key prefix inside the bucket (default: ${DEFAULT_AUDIO_PREFIX})
+  --photo-prefix=<path>  Photo key prefix inside the bucket (default: ${DEFAULT_PHOTO_PREFIX})
   --dry-run         Preview changes without writing the file
   --help            Show this message
 `);
@@ -121,7 +146,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const source = args.source ? String(args.source) : DEFAULT_SOURCE;
   const baseUrl = args['base-url'] ? trimTrailingSlash(String(args['base-url'])) : '';
-  const prefix = args.prefix ? sanitizePrefix(String(args.prefix)) : DEFAULT_PREFIX;
+  const audioPrefix = args.prefix ? sanitizePrefix(String(args.prefix)) : DEFAULT_AUDIO_PREFIX;
+  const photoPrefix = args['photo-prefix']
+    ? sanitizePrefix(String(args['photo-prefix']))
+    : DEFAULT_PHOTO_PREFIX;
   const dryRun = Boolean(args['dry-run']);
 
   if (!baseUrl) {
@@ -146,7 +174,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   let updated;
   try {
-    updated = applyCdnToData(parsed, baseUrl, prefix);
+    updated = applyCdnToData(parsed, baseUrl, audioPrefix, photoPrefix);
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
     process.exit(1);
@@ -169,7 +197,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('🎧 Apply CDN to data.json');
   console.log(`  Source: ${dataPath}`);
   console.log(`  Base URL: ${baseUrl}`);
-  console.log(`  Prefix: ${prefix}`);
+  console.log(`  Audio prefix: ${audioPrefix}`);
+  console.log(`  Photo prefix: ${photoPrefix}`);
   console.log(`  Dry run: ${dryRun ? 'yes' : 'no'}`);
   console.log('');
 

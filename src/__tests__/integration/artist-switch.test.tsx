@@ -27,6 +27,7 @@ const MOCK_DATA = {
       venue: 'Venue A',
       date: '2023-01-01T20:00:00-06:00',
       audioFile: '/audio/a1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/a1.jpg',
       photoHashes: { phash: ['aaaa0000aaaa0000'] },
     },
     {
@@ -35,6 +36,7 @@ const MOCK_DATA = {
       venue: 'Venue B1',
       date: '2023-01-02T20:00:00-06:00',
       audioFile: '/audio/b1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/b1.jpg',
       photoHashes: { phash: ['bbbb0000bbbb0000'] },
     },
     {
@@ -43,6 +45,7 @@ const MOCK_DATA = {
       venue: 'Venue B2',
       date: '2023-01-03T20:00:00-06:00',
       audioFile: '/audio/b2.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/b2.jpg',
       photoHashes: { phash: ['cccc0000cccc0000'] },
     },
     {
@@ -51,6 +54,7 @@ const MOCK_DATA = {
       venue: 'Venue C',
       date: '2023-01-04T20:00:00-06:00',
       audioFile: '/audio/c1.opus',
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/c1.jpg',
       photoHashes: { phash: ['dddd0000dddd0000'] },
     },
   ],
@@ -217,6 +221,7 @@ describe('Artist Audio Switch', () => {
     const user = userEvent.setup();
 
     expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Artist A scanned photograph' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /close concert details/i }));
 

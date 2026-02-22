@@ -45,6 +45,8 @@ export interface Concert {
   songTitle?: string;
   /** Optional path to reference image (used by test mode + docs) */
   imageFile?: string;
+  /** R2/Worker URL for full-quality scanned photo display in details mode */
+  photoUrl?: string;
   /** Whether this entry should be considered by camera recognition (defaults to true) */
   recognitionEnabled?: boolean;
   /** Camera make/model extracted from EXIF */

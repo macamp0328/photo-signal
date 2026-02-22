@@ -63,13 +63,6 @@ export function DebugOverlay({
     return () => window.removeEventListener('resize', checkMobile);
   }, [enabled]);
 
-  // Collapse the overlay when disabled so it can be re-opened when re-enabled
-  useEffect(() => {
-    if (!enabled) {
-      setIsCollapsed(true);
-    }
-  }, [enabled]);
-
   // Determine recognition status
   useEffect(() => {
     if (recognizedConcert) {
@@ -138,7 +131,7 @@ export function DebugOverlay({
     : '—';
 
   const dataBadgeText = isTestMode ? 'TEST DATA' : 'LIVE DATA';
-  const isCollapsedView = isCollapsed || !enabled;
+  const isCollapsedView = isCollapsed;
   const statusCode = testResult?.diagnostic.httpStatus;
   const isSuccessfulFetch = typeof statusCode === 'number' && statusCode >= 200 && statusCode < 300;
   const corsDisplay = testResult
@@ -153,6 +146,10 @@ export function DebugOverlay({
     onVisibilityChange?.(enabled && !isCollapsed);
   }, [enabled, isCollapsed, onVisibilityChange]);
 
+  if (!enabled) {
+    return null;
+  }
+
   return (
     <div className={`${styles.overlay} ${isCollapsedView ? styles.collapsed : ''}`}>
       {isCollapsedView ? (
@@ -160,10 +157,9 @@ export function DebugOverlay({
           <button
             type="button"
             className={styles.collapsedButton}
-            onClick={() => enabled && setIsCollapsed(false)}
-            disabled={!enabled}
+            onClick={() => setIsCollapsed(false)}
             aria-label="Show debug overlay"
-            aria-expanded={isCollapsedView}
+            aria-expanded={false}
           >
             Show overlay
           </button>

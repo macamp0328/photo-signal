@@ -109,6 +109,7 @@ npm run encode-audio
 - Applies two-pass loudness normalization (EBU R128 to -14 LUFS)
 - Adds configurable fade-in/fade-out effects
 - Encodes to Opus format with metadata tags
+- Extracts the best source thumbnail and generates a square WebP album cover (`*-cover.webp`)
 - Generates manifests: `audio-index.json`, `photo-audio-map.json`, `encode-report.md`
 - Calculates SHA256 checksums for integrity verification
 
@@ -243,3 +244,60 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
 7. **Upload and verify:**
    - Upload generated assets: `npm run upload-audio -- --prefix=prod/audio`
    - Verify consistency: `npm run audio:verify`
+
+## Data + Creative Update Runbook
+
+Use this checklist when you need to refresh production data and gallery creative materials.
+
+1. **Prepare source materials**
+   - Add/replace final photos in `assets/prod-photographs/`.
+   - Add/replace downloaded tracks + `.metadata.json` in `scripts/audio-workflow/download/output/`.
+
+2. **Regenerate photo metadata CSV**
+
+   ```bash
+   npm run create-photo-csv
+   ```
+
+   - Review `assets/prod-photographs/prod-photographs-details.csv` and update human-entered fields (`band`, `songTitle`, `venue`) as needed.
+
+3. **Run encode stage (audio + album covers)**
+
+   ```bash
+   npm run encode-audio
+   ```
+
+   - Outputs include `.opus`, `*-cover.webp`, and `audio-index.json` under `scripts/audio-workflow/encode/output/`.
+
+4. **Rebuild app data from CSV + audio index**
+
+   ```bash
+   npm run audio:build-data -- --base-url=https://<your-worker-domain> --prefix=prod/audio
+   ```
+
+   - This regenerates `public/data.json` deterministically.
+
+5. **Refresh recognition hashes in data.json**
+
+   ```bash
+   npm run hashes:refresh -- --input public/data.json --public public/data.json
+   ```
+
+6. **Upload CDN assets (audio + covers + manifests)**
+
+   ```bash
+   npm run upload-audio -- --prefix=prod/audio --skip-existing
+   ```
+
+7. **Validate URL and mapping integrity**
+
+   ```bash
+   npm run audio:verify
+   npm run validate-audio
+   ```
+
+8. **Final quality gate before PR/merge**
+
+   ```bash
+   npm run pre-commit
+   ```

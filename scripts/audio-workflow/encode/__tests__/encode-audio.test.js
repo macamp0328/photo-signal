@@ -4,6 +4,8 @@ import {
   parseLUFS,
   createAudioIndex,
   createPhotoAudioMap,
+  selectBestThumbnailUrl,
+  downloadAndResizeCover,
 } from '../encode-audio.js';
 
 describe('encode-audio', () => {
@@ -183,6 +185,7 @@ describe('encode-audio', () => {
           truePeakDb: -1.5,
           lra: 8.5,
           outputFile: 'ps-band-a-venue-a.opus',
+          coverFile: 'ps-band-a-venue-a-cover.webp',
           checksum: 'abc123',
         },
       ];
@@ -207,7 +210,26 @@ describe('encode-audio', () => {
       expect(index.tracks[0].lra).toBe(8.5);
       expect(index.tracks[0].durationMs).toBe(185300);
       expect(index.tracks[0].checksum).toBe('abc123');
+      expect(index.tracks[0].coverFile).toBe('ps-band-a-venue-a-cover.webp');
       expect(index.config.targetLUFS).toBe(-16);
+    });
+
+    it('should set coverFile to null when absent on result', () => {
+      const results = [
+        {
+          success: true,
+          dryRun: false,
+          slug: 'no-cover-track',
+          band: 'No Cover Band',
+          album: 'Album',
+          date: '2023-01-01',
+          outputFile: 'ps-no-cover-track.opus',
+        },
+      ];
+
+      const index = createAudioIndex(results);
+
+      expect(index.tracks[0].coverFile).toBeNull();
     });
 
     it('should include generation timestamp', () => {
@@ -372,6 +394,114 @@ describe('encode-audio', () => {
 
       expect(map.mappings).toHaveLength(1);
       expect(map.mappings[0].audioId).toBe('success');
+    });
+  });
+
+  describe('selectBestThumbnailUrl', () => {
+    it('should pick highest-resolution thumbnail from array', () => {
+      const metadata = {
+        track: {
+          thumbnails: [
+            { url: 'https://example.com/img-120.jpg', width: 120, height: 90 },
+            { url: 'https://example.com/img-320.jpg', width: 320, height: 240 },
+            { url: 'https://example.com/img-480.jpg', width: 480, height: 360 },
+          ],
+        },
+      };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBe('https://example.com/img-480.jpg');
+    });
+
+    it('should fall back to first entry with URL if no area calculation', () => {
+      const metadata = {
+        track: {
+          thumbnails: [
+            { url: 'https://example.com/img-1.jpg' },
+            { url: 'https://example.com/img-2.jpg' },
+          ],
+        },
+      };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBe('https://example.com/img-1.jpg');
+    });
+
+    it('should fall back to direct thumbnail field', () => {
+      const metadata = {
+        track: { thumbnail: 'https://example.com/direct-thumbnail.jpg' },
+      };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBe('https://example.com/direct-thumbnail.jpg');
+    });
+
+    it('should fall back to metadata.thumbnail if track.thumbnail is absent', () => {
+      const metadata = {
+        thumbnail: 'https://example.com/root-thumbnail.jpg',
+      };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBe('https://example.com/root-thumbnail.jpg');
+    });
+
+    it('should return null when no thumbnail found', () => {
+      const metadata = { track: {} };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBeNull();
+    });
+
+    it('should skip entries without URL field', () => {
+      const metadata = {
+        track: {
+          thumbnails: [
+            { width: 120, height: 90 },
+            { url: 'https://example.com/valid.jpg', width: 320, height: 240 },
+          ],
+        },
+      };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBe('https://example.com/valid.jpg');
+    });
+
+    it('should handle missing width/height gracefully', () => {
+      const metadata = {
+        track: {
+          thumbnails: [
+            { url: 'https://example.com/img1.jpg', width: 100, height: 100 },
+            { url: 'https://example.com/img2.jpg' },
+          ],
+        },
+      };
+
+      const result = selectBestThumbnailUrl(metadata);
+
+      expect(result).toBe('https://example.com/img1.jpg');
+    });
+
+    it('should handle null/undefined metadata gracefully', () => {
+      expect(selectBestThumbnailUrl(null)).toBeNull();
+      expect(selectBestThumbnailUrl(undefined)).toBeNull();
+      expect(selectBestThumbnailUrl({})).toBeNull();
+    });
+  });
+
+  describe('downloadAndResizeCover', () => {
+    it('is exported and callable', () => {
+      expect(typeof downloadAndResizeCover).toBe('function');
+    });
+
+    it('accepts four required parameters', () => {
+      // Verify function signature
+      expect(downloadAndResizeCover.length).toBe(4);
     });
   });
 });

@@ -152,6 +152,9 @@ function inferContentType(pathname: string) {
   if (pathname.endsWith('.opus')) {
     return DEFAULT_AUDIO_CONTENT_TYPE;
   }
+  if (pathname.endsWith('.webp')) {
+    return 'image/webp';
+  }
   if (pathname.endsWith('.json')) {
     return 'application/json; charset=utf-8';
   }
@@ -162,7 +165,7 @@ function inferContentType(pathname: string) {
 }
 
 function getCacheControl(pathname: string) {
-  if (pathname.endsWith('.opus')) {
+  if (pathname.endsWith('.opus') || pathname.endsWith('.webp')) {
     return DEFAULT_CACHE_CONTROL_AUDIO;
   }
   return DEFAULT_CACHE_CONTROL_METADATA;

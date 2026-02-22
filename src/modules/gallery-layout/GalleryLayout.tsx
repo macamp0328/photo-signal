@@ -15,6 +15,8 @@ export function GalleryLayout({
   cameraView,
   infoDisplay,
   onActivate,
+  onSettingsClick,
+  audioControls,
   showInfoSection = true,
 }: GalleryLayoutProps) {
   if (!isActive) {
@@ -45,8 +47,18 @@ export function GalleryLayout({
   return (
     <div className={styles.active}>
       <div className={styles.header}>
-        <h1 className={styles.headerTitle}>Photo Signal</h1>
-        <p className={styles.headerSubtitle}>Point at a photo to begin</p>
+        <div className={styles.headerText}>
+          <h1 className={styles.headerTitle}>Photo Signal</h1>
+          <p className={styles.headerSubtitle}>Point at a photo to begin</p>
+        </div>
+        <button
+          type="button"
+          className={styles.headerSettings}
+          onClick={onSettingsClick}
+          aria-label="Open settings"
+        >
+          Settings
+        </button>
       </div>
 
       <div className={styles.content}>
@@ -55,6 +67,8 @@ export function GalleryLayout({
         </div>
 
         {showInfoSection && infoDisplay && <div className={styles.infoSection}>{infoDisplay}</div>}
+
+        {audioControls && <div className={styles.audioSection}>{audioControls}</div>}
       </div>
     </div>
   );

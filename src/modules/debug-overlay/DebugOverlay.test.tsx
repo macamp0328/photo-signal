@@ -518,17 +518,15 @@ describe('DebugOverlay', () => {
       expect(screen.getByText('N/A')).toBeInTheDocument();
     });
 
-    it('should handle rapid enabled/disabled toggling', () => {
-      const { rerender } = render(<DebugOverlay {...defaultProps} enabled={true} />);
+    it('should return null when enabled is false', () => {
+      const { container, rerender } = render(<DebugOverlay {...defaultProps} enabled={true} />);
 
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
 
       rerender(<DebugOverlay {...defaultProps} enabled={false} />);
-      expect(screen.getByText('Show overlay')).toBeInTheDocument();
-
-      rerender(<DebugOverlay {...defaultProps} enabled={true} />);
-      fireEvent.click(screen.getByText('Show overlay'));
-      expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
+      // Component returns null when disabled — no "Show overlay" button
+      expect(container.firstChild).toBeNull();
+      expect(screen.queryByText('Show overlay')).not.toBeInTheDocument();
     });
   });
 

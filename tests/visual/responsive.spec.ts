@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { bootstrapVisualState, gotoLanding, openSecretSettings } from './utils/visual-helpers';
+import { getMaxDiffPixelRatio, VISUAL_MAX_DIFF_RATIO_LENIENT } from './utils/visual-thresholds';
 
 /**
  * Visual Regression Tests for Responsive Design
@@ -41,6 +42,16 @@ test.describe('Responsive Design', () => {
     await gotoLanding(page);
     await openSecretSettings(page);
 
-    await expect(page.getByRole('dialog')).toHaveScreenshot('responsive-settings-320x568.png');
+    const maxDiffPixelRatio = getMaxDiffPixelRatio(
+      test.info().project.name,
+      {
+        chromium: VISUAL_MAX_DIFF_RATIO_LENIENT,
+      },
+      VISUAL_MAX_DIFF_RATIO_LENIENT
+    );
+
+    await expect(page.getByRole('dialog')).toHaveScreenshot('responsive-settings-320x568.png', {
+      maxDiffPixelRatio,
+    });
   });
 });

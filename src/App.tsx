@@ -177,7 +177,7 @@ function AppContent() {
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
-  const [dismissedSwitchConcertId, setDismissedSwitchConcertId] = useState<number | null>(null);
+  const [dismissedSwitchBand, setDismissedSwitchBand] = useState<string | null>(null);
 
   // Playlist bookkeeping — stored in refs because these values are never rendered;
   // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
@@ -361,7 +361,7 @@ function AppContent() {
     play(firstSong.audioFile);
     setActiveConcert(firstSong);
     setPendingSwitchConcert(null);
-    setDismissedSwitchConcertId(null);
+    setDismissedSwitchBand(null);
   }, [isActive, recognizedConcert, isPlaying, play, activePlaylistBand]);
 
   // Track a switch candidate whenever a different artist is detected while one is active.
@@ -379,13 +379,13 @@ function AppContent() {
       return;
     }
 
-    if (dismissedSwitchConcertId === switchPromptConcert.id) {
+    if (dismissedSwitchBand === switchPromptConcert.band) {
       setPendingSwitchConcert(null);
       return;
     }
 
     setPendingSwitchConcert(switchPromptConcert);
-  }, [recognizedConcert, activeConcert, activePlaylistBand, dismissedSwitchConcertId]);
+  }, [recognizedConcert, activeConcert, activePlaylistBand, dismissedSwitchBand]);
 
   useEffect(() => {
     if (!pendingSwitchConcert) {
@@ -412,18 +412,16 @@ function AppContent() {
     lastPromptConcertIdRef.current = pendingSwitchConcert.id;
   }, [activeConcert, debugInfo, pendingSwitchConcert]);
 
-  // Clear dismissed switch preference only after a different candidate is seen.
+  // Clear dismissed switch preference only after a different artist is seen.
   useEffect(() => {
-    const currentCandidateId = recognizedConcert?.id ?? null;
-
     if (
-      dismissedSwitchConcertId !== null &&
-      currentCandidateId !== null &&
-      currentCandidateId !== dismissedSwitchConcertId
+      dismissedSwitchBand !== null &&
+      recognizedConcert !== null &&
+      recognizedConcert.band !== dismissedSwitchBand
     ) {
-      setDismissedSwitchConcertId(null);
+      setDismissedSwitchBand(null);
     }
-  }, [recognizedConcert, dismissedSwitchConcertId]);
+  }, [recognizedConcert, dismissedSwitchBand]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =
@@ -476,7 +474,7 @@ function AppContent() {
     }
 
     setPendingSwitchConcert(null);
-    setDismissedSwitchConcertId(null);
+    setDismissedSwitchBand(null);
   };
 
   const handleConfirmSwitch = () => {
@@ -514,7 +512,8 @@ function AppContent() {
     setActivePlaylistBand(pendingSwitchConcert.band);
     setActiveConcert(firstSong);
     setPendingSwitchConcert(null);
-    setDismissedSwitchConcertId(null);
+    setDismissedSwitchBand(null);
+    resetRecognition();
   };
 
   const handleKeepCurrentTrack = () => {
@@ -528,7 +527,7 @@ function AppContent() {
     promptShownAtRef.current = null;
     lastPromptConcertIdRef.current = null;
 
-    setDismissedSwitchConcertId(pendingSwitchConcert.id);
+    setDismissedSwitchBand(pendingSwitchConcert.band);
     setPendingSwitchConcert(null);
   };
 

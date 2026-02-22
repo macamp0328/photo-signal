@@ -224,6 +224,26 @@ describe('useCameraAccess', () => {
     });
   });
 
+  describe('autoStart lifecycle behavior', () => {
+    it('stops current stream when autoStart is toggled to false', async () => {
+      const { result, rerender } = renderHook(({ autoStart }) => useCameraAccess({ autoStart }), {
+        initialProps: { autoStart: true },
+      });
+
+      await waitFor(() => {
+        expect(result.current.stream).toBe(mockStream);
+      });
+
+      rerender({ autoStart: false });
+
+      await waitFor(() => {
+        expect(result.current.stream).toBeNull();
+      });
+
+      expect(mockTrack.stop).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Retry functionality', () => {
     it('should provide a retry method', () => {
       const { result } = renderHook(() => useCameraAccess());

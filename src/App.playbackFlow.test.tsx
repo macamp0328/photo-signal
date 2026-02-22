@@ -55,6 +55,7 @@ const mockPause = vi.fn();
 const mockPreload = vi.fn();
 const mockFadeOut = vi.fn();
 const mockCrossfade = vi.fn();
+const mockStop = vi.fn();
 const mockSetVolume = vi.fn();
 const mockClearPlaybackError = vi.fn();
 
@@ -202,7 +203,7 @@ vi.mock('./modules/audio-playback', () => ({
     progress: audioState.progress,
     playbackError: audioState.playbackError,
     clearPlaybackError: mockClearPlaybackError,
-    stop: vi.fn(),
+    stop: mockStop,
     volume: 0.8,
     setVolume: mockSetVolume,
   }),
@@ -270,6 +271,40 @@ describe('App playback flow', () => {
     expect(
       screen.getByText('Signal is locked. Playback runs continuously until you pause.')
     ).toBeInTheDocument();
+  });
+
+  it('stops playback and exits active mode when app is hidden', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'hidden',
+    });
+    fireEvent(document, new Event('visibilitychange'));
+
+    expect(mockStop).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('Now playing controls')).not.toBeInTheDocument();
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
   });
 
   it('shows matched details and keeps switch controls hidden while details are visible', async () => {

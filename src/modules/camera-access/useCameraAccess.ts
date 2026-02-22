@@ -68,10 +68,21 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const stopCurrentStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    setStream(null);
+  }, []);
+
   const startCamera = useCallback(async () => {
     try {
       setError(null);
       setHasPermission(null);
+
+      stopCurrentStream();
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(getCameraConstraints());
 
@@ -82,15 +93,17 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
       logCameraSettings(mediaStream);
     } catch (err) {
       console.error('Camera access error:', err);
+      stopCurrentStream();
       setError('Unable to access camera. Please grant camera permissions.');
       setHasPermission(false);
     }
-  }, []);
+  }, [stopCurrentStream]);
 
   // Start camera on mount if autoStart is true
   useEffect(() => {
     // Only auto-start if autoStart option is true
     if (!autoStart) {
+      stopCurrentStream();
       return;
     }
 
@@ -116,6 +129,7 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
       } catch (err) {
         if (!cancelled) {
           console.error('Camera access error:', err);
+          stopCurrentStream();
           setError('Unable to access camera. Please grant camera permissions.');
           setHasPermission(false);
         }
@@ -127,12 +141,9 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
     // Cleanup on unmount
     return () => {
       cancelled = true;
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
+      stopCurrentStream();
     };
-  }, [autoStart]);
+  }, [autoStart, stopCurrentStream]);
 
   const retry = useCallback(() => {
     startCamera();

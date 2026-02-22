@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { InfoDisplayProps } from './types';
 import styles from './InfoDisplay.module.css';
 import { formatConcertTimestamp } from '../../utils/dateUtils';
@@ -21,6 +21,10 @@ export function InfoDisplay({
   progressColor,
 }: InfoDisplayProps) {
   const [albumCoverFailed, setAlbumCoverFailed] = useState(false);
+
+  useEffect(() => {
+    setAlbumCoverFailed(false);
+  }, [concert?.albumCoverUrl]);
 
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;

@@ -7,6 +7,7 @@
       "venue": "The White Horse",
       "date": "2025-03-15T10:39:37-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-teddy-and-the-rough-riders-catfish-summer-catfish-summer.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-teddy-and-the-rough-riders-catfish-summer-catfish-summer-cover.webp",
       "imageFile": "/assets/prod-photographs/P3150376.jpg",
       "photoHashes": {
         "phash": [
@@ -81,6 +82,7 @@
       "venue": "The White Horse",
       "date": "2025-03-15T12:42:07-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jonny-fritz-goodbye-summer-dad-country.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jonny-fritz-goodbye-summer-dad-country-cover.webp",
       "imageFile": "/assets/prod-photographs/P3150420.jpg",
       "photoHashes": {
         "phash": [
@@ -155,6 +157,7 @@
       "venue": "The Belmont",
       "date": "2025-03-15T14:21:24-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call-cover.webp",
       "imageFile": "/assets/prod-photographs/P3150466.jpg",
       "photoHashes": {
         "phash": [
@@ -229,6 +232,7 @@
       "venue": "The Belmont",
       "date": "2025-03-15T15:30:11-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince-cover.webp",
       "imageFile": "/assets/prod-photographs/P3150522.jpg",
       "photoHashes": {
         "phash": [
@@ -303,6 +307,7 @@
       "venue": "The Belmont",
       "date": "2025-03-15T16:06:49-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ramesh-revolution-eternal-spring.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ramesh-revolution-eternal-spring-cover.webp",
       "imageFile": "/assets/prod-photographs/P3150558.jpg",
       "photoHashes": {
         "phash": [
@@ -377,6 +382,7 @@
       "venue": "The Belmont",
       "date": "2025-03-15T17:20:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-twin-shadow-as-soon-as-you-can-georgie.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-twin-shadow-as-soon-as-you-can-georgie-cover.webp",
       "imageFile": "/assets/prod-photographs/P3150624.jpg",
       "photoHashes": {
         "phash": [
@@ -451,6 +457,7 @@
       "venue": "The Belmont",
       "date": "2025-03-15T19:11:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-snacktime-sdts-this-is-dance-music.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-snacktime-sdts-this-is-dance-music-cover.webp",
       "imageFile": "/assets/prod-photographs/P3160701.jpg",
       "photoHashes": {
         "phash": [
@@ -525,6 +532,7 @@
       "venue": "Try Hard Coffee",
       "date": "2022-03-17T13:34:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ringo-deathstarr-kaleidoscope-colour-trip.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ringo-deathstarr-kaleidoscope-colour-trip-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043343.jpg",
       "photoHashes": {
         "phash": [
@@ -599,6 +607,7 @@
       "venue": "Fairmont Austin",
       "date": "2022-03-18T12:29:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-birdhouse-in-your-soul-birdhouse-in-your-soul.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-birdhouse-in-your-soul-birdhouse-in-your-soul-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043500.jpg",
       "photoHashes": {
         "phash": [
@@ -673,6 +682,7 @@
       "venue": "Downright Austin",
       "date": "2022-03-18T14:24:03-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-primo-the-alien-do-it-again-do-it-again.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-primo-the-alien-do-it-again-do-it-again-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043553.jpg",
       "photoHashes": {
         "phash": [
@@ -747,6 +757,7 @@
       "venue": "Hotel Vegas",
       "date": "2022-03-19T07:28:55-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-fuck-ice-fuck-ice.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-fuck-ice-fuck-ice-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043637.jpg",
       "photoHashes": {
         "phash": [
@@ -821,6 +832,7 @@
       "venue": "The Volstead Lounge",
       "date": "2022-03-19T08:19:18-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-heavy-meddo-atonal-choir-file-atonal-choir-file.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-heavy-meddo-atonal-choir-file-atonal-choir-file-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043676.jpg",
       "photoHashes": {
         "phash": [
@@ -895,6 +907,7 @@
       "venue": "Mohawk",
       "date": "2022-03-19T09:53:27-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thelma-and-the-sleaze-eating-ass-aint-country.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thelma-and-the-sleaze-eating-ass-aint-country-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043706.jpg",
       "photoHashes": {
         "phash": [
@@ -969,6 +982,7 @@
       "venue": "Saddle Up + BBQ",
       "date": "2022-03-19T14:16:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-gentrification-howdy-high-rise.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-gentrification-howdy-high-rise-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043769.jpg",
       "photoHashes": {
         "phash": [
@@ -1043,6 +1057,7 @@
       "venue": "High Noon",
       "date": "2022-03-19T17:49:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-god-created-lock-and-key-god-created-lock-and-key.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-god-created-lock-and-key-god-created-lock-and-key-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043815.jpg",
       "photoHashes": {
         "phash": [
@@ -1117,6 +1132,7 @@
       "venue": "Cheer Up Charlies",
       "date": "2023-03-14T13:04:22-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-overcoats-heckler-heckler.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-overcoats-heckler-heckler-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051464.jpg",
       "photoHashes": {
         "phash": [
@@ -1191,6 +1207,7 @@
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-always-waiting-for-you-the-front-porch.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-always-waiting-for-you-the-front-porch-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "photoHashes": {
         "phash": [
@@ -1265,6 +1282,7 @@
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T15:40:33-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-le-ren-dyan-leftovers.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-le-ren-dyan-leftovers-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051507.jpg",
       "photoHashes": {
         "phash": [
@@ -1339,6 +1357,7 @@
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T17:56:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thao-holy-roller-we-the-common.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thao-holy-roller-we-the-common-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051522.jpg",
       "photoHashes": {
         "phash": [
@@ -1413,6 +1432,7 @@
       "venue": "The Lucky Duck",
       "date": "2023-03-16T12:09:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-charlie-john-over-my-head-charlie.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-charlie-john-over-my-head-charlie-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051545.jpg",
       "photoHashes": {
         "phash": [
@@ -1487,6 +1507,7 @@
       "venue": "Mohawk",
       "date": "2023-03-16T14:27:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-mothers-sisters-daughters-and-wives-early-music.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-mothers-sisters-daughters-and-wives-early-music-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051569.jpg",
       "photoHashes": {
         "phash": [
@@ -1561,6 +1582,7 @@
       "venue": "French Legation",
       "date": "2023-03-17T08:46:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-araya-makima-anime.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-araya-makima-anime-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051593.jpg",
       "photoHashes": {
         "phash": [
@@ -1635,6 +1657,7 @@
       "venue": "High Noon",
       "date": "2023-03-17T10:14:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cheekface-living-lo-fi-middle-spoon.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cheekface-living-lo-fi-middle-spoon-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051602.jpg",
       "photoHashes": {
         "phash": [
@@ -1709,6 +1732,7 @@
       "venue": "",
       "date": "2023-03-17T11:03:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051614.jpg",
       "photoHashes": {
         "phash": [
@@ -1783,6 +1807,7 @@
       "venue": "The White Horse",
       "date": "2023-03-17T12:11:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-david-ramirez-new-way-of-living-fables.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-david-ramirez-new-way-of-living-fables-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051632.jpg",
       "photoHashes": {
         "phash": [
@@ -1857,6 +1882,7 @@
       "venue": "Parish",
       "date": "2023-03-18T07:44:19-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-crumbsnatchers-one-call-one-call.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-crumbsnatchers-one-call-one-call-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051657.jpg",
       "photoHashes": {
         "phash": [
@@ -1931,6 +1957,7 @@
       "venue": "Parish",
       "date": "2023-03-18T08:20:11-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-izzy-heltai-25-25.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-izzy-heltai-25-25-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051663.jpg",
       "photoHashes": {
         "phash": [
@@ -2005,6 +2032,7 @@
       "venue": "Parish",
       "date": "2023-03-18T09:21:35-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-riley-downing-start-it-over-start-it-over.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-riley-downing-start-it-over-start-it-over-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051681.jpg",
       "photoHashes": {
         "phash": [
@@ -2079,6 +2107,7 @@
       "venue": "C-Boy's Heart & Soul",
       "date": "2023-03-18T13:09:48-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-matthew-logan-vasquez-blue-eyes-franks-full-moon-saloon-blue-eyes-franks-full-moon-saloon.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-matthew-logan-vasquez-blue-eyes-franks-full-moon-saloon-blue-eyes-franks-full-moon-saloon-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051704.jpg",
       "photoHashes": {
         "phash": [
@@ -2153,6 +2182,7 @@
       "venue": "Parkside",
       "date": "2024-03-11T13:41:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-cant-get-enough-see-u-whenever.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-cant-get-enough-see-u-whenever-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055134.jpg",
       "photoHashes": {
         "phash": [
@@ -2227,6 +2257,7 @@
       "venue": "Vaquero Taquero",
       "date": "2024-03-11T14:48:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-kool-kups-2-i-just-wanna-be-fly-forever.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-kool-kups-2-i-just-wanna-be-fly-forever-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055149.jpg",
       "photoHashes": {
         "phash": [
@@ -2301,6 +2332,7 @@
       "venue": "Mohawk",
       "date": "2024-03-11T15:53:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-red-axes-goodbye-mary-one-more-city.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-red-axes-goodbye-mary-one-more-city-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055167.jpg",
       "photoHashes": {
         "phash": [
@@ -2375,6 +2407,7 @@
       "venue": "Mohawk",
       "date": "2024-03-11T18:12:07-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-jo-alice-give-me-some-good-news-when-i-call-give-me-some-good-news-when-i-call-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055209.jpg",
       "photoHashes": {
         "phash": [
@@ -2449,6 +2482,7 @@
       "venue": "Mohawk",
       "date": "2024-03-11T19:46:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-lost-ants-7.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-lost-ants-7-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055227.jpg",
       "photoHashes": {
         "phash": [
@@ -2523,6 +2557,7 @@
       "venue": "The Iron Bear",
       "date": "2024-03-12T15:03:20-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sen-barna-disco-nap-an-evening-at-macri-park.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sen-barna-disco-nap-an-evening-at-macri-park-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055267.jpg",
       "photoHashes": {
         "phash": [
@@ -2597,6 +2632,7 @@
       "venue": "Mohawk",
       "date": "2024-03-12T16:51:05-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bootsy-collins-hip-hop-lollipop-feat-fantaazma-and-victor-wooten-hip-hop-lollipop-feat-fantaazma-and-victor-wooten.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bootsy-collins-hip-hop-lollipop-feat-fantaazma-and-victor-wooten-hip-hop-lollipop-feat-fantaazma-and-victor-wooten-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055319.jpg",
       "photoHashes": {
         "phash": [
@@ -2671,6 +2707,7 @@
       "venue": "Mohawk",
       "date": "2024-03-12T16:56:58-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-attitude-fantasma-goria.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-attitude-fantasma-goria-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055333.jpg",
       "photoHashes": {
         "phash": [
@@ -2745,6 +2782,7 @@
       "venue": "The White Horse",
       "date": "2024-03-13T10:25:34-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-whitworth-world-war-world-war.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-whitworth-world-war-world-war-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055413.jpg",
       "photoHashes": {
         "phash": [
@@ -2819,6 +2857,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T10:49:22-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mugger-dickhead-logic-luck-forever.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mugger-dickhead-logic-luck-forever-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055419.jpg",
       "photoHashes": {
         "phash": [
@@ -2893,6 +2932,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T11:51:43-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-chokecherry-glass-jaw-glass-jaw.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-chokecherry-glass-jaw-glass-jaw-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055467.jpg",
       "photoHashes": {
         "phash": [
@@ -2967,6 +3007,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T12:05:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-crassy-mel-push.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-crassy-mel-push-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055482.jpg",
       "photoHashes": {
         "phash": [
@@ -3041,6 +3082,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T15:20:44-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-happy-bad-bad-hats.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-happy-bad-bad-hats-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055488.jpg",
       "photoHashes": {
         "phash": [
@@ -3115,6 +3157,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T16:41:20-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-snacktime-snackmftime-sounds-from-the-street-live.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-snacktime-snackmftime-sounds-from-the-street-live-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055515.jpg",
       "photoHashes": {
         "phash": [
@@ -3189,6 +3232,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T17:27:46-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-flesh-and-soul-flesh-and-soul.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-flesh-and-soul-flesh-and-soul-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055518.jpg",
       "photoHashes": {
         "phash": [
@@ -3263,6 +3307,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T18:29:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-lost-in-translation-all-pleasure.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-lost-in-translation-all-pleasure-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055540.jpg",
       "photoHashes": {
         "phash": [
@@ -3337,6 +3382,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T19:20:58-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-my-peace-esprit-de-cur.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-my-peace-esprit-de-cur-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055558.jpg",
       "photoHashes": {
         "phash": [
@@ -3411,6 +3457,7 @@
       "venue": "",
       "date": "2024-03-14T09:38:25-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055567.jpg",
       "photoHashes": {
         "phash": [
@@ -3485,6 +3532,7 @@
       "venue": "",
       "date": "2024-03-14T10:34:06-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055584.jpg",
       "photoHashes": {
         "phash": [
@@ -3559,6 +3607,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T10:45:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-cartagena-cartagena.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-cartagena-cartagena-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055598.jpg",
       "photoHashes": {
         "phash": [
@@ -3633,6 +3682,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T11:24:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-ahhhhhhhh-i-dont-wanna-go-the-8th-cumming.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-ahhhhhhhh-i-dont-wanna-go-the-8th-cumming-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055618.jpg",
       "photoHashes": {
         "phash": [
@@ -3707,6 +3757,7 @@
       "venue": "The Volstead Lounge",
       "date": "2024-03-14T11:41:07-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-melancholy-dreaming-the-return.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-melancholy-dreaming-the-return-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055632.jpg",
       "photoHashes": {
         "phash": [
@@ -3781,6 +3832,7 @@
       "venue": "Austin Garden & Studio",
       "date": "2024-03-14T13:42:38-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-eyeam-breaking-down-breaking-down.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-eyeam-breaking-down-breaking-down-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055666.jpg",
       "photoHashes": {
         "phash": [
@@ -3855,6 +3907,7 @@
       "venue": "Renaissance Hotel",
       "date": "2024-03-14T15:08:31-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-cruise-ship-designer-secret-love.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-cruise-ship-designer-secret-love-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055703.jpg",
       "photoHashes": {
         "phash": [
@@ -3929,6 +3982,7 @@
       "venue": "Stubb's Bar-B-Q",
       "date": "2024-03-14T16:28:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-my-peace-my-peace.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-my-peace-my-peace-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055719.jpg",
       "photoHashes": {
         "phash": [
@@ -4003,6 +4057,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-14T17:18:05-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-babe-corner-caught-on-the-double-crybaby.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-babe-corner-caught-on-the-double-crybaby-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055724.jpg",
       "photoHashes": {
         "phash": [
@@ -4077,6 +4132,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-14T17:44:00-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-super-duty-tough-work-guillotine-dreams-paradigm-shift.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-super-duty-tough-work-guillotine-dreams-paradigm-shift-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055734.jpg",
       "photoHashes": {
         "phash": [
@@ -4151,6 +4207,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T06:21:48-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-hinds-coffee-coffee.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-hinds-coffee-coffee-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055762.jpg",
       "photoHashes": {
         "phash": [
@@ -4225,6 +4282,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T06:50:29-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shower-curtain-bedbugs-words-from-a-wishing-well.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shower-curtain-bedbugs-words-from-a-wishing-well-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055769.jpg",
       "photoHashes": {
         "phash": [
@@ -4299,6 +4357,7 @@
       "venue": "The Coral Snake",
       "date": "2024-03-15T07:50:55-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-barr-brothers-red-moth-solar-companion-red-moth-solar-companion.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-barr-brothers-red-moth-solar-companion-red-moth-solar-companion-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055785.jpg",
       "photoHashes": {
         "phash": [
@@ -4373,6 +4432,7 @@
       "venue": "The Coral Snake",
       "date": "2024-03-15T08:28:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mamalarky-you-know-i-know-pocket-fantasy.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mamalarky-you-know-i-know-pocket-fantasy-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055792.jpg",
       "photoHashes": {
         "phash": [
@@ -4447,6 +4507,7 @@
       "venue": "The Coral Snake",
       "date": "2024-03-15T10:45:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-city-of-the-sun-cinderella-man-under-the-moon.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-city-of-the-sun-cinderella-man-under-the-moon-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055808.jpg",
       "photoHashes": {
         "phash": [
@@ -4521,6 +4582,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T11:36:40-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-low-down-and-lonesome-holy-cross-blues.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-low-down-and-lonesome-holy-cross-blues-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055832.jpg",
       "photoHashes": {
         "phash": [
@@ -4595,6 +4657,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T12:15:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-squirrel-flower-alley-light-alley-light.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-squirrel-flower-alley-light-alley-light-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055850.jpg",
       "photoHashes": {
         "phash": [
@@ -4669,6 +4732,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T16:39:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-lucky-lo-mary-mind-mary-mind.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-lucky-lo-mary-mind-mary-mind-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055855.jpg",
       "photoHashes": {
         "phash": [
@@ -4743,6 +4807,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T17:17:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-all-my-freaks-drive-to-goldenhammer.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-all-my-freaks-drive-to-goldenhammer-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055861.jpg",
       "photoHashes": {
         "phash": [
@@ -4817,6 +4882,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T18:40:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-angelica-garcia-juanita-gemelo.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-angelica-garcia-juanita-gemelo-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055887.jpg",
       "photoHashes": {
         "phash": [
@@ -4891,6 +4957,7 @@
       "venue": "The Coral Snake",
       "date": "2024-03-16T09:29:03-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-urban-heat-right-time-of-night-right-time-of-night.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-urban-heat-right-time-of-night-right-time-of-night-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055906.jpg",
       "photoHashes": {
         "phash": [
@@ -4965,6 +5032,7 @@
       "venue": "High Noon",
       "date": "2024-03-16T10:12:36-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-tender-things-that-texas-touch-that-texas-touch.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-tender-things-that-texas-touch-that-texas-touch-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055917.jpg",
       "photoHashes": {
         "phash": [
@@ -5039,6 +5107,7 @@
       "venue": "Lazarus Brewing Co.",
       "date": "2024-03-16T12:36:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-vera-ellen-broadway-junction-ideal-home-noise.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-vera-ellen-broadway-junction-ideal-home-noise-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055981.jpg",
       "photoHashes": {
         "phash": [
@@ -5113,6 +5182,7 @@
       "venue": "Lazarus Brewing Co.",
       "date": "2024-03-16T13:50:56-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ramesh-the-fool-eternal-spring.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ramesh-the-fool-eternal-spring-cover.webp",
       "imageFile": "/assets/prod-photographs/R0056005.jpg",
       "photoHashes": {
         "phash": [
@@ -5187,6 +5257,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-16T16:43:56-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-emily-barker-wild-to-be-sharing-this-moment-fragile-as-humans.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-emily-barker-wild-to-be-sharing-this-moment-fragile-as-humans-cover.webp",
       "imageFile": "/assets/prod-photographs/R0056015.jpg",
       "photoHashes": {
         "phash": [
@@ -5261,6 +5332,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-16T17:54:47-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-hinds-riding-solo-the-prettiest-curse.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-hinds-riding-solo-the-prettiest-curse-cover.webp",
       "imageFile": "/assets/prod-photographs/R0056061.jpg",
       "photoHashes": {
         "phash": [
@@ -5335,6 +5407,7 @@
       "venue": "3Ten ACL",
       "date": "2025-03-08T10:37:05-06:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dale-watson-south-of-round-rock-texas-cheatin-heart-attack.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dale-watson-south-of-round-rock-texas-cheatin-heart-attack-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060168.jpg",
       "photoHashes": {
         "phash": [
@@ -5409,6 +5482,7 @@
       "venue": "Augustine Cocktail Bar ??",
       "date": "2025-03-09T11:16:00-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sir-woman-get-out-of-my-mind-get-out-of-my-mind.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sir-woman-get-out-of-my-mind-get-out-of-my-mind-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060277.jpg",
       "photoHashes": {
         "phash": [
@@ -5483,6 +5557,7 @@
       "venue": "Hotel Vegas",
       "date": "2025-03-09T14:48:33-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-otis-wilkins-belong-to-the-sea-belong-to-the-sea.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-otis-wilkins-belong-to-the-sea-belong-to-the-sea-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060550.jpg",
       "photoHashes": {
         "phash": [
@@ -5557,6 +5632,7 @@
       "venue": "The Volstead Lounge",
       "date": "2025-03-09T15:20:36-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-skloss-the-pattern-speaks-the-pattern-speaks.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-skloss-the-pattern-speaks-the-pattern-speaks-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060571.jpg",
       "photoHashes": {
         "phash": [
@@ -5631,6 +5707,7 @@
       "venue": "The White Horse",
       "date": "2025-03-11T14:11:53-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-im-broke-im-broke.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-im-broke-im-broke-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060613.jpg",
       "photoHashes": {
         "phash": [
@@ -5705,6 +5782,7 @@
       "venue": "Hotel Vegas",
       "date": "2025-03-11T14:53:40-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060632.jpg",
       "photoHashes": {
         "phash": [
@@ -5779,6 +5857,7 @@
       "venue": "The Liberty",
       "date": "2025-03-11T16:26:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-big-girl-diy-god-diy-god.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-big-girl-diy-god-diy-god-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060656.jpg",
       "photoHashes": {
         "phash": [
@@ -5853,6 +5932,7 @@
       "venue": "The Liberty",
       "date": "2025-03-11T17:32:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-stop-motion-orchestra-blue-fog-hydnora.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-stop-motion-orchestra-blue-fog-hydnora-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060674.jpg",
       "photoHashes": {
         "phash": [
@@ -5927,6 +6007,7 @@
       "venue": "The 13th floor",
       "date": "2025-03-13T13:26:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-die-spitz-hair-of-dog-teeth.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-die-spitz-hair-of-dog-teeth-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060723.jpg",
       "photoHashes": {
         "phash": [
@@ -6001,6 +6082,7 @@
       "venue": "Lizard House",
       "date": "2025-03-13T14:47:34-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shoganai-carving-shoganai.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shoganai-carving-shoganai-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060765.jpg",
       "photoHashes": {
         "phash": [
@@ -6075,6 +6157,7 @@
       "venue": "Lizard House",
       "date": "2025-03-13T15:31:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-steef-thats-how-i-feel-frozen-in-place-thats-how-i-feel.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-steef-thats-how-i-feel-frozen-in-place-thats-how-i-feel-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060808.jpg",
       "photoHashes": {
         "phash": [
@@ -6149,6 +6232,7 @@
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:13:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-blah-spa-anything-to-get-it-hyper-wellness.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-blah-spa-anything-to-get-it-hyper-wellness-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060822.jpg",
       "photoHashes": {
         "phash": [
@@ -6223,6 +6307,7 @@
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:34:29-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-big-girl-instructions-2-say-sorry-instructions-2-say-sorry.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-big-girl-instructions-2-say-sorry-instructions-2-say-sorry-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060833.jpg",
       "photoHashes": {
         "phash": [
@@ -6297,6 +6382,7 @@
       "venue": "King Bee",
       "date": "2025-03-13T17:11:15-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-teenage-sequence-all-this-art-teenage-sequence.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-teenage-sequence-all-this-art-teenage-sequence-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060857.jpg",
       "photoHashes": {
         "phash": [
@@ -6371,6 +6457,7 @@
       "venue": "King Bee",
       "date": "2025-03-13T18:05:38-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-rankydank-feelin-sexual-feelin-sexual.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-rankydank-feelin-sexual-feelin-sexual-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060861.jpg",
       "photoHashes": {
         "phash": [
@@ -6445,6 +6532,7 @@
       "venue": "Lizard House",
       "date": "2025-03-14T14:54:18-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-majvi-superstar-fever-dreaming-fever-dreaming.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-majvi-superstar-fever-dreaming-fever-dreaming-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060881.jpg",
       "photoHashes": {
         "phash": [
@@ -6519,6 +6607,7 @@
       "venue": "Mohawk",
       "date": "2025-03-14T17:41:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-maruja-aon-aon.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-maruja-aon-aon-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060920.jpg",
       "photoHashes": {
         "phash": [
@@ -6593,6 +6682,7 @@
       "venue": "Mohawk",
       "date": "2025-03-14T18:13:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bon-enfant-minimum-demande-spciale.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bon-enfant-minimum-demande-spciale-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060940.jpg",
       "photoHashes": {
         "phash": [
@@ -6667,6 +6757,7 @@
       "venue": "Mohawk",
       "date": "2025-03-14T19:12:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-the-start-of-something-raised-by-wolves.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-the-start-of-something-raised-by-wolves-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060960.jpg",
       "photoHashes": {
         "phash": [
@@ -6741,6 +6832,7 @@
       "venue": "Parkside",
       "date": "2024-03-11T13:41:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-i-love-you-always-forever-i-love-you-always-forever.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-i-love-you-always-forever-i-love-you-always-forever-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055134.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6757,6 +6849,7 @@
       "venue": "Parkside",
       "date": "2024-03-11T13:41:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-silver-screens-silver-screens.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-willow-parlo-silver-screens-silver-screens-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055134.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6773,6 +6866,7 @@
       "venue": "Vaquero Taquero",
       "date": "2024-03-11T14:48:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-kraken-chopnotslop-remix-texas-hold-em.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-kraken-chopnotslop-remix-texas-hold-em-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055149.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6789,6 +6883,7 @@
       "venue": "Vaquero Taquero",
       "date": "2024-03-11T14:48:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-my-bop-mifits-in-the-park.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-ace-park-my-bop-mifits-in-the-park-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055149.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6805,6 +6900,7 @@
       "venue": "Mohawk",
       "date": "2024-03-12T16:56:58-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-fantaazma-rocketship-feat-bootsy-collins-and-kokane-rocketship-feat-bootsy-collins-and-kokane-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055333.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6821,6 +6917,7 @@
       "venue": "Cheer Up Charlies",
       "date": "2023-03-14T13:04:22-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-overcoats-leave-the-light-on-young.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-overcoats-leave-the-light-on-young-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051464.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6837,6 +6934,7 @@
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-have-you-ever-seen-the-rain-reggae-cover-boots-rock-reggae-vol-1.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-have-you-ever-seen-the-rain-reggae-cover-boots-rock-reggae-vol-1-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6853,6 +6951,7 @@
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-kids-forever-the-front-porch.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-kids-forever-the-front-porch-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6869,6 +6968,7 @@
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-patience-for-the-process-the-front-porch.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-patience-for-the-process-the-front-porch-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6885,6 +6985,7 @@
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-push-away-the-front-porch.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-push-away-the-front-porch-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6901,6 +7002,7 @@
       "venue": "Antone's",
       "date": "2023-03-14T14:10:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-roundabout-the-front-porch.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cas-haley-roundabout-the-front-porch-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051481.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6917,6 +7019,7 @@
       "venue": "Central Presbyterian Church",
       "date": "2023-03-14T15:40:33-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-le-ren-early-morning-rain-feat-buck-meek-early-morning-rain-feat-buck-meek.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-le-ren-early-morning-rain-feat-buck-meek-early-morning-rain-feat-buck-meek-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051507.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6933,6 +7036,7 @@
       "venue": "The Lucky Duck",
       "date": "2023-03-16T12:09:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-charlie-john-the-best-is-yet-to-come-the-best-is-yet-to-come.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-charlie-john-the-best-is-yet-to-come-the-best-is-yet-to-come-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051545.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6949,6 +7053,7 @@
       "venue": "High Noon",
       "date": "2023-03-17T10:14:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cheekface-you-always-want-to-bomb-the-middle-east-too-much-to-ask.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cheekface-you-always-want-to-bomb-the-middle-east-too-much-to-ask-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051602.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6965,6 +7070,7 @@
       "venue": "The White Horse",
       "date": "2023-03-17T12:11:50-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-david-ramirez-nobody-meant-to-slow-you-down-all-the-not-so-gentle-reminders.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-david-ramirez-nobody-meant-to-slow-you-down-all-the-not-so-gentle-reminders-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051632.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6981,6 +7087,7 @@
       "venue": "Parish",
       "date": "2023-03-18T07:44:19-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-crumbsnatchers-saturday-petway.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-crumbsnatchers-saturday-petway-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051657.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -6997,6 +7104,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T12:05:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-disco-3.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-disco-3-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055482.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7013,6 +7121,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T12:05:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-women-respond-to-bass-yes-please.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-sextile-women-respond-to-bass-yes-please-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055482.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7029,6 +7138,7 @@
       "venue": "Parish",
       "date": "2023-03-18T08:20:11-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-izzy-heltai-my-best-friend-sam-my-best-friend-sam.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-izzy-heltai-my-best-friend-sam-my-best-friend-sam-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051663.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7045,6 +7155,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T11:36:40-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-south-dakota-wild-one-ways-and-means.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-the-deslondes-south-dakota-wild-one-ways-and-means-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055832.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7061,6 +7172,7 @@
       "venue": "C-Boy's Heart & Soul",
       "date": "2023-03-18T13:09:48-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-matthew-logan-vasquez-red-fish-red-fish.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-matthew-logan-vasquez-red-fish-red-fish-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051704.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7077,6 +7189,7 @@
       "venue": "Mohawk",
       "date": "2024-03-11T15:53:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-red-axes-hey-feat-alonzo-hey-feat-alonzo.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-red-axes-hey-feat-alonzo-hey-feat-alonzo-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055167.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7093,6 +7206,7 @@
       "venue": "Mohawk",
       "date": "2024-03-11T19:46:32-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-phone-booth-phone-booth.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-telescreens-phone-booth-phone-booth-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055227.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7109,6 +7223,7 @@
       "venue": "Mohawk",
       "date": "2024-03-12T16:51:05-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bootsy-collins-munchies-for-your-love-ahh-the-name-is-bootsy-baby.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bootsy-collins-munchies-for-your-love-ahh-the-name-is-bootsy-baby-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055319.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7125,6 +7240,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T15:20:44-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-joseph-ratboys-version-psychic-readings.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-joseph-ratboys-version-psychic-readings-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055488.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7141,6 +7257,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T15:20:44-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-psychic-reader-psychic-reader.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-psychic-reader-psychic-reader-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055488.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7157,6 +7274,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T15:20:44-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-tpa-bad-bad-hats.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-bad-bad-hats-tpa-bad-bad-hats-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055488.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7173,6 +7291,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T10:49:22-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mugger-find-out-get-a-clue.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-mugger-find-out-get-a-clue-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055419.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7189,6 +7308,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-13T11:51:43-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-chokecherry-major-threat-major-threat.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-chokecherry-major-threat-major-threat-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055467.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7205,6 +7325,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T17:27:46-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-and-moon-sun-and-moon.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-and-moon-sun-and-moon-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055518.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7221,6 +7342,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T17:27:46-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-colored-eyes-harvest.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-sun-colored-eyes-harvest-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055518.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7237,6 +7359,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T17:27:46-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-turkish-coffee-turkish-coffee.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-balthvs-turkish-coffee-turkish-coffee-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055518.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7253,6 +7376,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T18:29:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-on-the-floor-all-pleasure.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-on-the-floor-all-pleasure-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055540.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7269,6 +7393,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T18:29:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-all-pleasure.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-all-pleasure-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055540.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7285,6 +7410,7 @@
       "venue": "Mohawk",
       "date": "2024-03-13T18:29:14-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-put-on-dog.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-put-on-dog-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055540.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7301,6 +7427,7 @@
       "venue": "Mohawk",
       "date": "2023-03-16T14:27:16-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-wrecking-force-raised-by-wolves.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-wrecking-force-raised-by-wolves-cover.webp",
       "imageFile": "/assets/prod-photographs/R0051569.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7317,6 +7444,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T10:45:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-conocerla.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-conocerla-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055598.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7333,6 +7461,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T10:45:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-malegra.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-malegra-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055598.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7349,6 +7478,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T10:45:41-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-la-mam-malegra.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-la-mam-malegra-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055598.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7365,6 +7495,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T11:24:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-cursed-angel-phantasea-pharm.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-cursed-angel-phantasea-pharm-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055618.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7381,6 +7512,7 @@
       "venue": "Hotel Vegas",
       "date": "2024-03-14T11:24:45-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-karma-police-the-8th-cumming.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-karma-police-the-8th-cumming-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055618.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7397,6 +7529,7 @@
       "venue": "Austin Garden & Studio",
       "date": "2024-03-14T13:42:38-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-eyeam-love-is-the-sweetest-thing-love-is-the-sweetest-thing.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-eyeam-love-is-the-sweetest-thing-love-is-the-sweetest-thing-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055666.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7413,6 +7546,7 @@
       "venue": "Fairmont Austin",
       "date": "2022-03-18T12:29:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-i-feel-so-good-big-stampede.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-i-feel-so-good-big-stampede-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043500.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7429,6 +7563,7 @@
       "venue": "Fairmont Austin",
       "date": "2022-03-18T12:29:09-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-jennifers-rabbit-rabbit.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-jennifers-rabbit-rabbit-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043500.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7445,6 +7580,7 @@
       "venue": "Renaissance Hotel",
       "date": "2024-03-14T15:08:31-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-hit-my-head-all-day-secret-love.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-hit-my-head-all-day-secret-love-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055703.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7461,6 +7597,7 @@
       "venue": "Renaissance Hotel",
       "date": "2024-03-14T15:08:31-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-strong-feelings-new-long-leg.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-dry-cleaning-strong-feelings-new-long-leg-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055703.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7477,6 +7614,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T06:50:29-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shower-curtain-wish-u-well-wish-u-well.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-shower-curtain-wish-u-well-wish-u-well-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055769.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7493,6 +7631,7 @@
       "venue": "The Coral Snake",
       "date": "2024-03-15T10:45:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-city-of-the-sun-firefly-untitled-ep.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-city-of-the-sun-firefly-untitled-ep-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055808.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7509,6 +7648,7 @@
       "venue": "The Coral Snake",
       "date": "2024-03-15T10:45:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-city-of-the-sun-vuela-under-the-moon.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-city-of-the-sun-vuela-under-the-moon-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055808.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7525,6 +7665,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T16:39:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-lucky-lo-supercarry-supercarry.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-lucky-lo-supercarry-supercarry-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055855.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7541,6 +7682,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T16:39:02-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-lucky-lo-through-the-eyes-of-a-woman-through-the-eyes-of-a-woman.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-lucky-lo-through-the-eyes-of-a-woman-through-the-eyes-of-a-woman-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055855.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7557,6 +7699,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T17:17:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-gears-gears.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-gears-gears-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055861.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7573,6 +7716,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T17:17:12-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-hangman-drive-to-goldenhammer.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-divorce-hangman-drive-to-goldenhammer-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055861.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7589,6 +7733,7 @@
       "venue": "Swan Dive",
       "date": "2024-03-15T18:40:39-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-angelica-garcia-karma-the-knife-cha-cha-palace.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-angelica-garcia-karma-the-knife-cha-cha-palace-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055887.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7605,6 +7750,7 @@
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:13:13-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-blah-spa-da-bomb-hyper-wellness.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-blah-spa-da-bomb-hyper-wellness-cover.webp",
       "imageFile": "/assets/prod-photographs/R0060822.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7621,6 +7767,7 @@
       "venue": "High Noon",
       "date": "2024-03-15T12:15:28-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-squirrel-flower-cortez-the-killer-live-in-austin-tx-cortez-the-killer.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-squirrel-flower-cortez-the-killer-live-in-austin-tx-cortez-the-killer-cover.webp",
       "imageFile": "/assets/prod-photographs/R0055850.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7637,6 +7784,7 @@
       "venue": "High Noon",
       "date": "2022-03-19T17:49:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-light-on-12.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-light-on-12-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043815.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7653,6 +7801,7 @@
       "venue": "High Noon",
       "date": "2022-03-19T17:49:17-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-magazin-performance.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-white-denim-magazin-performance-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043815.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7669,6 +7818,7 @@
       "venue": "Downright Austin",
       "date": "2022-03-18T14:24:03-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-primo-the-alien-youre-the-one-that-i-want-youre-the-one-that-i-want.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-primo-the-alien-youre-the-one-that-i-want-youre-the-one-that-i-want-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043553.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7685,6 +7835,7 @@
       "venue": "The Volstead Lounge",
       "date": "2022-03-19T08:19:18-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-heavy-meddo-tronald-dump-tronald-dump.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-heavy-meddo-tronald-dump-tronald-dump-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043676.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},
@@ -7701,6 +7852,7 @@
       "venue": "Mohawk",
       "date": "2022-03-19T09:53:27-05:00",
       "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thelma-and-the-sleaze-high-class-woman-these-boots-wont-lick-themselves-ep.opus",
+      "albumCoverUrl": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thelma-and-the-sleaze-high-class-woman-these-boots-wont-lick-themselves-ep-cover.webp",
       "imageFile": "/assets/prod-photographs/R0043706.jpg",
       "recognitionEnabled": false,
       "photoHashes": {},

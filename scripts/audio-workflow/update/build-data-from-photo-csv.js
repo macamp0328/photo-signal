@@ -433,9 +433,12 @@ function main() {
       band: String(track.band),
       songTitle: String(track.songTitle ?? track.title ?? '').trim(),
       fileName: String(track.fileName),
+      coverFile: typeof track.coverFile === 'string' ? track.coverFile : null,
       normBand: normalizeBand(String(track.band)),
     }))
     .filter((track) => track.normBand !== '');
+
+  const tracksMissingCover = tracks.filter((track) => track.coverFile === null).length;
 
   const tracksByNormBand = groupBy(tracks, (track) => track.normBand);
   const placeholderTrack = findPlaceholderTrack(tracks);
@@ -508,6 +511,12 @@ function main() {
   console.log(`  Exact matches: ${exactMatches}`);
   console.log(`  Fuzzy matches: ${fuzzyMatches}`);
   console.log(`  Unmatched: ${unmatched}`);
+  console.log(`  Tracks missing cover metadata: ${tracksMissingCover} / ${tracks.length}`);
+  if (tracksMissingCover > 0) {
+    console.log(
+      '  ⚠️  Some tracks are missing coverFile; albumCoverUrl will be omitted for those songs.'
+    );
+  }
   if (placeholderTrack) {
     console.log(
       `  Placeholder track for unmatched rows: ${placeholderTrack.band} — ${placeholderTrack.songTitle || placeholderTrack.fileName}`

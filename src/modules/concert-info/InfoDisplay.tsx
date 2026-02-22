@@ -14,10 +14,6 @@ export function InfoDisplay({
   className = '',
   statusLabel = 'Now Playing',
   promptText = 'Hold steady to keep the story playing.',
-  actions,
-  nowPlayingLine,
-  progressValue = 0,
-  progressColor,
 }: InfoDisplayProps) {
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
@@ -37,12 +33,6 @@ export function InfoDisplay({
   ]
     .filter((item): item is string => Boolean(item))
     .join(' · ');
-  const progressPercentage = Math.round(Math.min(Math.max(progressValue, 0), 1) * 100);
-  const timelineStyle = {
-    width: `${progressPercentage}%`,
-    backgroundColor: progressColor ?? 'var(--color-accent)',
-  } as const;
-
   return (
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
       <div className={styles.metaRow}>
@@ -63,31 +53,6 @@ export function InfoDisplay({
           <h2 className={styles.bandName}>{concert.band}</h2>
         </div>
       </div>
-
-      <section className={styles.transportBlock} aria-label="Playback controls and progress">
-        {nowPlayingLine ? (
-          <div className={styles.nowPlayingRow} aria-label="Now playing status">
-            <span
-              className={styles.nowPlayingDot}
-              style={{ backgroundColor: progressColor ?? 'var(--color-accent)' }}
-              aria-hidden="true"
-            />
-            <p className={styles.nowPlaying}>{nowPlayingLine}</p>
-          </div>
-        ) : null}
-
-        <div className={styles.timelineWrap} aria-label="Song progress tracker">
-          <div className={styles.timelineRail}>
-            <div className={styles.timelineFill} style={timelineStyle} />
-          </div>
-          <div className={styles.timelineMeta}>
-            <span>Tracker</span>
-            <span>{progressPercentage}%</span>
-          </div>
-        </div>
-
-        {actions ? <div className={styles.actions}>{actions}</div> : null}
-      </section>
 
       <div className={styles.detailGrid}>
         {primaryDetailItems.map((item) => (

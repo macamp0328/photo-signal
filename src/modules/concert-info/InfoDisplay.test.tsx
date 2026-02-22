@@ -85,31 +85,6 @@ describe('InfoDisplay', () => {
       expect(screen.getByText(/Signal:\s*Now Viewing/i)).toBeInTheDocument();
     });
 
-    it('should render optional actions when provided', () => {
-      render(
-        <InfoDisplay
-          concert={mockConcert}
-          isVisible={true}
-          actions={<button type="button">Play</button>}
-        />
-      );
-
-      expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
-    });
-
-    it('should render now playing line when provided', () => {
-      render(
-        <InfoDisplay
-          concert={mockConcert}
-          isVisible={true}
-          nowPlayingLine="ghost signal: The Beatles"
-          progressValue={0.5}
-        />
-      );
-
-      expect(screen.getByText(/ghost signal/i)).toBeInTheDocument();
-    });
-
     it('should display EXIF metadata when available', () => {
       const exifConcert: Concert = {
         ...mockConcert,

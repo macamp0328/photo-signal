@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import type { Concert } from './types';
@@ -383,6 +383,34 @@ describe('App playback flow', () => {
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
   });
 
+  it('allows same concert details to reopen after cooldown expires', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const view = render(<App />);
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close concert details' }));
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+
+    recognitionState.recognizedConcert = concertOne;
+    view.rerender(<App />);
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 2100);
+    });
+    view.rerender(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
+    });
+  });
+
   it('shows static placeholder when matched photo fails to load', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
@@ -400,6 +428,30 @@ describe('App playback flow', () => {
     fireEvent.error(scannedPhoto);
 
     expect(screen.getByText('Photo unavailable')).toBeInTheDocument();
+  });
+
+  it('recovers from photo load failure when next matched concert has a different photo URL', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    const firstScannedPhoto = screen.getByRole('img', { name: 'Band One scanned photograph' });
+    fireEvent.error(firstScannedPhoto);
+    expect(screen.getByText('Photo unavailable')).toBeInTheDocument();
+
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
+    expect(screen.queryByText('Photo unavailable')).not.toBeInTheDocument();
   });
 
   it('auto-plays a newly recognized match when no music is currently playing', async () => {

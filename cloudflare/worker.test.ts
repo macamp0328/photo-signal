@@ -365,4 +365,19 @@ describe('Cloudflare worker', () => {
     expect(response.headers.get('Content-Type')).toBe('image/jpeg');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
   });
+
+  it('returns 404 for missing photo objects with allowed-origin CORS headers', async () => {
+    const env = createEnv({ getResult: null, headResult: { size: 123, etag: 'photo-etag' } });
+    const response = await worker.fetch(
+      createRequest('/prod/photos/missing.jpg', {
+        headers: { Origin: 'http://localhost:5173' },
+      }),
+      env
+    );
+
+    expect(response.status).toBe(404);
+    expect(env.AUDIO.head).toHaveBeenCalledWith('prod/photos/missing.jpg');
+    expect(env.AUDIO.get).toHaveBeenCalledWith('prod/photos/missing.jpg', undefined);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173');
+  });
 });

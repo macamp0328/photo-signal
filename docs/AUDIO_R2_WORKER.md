@@ -1,12 +1,12 @@
-# Cloudflare Worker Audio Proxy
+# Cloudflare Worker Asset Proxy
 
-Use this Worker to serve private R2 audio objects to the Photo Signal web app without making the bucket public.
+Use this Worker to serve private R2 audio + photo objects to the Photo Signal web app without making the bucket public.
 
 ## Worker Basics
 
 - Entry point: `cloudflare/worker.ts`
 - Config: `wrangler.toml` (`AUDIO` binding to `photo-signal-audio`)
-- Supported paths: `/prod/audio/<filename>` and `/prod/audio/<concertId>/<filename>`
+- Supported paths: `/prod/audio/<filename>` and `/prod/photos/<filename>`
 - CORS: restricts to `ALLOWED_ORIGINS` (defaults to production site + localhost)
 - Optional hardening: set `SHARED_SECRET` to require `X-PS-Shared-Secret` on non-CORS calls
 
@@ -29,7 +29,7 @@ without redeploying for every branch.
 Publish with:
 
 ```bash
-wrangler deploy --minify
+npx wrangler deploy --minify
 ```
 
 ## Data Updates
@@ -37,10 +37,15 @@ wrangler deploy --minify
 After deploying the Worker (e.g., `https://audio.example.com`), rewrite `public/data.json`:
 
 ```bash
-npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
+npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio --photo-prefix=prod/photos
 ```
 
-This sets `audioFile` to `https://audio.example.com/prod/audio/<filename>` (flat key layout).
+This sets:
+
+- `audioFile` to `https://audio.example.com/prod/audio/<filename>`
+- `photoUrl` to `https://audio.example.com/prod/photos/<filename>`
+
+while leaving `imageFile` unchanged for local/tooling use.
 
 If you intentionally use id-scoped object keys (`<id>/<filename>`), update data URLs to match that
 shape with your own rewrite step so Worker paths and R2 keys stay aligned.
@@ -54,6 +59,14 @@ npm run validate-audio -- --base-url=https://audio.example.com --prefix=prod/aud
 ```
 
 All URLs should return 200/304 with correct CORS headers.
+
+Photo quick check:
+
+```bash
+curl -I https://audio.example.com/prod/photos/<photo-file>.jpg
+```
+
+Expect `200` and an image `Content-Type`.
 
 ## End-to-End Troubleshooting (Local file → R2/Worker → App playback)
 

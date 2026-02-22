@@ -185,16 +185,26 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   }
 
-  const changes = [];
+  const audioChanges = [];
+  const photoChanges = [];
   for (let i = 0; i < parsed.concerts.length; i++) {
     const before = parsed.concerts[i];
     const after = updated.concerts[i];
     if (before.audioFile !== after.audioFile) {
-      changes.push({
+      audioChanges.push({
         id: before.id,
         band: before.band,
         from: before.audioFile,
         to: after.audioFile,
+      });
+    }
+
+    if (before.photoUrl !== after.photoUrl) {
+      photoChanges.push({
+        id: before.id,
+        band: before.band,
+        from: before.photoUrl ?? null,
+        to: after.photoUrl ?? null,
       });
     }
   }
@@ -207,7 +217,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`  Dry run: ${dryRun ? 'yes' : 'no'}`);
   console.log('');
 
-  console.log(`Found ${changes.length} audio entries to update.`);
+  console.log(`Found ${audioChanges.length} audio entries to update.`);
+  console.log(`Found ${photoChanges.length} photo entries to update.`);
 
   if (dryRun) {
     console.log('⚠️  DRY RUN - no files were modified');

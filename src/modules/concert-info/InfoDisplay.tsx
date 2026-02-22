@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import type { InfoDisplayProps } from './types';
 import styles from './InfoDisplay.module.css';
 import { formatConcertTimestamp } from '../../utils/dateUtils';
@@ -19,6 +20,12 @@ export function InfoDisplay({
   progressValue = 0,
   progressColor,
 }: InfoDisplayProps) {
+  const [albumCoverFailed, setAlbumCoverFailed] = useState(false);
+
+  useEffect(() => {
+    setAlbumCoverFailed(false);
+  }, [concert?.albumCoverUrl]);
+
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
 
@@ -52,12 +59,13 @@ export function InfoDisplay({
       <div className={styles.headlineBlock}>
         <p className={styles.kicker}>Live Capture</p>
         <div className={styles.headlineRow}>
-          {concert.albumCoverUrl ? (
+          {concert.albumCoverUrl && !albumCoverFailed ? (
             <img
               src={concert.albumCoverUrl}
               alt={`${concert.band} album cover`}
               className={styles.albumCover}
               loading="lazy"
+              onError={() => setAlbumCoverFailed(true)}
             />
           ) : null}
           <h2 className={styles.bandName}>{concert.band}</h2>

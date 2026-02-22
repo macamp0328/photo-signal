@@ -14,6 +14,7 @@ export function InfoDisplay({
   className = '',
   statusLabel = 'Now Playing',
   promptText = 'Hold steady to keep the story playing.',
+  onClose,
 }: InfoDisplayProps) {
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
@@ -36,6 +37,16 @@ export function InfoDisplay({
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
       <div className={styles.metaRow}>
         <span className={styles.badge}>Signal: {statusLabel}</span>
+        {onClose ? (
+          <button
+            type="button"
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Close concert details"
+          >
+            ×
+          </button>
+        ) : null}
       </div>
 
       <div className={styles.headlineBlock}>

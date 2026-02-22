@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { InfoDisplay } from './InfoDisplay';
 import type { Concert } from '../../types';
 
@@ -210,6 +211,32 @@ describe('InfoDisplay', () => {
 
       const date = screen.getByText('August 15, 2023 at 8:00 PM');
       expect(date.className).toContain('detailValue');
+    });
+  });
+
+  describe('Close Button', () => {
+    it('renders close button when onClose is provided', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={vi.fn()} />);
+
+      expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
+    });
+
+    it('calls onClose when close button is clicked', async () => {
+      const onClose = vi.fn();
+      const user = userEvent.setup();
+      render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={onClose} />);
+
+      await user.click(screen.getByRole('button', { name: 'Close concert details' }));
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render close button when onClose is not provided', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
+
+      expect(
+        screen.queryByRole('button', { name: 'Close concert details' })
+      ).not.toBeInTheDocument();
     });
   });
 

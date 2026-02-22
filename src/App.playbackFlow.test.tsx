@@ -269,7 +269,7 @@ describe('App playback flow', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows prompt-before-switch and crossfades only after confirm', async () => {
+  it('shows matched details and keeps switch controls hidden while details are visible', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -289,17 +289,12 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(
-      screen.getByText('Current cut: Band One. Fresh lock found: Band Two.')
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Keep current track' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
+    expect(screen.getByText('Band Two')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
-
-    await user.click(screen.getByRole('button', { name: 'Switch to Band Two' }));
-
-    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
   });
 
   it('does not render floating ambiguity guidance overlay while a track is recognized', async () => {
@@ -319,7 +314,7 @@ describe('App playback flow', () => {
     expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
-  it('shows switch prompt when recognizedConcert changes while song is playing', async () => {
+  it('keeps switch prompt hidden when recognizedConcert changes while song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -337,18 +332,16 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(
-      screen.getByText('Current cut: Band One. Fresh lock found: Band Two.')
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+    expect(screen.getByText('Band Two')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
   });
 
-  it('keeps same candidate dismissed after keep-current and re-prompts when a different candidate arrives', async () => {
+  it('closes details and resets recognition when user taps close', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
     const user = userEvent.setup();
-    const view = render(<App />);
+    render(<App />);
 
     await user.click(
       screen.getByRole('button', {
@@ -356,28 +349,15 @@ describe('App playback flow', () => {
       })
     );
 
-    audioState.isPlaying = true;
+    expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
 
-    recognitionState.recognizedConcert = concertTwo;
-    view.rerender(<App />);
+    await user.click(screen.getByRole('button', { name: 'Close concert details' }));
 
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Keep current track' }));
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-
-    recognitionState.activeGuidance = 'ambiguous-match';
-    view.rerender(<App />);
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-
-    recognitionState.recognizedConcert = concertThree;
-    recognitionState.activeGuidance = 'none';
-    view.rerender(<App />);
-
-    expect(screen.getByRole('button', { name: 'Switch to Band Three' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+    expect(mockResetRecognition).toHaveBeenCalled();
   });
 
-  it('shows a new switch prompt for a different candidate after keep-current dismisses the first', async () => {
+  it('suppresses immediate re-open for the same concert after closing details', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -390,19 +370,13 @@ describe('App playback flow', () => {
       })
     );
 
-    audioState.isPlaying = true;
-    recognitionState.recognizedConcert = concertTwo;
+    await user.click(screen.getByRole('button', { name: 'Close concert details' }));
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+
+    recognitionState.recognizedConcert = concertOne;
     view.rerender(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Keep current track' }));
-
-    recognitionState.activeGuidance = 'none';
-    view.rerender(<App />);
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
-
-    recognitionState.recognizedConcert = concertThree;
-    view.rerender(<App />);
-    expect(screen.getByRole('button', { name: 'Switch to Band Three' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
   });
 
   it('auto-plays a newly recognized match when no music is currently playing', async () => {
@@ -498,7 +472,7 @@ describe('App playback flow', () => {
     expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
-  it('shows switch prompt and hides it when user chooses to keep current track', async () => {
+  it('does not render switch prompt controls in matched-details mode', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -517,11 +491,6 @@ describe('App playback flow', () => {
     recognitionState.debugInfo = createDebugInfo(concertTwo, 5);
     view.rerender(<App />);
     view.rerender(<App />);
-
-    expect(screen.getByRole('button', { name: 'Keep current track' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Keep current track' }));
 
     expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();

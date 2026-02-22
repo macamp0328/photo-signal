@@ -33,10 +33,7 @@ Display concert metadata overlay.
   className?: string;            // Additional CSS classes
   statusLabel?: string;          // Optional badge label (defaults to "Now Playing")
   promptText?: string;           // Optional helper text shown beneath details
-  actions?: React.ReactNode;     // Optional controls rendered at the bottom of the card
-  nowPlayingLine?: string;       // Optional "Artist — Song Title" line above progress
-  progressValue?: number;        // 0-1 value to drive the progress accent
-  progressColor?: string;        // Optional accent color for the progress dot
+  onClose?: () => void;          // Optional close handler for the "×" button
 }
 ```
 

@@ -49,6 +49,7 @@ const DebugOverlay = lazy(async () => {
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
 const MAX_SWITCH_DECISION_LATENCY_SAMPLES = 200;
+const DETAILS_RECOGNITION_COOLDOWN_MS = 2000;
 
 const createEmptySwitchDecisionTelemetry = (): SwitchDecisionTelemetry => ({
   shownCount: 0,
@@ -175,8 +176,13 @@ function AppContent() {
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
+  const [isConcertInfoVisible, setIsConcertInfoVisible] = useState(false);
   const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
   const [dismissedSwitchBand, setDismissedSwitchBand] = useState<string | null>(null);
+  const [closedConcertCooldown, setClosedConcertCooldown] = useState<{
+    concertId: number;
+    expiresAt: number;
+  } | null>(null);
 
   // Playlist bookkeeping — stored in refs because these values are never rendered;
   // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
@@ -243,9 +249,9 @@ function AppContent() {
       continuousRecognition: true,
       switchRecognitionDelayMultiplier: 1.0,
       switchDistanceThreshold: 14,
-      enabled: !showSecretSettings,
+      enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
-    [isDebugOverlayVisible, recordingState, isEnabled, showSecretSettings]
+    [isDebugOverlayVisible, recordingState, isEnabled, isConcertInfoVisible, showSecretSettings]
   );
 
   const {
@@ -257,6 +263,48 @@ function AppContent() {
     detectedRectangle,
     rectangleConfidence,
   } = usePhotoRecognition(stream, recognitionOptions);
+
+  useEffect(() => {
+    if (!closedConcertCooldown) {
+      return;
+    }
+
+    const remainingMs = closedConcertCooldown.expiresAt - Date.now();
+    if (remainingMs <= 0) {
+      setClosedConcertCooldown(null);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setClosedConcertCooldown(null);
+    }, remainingMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [closedConcertCooldown]);
+
+  const activeRecognitionConcert = useMemo(() => {
+    if (!recognizedConcert) {
+      return null;
+    }
+
+    if (
+      closedConcertCooldown &&
+      closedConcertCooldown.concertId === recognizedConcert.id &&
+      closedConcertCooldown.expiresAt > Date.now()
+    ) {
+      return null;
+    }
+
+    return recognizedConcert;
+  }, [closedConcertCooldown, recognizedConcert]);
+
+  useEffect(() => {
+    if (activeRecognitionConcert) {
+      setIsConcertInfoVisible(true);
+    }
+  }, [activeRecognitionConcert]);
 
   useEffect(() => {
     if (showSecretSettings) {
@@ -298,22 +346,22 @@ function AppContent() {
 
   // Begin streaming the recognized track immediately so playback feels instant
   useEffect(() => {
-    if (!recognizedConcert) {
+    if (!activeRecognitionConcert) {
       return;
     }
 
-    const selectedAudioUrl = recognizedConcert.audioFile;
+    const selectedAudioUrl = activeRecognitionConcert.audioFile;
 
     if (!selectedAudioUrl) {
       return;
     }
 
     preload(selectedAudioUrl);
-  }, [preload, recognizedConcert]);
+  }, [preload, activeRecognitionConcert]);
 
   // Auto-play newly recognized concerts whenever nothing is currently playing.
   useEffect(() => {
-    const autoplayConcert = recognizedConcert;
+    const autoplayConcert = activeRecognitionConcert;
 
     if (!autoplayConcert) {
       previousAutoplayIdRef.current = null;
@@ -359,11 +407,16 @@ function AppContent() {
     setActiveConcert(firstSong);
     setPendingSwitchConcert(null);
     setDismissedSwitchBand(null);
-  }, [isActive, recognizedConcert, isPlaying, play, activePlaylistBand]);
+  }, [isActive, activeRecognitionConcert, isPlaying, play, activePlaylistBand]);
 
   // Track a switch candidate whenever a different artist is detected while one is active.
   useEffect(() => {
-    const switchPromptConcert = recognizedConcert;
+    const switchPromptConcert = activeRecognitionConcert;
+
+    if (isConcertInfoVisible) {
+      setPendingSwitchConcert(null);
+      return;
+    }
 
     if (!switchPromptConcert || !activeConcert) {
       setPendingSwitchConcert(null);
@@ -382,7 +435,13 @@ function AppContent() {
     }
 
     setPendingSwitchConcert(switchPromptConcert);
-  }, [recognizedConcert, activeConcert, activePlaylistBand, dismissedSwitchBand]);
+  }, [
+    activeRecognitionConcert,
+    activeConcert,
+    activePlaylistBand,
+    dismissedSwitchBand,
+    isConcertInfoVisible,
+  ]);
 
   useEffect(() => {
     if (!pendingSwitchConcert) {
@@ -413,16 +472,16 @@ function AppContent() {
   useEffect(() => {
     if (
       dismissedSwitchBand !== null &&
-      recognizedConcert !== null &&
-      recognizedConcert.band !== dismissedSwitchBand
+      activeRecognitionConcert !== null &&
+      activeRecognitionConcert.band !== dismissedSwitchBand
     ) {
       setDismissedSwitchBand(null);
     }
-  }, [recognizedConcert, dismissedSwitchBand]);
+  }, [activeRecognitionConcert, dismissedSwitchBand]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =
-      !isPlaying && recognizedConcert ? recognizedConcert : activeConcert;
+      !isPlaying && activeRecognitionConcert ? activeRecognitionConcert : activeConcert;
 
     if (!playbackTargetConcert) {
       return;
@@ -532,6 +591,25 @@ function AppContent() {
     pause();
   };
 
+  const handleCloseConcertInfo = useCallback(
+    (concert: Concert | null) => {
+      if (concert) {
+        setClosedConcertCooldown({
+          concertId: concert.id,
+          expiresAt: Date.now() + DETAILS_RECOGNITION_COOLDOWN_MS,
+        });
+      }
+
+      setIsConcertInfoVisible(false);
+      setPendingSwitchConcert(null);
+      setDismissedSwitchBand(null);
+      promptShownAtRef.current = null;
+      lastPromptConcertIdRef.current = null;
+      resetRecognition();
+    },
+    [resetRecognition]
+  );
+
   const playPlaylistTrack = useCallback(
     (indexDelta: number) => {
       const currentPlaylist = playlistRef.current;
@@ -594,9 +672,11 @@ function AppContent() {
     setIsActive(true);
   };
 
-  const infoConcert = pendingSwitchConcert ?? recognizedConcert ?? activeConcert;
+  const infoConcert = isConcertInfoVisible
+    ? (pendingSwitchConcert ?? activeRecognitionConcert ?? activeConcert)
+    : null;
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const showSwitchPrompt = !!pendingSwitchConcert;
+  const showSwitchPrompt = !!pendingSwitchConcert && !isConcertInfoVisible;
 
   const statusLabel = playbackError
     ? 'Playback Fault'
@@ -604,7 +684,7 @@ function AppContent() {
       ? 'On Air'
       : showSwitchPrompt
         ? 'Switch Candidate'
-        : recognizedConcert && !isInfoActive
+        : activeRecognitionConcert && !isInfoActive
           ? 'Locked Frame'
           : isInfoActive
             ? 'Deck Paused'
@@ -616,7 +696,7 @@ function AppContent() {
       : `${playbackError} Check stream access and tap Play to retry.`
     : showSwitchPrompt
       ? `Current cut: ${activeConcert?.band}. Fresh lock found: ${pendingSwitchConcert?.band}.`
-      : recognizedConcert
+      : activeRecognitionConcert
         ? 'Signal is locked. Playback runs continuously until you pause.'
         : activeConcert
           ? 'Archive is still live. Pause any time to stop the deck.'
@@ -746,6 +826,7 @@ function AppContent() {
       isVisible={!!infoConcert}
       statusLabel={statusLabel}
       promptText={promptText}
+      onClose={() => handleCloseConcertInfo(infoConcert)}
     />
   );
 
@@ -987,7 +1068,7 @@ function AppContent() {
           <DebugOverlay
             enabled
             isTestMode={false}
-            recognizedConcert={recognizedConcert}
+            recognizedConcert={activeRecognitionConcert}
             isRecognizing={isRecognizing}
             debugInfo={debugInfo}
             onReset={resetRecognition}

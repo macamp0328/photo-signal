@@ -331,4 +331,85 @@ describe('CameraView', () => {
       expect(screen.queryByText('Point camera at a photo to play music')).not.toBeInTheDocument();
     });
   });
+
+  describe('Rectangle Detection Overlay', () => {
+    let mockStream: MediaStream;
+    const mockRectangle = {
+      topLeft: { x: 0.1, y: 0.1 },
+      topRight: { x: 0.9, y: 0.1 },
+      bottomRight: { x: 0.9, y: 0.9 },
+      bottomLeft: { x: 0.1, y: 0.9 },
+      width: 0.8,
+      height: 0.8,
+      aspectRatio: 1,
+    };
+
+    beforeEach(() => {
+      mockStream = new MediaStream();
+    });
+
+    it('should show detecting status when rectangle detected below confidence threshold', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={true}
+          detectedRectangle={mockRectangle}
+          rectangleConfidence={0.3}
+          rectangleDetectionConfidenceThreshold={0.6}
+        />
+      );
+
+      expect(screen.getByText('Detecting photo...')).toBeInTheDocument();
+    });
+
+    it('should show detected status when rectangle confidence meets threshold', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={true}
+          detectedRectangle={mockRectangle}
+          rectangleConfidence={0.8}
+          rectangleDetectionConfidenceThreshold={0.6}
+        />
+      );
+
+      expect(screen.getByText('Photo detected!')).toBeInTheDocument();
+    });
+
+    it('should not render overlay when showRectangleOverlay is false', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={false}
+          detectedRectangle={mockRectangle}
+          rectangleConfidence={0.8}
+        />
+      );
+
+      expect(screen.queryByText('Photo detected!')).not.toBeInTheDocument();
+      expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
+    });
+
+    it('should not render overlay when detectedRectangle is null', () => {
+      render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={true}
+          detectedRectangle={null}
+          rectangleConfidence={0}
+        />
+      );
+
+      expect(screen.queryByText('Photo detected!')).not.toBeInTheDocument();
+      expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
+    });
+  });
 });

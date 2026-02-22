@@ -225,9 +225,10 @@
     {
       "id": 4,
       "band": "Maz",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "The Belmont",
       "date": "2025-03-15T15:30:11-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/P3150522.jpg",
       "photoHashes": {
         "phash": [
@@ -594,9 +595,10 @@
     {
       "id": 9,
       "band": "Buffalo Rose",
+      "songTitle": "Birdhouse in Your Soul",
       "venue": "Fairmont Austin",
       "date": "2022-03-18T12:29:09-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-birdhouse-in-your-soul-birdhouse-in-your-soul.opus",
       "imageFile": "/assets/prod-photographs/R0043500.jpg",
       "photoHashes": {
         "phash": [
@@ -741,9 +743,10 @@
     {
       "id": 11,
       "band": "Croy and the Boys",
+      "songTitle": "Fuck ICE",
       "venue": "Hotel Vegas",
       "date": "2022-03-19T07:28:55-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-fuck-ice-fuck-ice.opus",
       "imageFile": "/assets/prod-photographs/R0043637.jpg",
       "photoHashes": {
         "phash": [
@@ -962,9 +965,10 @@
     {
       "id": 14,
       "band": "Croy and the Boys",
+      "songTitle": "Gentrification",
       "venue": "Saddle Up + BBQ",
       "date": "2022-03-19T14:16:15-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-gentrification-howdy-high-rise.opus",
       "imageFile": "/assets/prod-photographs/R0043769.jpg",
       "photoHashes": {
         "phash": [
@@ -1552,7 +1556,7 @@
     },
     {
       "id": 22,
-      "band": "Arya",
+      "band": "Araya",
       "songTitle": "MAKIMA",
       "venue": "French Legation",
       "date": "2023-03-17T08:46:02-05:00",
@@ -1701,9 +1705,10 @@
     {
       "id": 24,
       "band": "dog petting",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "",
       "date": "2023-03-17T11:03:45-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0051614.jpg",
       "photoHashes": {
         "phash": [
@@ -2513,7 +2518,7 @@
     },
     {
       "id": 35,
-      "band": "Sea_n Barna",
+      "band": "Sean Barna",
       "songTitle": "Disco Nap",
       "venue": "The Iron Bear",
       "date": "2024-03-12T15:03:20-05:00",
@@ -2735,7 +2740,7 @@
     },
     {
       "id": 38,
-      "band": "Witworth",
+      "band": "Whitworth",
       "songTitle": "World War",
       "venue": "The White Horse",
       "date": "2024-03-13T10:25:34-05:00",
@@ -3254,10 +3259,10 @@
     {
       "id": 45,
       "band": "Thus Love",
-      "songTitle": "Put On Dog",
+      "songTitle": "Lost In Translation",
       "venue": "Mohawk",
       "date": "2024-03-13T18:29:14-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-put-on-dog.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-lost-in-translation-all-pleasure.opus",
       "imageFile": "/assets/prod-photographs/R0055540.jpg",
       "photoHashes": {
         "phash": [
@@ -3402,9 +3407,10 @@
     {
       "id": 47,
       "band": "",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "",
       "date": "2024-03-14T09:38:25-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0055567.jpg",
       "photoHashes": {
         "phash": [
@@ -3475,9 +3481,10 @@
     {
       "id": 48,
       "band": "",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "",
       "date": "2024-03-14T10:34:06-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0055584.jpg",
       "photoHashes": {
         "phash": [
@@ -3548,10 +3555,10 @@
     {
       "id": 49,
       "band": "Reyna Tropical",
-      "songTitle": "Conocerla",
+      "songTitle": "Cartagena",
       "venue": "Hotel Vegas",
       "date": "2024-03-14T10:45:41-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-malegra.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-cartagena-cartagena.opus",
       "imageFile": "/assets/prod-photographs/R0055598.jpg",
       "photoHashes": {
         "phash": [
@@ -3622,10 +3629,10 @@
     {
       "id": 50,
       "band": "cumgirl8",
-      "songTitle": "cursed angel",
+      "songTitle": "ahhhhhhhh i dont wanna go",
       "venue": "Hotel Vegas",
       "date": "2024-03-14T11:24:45-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-cursed-angel-phantasea-pharm.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-ahhhhhhhh-i-dont-wanna-go-the-8th-cumming.opus",
       "imageFile": "/assets/prod-photographs/R0055618.jpg",
       "photoHashes": {
         "phash": [
@@ -4214,9 +4221,10 @@
     {
       "id": 58,
       "band": "Shower Curtain",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "High Noon",
       "date": "2024-03-15T06:50:29-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0055769.jpg",
       "photoHashes": {
         "phash": [
@@ -4435,9 +4443,10 @@
     {
       "id": 61,
       "band": "City of the Sun",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "The Coral Snake",
       "date": "2024-03-15T10:45:02-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0055808.jpg",
       "photoHashes": {
         "phash": [
@@ -4656,9 +4665,10 @@
     {
       "id": 64,
       "band": "Lucky Lo",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "Swan Dive",
       "date": "2024-03-15T16:39:02-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0055855.jpg",
       "photoHashes": {
         "phash": [
@@ -4802,10 +4812,11 @@
     },
     {
       "id": 66,
-      "band": "Ang�lica Garcia",
+      "band": "Angelica Garcia",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "Swan Dive",
       "date": "2024-03-15T18:40:39-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0055887.jpg",
       "photoHashes": {
         "phash": [
@@ -5616,9 +5627,10 @@
     {
       "id": 77,
       "band": "Croy and the Boys",
+      "songTitle": "Im Broke",
       "venue": "The White Horse",
       "date": "2025-03-11T14:11:53-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-croy-and-the-boys-im-broke-im-broke.opus",
       "imageFile": "/assets/prod-photographs/R0060613.jpg",
       "photoHashes": {
         "phash": [
@@ -5689,9 +5701,10 @@
     {
       "id": 78,
       "band": "Random Band",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "Hotel Vegas",
       "date": "2025-03-11T14:53:40-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0060632.jpg",
       "photoHashes": {
         "phash": [
@@ -6132,9 +6145,10 @@
     {
       "id": 84,
       "band": "Blah Spa",
+      "songTitle": "I Wanna Be Your Lover",
       "venue": "Full Circle Bar",
       "date": "2025-03-13T16:13:13-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/concert-4.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-prince-i-wanna-be-your-lover-prince.opus",
       "imageFile": "/assets/prod-photographs/R0060822.jpg",
       "photoHashes": {
         "phash": [
@@ -6649,10 +6663,10 @@
     {
       "id": 91,
       "band": "Voxtrot",
-      "songTitle": "Mothers Sisters Daughters and Wives",
+      "songTitle": "The Start Of Something",
       "venue": "Mohawk",
       "date": "2025-03-14T19:12:45-05:00",
-      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-mothers-sisters-daughters-and-wives-early-music.opus",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-the-start-of-something-raised-by-wolves.opus",
       "imageFile": "/assets/prod-photographs/R0060960.jpg",
       "photoHashes": {
         "phash": [
@@ -7234,6 +7248,198 @@
     },
     {
       "id": 124,
+      "band": "Thus Love",
+      "songTitle": "On The Floor",
+      "venue": "Mohawk",
+      "date": "2024-03-13T18:29:14-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-on-the-floor-all-pleasure.opus",
+      "imageFile": "/assets/prod-photographs/R0055540.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/30",
+      "iso": "3200"
+    },
+    {
+      "id": 125,
+      "band": "Thus Love",
+      "songTitle": "Put On Dog",
+      "venue": "Mohawk",
+      "date": "2024-03-13T18:29:14-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-all-pleasure.opus",
+      "imageFile": "/assets/prod-photographs/R0055540.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/30",
+      "iso": "3200"
+    },
+    {
+      "id": 126,
+      "band": "Thus Love",
+      "songTitle": "Put On Dog",
+      "venue": "Mohawk",
+      "date": "2024-03-13T18:29:14-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-thus-love-put-on-dog-put-on-dog.opus",
+      "imageFile": "/assets/prod-photographs/R0055540.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/30",
+      "iso": "3200"
+    },
+    {
+      "id": 127,
+      "band": "Voxtrot",
+      "songTitle": "Wrecking Force",
+      "venue": "Mohawk",
+      "date": "2023-03-16T14:27:16-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-voxtrot-wrecking-force-raised-by-wolves.opus",
+      "imageFile": "/assets/prod-photographs/R0051569.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/60",
+      "iso": "400"
+    },
+    {
+      "id": 128,
+      "band": "Reyna Tropical",
+      "songTitle": "Conocerla",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-14T10:45:41-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-conocerla.opus",
+      "imageFile": "/assets/prod-photographs/R0055598.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/3.2",
+      "shutterSpeed": "1/500",
+      "iso": "400"
+    },
+    {
+      "id": 129,
+      "band": "Reyna Tropical",
+      "songTitle": "Conocerla",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-14T10:45:41-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-conocerla-malegra.opus",
+      "imageFile": "/assets/prod-photographs/R0055598.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/3.2",
+      "shutterSpeed": "1/500",
+      "iso": "400"
+    },
+    {
+      "id": 130,
+      "band": "Reyna Tropical",
+      "songTitle": "La Mam",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-14T10:45:41-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-reyna-tropical-la-mam-malegra.opus",
+      "imageFile": "/assets/prod-photographs/R0055598.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/3.2",
+      "shutterSpeed": "1/500",
+      "iso": "400"
+    },
+    {
+      "id": 131,
+      "band": "cumgirl8",
+      "songTitle": "cursed angel",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-14T11:24:45-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-cursed-angel-phantasea-pharm.opus",
+      "imageFile": "/assets/prod-photographs/R0055618.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/30",
+      "iso": "3200"
+    },
+    {
+      "id": 132,
+      "band": "cumgirl8",
+      "songTitle": "Karma Police",
+      "venue": "Hotel Vegas",
+      "date": "2024-03-14T11:24:45-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-cumgirl8-karma-police-the-8th-cumming.opus",
+      "imageFile": "/assets/prod-photographs/R0055618.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/30",
+      "iso": "3200"
+    },
+    {
+      "id": 133,
+      "band": "Eyeam",
+      "songTitle": "Love Is The Sweetest Thing",
+      "venue": "Austin Garden & Studio",
+      "date": "2024-03-14T13:42:38-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-eyeam-love-is-the-sweetest-thing-love-is-the-sweetest-thing.opus",
+      "imageFile": "/assets/prod-photographs/R0055666.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/2.8",
+      "shutterSpeed": "1/250",
+      "iso": "2200"
+    },
+    {
+      "id": 134,
+      "band": "Buffalo Rose",
+      "songTitle": "I Feel So Good",
+      "venue": "Fairmont Austin",
+      "date": "2022-03-18T12:29:09-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-i-feel-so-good-big-stampede.opus",
+      "imageFile": "/assets/prod-photographs/R0043500.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.5",
+      "shutterSpeed": "1/250",
+      "iso": "2200"
+    },
+    {
+      "id": 135,
+      "band": "Buffalo Rose",
+      "songTitle": "Jennifers Rabbit",
+      "venue": "Fairmont Austin",
+      "date": "2022-03-18T12:29:09-05:00",
+      "audioFile": "https://photo-signal-audio-worker.whoisduck2.workers.dev/prod/audio/ps-buffalo-rose-jennifers-rabbit-rabbit.opus",
+      "imageFile": "/assets/prod-photographs/R0043500.jpg",
+      "recognitionEnabled": false,
+      "photoHashes": {},
+      "camera": "RICOH IMAGING COMPANY, LTD. GR II",
+      "focalLength": "18.3mm",
+      "aperture": "f/4.5",
+      "shutterSpeed": "1/250",
+      "iso": "2200"
+    },
+    {
+      "id": 136,
       "band": "Squirrel Flower",
       "songTitle": "Cortez the Killer Live in Austin TX",
       "venue": "High Noon",
@@ -7249,7 +7455,7 @@
       "iso": "3200"
     },
     {
-      "id": 125,
+      "id": 137,
       "band": "White Denim",
       "songTitle": "Light On",
       "venue": "High Noon",
@@ -7265,7 +7471,7 @@
       "iso": "3200"
     },
     {
-      "id": 126,
+      "id": 138,
       "band": "White Denim",
       "songTitle": "Magazin",
       "venue": "High Noon",
@@ -7281,7 +7487,7 @@
       "iso": "3200"
     },
     {
-      "id": 127,
+      "id": 139,
       "band": "Primo the Alien",
       "songTitle": "Youre the One That I Want",
       "venue": "Downright Austin",
@@ -7297,7 +7503,7 @@
       "iso": "2000"
     },
     {
-      "id": 128,
+      "id": 140,
       "band": "Heavy Meddo",
       "songTitle": "tronald dump",
       "venue": "The Volstead Lounge",
@@ -7313,7 +7519,7 @@
       "iso": "3200"
     },
     {
-      "id": 129,
+      "id": 141,
       "band": "Thelma and the Sleaze",
       "songTitle": "High Class Woman",
       "venue": "Mohawk",

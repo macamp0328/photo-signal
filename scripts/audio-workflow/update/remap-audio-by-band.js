@@ -12,6 +12,7 @@ const DEFAULT_REPORT_CSV = 'scripts/audio-workflow/output/mapping-report.csv';
 const BAND_ALIASES = new Map([
   ['witworth', 'whitworth'],
   ['sea n barna', 'sen barna'],
+  ['sean barna', 'sen barna'],
   ['mamalarkey', 'mamalarky'],
   ['thao and get down stay down', 'thao'],
   ['arya', 'araya'],

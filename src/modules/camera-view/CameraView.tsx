@@ -67,7 +67,7 @@ export function CameraView({
       />
 
       {/* Rectangle Detection Overlay */}
-      {showRectangleOverlay && videoRef.current && (
+      {showRectangleOverlay && (
         <RectangleOverlay
           rectangle={detectedRectangle}
           state={

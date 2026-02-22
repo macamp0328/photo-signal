@@ -560,8 +560,9 @@ function AppContent() {
       setActiveConcert(targetTrack);
       setPendingSwitchConcert(null);
       setDismissedSwitchBand(null);
+      resetRecognition();
     },
-    [activeConcert, clearPlaybackError, crossfade, isPlaying, play]
+    [activeConcert, clearPlaybackError, crossfade, isPlaying, play, resetRecognition]
   );
 
   const handlePreviousTrack = useCallback(() => {

@@ -165,6 +165,18 @@ describe('buildConcertFromRow', () => {
     expect(concert.audioFile).toContain('concert-4.opus');
   });
 
+  it('uses placeholder cover for albumCoverUrl when selectedTrack is null', () => {
+    const placeholderTrack = {
+      fileName: 'concert-4.opus',
+      songTitle: 'Placeholder',
+      coverFile: 'concert-4-cover.webp',
+    };
+
+    const concert = buildConcertFromRow(row, 1, null, baseUrl, prefix, placeholderTrack);
+
+    expect(concert.albumCoverUrl).toBe('https://cdn.example.com/prod/audio/concert-4-cover.webp');
+  });
+
   it('includes albumCoverUrl when track has coverFile', () => {
     const trackWithCover = { ...track, coverFile: 'ps-123-cover.webp' };
     const concert = buildConcertFromRow(row, 42, trackWithCover, baseUrl, prefix);

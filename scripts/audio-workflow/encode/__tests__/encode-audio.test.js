@@ -185,6 +185,7 @@ describe('encode-audio', () => {
           truePeakDb: -1.5,
           lra: 8.5,
           outputFile: 'ps-band-a-venue-a.opus',
+          coverFile: 'ps-band-a-venue-a-cover.webp',
           checksum: 'abc123',
         },
       ];
@@ -209,7 +210,26 @@ describe('encode-audio', () => {
       expect(index.tracks[0].lra).toBe(8.5);
       expect(index.tracks[0].durationMs).toBe(185300);
       expect(index.tracks[0].checksum).toBe('abc123');
+      expect(index.tracks[0].coverFile).toBe('ps-band-a-venue-a-cover.webp');
       expect(index.config.targetLUFS).toBe(-16);
+    });
+
+    it('should set coverFile to null when absent on result', () => {
+      const results = [
+        {
+          success: true,
+          dryRun: false,
+          slug: 'no-cover-track',
+          band: 'No Cover Band',
+          album: 'Album',
+          date: '2023-01-01',
+          outputFile: 'ps-no-cover-track.opus',
+        },
+      ];
+
+      const index = createAudioIndex(results);
+
+      expect(index.tracks[0].coverFile).toBeNull();
     });
 
     it('should include generation timestamp', () => {

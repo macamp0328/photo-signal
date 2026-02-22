@@ -71,23 +71,6 @@
   border-top: none;
 }
 
-/* Status message */
-.statusMessage {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 0.55rem);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.45rem 0.78rem;
-  background: var(--overlay-bg, rgba(0, 0, 0, 0.85));
-  color: var(--color-main-text, #f5f5f5);
-  border-radius: 0.45rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent, #4a90e2) 38%, white 62%);
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  backdrop-filter: blur(0.35rem);
-}
-
 /* Pulse animation for detecting state */
 @keyframes pulse {
   0%,
@@ -101,12 +84,6 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .statusMessage {
-    top: calc(env(safe-area-inset-top) + 0.35rem);
-    font-size: 0.72rem;
-    padding: 0.36rem 0.58rem;
-  }
-
   .corner {
     width: 15px;
     height: 15px;

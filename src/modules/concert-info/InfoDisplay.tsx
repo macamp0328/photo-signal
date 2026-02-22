@@ -18,11 +18,10 @@ export function InfoDisplay({
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
 
-  const formattedDate = formatConcertTimestamp(concert.date);
+  const formattedDate = formatConcertTimestamp(concert.date).replace(/\s+[A-Z]{2,5}$/, '');
   const primaryDetailItems = [
-    { label: 'Date', value: formattedDate },
-    { label: 'Song', value: concert.songTitle },
     { label: 'Venue', value: concert.venue },
+    { label: 'Date', value: formattedDate },
   ].filter((item) => Boolean(item.value));
   const secondaryMeta = [
     concert.camera ? `Camera: ${concert.camera}` : null,

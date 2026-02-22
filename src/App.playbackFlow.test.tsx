@@ -274,7 +274,7 @@ describe('App playback flow', () => {
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
   });
 
-  it('shows ambiguity guidance while a track is already recognized', async () => {
+  it('does not render floating ambiguity guidance overlay while a track is recognized', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.activeGuidance = 'ambiguous-match';
     audioState.isPlaying = true;
@@ -288,7 +288,7 @@ describe('App playback flow', () => {
       })
     );
 
-    expect(screen.getByTestId('guidance-message')).toHaveTextContent('ambiguous-match');
+    expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
   it('shows switch prompt when recognizedConcert changes while song is playing', async () => {

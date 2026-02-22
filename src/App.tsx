@@ -12,8 +12,6 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useCameraAccess } from './modules/camera-access';
 import {
   usePhotoRecognition,
-  FrameQualityIndicator,
-  GuidanceMessage,
   computeActiveSettings,
   computeAiRecommendations,
 } from './modules/photo-recognition';
@@ -256,8 +254,6 @@ function AppContent() {
     resetTelemetry,
     debugInfo,
     isRecognizing,
-    frameQuality,
-    activeGuidance,
     detectedRectangle,
     rectangleConfidence,
   } = usePhotoRecognition(stream, recognitionOptions);
@@ -752,15 +748,6 @@ function AppContent() {
     />
   );
 
-  // Render frame quality indicator (only when camera is active and no concert recognized)
-  const frameQualityIndicator = isActive && stream && !recognizedConcert && (
-    <FrameQualityIndicator frameQuality={frameQuality} />
-  );
-
-  // Render guidance message whenever active guidance exists during camera session
-  const guidanceMessage = isActive && stream && activeGuidance !== 'none' && (
-    <GuidanceMessage guidanceType={activeGuidance} />
-  );
   const telemetryForExport: RecognitionTelemetry | null = debugInfo?.telemetry
     ? {
         ...debugInfo.telemetry,
@@ -984,8 +971,6 @@ function AppContent() {
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
       />
-      {frameQualityIndicator}
-      {guidanceMessage}
       {showSecretSettings && (
         <Suspense fallback={null}>
           <SecretSettings

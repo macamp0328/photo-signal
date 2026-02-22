@@ -55,7 +55,7 @@ describe('InfoDisplay', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       // Date should be formatted with time when timestamp includes it
-      const formattedDate = screen.getByText('August 15, 2023 at 8:00 PM CDT');
+      const formattedDate = screen.getByText('August 15, 2023 at 8:00 PM');
       expect(formattedDate).toBeInTheDocument();
     });
 
@@ -64,7 +64,7 @@ describe('InfoDisplay', () => {
 
       expect(screen.getByText('The Beatles')).toBeInTheDocument();
       expect(screen.getByText('Abbey Road Studios')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
     });
 
     it('should display "Now Playing" label', () => {
@@ -98,7 +98,7 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={exifConcert} isVisible={true} />);
 
-      expect(screen.getByText('Here Comes the Sun')).toBeInTheDocument();
+      expect(screen.queryByText('Here Comes the Sun')).not.toBeInTheDocument();
       const detailsCard = screen.getByLabelText('Concert details');
       expect(detailsCard).toHaveTextContent('Camera: RICOH GR II');
       expect(detailsCard).toHaveTextContent('18.3mm');
@@ -117,7 +117,7 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
     });
 
     it('should format date "2024-01-01" as "January 1, 2024"', () => {
@@ -128,7 +128,7 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('January 1, 2024 at 12:00 AM CST')).toBeInTheDocument();
+      expect(screen.getByText('January 1, 2024 at 12:00 AM')).toBeInTheDocument();
     });
 
     it('should format date "2024-12-31" as "December 31, 2024"', () => {
@@ -139,7 +139,7 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('December 31, 2024 at 6:30 PM CST')).toBeInTheDocument();
+      expect(screen.getByText('December 31, 2024 at 6:30 PM')).toBeInTheDocument();
     });
 
     it('should include time and timezone when timestamp includes time data', () => {
@@ -150,7 +150,7 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('August 15, 2023 at 9:30 PM CDT')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 9:30 PM')).toBeInTheDocument();
     });
   });
 
@@ -208,7 +208,7 @@ describe('InfoDisplay', () => {
       const venue = screen.getByText('Abbey Road Studios');
       expect(venue.className).toContain('detailValue');
 
-      const date = screen.getByText('August 15, 2023 at 8:00 PM CDT');
+      const date = screen.getByText('August 15, 2023 at 8:00 PM');
       expect(date.className).toContain('detailValue');
     });
   });
@@ -245,7 +245,7 @@ describe('InfoDisplay', () => {
       const { container } = render(<InfoDisplay concert={concert} isVisible={true} />);
 
       expect(container.querySelector('section')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
+      expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
     });
 
     it('should handle very long band names', () => {

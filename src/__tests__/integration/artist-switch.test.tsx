@@ -63,6 +63,7 @@ const MOCK_DATA = {
 const concertA = MOCK_DATA.concerts[0] as Concert;
 const concertB1 = MOCK_DATA.concerts[1] as Concert;
 const concertB2 = MOCK_DATA.concerts[2] as Concert;
+const concertC = MOCK_DATA.concerts[3] as Concert;
 
 // ─── Mock photo recognition ───────────────────────────────────────────────────
 // Uses React useState so that calling setMockRecognizedConcert() triggers a real
@@ -229,7 +230,7 @@ describe('Artist Audio Switch', () => {
     expect(mockReset).toHaveBeenCalled();
   });
 
-  it('closing details applies cooldown only to the just-closed concert', async () => {
+  it('closing details dismisses the band for switch prompts', async () => {
     await activateAndPlayArtistA();
     const user = userEvent.setup();
 
@@ -243,7 +244,7 @@ describe('Artist Audio Switch', () => {
       expect(screen.getByText('Artist B')).toBeInTheDocument();
     });
 
-    // Close Artist B details to start per-concert cooldown
+    // Close Artist B details to start per-concert cooldown and dismiss the band
     await user.click(screen.getByRole('button', { name: /close concert details/i }));
 
     // Immediate re-detection of the same closed concert is suppressed during cooldown
@@ -254,12 +255,20 @@ describe('Artist Audio Switch', () => {
       expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
     });
 
-    // A different concert can still show immediately
+    // A different concert from the same band is also suppressed
     await act(async () => {
       setMockRecognizedConcert(concertB2);
     });
     await waitFor(() => {
-      expect(screen.getByText('Venue B2')).toBeInTheDocument();
+      expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+    });
+
+    // A concert from a different band can still show immediately
+    await act(async () => {
+      setMockRecognizedConcert(concertC);
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Venue C')).toBeInTheDocument();
     });
   });
 });

@@ -12,8 +12,6 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useCameraAccess } from './modules/camera-access';
 import {
   usePhotoRecognition,
-  FrameQualityIndicator,
-  GuidanceMessage,
   computeActiveSettings,
   computeAiRecommendations,
 } from './modules/photo-recognition';
@@ -33,6 +31,7 @@ import { dataService } from './services/data-service';
 import { buildTemporalSnapshot } from './utils/telemetryUtils';
 import { ROUTINE_DEFINITIONS } from './modules/debug-overlay';
 import type { RoutineType } from './modules/debug-overlay';
+import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
@@ -255,8 +254,6 @@ function AppContent() {
     resetTelemetry,
     debugInfo,
     isRecognizing,
-    frameQuality,
-    activeGuidance,
     detectedRectangle,
     rectangleConfidence,
   } = usePhotoRecognition(stream, recognitionOptions);
@@ -535,6 +532,47 @@ function AppContent() {
     pause();
   };
 
+  const playPlaylistTrack = useCallback(
+    (indexDelta: number) => {
+      const currentPlaylist = playlistRef.current;
+      if (currentPlaylist.length <= 1) {
+        return;
+      }
+
+      const nextIndex =
+        (playlistIndexRef.current + indexDelta + currentPlaylist.length) % currentPlaylist.length;
+      const targetTrack = currentPlaylist[nextIndex];
+
+      if (!targetTrack?.audioFile) {
+        return;
+      }
+
+      if (activeConcert && isPlaying) {
+        crossfade(targetTrack.audioFile);
+      } else {
+        clearPlaybackError();
+        play(targetTrack.audioFile);
+      }
+
+      userPausedRef.current = false;
+      playlistIndexRef.current = nextIndex;
+      setActivePlaylistBand(targetTrack.band);
+      setActiveConcert(targetTrack);
+      setPendingSwitchConcert(null);
+      setDismissedSwitchBand(null);
+      resetRecognition();
+    },
+    [activeConcert, clearPlaybackError, crossfade, isPlaying, play, resetRecognition]
+  );
+
+  const handlePreviousTrack = useCallback(() => {
+    playPlaylistTrack(-1);
+  }, [playPlaylistTrack]);
+
+  const handleNextTrack = useCallback(() => {
+    playPlaylistTrack(1);
+  }, [playPlaylistTrack]);
+
   const attemptPortraitOrientationLock = () => {
     const orientation = window.screen?.orientation as
       | (ScreenOrientation & {
@@ -559,14 +597,6 @@ function AppContent() {
   const infoConcert = pendingSwitchConcert ?? recognizedConcert ?? activeConcert;
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const showSwitchPrompt = !!pendingSwitchConcert;
-
-  const primaryActionLabel = isPlaying
-    ? isInfoActive
-      ? 'Pause Playback'
-      : 'Pause Current Track'
-    : isInfoActive
-      ? 'Play Track'
-      : 'Play Detected Track';
 
   const statusLabel = playbackError
     ? 'Playback Fault'
@@ -593,58 +623,109 @@ function AppContent() {
           : 'Aim at a print to lock signal and start the deck.';
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
+  const progressPercentage = Math.round(clampedProgress * 100);
   const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
   const nowPlayingLine = activeConcert
     ? activeConcert.songTitle
       ? `${activeConcert.band} — ${activeConcert.songTitle}`
       : activeConcert.band
-    : isPlaying
-      ? 'Deck is running — waiting on a stable band lock'
-      : 'Receiver idle — lift the camera to wake playback';
+    : null;
+  const playbackButtonLabel = isPlaying ? 'Pause' : 'Play';
 
-  const actions =
-    infoConcert && (isPlaying || recognizedConcert || activeConcert) ? (
-      <>
-        {showSwitchPrompt ? (
-          <div>
-            <button
-              type="button"
-              onClick={handleConfirmSwitch}
-              aria-label={`Switch to ${pendingSwitchConcert?.band ?? 'detected track'}`}
-            >
-              Switch Deck
-            </button>
-            <button
-              type="button"
-              data-variant="secondary"
-              onClick={handleKeepCurrentTrack}
-              aria-label="Keep current track"
-            >
-              Keep Current
-            </button>
-            <button
-              type="button"
-              data-variant="secondary"
-              onClick={handlePauseCurrent}
-              aria-label="Pause currently playing track"
-            >
-              Pause Current
-            </button>
+  const canNavigatePlaylist = playlistRef.current.length > 1;
+  const shouldShowBottomPlayer = Boolean(activeConcert);
+
+  const audioControls = shouldShowBottomPlayer ? (
+    <section className={styles.playerBar} aria-label="Now playing controls">
+      <div className={styles.playerHeader}>
+        <div className={styles.playerTitleBlock}>
+          <p className={styles.playerEyebrow}>Now Playing</p>
+          <div className={styles.playerNowPlayingRow}>
+            {activeConcert?.albumCoverUrl ? (
+              <img
+                src={activeConcert.albumCoverUrl}
+                alt={`${activeConcert.band} album cover`}
+                className={styles.playerAlbumCover}
+                loading="lazy"
+              />
+            ) : null}
+            <p className={styles.playerTitle}>{nowPlayingLine}</p>
           </div>
-        ) : (
-          <div>
-            <button type="button" onClick={handleTogglePlayback} aria-label={primaryActionLabel}>
-              {primaryActionLabel}
-            </button>
-          </div>
-        )}
-        {showSwitchPrompt ? (
-          <p>
+        </div>
+        <p className={styles.playerProgress}>{progressPercentage}%</p>
+      </div>
+
+      <div className={styles.playerTimeline} aria-label="Song progress tracker">
+        <div className={styles.playerTimelineRail}>
+          <div
+            className={styles.playerTimelineFill}
+            style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
+          />
+        </div>
+      </div>
+
+      <div className={styles.playerTransport}>
+        <button
+          type="button"
+          className={styles.playerButtonSecondary}
+          onClick={handlePreviousTrack}
+          disabled={!canNavigatePlaylist}
+          aria-label="Play previous track"
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          className={styles.playerButtonPrimary}
+          onClick={handleTogglePlayback}
+          aria-label={playbackButtonLabel}
+        >
+          {playbackButtonLabel}
+        </button>
+        <button
+          type="button"
+          className={styles.playerButtonSecondary}
+          onClick={handleNextTrack}
+          disabled={!canNavigatePlaylist}
+          aria-label="Play next track"
+        >
+          Next
+        </button>
+      </div>
+
+      {showSwitchPrompt ? (
+        <div className={styles.playerSwitchRow}>
+          <button
+            type="button"
+            className={styles.playerButtonPrimary}
+            onClick={handleConfirmSwitch}
+            aria-label={`Switch to ${pendingSwitchConcert?.band ?? 'detected track'}`}
+          >
+            Switch Deck
+          </button>
+          <button
+            type="button"
+            className={styles.playerButtonSecondary}
+            onClick={handleKeepCurrentTrack}
+            aria-label="Keep current track"
+          >
+            Keep Current
+          </button>
+          <button
+            type="button"
+            className={styles.playerButtonSecondary}
+            onClick={handlePauseCurrent}
+            aria-label="Pause currently playing track"
+          >
+            Pause Current
+          </button>
+          <p className={styles.playerSwitchText}>
             Live now: {activeConcert?.band}. Confirm switch to {pendingSwitchConcert?.band}.
           </p>
-        ) : null}
-      </>
-    ) : null;
+        </div>
+      ) : null}
+    </section>
+  ) : null;
 
   const cameraView = (
     <CameraView
@@ -665,21 +746,9 @@ function AppContent() {
       isVisible={!!infoConcert}
       statusLabel={statusLabel}
       promptText={promptText}
-      nowPlayingLine={nowPlayingLine}
-      progressValue={progress}
-      progressColor={progressColor}
     />
   );
 
-  // Render frame quality indicator (only when camera is active and no concert recognized)
-  const frameQualityIndicator = isActive && stream && !recognizedConcert && (
-    <FrameQualityIndicator frameQuality={frameQuality} />
-  );
-
-  // Render guidance message whenever active guidance exists during camera session
-  const guidanceMessage = isActive && stream && activeGuidance !== 'none' && (
-    <GuidanceMessage guidanceType={activeGuidance} />
-  );
   const telemetryForExport: RecognitionTelemetry | null = debugInfo?.telemetry
     ? {
         ...debugInfo.telemetry,
@@ -901,10 +970,8 @@ function AppContent() {
         infoDisplay={infoDisplay}
         onActivate={handleActivate}
         onSettingsClick={() => setShowSecretSettings(true)}
-        audioControls={actions}
+        audioControls={audioControls}
       />
-      {frameQualityIndicator}
-      {guidanceMessage}
       {showSecretSettings && (
         <Suspense fallback={null}>
           <SecretSettings

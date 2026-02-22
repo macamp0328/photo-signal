@@ -348,7 +348,7 @@ describe('CameraView', () => {
       mockStream = new MediaStream();
     });
 
-    it('should show detecting status when rectangle detected below confidence threshold', () => {
+    it('should not show overlay status text when rectangle detected below confidence threshold', () => {
       render(
         <CameraView
           stream={mockStream}
@@ -361,10 +361,10 @@ describe('CameraView', () => {
         />
       );
 
-      expect(screen.getByText('Detecting photo...')).toBeInTheDocument();
+      expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
     });
 
-    it('should show detected status when rectangle confidence meets threshold', () => {
+    it('should not show overlay status text when rectangle confidence meets threshold', () => {
       render(
         <CameraView
           stream={mockStream}
@@ -377,7 +377,7 @@ describe('CameraView', () => {
         />
       );
 
-      expect(screen.getByText('Photo detected!')).toBeInTheDocument();
+      expect(screen.queryByText('Photo detected!')).not.toBeInTheDocument();
     });
 
     it('should not render overlay when showRectangleOverlay is false', () => {

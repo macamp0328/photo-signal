@@ -19,6 +19,8 @@ export function GalleryLayout({
   audioControls,
   showInfoSection = true,
 }: GalleryLayoutProps) {
+  const hasAudioControls = Boolean(audioControls);
+
   if (!isActive) {
     // Landing/Initial View
     return (
@@ -61,15 +63,15 @@ export function GalleryLayout({
         </button>
       </div>
 
-      <div className={styles.content}>
+      <div className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''}`}>
         <div className={styles.cameraWrap}>
           <div className={styles.cameraSection}>{cameraView}</div>
         </div>
 
         {showInfoSection && infoDisplay && <div className={styles.infoSection}>{infoDisplay}</div>}
-
-        {audioControls && <div className={styles.audioSection}>{audioControls}</div>}
       </div>
+
+      {audioControls && <div className={styles.audioSection}>{audioControls}</div>}
     </div>
   );
 }

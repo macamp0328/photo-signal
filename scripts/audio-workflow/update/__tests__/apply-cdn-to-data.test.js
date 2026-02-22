@@ -3,12 +3,10 @@ import { mkdirSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   applyCdnToData,
-  applyCdnToDataUsingAudioIndex,
   buildAudioUrl,
   sanitizePrefix,
   trimTrailingSlash,
   updateConcertWithCdn,
-  updateConcertWithCdnAndFileName,
 } from '../apply-cdn-to-data.js';
 
 describe('apply-cdn-to-data', () => {
@@ -73,41 +71,6 @@ describe('apply-cdn-to-data', () => {
     expect(updated.concerts[0].audioFile).toBe('https://audio.example.com/prod/audio/a.opus');
     expect(updated.concerts[0].audioFileFallback).toBeUndefined();
     expect(updated.concerts[1].audioFile).toBeUndefined();
-  });
-
-  it('updateConcertWithCdnAndFileName should use mapped filename', () => {
-    const concert = { id: 11, band: 'Mapped', audioFile: '/audio/legacy.opus' };
-    const updated = updateConcertWithCdnAndFileName(
-      concert,
-      'https://audio.example.com',
-      'ps-mapped-track.opus',
-      'prod/audio'
-    );
-
-    expect(updated.audioFile).toBe('https://audio.example.com/prod/audio/ps-mapped-track.opus');
-  });
-
-  it('applyCdnToDataUsingAudioIndex should prefer mapped filenames by concert id', () => {
-    const data = {
-      concerts: [
-        { id: 1, audioFile: '/audio/concert-1.opus' },
-        { id: 2, audioFile: '/audio/concert-2.opus' },
-      ],
-    };
-    const audioIndexMap = new Map([
-      ['1', 'ps-one.opus'],
-      ['2', 'ps-two.opus'],
-    ]);
-
-    const updated = applyCdnToDataUsingAudioIndex(
-      data,
-      'https://audio.example.com',
-      audioIndexMap,
-      'prod/audio'
-    );
-
-    expect(updated.concerts[0].audioFile).toBe('https://audio.example.com/prod/audio/ps-one.opus');
-    expect(updated.concerts[1].audioFile).toBe('https://audio.example.com/prod/audio/ps-two.opus');
   });
 
   it('sanitizePrefix should remove leading and trailing slashes', () => {

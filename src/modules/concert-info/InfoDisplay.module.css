@@ -48,15 +48,6 @@
   gap: 0.75rem;
 }
 
-.albumCover {
-  width: 3.5rem;
-  height: 3.5rem;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  display: block;
-}
-
 .bandName {
   font-size: clamp(1.45rem, 4.6vw, 2.2rem);
   font-weight: 700;
@@ -66,73 +57,9 @@
   min-width: 0;
 }
 
-.transportBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 0;
-  background: transparent;
-}
-
-.nowPlayingRow {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.nowPlayingDot {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 0;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: none;
-}
-
-.nowPlaying {
-  margin: 0;
-  color: var(--color-main-text);
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.timelineWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.timelineRail {
-  width: 100%;
-  height: 0.65rem;
-  border-radius: 0;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.timelineFill {
-  height: 100%;
-  border-radius: inherit;
-  min-width: 0;
-  transition: width 200ms ease-out;
-}
-
-.timelineMeta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--color-bonus-text);
-}
-
 .detailGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
   gap: 0.45rem;
 }
 
@@ -152,10 +79,24 @@
 }
 
 .detailValue {
-  font-size: clamp(0.74rem, 1.8vw, 0.92rem);
+  font-size: clamp(0.78rem, 2vw, 0.95rem);
   color: var(--color-main-text);
   margin: 0;
   line-height: 1.3;
+}
+
+.detailItem:nth-child(1) .detailValue {
+  font-size: clamp(0.98rem, 2.5vw, 1.18rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.detailItem:nth-child(2) .detailValue {
+  font-size: clamp(0.82rem, 2vw, 0.96rem);
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .metaCompact {
@@ -179,53 +120,6 @@
   letter-spacing: 0.02em;
 }
 
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.actions > div {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-  gap: 0.5rem;
-}
-
-.actions button {
-  background-color: var(--color-accent);
-  color: var(--color-background);
-  border: 1px solid transparent;
-  border-radius: 0;
-  min-height: 2.75rem;
-  padding: 0.55rem 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  font-size: 0.78rem;
-  cursor: pointer;
-  transition:
-    transform 120ms ease,
-    box-shadow 120ms ease,
-    border-color 120ms ease;
-}
-
-.actions button:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-.actions button[data-variant='secondary'] {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--color-main-text);
-  border: 1px solid var(--color-accent);
-}
-
-.actions p {
-  margin: 0;
-  color: var(--color-sub-text);
-  font-size: 0.84rem;
-}
-
 @media (max-width: 480px) {
   .card {
     padding: 0.6rem;
@@ -245,30 +139,12 @@
     font-size: 0.58rem;
   }
 
-  .albumCover {
-    width: 2.75rem;
-    height: 2.75rem;
-  }
-
   .bandName {
     font-size: clamp(1.1rem, 6.2vw, 1.5rem);
   }
 
-  .transportBlock {
-    padding: 0.5rem;
-    gap: 0.45rem;
-  }
-
-  .timelineRail {
-    height: 0.55rem;
-  }
-
-  .timelineMeta {
-    font-size: 0.62rem;
-  }
-
   .detailGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
     gap: 0.35rem;
   }
 
@@ -284,6 +160,14 @@
     font-size: 0.7rem;
   }
 
+  .detailItem:nth-child(1) .detailValue {
+    font-size: 0.86rem;
+  }
+
+  .detailItem:nth-child(2) .detailValue {
+    font-size: 0.74rem;
+  }
+
   .metaCompact {
     font-size: 0.6rem;
   }
@@ -291,15 +175,6 @@
   .prompt {
     font-size: 0.64rem;
     padding: 0.3rem 0;
-  }
-
-  .actions > div {
-    grid-template-columns: 1fr;
-  }
-
-  .actions button {
-    min-height: 2.45rem;
-    font-size: 0.72rem;
   }
 }
 

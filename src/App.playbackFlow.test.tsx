@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import type { Concert } from './types';
+import { dataService } from './services/data-service';
 import type {
   GuidanceType,
   RecognitionDebugInfo,
@@ -52,6 +53,7 @@ const mockPreload = vi.fn();
 const mockFadeOut = vi.fn();
 const mockCrossfade = vi.fn();
 const mockSetVolume = vi.fn();
+const mockClearPlaybackError = vi.fn();
 
 const audioState = {
   isPlaying: false,
@@ -196,7 +198,7 @@ vi.mock('./modules/audio-playback', () => ({
     isPlaying: audioState.isPlaying,
     progress: audioState.progress,
     playbackError: audioState.playbackError,
-    clearPlaybackError: vi.fn(),
+    clearPlaybackError: mockClearPlaybackError,
     stop: vi.fn(),
     volume: 0.8,
     setVolume: mockSetVolume,
@@ -204,6 +206,13 @@ vi.mock('./modules/audio-playback', () => ({
 }));
 
 describe('App playback flow', () => {
+  const sameBandTrackTwo: Concert = {
+    ...concertOne,
+    id: 101,
+    songTitle: 'Band One Track Two',
+    audioFile: '/audio/one-b.opus',
+  };
+
   beforeEach(() => {
     recognitionState.recognizedConcert = null;
     recognitionState.switchCandidateConcert = null;
@@ -218,6 +227,25 @@ describe('App playback flow', () => {
     audioState.isPlaying = false;
     audioState.progress = 0;
     audioState.playbackError = null;
+
+    vi.spyOn(dataService, 'getConcerts').mockResolvedValue([
+      concertOne,
+      sameBandTrackTwo,
+      concertTwo,
+      concertThree,
+    ]);
+    vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
+      if (band === concertOne.band) {
+        return [concertOne, sameBandTrackTwo];
+      }
+      if (band === concertTwo.band) {
+        return [concertTwo];
+      }
+      if (band === concertThree.band) {
+        return [concertThree];
+      }
+      return [];
+    });
 
     vi.clearAllMocks();
   });
@@ -274,7 +302,7 @@ describe('App playback flow', () => {
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
   });
 
-  it('shows ambiguity guidance while a track is already recognized', async () => {
+  it('does not render floating ambiguity guidance overlay while a track is recognized', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.activeGuidance = 'ambiguous-match';
     audioState.isPlaying = true;
@@ -288,7 +316,7 @@ describe('App playback flow', () => {
       })
     );
 
-    expect(screen.getByTestId('guidance-message')).toHaveTextContent('ambiguous-match');
+    expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
   it('shows switch prompt when recognizedConcert changes while song is playing', async () => {
@@ -423,7 +451,7 @@ describe('App playback flow', () => {
     // Record call count before clicking Play button
     const callCountBefore = mockPlay.mock.calls.length;
 
-    await user.click(screen.getByRole('button', { name: 'Play Track' }));
+    await user.click(screen.getByRole('button', { name: /^Play$/ }));
 
     // Verify Play button click triggered a new play call
     expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);
@@ -497,5 +525,72 @@ describe('App playback flow', () => {
 
     expect(screen.queryByRole('button', { name: 'Keep current track' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+  });
+
+  it('wraps playlist navigation at boundaries and resets recognition state', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Play previous track' }));
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+
+    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one.opus');
+
+    expect(mockResetRecognition).toHaveBeenCalledTimes(2);
+  });
+
+  it('disables previous/next buttons when playlist has one track', async () => {
+    vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
+      if (band === concertOne.band) {
+        return [concertOne];
+      }
+      return [];
+    });
+
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(screen.getByRole('button', { name: 'Play previous track' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Play next track' })).toBeDisabled();
+  });
+
+  it('uses crossfade for manual next-track navigation while currently playing', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/one-b.opus');
+    expect(mockPlay).not.toHaveBeenLastCalledWith('/audio/one-b.opus');
   });
 });

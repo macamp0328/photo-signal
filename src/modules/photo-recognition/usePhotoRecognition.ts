@@ -426,6 +426,30 @@ export function usePhotoRecognition(
     video.playsInline = true;
     video.srcObject = stream instanceof MediaStream ? stream : null;
 
+    const attemptStartVideo = () => {
+      if (typeof video.play !== 'function') {
+        return;
+      }
+
+      try {
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch((error) => {
+            console.warn('[photo-recognition] Unable to auto-start analysis video:', error);
+          });
+        }
+      } catch (error) {
+        console.warn('[photo-recognition] Unable to start analysis video:', error);
+      }
+    };
+
+    const handleVideoCanPlay = () => {
+      attemptStartVideo();
+    };
+
+    video.addEventListener('canplay', handleVideoCanPlay);
+    attemptStartVideo();
+
     const canvas = document.createElement('canvas');
     canvasRef.current = canvas;
     const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -1131,6 +1155,7 @@ export function usePhotoRecognition(
       }
 
       if (videoRef.current) {
+        videoRef.current.removeEventListener('canplay', handleVideoCanPlay);
         videoRef.current.pause();
         videoRef.current.srcObject = null;
       }

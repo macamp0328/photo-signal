@@ -46,10 +46,6 @@ export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
         <div className={`${styles.corner} ${styles.bottomRight}`} />
         <div className={`${styles.corner} ${styles.bottomLeft}`} />
       </div>
-
-      {/* State indicator */}
-      {state === 'detecting' && <div className={styles.statusMessage}>Detecting photo...</div>}
-      {state === 'detected' && <div className={styles.statusMessage}>Photo detected!</div>}
     </div>
   );
 }

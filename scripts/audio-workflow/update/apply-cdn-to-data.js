@@ -10,7 +10,6 @@ const projectRoot = path.resolve(__dirname, '../../..');
 
 const DEFAULT_SOURCE = 'public/data.json';
 const DEFAULT_PREFIX = 'prod/audio';
-const DEFAULT_AUDIO_INDEX = 'scripts/audio-workflow/encode/output/audio-index.json';
 
 export function trimTrailingSlash(value) {
   if (!value) return value;
@@ -33,33 +32,6 @@ export function buildAudioUrl(concert, baseUrl, prefix = DEFAULT_PREFIX) {
   return parts.join('/').replace(/(?<!:)\/+/g, '/');
 }
 
-function loadAudioIndexMap(audioIndexPath) {
-  if (!audioIndexPath) {
-    return new Map();
-  }
-
-  if (!fs.existsSync(audioIndexPath)) {
-    throw new Error(`Audio index file not found: ${audioIndexPath}`);
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(fs.readFileSync(audioIndexPath, 'utf8'));
-  } catch (error) {
-    throw new Error(`Invalid JSON in audio index (${audioIndexPath}): ${error.message}`);
-  }
-
-  const map = new Map();
-  for (const track of parsed?.tracks ?? []) {
-    if (!track?.photoId || !track?.fileName) {
-      continue;
-    }
-    map.set(String(track.photoId), track.fileName);
-  }
-
-  return map;
-}
-
 export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) {
   if (!concert.audioFile) {
     return concert;
@@ -73,27 +45,6 @@ export function updateConcertWithCdn(concert, baseUrl, prefix = DEFAULT_PREFIX) 
   };
 }
 
-export function updateConcertWithCdnAndFileName(
-  concert,
-  baseUrl,
-  fileName,
-  prefix = DEFAULT_PREFIX
-) {
-  if (!concert.audioFile) {
-    return concert;
-  }
-
-  const seededConcert = {
-    ...concert,
-    audioFile: fileName,
-  };
-
-  return {
-    ...concert,
-    audioFile: buildAudioUrl(seededConcert, baseUrl, prefix),
-  };
-}
-
 export function applyCdnToData(data, baseUrl, prefix = DEFAULT_PREFIX) {
   if (!data?.concerts || !Array.isArray(data.concerts)) {
     throw new Error('Invalid data.json format: missing concerts array');
@@ -102,27 +53,6 @@ export function applyCdnToData(data, baseUrl, prefix = DEFAULT_PREFIX) {
   const updatedConcerts = data.concerts.map((concert) =>
     updateConcertWithCdn(concert, baseUrl, prefix)
   );
-
-  return { ...data, concerts: updatedConcerts };
-}
-
-export function applyCdnToDataUsingAudioIndex(
-  data,
-  baseUrl,
-  audioIndexByConcertId,
-  prefix = DEFAULT_PREFIX
-) {
-  if (!data?.concerts || !Array.isArray(data.concerts)) {
-    throw new Error('Invalid data.json format: missing concerts array');
-  }
-
-  const updatedConcerts = data.concerts.map((concert) => {
-    const mappedFileName = audioIndexByConcertId.get(String(concert.id));
-    if (!mappedFileName) {
-      return updateConcertWithCdn(concert, baseUrl, prefix);
-    }
-    return updateConcertWithCdnAndFileName(concert, baseUrl, mappedFileName, prefix);
-  });
 
   return { ...data, concerts: updatedConcerts };
 }
@@ -165,8 +95,6 @@ Options:
   --source=<path>   Path to data.json (default: ${DEFAULT_SOURCE})
   --base-url=<url>  Base URL for the Cloudflare Worker (required)
   --prefix=<path>   Key prefix inside the bucket (default: ${DEFAULT_PREFIX})
-  --audio-index=<path> Path to audio-index.json used to map concert id -> filename (default: ${DEFAULT_AUDIO_INDEX})
-  --prefer-audio-index Prefer mapped filenames from audio-index where available
   --dry-run         Preview changes without writing the file
   --help            Show this message
 `);
@@ -179,14 +107,21 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(0);
   }
 
+  const removedFlags = ['audio-index', 'prefer-audio-index', 'allow-audio-index-mismatch'];
+  const usedRemovedFlags = removedFlags.filter((flag) => args[flag] !== undefined);
+  if (usedRemovedFlags.length > 0) {
+    console.error(
+      `❌ Error: Removed option(s): ${usedRemovedFlags.map((flag) => `--${flag}`).join(', ')}.`
+    );
+    console.error(
+      '   Use the canonical flow: npm run audio:build-data, then npm run apply-cdn-to-data with --base-url/--prefix only.'
+    );
+    process.exit(1);
+  }
+
   const source = args.source ? String(args.source) : DEFAULT_SOURCE;
   const baseUrl = args['base-url'] ? trimTrailingSlash(String(args['base-url'])) : '';
   const prefix = args.prefix ? sanitizePrefix(String(args.prefix)) : DEFAULT_PREFIX;
-  const audioIndexPath = path.resolve(
-    projectRoot,
-    args['audio-index'] ? String(args['audio-index']) : DEFAULT_AUDIO_INDEX
-  );
-  const preferAudioIndex = Boolean(args['prefer-audio-index']);
   const dryRun = Boolean(args['dry-run']);
 
   if (!baseUrl) {
@@ -211,12 +146,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   let updated;
   try {
-    if (preferAudioIndex) {
-      const audioIndexByConcertId = loadAudioIndexMap(audioIndexPath);
-      updated = applyCdnToDataUsingAudioIndex(parsed, baseUrl, audioIndexByConcertId, prefix);
-    } else {
-      updated = applyCdnToData(parsed, baseUrl, prefix);
-    }
+    updated = applyCdnToData(parsed, baseUrl, prefix);
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
     process.exit(1);
@@ -240,12 +170,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`  Source: ${dataPath}`);
   console.log(`  Base URL: ${baseUrl}`);
   console.log(`  Prefix: ${prefix}`);
-  console.log(`  Prefer audio-index: ${preferAudioIndex ? 'yes' : 'no'}`);
-  if (preferAudioIndex) {
-    console.log(`  Audio index: ${audioIndexPath}`);
-  }
   console.log(`  Dry run: ${dryRun ? 'yes' : 'no'}`);
   console.log('');
+
   console.log(`Found ${changes.length} audio entries to update.`);
 
   if (dryRun) {

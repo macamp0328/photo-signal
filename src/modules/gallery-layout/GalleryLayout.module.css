@@ -77,6 +77,7 @@
 }
 /* Active Gallery View with Camera */
 .active {
+  --layout-content-max-width: 34rem;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -151,8 +152,12 @@
   padding-bottom: calc(env(safe-area-inset-bottom) + 0.25rem);
 }
 
+.contentWithAudio {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+}
+
 .cameraWrap {
-  width: min(100%, 26rem);
+  width: min(100%, var(--layout-content-max-width));
   flex-shrink: 0;
 }
 
@@ -173,17 +178,24 @@
 }
 
 .infoSection {
-  width: min(100%, 34rem);
+  width: min(100%, var(--layout-content-max-width));
   align-self: center;
   flex-shrink: 0;
 }
 
 .audioSection {
-  width: min(100%, 34rem);
-  align-self: center;
-  flex-shrink: 0;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: min(100%, var(--layout-content-max-width));
+  padding: 0.55rem;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.55rem);
+  background: var(--color-sub-background);
+  border: 2px solid var(--color-accent);
+  border-bottom: none;
+  box-shadow: none;
+  z-index: 30;
 }
 
 @media (max-width: 767px) {
@@ -197,7 +209,7 @@
   }
 
   .cameraWrap {
-    width: min(96vw, 24rem);
+    width: 100%;
   }
 
   .infoSection {
@@ -206,6 +218,10 @@
 
   .audioSection {
     width: 100%;
+    left: 0;
+    transform: none;
+    border-left: none;
+    border-right: none;
   }
 }
 
@@ -216,8 +232,12 @@
     padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
   }
 
+  .contentWithAudio {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+  }
+
   .cameraWrap {
-    width: min(92vw, 20rem);
+    width: min(92vw, var(--layout-content-max-width));
   }
 }
 
@@ -243,6 +263,7 @@
   }
 
   .active {
+    --layout-content-max-width: 44rem;
     padding: 2rem;
     gap: 2rem;
   }
@@ -255,16 +276,8 @@
     font-size: 1rem;
   }
 
-  .cameraWrap {
-    width: min(100%, 36rem);
-  }
-
-  .infoSection {
-    width: min(100%, 44rem);
-  }
-
   .audioSection {
-    width: min(100%, 44rem);
+    width: min(100%, var(--layout-content-max-width));
   }
 }
 

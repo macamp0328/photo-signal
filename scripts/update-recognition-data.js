@@ -359,6 +359,11 @@ async function processConcert(concert, options) {
     return status;
   }
 
+  if (concert.recognitionEnabled === false) {
+    status.reason = 'Recognition disabled for this entry';
+    return status;
+  }
+
   if (!concert.imageFile) {
     status.reason = 'Missing imageFile path';
     return status;

@@ -27,6 +27,7 @@ interface Concert {
   id: number;
   band: string;
   imageFile: string;
+  recognitionEnabled?: boolean;
   photoHashes?: {
     phash?: string[];
   };
@@ -75,13 +76,17 @@ function getReferenceHashes(concert: Concert): string[] {
 
 describe('Production Data Recognition Regression Tests', () => {
   let productionData: ProductionData;
+  let recognitionEnabledConcerts: Concert[];
   let concertsWithImagesAndHashes: Concert[];
   let sampleConcerts: Concert[];
   const sampleComputedHashes = new Map<number, string>();
 
   beforeAll(async () => {
     productionData = await loadProductionData();
-    concertsWithImagesAndHashes = productionData.concerts.filter(
+    recognitionEnabledConcerts = productionData.concerts.filter(
+      (concert) => concert.recognitionEnabled !== false
+    );
+    concertsWithImagesAndHashes = recognitionEnabledConcerts.filter(
       (concert) =>
         Boolean(concert.imageFile) &&
         Array.isArray(concert.photoHashes?.phash) &&
@@ -106,7 +111,7 @@ describe('Production Data Recognition Regression Tests', () => {
 
     it('has imageFile + pHash references for production concerts', () => {
       expect(concertsWithImagesAndHashes.length).toBeGreaterThan(0);
-      expect(concertsWithImagesAndHashes.length).toBe(productionData.concerts.length);
+      expect(concertsWithImagesAndHashes.length).toBe(recognitionEnabledConcerts.length);
     });
 
     it('uses stable pHash format in production data', () => {

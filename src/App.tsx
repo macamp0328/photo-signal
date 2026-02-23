@@ -932,7 +932,6 @@ function AppContent() {
         <Suspense fallback={null}>
           <DebugOverlay
             enabled
-            isTestMode={false}
             recognizedConcert={activeRecognitionConcert}
             isRecognizing={isRecognizing}
             debugInfo={debugInfo}

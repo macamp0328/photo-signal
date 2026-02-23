@@ -96,6 +96,22 @@ Deploy environment resolution order:
 2. `VERCEL_ENV`
 3. `unknown`
 
+### Deploy-time artifact check
+
+Use `npm run data:check-v2-artifacts` to validate required runtime artifacts before deploy:
+
+- `public/data.app.v2.json`
+- `public/data.recognition.v2.json`
+
+Policy defaults mirror startup policy:
+
+- production deploys default to `error`
+- preview/development deploys default to `warn`
+
+Optional override:
+
+- `VITE_DATA_V2_ARTIFACT_POLICY=warn|error`
+
 ### Fallback telemetry
 
 Use `getDataSourceTelemetry()` to inspect fallback rollout usage:

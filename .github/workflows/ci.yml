@@ -68,6 +68,12 @@ jobs:
           test -f /tmp/data.app.v2.json
           test -f /tmp/data.recognition.v2.json
 
+      - name: Verify v2 runtime artifacts for this deploy environment
+        env:
+          NODE_ENV: production
+          VITE_DEPLOY_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+        run: npm run data:check-v2-artifacts
+
       - name: Check bundle size
         run: ./scripts/check-bundle-size.sh
 

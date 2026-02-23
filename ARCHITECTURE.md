@@ -356,6 +356,16 @@ Deploy env is resolved from `VITE_DEPLOY_ENV`, then `VERCEL_ENV`, then `unknown`
 
 These counters are exposed through `DataService` and logged when fallback is used.
 
+**Deploy-time v2 artifact checks**:
+
+- CI runs `npm run data:check-v2-artifacts` to validate required runtime artifacts:
+  - `public/data.app.v2.json`
+  - `public/data.recognition.v2.json`
+- The check uses the same environment-based policy model:
+  - production deploys default to `error`
+  - preview/development deploys default to `warn`
+- Optional override: `VITE_DATA_V2_ARTIFACT_POLICY=warn|error`
+
 **Legacy removal criteria (post-rollout)**:
 
 1. `legacyFallbackLoadsInProduction` remains zero for one full release window.

@@ -504,8 +504,15 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           fadingOutSoundRef.current = null;
         }
         const activeSound = soundRef.current;
-        if (currentUrlRef.current === newUrl && activeSound && !activeSound.playing()) {
-          activeSound.play();
+        if (currentUrlRef.current === newUrl && activeSound) {
+          // Some browser/audio-stack combinations can fail to apply fade() reliably on
+          // HTML5-backed sounds. Re-assert the target volume after the crossfade window
+          // so the newly selected artist never remains silently at 0 volume.
+          activeSound.volume(volume);
+
+          if (!activeSound.playing()) {
+            activeSound.play();
+          }
         }
         crossfadeTimeoutRef.current = null;
       }, duration);

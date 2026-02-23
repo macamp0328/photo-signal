@@ -950,6 +950,33 @@ describe('useAudioPlayback', () => {
       expect(newSound.play).toHaveBeenCalledTimes(2);
     });
 
+    it('reasserts target volume after crossfade completes', () => {
+      const { result } = renderHook(() => useAudioPlayback({ volume: 0.65 }));
+
+      act(() => {
+        result.current.play('/audio/first.opus');
+      });
+
+      act(() => {
+        result.current.crossfade('/audio/second.opus', 1000);
+      });
+
+      const howlInstances = getMockedHowlClass().instances;
+      const newSound = howlInstances[1] as unknown as {
+        volume: ReturnType<typeof vi.fn>;
+      };
+
+      const callsBeforeCompletion = newSound.volume.mock.calls.length;
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      const callsAfterCompletion = newSound.volume.mock.calls.length;
+      expect(callsAfterCompletion).toBeGreaterThan(callsBeforeCompletion);
+      expect(newSound.volume).toHaveBeenCalledWith(0.65);
+    });
+
     it('should keep playback active when previous track ends after crossfade', () => {
       const { result } = renderHook(() => useAudioPlayback());
 

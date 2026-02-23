@@ -63,7 +63,8 @@ jobs:
 
       - name: Build audio data artifacts
         run: |
-          npm run audio:build-data -- --output=/tmp/data.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json
+          node -e "const fs=require('fs');const source=JSON.parse(fs.readFileSync('public/data.json','utf8'));const concerts=Array.isArray(source?.concerts)?source.concerts:[];const tracks=concerts.map((concert,index)=>({id:String(index+1),band:String(concert.band??''),songTitle:String(concert.songTitle??''),fileName:String(concert.audioFile??'').split('/').pop()||`track-${index+1}.opus`}));fs.writeFileSync('/tmp/audio-index.ci.json',JSON.stringify({tracks},null,2));"
+          npm run audio:build-data -- --audio-index=/tmp/audio-index.ci.json --output=/tmp/data.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json
           test -f /tmp/data.json
           test -f /tmp/data.app.v2.json
           test -f /tmp/data.recognition.v2.json

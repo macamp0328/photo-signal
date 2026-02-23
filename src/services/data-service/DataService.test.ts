@@ -91,7 +91,7 @@ describe('DataService', () => {
 
       // Verify fetch was called with correct URL
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
 
       // Verify returned data structure
       expect(concerts).toEqual(mockConcerts);
@@ -143,18 +143,105 @@ describe('DataService', () => {
       const concerts = await dataService.getConcerts();
 
       // Verify error handling
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[DataService] Failed to load concert data:',
         expect.any(Error)
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[DataService] Attempted to load from: /data.json'
+        '[DataService] Attempted to load from: /data.app.v2.json'
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Legacy fallback URL: /data.json');
       expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Test mode is DISABLED.');
       expect(concerts).toEqual([]);
 
       consoleErrorSpy.mockRestore();
+    });
+
+    it('should fallback to legacy data URL when v2 URL fails', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
+      expect(concerts).toEqual(mockConcerts);
+    });
+
+    it('should parse and normalize v2 app payload', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          version: 2,
+          artists: [{ id: 'artist-1', name: 'The Midnight Echoes' }],
+          photos: [
+            {
+              id: 'photo-1',
+              artistId: 'artist-1',
+              imageFile: '/images/photo-1.jpg',
+              recognitionEnabled: true,
+              photoHashes: { phash: ['0123456789abcdef'] },
+            },
+          ],
+          tracks: [
+            {
+              id: 'track-1',
+              artistId: 'artist-1',
+              songTitle: 'Night Lines',
+              audioFile: '/audio/sample.opus',
+            },
+          ],
+          entries: [
+            {
+              id: 1,
+              artistId: 'artist-1',
+              trackId: 'track-1',
+              photoId: 'photo-1',
+              venue: 'The Fillmore',
+              date: '2023-08-15T20:00:00-05:00',
+            },
+          ],
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual([
+        {
+          id: 1,
+          band: 'The Midnight Echoes',
+          songTitle: 'Night Lines',
+          venue: 'The Fillmore',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/sample.opus',
+          imageFile: '/images/photo-1.jpg',
+          recognitionEnabled: true,
+          photoHashes: { phash: ['0123456789abcdef'] },
+          photoUrl: undefined,
+          camera: undefined,
+          aperture: undefined,
+          focalLength: undefined,
+          shutterSpeed: undefined,
+          iso: undefined,
+          albumCoverUrl: undefined,
+        },
+      ]);
     });
 
     it('should handle malformed JSON response gracefully', async () => {
@@ -607,7 +694,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with test data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
       expect(dataService.getTestMode()).toBe(true);
     });
 
@@ -627,7 +714,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with production data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
       expect(dataService.getTestMode()).toBe(false);
     });
 
@@ -642,7 +729,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       expect(mockFetch1).toHaveBeenCalledTimes(1);
-      expect(mockFetch1).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch1).toHaveBeenCalledWith('/data.app.v2.json');
 
       // Switch to test mode
       dataService.setTestMode(true);
@@ -664,7 +751,7 @@ describe('DataService', () => {
       // Verify logging occurred
       expect(consoleLogSpy).toHaveBeenCalledWith('[DataService] Test mode ENABLED');
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[DataService] Data will be loaded from: /data.json'
+        '[DataService] Data will be loaded from: /data.app.v2.json'
       );
     });
 
@@ -746,8 +833,10 @@ describe('DataService', () => {
       expect(result1).toEqual([]);
       expect(result2).toEqual([]);
 
-      // But fetch should only be called once
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      // Request deduplication still applies, but one request may attempt primary + fallback URLs
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
     });
   });
 });

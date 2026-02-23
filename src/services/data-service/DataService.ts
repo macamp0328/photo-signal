@@ -1,4 +1,4 @@
-import type { Concert } from '../../types';
+import type { AppDataV2, Concert, ConcertData } from '../../types';
 import { getTimestampSearchText } from '../../utils/dateUtils';
 
 /**
@@ -30,7 +30,8 @@ class DataService {
   private cache: Concert[] | null = null;
   private inFlightRequest: Promise<Concert[]> | null = null;
   private isTestMode = false;
-  private readonly productionDataUrl = '/data.json';
+  private readonly productionDataUrl = '/data.app.v2.json';
+  private readonly legacyDataUrl = '/data.json';
   private readonly developmentDataUrl = this.productionDataUrl;
   private readonly testDataUrl = this.developmentDataUrl;
 
@@ -66,6 +67,103 @@ class DataService {
       return this.productionDataUrl;
     }
     return this.developmentDataUrl;
+  }
+
+  private isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+  }
+
+  private normalizeV2Payload(data: AppDataV2): Concert[] {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const photosById = new Map(data.photos.map((photo) => [photo.id, photo]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+
+    return data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+
+      if (!artist || !track) {
+        return [];
+      }
+
+      const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          venue: entry.venue,
+          date: entry.date,
+          audioFile: track.audioFile,
+          songTitle: track.songTitle,
+          imageFile: photo?.imageFile,
+          photoUrl: photo?.photoUrl,
+          recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
+          camera: photo?.camera,
+          aperture: photo?.aperture,
+          focalLength: photo?.focalLength,
+          shutterSpeed: photo?.shutterSpeed,
+          iso: photo?.iso,
+          photoHashes: photo?.photoHashes,
+          albumCoverUrl: track.albumCoverUrl,
+        } satisfies Concert,
+      ];
+    });
+  }
+
+  private parseConcertsFromPayload(payload: unknown): Concert[] {
+    if (!this.isObject(payload)) {
+      return [];
+    }
+
+    const legacyConcerts = (payload as Partial<ConcertData>).concerts;
+    if (Array.isArray(legacyConcerts)) {
+      return legacyConcerts as Concert[];
+    }
+
+    const v2Payload = payload as Partial<AppDataV2>;
+    if (
+      v2Payload.version === 2 &&
+      Array.isArray(v2Payload.artists) &&
+      Array.isArray(v2Payload.photos) &&
+      Array.isArray(v2Payload.tracks) &&
+      Array.isArray(v2Payload.entries)
+    ) {
+      return this.normalizeV2Payload(v2Payload as AppDataV2);
+    }
+
+    return [];
+  }
+
+  private async fetchJson(url: string): Promise<unknown> {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  private async fetchDataPayload(): Promise<{ payload: unknown; loadedFrom: string }> {
+    const primaryDataUrl = this.getDataUrl();
+
+    try {
+      const payload = await this.fetchJson(primaryDataUrl);
+      return { payload, loadedFrom: primaryDataUrl };
+    } catch (primaryError) {
+      if (primaryDataUrl === this.legacyDataUrl) {
+        throw primaryError;
+      }
+
+      console.warn(
+        `[DataService] Failed loading primary data (${primaryDataUrl}), falling back to ${this.legacyDataUrl}`,
+        primaryError
+      );
+
+      const payload = await this.fetchJson(this.legacyDataUrl);
+      return { payload, loadedFrom: this.legacyDataUrl };
+    }
   }
 
   private getActiveDataSource(): 'production' | 'development' | 'test' {
@@ -130,19 +228,14 @@ class DataService {
         console.log(`[DataService] Data source: ${dataSource}`);
         console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
 
-        const response = await fetch(dataUrl);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const concerts = Array.isArray(data.concerts) ? data.concerts : [];
+        const { payload, loadedFrom } = await this.fetchDataPayload();
+        const concerts = this.parseConcertsFromPayload(payload);
         this.cache = concerts;
 
         const concertsWithHashes = concerts.filter((c: Concert) => hasAnyPhotoHashes(c)).length;
 
         console.log(`[DataService] Successfully loaded ${concerts.length} concerts`);
+        console.log(`[DataService] Loaded payload source: ${loadedFrom}`);
         console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
 
         if (concerts.length === 0) {
@@ -159,6 +252,7 @@ class DataService {
       } catch (error) {
         console.error('[DataService] Failed to load concert data:', error);
         console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
+        console.error(`[DataService] Legacy fallback URL: ${this.legacyDataUrl}`);
         console.error(`[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}.`);
         return [];
       } finally {

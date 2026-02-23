@@ -20,6 +20,8 @@ const IS_BATCH_CHILD = process.env[BATCH_CHILD_ENV] === '1';
 const DEFAULT_BATCH_SIZE = 6;
 const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'public/data.json');
 const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
+const DEFAULT_PUBLIC_APP_DATA_V2 = path.resolve(repoRoot, 'public/data.app.v2.json');
+const DEFAULT_PUBLIC_RECOGNITION_V2 = path.resolve(repoRoot, 'public/data.recognition.v2.json');
 const DEFAULT_IMAGE_DIR = path.resolve(repoRoot, 'assets/prod-photographs');
 const VALID_ALGORITHMS = new Set(['phash']);
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
@@ -51,6 +53,8 @@ function parseArgs() {
   const options = {
     input: DEFAULT_TEST_DATA,
     public: DEFAULT_PUBLIC_DATA,
+    appV2: DEFAULT_PUBLIC_APP_DATA_V2,
+    recognitionV2: DEFAULT_PUBLIC_RECOGNITION_V2,
     dryRun: false,
     tasks: {
       hashes: true,
@@ -80,6 +84,24 @@ function parseArgs() {
         break;
       case '--skip-public':
         options.public = null;
+        break;
+      case '--app-v2':
+        if (!args[i + 1]) {
+          throw new Error('--app-v2 requires a file path');
+        }
+        options.appV2 = path.resolve(process.cwd(), args[++i]);
+        break;
+      case '--skip-app-v2':
+        options.appV2 = null;
+        break;
+      case '--recognition-v2':
+        if (!args[i + 1]) {
+          throw new Error('--recognition-v2 requires a file path');
+        }
+        options.recognitionV2 = path.resolve(process.cwd(), args[++i]);
+        break;
+      case '--skip-recognition-v2':
+        options.recognitionV2 = null;
         break;
       case '--dry-run':
         options.dryRun = true;
@@ -178,6 +200,8 @@ function parseArgs() {
       throw new Error('Paths mode requires hash generation to be enabled.');
     }
     options.public = null;
+    options.appV2 = null;
+    options.recognitionV2 = null;
   }
 
   return options;
@@ -503,6 +527,144 @@ async function syncPublicData(publicPath, sourceData, updateState, dryRun) {
   return { synced };
 }
 
+async function syncAppDataV2(appV2Path, sourceData, updateState, dryRun) {
+  if (!appV2Path || updateState.size === 0) {
+    return { syncedPhotos: 0, skipped: false };
+  }
+
+  let appDataV2;
+  try {
+    const contents = await readFile(appV2Path, 'utf-8');
+    appDataV2 = JSON.parse(contents);
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return { syncedPhotos: 0, skipped: true };
+    }
+    throw error;
+  }
+
+  if (!Array.isArray(appDataV2?.entries) || !Array.isArray(appDataV2?.photos)) {
+    return { syncedPhotos: 0, skipped: true };
+  }
+
+  const sourceMap = new Map(sourceData.concerts.map((concert) => [concert.id, concert]));
+  const entryByConcertId = new Map(appDataV2.entries.map((entry) => [entry.id, entry]));
+  const photoById = new Map(appDataV2.photos.map((photo) => [photo.id, photo]));
+
+  let syncedPhotos = 0;
+
+  for (const [concertId, state] of updateState.entries()) {
+    if (!state.hashes) {
+      continue;
+    }
+
+    const sourceConcert = sourceMap.get(concertId);
+    const entry = entryByConcertId.get(concertId);
+    if (!sourceConcert || !entry?.photoId) {
+      continue;
+    }
+
+    const photo = photoById.get(entry.photoId);
+    if (!photo) {
+      continue;
+    }
+
+    if (sourceConcert.photoHashes) {
+      photo.photoHashes = sourceConcert.photoHashes;
+    } else {
+      delete photo.photoHashes;
+    }
+
+    syncedPhotos += 1;
+  }
+
+  if (!dryRun && syncedPhotos > 0) {
+    await writeFile(appV2Path, `${JSON.stringify(appDataV2, null, 2)}\n`);
+  }
+
+  return { syncedPhotos, skipped: false };
+}
+
+async function syncRecognitionDataV2(recognitionV2Path, sourceData, updateState, dryRun) {
+  if (!recognitionV2Path || updateState.size === 0) {
+    return { syncedEntries: 0, skipped: false };
+  }
+
+  let recognitionV2;
+  try {
+    const contents = await readFile(recognitionV2Path, 'utf-8');
+    recognitionV2 = JSON.parse(contents);
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return { syncedEntries: 0, skipped: true };
+    }
+    throw error;
+  }
+
+  if (!Array.isArray(recognitionV2?.entries)) {
+    return { syncedEntries: 0, skipped: true };
+  }
+
+  const sourceMap = new Map(sourceData.concerts.map((concert) => [concert.id, concert]));
+  const entryByConcertId = new Map(
+    recognitionV2.entries
+      .filter((entry) => Number.isInteger(entry?.concertId))
+      .map((entry) => [entry.concertId, entry])
+  );
+
+  let syncedEntries = 0;
+
+  for (const [concertId, state] of updateState.entries()) {
+    if (!state.hashes) {
+      continue;
+    }
+
+    const sourceConcert = sourceMap.get(concertId);
+    const entry = entryByConcertId.get(concertId);
+    if (!sourceConcert || !entry) {
+      continue;
+    }
+
+    const phash = Array.isArray(sourceConcert.photoHashes?.phash)
+      ? sourceConcert.photoHashes.phash.filter(
+          (hash) => typeof hash === 'string' && hash.length > 0
+        )
+      : [];
+
+    entry.phash = phash;
+
+    const cropPhashesRaw = sourceConcert.photoHashes?.cropPhashes;
+    if (cropPhashesRaw && typeof cropPhashesRaw === 'object') {
+      const cropPhashes = {};
+      for (const [cropKey, hashes] of Object.entries(cropPhashesRaw)) {
+        if (!Array.isArray(hashes)) {
+          continue;
+        }
+        const validHashes = hashes.filter((hash) => typeof hash === 'string' && hash.length > 0);
+        if (validHashes.length > 0) {
+          cropPhashes[cropKey] = validHashes;
+        }
+      }
+
+      if (Object.keys(cropPhashes).length > 0) {
+        entry.cropPhashes = cropPhashes;
+      } else {
+        delete entry.cropPhashes;
+      }
+    } else {
+      delete entry.cropPhashes;
+    }
+
+    syncedEntries += 1;
+  }
+
+  if (!dryRun && syncedEntries > 0) {
+    await writeFile(recognitionV2Path, `${JSON.stringify(recognitionV2, null, 2)}\n`);
+  }
+
+  return { syncedEntries, skipped: false };
+}
+
 function formatTaskSummary(status, options) {
   const parts = [];
   if (status.hashes) {
@@ -579,6 +741,8 @@ async function main() {
   console.log('📸 Photo Signal recognition data updater');
   console.log(`Input:  ${options.input}`);
   console.log(`Public: ${options.public ?? '(skipped)'}`);
+  console.log(`App v2: ${options.appV2 ?? '(skipped)'}`);
+  console.log(`Recognition v2: ${options.recognitionV2 ?? '(skipped)'}`);
   console.log(`Tasks: hashes=${options.tasks.hashes ? 'on' : 'off'}`);
   if (options.tasks.hashes) {
     console.log(`Hash algorithms: ${Array.from(options.algorithms).join(', ')}`);
@@ -646,6 +810,41 @@ async function main() {
       console.log(`↪ Would sync ${sync.synced} concerts to ${options.public}`);
     } else {
       console.log(`🔁 Synced ${sync.synced} concerts to ${options.public}`);
+    }
+  }
+
+  if (options.appV2) {
+    const syncV2 = await syncAppDataV2(options.appV2, dataset, updateState, options.dryRun);
+    if (syncV2.skipped) {
+      console.log('No app v2 data file found/synced (skipped).');
+    } else if (syncV2.syncedPhotos === 0) {
+      console.log('No matching photos required syncing to app v2 data.');
+    } else if (options.dryRun) {
+      console.log(`↪ Would sync ${syncV2.syncedPhotos} photos to ${options.appV2}`);
+    } else {
+      console.log(`🔁 Synced ${syncV2.syncedPhotos} photos to ${options.appV2}`);
+    }
+  }
+
+  if (options.recognitionV2) {
+    const syncRecognition = await syncRecognitionDataV2(
+      options.recognitionV2,
+      dataset,
+      updateState,
+      options.dryRun
+    );
+    if (syncRecognition.skipped) {
+      console.log('No recognition v2 data file found/synced (skipped).');
+    } else if (syncRecognition.syncedEntries === 0) {
+      console.log('No matching entries required syncing to recognition v2 data.');
+    } else if (options.dryRun) {
+      console.log(
+        `↪ Would sync ${syncRecognition.syncedEntries} recognition entries to ${options.recognitionV2}`
+      );
+    } else {
+      console.log(
+        `🔁 Synced ${syncRecognition.syncedEntries} recognition entries to ${options.recognitionV2}`
+      );
     }
   }
 

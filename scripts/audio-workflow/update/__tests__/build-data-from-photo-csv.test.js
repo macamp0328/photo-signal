@@ -6,6 +6,8 @@ import {
   trimTrailingSlash,
   groupBy,
   buildConcertFromRow,
+  buildAppDataV2,
+  buildRecognitionIndexV2,
   findExtraTracks,
   buildExpandedConcerts,
 } from '../build-data-from-photo-csv.js';
@@ -453,5 +455,109 @@ describe('auto-expansion integration', () => {
     // Both extra entries should share the band's only photo row metadata
     expect(expanded[0].imageFile).toBe('/assets/bg1.jpg');
     expect(expanded[1].imageFile).toBe('/assets/bg1.jpg');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildAppDataV2
+// ---------------------------------------------------------------------------
+describe('buildAppDataV2', () => {
+  it('normalizes artists/photos/tracks and links entries', () => {
+    const concerts = [
+      {
+        id: 1,
+        band: 'Big Girl',
+        songTitle: 'Song A',
+        venue: 'The Fillmore',
+        date: '2023-08-15T20:00:00-05:00',
+        audioFile: 'https://cdn.example.com/prod/audio/a.opus',
+        imageFile: '/assets/bg1.jpg',
+        photoHashes: { phash: ['0123456789abcdef'] },
+      },
+      {
+        id: 2,
+        band: 'Big Girl',
+        songTitle: 'Song B',
+        venue: 'The Fillmore',
+        date: '2023-08-15T20:00:00-05:00',
+        audioFile: 'https://cdn.example.com/prod/audio/b.opus',
+        imageFile: '/assets/bg1.jpg',
+        recognitionEnabled: false,
+      },
+    ];
+
+    const v2 = buildAppDataV2(concerts);
+
+    expect(v2.version).toBe(2);
+    expect(v2.artists).toHaveLength(1);
+    expect(v2.photos).toHaveLength(1);
+    expect(v2.tracks).toHaveLength(2);
+    expect(v2.entries).toHaveLength(2);
+
+    const artist = v2.artists[0];
+    const photo = v2.photos[0];
+
+    expect(artist.name).toBe('Big Girl');
+    expect(photo.artistId).toBe(artist.id);
+    expect(photo.imageFile).toBe('/assets/bg1.jpg');
+    expect(photo.photoHashes).toEqual({ phash: ['0123456789abcdef'] });
+
+    expect(v2.entries[0]).toMatchObject({ id: 1, artistId: artist.id, photoId: photo.id });
+    expect(v2.entries[1]).toMatchObject({
+      id: 2,
+      artistId: artist.id,
+      photoId: photo.id,
+      recognitionEnabled: false,
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildRecognitionIndexV2
+// ---------------------------------------------------------------------------
+describe('buildRecognitionIndexV2', () => {
+  it('includes only recognition-enabled entries with valid phash arrays', () => {
+    const index = buildRecognitionIndexV2([
+      {
+        id: 1,
+        recognitionEnabled: true,
+        photoHashes: { phash: ['aaaaaaaaaaaaaaaa'] },
+      },
+      {
+        id: 2,
+        recognitionEnabled: false,
+        photoHashes: { phash: ['bbbbbbbbbbbbbbbb'] },
+      },
+      {
+        id: 3,
+        recognitionEnabled: true,
+        photoHashes: {},
+      },
+    ]);
+
+    expect(index.version).toBe(2);
+    expect(index.entries).toEqual([{ concertId: 1, phash: ['aaaaaaaaaaaaaaaa'] }]);
+  });
+
+  it('includes crop hashes when present', () => {
+    const index = buildRecognitionIndexV2([
+      {
+        id: 7,
+        photoHashes: {
+          phash: ['aaaaaaaaaaaaaaaa'],
+          cropPhashes: {
+            'center-80': ['1111111111111111'],
+          },
+        },
+      },
+    ]);
+
+    expect(index.entries[0]).toEqual({
+      concertId: 7,
+      phash: ['aaaaaaaaaaaaaaaa'],
+      cropPhashes: {
+        'center-80': ['1111111111111111'],
+      },
+    });
   });
 });

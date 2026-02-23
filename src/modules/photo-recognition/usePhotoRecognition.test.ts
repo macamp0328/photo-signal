@@ -68,6 +68,7 @@ describe('usePhotoRecognition', () => {
   ];
 
   let mockStream: MediaStream;
+  let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -106,10 +107,18 @@ describe('usePhotoRecognition', () => {
       dispatchEvent: vi.fn(),
     } as unknown as MediaStream;
 
+    originalFetch = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    } as Response);
+
     vi.mocked(dataService.getConcerts).mockResolvedValue(mockConcerts);
   });
 
   afterEach(() => {
+    global.fetch = originalFetch;
     vi.useRealTimers();
   });
 
@@ -167,6 +176,87 @@ describe('usePhotoRecognition', () => {
     );
 
     expect(result.current).toBeDefined();
+  });
+
+  it('uses recognition index hashes when available', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      const concertsWithoutHashes: Concert[] = [
+        {
+          id: 1,
+          band: 'Indexed Band',
+          venue: 'Indexed Venue',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/indexed.opus',
+          photoHashes: {},
+        },
+      ];
+
+      vi.mocked(dataService.getConcerts).mockResolvedValue(concertsWithoutHashes);
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          version: 2,
+          entries: [{ concertId: 1, phash: ['a5b3c7d9e1f20486'] }],
+        }),
+      } as Response);
+
+      activeFrameHash = 'a5b3c7d9e1f20486';
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          recognitionDelay: 120,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+    } finally {
+      createElementSpy.mockRestore();
+    }
   });
 
   it('resets state cleanly', async () => {

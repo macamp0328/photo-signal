@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { dataService } from '../../services/data-service';
-import type { Concert } from '../../types';
+import type { Concert, CropRegionKey } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 import { computePHash } from './algorithms/phash';
@@ -151,6 +151,7 @@ const CROP_FALLBACK_TRIGGER_DISTANCE = 18;
  * than the nearest rival from any other concert.
  */
 const CROP_MATCH_MARGIN_THRESHOLD = 5;
+const RECOGNITION_INDEX_URL = '/data.recognition.v2.json';
 
 // ---------------------------------------------------------------------------
 // Module-level pure helpers (no React state, no refs)
@@ -158,6 +159,26 @@ const CROP_MATCH_MARGIN_THRESHOLD = 5;
 
 /** Compact type used throughout the matching pipeline. */
 export type MatchCandidate = { concert: Concert; distance: number };
+
+interface RecognitionIndexEntryV2 {
+  concertId: number;
+  phash: string[];
+  cropPhashes?: Partial<Record<CropRegionKey, string[]>>;
+}
+
+interface RecognitionIndexPayloadV2 {
+  version: 2;
+  entries: RecognitionIndexEntryV2[];
+}
+
+function isRecognitionIndexPayloadV2(payload: unknown): payload is RecognitionIndexPayloadV2 {
+  if (!payload || typeof payload !== 'object') {
+    return false;
+  }
+
+  const asPayload = payload as Partial<RecognitionIndexPayloadV2>;
+  return asPayload.version === 2 && Array.isArray(asPayload.entries);
+}
 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
@@ -287,6 +308,9 @@ export function usePhotoRecognition(
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
+  const [recognitionIndexEntries, setRecognitionIndexEntries] = useState<RecognitionIndexEntryV2[]>(
+    []
+  );
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
   const [activeGuidance, setActiveGuidance] = useState<GuidanceType>('none');
@@ -349,7 +373,59 @@ export function usePhotoRecognition(
       });
   }, []);
 
-  const eligibleConcerts = useMemo(
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (typeof fetch !== 'function') {
+      return () => {
+        isCancelled = true;
+      };
+    }
+
+    fetch(RECOGNITION_INDEX_URL)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        return response.json();
+      })
+      .then((payload: unknown) => {
+        if (!isRecognitionIndexPayloadV2(payload)) {
+          return;
+        }
+
+        if (!isCancelled) {
+          setRecognitionIndexEntries(payload.entries);
+        }
+      })
+      .catch((error) => {
+        const status =
+          typeof error === 'object' &&
+          error !== null &&
+          'message' in error &&
+          typeof error.message === 'string' &&
+          /HTTP 404/.test(error.message)
+            ? 404
+            : null;
+
+        // Missing file is expected during staged rollout; fallback silently.
+        if (status === 404) {
+          return;
+        }
+
+        console.warn(
+          `[photo-recognition] Recognition index unavailable at ${RECOGNITION_INDEX_URL}; using concert hashes fallback.`,
+          error
+        );
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const fallbackEligibleConcerts = useMemo(
     () => concerts.filter((concert) => getPHashes(concert).length > 0),
     [concerts]
   );
@@ -360,10 +436,12 @@ export function usePhotoRecognition(
    * validation pass) out of the per-frame hot path avoids redundant work on
    * every camera tick.
    */
-  const concertHashList = useMemo(
+  const fallbackConcertHashList = useMemo(
     () =>
-      eligibleConcerts.flatMap((concert) => getPHashes(concert).map((hash) => ({ hash, concert }))),
-    [eligibleConcerts]
+      fallbackEligibleConcerts.flatMap((concert) =>
+        getPHashes(concert).map((hash) => ({ hash, concert }))
+      ),
+    [fallbackEligibleConcerts]
   );
 
   /**
@@ -372,13 +450,87 @@ export function usePhotoRecognition(
    * Computed once when eligible concerts change; empty for legacy records
    * without cropPhashes, in which case the crop pass is skipped entirely.
    */
-  const concertCropHashList = useMemo(
+  const fallbackConcertCropHashList = useMemo(
     () =>
-      eligibleConcerts.flatMap((concert) =>
+      fallbackEligibleConcerts.flatMap((concert) =>
         getCropHashes(concert).map(({ hash, cropKey }) => ({ hash, concert, cropKey }))
       ),
-    [eligibleConcerts]
+    [fallbackEligibleConcerts]
   );
+
+  const indexedHashData = useMemo(() => {
+    if (recognitionIndexEntries.length === 0 || concerts.length === 0) {
+      return {
+        concertHashList: [] as Array<{ hash: string; concert: Concert }>,
+        concertCropHashList: [] as Array<{
+          hash: string;
+          concert: Concert;
+          cropKey: CropRegionKey;
+        }>,
+        eligibleConcertIds: new Set<number>(),
+      };
+    }
+
+    const concertsById = new Map(concerts.map((concert) => [concert.id, concert]));
+    const concertHashList: Array<{ hash: string; concert: Concert }> = [];
+    const concertCropHashList: Array<{ hash: string; concert: Concert; cropKey: CropRegionKey }> =
+      [];
+    const eligibleConcertIds = new Set<number>();
+
+    for (const entry of recognitionIndexEntries) {
+      const concert = concertsById.get(entry.concertId);
+      if (!concert) {
+        continue;
+      }
+
+      const indexedConcert: Concert = {
+        ...concert,
+        photoHashes: {
+          phash: entry.phash,
+          cropPhashes: entry.cropPhashes,
+        },
+      };
+
+      const hashes = getPHashes(indexedConcert);
+      if (hashes.length === 0) {
+        continue;
+      }
+
+      eligibleConcertIds.add(concert.id);
+      concertHashList.push(...hashes.map((hash) => ({ hash, concert })));
+      concertCropHashList.push(
+        ...getCropHashes(indexedConcert).map(({ hash, cropKey }) => ({ hash, concert, cropKey }))
+      );
+    }
+
+    return { concertHashList, concertCropHashList, eligibleConcertIds };
+  }, [recognitionIndexEntries, concerts]);
+
+  const usingRecognitionIndex = indexedHashData.concertHashList.length > 0;
+
+  const concertHashList = useMemo(
+    () => (usingRecognitionIndex ? indexedHashData.concertHashList : fallbackConcertHashList),
+    [usingRecognitionIndex, indexedHashData.concertHashList, fallbackConcertHashList]
+  );
+
+  const concertCropHashList = useMemo(
+    () =>
+      usingRecognitionIndex ? indexedHashData.concertCropHashList : fallbackConcertCropHashList,
+    [usingRecognitionIndex, indexedHashData.concertCropHashList, fallbackConcertCropHashList]
+  );
+
+  const eligibleConcerts = useMemo(() => {
+    if (usingRecognitionIndex) {
+      return concerts.filter((concert) => indexedHashData.eligibleConcertIds.has(concert.id));
+    }
+
+    return fallbackEligibleConcerts;
+  }, [
+    usingRecognitionIndex,
+    concerts,
+    indexedHashData.eligibleConcertIds,
+    fallbackEligibleConcerts,
+  ]);
 
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {

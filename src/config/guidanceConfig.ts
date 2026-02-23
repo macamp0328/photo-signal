@@ -4,7 +4,8 @@
  * Centralized configuration for real-time user guidance messages.
  * All guidance thresholds, messages, and behaviors are defined here.
  *
- * Based on research from docs/image-recognition-exploratory-analysis.md:
+ * Historical guidance assumptions based on earlier recognition experiments.
+ * Current runtime behavior and thresholds are documented in docs/PHOTO_RECOGNITION_DEEP_DIVE.md.
  * - Motion blur affects ~25% of recognition attempts
  * - Extreme angles affect ~20% of attempts
  * - Poor lighting affects ~15% of attempts
@@ -74,7 +75,7 @@ export interface GuidanceConfig {
 /**
  * Default guidance configuration
  *
- * Thresholds are based on Section 2 of image-recognition-exploratory-analysis.md
+ * Thresholds are legacy guidance defaults kept for compatibility with GuidanceMessage.
  */
 export const defaultGuidanceConfig: GuidanceConfig = {
   enabled: true,

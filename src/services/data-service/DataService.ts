@@ -1,5 +1,4 @@
 import type { AppDataV2, Concert, ConcertData } from '../../types';
-import { getTimestampSearchText } from '../../utils/dateUtils';
 
 type DataV2FallbackPolicy = 'warn' | 'error';
 type RuntimeMode = 'development' | 'test' | 'production';
@@ -441,24 +440,6 @@ class DataService {
   }
 
   /**
-   * Search concerts by band, venue, or date
-   * Simple text search - can be enhanced with fuzzy matching
-   */
-  search(query: string): Concert[] {
-    if (!this.cache) return [];
-
-    const lowerQuery = query.toLowerCase();
-    return this.cache.filter((concert) => {
-      const bandMatch = concert.band.toLowerCase().includes(lowerQuery);
-      const venueMatch = concert.venue.toLowerCase().includes(lowerQuery);
-      const rawDateMatch = concert.date.toLowerCase().includes(lowerQuery);
-      const formattedDateMatch = getTimestampSearchText(concert.date).includes(lowerQuery);
-
-      return bandMatch || venueMatch || rawDateMatch || formattedDateMatch;
-    });
-  }
-
-  /**
    * Clear cache (useful for development/testing)
    */
   clearCache(): void {
@@ -485,15 +466,6 @@ class DataService {
       deployEnvironment: this.getDeployEnvironment(),
       fallbackPolicy: this.getV2FallbackPolicy(runtimeMode),
     };
-  }
-
-  /**
-   * Get random concert (for placeholder recognition)
-   */
-  getRandomConcert(): Concert | null {
-    if (!this.cache || this.cache.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * this.cache.length);
-    return this.cache[randomIndex];
   }
 }
 

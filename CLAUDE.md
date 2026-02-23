@@ -167,8 +167,7 @@ Each module in `src/modules/` is self-contained with:
 
 - Single-algorithm runtime: pHash (64-bit) matching
 - Multi-exposure variants (dark/normal/bright) for lighting robustness
-- Original algorithm research retained in `docs/archive/` for historical reference
-- See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for current behavior
+- See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for current behavior and algorithm details
 
 ## CI/CD
 

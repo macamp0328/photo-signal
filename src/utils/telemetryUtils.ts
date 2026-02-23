@@ -6,7 +6,6 @@
 
 import type {
   RecognitionTelemetry,
-  GuidanceType,
   TemporalTelemetrySnapshot,
 } from '../modules/photo-recognition/types';
 
@@ -14,8 +13,6 @@ import type {
  * Format guidance telemetry for console logging
  */
 export function formatGuidanceTelemetry(telemetry: RecognitionTelemetry): string {
-  const { guidanceTracking } = telemetry;
-
   const lines: string[] = [];
   lines.push('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   lines.push('GUIDANCE TELEMETRY REPORT');
@@ -38,33 +35,6 @@ export function formatGuidanceTelemetry(telemetry: RecognitionTelemetry): string
   );
   lines.push(`  Successful Recognitions: ${telemetry.successfulRecognitions}`);
   lines.push(`  Failed Attempts: ${telemetry.failedAttempts}`);
-
-  // Guidance shown counts
-  lines.push('\nGuidance Shown (Times):');
-  const guidanceTypes: GuidanceType[] = [
-    'motion-blur',
-    'glare',
-    'poor-lighting',
-    'ambiguous-match',
-    'distance',
-    'off-center',
-  ];
-  guidanceTypes.forEach((type) => {
-    const count = guidanceTracking.shown[type];
-    if (count > 0) {
-      lines.push(`  ${type}: ${count} times`);
-    }
-  });
-
-  // Guidance duration
-  lines.push('\nGuidance Duration (Total Time):');
-  guidanceTypes.forEach((type) => {
-    const duration = guidanceTracking.duration[type];
-    if (duration > 0) {
-      const seconds = (duration / 1000).toFixed(1);
-      lines.push(`  ${type}: ${seconds}s`);
-    }
-  });
 
   // Failure breakdown
   lines.push('\nFailure Categories:');
@@ -105,16 +75,6 @@ export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string
               (telemetry.successfulRecognitions + telemetry.failedAttempts)) *
             100
           : 0,
-    },
-    guidanceMetrics: {
-      shown: telemetry.guidanceTracking.shown,
-      durationMs: telemetry.guidanceTracking.duration,
-      durationSeconds: Object.fromEntries(
-        Object.entries(telemetry.guidanceTracking.duration).map(([key, value]) => [
-          key,
-          (value / 1000).toFixed(1),
-        ])
-      ),
     },
     failureBreakdown: telemetry.failureByCategory,
     failureHistory: telemetry.failureHistory,

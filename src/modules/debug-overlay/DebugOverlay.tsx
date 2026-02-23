@@ -21,7 +21,6 @@ export function DebugOverlay({
   recognizedConcert,
   isRecognizing,
   enabled,
-  isTestMode,
   onVisibilityChange,
   debugInfo,
   threshold,
@@ -138,7 +137,6 @@ export function DebugOverlay({
     ? new Date(lastCheckTime).toLocaleTimeString([], { hour12: false })
     : '—';
 
-  const dataBadgeText = isTestMode ? 'TEST DATA' : 'LIVE DATA';
   const isCollapsedView = isCollapsed;
   const statusCode = testResult?.diagnostic.httpStatus;
   const isSuccessfulFetch = typeof statusCode === 'number' && statusCode >= 200 && statusCode < 300;
@@ -177,7 +175,6 @@ export function DebugOverlay({
           <div className={styles.header}>
             <span className={styles.title}>🐛 Debug Info</span>
             <div className={styles.headerActions}>
-              <span className={styles.badge}>{dataBadgeText}</span>
               {onReset && (
                 <button
                   type="button"

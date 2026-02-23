@@ -75,35 +75,6 @@ describe('DebugOverlay', () => {
         collision: 0,
         unknown: 0,
       },
-      guidanceTracking: {
-        shown: {
-          'motion-blur': 5,
-          glare: 2,
-          'poor-lighting': 1,
-          'ambiguous-match': 0,
-          distance: 0,
-          'off-center': 0,
-          none: 34,
-        },
-        duration: {
-          'motion-blur': 5000,
-          glare: 2000,
-          'poor-lighting': 1000,
-          'ambiguous-match': 0,
-          distance: 0,
-          'off-center': 0,
-          none: 34000,
-        },
-        lastShown: {
-          'motion-blur': Date.now() - 5000,
-          glare: Date.now() - 2000,
-          'poor-lighting': Date.now() - 1000,
-          'ambiguous-match': 0,
-          distance: 0,
-          'off-center': 0,
-          none: Date.now(),
-        },
-      },
     },
     hashAlgorithm: 'phash',
   };
@@ -112,7 +83,6 @@ describe('DebugOverlay', () => {
     recognizedConcert: null,
     isRecognizing: false,
     enabled: true,
-    isTestMode: true,
     debugInfo: mockDebugInfo,
     threshold: undefined,
     onReset: undefined,
@@ -144,12 +114,6 @@ describe('DebugOverlay', () => {
       render(<DebugOverlay {...defaultProps} />);
 
       expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
-    });
-
-    it('should render with live data badge when not in test mode', () => {
-      render(<DebugOverlay {...defaultProps} isTestMode={false} />);
-
-      expect(screen.getByText('LIVE DATA')).toBeInTheDocument();
     });
   });
 

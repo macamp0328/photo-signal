@@ -340,7 +340,7 @@ Several source files and READMEs reference documents that do not exist:
 
 **Phase 1 — Safe deletes (no functional impact)**
 
-- Items 1, 2, 3, 6, 10, 11, 12 ✅ Completed (2026-02-23)
+- Items 1, 2, 3, 6, 7, 10, 11, 12 ✅ Completed (2026-02-23)
 
 **Phase 2 — Requires a decision**
 

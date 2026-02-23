@@ -3,9 +3,7 @@ import type {
   CollisionStats,
   FailureCategory,
   FailureDiagnostic,
-  FrameQualityInfo,
   FrameQualityStats,
-  GuidanceType,
   HammingDistanceLog,
   RecognitionTelemetry,
 } from './types';
@@ -173,17 +171,4 @@ export const recordCollisionDetails = (
   }
 
   telemetry.collisionStats.nearThresholdCount += 1;
-};
-
-export const pickGuidance = (quality: FrameQualityInfo): GuidanceType => {
-  if (!quality.isSharp) {
-    return 'motion-blur';
-  }
-  if (quality.hasGlare) {
-    return 'glare';
-  }
-  if (quality.hasPoorLighting) {
-    return 'poor-lighting';
-  }
-  return 'none';
 };

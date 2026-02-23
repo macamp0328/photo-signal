@@ -96,8 +96,8 @@ This keeps diagnostics intact while removing algorithm-branch complexity.
 ## Ambiguity + switch prompt behavior (current app flow)
 
 - Ambiguity is detected when best match is within threshold but too close to second-best (margin below configured guardrail).
-- In this state, recognition emits `ambiguous-match` guidance and does **not** confirm a new concert.
-- While music is already playing, app-level switch prompts are suppressed during `ambiguous-match` guidance.
+- In this state, recognition records a collision/no-match outcome and does **not** confirm a new concert.
+- While music is already playing, app-level switch prompts remain suppressed because no new concert is confirmed.
 - When ambiguity clears and a stronger candidate remains, the app can show a switch prompt:
   - **Confirm** → crossfade to candidate track.
   - **Keep current track** → dismiss that candidate until movement/reset changes context.

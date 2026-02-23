@@ -263,8 +263,7 @@ photo-signal/
 ├── index.html           # HTML entry point
 ├── vite.config.ts       # Vite configuration
 ├── tsconfig.json        # TypeScript configuration
-├── package.json         # Dependencies and scripts
-└── ASSET_LICENSES.md    # Licensing info for test assets
+└── package.json         # Dependencies and scripts
 ```
 
 ---
@@ -282,7 +281,7 @@ The repository includes sample test assets to facilitate development and testing
 
 ### License
 
-Generated test assets are CC0 (Public Domain). Example real photos remain proprietary to the contributor and are licensed for internal testing only. See [ASSET_LICENSES.md](./ASSET_LICENSES.md) for complete details.
+Generated test assets are CC0 (Public Domain). Example real photos remain proprietary to the contributor and are licensed for internal testing only.
 
 ### Usage
 

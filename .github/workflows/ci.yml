@@ -61,6 +61,13 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Build audio data artifacts
+        run: |
+          npm run audio:build-data -- --output=/tmp/data.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json
+          test -f /tmp/data.json
+          test -f /tmp/data.app.v2.json
+          test -f /tmp/data.recognition.v2.json
+
       - name: Check bundle size
         run: ./scripts/check-bundle-size.sh
 

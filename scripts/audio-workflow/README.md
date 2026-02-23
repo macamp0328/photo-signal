@@ -193,9 +193,11 @@ npm run audio:build-data -- --base-url=https://photo-signal-audio-worker.example
 ```
 
 - Builds `public/data.json` from `assets/prod-photographs/prod-photographs-details.csv`
+- Also builds `public/data.app.v2.json` (normalized app metadata)
+- Also builds `public/data.recognition.v2.json` (recognition hash index)
 - Uses `scripts/audio-workflow/encode/output/audio-index.json` as the audio metadata source
 - Applies strict band-name matching (exact + curated alias support; conservative fallback)
-- Emits stable, reproducible output so `public/data.json` can be deleted and regenerated
+- Emits stable, reproducible output so all runtime data artifacts can be regenerated deterministically
 
 ### `update/validate-audio-urls.js`
 
@@ -235,11 +237,19 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
    - Re-run `node scripts/audio-workflow/build-photo-audio-map.js` until ambiguous/missing rows are resolved to your satisfaction.
 
 5. **Build runtime dataset from CSV:**
-   - Run `npm run audio:build-data -- --base-url=<worker-url> --prefix=prod/audio` to regenerate `public/data.json` deterministically from `prod-photographs-details.csv` + `audio-index.json`.
+   - Run `npm run audio:build-data -- --base-url=<worker-url> --prefix=prod/audio` to regenerate:
+     - `public/data.json`
+     - `public/data.app.v2.json`
+     - `public/data.recognition.v2.json`
+     deterministically from `prod-photographs-details.csv` + `audio-index.json`.
    - `songTitle` in `public/data.json` is sourced from CSV (`songTitle`) first, then falls back to `audio-index.json` track title.
 
 6. **Regenerate recognition hashes:**
-   - Run `npm run hashes:refresh -- --input public/data.json --public public/data.json` (or adjust batch size for your environment).
+   - Run `npm run hashes:refresh` (or adjust batch size/paths for your environment).
+   - Default sync targets are:
+     - `public/data.json`
+     - `public/data.app.v2.json`
+     - `public/data.recognition.v2.json`
 
 7. **Upload and verify:**
    - Upload generated assets: `npm run upload-audio -- --prefix=prod/audio`
@@ -275,13 +285,15 @@ Use this checklist when you need to refresh production data and gallery creative
    npm run audio:build-data -- --base-url=https://<your-worker-domain> --prefix=prod/audio
    ```
 
-   - This regenerates `public/data.json` deterministically.
+   - This regenerates `public/data.json`, `public/data.app.v2.json`, and `public/data.recognition.v2.json` deterministically.
 
 5. **Refresh recognition hashes in data.json**
 
    ```bash
-   npm run hashes:refresh -- --input public/data.json --public public/data.json
+   npm run hashes:refresh
    ```
+
+   - Updates recognition hash fields across legacy + v2 artifacts.
 
 6. **Upload CDN assets (audio + covers + manifests)**
 

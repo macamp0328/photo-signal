@@ -339,7 +339,7 @@ async function main() {
 
     const ok = run(
       buildDataCmd,
-      'Build public/data.json + public/data.app.v2.json from CSV + audio index',
+      'Build public/data.json + public/data.app.v2.json + public/data.recognition.v2.json from CSV + audio index',
       dryRun
     );
     if (!ok) process.exit(1);

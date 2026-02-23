@@ -321,7 +321,19 @@ interface DataService {
 }
 ```
 
-**Current**: Static JSON from `/assets/test-data/concerts.json` (mirrored to `/public/data.json`)  
+**Current runtime artifacts**:
+
+- `/public/data.app.v2.json` (primary): normalized app metadata (`artists`, `photos`, `tracks`, `entries`)
+- `/public/data.recognition.v2.json` (primary recognition path): compact hash index keyed by `concertId`
+- `/public/data.json` (compatibility): legacy flat `concerts[]` payload
+
+**Fallback behavior during rollout**:
+
+- `DataService` attempts `/data.app.v2.json` first and falls back to `/data.json`.
+- Photo recognition attempts `/data.recognition.v2.json` first and falls back to hash data attached to concerts.
+
+This preserves backward compatibility while enabling v2 performance paths.
+
 **Future**: PostgreSQL via API route
 
 ---

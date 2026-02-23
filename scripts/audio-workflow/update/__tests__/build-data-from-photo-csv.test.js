@@ -561,3 +561,58 @@ describe('buildRecognitionIndexV2', () => {
     });
   });
 });
+
+describe('artifact parity integrity', () => {
+  it('keeps recognition coverage aligned and preserves concertId linkage', () => {
+    const concerts = [
+      {
+        id: 10,
+        band: 'Parity Band A',
+        venue: 'Venue A',
+        date: '2023-08-15T20:00:00-05:00',
+        audioFile: '/audio/a.opus',
+        imageFile: '/assets/a.jpg',
+        recognitionEnabled: true,
+        photoHashes: { phash: ['aaaaaaaaaaaaaaaa'] },
+      },
+      {
+        id: 11,
+        band: 'Parity Band B',
+        venue: 'Venue B',
+        date: '2023-08-16T20:00:00-05:00',
+        audioFile: '/audio/b.opus',
+        imageFile: '/assets/b.jpg',
+        recognitionEnabled: false,
+        photoHashes: { phash: ['bbbbbbbbbbbbbbbb'] },
+      },
+      {
+        id: 12,
+        band: 'Parity Band C',
+        venue: 'Venue C',
+        date: '2023-08-17T20:00:00-05:00',
+        audioFile: '/audio/c.opus',
+        imageFile: '/assets/c.jpg',
+        photoHashes: { phash: ['cccccccccccccccc'] },
+      },
+    ];
+
+    const appV2 = buildAppDataV2(concerts);
+    const recognitionV2 = buildRecognitionIndexV2(concerts);
+
+    const expectedRecognizableIds = concerts
+      .filter(
+        (concert) => concert.recognitionEnabled !== false && concert.photoHashes?.phash?.length > 0
+      )
+      .map((concert) => concert.id)
+      .sort((a, b) => a - b);
+
+    const recognitionIds = recognitionV2.entries.map((entry) => entry.concertId).sort((a, b) => a - b);
+    expect(recognitionIds).toEqual(expectedRecognizableIds);
+
+    const appEntryIds = new Set(appV2.entries.map((entry) => entry.id));
+    recognitionV2.entries.forEach((entry) => {
+      expect(appEntryIds.has(entry.concertId)).toBe(true);
+      expect(Number.isInteger(entry.concertId)).toBe(true);
+    });
+  });
+});

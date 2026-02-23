@@ -1000,6 +1000,149 @@ describe('usePhotoRecognition', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // continuousRecognition option
+  // ---------------------------------------------------------------------------
+
+  describe('continuousRecognition option', () => {
+    const setupDomMocks = () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const mockContext = {
+        drawImage: vi.fn(),
+        getImageData: vi.fn(() => new ImageData(64, 64)),
+      } as unknown as CanvasRenderingContext2D;
+      const spy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          return video;
+        }
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => mockContext),
+            configurable: true,
+          });
+          return canvas;
+        }
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+      return spy;
+    };
+
+    it('stops scanning after recognition when continuousRecognition is false', async () => {
+      const spy = setupDomMocks();
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            continuousRecognition: false,
+            checkInterval: 50,
+            recognitionDelay: 120,
+          })
+        );
+
+        // First tick: allow data loading promise to resolve.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(80);
+        });
+
+        // Second tick: allow recognition to confirm.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(400);
+        });
+        expect(result.current.recognizedConcert?.id).toBe(1);
+
+        // Switch to concert 2 hash — scanning is stopped, so recognized concert must not change.
+        activeFrameHash = 'b6c4d8e2f3a10597';
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(400);
+        });
+        expect(result.current.recognizedConcert?.id).toBe(1);
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it('continues scanning after recognition when continuousRecognition is true', async () => {
+      const spy = setupDomMocks();
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            continuousRecognition: true,
+            checkInterval: 50,
+            recognitionDelay: 120,
+          })
+        );
+
+        // First tick: allow data loading promise to resolve.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(80);
+        });
+
+        // Second tick: allow recognition to confirm concert 1.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(400);
+        });
+        expect(result.current.recognizedConcert?.id).toBe(1);
+
+        // Switch to concert 2 hash — scanning continues, so recognition should update.
+        activeFrameHash = 'b6c4d8e2f3a10597';
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(500);
+        });
+        expect(result.current.recognizedConcert?.id).toBe(2);
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it('isAlreadyRecognizedConcert guard keeps isRecognizing false when same concert is re-scanned', async () => {
+      const spy = setupDomMocks();
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            continuousRecognition: true,
+            checkInterval: 50,
+            recognitionDelay: 120,
+          })
+        );
+
+        // First tick: allow data loading promise to resolve.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(80);
+        });
+
+        // Second tick: allow recognition to confirm concert 1.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(400);
+        });
+        expect(result.current.recognizedConcert?.id).toBe(1);
+        expect(result.current.isRecognizing).toBe(false);
+
+        // Keep same concert 1 hash — the isAlreadyRecognizedConcert guard should short-circuit
+        // recognition on each frame and prevent isRecognizing from flipping back to true.
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(600);
+        });
+        expect(result.current.recognizedConcert?.id).toBe(1);
+        expect(result.current.isRecognizing).toBe(false);
+      } finally {
+        spy.mockRestore();
+      }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Crop-based partial photo recognition
   // ---------------------------------------------------------------------------
   //

@@ -201,6 +201,8 @@ export interface PhotoRecognitionOptions {
   similarityThreshold?: number;
   /** Minimum gap between best and second-best match distance (ambiguity guard). Default: 4 */
   matchMarginThreshold?: number;
+  /** Continue scanning after a confirmed match so a new target can be detected. Default: false */
+  continuousRecognition?: boolean;
   /** Frame sampling interval (ms). Adaptive: ~80ms while tracking, ~120ms idle. Default: 120 */
   checkInterval?: number;
   /** Collect and return debug telemetry. Default: false.

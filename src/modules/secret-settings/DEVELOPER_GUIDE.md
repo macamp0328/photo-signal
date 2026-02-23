@@ -21,7 +21,6 @@ This keeps recognition/runtime behavior predictable across devices and simplifie
 
 ```text
 src/modules/secret-settings/
-├── README.md
 ├── DEVELOPER_GUIDE.md
 ├── types.ts
 ├── config.ts
@@ -129,4 +128,4 @@ npm run pre-commit
 - Settings policy: feature flags only for now
 - Runtime recognition policy: hardcoded curated defaults + runtime safeguards
 
-If product direction changes, update this guide and module README in the same PR.
+If product direction changes, update this guide in the same PR.

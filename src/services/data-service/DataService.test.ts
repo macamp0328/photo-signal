@@ -45,6 +45,8 @@ describe('DataService', () => {
   // Store original fetch to restore after tests
   let originalFetch: typeof global.fetch;
   let originalNodeEnv: string | undefined;
+  let originalVercelEnv: string | undefined;
+  let originalViteDeployEnv: string | undefined;
 
   // Spy on console methods to avoid noise in test output
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -54,6 +56,8 @@ describe('DataService', () => {
     // Store original fetch
     originalFetch = global.fetch;
     originalNodeEnv = process.env.NODE_ENV;
+    originalVercelEnv = process.env.VERCEL_ENV;
+    originalViteDeployEnv = process.env.VITE_DEPLOY_ENV;
 
     // Mock console methods to avoid noise in test output
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -71,6 +75,8 @@ describe('DataService', () => {
     // Restore original fetch
     global.fetch = originalFetch;
     process.env.NODE_ENV = originalNodeEnv;
+    process.env.VERCEL_ENV = originalVercelEnv;
+    process.env.VITE_DEPLOY_ENV = originalViteDeployEnv;
     delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
     delete process.env.VITE_DATA_V2_REQUIRED;
 
@@ -214,6 +220,66 @@ describe('DataService', () => {
     it('should allow production fallback when v2 policy is warn', async () => {
       process.env.NODE_ENV = 'production';
       process.env.VITE_DATA_V2_FALLBACK_POLICY = 'warn';
+
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual(mockConcerts);
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 1,
+        legacyFallbackLoadsInProduction: 1,
+      });
+    });
+
+    it('should default to strict fallback policy in production when not configured', async () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+      delete process.env.VITE_DEPLOY_ENV;
+      delete process.env.VERCEL_ENV;
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual([]);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 0,
+        legacyFallbackLoadsInProduction: 0,
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should default to warn policy for production runtime in preview deploy environment', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DEPLOY_ENV = 'preview';
+      process.env.VERCEL_ENV = 'preview';
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
 
       const mockFetch = vi
         .fn()

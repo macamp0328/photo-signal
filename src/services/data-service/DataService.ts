@@ -2,6 +2,8 @@ import type { AppDataV2, Concert, ConcertData } from '../../types';
 import { getTimestampSearchText } from '../../utils/dateUtils';
 
 type DataV2FallbackPolicy = 'warn' | 'error';
+type RuntimeMode = 'development' | 'test' | 'production';
+type DeployEnvironment = 'production' | 'preview' | 'development' | 'unknown';
 
 interface DataSourceTelemetry {
   v2LoadAttempts: number;
@@ -179,7 +181,27 @@ class DataService {
     return undefined;
   }
 
-  private getProductionV2FallbackPolicy(): DataV2FallbackPolicy {
+  private getDeployEnvironment(): DeployEnvironment {
+    const deployEnv =
+      this.readRuntimeEnv('VITE_DEPLOY_ENV') ?? this.readRuntimeEnv('VERCEL_ENV') ?? 'unknown';
+    const normalized = deployEnv.toLowerCase();
+
+    if (normalized === 'production') {
+      return 'production';
+    }
+
+    if (normalized === 'preview') {
+      return 'preview';
+    }
+
+    if (normalized === 'development') {
+      return 'development';
+    }
+
+    return 'unknown';
+  }
+
+  private getV2FallbackPolicy(runtimeMode: RuntimeMode): DataV2FallbackPolicy {
     const configuredPolicy = this.readRuntimeEnv('VITE_DATA_V2_FALLBACK_POLICY')?.toLowerCase();
     if (configuredPolicy === 'error') {
       return 'error';
@@ -194,7 +216,20 @@ class DataService {
       return 'error';
     }
 
-    return 'warn';
+    if (runtimeMode !== 'production') {
+      return 'warn';
+    }
+
+    const deployEnvironment = this.getDeployEnvironment();
+    if (deployEnvironment === 'preview' || deployEnvironment === 'development') {
+      return 'warn';
+    }
+
+    return 'error';
+  }
+
+  private getPolicyDescriptor(runtimeMode: RuntimeMode): string {
+    return `${this.getV2FallbackPolicy(runtimeMode)} (${this.getDeployEnvironment()})`;
   }
 
   private recordV2PrimaryAttempt(): void {
@@ -205,7 +240,7 @@ class DataService {
     this.dataSourceTelemetry.v2LoadFailures += 1;
   }
 
-  private recordLegacyFallbackLoad(runtimeMode: 'development' | 'test' | 'production'): void {
+  private recordLegacyFallbackLoad(runtimeMode: RuntimeMode): void {
     this.dataSourceTelemetry.legacyFallbackLoads += 1;
 
     if (runtimeMode === 'production') {
@@ -233,8 +268,7 @@ class DataService {
         throw primaryError;
       }
 
-      const fallbackPolicy =
-        runtimeMode === 'production' ? this.getProductionV2FallbackPolicy() : 'warn';
+      const fallbackPolicy = this.getV2FallbackPolicy(runtimeMode);
 
       if (runtimeMode === 'production' && fallbackPolicy === 'error') {
         console.error(
@@ -272,7 +306,7 @@ class DataService {
     return 'production';
   }
 
-  private getRuntimeMode(): 'development' | 'test' | 'production' {
+  private getRuntimeMode(): RuntimeMode {
     if (typeof process !== 'undefined' && process.env?.NODE_ENV) {
       const normalized = process.env.NODE_ENV.toLowerCase();
       if (normalized === 'test' || normalized === 'development') {
@@ -344,10 +378,17 @@ class DataService {
         console.log(`[DataService] Loaded payload source: ${loadedFrom}`);
         console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
 
+        if (dataSource === 'production') {
+          const runtimeMode = this.getRuntimeMode();
+          console.log(
+            `[DataService] Production fallback policy: ${this.getPolicyDescriptor(runtimeMode)}`
+          );
+        }
+
         if (loadedFrom === this.legacyDataUrl) {
           console.warn('[DataService] Telemetry: legacy_data_fallback_used', {
             ...this.dataSourceTelemetry,
-            policy: this.getProductionV2FallbackPolicy(),
+            policy: this.getPolicyDescriptor(this.getRuntimeMode()),
           });
         }
 

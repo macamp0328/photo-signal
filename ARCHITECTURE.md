@@ -335,9 +335,17 @@ interface DataService {
 **Phase C production policy controls**:
 
 - `VITE_DATA_V2_FALLBACK_POLICY=warn|error`
-  - `warn` (default): allow legacy fallback and log explicit fallback telemetry
+  - `warn`: allow legacy fallback and log explicit fallback telemetry
   - `error`: treat missing v2 app artifact as startup-blocking in production
 - `VITE_DATA_V2_REQUIRED=true|1` can be used as strict-mode alias when policy is not set
+
+Default policy when not explicitly configured:
+
+- `production` runtime + deploy env `production`/`unknown`: `error`
+- `production` runtime + deploy env `preview`/`development`: `warn`
+- `development`/`test` runtime: `warn`
+
+Deploy env is resolved from `VITE_DEPLOY_ENV`, then `VERCEL_ENV`, then `unknown`.
 
 **Fallback telemetry for cutover**:
 

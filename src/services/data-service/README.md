@@ -79,10 +79,22 @@ const results = dataService.search('Fillmore');
 `DataService` supports production fallback policy configuration:
 
 - `VITE_DATA_V2_FALLBACK_POLICY=warn|error`
-  - `warn` (default): logs fallback and loads `/data.json`
+  - `warn`: logs fallback and loads `/data.json`
   - `error`: blocks fallback in production and returns empty data (startup failure path)
 - `VITE_DATA_V2_REQUIRED=true|1`
   - Alias for strict mode (`error`) when `VITE_DATA_V2_FALLBACK_POLICY` is not set
+
+Default policy when not explicitly configured:
+
+- `production` runtime + deploy env `production` or unknown: `error`
+- `production` runtime + deploy env `preview`/`development`: `warn`
+- `development`/`test` runtime: `warn`
+
+Deploy environment resolution order:
+
+1. `VITE_DEPLOY_ENV`
+2. `VERCEL_ENV`
+3. `unknown`
 
 ### Fallback telemetry
 

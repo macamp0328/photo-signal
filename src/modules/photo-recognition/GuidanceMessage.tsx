@@ -17,7 +17,7 @@ interface GuidanceMessageProps {
  * Shows messages with icons, auto-dismisses after configured duration,
  * and respects cooldown periods to avoid annoyance.
  *
- * Based on Section 2 and 6 of docs/image-recognition-exploratory-analysis.md
+ * Guidance behavior is tied to settings in src/config/guidanceConfig.ts.
  */
 export function GuidanceMessage({ guidanceType, className = '' }: GuidanceMessageProps) {
   const [isVisible, setIsVisible] = useState(false);

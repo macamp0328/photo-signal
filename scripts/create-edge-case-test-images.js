@@ -9,7 +9,7 @@
  * - Low-light conditions
  * - Extreme angles
  *
- * Based on failure categories from docs/image-recognition-exploratory-analysis.md
+ * Based on photo-recognition failure categories used by the runtime telemetry model.
  */
 
 import { createCanvas } from 'canvas';

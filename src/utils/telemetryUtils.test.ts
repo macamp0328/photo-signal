@@ -10,36 +10,7 @@ import {
   buildTemporalSnapshot,
 } from './telemetryUtils';
 import { createEmptyTelemetry } from '../modules/photo-recognition/helpers';
-import type {
-  RecognitionTelemetry,
-  GuidanceType,
-  FailureCategory,
-} from '../modules/photo-recognition/types';
-
-/**
- * Helper to create complete guidanceTracking object with all required GuidanceType keys
- */
-function createGuidanceTracking(overrides?: {
-  shown?: Partial<Record<GuidanceType, number>>;
-  duration?: Partial<Record<GuidanceType, number>>;
-  lastShown?: Partial<Record<GuidanceType, number>>;
-}): RecognitionTelemetry['guidanceTracking'] {
-  const defaults = {
-    'motion-blur': 0,
-    glare: 0,
-    'poor-lighting': 0,
-    'ambiguous-match': 0,
-    distance: 0,
-    'off-center': 0,
-    none: 0,
-  };
-
-  return {
-    shown: { ...defaults, ...overrides?.shown },
-    duration: { ...defaults, ...overrides?.duration },
-    lastShown: { ...defaults, ...overrides?.lastShown },
-  };
-}
+import type { RecognitionTelemetry, FailureCategory } from '../modules/photo-recognition/types';
 
 /**
  * Helper to create complete failureByCategory object with all required FailureCategory keys
@@ -79,10 +50,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 5,
         successfulRecognitions: 10,
         failedAttempts: 3,
-        guidanceTracking: createGuidanceTracking({
-          shown: { 'motion-blur': 5, glare: 2, 'poor-lighting': 1 },
-          duration: { 'motion-blur': 15000, glare: 6000, 'poor-lighting': 3000 },
-        }),
         failureByCategory: createFailureByCategory({ 'no-match': 2 }),
         failureHistory: [],
       });
@@ -93,11 +60,11 @@ describe('telemetryUtils', () => {
       expect(output).toContain('Total Frames: 100');
       expect(output).toContain('Quality Frames: 75 (75.0%)');
       expect(output).toContain('Blur Rejections: 15 (15.0%)');
-      expect(output).toContain('motion-blur: 5 times');
-      expect(output).toContain('motion-blur: 15.0s');
+      expect(output).toContain('Failure Categories:');
+      expect(output).toContain('no-match: 2');
     });
 
-    it('should handle zero guidance shown', () => {
+    it('should handle zero failure categories', () => {
       const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 50,
         qualityFrames: 50,
@@ -106,7 +73,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 5,
         failedAttempts: 0,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -115,7 +81,6 @@ describe('telemetryUtils', () => {
 
       expect(output).toContain('Total Frames: 50');
       expect(output).toContain('Quality Frames: 50 (100.0%)');
-      // Should not list guidance types with zero count
       expect(output).not.toContain('motion-blur: 0');
     });
 
@@ -128,7 +93,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 10,
         successfulRecognitions: 20,
         failedAttempts: 5,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -152,10 +116,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 5,
         successfulRecognitions: 15,
         failedAttempts: 2,
-        guidanceTracking: createGuidanceTracking({
-          shown: { 'motion-blur': 3, glare: 1, 'poor-lighting': 1 },
-          duration: { 'motion-blur': 9000, glare: 3000, 'poor-lighting': 3000 },
-        }),
         failureByCategory: createFailureByCategory({ 'no-match': 1 }),
         failureHistory: [],
       });
@@ -166,7 +126,6 @@ describe('telemetryUtils', () => {
       expect(parsed).toHaveProperty('timestamp');
       expect(parsed).toHaveProperty('frameStats');
       expect(parsed).toHaveProperty('recognitionStats');
-      expect(parsed).toHaveProperty('guidanceMetrics');
       expect(parsed).toHaveProperty('failureBreakdown');
     });
 
@@ -179,7 +138,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 5,
         successfulRecognitions: 10,
         failedAttempts: 2,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -203,7 +161,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 8,
         failedAttempts: 2,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -225,7 +182,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 0,
         failedAttempts: 0,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -236,7 +192,7 @@ describe('telemetryUtils', () => {
       expect(parsed.recognitionStats.successRate).toBe(0);
     });
 
-    it('should convert duration to seconds', () => {
+    it('should include failure history and breakdown', () => {
       const telemetry: RecognitionTelemetry = makeTelemetry({
         totalFrames: 100,
         qualityFrames: 100,
@@ -245,19 +201,22 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 0,
         failedAttempts: 0,
-        guidanceTracking: createGuidanceTracking({
-          shown: { 'motion-blur': 1 },
-          duration: { 'motion-blur': 12345 },
-        }),
-        failureByCategory: createFailureByCategory(),
-        failureHistory: [],
+        failureByCategory: createFailureByCategory({ glare: 2 }),
+        failureHistory: [
+          {
+            category: 'glare',
+            reason: 'too bright',
+            frameHash: 'abcdef1234567890',
+            timestamp: Date.now(),
+          },
+        ],
       });
 
       const json = exportGuidanceTelemetry(telemetry);
       const parsed = JSON.parse(json);
 
-      expect(parsed.guidanceMetrics.durationMs['motion-blur']).toBe(12345);
-      expect(parsed.guidanceMetrics.durationSeconds['motion-blur']).toBe('12.3');
+      expect(parsed.failureBreakdown.glare).toBe(2);
+      expect(parsed.failureHistory).toHaveLength(1);
     });
   });
 
@@ -271,7 +230,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 10,
         successfulRecognitions: 5,
         failedAttempts: 10,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -284,10 +242,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 5,
         successfulRecognitions: 15,
         failedAttempts: 2,
-        guidanceTracking: createGuidanceTracking({
-          shown: { 'motion-blur': 5, glare: 2, 'poor-lighting': 2 },
-          duration: { 'motion-blur': 15000, glare: 6000, 'poor-lighting': 6000 },
-        }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -309,7 +263,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 5,
         failedAttempts: 5,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -322,10 +275,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 20,
         failedAttempts: 1,
-        guidanceTracking: createGuidanceTracking({
-          shown: { 'motion-blur': 10 },
-          duration: { 'motion-blur': 30000 },
-        }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -345,7 +294,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 5,
         successfulRecognitions: 10,
         failedAttempts: 2,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -367,7 +315,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 15,
         failedAttempts: 1,
-        guidanceTracking: createGuidanceTracking(),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });
@@ -380,10 +327,6 @@ describe('telemetryUtils', () => {
         lightingRejections: 0,
         successfulRecognitions: 8,
         failedAttempts: 5,
-        guidanceTracking: createGuidanceTracking({
-          shown: { 'motion-blur': 5 },
-          duration: { 'motion-blur': 15000 },
-        }),
         failureByCategory: createFailureByCategory(),
         failureHistory: [],
       });

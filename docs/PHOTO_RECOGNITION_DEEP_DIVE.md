@@ -9,7 +9,7 @@ Photo Signal now uses a **single recognition algorithm** in runtime:
 Removed from runtime:
 
 - dHash matching path
-- ORB matching path
+- Feature-descriptor matching path
 - Parallel recognizer voting path
 - Secondary fallback algorithm path
 - Multi-scale branching path
@@ -38,7 +38,7 @@ From the project audit:
 - pHash and dHash both passed the reference-image sanity check
 - pHash remained comfortably fast for runtime use
 - pHash is generally more robust to lighting/perspective variance than dHash
-- ORB strict mode was too expensive for practical frame-by-frame runtime behavior
+- Feature-descriptor strict mode was too expensive for practical frame-by-frame runtime behavior
 
 ## Key thresholds
 
@@ -63,7 +63,7 @@ Runtime recognizer reads:
 
 - `concert.photoHashes.phash: string[]`
 
-Legacy fields such as `photoHashes.dhash` and `orbFeatures` may remain in data for historical/backfill purposes, but are not used by the runtime path.
+Legacy fields such as `photoHashes.dhash` may remain in data for historical/backfill purposes, but are not used by the runtime path.
 
 ## Debug + telemetry
 

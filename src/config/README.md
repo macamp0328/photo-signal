@@ -58,7 +58,7 @@ Priority order (highest first):
 
 ### Detection Thresholds
 
-Based on research from `docs/image-recognition-exploratory-analysis.md`:
+Based on runtime behavior documented in `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`:
 
 ```typescript
 {
@@ -135,17 +135,8 @@ The guidance system is integrated into `usePhotoRecognition` hook:
 
 ## Telemetry
 
-Guidance effectiveness is tracked in `RecognitionTelemetry`:
-
-```typescript
-guidanceTracking: {
-  shown: Record<GuidanceType, number>; // Times shown
-  duration: Record<GuidanceType, number>; // Total time (ms)
-  lastShown: Record<GuidanceType, number>; // Timestamp
-}
-```
-
-Use `formatGuidanceTelemetry()` from `@/utils/telemetryUtils` to view metrics.
+Recognition telemetry is tracked through `RecognitionTelemetry` counters in
+`src/modules/photo-recognition/types.ts` and exported via app telemetry downloads.
 
 ## Future Enhancements
 
@@ -158,7 +149,6 @@ Use `formatGuidanceTelemetry()` from `@/utils/telemetryUtils` to view metrics.
 
 ## References
 
-- Research: `docs/image-recognition-exploratory-analysis.md` Section 2 & 6
-- Implementation: `IMPLEMENTATION_PLAN_GUIDANCE_SYSTEM.md`
+- Runtime behavior: `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`
 - Component: `src/modules/photo-recognition/GuidanceMessage.tsx`
 - Hook: `src/modules/photo-recognition/usePhotoRecognition.ts`

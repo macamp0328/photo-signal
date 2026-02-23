@@ -97,35 +97,6 @@ const createDebugTelemetry = (): RecognitionTelemetry => ({
     collision: 0,
     unknown: 0,
   },
-  guidanceTracking: {
-    shown: {
-      'motion-blur': 0,
-      glare: 0,
-      'poor-lighting': 0,
-      'ambiguous-match': 0,
-      distance: 0,
-      'off-center': 0,
-      none: 1,
-    },
-    duration: {
-      'motion-blur': 0,
-      glare: 0,
-      'poor-lighting': 0,
-      'ambiguous-match': 0,
-      distance: 0,
-      'off-center': 0,
-      none: 100,
-    },
-    lastShown: {
-      'motion-blur': 0,
-      glare: 0,
-      'poor-lighting': 0,
-      'ambiguous-match': 0,
-      distance: 0,
-      'off-center': 0,
-      none: Date.now(),
-    },
-  },
 });
 
 const createDebugInfo = (concert: Concert, margin = 6): RecognitionDebugInfo => ({
@@ -156,10 +127,6 @@ vi.mock('./modules/secret-settings', () => ({
   useFeatureFlags: () => ({
     isEnabled: (flag: string) => enabledFlags.has(flag),
   }),
-  useCustomSettings: () => ({
-    getSetting: () => undefined,
-    settings: {},
-  }),
   useTripleTap: () => undefined,
 }));
 
@@ -185,7 +152,6 @@ vi.mock('./modules/photo-recognition', () => ({
       reset: mockResetRecognition,
       resetTelemetry: vi.fn(),
     },
-  FrameQualityIndicator: () => null,
   GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
     <div data-testid="guidance-message">{guidanceType}</div>
   ),

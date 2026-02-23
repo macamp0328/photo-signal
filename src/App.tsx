@@ -22,7 +22,6 @@ import { GalleryLayout } from './modules/gallery-layout';
 import type { Concert } from './types';
 import type {
   RecognitionTelemetry,
-  SwitchDecisionTelemetry,
   PhotoRecognitionOptions,
   TemporalTelemetrySnapshot,
 } from './modules/photo-recognition/types';
@@ -48,47 +47,7 @@ const DebugOverlay = lazy(async () => {
 
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
-const MAX_SWITCH_DECISION_LATENCY_SAMPLES = 200;
 const DETAILS_RECOGNITION_COOLDOWN_MS = 2000;
-
-const createEmptySwitchDecisionTelemetry = (): SwitchDecisionTelemetry => ({
-  shownCount: 0,
-  confirmCount: 0,
-  dismissCount: 0,
-  decisionLatenciesMs: [],
-  averageDecisionLatencyMs: null,
-  lastDecisionLatencyMs: null,
-  lastPromptSnapshot: {
-    activeConcertId: null,
-    candidateConcertId: null,
-    confidence: null,
-    margin: null,
-    shownAt: null,
-  },
-});
-
-const recordSwitchDecisionLatency = (
-  switchDecision: SwitchDecisionTelemetry,
-  promptShownAt: number | null
-): void => {
-  if (promptShownAt === null) {
-    return;
-  }
-
-  const decisionLatencyMs = Math.max(Date.now() - promptShownAt, 0);
-  switchDecision.decisionLatenciesMs.push(decisionLatencyMs);
-  if (switchDecision.decisionLatenciesMs.length > MAX_SWITCH_DECISION_LATENCY_SAMPLES) {
-    switchDecision.decisionLatenciesMs.shift();
-  }
-
-  switchDecision.lastDecisionLatencyMs = decisionLatencyMs;
-  const totalDecisions = switchDecision.confirmCount + switchDecision.dismissCount;
-  const previousAverage = switchDecision.averageDecisionLatencyMs ?? 0;
-  switchDecision.averageDecisionLatencyMs =
-    totalDecisions <= 1
-      ? decisionLatencyMs
-      : previousAverage + (decisionLatencyMs - previousAverage) / totalDecisions;
-};
 
 interface AccessGateConfig {
   enabled: boolean;
@@ -178,8 +137,6 @@ function AppContent() {
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [isConcertInfoVisible, setIsConcertInfoVisible] = useState(false);
   const [hasScannedPhotoLoadFailed, setHasScannedPhotoLoadFailed] = useState(false);
-  const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
-  const [dismissedSwitchBand, setDismissedSwitchBand] = useState<string | null>(null);
   const [closedConcertCooldown, setClosedConcertCooldown] = useState<{
     concertId: number;
     expiresAt: number;
@@ -200,11 +157,6 @@ function AppContent() {
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
 
   const previousAutoplayIdRef = useRef<number | null>(null);
-  const switchDecisionTelemetryRef = useRef<SwitchDecisionTelemetry>(
-    createEmptySwitchDecisionTelemetry()
-  );
-  const lastPromptConcertIdRef = useRef<number | null>(null);
-  const promptShownAtRef = useRef<number | null>(null);
 
   // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
@@ -247,11 +199,8 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
-      continuousRecognition: true,
       similarityThreshold: 21,
       sharpnessThreshold: 65,
-      switchRecognitionDelayMultiplier: 1.0,
-      switchDistanceThreshold: 14,
       enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
     [isDebugOverlayVisible, recordingState, isEnabled, isConcertInfoVisible, showSecretSettings]
@@ -300,12 +249,8 @@ function AppContent() {
       return null;
     }
 
-    if (recognizedConcert.band === dismissedSwitchBand) {
-      return null;
-    }
-
     return recognizedConcert;
-  }, [closedConcertCooldown, recognizedConcert, dismissedSwitchBand]);
+  }, [closedConcertCooldown, recognizedConcert]);
 
   useEffect(() => {
     if (activeRecognitionConcert) {
@@ -413,57 +358,7 @@ function AppContent() {
     setActivePlaylistBand(autoplayConcert.band);
     play(firstSong.audioFile);
     setActiveConcert(firstSong);
-    setPendingSwitchConcert(null);
-    setDismissedSwitchBand(null);
   }, [isActive, activeRecognitionConcert, isPlaying, play, activePlaylistBand]);
-
-  useEffect(() => {
-    const switchPromptConcert = activeRecognitionConcert;
-
-    if (
-      !switchPromptConcert ||
-      !activeConcert ||
-      switchPromptConcert.band === activePlaylistBand ||
-      dismissedSwitchBand === switchPromptConcert.band
-    ) {
-      setPendingSwitchConcert(null);
-      lastPromptConcertIdRef.current = null;
-      promptShownAtRef.current = null;
-      return;
-    }
-
-    setPendingSwitchConcert((previousCandidate) =>
-      previousCandidate?.id === switchPromptConcert.id ? previousCandidate : switchPromptConcert
-    );
-
-    if (lastPromptConcertIdRef.current === switchPromptConcert.id) {
-      return;
-    }
-
-    const shownAt = Date.now();
-    const switchDecision = switchDecisionTelemetryRef.current;
-    switchDecision.shownCount += 1;
-    switchDecision.lastPromptSnapshot = {
-      activeConcertId: activeConcert?.id ?? null,
-      candidateConcertId: switchPromptConcert.id,
-      confidence: debugInfo?.bestMatch?.similarity ?? null,
-      margin: debugInfo?.bestMatchMargin ?? null,
-      shownAt,
-    };
-    promptShownAtRef.current = shownAt;
-    lastPromptConcertIdRef.current = switchPromptConcert.id;
-  }, [activeConcert, debugInfo, activeRecognitionConcert, activePlaylistBand, dismissedSwitchBand]);
-
-  // Clear dismissed switch preference only after a different artist is seen.
-  useEffect(() => {
-    if (
-      dismissedSwitchBand !== null &&
-      activeRecognitionConcert !== null &&
-      activeRecognitionConcert.band !== dismissedSwitchBand
-    ) {
-      setDismissedSwitchBand(null);
-    }
-  }, [activeRecognitionConcert, dismissedSwitchBand]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =
@@ -514,48 +409,6 @@ function AppContent() {
       play(selectedAudioUrl);
       setActiveConcert(playbackTargetConcert);
     }
-
-    setPendingSwitchConcert(null);
-    setDismissedSwitchBand(null);
-  };
-
-  const handleConfirmSwitch = () => {
-    if (!pendingSwitchConcert) {
-      return;
-    }
-
-    const switchDecision = switchDecisionTelemetryRef.current;
-    switchDecision.confirmCount += 1;
-    recordSwitchDecisionLatency(switchDecision, promptShownAtRef.current);
-    promptShownAtRef.current = null;
-    lastPromptConcertIdRef.current = null;
-
-    // Build a playlist for the new artist
-    const songs = dataService.getConcertsByBand(pendingSwitchConcert.band);
-    const newPlaylist = buildPlaylist(
-      songs.length > 0 ? songs : [pendingSwitchConcert],
-      pendingSwitchConcert.id
-    );
-    const firstSong = newPlaylist[0];
-    if (!firstSong?.audioFile) {
-      return;
-    }
-
-    if (activeConcert && isPlaying) {
-      crossfade(firstSong.audioFile);
-    } else {
-      clearPlaybackError();
-      play(firstSong.audioFile);
-    }
-
-    userPausedRef.current = false;
-    playlistRef.current = newPlaylist;
-    playlistIndexRef.current = 0;
-    setActivePlaylistBand(pendingSwitchConcert.band);
-    setActiveConcert(firstSong);
-    setPendingSwitchConcert(null);
-    setDismissedSwitchBand(null);
-    resetRecognition();
   };
 
   const handleCloseConcertInfo = useCallback(
@@ -565,23 +418,12 @@ function AppContent() {
           concertId: concert.id,
           expiresAt: Date.now() + DETAILS_RECOGNITION_COOLDOWN_MS,
         });
-
-        if (activePlaylistBand && concert.band !== activePlaylistBand) {
-          setDismissedSwitchBand(concert.band);
-
-          const switchDecision = switchDecisionTelemetryRef.current;
-          switchDecision.dismissCount += 1;
-          recordSwitchDecisionLatency(switchDecision, promptShownAtRef.current);
-        }
       }
 
       setIsConcertInfoVisible(false);
-      setPendingSwitchConcert(null);
-      promptShownAtRef.current = null;
-      lastPromptConcertIdRef.current = null;
       resetRecognition();
     },
-    [resetRecognition, activePlaylistBand]
+    [resetRecognition]
   );
 
   const playPlaylistTrack = useCallback(
@@ -610,8 +452,6 @@ function AppContent() {
       playlistIndexRef.current = nextIndex;
       setActivePlaylistBand(targetTrack.band);
       setActiveConcert(targetTrack);
-      setPendingSwitchConcert(null);
-      setDismissedSwitchBand(null);
       resetRecognition();
     },
     [activeConcert, clearPlaybackError, crossfade, isPlaying, play, resetRecognition]
@@ -652,16 +492,12 @@ function AppContent() {
     setIsActive(false);
     setIsConcertInfoVisible(false);
     setHasScannedPhotoLoadFailed(false);
-    setPendingSwitchConcert(null);
-    setDismissedSwitchBand(null);
     setClosedConcertCooldown(null);
     setActiveConcert(null);
     setActivePlaylistBand(null);
     playlistRef.current = [];
     playlistIndexRef.current = 0;
     previousAutoplayIdRef.current = null;
-    promptShownAtRef.current = null;
-    lastPromptConcertIdRef.current = null;
     resetRecognition();
   }, [resetRecognition, stop]);
 
@@ -691,9 +527,7 @@ function AppContent() {
     };
   }, [shutdownExperience]);
 
-  const infoConcert = isConcertInfoVisible
-    ? (pendingSwitchConcert ?? activeRecognitionConcert ?? activeConcert)
-    : null;
+  const infoConcert = isConcertInfoVisible ? (activeRecognitionConcert ?? activeConcert) : null;
   const scannedPhotoUrl = infoConcert?.photoUrl ?? null;
   const shouldShowPhotoPlaceholder =
     !!isConcertInfoVisible && (!scannedPhotoUrl || hasScannedPhotoLoadFailed);
@@ -705,31 +539,26 @@ function AppContent() {
   }, [scannedPhotoUrl]);
 
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const canSwitch = !!pendingSwitchConcert;
 
   const statusLabel = playbackError
     ? 'Playback Fault'
     : isInfoActive && isPlaying
       ? 'On Air'
-      : canSwitch
-        ? 'Switch Candidate'
-        : activeRecognitionConcert && !isInfoActive
-          ? 'Locked Frame'
-          : isInfoActive
-            ? 'Deck Paused'
-            : 'Preview';
+      : activeRecognitionConcert && !isInfoActive
+        ? 'Locked Frame'
+        : isInfoActive
+          ? 'Deck Paused'
+          : 'Preview';
 
   const promptText = playbackError
     ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
       ? playbackError
       : `${playbackError} Check stream access and tap Play to retry.`
-    : canSwitch
-      ? `Current cut: ${activeConcert?.band}. Fresh lock found: ${pendingSwitchConcert?.band}.`
-      : activeRecognitionConcert
-        ? 'Signal is locked. Playback runs continuously until you pause.'
-        : activeConcert
-          ? 'Archive is still live. Pause any time to stop the deck.'
-          : 'Aim at a print to lock signal and start the deck.';
+    : activeRecognitionConcert
+      ? 'Signal is locked. Playback runs continuously until you pause.'
+      : activeConcert
+        ? 'Archive is still live. Pause any time to stop the deck.'
+        : 'Aim at a print to lock signal and start the deck.';
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressPercentage = Math.round(clampedProgress * 100);
@@ -838,21 +667,10 @@ function AppContent() {
       statusLabel={statusLabel}
       promptText={promptText}
       onClose={() => handleCloseConcertInfo(infoConcert)}
-      onSwitch={canSwitch ? handleConfirmSwitch : undefined}
-      switchLabel="Drop the Needle"
     />
   );
 
-  const telemetryForExport: RecognitionTelemetry | null = debugInfo?.telemetry
-    ? {
-        ...debugInfo.telemetry,
-        switchDecision: {
-          ...switchDecisionTelemetryRef.current,
-          decisionLatenciesMs: [...switchDecisionTelemetryRef.current.decisionLatenciesMs],
-          lastPromptSnapshot: { ...switchDecisionTelemetryRef.current.lastPromptSnapshot },
-        },
-      }
-    : null;
+  const telemetryForExport: RecognitionTelemetry | null = debugInfo?.telemetry ?? null;
 
   // Keep liveTelemetryRef in sync every render so the countdown effect can read the latest
   // value without it appearing in the effect's dependency array.
@@ -860,7 +678,6 @@ function AppContent() {
 
   const startRecording = useCallback(() => {
     resetTelemetry();
-    switchDecisionTelemetryRef.current = createEmptySwitchDecisionTelemetry();
     capturedTelemetryRef.current = null;
     temporalSnapshotsRef.current = [];
     setSecondsRemaining(30);

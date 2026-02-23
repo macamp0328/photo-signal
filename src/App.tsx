@@ -199,8 +199,11 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
-      similarityThreshold: 22,
-      sharpnessThreshold: 65,
+      similarityThreshold: 18,
+      matchMarginThreshold: 5,
+      sharpnessThreshold: 85,
+      recognitionDelay: 180,
+      continuousRecognition: true,
       enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
     [isDebugOverlayVisible, recordingState, isEnabled, isConcertInfoVisible, showSecretSettings]
@@ -539,6 +542,14 @@ function AppContent() {
   }, [scannedPhotoUrl]);
 
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
+  const dropNeedleConcert =
+    isPlaying &&
+    infoConcert &&
+    activeConcert &&
+    infoConcert.band !== activeConcert.band &&
+    infoConcert.audioFile
+      ? infoConcert
+      : null;
 
   const statusLabel = playbackError
     ? 'Playback Fault'
@@ -554,11 +565,51 @@ function AppContent() {
     ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
       ? playbackError
       : `${playbackError} Check stream access and tap Play to retry.`
-    : activeRecognitionConcert
-      ? 'Signal is locked. Playback runs continuously until you pause.'
-      : activeConcert
-        ? 'Archive is still live. Pause any time to stop the deck.'
-        : 'Aim at a print to lock signal and start the deck.';
+    : dropNeedleConcert
+      ? `New lock: ${dropNeedleConcert.band}. Tap Drop the Needle to switch artists.`
+      : activeRecognitionConcert
+        ? 'Signal is locked. Playback runs continuously until you pause.'
+        : activeConcert
+          ? 'Archive is still live. Pause any time to stop the deck.'
+          : 'Aim at a print to lock signal and start the deck.';
+
+  const handleDropNeedle = useCallback(() => {
+    if (!dropNeedleConcert) {
+      return;
+    }
+
+    const songs = dataService.getConcertsByBand(dropNeedleConcert.band);
+    const newPlaylist = buildPlaylist(
+      songs.length > 0 ? songs : [dropNeedleConcert],
+      dropNeedleConcert.id
+    );
+    const firstSong = newPlaylist[0];
+    if (!firstSong?.audioFile) {
+      return;
+    }
+
+    clearPlaybackError();
+    if (activeConcert && isPlaying) {
+      crossfade(firstSong.audioFile);
+    } else {
+      play(firstSong.audioFile);
+    }
+
+    userPausedRef.current = false;
+    playlistRef.current = newPlaylist;
+    playlistIndexRef.current = 0;
+    setActivePlaylistBand(dropNeedleConcert.band);
+    setActiveConcert(firstSong);
+    resetRecognition();
+  }, [
+    activeConcert,
+    clearPlaybackError,
+    crossfade,
+    dropNeedleConcert,
+    isPlaying,
+    play,
+    resetRecognition,
+  ]);
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   const progressPercentage = Math.round(clampedProgress * 100);
@@ -667,6 +718,8 @@ function AppContent() {
       statusLabel={statusLabel}
       promptText={promptText}
       onClose={() => handleCloseConcertInfo(infoConcert)}
+      onSwitch={dropNeedleConcert ? handleDropNeedle : undefined}
+      switchLabel="Drop the Needle"
     />
   );
 

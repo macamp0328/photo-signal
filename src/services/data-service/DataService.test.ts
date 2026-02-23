@@ -44,6 +44,7 @@ const mockConcerts: Concert[] = [
 describe('DataService', () => {
   // Store original fetch to restore after tests
   let originalFetch: typeof global.fetch;
+  let originalNodeEnv: string | undefined;
 
   // Spy on console methods to avoid noise in test output
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -52,6 +53,7 @@ describe('DataService', () => {
   beforeEach(() => {
     // Store original fetch
     originalFetch = global.fetch;
+    originalNodeEnv = process.env.NODE_ENV;
 
     // Mock console methods to avoid noise in test output
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -68,6 +70,9 @@ describe('DataService', () => {
   afterEach(() => {
     // Restore original fetch
     global.fetch = originalFetch;
+    process.env.NODE_ENV = originalNodeEnv;
+    delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+    delete process.env.VITE_DATA_V2_REQUIRED;
 
     // Restore console methods
     consoleLogSpy.mockRestore();
@@ -180,6 +185,88 @@ describe('DataService', () => {
       expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
       expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
       expect(concerts).toEqual(mockConcerts);
+    });
+
+    it('should record fallback telemetry when loading from legacy data', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      await dataService.getConcerts();
+
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 1,
+        legacyFallbackLoadsInProduction: 0,
+      });
+    });
+
+    it('should allow production fallback when v2 policy is warn', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DATA_V2_FALLBACK_POLICY = 'warn';
+
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual(mockConcerts);
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 1,
+        legacyFallbackLoadsInProduction: 1,
+      });
+    });
+
+    it('should block production fallback when v2 policy is error', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DATA_V2_FALLBACK_POLICY = 'error';
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual([]);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[DataService] Phase C policy blocked legacy fallback: primary v2 data missing at /data.app.v2.json',
+        expect.any(Error)
+      );
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 0,
+        legacyFallbackLoadsInProduction: 0,
+      });
+
+      consoleErrorSpy.mockRestore();
     });
 
     it('should parse and normalize v2 app payload', async () => {

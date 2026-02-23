@@ -332,6 +332,28 @@ interface DataService {
 - `DataService` attempts `/data.app.v2.json` first and falls back to `/data.json`.
 - Photo recognition attempts `/data.recognition.v2.json` first and falls back to hash data attached to concerts.
 
+**Phase C production policy controls**:
+
+- `VITE_DATA_V2_FALLBACK_POLICY=warn|error`
+  - `warn` (default): allow legacy fallback and log explicit fallback telemetry
+  - `error`: treat missing v2 app artifact as startup-blocking in production
+- `VITE_DATA_V2_REQUIRED=true|1` can be used as strict-mode alias when policy is not set
+
+**Fallback telemetry for cutover**:
+
+- `v2LoadAttempts`
+- `v2LoadFailures`
+- `legacyFallbackLoads`
+- `legacyFallbackLoadsInProduction`
+
+These counters are exposed through `DataService` and logged when fallback is used.
+
+**Legacy removal criteria (post-rollout)**:
+
+1. `legacyFallbackLoadsInProduction` remains zero for one full release window.
+2. CI/deploy checks consistently publish `data.app.v2.json` and `data.recognition.v2.json`.
+3. No active incidents reference missing/corrupt v2 artifacts.
+
 This preserves backward compatibility while enabling v2 performance paths.
 
 **Future**: PostgreSQL via API route

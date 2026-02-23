@@ -1,6 +1,15 @@
 import type { AppDataV2, Concert, ConcertData } from '../../types';
 import { getTimestampSearchText } from '../../utils/dateUtils';
 
+type DataV2FallbackPolicy = 'warn' | 'error';
+
+interface DataSourceTelemetry {
+  v2LoadAttempts: number;
+  v2LoadFailures: number;
+  legacyFallbackLoads: number;
+  legacyFallbackLoadsInProduction: number;
+}
+
 /**
  * Check if a concert has pHash values.
  * Note: This only validates existence and type, not hash format/length.
@@ -31,6 +40,12 @@ class DataService {
   private cacheById: Map<number, Concert> | null = null;
   private cacheByBand: Map<string, Concert[]> | null = null;
   private inFlightRequest: Promise<Concert[]> | null = null;
+  private dataSourceTelemetry: DataSourceTelemetry = {
+    v2LoadAttempts: 0,
+    v2LoadFailures: 0,
+    legacyFallbackLoads: 0,
+    legacyFallbackLoadsInProduction: 0,
+  };
   private isTestMode = false;
   private readonly productionDataUrl = '/data.app.v2.json';
   private readonly legacyDataUrl = '/data.json';
@@ -147,23 +162,95 @@ class DataService {
     return response.json();
   }
 
+  private readRuntimeEnv(name: string): string | undefined {
+    if (typeof process !== 'undefined' && process.env?.[name]) {
+      return process.env[name];
+    }
+
+    try {
+      const runtimeValue = import.meta.env[name];
+      if (typeof runtimeValue === 'string' && runtimeValue.length > 0) {
+        return runtimeValue;
+      }
+    } catch {
+      // ignore and fall through
+    }
+
+    return undefined;
+  }
+
+  private getProductionV2FallbackPolicy(): DataV2FallbackPolicy {
+    const configuredPolicy = this.readRuntimeEnv('VITE_DATA_V2_FALLBACK_POLICY')?.toLowerCase();
+    if (configuredPolicy === 'error') {
+      return 'error';
+    }
+
+    if (configuredPolicy === 'warn') {
+      return 'warn';
+    }
+
+    const strictFlag = this.readRuntimeEnv('VITE_DATA_V2_REQUIRED')?.toLowerCase();
+    if (strictFlag === 'true' || strictFlag === '1') {
+      return 'error';
+    }
+
+    return 'warn';
+  }
+
+  private recordV2PrimaryAttempt(): void {
+    this.dataSourceTelemetry.v2LoadAttempts += 1;
+  }
+
+  private recordV2PrimaryFailure(): void {
+    this.dataSourceTelemetry.v2LoadFailures += 1;
+  }
+
+  private recordLegacyFallbackLoad(runtimeMode: 'development' | 'test' | 'production'): void {
+    this.dataSourceTelemetry.legacyFallbackLoads += 1;
+
+    if (runtimeMode === 'production') {
+      this.dataSourceTelemetry.legacyFallbackLoadsInProduction += 1;
+    }
+  }
+
   private async fetchDataPayload(): Promise<{ payload: unknown; loadedFrom: string }> {
     const primaryDataUrl = this.getDataUrl();
+    const runtimeMode = this.getRuntimeMode();
+
+    if (primaryDataUrl === this.productionDataUrl) {
+      this.recordV2PrimaryAttempt();
+    }
 
     try {
       const payload = await this.fetchJson(primaryDataUrl);
       return { payload, loadedFrom: primaryDataUrl };
     } catch (primaryError) {
+      if (primaryDataUrl === this.productionDataUrl) {
+        this.recordV2PrimaryFailure();
+      }
+
       if (primaryDataUrl === this.legacyDataUrl) {
         throw primaryError;
       }
 
+      const fallbackPolicy =
+        runtimeMode === 'production' ? this.getProductionV2FallbackPolicy() : 'warn';
+
+      if (runtimeMode === 'production' && fallbackPolicy === 'error') {
+        console.error(
+          `[DataService] Phase C policy blocked legacy fallback: primary v2 data missing at ${primaryDataUrl}`,
+          primaryError
+        );
+        throw primaryError;
+      }
+
       console.warn(
-        `[DataService] Failed loading primary data (${primaryDataUrl}), falling back to ${this.legacyDataUrl}`,
+        `[DataService] Failed loading primary data (${primaryDataUrl}), falling back to ${this.legacyDataUrl} (policy=${fallbackPolicy})`,
         primaryError
       );
 
       const payload = await this.fetchJson(this.legacyDataUrl);
+      this.recordLegacyFallbackLoad(runtimeMode);
       return { payload, loadedFrom: this.legacyDataUrl };
     }
   }
@@ -257,6 +344,13 @@ class DataService {
         console.log(`[DataService] Loaded payload source: ${loadedFrom}`);
         console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
 
+        if (loadedFrom === this.legacyDataUrl) {
+          console.warn('[DataService] Telemetry: legacy_data_fallback_used', {
+            ...this.dataSourceTelemetry,
+            policy: this.getProductionV2FallbackPolicy(),
+          });
+        }
+
         if (concerts.length === 0) {
           console.warn('[DataService] Warning: No concerts found in data file');
         }
@@ -325,6 +419,16 @@ class DataService {
     this.cacheById = null;
     this.cacheByBand = null;
     this.inFlightRequest = null;
+    this.dataSourceTelemetry = {
+      v2LoadAttempts: 0,
+      v2LoadFailures: 0,
+      legacyFallbackLoads: 0,
+      legacyFallbackLoadsInProduction: 0,
+    };
+  }
+
+  getDataSourceTelemetry(): DataSourceTelemetry {
+    return { ...this.dataSourceTelemetry };
   }
 
   /**

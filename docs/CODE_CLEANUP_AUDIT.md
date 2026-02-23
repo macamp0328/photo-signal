@@ -149,6 +149,8 @@ const {
 
 ## 6. `guidanceTracking` in `RecognitionTelemetry` — Initialized but Never Written
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Delete (field from struct and all test scaffolding)
 **Files**:
 
@@ -159,6 +161,16 @@ const {
 **Problem**: The `guidanceTracking` field is part of the `RecognitionTelemetry` struct and is initialized in `createEmptyTelemetry()`. However, `usePhotoRecognition.ts` never writes to it — no `telemetryRef.current.guidanceTracking` assignments exist. The field remains at its initial zero state through the entire lifetime of a session, including the exported telemetry JSON. Its presence inflates test fixtures significantly (every `RecognitionTelemetry` test object requires a `createGuidanceTracking()` helper).
 
 **Action**: Remove `guidanceTracking` from `RecognitionTelemetry`, remove its initialization from `createEmptyTelemetry()`, and remove the scaffolding from all test fixtures. This also simplifies the telemetry export in `App.tsx`.
+
+**Completed work**:
+
+- Removed `guidanceTracking` from `RecognitionTelemetry` in `src/modules/photo-recognition/types.ts`
+- Removed `guidanceTracking` initialization from `createEmptyTelemetry()` in `src/modules/photo-recognition/helpers.ts`
+- Removed `guidanceTracking` usage from `src/utils/telemetryUtils.ts`
+- Removed stale `guidanceTracking` fixture scaffolding from:
+  - `src/utils/telemetryUtils.test.ts`
+  - `src/App.playbackFlow.test.tsx`
+  - `src/modules/debug-overlay/DebugOverlay.test.tsx`
 
 ---
 
@@ -259,6 +271,8 @@ Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the d
 
 ## 11. `DebugOverlay` prop `isTestMode` hardcoded to `false`
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Refactor (minor)
 **File**: `src/App.tsx:935`
 
@@ -266,9 +280,18 @@ Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the d
 
 **Action**: Either wire the feature flag value through, or remove the `isTestMode` prop from `DebugOverlay` entirely (removing the badge text and the prop from its type definition).
 
+**Completed work**:
+
+- Removed `isTestMode` prop from `DebugOverlay` usage in `src/App.tsx`
+- Removed `isTestMode` from `DebugOverlayProps` in `src/modules/debug-overlay/types.ts`
+- Removed TEST/LIVE data badge rendering tied to `isTestMode` in `src/modules/debug-overlay/DebugOverlay.tsx`
+- Updated `src/modules/debug-overlay/DebugOverlay.test.tsx` for the new prop contract
+
 ---
 
 ## 12. Stale Documentation References
+
+**Status**: ✅ Completed (2026-02-23)
 
 **Classification**: Refactor (docs)
 
@@ -282,6 +305,16 @@ Several source files and READMEs reference documents that do not exist:
 
 **Action**: Either create the referenced documents or update the code comments and READMEs to remove the broken references.
 
+**Completed work**:
+
+- Replaced stale exploratory-analysis references in:
+  - `src/config/guidanceConfig.ts`
+  - `src/modules/photo-recognition/GuidanceMessage.tsx`
+  - `src/config/README.md`
+  - `scripts/create-edge-case-test-images.js`
+- Removed stale `IMPLEMENTATION_PLAN_GUIDANCE_SYSTEM.md` reference from `src/config/README.md`
+- Removed stale `docs/archive/` claim from `CLAUDE.md`
+
 ---
 
 ## Summary Table
@@ -293,13 +326,13 @@ Several source files and READMEs reference documents that do not exist:
 | 3   | `FrameQualityIndicator`          | `FrameQualityIndicator.tsx`, `.css`                 | ✅ Completed (2026-02-23)    | Low    |
 | 4   | `GuidanceMessage` (not rendered) | `GuidanceMessage.tsx`, `.css`                       | Wire up or delete            | Medium |
 | 5   | `guidanceConfig.ts` module       | `guidanceConfig.ts`, `.test.ts`, `README.md`        | Depends on #4 decision       | Medium |
-| 6   | `guidanceTracking` in telemetry  | `types.ts`, `helpers.ts`, test fixtures             | Delete field                 | Low    |
+| 6   | `guidanceTracking` in telemetry  | `types.ts`, `helpers.ts`, test fixtures             | ✅ Completed (2026-02-23)    | Low    |
 | 7   | `orbFeatureUtils.js`             | `scripts/lib/orbFeatureUtils.js`                    | ✅ Completed (2026-02-23)    | Low    |
 | 8   | Legacy data fallback system      | `DataService.ts`, `data.json`, check scripts        | Delete after cutover confirm | High   |
 | 9   | `setTestMode` / test-mode flag   | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | Refactor or delete           | Medium |
 | 10  | `getRandomConcert` / `search`    | `DataService.ts`, `.test.ts`                        | ✅ Completed (2026-02-23)    | Low    |
-| 11  | `isTestMode` hardcoded prop      | `App.tsx`                                           | Refactor                     | Low    |
-| 12  | Broken doc references            | Multiple                                            | Update comments              | Low    |
+| 11  | `isTestMode` hardcoded prop      | `App.tsx`                                           | ✅ Completed (2026-02-23)    | Low    |
+| 12  | Broken doc references            | Multiple                                            | ✅ Completed (2026-02-23)    | Low    |
 
 ---
 
@@ -307,7 +340,7 @@ Several source files and READMEs reference documents that do not exist:
 
 **Phase 1 — Safe deletes (no functional impact)**
 
-- Items 1, 2, 3, 6, 10, 11, 12
+- Items 1, 2, 3, 6, 10, 11, 12 ✅ Completed (2026-02-23)
 
 **Phase 2 — Requires a decision**
 

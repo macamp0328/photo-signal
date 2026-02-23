@@ -134,11 +134,6 @@ export interface RecognitionTelemetry {
   failedAttempts: number;
   failureHistory: FailureDiagnostic[];
   failureByCategory: Record<FailureCategory, number>;
-  guidanceTracking: {
-    shown: Record<GuidanceType, number>;
-    duration: Record<GuidanceType, number>;
-    lastShown: Record<GuidanceType, number>;
-  };
   /** Running sums and counts for quality measurements of rejected frames. */
   frameQualityStats: FrameQualityStats;
   /** Hamming distance distribution for quality-passing frames. */

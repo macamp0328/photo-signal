@@ -39,6 +39,27 @@ class DataService {
 
   // Clear all in-memory caches
   clearCache(): void;
+
+  // Advanced: inspect fallback/load telemetry counters
+  getDataSourceTelemetry(): {
+    v2LoadAttempts: number;
+    v2LoadFailures: number;
+    legacyFallbackLoads: number;
+    legacyFallbackLoadsInProduction: number;
+  };
+
+  // Advanced: inspect current runtime/deploy policy snapshot
+  getDataSourcePolicySnapshot(): {
+    runtimeMode: 'development' | 'test' | 'production';
+    deployEnvironment: 'production' | 'preview' | 'development' | 'unknown';
+    fallbackPolicy: 'warn' | 'error';
+  };
+
+  // Testing/feature-flag control: toggle test mode state
+  setTestMode(enabled: boolean): void;
+
+  // Testing/feature-flag control: inspect test mode state
+  getTestMode(): boolean;
 }
 ```
 

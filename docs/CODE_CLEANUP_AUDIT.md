@@ -251,7 +251,7 @@ Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the d
 **Status**: ✅ Completed (2026-02-23)
 
 **Classification**: Delete
-**File**: `src/services/data-service/DataService.ts:447–497`
+**File**: `src/services/data-service/DataService.ts`
 
 **Problem**: Both methods are fully implemented, well-tested, and maintained — but they are never called by any component or hook in the application.
 
@@ -274,7 +274,7 @@ Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the d
 **Status**: ✅ Completed (2026-02-23)
 
 **Classification**: Refactor (minor)
-**File**: `src/App.tsx:935`
+**File**: `src/App.tsx`
 
 **Problem**: `isTestMode={false}` is hardcoded on the `DebugOverlay`. The secret settings has a "Test Data Mode" flag, but it is never passed through to the overlay. This means the "TEST DATA / LIVE DATA" badge in the overlay is permanently stuck on "LIVE DATA".
 

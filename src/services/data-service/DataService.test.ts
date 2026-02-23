@@ -7,6 +7,7 @@ import type { Concert } from '../../types';
  *
  * Tests validate the service contract defined in README.md:
  * - getConcerts(): Promise<Concert[]> - loads all concerts with caching
+ * - getConcertsByBand(band): Concert[] - retrieves concerts for a specific band
  * - getConcertById(id): Concert | null - retrieves specific concert
  * - clearCache(): void - clears in-memory cache
  */

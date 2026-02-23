@@ -248,6 +248,8 @@ function AppContent() {
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
       continuousRecognition: true,
+      similarityThreshold: 21,
+      sharpnessThreshold: 65,
       switchRecognitionDelayMultiplier: 1.0,
       switchDistanceThreshold: 14,
       enabled: !showSecretSettings && !isConcertInfoVisible,

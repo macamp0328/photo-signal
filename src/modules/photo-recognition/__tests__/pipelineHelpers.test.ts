@@ -95,8 +95,9 @@ describe('findBestMatches', () => {
     expect(secondBestMatch).toEqual({ concert: b, distance: 10 });
   });
 
-  it('does not place an exact tie with bestMatch into secondBestMatch', () => {
-    // Two concerts with identical distance — no clear second-best signal.
+  it('keeps an exact cross-concert tie as secondBestMatch for ambiguity handling', () => {
+    // Equal-distance rivals across different concerts must be preserved so
+    // the caller can classify the frame as ambiguous.
     const [a, b] = [makeConcert(1), makeConcert(2)];
     mockHD.mockReturnValueOnce(8).mockReturnValueOnce(8);
 
@@ -106,7 +107,7 @@ describe('findBestMatches', () => {
     ]);
 
     expect(bestMatch).toEqual({ concert: a, distance: 8 });
-    expect(secondBestMatch).toBeNull();
+    expect(secondBestMatch).toEqual({ concert: b, distance: 8 });
   });
 
   it('correctly identifies best and second-best from a larger list', () => {

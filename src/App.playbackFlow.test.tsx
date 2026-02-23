@@ -77,6 +77,7 @@ const recognitionState = {
 };
 
 const mockResetRecognition = vi.fn();
+const mockUsePhotoRecognition = vi.fn();
 const enabledFlags = new Set<string>();
 
 const createDebugTelemetry = (): RecognitionTelemetry => ({
@@ -179,11 +180,12 @@ vi.mock('./modules/motion-detection', () => ({
 }));
 
 vi.mock('./modules/photo-recognition', () => ({
-  usePhotoRecognition: () => ({
-    ...recognitionState,
-    reset: mockResetRecognition,
-    resetTelemetry: vi.fn(),
-  }),
+  usePhotoRecognition: (...args: unknown[]) =>
+    mockUsePhotoRecognition(...args) ?? {
+      ...recognitionState,
+      reset: mockResetRecognition,
+      resetTelemetry: vi.fn(),
+    },
   FrameQualityIndicator: () => null,
   GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
     <div data-testid="guidance-message">{guidanceType}</div>
@@ -218,6 +220,11 @@ describe('App playback flow', () => {
   };
 
   beforeEach(() => {
+    mockUsePhotoRecognition.mockImplementation(() => ({
+      ...recognitionState,
+      reset: mockResetRecognition,
+      resetTelemetry: vi.fn(),
+    }));
     recognitionState.recognizedConcert = null;
     recognitionState.switchCandidateConcert = null;
     recognitionState.isRecognizing = false;
@@ -252,6 +259,21 @@ describe('App playback flow', () => {
     });
 
     vi.clearAllMocks();
+  });
+
+  it('passes telemetry-aligned recognition defaults while keeping switch controls intact', () => {
+    render(<App />);
+
+    expect(mockUsePhotoRecognition).toHaveBeenCalled();
+
+    const options = mockUsePhotoRecognition.mock.calls[0]?.[1] as
+      | Record<string, unknown>
+      | undefined;
+    expect(options).toBeDefined();
+    expect(options?.continuousRecognition).toBe(true);
+    expect(options?.similarityThreshold).toBe(21);
+    expect(options?.sharpnessThreshold).toBe(65);
+    expect(options?.switchDistanceThreshold).toBe(14);
   });
 
   it('auto-plays first recognized concert after activation', async () => {

@@ -190,6 +190,10 @@ const CROP_MATCH_MARGIN_THRESHOLD = 5;
 /** Compact type used throughout the matching pipeline. */
 export type MatchCandidate = { concert: Concert; distance: number };
 
+const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
+const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
+const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
+
 /**
  * Scans concertHashList and returns the best and second-best pHash matches for
  * the given frame hash. Pure function with no side-effects.
@@ -218,7 +222,6 @@ export function findBestMatches(
       bestMatch = { concert, distance };
     } else if (
       concert.id !== bestMatch.concert.id && // cross-concert entries only
-      distance !== bestMatch.distance &&
       (!secondBestMatch || distance < secondBestMatch.distance)
     ) {
       secondBestMatch = { concert, distance };
@@ -339,6 +342,9 @@ export function usePhotoRecognition(
   const switchCandidateConcertRef = useRef<Concert | null>(null);
   const switchCandidateStartTimeRef = useRef<number | null>(null);
   const switchConsecutiveMatchCountRef = useRef(0);
+  const consecutiveBlurFramesRef = useRef(0);
+  const rectangleHoldFramesRef = useRef(0);
+  const lastConfidentRectangleRef = useRef<DetectedRectangle | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null);
@@ -358,6 +364,9 @@ export function usePhotoRecognition(
     switchCandidateConcertRef.current = null;
     switchCandidateStartTimeRef.current = null;
     switchConsecutiveMatchCountRef.current = 0;
+    consecutiveBlurFramesRef.current = 0;
+    rectangleHoldFramesRef.current = 0;
+    lastConfidentRectangleRef.current = null;
     telemetryRef.current = createEmptyTelemetry();
 
     setRecognizedConcert(null);
@@ -487,6 +496,7 @@ export function usePhotoRecognition(
       if (!shouldRunQualityCheck) {
         telemetryRef.current.qualityBypassFrames =
           (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
+        consecutiveBlurFramesRef.current = 0;
         setFrameQuality(null);
         setActiveGuidance('none');
         return { rejected: false, quality: null };
@@ -564,16 +574,37 @@ export function usePhotoRecognition(
 
       if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
         if (!quality.isSharp) {
+          consecutiveBlurFramesRef.current += 1;
+
+          if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
+            return { rejected: false, quality };
+          }
+
           telemetryRef.current.blurRejections += 1;
           recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
           telemetryRef.current.frameQualityStats.blur.sharpnessSum += sharpness;
           telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
+
+          const shouldClearTracking =
+            consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES;
+          if (shouldClearTracking) {
+            lastMatchedConcertRef.current = null;
+            consecutiveMatchCountRef.current = 0;
+            matchStartTimeRef.current = null;
+            clearSwitchTracking();
+          }
+
+          setIsRecognizing(false);
+
+          return { rejected: true, quality };
         } else if (quality.hasGlare) {
+          consecutiveBlurFramesRef.current = 0;
           telemetryRef.current.glareRejections += 1;
           recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
           telemetryRef.current.frameQualityStats.glare.glarePercentSum += glare.glarePercentage;
           telemetryRef.current.frameQualityStats.glare.sampleCount += 1;
         } else {
+          consecutiveBlurFramesRef.current = 0;
           telemetryRef.current.lightingRejections += 1;
           recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
           telemetryRef.current.frameQualityStats.lighting.brightnessSum +=
@@ -590,6 +621,7 @@ export function usePhotoRecognition(
         return { rejected: true, quality };
       }
 
+      consecutiveBlurFramesRef.current = 0;
       telemetryRef.current.qualityFrames += 1;
       return { rejected: false, quality };
     };
@@ -711,6 +743,20 @@ export function usePhotoRecognition(
           );
 
           const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const applyRectangleCrop = (rectangle: DetectedRectangle) => {
+            perspectiveImageData = getPerspectiveCroppedImageData(viewportImageData, rectangle);
+
+            const pixelRectangle = {
+              x: Math.round(rectangle.topLeft.x * visibleViewport.width),
+              y: Math.round(rectangle.topLeft.y * visibleViewport.height),
+              width: Math.round(rectangle.width * visibleViewport.width),
+              height: Math.round(rectangle.height * visibleViewport.height),
+            };
+
+            if (pixelRectangle.width > 0 && pixelRectangle.height > 0) {
+              framedRegion = offsetRegionToVideo(pixelRectangle);
+            }
+          };
           const detectionResult = rectangleDetectorRef.current.detectRectangle(viewportImageData);
           setRectangleConfidence(detectionResult.confidence);
 
@@ -718,41 +764,47 @@ export function usePhotoRecognition(
             setDetectedRectangle(detectionResult.rectangle);
             const meetsConfidence = detectionResult.confidence >= rectangleConfidenceThreshold;
             if (meetsConfidence) {
-              perspectiveImageData = getPerspectiveCroppedImageData(
-                viewportImageData,
-                detectionResult.rectangle
-              );
-
-              const pixelRectangle = {
-                x: Math.round(detectionResult.rectangle.topLeft.x * visibleViewport.width),
-                y: Math.round(detectionResult.rectangle.topLeft.y * visibleViewport.height),
-                width: Math.round(detectionResult.rectangle.width * visibleViewport.width),
-                height: Math.round(detectionResult.rectangle.height * visibleViewport.height),
-              };
-
-              if (pixelRectangle.width > 0 && pixelRectangle.height > 0) {
-                framedRegion = offsetRegionToVideo(pixelRectangle);
-              }
+              lastConfidentRectangleRef.current = detectionResult.rectangle;
+              rectangleHoldFramesRef.current = 0;
+              applyRectangleCrop(detectionResult.rectangle);
+            } else if (
+              lastConfidentRectangleRef.current &&
+              rectangleHoldFramesRef.current < RECTANGLE_CONFIDENCE_HOLD_FRAMES
+            ) {
+              rectangleHoldFramesRef.current += 1;
+              applyRectangleCrop(lastConfidentRectangleRef.current);
             }
           } else {
-            setDetectedRectangle(null);
+            if (
+              lastConfidentRectangleRef.current &&
+              rectangleHoldFramesRef.current < RECTANGLE_CONFIDENCE_HOLD_FRAMES
+            ) {
+              rectangleHoldFramesRef.current += 1;
+              setDetectedRectangle(lastConfidentRectangleRef.current);
+              applyRectangleCrop(lastConfidentRectangleRef.current);
+            } else {
+              rectangleHoldFramesRef.current = 0;
+              lastConfidentRectangleRef.current = null;
+              setDetectedRectangle(null);
+            }
           }
         }
 
         const frameCaptureStartAt = performance.now();
         let imageData: ImageData;
+        const capturedPerspectiveImageData = perspectiveImageData as ImageData | null;
 
-        if (perspectiveImageData) {
-          canvas.width = perspectiveImageData.width;
-          canvas.height = perspectiveImageData.height;
-          context.putImageData(perspectiveImageData, 0, 0);
+        if (capturedPerspectiveImageData) {
+          canvas.width = capturedPerspectiveImageData.width;
+          canvas.height = capturedPerspectiveImageData.height;
+          context.putImageData(capturedPerspectiveImageData, 0, 0);
           framedRegion = {
             x: framedRegion.x,
             y: framedRegion.y,
-            width: perspectiveImageData.width,
-            height: perspectiveImageData.height,
+            width: capturedPerspectiveImageData.width,
+            height: capturedPerspectiveImageData.height,
           };
-          imageData = perspectiveImageData;
+          imageData = capturedPerspectiveImageData;
         } else {
           // Downscale directly to 64×64 during capture so getImageData() only
           // returns 4 096 pixels instead of the full framed-region dimensions
@@ -832,8 +884,17 @@ export function usePhotoRecognition(
         const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
         const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveRequiredMargin;
         const isWithinThreshold = !!bestMatch && bestMatch.distance <= activeThreshold;
-        const isAmbiguousMatchCandidate = isWithinThreshold && !hasSufficientMargin;
-        const activeMatch = isWithinThreshold && hasSufficientMargin ? bestMatch!.concert : null;
+        const isExactCrossConcertTie =
+          !!bestMatch &&
+          !!secondBestMatch &&
+          bestMatch.concert.id !== secondBestMatch.concert.id &&
+          bestMatch.distance === secondBestMatch.distance;
+        const isAmbiguousMatchCandidate =
+          isWithinThreshold && (!hasSufficientMargin || isExactCrossConcertTie);
+        const activeMatch =
+          isWithinThreshold && hasSufficientMargin && !isExactCrossConcertTie
+            ? bestMatch!.concert
+            : null;
 
         // Quality filtering — bypassed when match distance is very low
         const shouldRunQualityCheck =

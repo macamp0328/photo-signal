@@ -268,8 +268,11 @@ describe('App playback flow', () => {
       | Record<string, unknown>
       | undefined;
     expect(options).toBeDefined();
-    expect(options?.similarityThreshold).toBe(22);
-    expect(options?.sharpnessThreshold).toBe(65);
+    expect(options?.similarityThreshold).toBe(18);
+    expect(options?.matchMarginThreshold).toBe(5);
+    expect(options?.sharpnessThreshold).toBe(85);
+    expect(options?.recognitionDelay).toBe(180);
+    expect(options?.continuousRecognition).toBe(true);
   });
 
   it('auto-plays first recognized concert after activation', async () => {
@@ -325,7 +328,7 @@ describe('App playback flow', () => {
     });
   });
 
-  it('shows matched details without rendering a switch button while details are visible', async () => {
+  it('shows matched details and renders Drop the Needle when a different artist is recognized', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -348,7 +351,9 @@ describe('App playback flow', () => {
     expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Drop the needle for Band Two' })
+    ).toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
   });
@@ -370,7 +375,7 @@ describe('App playback flow', () => {
     expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
-  it('does not render switch button when recognizedConcert changes while song is playing', async () => {
+  it('renders Drop the Needle when recognizedConcert changes while song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -389,7 +394,32 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Drop the needle for Band Two' })
+    ).toBeInTheDocument();
+  });
+
+  it('switches artists via Drop the Needle using crossfade while playback is active', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Drop the needle for Band Two' }));
+
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
+    expect(mockResetRecognition).toHaveBeenCalled();
   });
 
   it('closes details and resets recognition when user taps close', async () => {
@@ -599,7 +629,7 @@ describe('App playback flow', () => {
     expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
-  it('keeps switch button hidden in matched-details mode', async () => {
+  it('shows Drop the Needle in matched-details mode for a different playing artist', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -619,7 +649,9 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Drop the needle for Band Two' })
+    ).toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries and resets recognition state', async () => {

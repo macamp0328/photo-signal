@@ -271,6 +271,7 @@ export function usePhotoRecognition(
     enabled = true,
     similarityThreshold = DEFAULT_SIMILARITY_THRESHOLD,
     matchMarginThreshold = DEFAULT_MATCH_MARGIN_THRESHOLD,
+    continuousRecognition = false,
     checkInterval = DEFAULT_CHECK_INTERVAL,
     enableDebugInfo = false,
     aspectRatio = 'auto',
@@ -602,7 +603,7 @@ export function usePhotoRecognition(
     // Per-frame pipeline
     // -----------------------------------------------------------------------
     const checkFrame = () => {
-      if (recognizedConcertRef.current) {
+      if (recognizedConcertRef.current && !continuousRecognition) {
         return;
       }
 
@@ -924,6 +925,15 @@ export function usePhotoRecognition(
         if (activeMatch) {
           setActiveGuidance('none');
 
+          const isAlreadyRecognizedConcert = recognizedConcertRef.current?.id === activeMatch.id;
+          if (isAlreadyRecognizedConcert) {
+            lastMatchedConcertRef.current = null;
+            consecutiveMatchCountRef.current = 0;
+            matchStartTimeRef.current = null;
+            setIsRecognizing(false);
+            return;
+          }
+
           const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
           consecutiveMatchCountRef.current = isSameConcert
             ? consecutiveMatchCountRef.current + 1
@@ -1078,6 +1088,7 @@ export function usePhotoRecognition(
     recognitionDelay,
     similarityThreshold,
     matchMarginThreshold,
+    continuousRecognition,
     aspectRatio,
     sharpnessThreshold,
     glareThreshold,

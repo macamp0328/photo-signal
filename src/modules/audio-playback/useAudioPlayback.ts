@@ -45,6 +45,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const currentUrlRef = useRef<string | null>(null);
   const preloadCacheRef = useRef<Map<string, Howl>>(new Map());
   const progressRafRef = useRef<number | null>(null);
+  const volumeRef = useRef(initialVolume);
   const diagnosticCacheRef = useRef<Map<string, Promise<import('./types').AudioDiagnosticResult>>>(
     new Map()
   );
@@ -53,6 +54,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const [progress, setProgress] = useState(0);
   const [volume, setVolumeState] = useState(initialVolume);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
 
   const unlockAudioContext = useCallback(async () => {
     const audioContext = getHowlerContext();
@@ -296,14 +301,14 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         src: [url],
         html5: true,
         preload: true,
-        volume: initialVolume ?? volume,
+        volume: initialVolume ?? volumeRef.current,
       });
 
       attachCallbacks(sound, url);
 
       return sound;
     },
-    [attachCallbacks, volume]
+    [attachCallbacks]
   );
 
   const getCachedOrCreateSound = useCallback(
@@ -375,10 +380,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       soundRef.current = newSound;
       currentUrlRef.current = url;
-      newSound.volume(volume);
+      newSound.volume(volumeRef.current);
       newSound.play();
     },
-    [getCachedOrCreateSound, unlockAudioContext, volume]
+    [getCachedOrCreateSound, unlockAudioContext]
   );
 
   const pause = useCallback(() => {
@@ -423,6 +428,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const setVolume = useCallback((newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
+    volumeRef.current = clampedVolume;
     setVolumeState(clampedVolume);
 
     if (soundRef.current) {
@@ -493,7 +499,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       // Start playing and fade in
       newSound.play();
-      newSound.fade(0, volume, duration);
+      newSound.fade(0, volumeRef.current, duration);
 
       // Clean up old sound after fade completes
       crossfadeTimeoutRef.current = setTimeout(() => {
@@ -504,8 +510,15 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           fadingOutSoundRef.current = null;
         }
         const activeSound = soundRef.current;
-        if (currentUrlRef.current === newUrl && activeSound && !activeSound.playing()) {
-          activeSound.play();
+        if (currentUrlRef.current === newUrl && activeSound) {
+          // Some browser/audio-stack combinations can fail to apply fade() reliably on
+          // HTML5-backed sounds. Re-assert the target volume after the crossfade window
+          // so the newly selected artist never remains silently at 0 volume.
+          activeSound.volume(volumeRef.current);
+
+          if (!activeSound.playing()) {
+            activeSound.play();
+          }
         }
         crossfadeTimeoutRef.current = null;
       }, duration);
@@ -517,7 +530,6 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       isPlaying,
       play,
       unlockAudioContext,
-      volume,
     ]
   );
 

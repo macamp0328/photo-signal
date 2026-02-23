@@ -503,8 +503,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           fadingOutSoundRef.current.unload();
           fadingOutSoundRef.current = null;
         }
-        if (soundRef.current === newSound && !newSound.playing()) {
-          play(newUrl);
+        const activeSound = soundRef.current;
+        if (currentUrlRef.current === newUrl && activeSound && !activeSound.playing()) {
+          activeSound.play();
         }
         crossfadeTimeoutRef.current = null;
       }, duration);

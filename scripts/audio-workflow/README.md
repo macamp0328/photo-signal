@@ -241,7 +241,7 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
      - `public/data.json`
      - `public/data.app.v2.json`
      - `public/data.recognition.v2.json`
-     deterministically from `prod-photographs-details.csv` + `audio-index.json`.
+       deterministically from `prod-photographs-details.csv` + `audio-index.json`.
    - `songTitle` in `public/data.json` is sourced from CSV (`songTitle`) first, then falls back to `audio-index.json` track title.
 
 6. **Regenerate recognition hashes:**

@@ -606,7 +606,9 @@ describe('artifact parity integrity', () => {
       .map((concert) => concert.id)
       .sort((a, b) => a - b);
 
-    const recognitionIds = recognitionV2.entries.map((entry) => entry.concertId).sort((a, b) => a - b);
+    const recognitionIds = recognitionV2.entries
+      .map((entry) => entry.concertId)
+      .sort((a, b) => a - b);
     expect(recognitionIds).toEqual(expectedRecognizableIds);
 
     const appEntryIds = new Set(appV2.entries.map((entry) => entry.id));

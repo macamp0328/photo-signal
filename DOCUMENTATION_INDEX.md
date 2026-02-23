@@ -34,6 +34,10 @@
 
 - **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** — WCAG 2.1 Level AA standards, color palette, and developer quick reference
 
+## Maintenance & Audits
+
+- **[docs/CODE_CLEANUP_AUDIT.md](./docs/CODE_CLEANUP_AUDIT.md)** — Audit of stale, dead, and redundant code with a phased remediation plan
+
 ## Module API Contracts
 
 Module API contracts live in the TypeScript source — see `types.ts` in each module directory.

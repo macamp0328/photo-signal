@@ -25,8 +25,8 @@ Each item is classified by impact:
 // Current state — functionally dead
 export function useCustomSettings() {
   const settings: CustomSetting[] = [];
-  const updateSetting: (...) => void = () => {};
-  const getSetting: (...) => T | undefined = () => undefined;
+  const updateSetting: (id: string, value: string | number | boolean) => void = () => {};
+  const getSetting: <T = string | number | boolean>(id: string) => T | undefined = () => undefined;
   const resetSettings: () => void = () => {};
   return { settings, updateSetting, getSetting, resetSettings };
 }
@@ -80,7 +80,7 @@ The `orb` and `parallel` values have no runtime counterparts. The app uses a sin
 **Problem**: `GuidanceMessage` is exported but `App.tsx` does not destructure `activeGuidance` from `usePhotoRecognition`, so the guidance state computed inside the hook is never surfaced to the UI. The component exists but is unreachable from the render tree.
 
 ```ts
-// App.tsx — activeGuidance is intentionally absent
+// App.tsx — activeGuidance is not destructured from usePhotoRecognition
 const {
   recognizedConcert,
   reset: resetRecognition,

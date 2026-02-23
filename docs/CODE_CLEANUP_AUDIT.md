@@ -227,6 +227,8 @@ Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the d
 
 ## 10. `DataService.getRandomConcert()` and `search()` — Unused Public API
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Delete
 **File**: `src/services/data-service/DataService.ts:447–497`
 
@@ -236,6 +238,13 @@ Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the d
 - `search()`: No references outside tests and the service's own README
 
 **Action**: Delete both methods and their tests. If a search feature is desired in the future, it can be re-added with a real UI at that time.
+
+**Completed work**:
+
+- Deleted `search()` and `getRandomConcert()` from `src/services/data-service/DataService.ts`
+- Removed `getTimestampSearchText` import no longer used by `DataService`
+- Deleted method-specific and dependent test coverage from `src/services/data-service/DataService.test.ts`
+- Updated `src/services/data-service/README.md` API contract and usage examples
 
 ---
 
@@ -279,7 +288,7 @@ Several source files and READMEs reference documents that do not exist:
 | 7   | `orbFeatureUtils.js`             | `scripts/lib/orbFeatureUtils.js`                    | ✅ Completed (2026-02-23)    | Low    |
 | 8   | Legacy data fallback system      | `DataService.ts`, `data.json`, check scripts        | Delete after cutover confirm | High   |
 | 9   | `setTestMode` / test-mode flag   | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | Refactor or delete           | Medium |
-| 10  | `getRandomConcert` / `search`    | `DataService.ts`, `.test.ts`                        | Delete                       | Low    |
+| 10  | `getRandomConcert` / `search`    | `DataService.ts`, `.test.ts`                        | ✅ Completed (2026-02-23)    | Low    |
 | 11  | `isTestMode` hardcoded prop      | `App.tsx`                                           | Refactor                     | Low    |
 | 12  | Broken doc references            | Multiple                                            | Update comments              | Low    |
 

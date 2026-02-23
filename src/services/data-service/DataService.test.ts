@@ -8,8 +8,6 @@ import type { Concert } from '../../types';
  * Tests validate the service contract defined in README.md:
  * - getConcerts(): Promise<Concert[]> - loads all concerts with caching
  * - getConcertById(id): Concert | null - retrieves specific concert
- * - search(query): Concert[] - searches by band, venue, or date
- * - getRandomConcert(): Concert | null - returns random concert
  * - clearCache(): void - clears in-memory cache
  */
 
@@ -555,131 +553,6 @@ describe('DataService', () => {
     });
   });
 
-  describe('search()', () => {
-    beforeEach(async () => {
-      // Pre-load cache with mock data
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch;
-      await dataService.getConcerts();
-    });
-
-    it('should search by band name (case-insensitive)', () => {
-      const results = dataService.search('midnight');
-
-      expect(results).toHaveLength(1);
-      expect(results[0].band).toBe('The Midnight Echoes');
-    });
-
-    it('should search by venue name (case-insensitive)', () => {
-      const results = dataService.search('fillmore');
-
-      expect(results).toHaveLength(1);
-      expect(results[0].venue).toBe('The Fillmore');
-    });
-
-    it('should search by date', () => {
-      const results = dataService.search('2023-08-15');
-
-      expect(results).toHaveLength(1);
-      expect(results[0].date).toBe(mockConcerts[0].date);
-    });
-
-    it('should return multiple matches when query matches multiple concerts', () => {
-      const results = dataService.search('2023');
-
-      // All concerts have dates in 2023
-      expect(results).toHaveLength(3);
-    });
-
-    it('should return empty array when no matches found', () => {
-      const results = dataService.search('nonexistent');
-
-      expect(results).toEqual([]);
-    });
-
-    it('should return empty array when cache is empty', () => {
-      dataService.clearCache();
-
-      const results = dataService.search('midnight');
-
-      expect(results).toEqual([]);
-    });
-
-    it('should handle partial matches', () => {
-      const results = dataService.search('red');
-
-      expect(results).toHaveLength(1);
-      expect(results[0].venue).toBe('Red Rocks Amphitheatre');
-    });
-
-    it('should be case-insensitive for all search fields', () => {
-      const resultsLower = dataService.search('electric dreams');
-      const resultsUpper = dataService.search('ELECTRIC DREAMS');
-      const resultsMixed = dataService.search('ElEcTrIc DrEaMs');
-
-      expect(resultsLower).toHaveLength(1);
-      expect(resultsUpper).toHaveLength(1);
-      expect(resultsMixed).toHaveLength(1);
-      expect(resultsLower).toEqual(resultsUpper);
-      expect(resultsUpper).toEqual(resultsMixed);
-    });
-  });
-
-  describe('getRandomConcert()', () => {
-    beforeEach(async () => {
-      // Pre-load cache with mock data
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch;
-      await dataService.getConcerts();
-    });
-
-    it('should return a concert from the dataset', () => {
-      const concert = dataService.getRandomConcert();
-
-      expect(concert).not.toBeNull();
-      expect(mockConcerts).toContainEqual(concert);
-    });
-
-    it('should return null when cache is empty', () => {
-      dataService.clearCache();
-
-      const concert = dataService.getRandomConcert();
-
-      expect(concert).toBeNull();
-    });
-
-    it('should return a valid concert on multiple calls', () => {
-      for (let i = 0; i < 10; i++) {
-        const concert = dataService.getRandomConcert();
-        expect(concert).not.toBeNull();
-        expect(mockConcerts).toContainEqual(concert);
-      }
-    });
-
-    it('should potentially return different concerts over multiple calls', () => {
-      // Call multiple times and collect results
-      const concerts = new Set();
-      for (let i = 0; i < 20; i++) {
-        const concert = dataService.getRandomConcert();
-        if (concert) {
-          concerts.add(concert.id);
-        }
-      }
-
-      // With 20 calls and 3 concerts, we should likely get at least 2 different ones
-      // This is probabilistic but very unlikely to fail
-      expect(concerts.size).toBeGreaterThanOrEqual(1);
-    });
-  });
-
   describe('clearCache()', () => {
     it('should clear cache and force re-fetch on next getConcerts() call', async () => {
       // First fetch
@@ -730,46 +603,6 @@ describe('DataService', () => {
 
       // Should return null now
       expect(dataService.getConcertById(1)).toBeNull();
-    });
-
-    it('should make search return empty array after clearing cache', async () => {
-      // Load data
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch;
-      await dataService.getConcerts();
-
-      // Verify search works
-      expect(dataService.search('midnight')).toHaveLength(1);
-
-      // Clear cache
-      dataService.clearCache();
-
-      // Should return empty array now
-      expect(dataService.search('midnight')).toEqual([]);
-    });
-
-    it('should make getRandomConcert return null after clearing cache', async () => {
-      // Load data
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch;
-      await dataService.getConcerts();
-
-      // Verify random concert works
-      expect(dataService.getRandomConcert()).not.toBeNull();
-
-      // Clear cache
-      dataService.clearCache();
-
-      // Should return null now
-      expect(dataService.getRandomConcert()).toBeNull();
     });
 
     it('should reset data source telemetry counters after clearing cache', async () => {
@@ -854,34 +687,6 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       const concert = dataService.getConcertById(1);
-
-      expect(concert).toBeNull();
-    });
-
-    it('should return empty array from search when data is empty', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: [] }),
-      });
-      global.fetch = mockFetch;
-      await dataService.getConcerts();
-
-      const results = dataService.search('anything');
-
-      expect(results).toEqual([]);
-    });
-
-    it('should return null from getRandomConcert when data is empty', async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: [] }),
-      });
-      global.fetch = mockFetch;
-      await dataService.getConcerts();
-
-      const concert = dataService.getRandomConcert();
 
       expect(concert).toBeNull();
     });

@@ -31,11 +31,14 @@ class DataService {
   // Load all concerts (cached after first call)
   getConcerts(): Promise<Concert[]>;
 
+  // Get all concerts by exact band name
+  getConcertsByBand(band: string): Concert[];
+
   // Get specific concert by ID
   getConcertById(id: number): Concert | null;
 
-  // Search concerts (placeholder for future image hash matching)
-  search(query: string): Concert[];
+  // Clear all in-memory caches
+  clearCache(): void;
 }
 ```
 
@@ -60,8 +63,8 @@ const concerts = await dataService.getConcerts();
 // Get specific concert
 const concert = dataService.getConcertById(1);
 
-// Search
-const results = dataService.search('Fillmore');
+// Get by band
+const concertsByBand = dataService.getConcertsByBand('The Midnight Echoes');
 ```
 
 ---

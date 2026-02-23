@@ -155,6 +155,8 @@ const {
 
 ## 7. `scripts/lib/orbFeatureUtils.js` — Orphaned Algorithm (~240 lines)
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Delete
 **File**: `scripts/lib/orbFeatureUtils.js`
 
@@ -168,6 +170,12 @@ grep -r "orbFeatureUtils" scripts/ → no results outside the file itself
 `CLAUDE.md` says "Original algorithm research retained in `docs/archive/` for historical reference", but `docs/archive/` does not exist. The file is simply orphaned in `scripts/lib/`.
 
 **Action**: Delete `scripts/lib/orbFeatureUtils.js`. If the ORB research has historical value, commit it to a git note or a private archive — it has no build or test role.
+
+**Completed work**:
+
+- Deleted `scripts/lib/orbFeatureUtils.js`
+- Re-scanned tracked code/docs and removed non-audit ORB mentions from `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`
+- Purged local generated artifact traces (`coverage/`, `node_modules/.vite/`, `.claude/worktrees/*`) as part of this cleanup session
 
 ---
 
@@ -268,7 +276,7 @@ Several source files and READMEs reference documents that do not exist:
 | 4   | `GuidanceMessage` (not rendered) | `GuidanceMessage.tsx`, `.css`                       | Wire up or delete            | Medium |
 | 5   | `guidanceConfig.ts` module       | `guidanceConfig.ts`, `.test.ts`, `README.md`        | Depends on #4 decision       | Medium |
 | 6   | `guidanceTracking` in telemetry  | `types.ts`, `helpers.ts`, test fixtures             | Delete field                 | Low    |
-| 7   | `orbFeatureUtils.js`             | `scripts/lib/orbFeatureUtils.js`                    | Delete                       | Low    |
+| 7   | `orbFeatureUtils.js`             | `scripts/lib/orbFeatureUtils.js`                    | ✅ Completed (2026-02-23)    | Low    |
 | 8   | Legacy data fallback system      | `DataService.ts`, `data.json`, check scripts        | Delete after cutover confirm | High   |
 | 9   | `setTestMode` / test-mode flag   | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | Refactor or delete           | Medium |
 | 10  | `getRandomConcert` / `search`    | `DataService.ts`, `.test.ts`                        | Delete                       | Low    |
@@ -281,7 +289,7 @@ Several source files and READMEs reference documents that do not exist:
 
 **Phase 1 — Safe deletes (no functional impact)**
 
-- Items 1, 2, 3, 6, 7, 10, 11, 12
+- Items 1, 2, 3, 6, 10, 11, 12
 
 **Phase 2 — Requires a decision**
 

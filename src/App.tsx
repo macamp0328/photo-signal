@@ -178,6 +178,7 @@ function AppContent() {
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [isConcertInfoVisible, setIsConcertInfoVisible] = useState(false);
   const [hasScannedPhotoLoadFailed, setHasScannedPhotoLoadFailed] = useState(false);
+  const [pendingSwitchConcert, setPendingSwitchConcert] = useState<Concert | null>(null);
   const [dismissedSwitchBand, setDismissedSwitchBand] = useState<string | null>(null);
   const [closedConcertCooldown, setClosedConcertCooldown] = useState<{
     concertId: number;
@@ -410,21 +411,30 @@ function AppContent() {
     setActivePlaylistBand(autoplayConcert.band);
     play(firstSong.audioFile);
     setActiveConcert(firstSong);
+    setPendingSwitchConcert(null);
     setDismissedSwitchBand(null);
   }, [isActive, activeRecognitionConcert, isPlaying, play, activePlaylistBand]);
 
   useEffect(() => {
+    const switchPromptConcert = activeRecognitionConcert;
+
     if (
-      !activeRecognitionConcert ||
+      !switchPromptConcert ||
       !activeConcert ||
-      activeRecognitionConcert.band === activePlaylistBand
+      switchPromptConcert.band === activePlaylistBand ||
+      dismissedSwitchBand === switchPromptConcert.band
     ) {
+      setPendingSwitchConcert(null);
       lastPromptConcertIdRef.current = null;
       promptShownAtRef.current = null;
       return;
     }
 
-    if (lastPromptConcertIdRef.current === activeRecognitionConcert.id) {
+    setPendingSwitchConcert((previousCandidate) =>
+      previousCandidate?.id === switchPromptConcert.id ? previousCandidate : switchPromptConcert
+    );
+
+    if (lastPromptConcertIdRef.current === switchPromptConcert.id) {
       return;
     }
 
@@ -433,14 +443,14 @@ function AppContent() {
     switchDecision.shownCount += 1;
     switchDecision.lastPromptSnapshot = {
       activeConcertId: activeConcert?.id ?? null,
-      candidateConcertId: activeRecognitionConcert.id,
+      candidateConcertId: switchPromptConcert.id,
       confidence: debugInfo?.bestMatch?.similarity ?? null,
       margin: debugInfo?.bestMatchMargin ?? null,
       shownAt,
     };
     promptShownAtRef.current = shownAt;
-    lastPromptConcertIdRef.current = activeRecognitionConcert.id;
-  }, [activeConcert, debugInfo, activeRecognitionConcert, activePlaylistBand]);
+    lastPromptConcertIdRef.current = switchPromptConcert.id;
+  }, [activeConcert, debugInfo, activeRecognitionConcert, activePlaylistBand, dismissedSwitchBand]);
 
   // Clear dismissed switch preference only after a different artist is seen.
   useEffect(() => {
@@ -503,11 +513,12 @@ function AppContent() {
       setActiveConcert(playbackTargetConcert);
     }
 
+    setPendingSwitchConcert(null);
     setDismissedSwitchBand(null);
   };
 
   const handleConfirmSwitch = () => {
-    if (!activeRecognitionConcert) {
+    if (!pendingSwitchConcert) {
       return;
     }
 
@@ -518,10 +529,10 @@ function AppContent() {
     lastPromptConcertIdRef.current = null;
 
     // Build a playlist for the new artist
-    const songs = dataService.getConcertsByBand(activeRecognitionConcert.band);
+    const songs = dataService.getConcertsByBand(pendingSwitchConcert.band);
     const newPlaylist = buildPlaylist(
-      songs.length > 0 ? songs : [activeRecognitionConcert],
-      activeRecognitionConcert.id
+      songs.length > 0 ? songs : [pendingSwitchConcert],
+      pendingSwitchConcert.id
     );
     const firstSong = newPlaylist[0];
     if (!firstSong?.audioFile) {
@@ -538,8 +549,9 @@ function AppContent() {
     userPausedRef.current = false;
     playlistRef.current = newPlaylist;
     playlistIndexRef.current = 0;
-    setActivePlaylistBand(activeRecognitionConcert.band);
+    setActivePlaylistBand(pendingSwitchConcert.band);
     setActiveConcert(firstSong);
+    setPendingSwitchConcert(null);
     setDismissedSwitchBand(null);
     resetRecognition();
   };
@@ -562,6 +574,7 @@ function AppContent() {
       }
 
       setIsConcertInfoVisible(false);
+      setPendingSwitchConcert(null);
       promptShownAtRef.current = null;
       lastPromptConcertIdRef.current = null;
       resetRecognition();
@@ -595,6 +608,7 @@ function AppContent() {
       playlistIndexRef.current = nextIndex;
       setActivePlaylistBand(targetTrack.band);
       setActiveConcert(targetTrack);
+      setPendingSwitchConcert(null);
       setDismissedSwitchBand(null);
       resetRecognition();
     },
@@ -636,6 +650,7 @@ function AppContent() {
     setIsActive(false);
     setIsConcertInfoVisible(false);
     setHasScannedPhotoLoadFailed(false);
+    setPendingSwitchConcert(null);
     setDismissedSwitchBand(null);
     setClosedConcertCooldown(null);
     setActiveConcert(null);
@@ -674,7 +689,9 @@ function AppContent() {
     };
   }, [shutdownExperience]);
 
-  const infoConcert = isConcertInfoVisible ? (activeRecognitionConcert ?? activeConcert) : null;
+  const infoConcert = isConcertInfoVisible
+    ? (pendingSwitchConcert ?? activeRecognitionConcert ?? activeConcert)
+    : null;
   const scannedPhotoUrl = infoConcert?.photoUrl ?? null;
   const shouldShowPhotoPlaceholder =
     !!isConcertInfoVisible && (!scannedPhotoUrl || hasScannedPhotoLoadFailed);
@@ -686,10 +703,7 @@ function AppContent() {
   }, [scannedPhotoUrl]);
 
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const canSwitch =
-    !!activeRecognitionConcert &&
-    !!activeConcert &&
-    activeRecognitionConcert.band !== activePlaylistBand;
+  const canSwitch = !!pendingSwitchConcert;
 
   const statusLabel = playbackError
     ? 'Playback Fault'
@@ -708,7 +722,7 @@ function AppContent() {
       ? playbackError
       : `${playbackError} Check stream access and tap Play to retry.`
     : canSwitch
-      ? `Current cut: ${activeConcert?.band}. Fresh lock found: ${activeRecognitionConcert?.band}.`
+      ? `Current cut: ${activeConcert?.band}. Fresh lock found: ${pendingSwitchConcert?.band}.`
       : activeRecognitionConcert
         ? 'Signal is locked. Playback runs continuously until you pause.'
         : activeConcert

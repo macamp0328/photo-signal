@@ -374,6 +374,58 @@ describe('App playback flow', () => {
     expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
   });
 
+  it('starts the new song via Drop the Needle using crossfade when currently playing', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.debugInfo = createDebugInfo(concertTwo, 5);
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Switch to Band Two' }));
+
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
+    expect(mockResetRecognition).toHaveBeenCalled();
+  });
+
+  it('starts the new song via Drop the Needle using play when currently paused', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    recognitionState.debugInfo = createDebugInfo(concertTwo, 5);
+    view.rerender(<App />);
+
+    audioState.isPlaying = false;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Switch to Band Two' }));
+
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
+    expect(mockCrossfade).not.toHaveBeenCalledWith('/audio/two.opus');
+    expect(mockResetRecognition).toHaveBeenCalled();
+  });
+
   it('closes details and resets recognition when user taps close', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;

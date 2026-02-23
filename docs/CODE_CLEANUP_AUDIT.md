@@ -50,7 +50,7 @@ export function useCustomSettings() {
 **Status**: ✅ Completed (2026-02-23)
 
 **Classification**: Delete (type field)
-**File**: `src/modules/secret-settings/types.ts:135`
+**File**: `src/modules/secret-settings/types.ts`
 
 **Problem**: The `CustomSetting` interface has an optional `engines` field:
 

@@ -110,20 +110,6 @@ const QUALITY_CAPTURE_SIZE = 128;
 const CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM = 2;
 
 /**
- * Switch-mode confirmation delay is this multiple of the base recognitionDelay.
- * Switching concert is treated more conservatively than initial recognition to
- * prevent flickering when two prints are in close proximity.
- */
-const DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER = 1.8;
-
-/**
- * Maximum pHash distance allowed for a switch-mode candidate. Deliberately
- * tighter than DEFAULT_SIMILARITY_THRESHOLD — a strong signal is required
- * before interrupting an active playback session.
- */
-const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
-
-/**
  * Minimum Hamming distance gap between the best match and the best match from
  * a *different* concert. With Change A (cross-concert secondBestMatch), same-
  * concert sibling hashes no longer compete for this slot, so a margin of 2 is
@@ -136,23 +122,6 @@ const DEFAULT_SWITCH_DISTANCE_THRESHOLD = 7;
  * responsive while noisy threshold-edge matches are filtered more strictly.
  */
 const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
-
-/** Stricter margin requirement in switch mode — see DEFAULT_MATCH_MARGIN_THRESHOLD. */
-const DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD = 6;
-
-/**
- * Distance at which a switch-mode match is confirmed in a single frame.
- * Tighter than INSTANT_DISTANCE_THRESHOLD because switching carries more risk
- * (≤3/64 bits ≈ ≥95% similarity).
- */
-const SWITCH_INSTANT_DISTANCE_THRESHOLD = 3;
-
-/**
- * Consecutive frames required for switch-mode "instant consecutive"
- * confirmation. One more than the initial-recognition counterpart to reduce
- * accidental switches.
- */
-const CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM = 3;
 
 // ---------------------------------------------------------------------------
 // Crop-based partial photo recognition thresholds
@@ -302,10 +271,6 @@ export function usePhotoRecognition(
     enabled = true,
     similarityThreshold = DEFAULT_SIMILARITY_THRESHOLD,
     matchMarginThreshold = DEFAULT_MATCH_MARGIN_THRESHOLD,
-    switchMatchMarginThreshold = DEFAULT_SWITCH_MATCH_MARGIN_THRESHOLD,
-    continuousRecognition = false,
-    switchRecognitionDelayMultiplier = DEFAULT_SWITCH_RECOGNITION_DELAY_MULTIPLIER,
-    switchDistanceThreshold = DEFAULT_SWITCH_DISTANCE_THRESHOLD,
     checkInterval = DEFAULT_CHECK_INTERVAL,
     enableDebugInfo = false,
     aspectRatio = 'auto',
@@ -320,7 +285,6 @@ export function usePhotoRecognition(
   } = options;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
-  const [switchCandidateConcert, setSwitchCandidateConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
@@ -339,9 +303,6 @@ export function usePhotoRecognition(
   const frameCountRef = useRef(0);
   const ambientBrightnessRef = useRef<number | null>(null);
   const ambientGlarePercentageRef = useRef<number | null>(null);
-  const switchCandidateConcertRef = useRef<Concert | null>(null);
-  const switchCandidateStartTimeRef = useRef<number | null>(null);
-  const switchConsecutiveMatchCountRef = useRef(0);
   const consecutiveBlurFramesRef = useRef(0);
   const rectangleHoldFramesRef = useRef(0);
   const lastConfidentRectangleRef = useRef<DetectedRectangle | null>(null);
@@ -361,16 +322,12 @@ export function usePhotoRecognition(
     frameCountRef.current = 0;
     ambientBrightnessRef.current = null;
     ambientGlarePercentageRef.current = null;
-    switchCandidateConcertRef.current = null;
-    switchCandidateStartTimeRef.current = null;
-    switchConsecutiveMatchCountRef.current = 0;
     consecutiveBlurFramesRef.current = 0;
     rectangleHoldFramesRef.current = 0;
     lastConfidentRectangleRef.current = null;
     telemetryRef.current = createEmptyTelemetry();
 
     setRecognizedConcert(null);
-    setSwitchCandidateConcert(null);
     setIsRecognizing(false);
     setDebugInfo(null);
     setFrameQuality(null);
@@ -470,17 +427,6 @@ export function usePhotoRecognition(
     rectangleDetectorRef.current = enableRectangleDetection
       ? new RectangleDetectionService()
       : null;
-
-    const switchRecognitionDelay = Math.round(
-      Math.max(recognitionDelay * switchRecognitionDelayMultiplier, recognitionDelay)
-    );
-
-    const clearSwitchTracking = () => {
-      switchCandidateConcertRef.current = null;
-      switchCandidateStartTimeRef.current = null;
-      switchConsecutiveMatchCountRef.current = 0;
-      setSwitchCandidateConcert(null);
-    };
 
     // -----------------------------------------------------------------------
     // Inner helper: quality filtering
@@ -591,7 +537,6 @@ export function usePhotoRecognition(
             lastMatchedConcertRef.current = null;
             consecutiveMatchCountRef.current = 0;
             matchStartTimeRef.current = null;
-            clearSwitchTracking();
           }
 
           setIsRecognizing(false);
@@ -615,7 +560,6 @@ export function usePhotoRecognition(
         lastMatchedConcertRef.current = null;
         consecutiveMatchCountRef.current = 0;
         matchStartTimeRef.current = null;
-        clearSwitchTracking();
         setIsRecognizing(false);
 
         return { rejected: true, quality };
@@ -629,32 +573,13 @@ export function usePhotoRecognition(
     // -----------------------------------------------------------------------
     // Inner helper: stability progress
     // Returns a StabilityDebugInfo snapshot showing how far along the
-    // recognition (or switch) dwell timer is, or null when not applicable.
+    // recognition dwell timer is, or null when not applicable.
     // -----------------------------------------------------------------------
     const computeStability = (
       activeMatch: Concert | null,
-      isSwitchMode: boolean,
       now: number
     ): StabilityDebugInfo | null => {
       if (!activeMatch) return null;
-
-      if (isSwitchMode) {
-        if (
-          switchCandidateStartTimeRef.current !== null &&
-          switchCandidateConcertRef.current?.id === activeMatch.id
-        ) {
-          const elapsedMs = now - switchCandidateStartTimeRef.current;
-          return {
-            concert: activeMatch,
-            elapsedMs,
-            remainingMs: Math.max(switchRecognitionDelay - elapsedMs, 0),
-            requiredMs: switchRecognitionDelay,
-            progress:
-              switchRecognitionDelay > 0 ? Math.min(elapsedMs / switchRecognitionDelay, 1) : 1,
-          };
-        }
-        return null;
-      }
 
       if (
         matchStartTimeRef.current !== null &&
@@ -677,7 +602,7 @@ export function usePhotoRecognition(
     // Per-frame pipeline
     // -----------------------------------------------------------------------
     const checkFrame = () => {
-      if (recognizedConcertRef.current && !continuousRecognition) {
+      if (recognizedConcertRef.current) {
         return;
       }
 
@@ -866,19 +791,10 @@ export function usePhotoRecognition(
 
         // Decision variables
         const now = Date.now();
-        const isSwitchMode = continuousRecognition && !!recognizedConcertRef.current;
-        const activeThreshold = isSwitchMode
-          ? Math.min(similarityThreshold, switchDistanceThreshold)
-          : matchedViaCrop
-            ? CROP_SIMILARITY_THRESHOLD
-            : similarityThreshold;
+        const activeThreshold = matchedViaCrop ? CROP_SIMILARITY_THRESHOLD : similarityThreshold;
         const bestMargin =
           bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
-        const requiredMargin = isSwitchMode
-          ? switchMatchMarginThreshold
-          : matchedViaCrop
-            ? CROP_MATCH_MARGIN_THRESHOLD
-            : matchMarginThreshold;
+        const requiredMargin = matchedViaCrop ? CROP_MATCH_MARGIN_THRESHOLD : matchMarginThreshold;
         const marginBoostNearThreshold =
           bestMatch && bestMatch.distance >= Math.max(activeThreshold - 1, 0) ? 1 : 0;
         const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
@@ -965,14 +881,14 @@ export function usePhotoRecognition(
             hdLog.matchedFrameDistances.max = dist;
           }
           // Near-miss: above the active threshold but close enough to be
-          // informative for tuning (captures both initial and switch mode).
+          // informative for threshold tuning.
           if (dist > activeThreshold && dist <= activeThreshold + 8) {
             hdLog.nearMisses.push({
               distance: dist,
               frameHash: currentHash,
               timestamp: Date.now(),
               thresholdUsed: activeThreshold,
-              mode: isSwitchMode ? 'switch' : 'initial',
+              mode: 'initial',
             });
             if (hdLog.nearMisses.length > 20) {
               hdLog.nearMisses.shift();
@@ -981,7 +897,7 @@ export function usePhotoRecognition(
         }
 
         // Stability progress for debug overlay
-        const stability = computeStability(activeMatch, isSwitchMode, now);
+        const stability = computeStability(activeMatch, now);
 
         if (enableDebugInfo) {
           setDebugInfo(
@@ -1008,71 +924,6 @@ export function usePhotoRecognition(
         if (activeMatch) {
           setActiveGuidance('none');
 
-          if (isSwitchMode) {
-            const currentlyRecognizedConcert = recognizedConcertRef.current;
-
-            if (currentlyRecognizedConcert && activeMatch.id === currentlyRecognizedConcert.id) {
-              clearSwitchTracking();
-              setIsRecognizing(false);
-              return;
-            }
-
-            const isStrongSwitchCandidate =
-              !!bestMatch && bestMatch.distance <= switchDistanceThreshold;
-
-            if (!isStrongSwitchCandidate) {
-              clearSwitchTracking();
-              setIsRecognizing(false);
-              return;
-            }
-
-            const isSameSwitchCandidate = switchCandidateConcertRef.current?.id === activeMatch.id;
-            switchConsecutiveMatchCountRef.current = isSameSwitchCandidate
-              ? switchConsecutiveMatchCountRef.current + 1
-              : 1;
-
-            const isInstantSwitchDistance =
-              !!bestMatch && bestMatch.distance <= SWITCH_INSTANT_DISTANCE_THRESHOLD;
-            const hasConsecutiveSwitchConfidence =
-              switchConsecutiveMatchCountRef.current >= CONSECUTIVE_SWITCH_MATCHES_FOR_CONFIRM;
-
-            if (isSameSwitchCandidate) {
-              const confirmedByDelay =
-                switchCandidateStartTimeRef.current !== null &&
-                now - switchCandidateStartTimeRef.current >= switchRecognitionDelay;
-              const confirmedByInstantConfidence =
-                isInstantSwitchDistance && hasConsecutiveSwitchConfidence;
-
-              if (hasConsecutiveSwitchConfidence) {
-                setSwitchCandidateConcert(activeMatch);
-              }
-
-              if (confirmedByDelay || confirmedByInstantConfidence) {
-                recognizedConcertRef.current = activeMatch;
-                confirmedMatch = true;
-                if (confirmedByInstantConfidence) {
-                  telemetryRef.current.instantSwitchConfirmations =
-                    (telemetryRef.current.instantSwitchConfirmations ?? 0) + 1;
-                }
-                setRecognizedConcert(activeMatch);
-                setIsRecognizing(false);
-                telemetryRef.current.successfulRecognitions += 1;
-                clearSwitchTracking();
-                return;
-              }
-
-              setIsRecognizing(true);
-              return;
-            }
-
-            setSwitchCandidateConcert(null);
-            switchCandidateConcertRef.current = activeMatch;
-            switchCandidateStartTimeRef.current = now;
-            switchConsecutiveMatchCountRef.current = 1;
-            setIsRecognizing(true);
-            return;
-          }
-
           const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
           consecutiveMatchCountRef.current = isSameConcert
             ? consecutiveMatchCountRef.current + 1
@@ -1098,7 +949,6 @@ export function usePhotoRecognition(
             lastMatchedConcertRef.current = null;
             consecutiveMatchCountRef.current = 0;
             matchStartTimeRef.current = null;
-            clearSwitchTracking();
             return;
           }
 
@@ -1115,7 +965,6 @@ export function usePhotoRecognition(
               lastMatchedConcertRef.current = null;
               consecutiveMatchCountRef.current = 0;
               matchStartTimeRef.current = null;
-              clearSwitchTracking();
               return;
             }
             setIsRecognizing(true);
@@ -1143,8 +992,8 @@ export function usePhotoRecognition(
             isAmbiguousCollision || isNearThresholdNoMatch ? 'collision' : 'no-match';
 
           const collisionReason = isAmbiguousCollision
-            ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band ?? 'unknown'} (margin ${bestMargin ?? 0}, required ${effectiveRequiredMargin}, distance ${bestMatch.distance}, threshold ${activeThreshold}, mode ${isSwitchMode ? 'switch' : 'initial'})`
-            : `Near-threshold miss: ${bestMatch.concert.band} (distance ${bestMatch.distance}, threshold ${activeThreshold}, mode ${isSwitchMode ? 'switch' : 'initial'})`;
+            ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band ?? 'unknown'} (margin ${bestMargin ?? 0}, required ${effectiveRequiredMargin}, distance ${bestMatch.distance}, threshold ${activeThreshold})`
+            : `Near-threshold miss: ${bestMatch.concert.band} (distance ${bestMatch.distance}, threshold ${activeThreshold})`;
 
           if (category === 'collision') {
             recordCollisionDetails(telemetryRef.current, {
@@ -1160,7 +1009,7 @@ export function usePhotoRecognition(
             category,
             category === 'collision'
               ? collisionReason
-              : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance}, threshold ${activeThreshold}, mode ${isSwitchMode ? 'switch' : 'initial'})`,
+              : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance}, threshold ${activeThreshold})`,
             currentHash
           );
         } else {
@@ -1178,7 +1027,6 @@ export function usePhotoRecognition(
         lastMatchedConcertRef.current = null;
         consecutiveMatchCountRef.current = 0;
         matchStartTimeRef.current = null;
-        clearSwitchTracking();
         setIsRecognizing(false);
       } finally {
         if (enableDebugInfo) {
@@ -1198,8 +1046,7 @@ export function usePhotoRecognition(
     // Adaptive scheduling: scan faster when tracking a candidate, slower when idle.
     // A fixed checkInterval (non-default) overrides this for test compatibility.
     const scheduleNext = () => {
-      const isTracking =
-        lastMatchedConcertRef.current !== null || switchCandidateConcertRef.current !== null;
+      const isTracking = lastMatchedConcertRef.current !== null;
       const delay =
         checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 120;
       intervalRef.current = window.setTimeout(() => {
@@ -1231,10 +1078,6 @@ export function usePhotoRecognition(
     recognitionDelay,
     similarityThreshold,
     matchMarginThreshold,
-    switchMatchMarginThreshold,
-    continuousRecognition,
-    switchRecognitionDelayMultiplier,
-    switchDistanceThreshold,
     aspectRatio,
     sharpnessThreshold,
     glareThreshold,
@@ -1250,7 +1093,6 @@ export function usePhotoRecognition(
 
   return {
     recognizedConcert,
-    switchCandidateConcert,
     isRecognizing,
     reset,
     resetTelemetry,

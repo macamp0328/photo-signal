@@ -189,7 +189,6 @@ export interface RecognitionDebugInfo {
 
 export interface PhotoRecognitionHook {
   recognizedConcert: Concert | null;
-  switchCandidateConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;
   resetTelemetry: () => void;
@@ -212,14 +211,6 @@ export interface PhotoRecognitionOptions {
   similarityThreshold?: number;
   /** Minimum gap between best and second-best match distance (ambiguity guard). Default: 4 */
   matchMarginThreshold?: number;
-  /** Stricter margin required to switch away from an already-confirmed match. Default: 6 */
-  switchMatchMarginThreshold?: number;
-  /** Allow switching to a different match after one is confirmed. Default: false */
-  continuousRecognition?: boolean;
-  /** Multiplier applied to recognitionDelay when evaluating a switch candidate. Default: 1.8 */
-  switchRecognitionDelayMultiplier?: number;
-  /** Stricter distance threshold applied only during switch-mode evaluation. Default: 7 */
-  switchDistanceThreshold?: number;
   /** Frame sampling interval (ms). Adaptive: ~80ms while tracking, ~120ms idle. Default: 120 */
   checkInterval?: number;
   /** Collect and return debug telemetry. Default: false.

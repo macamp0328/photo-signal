@@ -15,10 +15,6 @@ const DEFAULTS = {
   recognitionDelay: 200,
   similarityThreshold: 14,
   matchMarginThreshold: 4,
-  switchMatchMarginThreshold: 6,
-  continuousRecognition: false,
-  switchRecognitionDelayMultiplier: 1.8,
-  switchDistanceThreshold: 7,
   checkInterval: 120,
   sharpnessThreshold: 100,
   glareThreshold: 250,
@@ -37,10 +33,6 @@ export interface ActiveSettings {
   recognitionDelay: number;
   similarityThreshold: number;
   matchMarginThreshold: number;
-  switchMatchMarginThreshold: number;
-  continuousRecognition: boolean;
-  switchRecognitionDelayMultiplier: number;
-  switchDistanceThreshold: number;
   checkInterval: number;
   sharpnessThreshold: number;
   glareThreshold: number;
@@ -60,12 +52,6 @@ export function computeActiveSettings(options: PhotoRecognitionOptions): ActiveS
     recognitionDelay: options.recognitionDelay ?? DEFAULTS.recognitionDelay,
     similarityThreshold: options.similarityThreshold ?? DEFAULTS.similarityThreshold,
     matchMarginThreshold: options.matchMarginThreshold ?? DEFAULTS.matchMarginThreshold,
-    switchMatchMarginThreshold:
-      options.switchMatchMarginThreshold ?? DEFAULTS.switchMatchMarginThreshold,
-    continuousRecognition: options.continuousRecognition ?? DEFAULTS.continuousRecognition,
-    switchRecognitionDelayMultiplier:
-      options.switchRecognitionDelayMultiplier ?? DEFAULTS.switchRecognitionDelayMultiplier,
-    switchDistanceThreshold: options.switchDistanceThreshold ?? DEFAULTS.switchDistanceThreshold,
     checkInterval: options.checkInterval ?? DEFAULTS.checkInterval,
     sharpnessThreshold: options.sharpnessThreshold ?? DEFAULTS.sharpnessThreshold,
     glareThreshold: options.glareThreshold ?? DEFAULTS.glareThreshold,
@@ -215,7 +201,7 @@ export function computeAiRecommendations(
 
       shouldRaiseMargin = hasMarginSignal ? lowMarginBias > highMarginBias : true;
       suggestedMargin = shouldRaiseMargin
-        ? Math.min(settings.matchMarginThreshold + 1, settings.switchMatchMarginThreshold)
+        ? settings.matchMarginThreshold + 1
         : settings.matchMarginThreshold;
 
       recommendationBody = shouldRaiseMargin

@@ -116,7 +116,6 @@ describe('usePhotoRecognition', () => {
   it('starts with null recognized concert', () => {
     const { result } = renderHook(() => usePhotoRecognition(null));
     expect(result.current.recognizedConcert).toBeNull();
-    expect(result.current.switchCandidateConcert).toBeNull();
     expect(result.current.isRecognizing).toBe(false);
   });
 
@@ -255,7 +254,7 @@ describe('usePhotoRecognition', () => {
     }
   });
 
-  it('switches recognized concert in continuous mode after stricter confirmation', async () => {
+  it('stops processing additional matches once a concert is recognized until reset', async () => {
     const originalCreateElement = document.createElement.bind(document);
 
     const mockContext = {
@@ -296,10 +295,6 @@ describe('usePhotoRecognition', () => {
           enabled: true,
           recognitionDelay: 120,
           checkInterval: 50,
-          continuousRecognition: true,
-          switchRecognitionDelayMultiplier: 1.5,
-          switchDistanceThreshold: 8,
-          switchMatchMarginThreshold: 4,
         })
       );
 
@@ -313,160 +308,24 @@ describe('usePhotoRecognition', () => {
 
       expect(result.current.recognizedConcert?.id).toBe(1);
 
-      // Two-nibble difference from concert #2 baseline hash => mocked distance 8.
-      // This passes switch threshold (8) but avoids instant switch confirm (<= 3),
-      // allowing switchCandidateConcert to persist before strict delay confirmation.
+      // Change frame hash to a close match for concert #2 after initial confirmation.
       activeFrameHash = 'b6c4d8e2f3a10500';
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(350);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+
+      act(() => {
+        result.current.reset();
+      });
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(350);
       });
 
       expect(result.current.recognizedConcert?.id).toBe(2);
-    } finally {
-      createElementSpy.mockRestore();
-    }
-  });
-
-  it('exposes a stable switch candidate before strict switch confirmation completes', async () => {
-    const originalCreateElement = document.createElement.bind(document);
-
-    const mockContext = {
-      drawImage: vi.fn(),
-      getImageData: vi.fn(() => new ImageData(64, 64)),
-    } as unknown as CanvasRenderingContext2D;
-
-    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
-      tagName: string,
-      options?: ElementCreationOptions
-    ) => {
-      if (tagName === 'video') {
-        const video = originalCreateElement('video', options) as HTMLVideoElement;
-        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
-        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
-        Object.defineProperty(video, 'readyState', {
-          value: HTMLMediaElement.HAVE_CURRENT_DATA,
-          configurable: true,
-        });
-        return video;
-      }
-
-      if (tagName === 'canvas') {
-        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
-        Object.defineProperty(canvas, 'getContext', {
-          value: vi.fn(() => mockContext),
-          configurable: true,
-        });
-        return canvas;
-      }
-
-      return originalCreateElement(tagName, options);
-    }) as typeof document.createElement);
-
-    try {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          enabled: true,
-          recognitionDelay: 600,
-          checkInterval: 50,
-          continuousRecognition: true,
-          switchRecognitionDelayMultiplier: 2,
-          switchDistanceThreshold: 8,
-          switchMatchMarginThreshold: 4,
-        })
-      );
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(80);
-      });
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
-      });
-
-      expect(result.current.recognizedConcert?.id).toBe(1);
-      expect(result.current.switchCandidateConcert).toBeNull();
-
-      // Two-nibble difference from concert #2 baseline hash => mocked distance 8.
-      // This passes switch threshold (8) but avoids instant switch confirm (<= 3),
-      // allowing switchCandidateConcert to persist before strict delay confirmation.
-      activeFrameHash = 'b6c4d8e2f3a10500';
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(320);
-      });
-
-      expect(result.current.switchCandidateConcert?.id).toBe(2);
-      expect(result.current.recognizedConcert?.id).toBe(1);
-    } finally {
-      createElementSpy.mockRestore();
-    }
-  });
-
-  it('does not switch in continuous mode when candidate is at distance 8 by default', async () => {
-    const originalCreateElement = document.createElement.bind(document);
-
-    const mockContext = {
-      drawImage: vi.fn(),
-      getImageData: vi.fn(() => new ImageData(64, 64)),
-    } as unknown as CanvasRenderingContext2D;
-
-    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
-      tagName: string,
-      options?: ElementCreationOptions
-    ) => {
-      if (tagName === 'video') {
-        const video = originalCreateElement('video', options) as HTMLVideoElement;
-        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
-        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
-        Object.defineProperty(video, 'readyState', {
-          value: HTMLMediaElement.HAVE_CURRENT_DATA,
-          configurable: true,
-        });
-        return video;
-      }
-
-      if (tagName === 'canvas') {
-        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
-        Object.defineProperty(canvas, 'getContext', {
-          value: vi.fn(() => mockContext),
-          configurable: true,
-        });
-        return canvas;
-      }
-
-      return originalCreateElement(tagName, options);
-    }) as typeof document.createElement);
-
-    try {
-      const { result } = renderHook(() =>
-        usePhotoRecognition(mockStream, {
-          enabled: true,
-          recognitionDelay: 120,
-          checkInterval: 50,
-          continuousRecognition: true,
-          switchRecognitionDelayMultiplier: 1.5,
-        })
-      );
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(80);
-      });
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(400);
-      });
-
-      expect(result.current.recognizedConcert?.id).toBe(1);
-
-      // Two-nibble difference from concert #2 baseline hash => mocked distance 8.
-      activeFrameHash = 'b6c4d8e2f3a10500';
-
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(350);
-      });
-
-      expect(result.current.recognizedConcert?.id).toBe(1);
     } finally {
       createElementSpy.mockRestore();
     }
@@ -847,14 +706,13 @@ describe('usePhotoRecognition', () => {
       }));
 
     try {
-      activeFrameHash = 'a5b3c7d9e1f20486';
+      activeFrameHash = 'ffffffffffffffff';
 
       const { result } = renderHook(() =>
         usePhotoRecognition(mockStream, {
           enabled: true,
           enableRectangleDetection: true,
           rectangleConfidenceThreshold: 0.35,
-          continuousRecognition: true,
           checkInterval: 50,
         })
       );

@@ -67,7 +67,6 @@ const audioState = {
 
 const recognitionState = {
   recognizedConcert: null as Concert | null,
-  switchCandidateConcert: null as Concert | null,
   isRecognizing: false,
   debugInfo: null as RecognitionDebugInfo | null,
   frameQuality: null,
@@ -226,7 +225,6 @@ describe('App playback flow', () => {
       resetTelemetry: vi.fn(),
     }));
     recognitionState.recognizedConcert = null;
-    recognitionState.switchCandidateConcert = null;
     recognitionState.isRecognizing = false;
     recognitionState.debugInfo = null;
     recognitionState.frameQuality = null;
@@ -261,7 +259,7 @@ describe('App playback flow', () => {
     vi.clearAllMocks();
   });
 
-  it('passes telemetry-aligned recognition defaults while keeping switch controls intact', () => {
+  it('passes telemetry-aligned recognition defaults', () => {
     render(<App />);
 
     expect(mockUsePhotoRecognition).toHaveBeenCalled();
@@ -272,8 +270,6 @@ describe('App playback flow', () => {
     expect(options).toBeDefined();
     expect(options?.similarityThreshold).toBe(21);
     expect(options?.sharpnessThreshold).toBe(65);
-    expect(options?.continuousRecognition).toBeUndefined();
-    expect(options?.switchDistanceThreshold).toBeUndefined();
   });
 
   it('auto-plays first recognized concert after activation', async () => {

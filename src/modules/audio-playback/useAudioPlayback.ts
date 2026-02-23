@@ -437,6 +437,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const crossfade = useCallback(
     (newUrl: string, duration: number = crossfadeDuration) => {
       setPlaybackError(null);
+      void unlockAudioContext();
 
       // If crossfade is disabled, just play the new track
       if (!crossfadeEnabled) {
@@ -502,10 +503,22 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           fadingOutSoundRef.current.unload();
           fadingOutSoundRef.current = null;
         }
+        const activeSound = soundRef.current;
+        if (currentUrlRef.current === newUrl && activeSound && !activeSound.playing()) {
+          activeSound.play();
+        }
         crossfadeTimeoutRef.current = null;
       }, duration);
     },
-    [crossfadeDuration, crossfadeEnabled, getCachedOrCreateSound, isPlaying, play, volume]
+    [
+      crossfadeDuration,
+      crossfadeEnabled,
+      getCachedOrCreateSound,
+      isPlaying,
+      play,
+      unlockAudioContext,
+      volume,
+    ]
   );
 
   return {

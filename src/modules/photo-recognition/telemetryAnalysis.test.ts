@@ -54,12 +54,8 @@ describe('computeActiveSettings', () => {
     expect(settings.glareThreshold).toBe(250);
     expect(settings.minBrightness).toBe(50);
     expect(settings.maxBrightness).toBe(220);
-    expect(settings.recognitionDelay).toBe(200);
+    expect(settings.recognitionDelay).toBe(150);
     expect(settings.checkInterval).toBe(120);
-    expect(settings.switchDistanceThreshold).toBe(7);
-    expect(settings.switchMatchMarginThreshold).toBe(6);
-    expect(settings.switchRecognitionDelayMultiplier).toBe(1.8);
-    expect(settings.continuousRecognition).toBe(false);
     expect(settings.enableRectangleDetection).toBe(false);
     expect(settings.rectangleConfidenceThreshold).toBe(0.35);
   });
@@ -70,12 +66,12 @@ describe('computeActiveSettings', () => {
     expect(settings.sharpnessThreshold).toBe(75);
     // defaults preserved for unspecified fields
     expect(settings.matchMarginThreshold).toBe(4);
-    expect(settings.recognitionDelay).toBe(200);
+    expect(settings.recognitionDelay).toBe(150);
   });
 
   it('handles partial options without errors', () => {
-    const settings = computeActiveSettings({ continuousRecognition: true });
-    expect(settings.continuousRecognition).toBe(true);
+    const settings = computeActiveSettings({ recognitionDelay: 250 });
+    expect(settings.recognitionDelay).toBe(250);
     expect(settings.similarityThreshold).toBe(14);
   });
 

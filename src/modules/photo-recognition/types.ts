@@ -109,7 +109,6 @@ export interface TemporalTelemetrySnapshot {
     successfulRecognitions: number;
     failedAttempts: number;
     instantConfirmations: number;
-    instantSwitchConfirmations: number;
     qualityBypassFrames: number;
   };
 }
@@ -123,24 +122,6 @@ export type GuidanceType =
   | 'off-center'
   | 'none';
 
-export interface SwitchPromptSnapshot {
-  activeConcertId: number | null;
-  candidateConcertId: number | null;
-  confidence: number | null;
-  margin: number | null;
-  shownAt: number | null;
-}
-
-export interface SwitchDecisionTelemetry {
-  shownCount: number;
-  confirmCount: number;
-  dismissCount: number;
-  decisionLatenciesMs: number[];
-  averageDecisionLatencyMs: number | null;
-  lastDecisionLatencyMs: number | null;
-  lastPromptSnapshot: SwitchPromptSnapshot;
-}
-
 export interface RecognitionTelemetry {
   totalFrames: number;
   blurRejections: number;
@@ -150,7 +131,6 @@ export interface RecognitionTelemetry {
   qualityBypassFrames?: number;
   successfulRecognitions: number;
   instantConfirmations?: number;
-  instantSwitchConfirmations?: number;
   failedAttempts: number;
   failureHistory: FailureDiagnostic[];
   failureByCategory: Record<FailureCategory, number>;
@@ -159,7 +139,6 @@ export interface RecognitionTelemetry {
     duration: Record<GuidanceType, number>;
     lastShown: Record<GuidanceType, number>;
   };
-  switchDecision?: SwitchDecisionTelemetry;
   /** Running sums and counts for quality measurements of rejected frames. */
   frameQualityStats: FrameQualityStats;
   /** Hamming distance distribution for quality-passing frames. */
@@ -189,7 +168,6 @@ export interface RecognitionDebugInfo {
 
 export interface PhotoRecognitionHook {
   recognizedConcert: Concert | null;
-  switchCandidateConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;
   resetTelemetry: () => void;
@@ -212,14 +190,6 @@ export interface PhotoRecognitionOptions {
   similarityThreshold?: number;
   /** Minimum gap between best and second-best match distance (ambiguity guard). Default: 4 */
   matchMarginThreshold?: number;
-  /** Stricter margin required to switch away from an already-confirmed match. Default: 6 */
-  switchMatchMarginThreshold?: number;
-  /** Allow switching to a different match after one is confirmed. Default: false */
-  continuousRecognition?: boolean;
-  /** Multiplier applied to recognitionDelay when evaluating a switch candidate. Default: 1.8 */
-  switchRecognitionDelayMultiplier?: number;
-  /** Stricter distance threshold applied only during switch-mode evaluation. Default: 7 */
-  switchDistanceThreshold?: number;
   /** Frame sampling interval (ms). Adaptive: ~80ms while tracking, ~120ms idle. Default: 120 */
   checkInterval?: number;
   /** Collect and return debug telemetry. Default: false.

@@ -4,8 +4,8 @@
  * Covers the close-and-resume recognition UX:
  * - A detected match shows details with an explicit close action.
  * - Closing details resets recognition state and hides details.
- * - The just-closed artist is suppressed briefly (per-concert cooldown), while
- *   a genuinely different artist can still appear immediately.
+ * - The just-closed concert is suppressed briefly (per-concert cooldown), while
+ *   other concerts can still appear immediately.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -16,8 +16,8 @@ import { setupBrowserMocks } from './setup';
 import type { Concert } from '../../types';
 
 // ─── Mock concert data ────────────────────────────────────────────────────────
-// Includes two concerts for Artist B (different IDs, same band) to exercise the
-// ID-vs-band dismissal bug.
+// Includes two concerts for Artist B (different IDs, same band) to exercise
+// cooldown behavior for same-concert reopen vs different-concert visibility.
 
 const MOCK_DATA = {
   concerts: [
@@ -230,7 +230,7 @@ describe('Artist Audio Switch', () => {
     expect(mockReset).toHaveBeenCalled();
   });
 
-  it('closing details dismisses the band for switch prompts', async () => {
+  it('closing details applies cooldown only to the just-closed concert', async () => {
     await activateAndPlayArtistA();
     const user = userEvent.setup();
 
@@ -244,7 +244,7 @@ describe('Artist Audio Switch', () => {
       expect(screen.getByText('Artist B')).toBeInTheDocument();
     });
 
-    // Close Artist B details to start per-concert cooldown and dismiss the band
+    // Close Artist B details to start per-concert cooldown
     await user.click(screen.getByRole('button', { name: /close concert details/i }));
 
     // Immediate re-detection of the same closed concert is suppressed during cooldown
@@ -255,12 +255,12 @@ describe('Artist Audio Switch', () => {
       expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
     });
 
-    // A different concert from the same band is also suppressed
+    // A different concert from the same band can still show immediately
     await act(async () => {
       setMockRecognizedConcert(concertB2);
     });
     await waitFor(() => {
-      expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+      expect(screen.getByText('Venue B2')).toBeInTheDocument();
     });
 
     // A concert from a different band can still show immediately

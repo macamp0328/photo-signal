@@ -67,7 +67,6 @@ const audioState = {
 
 const recognitionState = {
   recognizedConcert: null as Concert | null,
-  switchCandidateConcert: null as Concert | null,
   isRecognizing: false,
   debugInfo: null as RecognitionDebugInfo | null,
   frameQuality: null,
@@ -77,6 +76,7 @@ const recognitionState = {
 };
 
 const mockResetRecognition = vi.fn();
+const mockUsePhotoRecognition = vi.fn();
 const enabledFlags = new Set<string>();
 
 const createDebugTelemetry = (): RecognitionTelemetry => ({
@@ -179,11 +179,12 @@ vi.mock('./modules/motion-detection', () => ({
 }));
 
 vi.mock('./modules/photo-recognition', () => ({
-  usePhotoRecognition: () => ({
-    ...recognitionState,
-    reset: mockResetRecognition,
-    resetTelemetry: vi.fn(),
-  }),
+  usePhotoRecognition: (...args: unknown[]) =>
+    mockUsePhotoRecognition(...args) ?? {
+      ...recognitionState,
+      reset: mockResetRecognition,
+      resetTelemetry: vi.fn(),
+    },
   FrameQualityIndicator: () => null,
   GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
     <div data-testid="guidance-message">{guidanceType}</div>
@@ -218,8 +219,12 @@ describe('App playback flow', () => {
   };
 
   beforeEach(() => {
+    mockUsePhotoRecognition.mockImplementation(() => ({
+      ...recognitionState,
+      reset: mockResetRecognition,
+      resetTelemetry: vi.fn(),
+    }));
     recognitionState.recognizedConcert = null;
-    recognitionState.switchCandidateConcert = null;
     recognitionState.isRecognizing = false;
     recognitionState.debugInfo = null;
     recognitionState.frameQuality = null;
@@ -252,6 +257,19 @@ describe('App playback flow', () => {
     });
 
     vi.clearAllMocks();
+  });
+
+  it('passes telemetry-aligned recognition defaults', () => {
+    render(<App />);
+
+    expect(mockUsePhotoRecognition).toHaveBeenCalled();
+
+    const options = mockUsePhotoRecognition.mock.calls[0]?.[1] as
+      | Record<string, unknown>
+      | undefined;
+    expect(options).toBeDefined();
+    expect(options?.similarityThreshold).toBe(22);
+    expect(options?.sharpnessThreshold).toBe(65);
   });
 
   it('auto-plays first recognized concert after activation', async () => {
@@ -307,7 +325,7 @@ describe('App playback flow', () => {
     });
   });
 
-  it('shows matched details and renders switch button while details are visible', async () => {
+  it('shows matched details without rendering a switch button while details are visible', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -330,7 +348,7 @@ describe('App playback flow', () => {
     expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
   });
@@ -352,7 +370,7 @@ describe('App playback flow', () => {
     expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
-  it('renders switch button when recognizedConcert changes while song is playing', async () => {
+  it('does not render switch button when recognizedConcert changes while song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -371,59 +389,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
-  });
-
-  it('starts the new song via Drop the Needle using crossfade when currently playing', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    const view = render(<App />);
-
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    audioState.isPlaying = true;
-    recognitionState.recognizedConcert = concertTwo;
-    recognitionState.debugInfo = createDebugInfo(concertTwo, 5);
-    view.rerender(<App />);
-
-    await user.click(screen.getByRole('button', { name: 'Switch to Band Two' }));
-
-    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
-    expect(mockResetRecognition).toHaveBeenCalled();
-  });
-
-  it('starts the new song via Drop the Needle using play when currently paused', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    const view = render(<App />);
-
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    audioState.isPlaying = true;
-    recognitionState.recognizedConcert = concertTwo;
-    recognitionState.debugInfo = createDebugInfo(concertTwo, 5);
-    view.rerender(<App />);
-
-    audioState.isPlaying = false;
-    view.rerender(<App />);
-
-    await user.click(screen.getByRole('button', { name: 'Switch to Band Two' }));
-
-    expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
-    expect(mockCrossfade).not.toHaveBeenCalledWith('/audio/two.opus');
-    expect(mockResetRecognition).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
   });
 
   it('closes details and resets recognition when user taps close', async () => {
@@ -633,7 +599,7 @@ describe('App playback flow', () => {
     expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
   });
 
-  it('renders switch button in matched-details mode', async () => {
+  it('keeps switch button hidden in matched-details mode', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -653,7 +619,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Switch to Band Two' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Switch to Band Two' })).not.toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries and resets recognition state', async () => {

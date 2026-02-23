@@ -10,27 +10,6 @@ import type {
   TemporalTelemetrySnapshot,
 } from '../modules/photo-recognition/types';
 
-const getLatencyBounds = (latencyValues: number[]): { min: number | null; max: number | null } => {
-  if (latencyValues.length === 0) {
-    return { min: null, max: null };
-  }
-
-  let min = latencyValues[0];
-  let max = latencyValues[0];
-
-  for (let index = 1; index < latencyValues.length; index += 1) {
-    const value = latencyValues[index];
-    if (value < min) {
-      min = value;
-    }
-    if (value > max) {
-      max = value;
-    }
-  }
-
-  return { min, max };
-};
-
 /**
  * Format guidance telemetry for console logging
  */
@@ -104,23 +83,6 @@ export function formatGuidanceTelemetry(telemetry: RecognitionTelemetry): string
  * Export guidance telemetry as JSON for analysis
  */
 export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string {
-  const switchDecision = telemetry.switchDecision ?? {
-    shownCount: 0,
-    confirmCount: 0,
-    dismissCount: 0,
-    decisionLatenciesMs: [],
-    averageDecisionLatencyMs: null,
-    lastDecisionLatencyMs: null,
-    lastPromptSnapshot: {
-      activeConcertId: null,
-      candidateConcertId: null,
-      confidence: null,
-      margin: null,
-      shownAt: null,
-    },
-  };
-  const latencyValues = switchDecision.decisionLatenciesMs;
-  const latencyBounds = getLatencyBounds(latencyValues);
   const exportData = {
     timestamp: new Date().toISOString(),
     frameStats: {
@@ -153,27 +115,6 @@ export function exportGuidanceTelemetry(telemetry: RecognitionTelemetry): string
           (value / 1000).toFixed(1),
         ])
       ),
-    },
-    switchDecisionMetrics: {
-      shownCount: switchDecision.shownCount,
-      confirmCount: switchDecision.confirmCount,
-      dismissCount: switchDecision.dismissCount,
-      confirmRate:
-        switchDecision.shownCount > 0
-          ? (switchDecision.confirmCount / switchDecision.shownCount) * 100
-          : 0,
-      dismissRate:
-        switchDecision.shownCount > 0
-          ? (switchDecision.dismissCount / switchDecision.shownCount) * 100
-          : 0,
-      decisionLatencyMs: {
-        average: switchDecision.averageDecisionLatencyMs,
-        last: switchDecision.lastDecisionLatencyMs,
-        min: latencyBounds.min,
-        max: latencyBounds.max,
-        samples: latencyValues,
-      },
-      lastPromptSnapshot: switchDecision.lastPromptSnapshot,
     },
     failureBreakdown: telemetry.failureByCategory,
     failureHistory: telemetry.failureHistory,
@@ -251,7 +192,6 @@ export function buildTemporalSnapshot(
       successfulRecognitions: live.successfulRecognitions,
       failedAttempts: live.failedAttempts,
       instantConfirmations: live.instantConfirmations ?? 0,
-      instantSwitchConfirmations: live.instantSwitchConfirmations ?? 0,
       qualityBypassFrames: live.qualityBypassFrames ?? 0,
     },
   };

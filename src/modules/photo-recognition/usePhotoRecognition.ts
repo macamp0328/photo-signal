@@ -523,7 +523,7 @@ export function usePhotoRecognition(
           consecutiveBlurFramesRef.current += 1;
 
           if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
-            return { rejected: false, quality };
+            return { rejected: true, quality };
           }
 
           telemetryRef.current.blurRejections += 1;

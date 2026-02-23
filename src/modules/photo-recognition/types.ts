@@ -109,7 +109,6 @@ export interface TemporalTelemetrySnapshot {
     successfulRecognitions: number;
     failedAttempts: number;
     instantConfirmations: number;
-    instantSwitchConfirmations: number;
     qualityBypassFrames: number;
   };
 }
@@ -123,24 +122,6 @@ export type GuidanceType =
   | 'off-center'
   | 'none';
 
-export interface SwitchPromptSnapshot {
-  activeConcertId: number | null;
-  candidateConcertId: number | null;
-  confidence: number | null;
-  margin: number | null;
-  shownAt: number | null;
-}
-
-export interface SwitchDecisionTelemetry {
-  shownCount: number;
-  confirmCount: number;
-  dismissCount: number;
-  decisionLatenciesMs: number[];
-  averageDecisionLatencyMs: number | null;
-  lastDecisionLatencyMs: number | null;
-  lastPromptSnapshot: SwitchPromptSnapshot;
-}
-
 export interface RecognitionTelemetry {
   totalFrames: number;
   blurRejections: number;
@@ -150,7 +131,6 @@ export interface RecognitionTelemetry {
   qualityBypassFrames?: number;
   successfulRecognitions: number;
   instantConfirmations?: number;
-  instantSwitchConfirmations?: number;
   failedAttempts: number;
   failureHistory: FailureDiagnostic[];
   failureByCategory: Record<FailureCategory, number>;
@@ -159,7 +139,6 @@ export interface RecognitionTelemetry {
     duration: Record<GuidanceType, number>;
     lastShown: Record<GuidanceType, number>;
   };
-  switchDecision?: SwitchDecisionTelemetry;
   /** Running sums and counts for quality measurements of rejected frames. */
   frameQualityStats: FrameQualityStats;
   /** Hamming distance distribution for quality-passing frames. */

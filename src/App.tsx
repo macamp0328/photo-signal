@@ -715,24 +715,6 @@ function AppContent() {
 
     const activeSettings = computeActiveSettings(recognitionOptions);
     const aiRecommendations = computeAiRecommendations(telemetry, activeSettings);
-    const switchDecision = telemetry.switchDecision ?? {
-      shownCount: 0,
-      confirmCount: 0,
-      dismissCount: 0,
-      decisionLatenciesMs: [],
-      averageDecisionLatencyMs: null,
-      lastDecisionLatencyMs: null,
-      lastPromptSnapshot: {
-        activeConcertId: null,
-        candidateConcertId: null,
-        confidence: null,
-        margin: null,
-        shownAt: null,
-      },
-    };
-    const latencyValues = switchDecision.decisionLatenciesMs;
-    const latencyMin = latencyValues.length > 0 ? Math.min(...latencyValues) : null;
-    const latencyMax = latencyValues.length > 0 ? Math.max(...latencyValues) : null;
 
     const { blur, glare, lighting } = telemetry.frameQualityStats;
     const totalFailureEvents = Object.values(telemetry.failureByCategory).reduce(
@@ -790,7 +772,6 @@ function AppContent() {
               ).toFixed(1) + '%'
             : '0%',
         instantConfirmations: telemetry.instantConfirmations ?? 0,
-        instantSwitchConfirmations: telemetry.instantSwitchConfirmations ?? 0,
         qualityBypassFrames: telemetry.qualityBypassFrames ?? 0,
       },
       temporalSnapshots: temporalSnapshotsRef.current,
@@ -838,19 +819,6 @@ function AppContent() {
         frameHash: failure.frameHash,
         timestamp: new Date(failure.timestamp).toISOString(),
       })),
-      switchDecisionMetrics: {
-        shownCount: switchDecision.shownCount,
-        confirmCount: switchDecision.confirmCount,
-        dismissCount: switchDecision.dismissCount,
-        decisionLatencyMs: {
-          average: switchDecision.averageDecisionLatencyMs,
-          last: switchDecision.lastDecisionLatencyMs,
-          min: latencyMin,
-          max: latencyMax,
-          samples: latencyValues,
-        },
-        lastPromptSnapshot: switchDecision.lastPromptSnapshot,
-      },
       rawData: telemetry,
     };
 

@@ -14,7 +14,6 @@ import type {
   RecognitionTelemetry,
   GuidanceType,
   FailureCategory,
-  SwitchDecisionTelemetry,
 } from '../modules/photo-recognition/types';
 
 /**
@@ -58,27 +57,6 @@ function createFailureByCategory(
   };
 
   return { ...defaults, ...overrides };
-}
-
-function createSwitchDecisionTelemetry(
-  overrides?: Partial<SwitchDecisionTelemetry>
-): SwitchDecisionTelemetry {
-  return {
-    shownCount: 0,
-    confirmCount: 0,
-    dismissCount: 0,
-    decisionLatenciesMs: [],
-    averageDecisionLatencyMs: null,
-    lastDecisionLatencyMs: null,
-    lastPromptSnapshot: {
-      activeConcertId: null,
-      candidateConcertId: null,
-      confidence: null,
-      margin: null,
-      shownAt: null,
-    },
-    ...overrides,
-  };
 }
 
 /**
@@ -189,50 +167,7 @@ describe('telemetryUtils', () => {
       expect(parsed).toHaveProperty('frameStats');
       expect(parsed).toHaveProperty('recognitionStats');
       expect(parsed).toHaveProperty('guidanceMetrics');
-      expect(parsed).toHaveProperty('switchDecisionMetrics');
       expect(parsed).toHaveProperty('failureBreakdown');
-    });
-
-    it('should include switch prompt decision metrics and latency', () => {
-      const telemetry: RecognitionTelemetry = makeTelemetry({
-        totalFrames: 60,
-        qualityFrames: 40,
-        blurRejections: 10,
-        glareRejections: 5,
-        lightingRejections: 5,
-        successfulRecognitions: 7,
-        failedAttempts: 3,
-        guidanceTracking: createGuidanceTracking(),
-        failureByCategory: createFailureByCategory(),
-        failureHistory: [],
-        switchDecision: createSwitchDecisionTelemetry({
-          shownCount: 3,
-          confirmCount: 2,
-          dismissCount: 1,
-          decisionLatenciesMs: [800, 1200, 1000],
-          averageDecisionLatencyMs: 1000,
-          lastDecisionLatencyMs: 1000,
-          lastPromptSnapshot: {
-            activeConcertId: 1,
-            candidateConcertId: 2,
-            confidence: 96.2,
-            margin: 4,
-            shownAt: 1735689600000,
-          },
-        }),
-      });
-
-      const json = exportGuidanceTelemetry(telemetry);
-      const parsed = JSON.parse(json);
-
-      expect(parsed.switchDecisionMetrics.shownCount).toBe(3);
-      expect(parsed.switchDecisionMetrics.confirmCount).toBe(2);
-      expect(parsed.switchDecisionMetrics.dismissCount).toBe(1);
-      expect(parsed.switchDecisionMetrics.decisionLatencyMs.average).toBe(1000);
-      expect(parsed.switchDecisionMetrics.decisionLatencyMs.min).toBe(800);
-      expect(parsed.switchDecisionMetrics.decisionLatencyMs.max).toBe(1200);
-      expect(parsed.switchDecisionMetrics.lastPromptSnapshot.confidence).toBe(96.2);
-      expect(parsed.switchDecisionMetrics.lastPromptSnapshot.margin).toBe(4);
     });
 
     it('should calculate frame stats percentages', () => {
@@ -471,7 +406,6 @@ describe('telemetryUtils', () => {
         successfulRecognitions: 4,
         failedAttempts: 2,
         instantConfirmations: 3,
-        instantSwitchConfirmations: 1,
         qualityBypassFrames: 2,
       });
 
@@ -486,7 +420,6 @@ describe('telemetryUtils', () => {
       expect(snapshot.cumulativeCounts.successfulRecognitions).toBe(4);
       expect(snapshot.cumulativeCounts.failedAttempts).toBe(2);
       expect(snapshot.cumulativeCounts.instantConfirmations).toBe(3);
-      expect(snapshot.cumulativeCounts.instantSwitchConfirmations).toBe(1);
       expect(snapshot.cumulativeCounts.qualityBypassFrames).toBe(2);
     });
 
@@ -499,13 +432,12 @@ describe('telemetryUtils', () => {
         lightingRejections: 2,
         successfulRecognitions: 2,
         failedAttempts: 1,
-        // instantConfirmations, instantSwitchConfirmations, qualityBypassFrames omitted
+        // instantConfirmations and qualityBypassFrames omitted
       });
 
       const snapshot = buildTemporalSnapshot(telemetry, 20);
 
       expect(snapshot.cumulativeCounts.instantConfirmations).toBe(0);
-      expect(snapshot.cumulativeCounts.instantSwitchConfirmations).toBe(0);
       expect(snapshot.cumulativeCounts.qualityBypassFrames).toBe(0);
     });
 

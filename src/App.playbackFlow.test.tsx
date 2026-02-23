@@ -268,7 +268,7 @@ describe('App playback flow', () => {
       | Record<string, unknown>
       | undefined;
     expect(options).toBeDefined();
-    expect(options?.similarityThreshold).toBe(21);
+    expect(options?.similarityThreshold).toBe(22);
     expect(options?.sharpnessThreshold).toBe(65);
   });
 

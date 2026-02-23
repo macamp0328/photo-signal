@@ -60,10 +60,10 @@ const DEFAULT_CHECK_INTERVAL = 120;
  * enough to rule out transient camera movement or an accidental close pass
  * next to a different print.
  *
- * Reduced from 300 ms to 200 ms — still debounces accidental sweeps but
+ * Reduced from 300 ms to 150 ms — still debounces accidental sweeps but
  * gets to confirmation faster given the zero mis-recognition track record.
  */
-const DEFAULT_RECOGNITION_DELAY = 200;
+const DEFAULT_RECOGNITION_DELAY = 150;
 
 /** Assumed display aspect ratio when none is specified (1 = square/portrait). */
 const DEFAULT_DISPLAY_ASPECT_RATIO = 1;

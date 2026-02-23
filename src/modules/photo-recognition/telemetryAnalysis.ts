@@ -12,7 +12,7 @@ import type { PhotoRecognitionOptions, RecognitionTelemetry } from './types';
 // module is self-contained (avoids a circular import).
 // ---------------------------------------------------------------------------
 const DEFAULTS = {
-  recognitionDelay: 200,
+  recognitionDelay: 150,
   similarityThreshold: 14,
   matchMarginThreshold: 4,
   checkInterval: 120,

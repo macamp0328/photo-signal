@@ -199,7 +199,7 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
-      similarityThreshold: 21,
+      similarityThreshold: 22,
       sharpnessThreshold: 65,
       enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
@@ -735,6 +735,10 @@ function AppContent() {
     const latencyMax = latencyValues.length > 0 ? Math.max(...latencyValues) : null;
 
     const { blur, glare, lighting } = telemetry.frameQualityStats;
+    const totalFailureEvents = Object.values(telemetry.failureByCategory).reduce(
+      (sum, count) => sum + count,
+      0
+    );
     const { matchedFrameDistances, nearMisses } = telemetry.hammingDistanceLog;
     const topCollisionPairs = Object.entries(telemetry.collisionStats.ambiguousPairCounts)
       .sort((a, b) => b[1] - a[1])
@@ -826,9 +830,7 @@ function AppContent() {
           category,
           count,
           percentage:
-            telemetry.totalFrames > 0
-              ? ((count / telemetry.totalFrames) * 100).toFixed(1) + '%'
-              : '0%',
+            totalFailureEvents > 0 ? ((count / totalFailureEvents) * 100).toFixed(1) + '%' : '0%',
         })),
       recentFailures: telemetry.failureHistory.map((failure) => ({
         category: failure.category,

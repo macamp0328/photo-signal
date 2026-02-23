@@ -71,6 +71,8 @@ The `orb` and `parallel` values have no runtime counterparts. The app uses a sin
 
 ## 3. `FrameQualityIndicator.tsx` — Unused Component, Superseded
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Delete
 **Files**:
 
@@ -82,6 +84,13 @@ The `orb` and `parallel` values have no runtime counterparts. The app uses a sin
 `FrameQualityIndicator` was likely the first iteration before `GuidanceMessage` was built. It was not removed when the newer component was added.
 
 **Action**: Delete `FrameQualityIndicator.tsx` and its CSS module. Remove its export from `photo-recognition/index.ts`. Verify `GuidanceMessage` is either wired up or also removed (see item 4).
+
+**Completed work**:
+
+- Deleted `src/modules/photo-recognition/FrameQualityIndicator.tsx`
+- Deleted `src/modules/photo-recognition/FrameQualityIndicator.module.css`
+- Removed `FrameQualityIndicator` export from `src/modules/photo-recognition/index.ts`
+- Removed stale `FrameQualityIndicator` mock export from `src/App.playbackFlow.test.tsx`
 
 ---
 
@@ -281,7 +290,7 @@ Several source files and READMEs reference documents that do not exist:
 | --- | -------------------------------- | --------------------------------------------------- | ---------------------------- | ------ |
 | 1   | `useCustomSettings` hook         | `useCustomSettings.ts`, `.test.ts`                  | ✅ Completed (2026-02-23)    | Low    |
 | 2   | `CustomSetting.engines` field    | `types.ts`                                          | ✅ Completed (2026-02-23)    | Low    |
-| 3   | `FrameQualityIndicator`          | `FrameQualityIndicator.tsx`, `.css`                 | Delete                       | Low    |
+| 3   | `FrameQualityIndicator`          | `FrameQualityIndicator.tsx`, `.css`                 | ✅ Completed (2026-02-23)    | Low    |
 | 4   | `GuidanceMessage` (not rendered) | `GuidanceMessage.tsx`, `.css`                       | Wire up or delete            | Medium |
 | 5   | `guidanceConfig.ts` module       | `guidanceConfig.ts`, `.test.ts`, `README.md`        | Depends on #4 decision       | Medium |
 | 6   | `guidanceTracking` in telemetry  | `types.ts`, `helpers.ts`, test fixtures             | Delete field                 | Low    |

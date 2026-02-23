@@ -181,7 +181,6 @@ vi.mock('./modules/photo-recognition', () => ({
       reset: mockResetRecognition,
       resetTelemetry: vi.fn(),
     },
-  FrameQualityIndicator: () => null,
   GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
     <div data-testid="guidance-message">{guidanceType}</div>
   ),

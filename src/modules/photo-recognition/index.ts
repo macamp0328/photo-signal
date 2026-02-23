@@ -6,7 +6,6 @@
  */
 
 export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';
-export { FrameQualityIndicator } from './FrameQualityIndicator';
 export { GuidanceMessage } from './GuidanceMessage';
 export { computeActiveSettings, computeAiRecommendations } from './telemetryAnalysis';
 export type {

@@ -277,7 +277,6 @@ describe('usePhotoRecognition', () => {
 
     expect(result.current.recognizedConcert).toBeNull();
     expect(result.current.isRecognizing).toBe(false);
-    expect(result.current.activeGuidance).toBe('none');
   });
 
   it('handles data loading errors gracefully', async () => {
@@ -622,7 +621,6 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(result.current.recognizedConcert).toBeNull();
-      expect(result.current.activeGuidance).toBe('ambiguous-match');
       expect(result.current.debugInfo?.bestMatch?.concert.id).toBe(1);
       expect(result.current.debugInfo?.secondBestMatch?.concert.id).toBe(2);
       expect(result.current.debugInfo?.bestMatchMargin).toBe(0);

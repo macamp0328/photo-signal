@@ -87,7 +87,6 @@ vi.mock('../../modules/photo-recognition', async (importOriginal) => {
         debugInfo: null,
         isRecognizing: false,
         frameQuality: null,
-        activeGuidance: 'none' as const,
         detectedRectangle: null,
         rectangleConfidence: 0,
       };

@@ -96,6 +96,8 @@ The `orb` and `parallel` values have no runtime counterparts. The app uses a sin
 
 ## 4. `GuidanceMessage.tsx` — Exported But Never Rendered
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Delete or wire up
 **Files**:
 
@@ -118,11 +120,20 @@ const {
 // activeGuidance is never extracted here
 ```
 
-**Decision required**: Either wire `activeGuidance` to `GuidanceMessage` in `CameraView` (making the feature real), or delete both the component and the `setActiveGuidance` state machinery in `usePhotoRecognition`.
+**Completed work**:
+
+- Deleted `src/modules/photo-recognition/GuidanceMessage.tsx`
+- Deleted `src/modules/photo-recognition/GuidanceMessage.module.css`
+- Removed `GuidanceMessage` export from `src/modules/photo-recognition/index.ts`
+- Removed `activeGuidance` state and return contract from `src/modules/photo-recognition/usePhotoRecognition.ts`
+- Removed `GuidanceType` from `src/modules/photo-recognition/types.ts` and related exports
+- Removed now-dead `pickGuidance()` helper from `src/modules/photo-recognition/helpers.ts`
 
 ---
 
 ## 5. `src/config/guidanceConfig.ts` — Partially Dead Config Module
+
+**Status**: ✅ Completed (2026-02-23)
 
 **Classification**: Refactor or delete
 **Files**:
@@ -143,7 +154,36 @@ const {
 
 5. **"Future" guidance types**: `distance` and `off-center` are in the config (with full message definitions) and noted as "future" in the README, but they are never emitted by any detection logic.
 
-**Action**: If `GuidanceMessage` is wired up (item 4 decision), keep this config but remove the dead fields and consolidate `GuidanceType`. If `GuidanceMessage` is deleted, delete this entire module.
+**Completed work**:
+
+- Deleted `src/config/guidanceConfig.ts`
+- Deleted `src/config/guidanceConfig.test.ts`
+- Deleted `src/config/README.md`
+- Removed stale guidance contract usage in tests:
+  - `src/App.playbackFlow.test.tsx`
+  - `src/__tests__/integration/artist-switch.test.tsx`
+  - `src/modules/photo-recognition/usePhotoRecognition.test.ts`
+
+---
+
+## 13. `telemetryUtils` guidance exports — Test-Only Dead Utilities
+
+**Status**: ✅ Completed (2026-02-23)
+
+**Classification**: Delete
+**Files**:
+
+- `src/utils/telemetryUtils.ts`
+- `src/utils/telemetryUtils.test.ts`
+
+**Problem**: `formatGuidanceTelemetry()`, `exportGuidanceTelemetry()`, and `calculateGuidanceEffectiveness()` were no longer used by app runtime and were only exercised by their own tests.
+
+**Completed work**:
+
+- Deleted `formatGuidanceTelemetry()` from `src/utils/telemetryUtils.ts`
+- Deleted `exportGuidanceTelemetry()` from `src/utils/telemetryUtils.ts`
+- Deleted `calculateGuidanceEffectiveness()` from `src/utils/telemetryUtils.ts`
+- Reduced `src/utils/telemetryUtils.test.ts` to current runtime utility coverage (`buildTemporalSnapshot`)
 
 ---
 
@@ -319,20 +359,21 @@ Several source files and READMEs reference documents that do not exist:
 
 ## Summary Table
 
-| #   | Item                             | Files                                               | Action                       | Risk   |
-| --- | -------------------------------- | --------------------------------------------------- | ---------------------------- | ------ |
-| 1   | `useCustomSettings` hook         | `useCustomSettings.ts`, `.test.ts`                  | ✅ Completed (2026-02-23)    | Low    |
-| 2   | `CustomSetting.engines` field    | `types.ts`                                          | ✅ Completed (2026-02-23)    | Low    |
-| 3   | `FrameQualityIndicator`          | `FrameQualityIndicator.tsx`, `.css`                 | ✅ Completed (2026-02-23)    | Low    |
-| 4   | `GuidanceMessage` (not rendered) | `GuidanceMessage.tsx`, `.css`                       | Wire up or delete            | Medium |
-| 5   | `guidanceConfig.ts` module       | `guidanceConfig.ts`, `.test.ts`, `README.md`        | Depends on #4 decision       | Medium |
-| 6   | `guidanceTracking` in telemetry  | `types.ts`, `helpers.ts`, test fixtures             | ✅ Completed (2026-02-23)    | Low    |
-| 7   | `orbFeatureUtils.js`             | `scripts/lib/orbFeatureUtils.js`                    | ✅ Completed (2026-02-23)    | Low    |
-| 8   | Legacy data fallback system      | `DataService.ts`, `data.json`, check scripts        | Delete after cutover confirm | High   |
-| 9   | `setTestMode` / test-mode flag   | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | Refactor or delete           | Medium |
-| 10  | `getRandomConcert` / `search`    | `DataService.ts`, `.test.ts`                        | ✅ Completed (2026-02-23)    | Low    |
-| 11  | `isTestMode` hardcoded prop      | `App.tsx`                                           | ✅ Completed (2026-02-23)    | Low    |
-| 12  | Broken doc references            | Multiple                                            | ✅ Completed (2026-02-23)    | Low    |
+| #   | Item                              | Files                                               | Action                       | Risk   |
+| --- | --------------------------------- | --------------------------------------------------- | ---------------------------- | ------ |
+| 1   | `useCustomSettings` hook          | `useCustomSettings.ts`, `.test.ts`                  | ✅ Completed (2026-02-23)    | Low    |
+| 2   | `CustomSetting.engines` field     | `types.ts`                                          | ✅ Completed (2026-02-23)    | Low    |
+| 3   | `FrameQualityIndicator`           | `FrameQualityIndicator.tsx`, `.css`                 | ✅ Completed (2026-02-23)    | Low    |
+| 4   | `GuidanceMessage` (not rendered)  | `GuidanceMessage.tsx`, `.css`                       | ✅ Completed (2026-02-23)    | Medium |
+| 5   | `guidanceConfig.ts` module        | `guidanceConfig.ts`, `.test.ts`, `README.md`        | ✅ Completed (2026-02-23)    | Medium |
+| 6   | `guidanceTracking` in telemetry   | `types.ts`, `helpers.ts`, test fixtures             | ✅ Completed (2026-02-23)    | Low    |
+| 7   | `orbFeatureUtils.js`              | `scripts/lib/orbFeatureUtils.js`                    | ✅ Completed (2026-02-23)    | Low    |
+| 8   | Legacy data fallback system       | `DataService.ts`, `data.json`, check scripts        | Delete after cutover confirm | High   |
+| 9   | `setTestMode` / test-mode flag    | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | Refactor or delete           | Medium |
+| 10  | `getRandomConcert` / `search`     | `DataService.ts`, `.test.ts`                        | ✅ Completed (2026-02-23)    | Low    |
+| 11  | `isTestMode` hardcoded prop       | `App.tsx`                                           | ✅ Completed (2026-02-23)    | Low    |
+| 12  | Broken doc references             | Multiple                                            | ✅ Completed (2026-02-23)    | Low    |
+| 13  | `telemetryUtils` guidance exports | `telemetryUtils.ts`, `.test.ts`                     | ✅ Completed (2026-02-23)    | Low    |
 
 ---
 
@@ -342,9 +383,10 @@ Several source files and READMEs reference documents that do not exist:
 
 - Items 1, 2, 3, 6, 7, 10, 11, 12 ✅ Completed (2026-02-23)
 
-**Phase 2 — Requires a decision**
+**Phase 2 — Guidance system cleanup**
 
-- Items 4 + 5 together (wire up guidance UI or delete the whole guidance system)
+- Items 4 + 5 ✅ Completed (2026-02-23)
+- Item 13 ✅ Completed (2026-02-23)
 
 **Phase 3 — Requires data validation first**
 

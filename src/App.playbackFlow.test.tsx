@@ -4,11 +4,7 @@ import userEvent from '@testing-library/user-event';
 import App from './App';
 import type { Concert } from './types';
 import { dataService } from './services/data-service';
-import type {
-  GuidanceType,
-  RecognitionDebugInfo,
-  RecognitionTelemetry,
-} from './modules/photo-recognition/types';
+import type { RecognitionDebugInfo, RecognitionTelemetry } from './modules/photo-recognition/types';
 import { createEmptyTelemetry } from './modules/photo-recognition/helpers';
 
 const concertOne: Concert = {
@@ -70,7 +66,6 @@ const recognitionState = {
   isRecognizing: false,
   debugInfo: null as RecognitionDebugInfo | null,
   frameQuality: null,
-  activeGuidance: 'none' as GuidanceType,
   detectedRectangle: null,
   rectangleConfidence: 0,
 };
@@ -152,9 +147,6 @@ vi.mock('./modules/photo-recognition', () => ({
       reset: mockResetRecognition,
       resetTelemetry: vi.fn(),
     },
-  GuidanceMessage: ({ guidanceType }: { guidanceType: GuidanceType }) => (
-    <div data-testid="guidance-message">{guidanceType}</div>
-  ),
   computeActiveSettings: vi.fn(() => ({})),
   computeAiRecommendations: vi.fn(() => []),
 }));
@@ -194,7 +186,6 @@ describe('App playback flow', () => {
     recognitionState.isRecognizing = false;
     recognitionState.debugInfo = null;
     recognitionState.frameQuality = null;
-    recognitionState.activeGuidance = 'none';
     recognitionState.detectedRectangle = null;
     recognitionState.rectangleConfidence = 0;
     enabledFlags.clear();
@@ -322,23 +313,6 @@ describe('App playback flow', () => {
     ).toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
-  });
-
-  it('does not render floating ambiguity guidance overlay while a track is recognized', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    recognitionState.activeGuidance = 'ambiguous-match';
-    audioState.isPlaying = true;
-
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    expect(screen.queryByTestId('guidance-message')).not.toBeInTheDocument();
   });
 
   it('renders Drop the Needle when recognizedConcert changes while song is playing', async () => {

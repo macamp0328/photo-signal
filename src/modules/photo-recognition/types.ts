@@ -113,15 +113,6 @@ export interface TemporalTelemetrySnapshot {
   };
 }
 
-export type GuidanceType =
-  | 'motion-blur'
-  | 'glare'
-  | 'poor-lighting'
-  | 'ambiguous-match'
-  | 'distance'
-  | 'off-center'
-  | 'none';
-
 export interface RecognitionTelemetry {
   totalFrames: number;
   blurRejections: number;
@@ -179,7 +170,6 @@ export interface PhotoRecognitionHook {
   resetTelemetry: () => void;
   debugInfo: RecognitionDebugInfo | null;
   frameQuality: FrameQualityInfo | null;
-  activeGuidance: GuidanceType;
   detectedRectangle: DetectedRectangle | null;
   rectangleConfidence: number;
 }

@@ -6,7 +6,6 @@
  */
 
 export { usePhotoRecognition, calculateFramedRegion } from './usePhotoRecognition';
-export { GuidanceMessage } from './GuidanceMessage';
 export { computeActiveSettings, computeAiRecommendations } from './telemetryAnalysis';
 export type {
   PhotoRecognitionHook,
@@ -14,7 +13,6 @@ export type {
   AspectRatio,
   FrameQualityInfo,
   RecognitionTelemetry,
-  GuidanceType,
   RecognitionDebugInfo,
   BestMatchInfo,
   FailureCategory,

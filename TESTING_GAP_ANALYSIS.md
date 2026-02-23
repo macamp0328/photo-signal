@@ -53,29 +53,18 @@ The repository has **excellent unit test coverage**:
 
 ### 1. Utility Functions & Configuration (Issue #1)
 
-**Missing Tests:**
+**Status**: ✅ Closed (2026-02-23)
 
-- `src/utils/telemetryUtils.ts` (3 exported functions)
-  - `formatGuidanceTelemetry()` - Console output formatting
-  - `exportGuidanceTelemetry()` - JSON export for analysis
-  - `calculateGuidanceEffectiveness()` - Before/after metrics
-- `src/config/guidanceConfig.ts` (2 exported functions + config object)
-  - `getGuidancePriority()` - Get priority for guidance type
-  - `selectGuidanceToShow()` - Select highest priority guidance
-  - `defaultGuidanceConfig` - Configuration validation
+**Resolution:**
+
+- Deleted unused guidance-only exports from `src/utils/telemetryUtils.ts`
+- Deleted obsolete guidance config module (`src/config/guidanceConfig.ts`)
+- Removed corresponding dead test surface
 
 **Why This Matters:**
 
-- These functions handle critical telemetry tracking and guidance selection logic
-- Math errors in effectiveness calculation could give wrong metrics
-- Wrong priority logic could show unhelpful guidance to users
-- Currently no tests catch bugs in these pure functions
-
-**Issue Created**: `test-utility-functions.md`
-
-- 27+ test cases covering all functions and edge cases
-- Focus on divide-by-zero, empty data, negative values, percentages
-- Validates configuration structure and threshold ranges
+- Removes maintenance overhead for a feature path intentionally retired
+- Prevents future contributors from relying on dead guidance scaffolding
 
 ---
 

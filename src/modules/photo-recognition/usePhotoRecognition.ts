@@ -9,7 +9,6 @@ import {
   createEmptyTelemetry,
   getCropHashes,
   getPHashes,
-  pickGuidance,
   recordCollisionDetails,
   recordFailure,
   similarityPercent,
@@ -25,7 +24,6 @@ import type {
   PhotoRecognitionOptions,
   RecognitionDebugInfo,
   RecognitionTelemetry,
-  GuidanceType,
   StabilityDebugInfo,
 } from './types';
 
@@ -338,7 +336,6 @@ export function usePhotoRecognition(
   );
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
-  const [activeGuidance, setActiveGuidance] = useState<GuidanceType>('none');
   const [detectedRectangle, setDetectedRectangle] = useState<DetectedRectangle | null>(null);
   const [rectangleConfidence, setRectangleConfidence] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
@@ -380,7 +377,6 @@ export function usePhotoRecognition(
     setIsRecognizing(false);
     setDebugInfo(null);
     setFrameQuality(null);
-    setActiveGuidance('none');
     setDetectedRectangle(null);
     setRectangleConfidence(0);
     setRestartKey((value) => value + 1);
@@ -623,7 +619,6 @@ export function usePhotoRecognition(
           (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
         consecutiveBlurFramesRef.current = 0;
         setFrameQuality(null);
-        setActiveGuidance('none');
         return { rejected: false, quality: null };
       }
 
@@ -695,7 +690,6 @@ export function usePhotoRecognition(
       };
 
       setFrameQuality(quality);
-      setActiveGuidance(pickGuidance(quality));
 
       if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
         if (!quality.isSharp) {
@@ -1183,8 +1177,6 @@ export function usePhotoRecognition(
         }
 
         if (activeMatch) {
-          setActiveGuidance('none');
-
           const isAlreadyRecognizedConcert = recognizedConcertRef.current?.id === activeMatch.id;
           if (isAlreadyRecognizedConcert) {
             lastMatchedConcertRef.current = null;
@@ -1251,12 +1243,6 @@ export function usePhotoRecognition(
           const isAmbiguousCollision = isAmbiguousMatchCandidate;
           const isNearThresholdNoMatch =
             !isAmbiguousCollision && bestMatch.distance <= activeThreshold + 2;
-
-          if (isAmbiguousMatchCandidate) {
-            setActiveGuidance('ambiguous-match');
-          } else {
-            setActiveGuidance('none');
-          }
 
           const category: FailureCategory =
             isAmbiguousCollision || isNearThresholdNoMatch ? 'collision' : 'no-match';
@@ -1375,7 +1361,6 @@ export function usePhotoRecognition(
     resetTelemetry,
     debugInfo,
     frameQuality,
-    activeGuidance,
     detectedRectangle,
     rectangleConfidence,
   };

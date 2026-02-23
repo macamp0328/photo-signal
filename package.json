@@ -46,6 +46,8 @@
     "upload-audio:local": "bash scripts/audio-workflow/update/upload-audio-local.sh",
     "worker:deploy": "npm exec wrangler -- deploy --minify",
     "audio:build-data": "node scripts/audio-workflow/update/build-data-from-photo-csv.js",
+    "data:check-v2-artifacts": "node scripts/check-v2-artifacts.js",
+    "data:cutover-readiness": "node scripts/check-cutover-readiness.js",
     "audio:remap-by-band": "node scripts/audio-workflow/update/remap-audio-by-band.js",
     "audio:reset": "node scripts/audio-workflow/reset-clean-slate.js",
     "audio:verify": "node scripts/audio-workflow/verify-clean-slate.js",

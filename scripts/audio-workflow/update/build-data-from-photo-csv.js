@@ -6,6 +6,8 @@ import path from 'node:path';
 const DEFAULT_SOURCE_CSV = 'assets/prod-photographs/prod-photographs-details.csv';
 const DEFAULT_AUDIO_INDEX = 'scripts/audio-workflow/encode/output/audio-index.json';
 const DEFAULT_OUTPUT = 'public/data.json';
+const DEFAULT_OUTPUT_V2 = 'public/data.app.v2.json';
+const DEFAULT_OUTPUT_RECOGNITION = 'public/data.recognition.v2.json';
 const DEFAULT_BASE_URL = 'https://photo-signal-audio-worker.whoisduck2.workers.dev';
 const DEFAULT_PREFIX = 'prod/audio';
 const DEFAULT_MIN_SCORE = 0.8;
@@ -252,6 +254,181 @@ export function formatAudioUrl(baseUrl, prefix, fileName) {
     .replace(/(?<!:)\/+/g, '/');
 }
 
+function toSlug(value) {
+  return normalizeBand(value)
+    .replace(/\s+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function normalizedMaybeString(value) {
+  const normalized = String(value ?? '').trim();
+  return normalized === '' ? undefined : normalized;
+}
+
+function sortById(a, b) {
+  return String(a.id).localeCompare(String(b.id));
+}
+
+/**
+ * Build normalized app metadata payload (v2) from legacy concert rows.
+ *
+ * @param {object[]} concerts
+ * @returns {{ version: 2, artists: object[], photos: object[], tracks: object[], entries: object[] }}
+ */
+export function buildAppDataV2(concerts) {
+  const artists = [];
+  const photos = [];
+  const tracks = [];
+  const entries = [];
+
+  const artistByKey = new Map();
+  const photoByKey = new Map();
+  const trackByKey = new Map();
+
+  concerts
+    .slice()
+    .sort((a, b) => Number(a.id) - Number(b.id))
+    .forEach((concert) => {
+      const band = String(concert.band ?? '').trim();
+      const artistKey = normalizeBand(band) || `artist-${concert.id}`;
+      let artist = artistByKey.get(artistKey);
+      if (!artist) {
+        artist = {
+          id: `artist-${toSlug(band) || concert.id}`,
+          name: band || `Unknown Artist ${concert.id}`,
+        };
+        artistByKey.set(artistKey, artist);
+        artists.push(artist);
+      }
+
+      const imageFile = normalizedMaybeString(concert.imageFile);
+      const photoKey = imageFile ? `${artist.id}::${imageFile}` : null;
+      let photo = photoKey ? photoByKey.get(photoKey) : undefined;
+      if (photoKey && !photo) {
+        photo = {
+          id: `photo-${concert.id}`,
+          artistId: artist.id,
+          ...(imageFile !== undefined && { imageFile }),
+          ...(normalizedMaybeString(concert.photoUrl) !== undefined && {
+            photoUrl: normalizedMaybeString(concert.photoUrl),
+          }),
+          ...(concert.recognitionEnabled !== undefined && {
+            recognitionEnabled: concert.recognitionEnabled,
+          }),
+          ...(normalizedMaybeString(concert.camera) !== undefined && {
+            camera: normalizedMaybeString(concert.camera),
+          }),
+          ...(normalizedMaybeString(concert.aperture) !== undefined && {
+            aperture: normalizedMaybeString(concert.aperture),
+          }),
+          ...(normalizedMaybeString(concert.focalLength) !== undefined && {
+            focalLength: normalizedMaybeString(concert.focalLength),
+          }),
+          ...(normalizedMaybeString(concert.shutterSpeed) !== undefined && {
+            shutterSpeed: normalizedMaybeString(concert.shutterSpeed),
+          }),
+          ...(normalizedMaybeString(concert.iso) !== undefined && {
+            iso: normalizedMaybeString(concert.iso),
+          }),
+          ...(concert.photoHashes && Object.keys(concert.photoHashes).length > 0
+            ? { photoHashes: concert.photoHashes }
+            : {}),
+        };
+        photoByKey.set(photoKey, photo);
+        photos.push(photo);
+      } else if (
+        photo &&
+        (!photo.photoHashes || Object.keys(photo.photoHashes).length === 0) &&
+        concert.photoHashes &&
+        Object.keys(concert.photoHashes).length > 0
+      ) {
+        photo.photoHashes = concert.photoHashes;
+      }
+
+      const songTitle = normalizedMaybeString(concert.songTitle);
+      const audioFile = String(concert.audioFile ?? '').trim();
+      const trackKey = `${artist.id}::${audioFile}::${songTitle ?? ''}`;
+      let track = trackByKey.get(trackKey);
+      if (!track) {
+        track = {
+          id: `track-${tracks.length + 1}`,
+          artistId: artist.id,
+          ...(songTitle !== undefined && { songTitle }),
+          audioFile,
+          ...(normalizedMaybeString(concert.albumCoverUrl) !== undefined && {
+            albumCoverUrl: normalizedMaybeString(concert.albumCoverUrl),
+          }),
+        };
+        trackByKey.set(trackKey, track);
+        tracks.push(track);
+      }
+
+      entries.push({
+        id: Number(concert.id),
+        artistId: artist.id,
+        trackId: track.id,
+        venue: String(concert.venue ?? ''),
+        date: String(concert.date ?? ''),
+        ...(photo ? { photoId: photo.id } : {}),
+        ...(concert.recognitionEnabled !== undefined
+          ? { recognitionEnabled: concert.recognitionEnabled }
+          : {}),
+      });
+    });
+
+  return {
+    version: 2,
+    artists: artists.sort(sortById),
+    photos: photos.sort(sortById),
+    tracks: tracks.sort(sortById),
+    entries: entries.sort((a, b) => a.id - b.id),
+  };
+}
+
+/**
+ * Build recognition-focused payload (v2) with only hashes needed by the
+ * camera matching runtime.
+ *
+ * @param {object[]} concerts
+ * @returns {{ version: 2, entries: Array<{ concertId: number, phash: string[], cropPhashes?: Record<string, string[]> }> }}
+ */
+export function buildRecognitionIndexV2(concerts) {
+  const entries = concerts
+    .filter((concert) => concert?.recognitionEnabled !== false)
+    .map((concert) => {
+      const phash = Array.isArray(concert?.photoHashes?.phash)
+        ? concert.photoHashes.phash.filter((hash) => typeof hash === 'string' && hash.length > 0)
+        : [];
+      const cropPhashesRaw = concert?.photoHashes?.cropPhashes;
+      const cropPhashes = {};
+
+      if (cropPhashesRaw && typeof cropPhashesRaw === 'object') {
+        for (const [cropKey, hashes] of Object.entries(cropPhashesRaw)) {
+          if (!Array.isArray(hashes)) {
+            continue;
+          }
+          const validHashes = hashes.filter((hash) => typeof hash === 'string' && hash.length > 0);
+          if (validHashes.length > 0) {
+            cropPhashes[cropKey] = validHashes;
+          }
+        }
+      }
+
+      return {
+        concertId: Number(concert.id),
+        phash,
+        ...(Object.keys(cropPhashes).length > 0 ? { cropPhashes } : {}),
+      };
+    })
+    .filter((entry) => Number.isInteger(entry.concertId) && entry.phash.length > 0)
+    .sort((a, b) => a.concertId - b.concertId);
+
+  return {
+    version: 2,
+    entries,
+  };
+}
+
 /**
  * Build a single concert object from a photo CSV row and a matched audio track.
  * The `id` must be supplied by the caller (from the CSV or auto-generated).
@@ -375,6 +552,10 @@ Options:
   --source-csv=<path>   Photo source CSV (default: ${DEFAULT_SOURCE_CSV})
   --audio-index=<path>  Audio index JSON (default: ${DEFAULT_AUDIO_INDEX})
   --output=<path>       Output data.json path (default: ${DEFAULT_OUTPUT})
+  --output-v2=<path>    Output normalized app data path (default: ${DEFAULT_OUTPUT_V2})
+  --no-output-v2        Skip writing the normalized app data artifact
+  --output-recognition=<path>  Output recognition index path (default: ${DEFAULT_OUTPUT_RECOGNITION})
+  --no-output-recognition       Skip writing the recognition index artifact
   --base-url=<url>      Audio base URL (default: ${DEFAULT_BASE_URL})
   --prefix=<path>       Audio key prefix (default: ${DEFAULT_PREFIX})
   --min-score=<0..1>    Fuzzy match threshold (default: ${DEFAULT_MIN_SCORE})
@@ -406,6 +587,12 @@ function main() {
     String(args['audio-index'] ?? DEFAULT_AUDIO_INDEX)
   );
   const outputPath = path.resolve(process.cwd(), String(args.output ?? DEFAULT_OUTPUT));
+  const outputV2Path = args['no-output-v2']
+    ? null
+    : path.resolve(process.cwd(), String(args['output-v2'] ?? DEFAULT_OUTPUT_V2));
+  const outputRecognitionPath = args['no-output-recognition']
+    ? null
+    : path.resolve(process.cwd(), String(args['output-recognition'] ?? DEFAULT_OUTPUT_RECOGNITION));
   const baseUrl = trimTrailingSlash(String(args['base-url'] ?? DEFAULT_BASE_URL));
   const prefix = sanitizePrefix(String(args.prefix ?? DEFAULT_PREFIX));
   const minScore = Number.parseFloat(String(args['min-score'] ?? DEFAULT_MIN_SCORE));
@@ -499,11 +686,19 @@ function main() {
 
   const allConcerts = [...concerts, ...expandedConcerts].sort((a, b) => a.id - b.id);
   const output = { concerts: allConcerts };
+  const outputV2 = buildAppDataV2(allConcerts);
+  const outputRecognition = buildRecognitionIndexV2(allConcerts);
 
   console.log('🧱 Build data.json from photo CSV');
   console.log(`  Source CSV: ${path.relative(process.cwd(), sourceCsvPath)}`);
   console.log(`  Audio index: ${path.relative(process.cwd(), audioIndexPath)}`);
   console.log(`  Output: ${path.relative(process.cwd(), outputPath)}`);
+  if (outputV2Path) {
+    console.log(`  Output (v2): ${path.relative(process.cwd(), outputV2Path)}`);
+  }
+  if (outputRecognitionPath) {
+    console.log(`  Output (recognition): ${path.relative(process.cwd(), outputRecognitionPath)}`);
+  }
   console.log(`  Base URL: ${baseUrl}`);
   console.log(`  Prefix: ${prefix}`);
   console.log(`  Min score: ${minScore}`);
@@ -539,7 +734,25 @@ function main() {
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
+  if (outputV2Path) {
+    fs.mkdirSync(path.dirname(outputV2Path), { recursive: true });
+    fs.writeFileSync(outputV2Path, `${JSON.stringify(outputV2, null, 2)}\n`, 'utf8');
+  }
+  if (outputRecognitionPath) {
+    fs.mkdirSync(path.dirname(outputRecognitionPath), { recursive: true });
+    fs.writeFileSync(
+      outputRecognitionPath,
+      `${JSON.stringify(outputRecognition, null, 2)}\n`,
+      'utf8'
+    );
+  }
   console.log('✅ Wrote data.json');
+  if (outputV2Path) {
+    console.log('✅ Wrote data.app.v2.json');
+  }
+  if (outputRecognitionPath) {
+    console.log('✅ Wrote data.recognition.v2.json');
+  }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -73,6 +73,57 @@ export interface ConcertData {
 }
 
 /**
+ * v2 runtime payload for normalized app metadata.
+ *
+ * This shape separates artists, photos, and tracks, then links them through
+ * entries to avoid duplicated rows when one artist has many songs/photos.
+ */
+export interface ArtistV2 {
+  id: string;
+  name: string;
+}
+
+export interface PhotoV2 {
+  id: string;
+  artistId: string;
+  imageFile?: string;
+  photoUrl?: string;
+  recognitionEnabled?: boolean;
+  camera?: string;
+  aperture?: string;
+  focalLength?: string;
+  shutterSpeed?: string;
+  iso?: string;
+  photoHashes?: PhotoHashes;
+}
+
+export interface TrackV2 {
+  id: string;
+  artistId: string;
+  songTitle?: string;
+  audioFile: string;
+  albumCoverUrl?: string;
+}
+
+export interface ConcertEntryV2 {
+  id: number;
+  artistId: string;
+  trackId: string;
+  venue: string;
+  date: string;
+  photoId?: string;
+  recognitionEnabled?: boolean;
+}
+
+export interface AppDataV2 {
+  version: 2;
+  artists: ArtistV2[];
+  photos: PhotoV2[];
+  tracks: TrackV2[];
+  entries: ConcertEntryV2[];
+}
+
+/**
  * Aspect ratio for framing guides and cropping
  * - 'auto' is resolved by the photo-recognition module
  */

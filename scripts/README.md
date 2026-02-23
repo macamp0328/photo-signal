@@ -70,6 +70,37 @@ USE_DOCKER=true ./scripts/build.sh
 
 ---
 
+### `check-cutover-readiness.js` - Legacy Fallback Removal Readiness
+
+Scans exported telemetry JSON files and prints a single-line decision:
+
+- `safe to remove legacy fallback: yes|no`
+
+**Usage:**
+
+```bash
+# Scan current directory recursively for telemetry exports
+npm run data:cutover-readiness
+
+# Scan a specific folder
+npm run data:cutover-readiness -- ./telemetry-exports
+
+# Require at least one valid telemetry payload (otherwise fail)
+npm run data:cutover-readiness -- ./telemetry-exports --require-data
+
+# Override telemetry filename filter
+npm run data:cutover-readiness -- ./telemetry-exports --pattern=photo-signal-telemetry-
+```
+
+**What it checks:**
+
+- `dataSource.telemetry.legacyFallbackLoads`
+- `dataSource.telemetry.legacyFallbackLoadsInProduction`
+
+The result is **yes** only when analyzed sessions exist and production fallback usage is zero.
+
+---
+
 ### `test.sh` - Run Tests
 
 Runs all tests using Vitest.

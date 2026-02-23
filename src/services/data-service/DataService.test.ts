@@ -44,6 +44,9 @@ const mockConcerts: Concert[] = [
 describe('DataService', () => {
   // Store original fetch to restore after tests
   let originalFetch: typeof global.fetch;
+  let originalNodeEnv: string | undefined;
+  let originalVercelEnv: string | undefined;
+  let originalViteDeployEnv: string | undefined;
 
   // Spy on console methods to avoid noise in test output
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -52,6 +55,9 @@ describe('DataService', () => {
   beforeEach(() => {
     // Store original fetch
     originalFetch = global.fetch;
+    originalNodeEnv = process.env.NODE_ENV;
+    originalVercelEnv = process.env.VERCEL_ENV;
+    originalViteDeployEnv = process.env.VITE_DEPLOY_ENV;
 
     // Mock console methods to avoid noise in test output
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -68,6 +74,11 @@ describe('DataService', () => {
   afterEach(() => {
     // Restore original fetch
     global.fetch = originalFetch;
+    process.env.NODE_ENV = originalNodeEnv;
+    process.env.VERCEL_ENV = originalVercelEnv;
+    process.env.VITE_DEPLOY_ENV = originalViteDeployEnv;
+    delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+    delete process.env.VITE_DATA_V2_REQUIRED;
 
     // Restore console methods
     consoleLogSpy.mockRestore();
@@ -91,7 +102,7 @@ describe('DataService', () => {
 
       // Verify fetch was called with correct URL
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
 
       // Verify returned data structure
       expect(concerts).toEqual(mockConcerts);
@@ -143,18 +154,247 @@ describe('DataService', () => {
       const concerts = await dataService.getConcerts();
 
       // Verify error handling
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[DataService] Failed to load concert data:',
         expect.any(Error)
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[DataService] Attempted to load from: /data.json'
+        '[DataService] Attempted to load from: /data.app.v2.json'
       );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Legacy fallback URL: /data.json');
       expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Test mode is DISABLED.');
       expect(concerts).toEqual([]);
 
       consoleErrorSpy.mockRestore();
+    });
+
+    it('should fallback to legacy data URL when v2 URL fails', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
+      expect(concerts).toEqual(mockConcerts);
+    });
+
+    it('should record fallback telemetry when loading from legacy data', async () => {
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      await dataService.getConcerts();
+
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 1,
+        legacyFallbackLoadsInProduction: 0,
+      });
+    });
+
+    it('should allow production fallback when v2 policy is warn', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DATA_V2_FALLBACK_POLICY = 'warn';
+
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual(mockConcerts);
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 1,
+        legacyFallbackLoadsInProduction: 1,
+      });
+    });
+
+    it('should default to strict fallback policy in production when not configured', async () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+      delete process.env.VITE_DEPLOY_ENV;
+      delete process.env.VERCEL_ENV;
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual([]);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 0,
+        legacyFallbackLoadsInProduction: 0,
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should default to warn policy for production runtime in preview deploy environment', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DEPLOY_ENV = 'preview';
+      process.env.VERCEL_ENV = 'preview';
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual(mockConcerts);
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 1,
+        legacyFallbackLoadsInProduction: 1,
+      });
+    });
+
+    it('should block production fallback when v2 policy is error', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DATA_V2_FALLBACK_POLICY = 'error';
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual([]);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[DataService] Phase C policy blocked legacy fallback: primary v2 data missing at /data.app.v2.json',
+        expect.any(Error)
+      );
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 1,
+        v2LoadFailures: 1,
+        legacyFallbackLoads: 0,
+        legacyFallbackLoadsInProduction: 0,
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should parse and normalize v2 app payload', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          version: 2,
+          artists: [{ id: 'artist-1', name: 'The Midnight Echoes' }],
+          photos: [
+            {
+              id: 'photo-1',
+              artistId: 'artist-1',
+              imageFile: '/images/photo-1.jpg',
+              recognitionEnabled: true,
+              photoHashes: { phash: ['0123456789abcdef'] },
+            },
+          ],
+          tracks: [
+            {
+              id: 'track-1',
+              artistId: 'artist-1',
+              songTitle: 'Night Lines',
+              audioFile: '/audio/sample.opus',
+            },
+          ],
+          entries: [
+            {
+              id: 1,
+              artistId: 'artist-1',
+              trackId: 'track-1',
+              photoId: 'photo-1',
+              venue: 'The Fillmore',
+              date: '2023-08-15T20:00:00-05:00',
+            },
+          ],
+        }),
+      });
+      global.fetch = mockFetch;
+
+      const concerts = await dataService.getConcerts();
+
+      expect(concerts).toEqual([
+        {
+          id: 1,
+          band: 'The Midnight Echoes',
+          songTitle: 'Night Lines',
+          venue: 'The Fillmore',
+          date: '2023-08-15T20:00:00-05:00',
+          audioFile: '/audio/sample.opus',
+          imageFile: '/images/photo-1.jpg',
+          recognitionEnabled: true,
+          photoHashes: { phash: ['0123456789abcdef'] },
+          photoUrl: undefined,
+          camera: undefined,
+          aperture: undefined,
+          focalLength: undefined,
+          shutterSpeed: undefined,
+          iso: undefined,
+          albumCoverUrl: undefined,
+        },
+      ]);
     });
 
     it('should handle malformed JSON response gracefully', async () => {
@@ -531,6 +771,62 @@ describe('DataService', () => {
       // Should return null now
       expect(dataService.getRandomConcert()).toBeNull();
     });
+
+    it('should reset data source telemetry counters after clearing cache', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DATA_V2_FALLBACK_POLICY = 'warn';
+
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({ ok: false, status: 404 })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      await dataService.getConcerts();
+      expect(dataService.getDataSourceTelemetry().legacyFallbackLoads).toBe(1);
+
+      dataService.clearCache();
+
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 0,
+        v2LoadFailures: 0,
+        legacyFallbackLoads: 0,
+        legacyFallbackLoadsInProduction: 0,
+      });
+    });
+  });
+
+  describe('getDataSourcePolicySnapshot()', () => {
+    it('should report default strict policy for production runtime', () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.VITE_DEPLOY_ENV;
+      delete process.env.VERCEL_ENV;
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+
+      expect(dataService.getDataSourcePolicySnapshot()).toEqual({
+        runtimeMode: 'production',
+        deployEnvironment: 'unknown',
+        fallbackPolicy: 'error',
+      });
+    });
+
+    it('should report preview-default warn policy for production runtime', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DEPLOY_ENV = 'preview';
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+
+      expect(dataService.getDataSourcePolicySnapshot()).toEqual({
+        runtimeMode: 'production',
+        deployEnvironment: 'preview',
+        fallbackPolicy: 'warn',
+      });
+    });
   });
 
   describe('empty data handling', () => {
@@ -607,7 +903,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with test data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
       expect(dataService.getTestMode()).toBe(true);
     });
 
@@ -627,7 +923,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       // Verify fetch was called with production data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
       expect(dataService.getTestMode()).toBe(false);
     });
 
@@ -642,7 +938,7 @@ describe('DataService', () => {
       await dataService.getConcerts();
 
       expect(mockFetch1).toHaveBeenCalledTimes(1);
-      expect(mockFetch1).toHaveBeenCalledWith('/data.json');
+      expect(mockFetch1).toHaveBeenCalledWith('/data.app.v2.json');
 
       // Switch to test mode
       dataService.setTestMode(true);
@@ -664,7 +960,7 @@ describe('DataService', () => {
       // Verify logging occurred
       expect(consoleLogSpy).toHaveBeenCalledWith('[DataService] Test mode ENABLED');
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[DataService] Data will be loaded from: /data.json'
+        '[DataService] Data will be loaded from: /data.app.v2.json'
       );
     });
 
@@ -746,8 +1042,10 @@ describe('DataService', () => {
       expect(result1).toEqual([]);
       expect(result2).toEqual([]);
 
-      // But fetch should only be called once
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      // Request deduplication still applies, but one request may attempt primary + fallback URLs
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenNthCalledWith(1, '/data.app.v2.json');
+      expect(mockFetch).toHaveBeenNthCalledWith(2, '/data.json');
     });
   });
 });

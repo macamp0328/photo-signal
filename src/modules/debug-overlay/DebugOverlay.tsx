@@ -48,6 +48,14 @@ export function DebugOverlay({
   const aspectRatio = debugInfo?.aspectRatio;
   const recognitionDelayMs = debugInfo?.recognitionDelay;
   const lastCheckTime = debugInfo?.lastCheckTime;
+  const indexModeFrames = debugInfo?.telemetry.index_mode_used ?? 0;
+  const fallbackModeFrames = debugInfo?.telemetry.fallback_mode_used ?? 0;
+  const candidateCountTelemetry = debugInfo?.telemetry.candidate_count_per_frame;
+  const lastCandidateComparisons = candidateCountTelemetry?.last ?? 0;
+  const averageCandidateComparisons =
+    candidateCountTelemetry && candidateCountTelemetry.frames > 0
+      ? Math.round(candidateCountTelemetry.total / candidateCountTelemetry.frames)
+      : 0;
 
   // Default to collapsed on mobile screens
   useEffect(() => {
@@ -311,6 +319,22 @@ export function DebugOverlay({
                 <div className={styles.metricItem}>
                   <span className={styles.metricLabel}>Last Check</span>
                   <span className={styles.metricValue}>{lastCheckFormatted}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Index Frames</span>
+                  <span className={styles.metricValue}>{indexModeFrames}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Fallback Frames</span>
+                  <span className={styles.metricValue}>{fallbackModeFrames}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Candidates (Last)</span>
+                  <span className={styles.metricValue}>{lastCandidateComparisons}</span>
+                </div>
+                <div className={styles.metricItem}>
+                  <span className={styles.metricLabel}>Candidates (Avg)</span>
+                  <span className={styles.metricValue}>{averageCandidateComparisons}</span>
                 </div>
               </div>
             </div>

@@ -321,7 +321,59 @@ interface DataService {
 }
 ```
 
-**Current**: Static JSON from `/assets/test-data/concerts.json` (mirrored to `/public/data.json`)  
+**Current runtime artifacts**:
+
+- `/public/data.app.v2.json` (primary): normalized app metadata (`artists`, `photos`, `tracks`, `entries`)
+- `/public/data.recognition.v2.json` (primary recognition path): compact hash index keyed by `concertId`
+- `/public/data.json` (compatibility): legacy flat `concerts[]` payload
+
+**Fallback behavior during rollout**:
+
+- `DataService` attempts `/data.app.v2.json` first and falls back to `/data.json`.
+- Photo recognition attempts `/data.recognition.v2.json` first and falls back to hash data attached to concerts.
+
+**Phase C production policy controls**:
+
+- `VITE_DATA_V2_FALLBACK_POLICY=warn|error`
+  - `warn`: allow legacy fallback and log explicit fallback telemetry
+  - `error`: treat missing v2 app artifact as startup-blocking in production
+- `VITE_DATA_V2_REQUIRED=true|1` can be used as strict-mode alias when policy is not set
+
+Default policy when not explicitly configured:
+
+- `production` runtime + deploy env `production`/`unknown`: `error`
+- `production` runtime + deploy env `preview`/`development`: `warn`
+- `development`/`test` runtime: `warn`
+
+Deploy env is resolved from `VITE_DEPLOY_ENV`, then `VERCEL_ENV`, then `unknown`.
+
+**Fallback telemetry for cutover**:
+
+- `v2LoadAttempts`
+- `v2LoadFailures`
+- `legacyFallbackLoads`
+- `legacyFallbackLoadsInProduction`
+
+These counters are exposed through `DataService` and logged when fallback is used.
+
+**Deploy-time v2 artifact checks**:
+
+- CI runs `npm run data:check-v2-artifacts` to validate required runtime artifacts:
+  - `public/data.app.v2.json`
+  - `public/data.recognition.v2.json`
+- The check uses the same environment-based policy model:
+  - production deploys default to `error`
+  - preview/development deploys default to `warn`
+- Optional override: `VITE_DATA_V2_ARTIFACT_POLICY=warn|error`
+
+**Legacy removal criteria (post-rollout)**:
+
+1. `legacyFallbackLoadsInProduction` remains zero for one full release window.
+2. CI/deploy checks consistently publish `data.app.v2.json` and `data.recognition.v2.json`.
+3. No active incidents reference missing/corrupt v2 artifacts.
+
+This preserves backward compatibility while enabling v2 performance paths.
+
 **Future**: PostgreSQL via API route
 
 ---

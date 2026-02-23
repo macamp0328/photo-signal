@@ -70,6 +70,14 @@ describe('helpers', () => {
         unknown: 0,
       });
       expect(telemetry.collisionStats.ambiguousPairCounts).toEqual({});
+      expect(telemetry.index_mode_used).toBe(0);
+      expect(telemetry.fallback_mode_used).toBe(0);
+      expect(telemetry.candidate_count_per_frame).toEqual({
+        last: 0,
+        max: 0,
+        total: 0,
+        frames: 0,
+      });
     });
   });
 

@@ -328,7 +328,7 @@ async function main() {
     if (!ok) process.exit(1);
   }
 
-  // ── Phase 4: Build data.json ───────────────────────────────────────────
+  // ── Phase 4: Build data artifacts ──────────────────────────────────────
   {
     const buildDataCmd = [
       'npm run audio:build-data --',
@@ -337,7 +337,11 @@ async function main() {
       `--prefix=${prefix}`,
     ].join(' ');
 
-    const ok = run(buildDataCmd, 'Build public/data.json from CSV + audio index', dryRun);
+    const ok = run(
+      buildDataCmd,
+      'Build public/data.json + public/data.app.v2.json + public/data.recognition.v2.json from CSV + audio index',
+      dryRun
+    );
     if (!ok) process.exit(1);
   }
 
@@ -347,7 +351,9 @@ async function main() {
   console.log('✅  Pipeline complete!');
   console.log('');
   console.log('📋  What was produced:');
-  console.log('     public/data.json — concert metadata with audio URLs');
+  console.log('     public/data.json — legacy concert metadata with audio URLs');
+  console.log('     public/data.app.v2.json — normalized app metadata (artists/photos/tracks)');
+  console.log('     public/data.recognition.v2.json — recognition hash index for camera matching');
   if (!canUpload) {
     console.log('');
     console.log('⚠️   Audio files were NOT uploaded to R2.');

@@ -1,0 +1,5556 @@
+{
+  "version": 2,
+  "entries": [
+    {
+      "concertId": 1,
+      "phash": [
+        "9b18dec465a26873",
+        "8318fecc65a26873",
+        "8318fe9c65a26873",
+        "8318fe8c65a2e873",
+        "8308be847da6e873"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "811896ce278efba1",
+          "811886cc278effa3",
+          "811886cc278effa3",
+          "811886cd278ef7a3",
+          "8118a68d278ee7b3"
+        ],
+        "center-60": [
+          "991b941b989fa583",
+          "b913941b909fe583",
+          "b913841b90dfe583",
+          "b913841b90dfe5a1",
+          "b913841b90dbe5a3"
+        ],
+        "center-50": [
+          "1b22b4377a5e8c85",
+          "9b22a4377a5a8d85",
+          "9b20a437ba5aa785",
+          "9b20a437ba5aa794",
+          "9b20a437ba5aa794"
+        ],
+        "top-left-70": [
+          "253afac4caece501",
+          "053afac4d2ece581",
+          "053af8c4d2ecf581",
+          "053af8c4d2ecf581",
+          "053af884d2e8f5b1"
+        ],
+        "top-right-70": [
+          "83cc7c327e6627c0",
+          "83ccf432fc6627c0",
+          "83ccf472fc4626d0",
+          "83ccf472fc4626d0",
+          "83ccf472fc4626d0"
+        ],
+        "bottom-left-70": [
+          "0d056b1afe4b3866",
+          "0d056b1af74b3866",
+          "0d056b1af74b3866",
+          "0d056b1ab74bb866",
+          "0d056b1ab74bb866"
+        ],
+        "bottom-right-70": [
+          "9ba30fcc661f4603",
+          "9b230fcc671f4603",
+          "9b230fcc631fc603",
+          "8b630fdc631dc603",
+          "8b630f9c631fc603"
+        ]
+      }
+    },
+    {
+      "concertId": 2,
+      "phash": [
+        "fe1610c865c14f76",
+        "fa1650c865c14f76",
+        "fa9650c865c04f76",
+        "f89650c865c84f76",
+        "f89650c865c84f76"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9e00b2fe9dc04db4",
+          "9e20b2de9dd04db0",
+          "9e24b2de99d04db0",
+          "9e24b2d69dd04db0",
+          "9ea492d69dd04db0"
+        ],
+        "center-60": [
+          "8728b00c39f66797",
+          "8728b00cb9d66797",
+          "8728b00cb9d66797",
+          "8728900cb9d667b7",
+          "8728900cb9d667b7"
+        ],
+        "center-50": [
+          "833eb009b8ec6697",
+          "833eb009b8ec6697",
+          "833eb409b8e46697",
+          "833eb409bae46297",
+          "833eb409bacc6297"
+        ],
+        "top-left-70": [
+          "f00ec1c29e758cd5",
+          "f00ec1c69e748cd5",
+          "f02ec1c69e708cd5",
+          "f02ec1c69e708cd5",
+          "f22e83c69c708cd5"
+        ],
+        "top-right-70": [
+          "f8066d3b70126e36",
+          "d8066d7b64126e36",
+          "d8166d7b62126e34",
+          "d8166d7b6212ec34",
+          "d8966d3b6212ec34"
+        ],
+        "bottom-left-70": [
+          "f1122f8c527165b6",
+          "f1122dac52716d36",
+          "f1522dac52706d36",
+          "f1522dac52706d36",
+          "f1526dac52704d36"
+        ],
+        "bottom-right-70": [
+          "ebb902c671828fc3",
+          "ebb983c631820fc3",
+          "eb9983c639900fc3",
+          "eb9993c639900fc1",
+          "eb9993c639900fc1"
+        ]
+      }
+    },
+    {
+      "concertId": 3,
+      "phash": [
+        "0a9ce56333cf9930",
+        "0a9ce56333cf9924",
+        "029ce56333cf9964",
+        "021cf56b33cf9960",
+        "021cf56b33cf9960"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "1098ed6262cb9d37",
+          "1098ed6262cf9d27",
+          "1098ed6262cf9d27",
+          "1098ed62668f9d27",
+          "0098ed72668f9d27"
+        ],
+        "center-60": [
+          "9a9ccd7662d430a5",
+          "9a9ccd7662d402e5",
+          "ba98cd7662d402e5",
+          "b898cf7e629402e5",
+          "b898cf7e629402e5"
+        ],
+        "center-50": [
+          "909acd247e4cb4e5",
+          "989acd247e0cb4e5",
+          "989a8d247e0cb6e5",
+          "9c9a8d207c0cb6f5",
+          "9c9a8d207c0cb6f5"
+        ],
+        "top-left-70": [
+          "2cf24b6db24ccc31",
+          "2ed24b6db24ccc31",
+          "2ed25b4db24ccc31",
+          "0ed25b4db24ecc31",
+          "0ef2534db24ecc31"
+        ],
+        "top-right-70": [
+          "86713d0fc1167cc6",
+          "86713d0fe1165cc6",
+          "8e513d0fe1165cc6",
+          "8a513d0fe1165cd6",
+          "8a513d0fe1365cd4"
+        ],
+        "bottom-left-70": [
+          "2d2cb4b323725cc3",
+          "0f2cb4b333525cc3",
+          "0f2cb5b323525cc3",
+          "0f2cb4b327525cc3",
+          "0f2cb5b327505cc3"
+        ],
+        "bottom-right-70": [
+          "afc6d2e1c1b43690",
+          "abc6d2e1c1b136d0",
+          "abc6d2e1c13536d0",
+          "abc6d2e1c1353e50",
+          "abc6d2e1c1353e50"
+        ]
+      }
+    },
+    {
+      "concertId": 4,
+      "phash": [
+        "90366ec2d81dcec6",
+        "90366ee2591dccc6",
+        "90366eb2591dccc6",
+        "91366eb2591dc4c6",
+        "91367eb2591dc486"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "903e667359378836",
+          "b13e667219378836",
+          "b13e667219378926",
+          "b13e067a19378936",
+          "b53e063a19378936"
+        ],
+        "center-60": [
+          "b90c66b275321f94",
+          "b94c66d274321f94",
+          "bb4866d234321f96",
+          "bb4866d234321f96",
+          "ab4866d234b21f96"
+        ],
+        "center-50": [
+          "9b48e04a6473ced6",
+          "9b48e04a6477ced4",
+          "9b48e04a6477ced4",
+          "9b48e04a6477ced1",
+          "9b48e04a6477ced1"
+        ],
+        "top-left-70": [
+          "247aed24979cc923",
+          "047aed65939ccb22",
+          "047aed65919ecb22",
+          "047aed65959aca62",
+          "047aed65959aca62"
+        ],
+        "top-right-70": [
+          "821c0f83f39c1df1",
+          "821c0f83f3bc1de1",
+          "821c0d83f7bc5dc1",
+          "921c8d83f3bc5d41",
+          "921c8d03f7bc5d41"
+        ],
+        "bottom-left-70": [
+          "0524725a9db65b96",
+          "0734721b9d365b86",
+          "0734721b9d365b86",
+          "0734721b9d365b85",
+          "0750721b9d365b87"
+        ],
+        "bottom-right-70": [
+          "c38270fcf7c019c6",
+          "839270fcf7c019c6",
+          "839271fcb7a019c6",
+          "839271fcb7a019c6",
+          "839271bcf7a019c6"
+        ]
+      }
+    },
+    {
+      "concertId": 5,
+      "phash": [
+        "434aacb35b5374a2",
+        "4348acb35b437ca3",
+        "4348acb3db4374a3",
+        "4348ac33dbc374a3",
+        "4348ac33dbc374a3"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "575ca835545555a5",
+          "575ca835d05555a5",
+          "575c8834d0dd55a5",
+          "775c8834d0dd55a1",
+          "775c8834d0dd55a1"
+        ],
+        "center-60": [
+          "375a4aaa8aafa512",
+          "375a4a3a9aafa112",
+          "375a4a3adaaea112",
+          "375a4a3adaaee012",
+          "375a4a3adaaee012"
+        ],
+        "center-50": [
+          "2550553cd2db2d27",
+          "2551553c96db2d25",
+          "25514d25d6db2d25",
+          "25514d25d6db2d25",
+          "25510d25d6db2d27"
+        ],
+        "top-left-70": [
+          "4a94bdc25579ae60",
+          "4a943d975569ae60",
+          "4a943d97536ba262",
+          "4ad43597d36ba222",
+          "4ad43597c36bb222"
+        ],
+        "top-right-70": [
+          "4862bb4952b6cb55",
+          "48629b4956b6cb55",
+          "48629b6952b6cb55",
+          "48629b695ab4cb55",
+          "08628b6b5ab4db55"
+        ],
+        "bottom-left-70": [
+          "4b4b964c354cb4b6",
+          "4b4b944e354c36b6",
+          "4b4b944e354c36b6",
+          "4b4b944e314c36f6",
+          "4b4b944e314c36f6"
+        ],
+        "bottom-right-70": [
+          "494966b6f2b4a4a3",
+          "4d49663772b4a4a3",
+          "0d4d66b77294a4a3",
+          "1d4d66377294a4a3",
+          "1d4de6375294a4a3"
+        ]
+      }
+    },
+    {
+      "concertId": 6,
+      "phash": [
+        "2f2c29687cf28783",
+        "2f2c296a7cb287c2",
+        "2f2c216a7cf287c2",
+        "2f2c216a7cf287c2",
+        "272ca16a7cf287c2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "4368694a7a73e5e0",
+          "4328e94a7a73e5e0",
+          "4328e94a7a33e5e1",
+          "6328e14a7a33e5e1",
+          "6328e14a7a33e5e1"
+        ],
+        "center-60": [
+          "e3fecdca12002a75",
+          "e3fecdca12002a75",
+          "e3eeedca12002a75",
+          "e3eeedca16002a74",
+          "e3eeedca16002a74"
+        ],
+        "center-50": [
+          "e3efedc294880a13",
+          "e3efedc294880a13",
+          "e3efedc294880a13",
+          "e3efedc694880a12",
+          "e36fedc694c80a12"
+        ],
+        "top-left-70": [
+          "1e56746e0baae870",
+          "1e46746e0bbae870",
+          "1e06746e0bba7872",
+          "1e0e706e0bba7872",
+          "1e0e706e0bba7872"
+        ],
+        "top-right-70": [
+          "bf352616d9d84c05",
+          "bf352616d9f04c05",
+          "bf352616c9f04d05",
+          "bf352616c9f04d05",
+          "bf352e1689f04d05"
+        ],
+        "bottom-left-70": [
+          "9b1a0e031197efb4",
+          "9b1a0e0b1197afb4",
+          "9b1a0e0b9187afb4",
+          "9b1e0f0b9187ab94",
+          "8b1e0f0b9187abb4"
+        ],
+        "bottom-right-70": [
+          "bbb89099f9f0a482",
+          "bbb89089f9f0a4c2",
+          "bbb89089e9f0a4d2",
+          "bbb49089f9f0a452",
+          "bbb49089f9f0a452"
+        ]
+      }
+    },
+    {
+      "concertId": 7,
+      "phash": [
+        "5554c0aabcc0bfe1",
+        "5554c2b8bcc0bfe0",
+        "515cc2b8fcc09fe0",
+        "515e83f8f4c01fe0",
+        "115e81f8fdc01fe0"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "5504c43af82bbae5",
+          "5504c03ef827fae1",
+          "7506c01ef807fae1",
+          "3d06c01ef807fae1",
+          "1f06c01ef807fae1"
+        ],
+        "center-60": [
+          "0342c71e4f3e3a66",
+          "0142c71e7f1e3a66",
+          "0142c71e7f9e3a62",
+          "0162c51e7f9e3a62",
+          "0162c51e7f9e3a62"
+        ],
+        "center-50": [
+          "4560cf96cf0e0f07",
+          "0560cf96cf8e0f07",
+          "0560cf96cf8e0f07",
+          "0160cf96cf8e0f87",
+          "0160cf92ef8e0f87"
+        ],
+        "top-left-70": [
+          "701ee0cc9bb133e2",
+          "701ee0ec1fb033e2",
+          "701ee0ec1fb033e2",
+          "701ee0ec1fb033e2",
+          "701ee0ec1fb013e3"
+        ],
+        "top-right-70": [
+          "5354acb4e9e1ca25",
+          "5354ac94f8e1ea25",
+          "1354ac96fae1ea05",
+          "1254ac96fee1ea05",
+          "1274ac96fce1ea05"
+        ],
+        "bottom-left-70": [
+          "41781f9e3dc0d817",
+          "41781f1e3dc0dc17",
+          "61781f0e3dc0dc17",
+          "61781f0e3dc0dc17",
+          "617c0f0e3dc05e17"
+        ],
+        "bottom-right-70": [
+          "0b56574be54e3512",
+          "0b54576ae54e3516",
+          "0b54576ae14e3596",
+          "0b54576af1463596",
+          "0b54576af1463596"
+        ]
+      }
+    },
+    {
+      "concertId": 8,
+      "phash": [
+        "2bced5313ac88595",
+        "8bced5352ac88595",
+        "8bc2d5b52bc88595",
+        "83c2d5b52be88595",
+        "8bc2d7b52ba08595"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "03c0cd377acdc1b1",
+          "03c2dd373acd81b1",
+          "03c2dd37326d83b1",
+          "03c2dd37366d8331",
+          "83c29db7166d8331"
+        ],
+        "center-60": [
+          "75d4c93226c85733",
+          "75d4c93026cad633",
+          "75d489a426cad633",
+          "71d489a426ce96b3",
+          "71d0a9a426ce96b3"
+        ],
+        "center-50": [
+          "36dccbb5254a8711",
+          "36dccbb5254a8711",
+          "3edccbb0256a8691",
+          "3edccbb0256a8691",
+          "bed4cbb0256a8691"
+        ],
+        "top-left-70": [
+          "0cb1716a956ad7a1",
+          "0cb17962956ad7a1",
+          "0cb979629d2ad3a1",
+          "0cb979639d2a53a1",
+          "0cb979639d2ad381"
+        ],
+        "top-right-70": [
+          "acd2d32cf38c18e2",
+          "acdad32cf38c10e2",
+          "aedad3acf38810e0",
+          "aedad3acf78810c0",
+          "aedadbace78810c0"
+        ],
+        "bottom-left-70": [
+          "0d0e9e959d296956",
+          "0d0e9e959d296956",
+          "0d0e9ed49d296956",
+          "0d0e9ed49d286957",
+          "0d8e9ed49d286157"
+        ],
+        "bottom-right-70": [
+          "ad2c72f2d3cd0d04",
+          "ad2c7272d3cd0d14",
+          "ad2c7252d3cd0d15",
+          "ad2c6252f3cd0d15",
+          "ad246252f3cb0f15"
+        ]
+      }
+    },
+    {
+      "concertId": 9,
+      "phash": [
+        "15094a9f365eab62",
+        "15094a9f365eab62",
+        "110c4a9f365fa3e2",
+        "010e4a9f3e5fa2e2",
+        "010e4a9f3e5fa2e2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "312fdebe0e968940",
+          "312edebe0e06a951",
+          "312edebe0e06a951",
+          "312eddbe0e06a951",
+          "312ed5be0e02ad71"
+        ],
+        "center-60": [
+          "376edf3700a27130",
+          "3f4ed72f00a271b0",
+          "3f4ed72b40a271b0",
+          "3f4ed72b41a27190",
+          "3f4cd72b41a271b0"
+        ],
+        "center-50": [
+          "270ec755aaa274b1",
+          "274ec755aaa270b1",
+          "234ec754e3a278b1",
+          "234ec754e3a278b1",
+          "23ce8754a7a278b1"
+        ],
+        "top-left-70": [
+          "4b12b93c9fc3c1c4",
+          "0b12bd3c9fc3c1c4",
+          "0b90bd3c9fc3d1c0",
+          "0390be3c9fc3d9c0",
+          "03903e3c9fc3f9c0"
+        ],
+        "top-right-70": [
+          "1568eb94eb30ea13",
+          "1568ef94eb30e813",
+          "1568ef94e934e813",
+          "1568ef94eb14e813",
+          "1568af14eb34ea13"
+        ],
+        "bottom-left-70": [
+          "4b4b1687c387cba2",
+          "4f491687c387cba2",
+          "4f099687c3c74ba2",
+          "0f19948f43c7cba2",
+          "0f39948fc3c74b82"
+        ],
+        "bottom-right-70": [
+          "15977068ab2569e5",
+          "15977068ab356dc1",
+          "15977068ab356dc1",
+          "15977069aa356dc1",
+          "15976069ba356dc1"
+        ]
+      }
+    },
+    {
+      "concertId": 10,
+      "phash": [
+        "3b32e4c8d8d392b2",
+        "1936a4f8d8d392b2",
+        "1b26a4f8d8d392b2",
+        "1b06a0fadad39236",
+        "1b06e0fadac39236"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "1d246cdacac5b2b1",
+          "1d246c5acac5b6b1",
+          "1d246c5acac5b5b1",
+          "1d246d1a4ec5b533",
+          "1524691a4fc7b533"
+        ],
+        "center-60": [
+          "1b2d6c5848cd95b6",
+          "1b2d6d184acd85b6",
+          "0b2d6d184acd85b7",
+          "0b296d184acd8db7",
+          "0b296d184acdc9b7"
+        ],
+        "center-50": [
+          "132f2f1248c7cdc6",
+          "136d2b124cd3cdc6",
+          "136d29124cd3cdd6",
+          "0b6d29124cd3cdd6",
+          "0b6da9104cd3cdd6"
+        ],
+        "top-left-70": [
+          "2552ecab2b689393",
+          "3552ecab2a689393",
+          "3552ecab8a689393",
+          "3550ecab8a6a9393",
+          "3550eca38a6a9793"
+        ],
+        "top-right-70": [
+          "8338e4dcd88e71e4",
+          "8b38a45cd98e71e4",
+          "8338a45cd98e71e5",
+          "8338a45cdb8e71e4",
+          "8338a45cdb8671e5"
+        ],
+        "bottom-left-70": [
+          "2d294b4b6d6d6462",
+          "252b4b4b6d6d6462",
+          "25234b4b6d6d6466",
+          "2523534b6d6d6466",
+          "351343c36d6d6076"
+        ],
+        "bottom-right-70": [
+          "cb8b19998b8e94b2",
+          "cb8b19998b8e94b2",
+          "c3db19998b8e84b2",
+          "cbdb19998b8694a2",
+          "c3db1991cb86b4a2"
+        ]
+      }
+    },
+    {
+      "concertId": 11,
+      "phash": [
+        "a1469a69a4db8733",
+        "a1469e69e41b8733",
+        "a1469e69e41b8733",
+        "a1469e69e41b8e33",
+        "a1469e49e41b8e73"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "b3c45369ee999121",
+          "b3c45369ea9991a1",
+          "b3c45368ea9991a3",
+          "b3c45368ea9d91a1",
+          "b3c45368ea9dd121"
+        ],
+        "center-60": [
+          "f5a4d5604cdb9322",
+          "b5a4d5626cdb9122",
+          "b5a4d5626cdb8322",
+          "b5a4d5627cdb8122",
+          "b5a4d5627cdb8302"
+        ],
+        "center-50": [
+          "29aaaf624adda701",
+          "39aa8f626adda700",
+          "39aa8f626adda700",
+          "39aa8f626adca701",
+          "39aa8f626adce301"
+        ],
+        "top-left-70": [
+          "01be3fc02f58a7a4",
+          "01be3fc02f58a7a4",
+          "01be3fc02f58a794",
+          "01be3fc02f58a794",
+          "01be3dc02f58e794"
+        ],
+        "top-right-70": [
+          "9de8e296c91c6293",
+          "9de86296c91c62d3",
+          "9de86296c91c62d3",
+          "9de86296c91c62d3",
+          "9de86294c91c62f3"
+        ],
+        "bottom-left-70": [
+          "4141be2f1e4b58d3",
+          "0149ba2f1e4f58d3",
+          "0149ba2f1e4b58f3",
+          "0149ba2f1e494af7",
+          "0141ba2f1e694af7"
+        ],
+        "bottom-right-70": [
+          "951fc849cb1dbc24",
+          "851fc8c9cb1dbc24",
+          "a51fd8c9ca1d9c24",
+          "a51fd8c9ca1d9c24",
+          "a51fd8c9ca1d9c24"
+        ]
+      }
+    },
+    {
+      "concertId": 12,
+      "phash": [
+        "614e3937667cc2c1",
+        "614e393366f8e2c1",
+        "614e393366f8e2c1",
+        "604c3933aef8e2e1",
+        "604c1933eef8e2e1"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "794f19230d3d8b83",
+          "784f19230f1d8b93",
+          "784f19230f1d8b93",
+          "784e19230f1d9b93",
+          "784e19230f1d9b93"
+        ],
+        "center-60": [
+          "78469f710c390bb3",
+          "7846bf710c190bb3",
+          "7c463f710e090bb3",
+          "7c463ff10e090ba3",
+          "7c463ff10e090ba3"
+        ],
+        "center-50": [
+          "70c495f00e18dbf5",
+          "78c0b5f00e18cbf5",
+          "78c0b5f10e184be7",
+          "78c035f10e584be7",
+          "78c035f30e584b67"
+        ],
+        "top-left-70": [
+          "40734dd0c4cad6d7",
+          "42736dd0c4cac6d3",
+          "42736df0e0cac6d1",
+          "42336df0e0cac6d3",
+          "42336df0e4cac6d1"
+        ],
+        "top-right-70": [
+          "2f299b326e7c1035",
+          "2f219f326e7c1035",
+          "2f019f326e7c1037",
+          "2f019f326e7c3035",
+          "2f019f326e7c3035"
+        ],
+        "bottom-left-70": [
+          "44d0b3a78d8b2b65",
+          "44d0b3a78d8b2b65",
+          "44d0b2e78d8b2b65",
+          "44d0b2e78d8b2b65",
+          "44d8b2e78d0b2b65"
+        ],
+        "bottom-right-70": [
+          "277e61444ffd8904",
+          "277e71404fdd8d04",
+          "237e71400fdfcd04",
+          "237e71400fdfcd04",
+          "237e71400fdfcd04"
+        ]
+      }
+    },
+    {
+      "concertId": 13,
+      "phash": [
+        "295a479fa08f3037",
+        "215a679fa08f3037",
+        "015a679fa08f3237",
+        "015a67dfe00f3037",
+        "015a67dee00f3237"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "1a7247dcad86bc11",
+          "1a7247dcad86bc11",
+          "1a7247dced86b411",
+          "1a7247dced86b411",
+          "1e7247dced86b401"
+        ],
+        "center-60": [
+          "107a441aeddceab1",
+          "107a441aeddccbb1",
+          "107a441aeddccbb1",
+          "107a441aeddccbb1",
+          "107a441ae5fccbb1"
+        ],
+        "center-50": [
+          "1236641aeccfe8b2",
+          "1236641aeccfe8b2",
+          "1236641beccfe0b2",
+          "1236641bec4fe8b2",
+          "1236641bec4fe8b2"
+        ],
+        "top-left-70": [
+          "2419f715287c81f7",
+          "2419f715287c81f7",
+          "2419f715287d80f7",
+          "2419ff15287c80f7",
+          "2019ff15287d80f7"
+        ],
+        "top-right-70": [
+          "0779f2b78d062961",
+          "0779f2b78d062961",
+          "0779f2f78d062941",
+          "0779f3f38d062941",
+          "0779f3f78c062941"
+        ],
+        "bottom-left-70": [
+          "236c4c18ee7c7c92",
+          "036c4c18ee7c78f2",
+          "032c4c38ee7c78f2",
+          "032c4c38ee7c78f2",
+          "032c4c38ee7cf8f0"
+        ],
+        "bottom-right-70": [
+          "a5c62d7d04438fa6",
+          "a5c62d7d04438fe2",
+          "b5c62d7d04438ea3",
+          "b1c62d7d04438ee3",
+          "b1c62d7d04438ee3"
+        ]
+      }
+    },
+    {
+      "concertId": 14,
+      "phash": [
+        "c7c6e27135bc9850",
+        "cdc6c279353c9851",
+        "cdc6c259b13c9a51",
+        "cde64259b1bc8a51",
+        "cde64259b13caa51"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "c7c6c2436d3c99d0",
+          "cfe2c243793c91d0",
+          "cfe2d243713c9151",
+          "cfe2d64b312c9151",
+          "cfe2d64b312c9151"
+        ],
+        "center-60": [
+          "c7e6d4f1630e9091",
+          "c7e6c6f1630e9091",
+          "c7e6c6f1630e9091",
+          "c7e6c6f1630cb091",
+          "cfe4c6f1620eb091"
+        ],
+        "center-50": [
+          "cfe686f96101b095",
+          "c7e686f96101f095",
+          "c7e686f96101f095",
+          "c7a686f96105f095",
+          "c7a686fd600df091"
+        ],
+        "top-left-70": [
+          "9b8ced60a6b95321",
+          "9b88ed6426bb5321",
+          "9b8acd64269b5325",
+          "9b8a4d64279b5325",
+          "9bca4d64239b5326"
+        ],
+        "top-right-70": [
+          "fffe0712c06310c3",
+          "fbfe0712c06b10c3",
+          "fbfe0792c06910c3",
+          "b3de6392c16b10c3",
+          "b3de6396816b10c3"
+        ],
+        "bottom-left-70": [
+          "939382b6ae8dd851",
+          "9393c6b6a68dd850",
+          "93b1ceb2a68dd850",
+          "93a9ceb2a68dd850",
+          "93a9ce32a28ddad0"
+        ],
+        "bottom-right-70": [
+          "f1b190e0e06f7c31",
+          "b1b590e0e06f7c31",
+          "b1b598e8e04f7831",
+          "b1b598e8e04f7831",
+          "b1b798e8a04f7831"
+        ]
+      }
+    },
+    {
+      "concertId": 15,
+      "phash": [
+        "273e36c2cd945932",
+        "273e36c3cd945922",
+        "273e36c3cf845922",
+        "2f3ca6c3cf84d122",
+        "2f3ca6c3cf84d122"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "213f36d3c0dc5cc4",
+          "211f36d3c0dc5ec4",
+          "011f36f3c9945ec1",
+          "011f36f3c9905ee1",
+          "011f3ef349d05ce1"
+        ],
+        "center-60": [
+          "3527277773ae0460",
+          "350626777bae4470",
+          "350e26777bae4460",
+          "350e26777bac4470",
+          "350e22777bac4871"
+        ],
+        "center-50": [
+          "3d082477f7056475",
+          "3d08247777056c75",
+          "3d00247777856c75",
+          "3d002473f7856c75",
+          "3d002473f7856c75"
+        ],
+        "top-left-70": [
+          "2b7a8d9435492f61",
+          "3f7a899431452e71",
+          "3f3a899423453e71",
+          "3f3ac99621413e71",
+          "3f32c99683413e71"
+        ],
+        "top-right-70": [
+          "89886ef2d3b59514",
+          "89886ef2d3b59514",
+          "89886ff2d1b78514",
+          "89886ff2d9b78114",
+          "8b886ff2d9b78110"
+        ],
+        "bottom-left-70": [
+          "0f377368e8418d87",
+          "0f377268e8518d27",
+          "0f373268e851ad27",
+          "0f373268e851ad27",
+          "0f373268e851cd27"
+        ],
+        "bottom-right-70": [
+          "998391da4d2daf84",
+          "a98391ca4d3daf84",
+          "b9c390ca4d3da784",
+          "3d4390ce4d35af84",
+          "3d43904e4937afc4"
+        ]
+      }
+    },
+    {
+      "concertId": 16,
+      "phash": [
+        "bf924c591ac64b91",
+        "af964c591ac64b91",
+        "af964e1b0ac64b91",
+        "af964e1a2ac64b91",
+        "af964e1a2ac46b91"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a3b6441d1ec65715",
+          "a3b64c1d064e1797",
+          "a3b64e1d064e1787",
+          "a3964e1d064e5787",
+          "ab964e1d064e1787"
+        ],
+        "center-60": [
+          "a1a4de3f286da063",
+          "a1a4df3f286da023",
+          "a1a4df3f2879a023",
+          "a3a0df3f285ba023",
+          "a3a0df9f285ba023"
+        ],
+        "center-50": [
+          "b1e0d7bf5e10a061",
+          "b1e0d79f5e11a061",
+          "b1e0d78f5e11a071",
+          "b3e0d78f5e11a070",
+          "b3e0978f5e11a851"
+        ],
+        "top-left-70": [
+          "283a6f289b67c6d0",
+          "383a7f089967c5d0",
+          "383a7d589963c5d0",
+          "383a7d589d63c5c0",
+          "383a7d589d63c5c0"
+        ],
+        "top-right-70": [
+          "9edc09be7d083215",
+          "9edc493e6f881215",
+          "8edc4b3e6f881215",
+          "8edc4b3e6f881215",
+          "8edc4b3e67881615"
+        ],
+        "bottom-left-70": [
+          "d929109ee7770643",
+          "dd28189ee7750643",
+          "dd2a989ee7710243",
+          "dd2a989e67710263",
+          "dd2a989e67710263"
+        ],
+        "bottom-right-70": [
+          "bf9af4744dcb8800",
+          "bf98bcf44dcb8400",
+          "bf98bcd44ddb8400",
+          "bf88bcd44ddb8402",
+          "bf88bcd44ddb8402"
+        ]
+      }
+    },
+    {
+      "concertId": 17,
+      "phash": [
+        "85846a73338c9e57",
+        "85846a73339c1e57",
+        "8784ea73131c1e57",
+        "a784ea73121c1e57",
+        "a784ea73121c1e57"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a58cfe7371210c56",
+          "a5ac7e7371210c56",
+          "a7ac5e7361210e56",
+          "a3ac5e7371210e56",
+          "a3ac567371231a56"
+        ],
+        "center-60": [
+          "ab8e467471a52786",
+          "ab8e447671352786",
+          "ab8e047c713527a6",
+          "ab8e047c713527a6",
+          "ab8e1478713527a6"
+        ],
+        "center-50": [
+          "8184cede7d356261",
+          "81c4ce5a7d376261",
+          "81c0ce5afd376261",
+          "a1c8c64afd376261",
+          "a1c8ce42fd366271"
+        ],
+        "top-left-70": [
+          "1bd2cd0c34b70b55",
+          "0bd2cd0c34b78b55",
+          "0bd2cd0c34bd8b55",
+          "0bd2cd8c34bd8b54",
+          "0b92ed8c34bd8b54"
+        ],
+        "top-right-70": [
+          "9e780d86e2639d94",
+          "9f680d86e2639d94",
+          "9f680d06e2539d96",
+          "9f680d06e2539d96",
+          "9f680d42e2539597"
+        ],
+        "bottom-left-70": [
+          "2b333332b2b4b4a3",
+          "2b333332b2b4b683",
+          "2b3332b2b2b4b683",
+          "2b1732b232b4b687",
+          "2917b2b232b496c7"
+        ],
+        "bottom-right-70": [
+          "9793f1e068686a47",
+          "9793f0e0e8687a43",
+          "9f93f0e0e86a7a40",
+          "9f93f0e0e86a7a40",
+          "9f93f0e0e86a5a42"
+        ]
+      }
+    },
+    {
+      "concertId": 18,
+      "phash": [
+        "b778e6c92326c903",
+        "b778e6cb2326c901",
+        "b778e4cb2326cb01",
+        "b75ae4cb2326cb01",
+        "b75ae4c3a326cb01"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "355ae6d93468c2d1",
+          "b55ae6d93448c2d1",
+          "b55ae6d93468e051",
+          "b55aa6d134e8e053",
+          "b55aa6d124e9e053"
+        ],
+        "center-60": [
+          "3f5ad0912d2ab6c2",
+          "3f5ed8912d0ab642",
+          "bd5ad8912d0ab662",
+          "ad5ad8912c8bb662",
+          "ad5ad8912c8bb662"
+        ],
+        "center-50": [
+          "2f52d0b56f1a24d4",
+          "2f52d0b54f9a2cd0",
+          "2f52d8b54f922cd0",
+          "2f52c8b54f926cd0",
+          "2f52c8b64f926cd0"
+        ],
+        "top-left-70": [
+          "6ed4814a9c097df4",
+          "6ed4814a9c097df4",
+          "6ed4854a8c097df4",
+          "6cdc8d4a8c093df4",
+          "2cdc8d4a8d0d3d74"
+        ],
+        "top-right-70": [
+          "8e74cf98662d9446",
+          "8e74cf08672db486",
+          "8e74cf08672db486",
+          "8e74cf08672db486",
+          "8e74cf08672da4a6"
+        ],
+        "bottom-left-70": [
+          "6bfd5a94840aa553",
+          "6bed5a9c850aa551",
+          "2bedd89c850aa553",
+          "0be5d09e850abd53",
+          "0be5d09e810afd53"
+        ],
+        "bottom-right-70": [
+          "99473274669c67b0",
+          "99673270679867b0",
+          "99673274679865b0",
+          "9967327067986db0",
+          "9947b270678a6db0"
+        ]
+      }
+    },
+    {
+      "concertId": 19,
+      "phash": [
+        "83c2d6b1a4dd5836",
+        "83c6d6b1a4dd1836",
+        "83c6d6b1acdd1036",
+        "83c654b1acdd12b6",
+        "83c65c91aedd12a6"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "c3c05432f0cdae37",
+          "c3c0553270cdae37",
+          "c3c0553270d5ae37",
+          "c3c0553278d5ae36",
+          "c3405532ead5ae36"
+        ],
+        "center-60": [
+          "e1c0fb3a0dc19a66",
+          "e1c0fb3a0dc19a66",
+          "e1c4fb320dc19a66",
+          "e1e4db360dc18a66",
+          "e1e4bb360dc18a63"
+        ],
+        "center-50": [
+          "f1e0c93e0fd20566",
+          "f1e0c93e0fd00567",
+          "f1e0c93e0fd00766",
+          "f3e0c93e07d00766",
+          "f3e0893e87d00766"
+        ],
+        "top-left-70": [
+          "0f9e6de29462b503",
+          "0f9e29f29c62b503",
+          "0b9e29fa9c62b503",
+          "0b9e0dfe9c42b503",
+          "0b9e0dfe9c42b503"
+        ],
+        "top-right-70": [
+          "af7895f8fe0041a2",
+          "af7895f8fe0041a2",
+          "af7a95e85e804b82",
+          "ad7a95e85f804b82",
+          "ad5a95e85f804b92"
+        ],
+        "bottom-left-70": [
+          "0f0f969d0d6a6274",
+          "0f0f969d0d4a7274",
+          "0f0ed6bd0d427274",
+          "050ed2bd0d467af4",
+          "050ed2bd0d447ef4"
+        ],
+        "bottom-right-70": [
+          "afaf7a5b97040814",
+          "afaf7a5b97040814",
+          "afa86a5b97a40855",
+          "afac6a5b95a48815",
+          "afac6a5385b48855"
+        ]
+      }
+    },
+    {
+      "concertId": 20,
+      "phash": [
+        "81406f337ccc7a95",
+        "91406f327ccd7895",
+        "91606f326ccf6895",
+        "91606f326ccf6895",
+        "91606f726ccf4895"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "b1e06176e8657b24",
+          "b1e86176a8657b24",
+          "b1e86176a0657b64",
+          "b1e86176a1655b64",
+          "91e86176a16d5b64"
+        ],
+        "center-60": [
+          "bfd8e130ac8c3265",
+          "b7d8e130ac8c3365",
+          "97d8f130ae8c3265",
+          "97d8f132ae842365",
+          "97d8f132ae842365"
+        ],
+        "center-50": [
+          "90dafd368c8e1a85",
+          "90dafd368e8e1285",
+          "90dafd36ae8e1085",
+          "90dafd36ae8e1085",
+          "90dafd36ae8e1085"
+        ],
+        "top-left-70": [
+          "865d62d2f8389b46",
+          "045d42f6fab8b246",
+          "054d42f6fea8b246",
+          "054d42f6fea8b246",
+          "054d42f6fea8b246"
+        ],
+        "top-right-70": [
+          "c73328746ec2f093",
+          "c73328746ec2d893",
+          "c73328746ec2d493",
+          "c73328746ec2d493",
+          "c72328766ec2d493"
+        ],
+        "bottom-left-70": [
+          "03849c9f616d5f91",
+          "23849c9f616d5e91",
+          "23849c9f616d5ab1",
+          "23a49c9f606d5ab1",
+          "23849c9f646d5ab1"
+        ],
+        "bottom-right-70": [
+          "cfd6722b2b031274",
+          "cfd6762b2a0b1264",
+          "cfd6762b2a0b1264",
+          "cfd6362b2a8b12c4",
+          "cdd6362b2a8b12e4"
+        ]
+      }
+    },
+    {
+      "concertId": 21,
+      "phash": [
+        "8180c47e7a727c76",
+        "8180d47e7a724e76",
+        "8180f4de7a724e56",
+        "8188f4de1ad64e56",
+        "858ae49e1ad6ae52"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8989ab883a761e73",
+          "8989ea883af21e73",
+          "898bea883af21e63",
+          "a98aeb883ae21e63",
+          "a98aeb0cbae21e62"
+        ],
+        "center-60": [
+          "8bcfcf9b33070142",
+          "8bdfdf9a31860046",
+          "8b97fd8a71862146",
+          "8b97fd8a71862146",
+          "a996fd8a7186a146"
+        ],
+        "center-50": [
+          "cbe3c7d513823903",
+          "cba3c7943b823943",
+          "cba3c79479827903",
+          "cbb0cf9479827903",
+          "cbb0cf947b827902"
+        ],
+        "top-left-70": [
+          "078ef2f0d2f1c324",
+          "078af260d2f5c374",
+          "0382fa62d2f5c374",
+          "0382fa62d2f5c374",
+          "0382fa42d2f5c376"
+        ],
+        "top-right-70": [
+          "a1b44a4a787787a5",
+          "a1b4504a787797a5",
+          "a1b4525a785793a5",
+          "a1a4d25a785793a5",
+          "a3a4d24a7857d1a5"
+        ],
+        "bottom-left-70": [
+          "150f0b991fb18da3",
+          "110f0b993fb18da3",
+          "110f0bd13f30cdb3",
+          "112fc3d13e30cd33",
+          "112ec7d13e20cd73"
+        ],
+        "bottom-right-70": [
+          "b3a1a9b9f16027a1",
+          "b3a98d39f16427a0",
+          "b3a90d7de1442da1",
+          "b3a90d75a1562da1",
+          "b3880579a5566db1"
+        ]
+      }
+    },
+    {
+      "concertId": 22,
+      "phash": [
+        "b1b10d3972165c76",
+        "b1b505b9721658d6",
+        "b1b504b9731658d6",
+        "b1b504b9731658d6",
+        "b1b504b97306d956"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "afad89b327030d07",
+          "afad89bb27004d07",
+          "afad89bb27004d07",
+          "afed88bb23024d07",
+          "afed88bb23034d03"
+        ],
+        "center-60": [
+          "b7c1ca393179a5a0",
+          "b7c1ca393179a5a0",
+          "bfc3ca193079a5a0",
+          "3fc3ca1d3079a5a0",
+          "3fc3ca1d3079a5a0"
+        ],
+        "center-50": [
+          "25c1da18187aecf5",
+          "2dc1da98107aec75",
+          "2dc1da99103aec75",
+          "2dc1da99123aec65",
+          "2dc1da99123aec65"
+        ],
+        "top-left-70": [
+          "6b15606abae2c745",
+          "eb15606ab2e2c555",
+          "e31d606ab2e2c555",
+          "e31d606ab2e2c555",
+          "e31d626a92e2e515"
+        ],
+        "top-right-70": [
+          "99970d5c7c484f94",
+          "99f70d5c78480f94",
+          "99f70d5d78480794",
+          "99f70d5d78480794",
+          "99f70d5d78480794"
+        ],
+        "bottom-left-70": [
+          "6acb1b14b1f1a3e0",
+          "6acb1914b1f1a3e2",
+          "6acb1915a1f1a3e2",
+          "6ac3191da1b1a7e2",
+          "6ac3191da1b1abe2"
+        ],
+        "bottom-right-70": [
+          "988df3a2e1d9c123",
+          "889973b2e1d983a3",
+          "889973b261d987a3",
+          "888973f261d8a7a3",
+          "888973f261d8a7a3"
+        ]
+      }
+    },
+    {
+      "concertId": 23,
+      "phash": [
+        "6954a41a9aad8d97",
+        "6954a45a9aad0d97",
+        "6954a45a9ba50d97",
+        "6954a4589ba54d97",
+        "6954a45c9ba44d97"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "7d74a85256a8d2a3",
+          "7ff4a85256a850a3",
+          "7fd4a85ad6a850a1",
+          "7fd4a85ad62851a1",
+          "7fd4a05ad62951a1"
+        ],
+        "center-60": [
+          "57ec6a16a44fa0d1",
+          "57ec6a16a44fa0d1",
+          "57ec6a16a44fa0d1",
+          "57a96a96a44fa0d1",
+          "57a96a96a04fa0f1"
+        ],
+        "center-50": [
+          "534b58b42a55e0e7",
+          "514b5cb42a55e0e7",
+          "514b5cb42a5d60e7",
+          "51eb5cb4225d60c7",
+          "11ea5cb42a5d60e7"
+        ],
+        "top-left-70": [
+          "c116a92b1f2ad791",
+          "c116ab2b1f28d792",
+          "c116bb291f28d792",
+          "c116bb211f28d796",
+          "c11ebb211f28d792"
+        ],
+        "top-right-70": [
+          "6b94cdc8b58d3170",
+          "6b90c5c9b5cc3171",
+          "6b90c5c9b5cc3171",
+          "6b90c5c9b5cc3171",
+          "6f9045c9b5cc3171"
+        ],
+        "bottom-left-70": [
+          "41c11716bd6a4ad7",
+          "41e11716bd6a0af3",
+          "41a11756bd6a0af3",
+          "41a11756bd6a0af3",
+          "41a1175ebd6a08f3"
+        ],
+        "bottom-right-70": [
+          "6b6ab0b476cc9c22",
+          "6f4ab0b467cc9c22",
+          "2f4ab1b467cc9c22",
+          "2f4ab1b467cc9c22",
+          "2f4ab1b447ccdc22"
+        ]
+      }
+    },
+    {
+      "concertId": 24,
+      "phash": [
+        "d351cf8f8d063514",
+        "d351cf8f0d023574",
+        "d351cd8f0d023576",
+        "d359cd8f0d023176",
+        "d359ed870c823176"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "d1d5c5c3cfa28292",
+          "d1ddc5c1cfa29a02",
+          "d15dc5c3cfa21a12",
+          "f15dc5c3cfa21a02",
+          "f35dc5c3cfa01a02"
+        ],
+        "center-60": [
+          "b30b7d04c7626cd2",
+          "b30b7c04c7726cd2",
+          "b3097c05c7726cd2",
+          "b3097c05c7f22cd2",
+          "b3496c05c7f22cd2"
+        ],
+        "center-50": [
+          "b3193e41c7705473",
+          "b1193e41c7705673",
+          "b1193e41c7707473",
+          "b1591e41c77054f3",
+          "b1591e41c77054f3"
+        ],
+        "top-left-70": [
+          "a1971f196c734266",
+          "e1971b196c734266",
+          "e1d71b196c714266",
+          "e1d71b196c714266",
+          "e1d71b196c714266"
+        ],
+        "top-right-70": [
+          "4f71a9b787433882",
+          "4f71a9b787433882",
+          "4f71a1b787433c82",
+          "4f71a9b787433c02",
+          "4f71a9b787433c02"
+        ],
+        "bottom-left-70": [
+          "29e1e14feef08390",
+          "29e1e14fee708790",
+          "29e1f14fee700790",
+          "29e1f14fecf00790",
+          "29e1f14fecf00790"
+        ],
+        "bottom-right-70": [
+          "cf47530343435375",
+          "cf47538343435175",
+          "cf47528343735165",
+          "cf47528343735265",
+          "cf47528b41735265"
+        ]
+      }
+    },
+    {
+      "concertId": 25,
+      "phash": [
+        "0d9ef0b8d12cda62",
+        "0d9af2b8d92cda22",
+        "0f9af0b8dd24da22",
+        "0f9af098fd34ca22",
+        "0f8af09afd16ca22"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "0d97629e3d1ec164",
+          "0d97609e3d9ec164",
+          "0fd7609a3d9ec144",
+          "0fc7f09a3d9ec140",
+          "0fd3f19a3d96c140"
+        ],
+        "center-60": [
+          "05e166353c970e97",
+          "05e172373c970e96",
+          "05e1723f3c970696",
+          "05e9b2b73c970296",
+          "05e9b2bf2c970296"
+        ],
+        "center-50": [
+          "c5ebf61c3131c1a1",
+          "c5ebf61e2131c1a1",
+          "c5ebf61e293181a1",
+          "c5fbf68c293181a1",
+          "45fbb68d29b105a1"
+        ],
+        "top-left-70": [
+          "338ce4e68a4f6b30",
+          "338ce6e48a4f6b30",
+          "338ca6f4884e6b74",
+          "338caef4884e6a74",
+          "3b8cae74884e6a74"
+        ],
+        "top-right-70": [
+          "f1de0672d0059fe0",
+          "f1ce867254059fe0",
+          "a1cec6725e058fe0",
+          "a1cec6725e258fa0",
+          "a1cec6724e358ee0"
+        ],
+        "bottom-left-70": [
+          "333b9d10aa4546e7",
+          "333add128a4546e7",
+          "333acd0a8a4746e7",
+          "33bacd0a8a4706e7",
+          "33bac50a8a4716e7"
+        ],
+        "bottom-right-70": [
+          "b1f8fbb0cc330047",
+          "b1f87bb4cc332046",
+          "b1f87ba4cc332047",
+          "b1f85b84ec336047",
+          "b1e85b84ecb36047"
+        ]
+      }
+    },
+    {
+      "concertId": 26,
+      "phash": [
+        "326ed497e94c12d2",
+        "326ed497e94812f2",
+        "3a66d49de94812f2",
+        "3a66d48de94813f2",
+        "3a66d4ade94812f2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "32648cb17f539c23",
+          "32648cb1ff439c23",
+          "32649ca1ff41dc23",
+          "32649ca1ff41dc23",
+          "32649ca1ff41dc23"
+        ],
+        "center-60": [
+          "364ca9b847d923b4",
+          "364ca8ba47d923b4",
+          "3664a9ba42d923f4",
+          "3664a9ba42d923f4",
+          "3664a93a42d923f6"
+        ],
+        "center-50": [
+          "364d892ed2d93332",
+          "364d892ad2d933b2",
+          "3665a92ad0d933b2",
+          "3665a92ad0d933b2",
+          "3665a92ad0d933b2"
+        ],
+        "top-left-70": [
+          "6a972cd807f98645",
+          "6a972dd807798645",
+          "6a9725d80779a645",
+          "6a9725f80769a654",
+          "6a9735f00769a654"
+        ],
+        "top-right-70": [
+          "8c72c32ddad46585",
+          "0c72c32dda94e785",
+          "0c72c32dc994e7a5",
+          "0c72c32dc99ce725",
+          "0c72c32dc99ce725"
+        ],
+        "bottom-left-70": [
+          "68da92162dd15be2",
+          "68da92162ed07be2",
+          "68da92122ed17be2",
+          "28de92122ed17be2",
+          "28ded2022e717be2"
+        ],
+        "bottom-right-70": [
+          "8c2c70db92f31ce1",
+          "8c2c70db82f39ce1",
+          "8c2871da82f3dce1",
+          "8c2871dac2bbdcc1",
+          "8d28715ac2bbdcc1"
+        ]
+      }
+    },
+    {
+      "concertId": 27,
+      "phash": [
+        "865c39a586d117c7",
+        "865eb124c6d117c7",
+        "865eb124ce5117c7",
+        "864eb124ce5117e7",
+        "864eb024cf5117e7"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "c2563d28e8bf81e4",
+          "c2543d28e8bf85e4",
+          "c2dc3c2ae8be85c4",
+          "c2dcbc2ae8b685c4",
+          "c2dcbc2ae83685e4"
+        ],
+        "center-60": [
+          "e0c41f681fb7e015",
+          "e0cc1f681bb7e811",
+          "e0cc1f681bb7e811",
+          "e0cc17681bb7e815",
+          "e0cc17685bb7e811"
+        ],
+        "center-50": [
+          "f8c4277e13a1fa02",
+          "f8c4277e11a4fb02",
+          "f885277a11a4fb12",
+          "fa85255a11a4fb13",
+          "fa85255a11a4db53"
+        ],
+        "top-left-70": [
+          "9ce24f910ad4e396",
+          "9ca34e912ad4e396",
+          "9ca24e913ad4e396",
+          "9ca24c913ad5e396",
+          "9ca24c913ad5e396"
+        ],
+        "top-right-70": [
+          "7e4094f74a228df2",
+          "7e4094f74a228df2",
+          "fec0947f48228dd2",
+          "fac0947f48238dd2",
+          "fac0947f48238dd2"
+        ],
+        "bottom-left-70": [
+          "9d9ca2635ed46461",
+          "9d9ca2635ed46461",
+          "9c9ca2635ed4e461",
+          "8c9ca3635ed4e461",
+          "889ca3637ed4e461"
+        ],
+        "bottom-right-70": [
+          "ff7a49499b322203",
+          "ff7ac94998722203",
+          "ff7ac94998322283",
+          "ff7ac94998322283",
+          "bf7ac949983322a1"
+        ]
+      }
+    },
+    {
+      "concertId": 28,
+      "phash": [
+        "8c62dab106791bb3",
+        "8c62dab116791bb1",
+        "8c62fab116790bb1",
+        "8c62f8b117790bb1",
+        "8c62f2b017791bb1"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8a62f8b5a4691a73",
+          "8a42f8b4a4799a73",
+          "8842f8b4a6799a73",
+          "8842f8b4a67d9a33",
+          "8842f8b4a67d9633"
+        ],
+        "center-60": [
+          "8250ddace8cd1a73",
+          "8250ddac68cd1a77",
+          "8250dda46ac91b77",
+          "8250dda46ac91b77",
+          "8a50dde06ec81b75"
+        ],
+        "center-50": [
+          "c2709da0efcc1627",
+          "c2f09da0edcc1627",
+          "c2f09da0edcc1627",
+          "c2f08de86dcc1627",
+          "c2f08de86dcc1627"
+        ],
+        "top-left-70": [
+          "18cfe359a1589363",
+          "1ccee359a1589363",
+          "1ccee37ba10ad162",
+          "1ccee37ba10ad162",
+          "1cdee36be10ad160"
+        ],
+        "top-right-70": [
+          "b66cd135c41e7183",
+          "b66cd915c41e7183",
+          "b66cd915c43e7181",
+          "b66cd90d4cae7181",
+          "b66cd90d48ae7581"
+        ],
+        "bottom-left-70": [
+          "305cbce323684fd4",
+          "301cbce323e84fd4",
+          "301cbce323e84fd4",
+          "301cbce323e85fd0",
+          "341cbce323c85fd0"
+        ],
+        "bottom-right-70": [
+          "e33e6661c98a3874",
+          "e33e6621c98e3874",
+          "a33e6e21c98a3876",
+          "a33e6e21c98a3876",
+          "a33e6e21c88e3876"
+        ]
+      }
+    },
+    {
+      "concertId": 29,
+      "phash": [
+        "41373161b7a9b983",
+        "43373141b7ad3983",
+        "4b373140b7ad3983",
+        "493731c097ad7983",
+        "4937394097ad7983"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "49173f40c55e52d3",
+          "49173fc0e51c52d3",
+          "49173fc0a53c52d3",
+          "49173fc0a53c52d3",
+          "49173fe0a53c5253"
+        ],
+        "center-60": [
+          "59230df5ad0bf284",
+          "59230df5ad0bf284",
+          "5d230df7ad0af204",
+          "d9230df7ad0af204",
+          "d1230df7ad1af204"
+        ],
+        "center-50": [
+          "d7230cfd0951ab54",
+          "d7230cf50951ab56",
+          "d7230cf50951ab56",
+          "d5230cf50957aa56",
+          "d5230ef50853aa57"
+        ],
+        "top-left-70": [
+          "5f710559751f7104",
+          "1f71855bf51f4104",
+          "1f71855bf51b4184",
+          "9f71855be51b4184",
+          "9f71855be51b4184"
+        ],
+        "top-right-70": [
+          "2791359ba599b292",
+          "6791259ba599b292",
+          "6791259ba799b290",
+          "6f91259b2799b290",
+          "6f91249b2799b292"
+        ],
+        "bottom-left-70": [
+          "afde69b02c9b2070",
+          "8fde69f02c9b2070",
+          "8fde69f0ac9b2030",
+          "8fdf7960ac9b2030",
+          "8fdf7960ac9b2030"
+        ],
+        "bottom-right-70": [
+          "6778cf21447dc8e0",
+          "6778cf21447dc8e0",
+          "6759cf21447dc8e0",
+          "6759cf21447dc8e0",
+          "6759cf20447dc8e2"
+        ]
+      }
+    },
+    {
+      "concertId": 30,
+      "phash": [
+        "2b2b224ed6c69d16",
+        "0b2b264edeee8d10",
+        "0b2b260edeee8d14",
+        "0b2b261edeee0d50",
+        "0b2a261edeee0d54"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "0b2367d4f0c6ccc6",
+          "1f2367c4d0c6ccc6",
+          "1f2367c4f0c6ccc2",
+          "1f2367c4f0c6ccc2",
+          "1f2367c4f0c2ecc2"
+        ],
+        "center-60": [
+          "893b239931033f75",
+          "093b639931033f75",
+          "093b639931033f75",
+          "093b638935813f75",
+          "813b638935813f75"
+        ],
+        "center-50": [
+          "8d37c19fb1818fc0",
+          "8937c19fb1818fc1",
+          "8937c19fb5818fc0",
+          "8937c19fb5818fc0",
+          "8937c19fb5818fc0"
+        ],
+        "top-left-70": [
+          "375a90fa9b232943",
+          "375a18fa93236943",
+          "371a18fa93237943",
+          "371a1afa13273943",
+          "371a18fa13633963"
+        ],
+        "top-right-70": [
+          "aba87850f5c1af21",
+          "abacf840b1c1bf21",
+          "ab2cf848b143bf21",
+          "ab3cf848b143bd21",
+          "a93cf84cb143bd21"
+        ],
+        "bottom-left-70": [
+          "3766cc591366ec84",
+          "3767cc511766ec04",
+          "3567cc511766ee04",
+          "3567ce1115e6ee04",
+          "3567ce1115e6ce84"
+        ],
+        "bottom-right-70": [
+          "e3032c3df3414357",
+          "e1812c3df3434b47",
+          "e1812d3df3034b47",
+          "e1812d3df3034b47",
+          "e1812d3df3034b47"
+        ]
+      }
+    },
+    {
+      "concertId": 31,
+      "phash": [
+        "9998666725919b96",
+        "b9b84e6725819396",
+        "b9b84e4f25819396",
+        "b9384e5f25819396",
+        "b9384e5f25819396"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9d9e62426c61b396",
+          "bdba42426c61b396",
+          "bf3a52426c60b396",
+          "bb3a52526c709396",
+          "bb3a52522c70d396"
+        ],
+        "center-60": [
+          "9f8ed0d24e7070f0",
+          "9f8ed0d24e7870e0",
+          "9f0ed0d24e78f0e0",
+          "1f0ed0d24e78f0e1",
+          "1f0ed0924e7cf0e1"
+        ],
+        "center-50": [
+          "8786f0c54e7a7074",
+          "0786f0c74e7a7074",
+          "070af8974e7a7074",
+          "070af8974e7a7074",
+          "070af8974e78f072"
+        ],
+        "top-left-70": [
+          "22dcdd132d32d2c6",
+          "22ccdd532d32d2c6",
+          "22dcdd530d32d2c6",
+          "22cedd538532d2c6",
+          "22cefd1385b2d286"
+        ],
+        "top-right-70": [
+          "807e7f91cfe03007",
+          "806e7f91cff03007",
+          "806c7f91cff03047",
+          "84684f91eff03067",
+          "85284f91eff03067"
+        ],
+        "bottom-left-70": [
+          "232327acad3b3331",
+          "232327acad3b3331",
+          "2323278cadbb3331",
+          "232306ceadbb3331",
+          "232302ceadbb3371"
+        ],
+        "bottom-right-70": [
+          "8181c1cecfc9f1f0",
+          "818181eecfc9f1f0",
+          "8181a1eecec9f1f0",
+          "8181b0eececbf1b0",
+          "8581b06ececbf1b0"
+        ]
+      }
+    },
+    {
+      "concertId": 32,
+      "phash": [
+        "2d34d2db2d252663",
+        "2d34d2db2d252663",
+        "2db4d29b2d252663",
+        "29b4d39b2c272663",
+        "2ba4d39b0c2f2663"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "2b2c94d39b392d23",
+          "2b2c94d39b383d23",
+          "2b2cd4d39b983932",
+          "2bacd5d39f983820",
+          "2bacf5d39c9a3820"
+        ],
+        "center-60": [
+          "4b2ab49496dacb61",
+          "432ab495d69aca71",
+          "432ab4d5c792ca33",
+          "432ab5d58792ca33",
+          "432eb5d587928a33"
+        ],
+        "center-50": [
+          "436a2ca4b49ed2f1",
+          "436a2ca4b4dcd2f1",
+          "536a3ca4a4ddc2f0",
+          "534a3daca5d9c2e0",
+          "534a3daca5d9c2e0"
+        ],
+        "top-left-70": [
+          "512eab315c5aba92",
+          "112ead305d5abb92",
+          "112ead304f5abb92",
+          "196ead304d5a9b92",
+          "1966ad304d5b9b92"
+        ],
+        "top-right-70": [
+          "b68acda71a1c6c31",
+          "b79acda41a386c61",
+          "a792cda41b3c6c61",
+          "a792cda41b386d61",
+          "a792cda41b38ed60"
+        ],
+        "bottom-left-70": [
+          "5155544ccecb2ba5",
+          "5151564ece4b2ba5",
+          "1951564ece4b2ba5",
+          "195056cecc672ba5",
+          "195056cfcc770b85"
+        ],
+        "bottom-right-70": [
+          "b7b7121a1a58ccc6",
+          "b7b7121a1a19ccc6",
+          "a7b7121a1a19cdc6",
+          "afb6121a1a11ddc6",
+          "adb6121a1e11ddc6"
+        ]
+      }
+    },
+    {
+      "concertId": 33,
+      "phash": [
+        "231a9a377564ca87",
+        "239a9a377564ca83",
+        "239a9a377564ca83",
+        "239a8a377566ca83",
+        "239a8a377566c383"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "29929a3f3e7acb00",
+          "23929a3f3e7acb00",
+          "23929a3c3e7aeb80",
+          "23929a3c3e7aeb80",
+          "239a9a3c3e7ae980"
+        ],
+        "center-60": [
+          "679495ab2b14b325",
+          "679495ab2a34b325",
+          "679495ab2274b325",
+          "779495ab2234b325",
+          "779495ab2234b325"
+        ],
+        "center-50": [
+          "65b48f8b0894db35",
+          "65b48f8b2894d335",
+          "65b4cd8b0894f335",
+          "65b4cd8b0834f335",
+          "61b4cd830a74f335"
+        ],
+        "top-left-70": [
+          "4b2a79409f17d2b2",
+          "0b2a7d409f1fd292",
+          "0b2a7d409f1fd0d2",
+          "0baa7c409f1fd0d2",
+          "0baa75409f1fd0d2"
+        ],
+        "top-right-70": [
+          "8d8c9b1069fb58b1",
+          "8dcc931069fb58b1",
+          "8dcc931069fb58b1",
+          "0dcc9b1069fb58b1",
+          "0dec931069fb58b1"
+        ],
+        "bottom-left-70": [
+          "43438a8e9f1f5551",
+          "43438a8e9f1f1d51",
+          "4343aa8e9f1f1d50",
+          "4341ab8e8f1f1d70",
+          "4341a99e871f3d70"
+        ],
+        "bottom-right-70": [
+          "350d6ce8eacb9314",
+          "351cece8eacb9304",
+          "3d18ece8eacb9304",
+          "3d18ece8eacbc304",
+          "3d18ececaacbc304"
+        ]
+      }
+    },
+    {
+      "concertId": 34,
+      "phash": [
+        "b734c8c993b2b270",
+        "b7b4c8cd93929270",
+        "a7b448cd97929670",
+        "a5b448cd97b29670",
+        "a5b4484d97b29671"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "272448c9df969696",
+          "272648c9dd969696",
+          "a72448cadd969696",
+          "a726484add8696b6",
+          "ab26484add8e96b4"
+        ],
+        "center-60": [
+          "2724585b5bc35356",
+          "2324585b7fc153a6",
+          "2324585b7fc153a6",
+          "232c58537fc153a6",
+          "232c58537fc153a6"
+        ],
+        "center-50": [
+          "212c5c5e5ed37246",
+          "212cdc5e5ed17246",
+          "2128dc5e5ef17246",
+          "2128dc5e5ef17246",
+          "2128de5e6ef13246"
+        ],
+        "top-left-70": [
+          "2b36b52b6a46cd44",
+          "2b36b52a2a46cd74",
+          "2b16956a2a47cd74",
+          "0b1695622a47ddf4",
+          "0b1695622a47ddf4"
+        ],
+        "top-right-70": [
+          "9da063cd880337b7",
+          "9da063cd880237f7",
+          "9fa063c8d80237b7",
+          "9fa063d8d80237a7",
+          "97a063d8da0237a7"
+        ],
+        "bottom-left-70": [
+          "4b6b6b24b4e4c692",
+          "0b6b6a36b4e44792",
+          "096b6e36b0e44796",
+          "096b673638654796",
+          "096b6f3618654796"
+        ],
+        "bottom-right-70": [
+          "9f9d99f072622270",
+          "9f9d99f0f6460230",
+          "9f9d99f0fe060230",
+          "9f9f89e2fe060034",
+          "9f9f89a2fe070034"
+        ]
+      }
+    },
+    {
+      "concertId": 35,
+      "phash": [
+        "fffffeec00004042",
+        "bffbfe6c10004246",
+        "9ffbee7c00004347",
+        "9ffbee7c00004347",
+        "9ffbee7424004346"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9150666f89b276c6",
+          "8150666f88ba7657",
+          "8150667ea8ba7257",
+          "8151667ea8aa7257",
+          "8171667ea88a7276"
+        ],
+        "center-60": [
+          "999e624199b66267",
+          "99be624189b27267",
+          "99be60418db27267",
+          "99f66441c9b07267",
+          "91f674414bb0f263"
+        ],
+        "center-50": [
+          "9f9e60498db07265",
+          "9f9e60498db07263",
+          "9fa660498db87263",
+          "9fa660490fb87263",
+          "9be620490fb87273"
+        ],
+        "top-left-70": [
+          "fdfcf92008f52444",
+          "fdfcf02008f33644",
+          "bdfef02008f33e04",
+          "bdfef02008f33e04",
+          "bdfef03008e33c84"
+        ],
+        "top-right-70": [
+          "e92c77801e6bc436",
+          "e92c77801e6bc417",
+          "eb2c76844a6bc417",
+          "eb2c76844a6bc417",
+          "eb2c76844b69c453"
+        ],
+        "bottom-left-70": [
+          "3d276ec8c090b733",
+          "3d274ec8c0d0f372",
+          "3d27ce88c0d0f372",
+          "3d27ce88c2d0f272",
+          "3d27ce88c3d0d272"
+        ],
+        "bottom-right-70": [
+          "c1c1887e3e7a63c1",
+          "c3c1097e3e7b61c0",
+          "c3c5896e0f7b61c0",
+          "c3c5ad6e4b3b21c0",
+          "c3c5ad6e497b21c0"
+        ]
+      }
+    },
+    {
+      "concertId": 36,
+      "phash": [
+        "9bb2646d3932c2c6",
+        "9bb2646d3d32c2c4",
+        "9bb2666d6d0ac2c4",
+        "9bb2666d6d0ac2c4",
+        "9bb2666d6d0ac2c4"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9392646c6b3333e2",
+          "9392646c2f3a71e2",
+          "9392646c2f3a71e2",
+          "9392646c2f3a71e2",
+          "9392646c2f3a71e2"
+        ],
+        "center-60": [
+          "9392ccc8693317b3",
+          "9392ccc84b1637b3",
+          "9392e8e94a163733",
+          "9392f8e942163733",
+          "9392fce902163f23"
+        ],
+        "center-50": [
+          "9796c8c8c856c7a5",
+          "9796e8c8c856c785",
+          "97b6e8c8c856c781",
+          "97b2f8c9c054c785",
+          "97b2f8c9c054c785"
+        ],
+        "top-left-70": [
+          "2cded769a8949161",
+          "2bded76988943861",
+          "2bded76a88943861",
+          "2bced77888943863",
+          "2bced77888943863"
+        ],
+        "top-right-70": [
+          "847a7985cc727782",
+          "845a7905ce72f782",
+          "851a33246eebf780",
+          "851a33246eebf684",
+          "851a33246eeaf6c4"
+        ],
+        "bottom-left-70": [
+          "29292da696979693",
+          "292929ac96979796",
+          "2929298cc6979797",
+          "2929288ec7979796",
+          "292928cec7879796"
+        ],
+        "bottom-right-70": [
+          "85858dcc78787875",
+          "85858dcc68787a75",
+          "85858cca4a6afbb1",
+          "85858c4a4a4bfbb5",
+          "8585cc4a4a4bdbb5"
+        ]
+      }
+    },
+    {
+      "concertId": 37,
+      "phash": [
+        "9392ec6d333232c6",
+        "9392e46c3b3272c6",
+        "9392646d2b3a72c6",
+        "93b0646d2a3a76c6",
+        "93b0646d2a3a7746"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9390eccd8b333332",
+          "9390eccd1b333332",
+          "9390e4ed1b333532",
+          "91b0eced9a323532",
+          "91b0eced9a3a3512"
+        ],
+        "center-60": [
+          "93b2eccccc313391",
+          "93b2eccccc71b380",
+          "93b2eccccc71b184",
+          "b3b2eccdc871b104",
+          "b3b2eccdc071b105"
+        ],
+        "center-50": [
+          "b3326ccccc793330",
+          "b3b26cccccf83230",
+          "b3b26ccecc70b230",
+          "b3b06ccec878b234",
+          "b3b06dcec878b230"
+        ],
+        "top-left-70": [
+          "2dd2d32d6c929526",
+          "2d52d36c6c929726",
+          "2d52d32c6c9695a6",
+          "2952d32c6d9695a6",
+          "2970db246d9695a6"
+        ],
+        "top-right-70": [
+          "87b0718f0e7071c7",
+          "8790718f0e7075c7",
+          "8f92718e0e7065c7",
+          "8f92718e0b7264c7",
+          "8b9271ae0b7264e6"
+        ],
+        "bottom-left-70": [
+          "2d2d2d68dad29293",
+          "2d2d2d48db939293",
+          "2d2d6c48db939293",
+          "292d6858db9392b3",
+          "292168d8db9392f3"
+        ],
+        "bottom-right-70": [
+          "8f8f8f0e78707070",
+          "8f8f8e1e3870f070",
+          "8f8f8e1a38f1f060",
+          "8f8f8e1a19f1f060",
+          "8f8b8e1a19f1f260"
+        ]
+      }
+    },
+    {
+      "concertId": 38,
+      "phash": [
+        "85827a7c54d6aa56",
+        "85827e7c5456aa56",
+        "85827e7c545e8a56",
+        "91a25efc545e8256",
+        "91a2debc545e8256"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "81c25e3e7ee4c096",
+          "81c25f3e58c6c696",
+          "81825fba5986d687",
+          "81825fba5986d687",
+          "81a25fa87986d687"
+        ],
+        "center-60": [
+          "bdf2271b11e06a07",
+          "bdf2271919e04e07",
+          "bdf2271859e04e07",
+          "bdf2a7185b284e05",
+          "bdf2a7184b284f05"
+        ],
+        "center-50": [
+          "abf0a6171dfe4202",
+          "abf0a6161dfe4302",
+          "abf0a61615be4316",
+          "abe0a49e15be4316",
+          "abe0a49e15be4316"
+        ],
+        "top-left-70": [
+          "0e9872745a672fd0",
+          "0e9872541a676fd2",
+          "0698f2941a676fd2",
+          "0698f6141a676fd2",
+          "0698f6141a2f6fd2"
+        ],
+        "top-right-70": [
+          "d4ee6054ab4555a5",
+          "d4ee6056aa4595a5",
+          "d0ee6056ea4715a5",
+          "d0ee6056ea4715a5",
+          "d0ee6056ea4715a5"
+        ],
+        "bottom-left-70": [
+          "0f0c999b10f63fa4",
+          "0f0c99fb00f63ba4",
+          "070c99fb00f63fa4",
+          "070c98fb00f63fe4",
+          "070c98fb00fe3fe0"
+        ],
+        "bottom-right-70": [
+          "d194eea8aa635552",
+          "d1b6eea8aa625542",
+          "d1b66ee8aa625542",
+          "d1b66ee8aa625542",
+          "d1b66ee8aa625542"
+        ]
+      }
+    },
+    {
+      "concertId": 39,
+      "phash": [
+        "ab341b9a74e78095",
+        "ab341b9a74e78095",
+        "ab341b9a70e79095",
+        "eb340b9a70e79095",
+        "eb340b9a60e790b5"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "45ab459a7c64be81",
+          "45ab55927c64be81",
+          "45ab55927c64be81",
+          "65ab55927c64be80",
+          "65ab55927c64be80"
+        ],
+        "center-60": [
+          "6f19e196e86d0274",
+          "6f19e196686d2274",
+          "6f19e196686d2274",
+          "6f1bc196686d2274",
+          "6f1bc196686d2274"
+        ],
+        "center-50": [
+          "2379ed92cd254332",
+          "637ded9249254332",
+          "637daf9249254332",
+          "6b5daf9249254332",
+          "6f5da79249254332"
+        ],
+        "top-left-70": [
+          "6b142ac4832ddf74",
+          "6b1428c60b2ddf74",
+          "6b1438c70b2dd374",
+          "4b1438c70b2dd774",
+          "4b1538c70b2cd774"
+        ],
+        "top-right-70": [
+          "a996ca3239c73913",
+          "ad93ca3299c73912",
+          "a593ca329dc73912",
+          "a593ca329dc63913",
+          "a593ca329dc63913"
+        ],
+        "bottom-left-70": [
+          "df60459d20299cf3",
+          "df60459f28291ce3",
+          "df60459f29281ce3",
+          "df60479f29281ce1",
+          "df60479f29281ce1"
+        ],
+        "bottom-right-70": [
+          "2b94337984c6f664",
+          "2b94337984c6f664",
+          "2994337d84c6f664",
+          "2994337dc4c6f264",
+          "2994337dc4c6f264"
+        ]
+      }
+    },
+    {
+      "concertId": 40,
+      "phash": [
+        "0ba8746387897a73",
+        "0ba87463878d7a53",
+        "0ba87467878d7a13",
+        "0ba87ce787853a13",
+        "09a87ce783853b17"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "15a8fa63858974b3",
+          "15a8fa73858954b3",
+          "15a87a7385e954b1",
+          "15a87a73c1e954b1",
+          "15a85a73c1e956b1"
+        ],
+        "center-60": [
+          "1d985a66e5cd12b1",
+          "159a5a66e5cd12b1",
+          "151a5a66e5cf12b1",
+          "151a1a76e5cf12b1",
+          "170a1a36e5cf12b3"
+        ],
+        "center-50": [
+          "299a1274ef4f3690",
+          "099a1234ef4f36b2",
+          "099a1a34ef4b36b2",
+          "058a1a34ef4f36b2",
+          "058a1a34ef4f36b2"
+        ],
+        "top-left-70": [
+          "06f4db14245b9766",
+          "02f4cb1d245b9766",
+          "02f4cb1d245b9766",
+          "02f4cf19247b1766",
+          "02f4cf09247b5766"
+        ],
+        "top-right-70": [
+          "88f67bb1461b7105",
+          "28b63bb9471b7105",
+          "28b61bb9431f7505",
+          "28b61bbd438f3505",
+          "28b61bbd438f3505"
+        ],
+        "bottom-left-70": [
+          "1336b4e46c68da93",
+          "1306b4f46c68da97",
+          "0306b4f46e78da93",
+          "0306b4f46e78da93",
+          "0306b4f46e3c7a93"
+        ],
+        "bottom-right-70": [
+          "098ac6460e5ed6f3",
+          "09aae6460a4ed6f6",
+          "29aae6460a4a9ef6",
+          "29aae6460aca96f6",
+          "29aae6460aca96f6"
+        ]
+      }
+    },
+    {
+      "concertId": 41,
+      "phash": [
+        "8d2c7a585cd67116",
+        "ad2c7a585cc67116",
+        "ad2c7a585cc67186",
+        "ad2d7a507c467186",
+        "ad2d7a507c467186"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8d2e525e1cd05ec3",
+          "ad2e527e1c505e43",
+          "a92f537e0c507e41",
+          "a92f537e0c107e43",
+          "a92f537e0e107e41"
+        ],
+        "center-60": [
+          "8f69f10702396dc3",
+          "8f69f10703396cc3",
+          "8f69f10783396c43",
+          "8b69f10783396d43",
+          "8b69f10783396d43"
+        ],
+        "center-50": [
+          "81e0f365b7196d42",
+          "8960f765b7196d02",
+          "8960f365bf196d02",
+          "8960b765bf196d02",
+          "8960b765bf196d02"
+        ],
+        "top-left-70": [
+          "135ce2308d3a6dd3",
+          "13fce0328d0a6dd3",
+          "13fca0328d0b6dd3",
+          "13fca032ad0b65d3",
+          "13fca032ad0b65d3"
+        ],
+        "top-right-70": [
+          "b12e4cd247d98732",
+          "b12e4c5a47d98732",
+          "b16e4c5a47d88732",
+          "b16e4c5a47d88732",
+          "b16e4d5a47d88632"
+        ],
+        "bottom-left-70": [
+          "3313dc8dc13b1a35",
+          "3313f88dc13b1a35",
+          "2313f88dc1bb1a33",
+          "2313f88dc1bb1a33",
+          "2313f98dc19b1933"
+        ],
+        "bottom-right-70": [
+          "b1b39e662578d8c0",
+          "b1b31e672578d8c0",
+          "b1b32a6725f8d8c0",
+          "a1b32a6725f8dcc0",
+          "a1b32a6725f8dcc0"
+        ]
+      }
+    },
+    {
+      "concertId": 42,
+      "phash": [
+        "2930d2dec96d2633",
+        "2930dadecd682633",
+        "2998dadecd282633",
+        "2998dadecda82623",
+        "2992dadecda82623"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "293096dedbc9a1a2",
+          "293096dedbc9a1a2",
+          "2930d6dedbd8a0a2",
+          "2930d6d6dbd8a0a6",
+          "2932d6d6dad8a0a6"
+        ],
+        "center-60": [
+          "3d3ca2a2d3d39311",
+          "3d3ca2a2d3d39311",
+          "3d3ca2a2d393b311",
+          "3d34a2a2d793b311",
+          "3d34a2a3d693b311"
+        ],
+        "center-50": [
+          "0d2d2c6ac6d6b331",
+          "0d2c2c6aced6b331",
+          "092c2c6aced7b391",
+          "092c246acef3bb91",
+          "092c246acef3bb91"
+        ],
+        "top-left-70": [
+          "2728b8b74a5ae866",
+          "2728b9974a5ae866",
+          "2728b9964b5ac966",
+          "2528b9964b5ae966",
+          "2528b9964b5a6b66"
+        ],
+        "top-right-70": [
+          "85ce7e6518182f27",
+          "85ca7ee518182f27",
+          "85ca7ee51c182d27",
+          "85ca7ee41c192d27",
+          "a5c85ae41d392d27"
+        ],
+        "bottom-left-70": [
+          "4747434b5b5a52d1",
+          "07474f4a595b52d1",
+          "07476e6a595b5291",
+          "07076e6a595b52d1",
+          "07076e6e595b5291"
+        ],
+        "bottom-right-70": [
+          "a5a585999b9898f4",
+          "a5a585999a99d874",
+          "b5b585989a99d870",
+          "b5b585889a9bd870",
+          "b5b58d889a9bd070"
+        ]
+      }
+    },
+    {
+      "concertId": 43,
+      "phash": [
+        "9e8cd1970c6863d6",
+        "9ba0d5970c6863d6",
+        "9ba0d5870c6863d7",
+        "9bb4dd030c686397",
+        "9ba0dd034c6a6397"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9ee861b78d8a4076",
+          "9ee0a1a78daa40e7",
+          "9ea081a5ddea40e7",
+          "9ea081a5ddea40e7",
+          "9ea081a5ddea40d7"
+        ],
+        "center-60": [
+          "866e3be98f505027",
+          "866e3be98f505027",
+          "866ebba98f505027",
+          "84eebba98d505427",
+          "86aebba98d4054a7"
+        ],
+        "center-50": [
+          "864837fd81f30627",
+          "860837ed81fb8627",
+          "862037ed81fb06a7",
+          "a62037ed81fb04a7",
+          "a62037ed817b06a7"
+        ],
+        "top-left-70": [
+          "32cd2d12ed3368b2",
+          "32ed1d12ed336862",
+          "30ed1d12ed336866",
+          "30af1d12ed236876",
+          "30af1d12ed236876"
+        ],
+        "top-right-70": [
+          "f88783f807519d23",
+          "a897c3f807539d22",
+          "a8979378075b9d22",
+          "a897937807cb9d22",
+          "a897937807cb9d22"
+        ],
+        "bottom-left-70": [
+          "3340c6eccc975365",
+          "3340c6eccc973365",
+          "3340c6ecccb72365",
+          "3340d6eccdb78360",
+          "3148f6accdb78360"
+        ],
+        "bottom-right-70": [
+          "e9b816860761db95",
+          "e9bc50860761db95",
+          "e9ac54860761db95",
+          "e98c54c60760df95",
+          "e98c54c607609fd5"
+        ]
+      }
+    },
+    {
+      "concertId": 44,
+      "phash": [
+        "2f0ed2c79c313263",
+        "2f0cd2cf8c307a63",
+        "2f0cd6cf8c303a63",
+        "2f0cd4cf8c303a73",
+        "2b28d44f8c313a77"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "0f0ed0c68d995a73",
+          "0f0ed0c788b95a73",
+          "0f0ed1c788b95a63",
+          "0f8cd1c7c8b91a63",
+          "0b8cd1c7c8b91e63"
+        ],
+        "center-60": [
+          "070ef4c2ebd88a72",
+          "070ef4c2ebd88a72",
+          "050ef5c2ebd8ca32",
+          "050ef5c2ebd8ca32",
+          "050af5c6ebd8ca32"
+        ],
+        "center-50": [
+          "050e2ee27bd99295",
+          "050e2fe27bd15296",
+          "050a2fe27bd17296",
+          "050a2fe07bd57296",
+          "050a2fe27bd57292"
+        ],
+        "top-left-70": [
+          "3b8c9d64665aa4b2",
+          "3b8c9d64665aa4b2",
+          "3b849d66665aa4b2",
+          "1b849d66665ae4b2",
+          "1bc49d66665ae4b0"
+        ],
+        "top-right-70": [
+          "bc527f83083cc2e3",
+          "acd27f83013cc2e3",
+          "acd27f83013cc2e3",
+          "a9d27f82013cc3f1",
+          "a9d27f820138c7f1"
+        ],
+        "bottom-left-70": [
+          "3b3366664ada4a45",
+          "3b3366665ada4a05",
+          "3b3364667ada4a05",
+          "3b32646d7ada4a05",
+          "1b22e46d3ada4b25"
+        ],
+        "bottom-right-70": [
+          "adad800d2c7c7c74",
+          "ada5820d6c7c7c54",
+          "ada8820d6c7c1dd6",
+          "ada8820d6d7c19d6",
+          "ada8c20d6d7a19c6"
+        ]
+      }
+    },
+    {
+      "concertId": 45,
+      "phash": [
+        "b8c8473d19b2ec45",
+        "b8c847ad59b2ac45",
+        "b8c847ad59b2ac45",
+        "b8c847acd9b2ac45",
+        "b8d847acd9b22c45"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "98dc6709d9a26d45",
+          "b8dc6708d9a26d45",
+          "b8dc6708dba0ed41",
+          "b8dc6708d3a0fd41",
+          "b8dc670cd3a0bd41"
+        ],
+        "center-60": [
+          "98dce24db722e514",
+          "98d4e24db72af114",
+          "98d4e24db72af114",
+          "98d4e24df72af104",
+          "98d4e24df72af104"
+        ],
+        "center-50": [
+          "98e4628d3666f394",
+          "98e462cd366cf390",
+          "98a462cd366cf391",
+          "98a462cd762cf351",
+          "98a462cd762cf351"
+        ],
+        "top-left-70": [
+          "24db5f2458b54a93",
+          "24db1fa458b54a93",
+          "24db1fa250b74a93",
+          "249b1fa350b74a93",
+          "249b1fa350b74a93"
+        ],
+        "top-right-70": [
+          "807fb1c43b659a70",
+          "807fb1c4bb659a60",
+          "807fb1cc9a659a62",
+          "807fb3cc92659ae0",
+          "807fb3cc926d1ae0"
+        ],
+        "bottom-left-70": [
+          "2524dad894b7ad61",
+          "25a4cb58d4b7ad60",
+          "25a4cb58d4a7ad61",
+          "25a4cb5cd4a7ad60",
+          "25a4cb1c54afbd60"
+        ],
+        "bottom-right-70": [
+          "87c25e9e72650791",
+          "85c05e9e72652f91",
+          "85c05c9e726d6f11",
+          "85e05c9a726d6f11",
+          "85e05d92726d6f11"
+        ]
+      }
+    },
+    {
+      "concertId": 46,
+      "phash": [
+        "a1beb48e27c81b62",
+        "a1beb08e37c81b62",
+        "a1beb08e37c81b62",
+        "a1beb08e37c81b62",
+        "a1beb08e37e81362"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a936b883ac9631d3",
+          "a936b883ac9631d3",
+          "8936b883a4de31d3",
+          "8936b882a5de31d3",
+          "c936b88225de31d3"
+        ],
+        "center-60": [
+          "cf249833c7d8a515",
+          "cb249927c7d8a515",
+          "cb249936c7d8a515",
+          "cb24d926c7d8a515",
+          "db24d926c7d82515"
+        ],
+        "center-50": [
+          "d7249926d7cc24d4",
+          "d7249926d7c824d5",
+          "df249926d7c824d4",
+          "df249b26d7482594",
+          "df249b26d7482594"
+        ],
+        "top-left-70": [
+          "01683f1a257e9747",
+          "01683f1a257e9747",
+          "01683f1a257e9747",
+          "016a1d5a257e9747",
+          "016a1d5a257e9747"
+        ],
+        "top-right-70": [
+          "a58c97b84b547386",
+          "a58cb7b84b546316",
+          "a59ca7984b546716",
+          "a79ca7984b546316",
+          "a79ca7984b546316"
+        ],
+        "bottom-left-70": [
+          "07194ba46dd7a856",
+          "07196ba469d7a853",
+          "07386bb469d6a853",
+          "05386bb469d7a853",
+          "05386bb469d7a853"
+        ],
+        "bottom-right-70": [
+          "a3ad1ae24f10ec33",
+          "a3ad1ee24f10cc33",
+          "a3ac1ee24f10ec33",
+          "a3ac1ce24f10ee33",
+          "a3ec14e25f10ee31"
+        ]
+      }
+    },
+    {
+      "concertId": 47,
+      "phash": [
+        "6b13135b93278731",
+        "6913175b93278731",
+        "6113175f8b278731",
+        "6113175f8b238771",
+        "6113175f89a38771"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "6d1b135717d10b25",
+          "6d9313571fc10b25",
+          "6d9313571fc00b35",
+          "6d9313579fc00b31",
+          "6d9313579fc00b31"
+        ],
+        "center-60": [
+          "6d9b7514a4aa8a95",
+          "6d93751484ea8a97",
+          "6d93351494ca8b97",
+          "6d93b51494ca8b96",
+          "6d93b51494ca8b96"
+        ],
+        "center-50": [
+          "4957752d2c6ac287",
+          "4917752dac6a42c7",
+          "4d177525ac6a42c7",
+          "4d177725ac6242c7",
+          "4d977d25ac4242c7"
+        ],
+        "top-left-70": [
+          "432b2b0b4d4bd6b2",
+          "472b2b034d4bd6b2",
+          "472b3b834d4bc6b0",
+          "472b3b834d4bc6b0",
+          "472b3b834d4bc6b0"
+        ],
+        "top-right-70": [
+          "310d4ddf972c98c1",
+          "31cd4ddf170c98c1",
+          "31cd4dd7170cb8c1",
+          "31cd4dc7170cb8e1",
+          "31cd4dc7170cb8e1"
+        ],
+        "bottom-left-70": [
+          "56c02649bc6beb45",
+          "56c104493d6beb47",
+          "d6c104493d6bab47",
+          "d6c104493d6bab47",
+          "d6c104493d6bab47"
+        ],
+        "bottom-right-70": [
+          "30b2d717670d2536",
+          "30b2d71f270d2536",
+          "3092d71f670d2536",
+          "3092d71f670da516",
+          "3092c71fe70da516"
+        ]
+      }
+    },
+    {
+      "concertId": 48,
+      "phash": [
+        "859a285baccd32d3",
+        "a59a285baccd32c3",
+        "a59a6853accd32c3",
+        "a59a68536ccd32c3",
+        "a5da28536ccd32c3"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a59c5a538d0c7275",
+          "a19e5a538d4c5275",
+          "a19e52d30d5c5275",
+          "a19e50d34d5c5275",
+          "a19e51d24d5c5275"
+        ],
+        "center-60": [
+          "a98c16b7c9816c57",
+          "a98c36b7c9806c57",
+          "a98c36b7c9904c57",
+          "a98c36b7c9904c57",
+          "a98c36b7c9904c57"
+        ],
+        "center-50": [
+          "e98a34a7d9a9cb02",
+          "e98a34a7c9a94b32",
+          "e98a34a7c9a94b32",
+          "e98a3427c9b94b32",
+          "e98a3427c9b94b32"
+        ],
+        "top-left-70": [
+          "99a6cbd40acb3455",
+          "99a2cbd40acb3c55",
+          "9da2cbd402cb3c55",
+          "9da28bd40acb3c55",
+          "9da28bd40acb3c55"
+        ],
+        "top-right-70": [
+          "d1e02f73401dbb52",
+          "d1e06f734019bb52",
+          "d3e06f72401d9b52",
+          "93e06f72409d9b52",
+          "93e06f72409d9b52"
+        ],
+        "bottom-left-70": [
+          "1db954aa4aca66a6",
+          "1db954aa4aca66a6",
+          "1db956aa4aca74a4",
+          "1db9568a4ada7485",
+          "1db9568a4ada7485"
+        ],
+        "bottom-right-70": [
+          "93ddb04d0c7ca0e5",
+          "93ddb04d0c7ca0e5",
+          "93ddb04d0c7ca0e5",
+          "93ddb04d0c7ca0e5",
+          "93dd304d0c7ca0f5"
+        ]
+      }
+    },
+    {
+      "concertId": 49,
+      "phash": [
+        "a7381dc798fc0f20",
+        "a52a99c798fc0f30",
+        "a52a99e798f40f30",
+        "a72a99e798f00f30",
+        "a52a99e69cf08f14"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "e13e01e1dec68936",
+          "e13e01e19ee68936",
+          "e12e91e19ee68932",
+          "e10e99659ee68932",
+          "e10e99659ee68932"
+        ],
+        "center-60": [
+          "630679f916c02be3",
+          "6306797936c02be3",
+          "6306796936c02fe3",
+          "630679693ac02fe3",
+          "630679693ac02fe3"
+        ],
+        "center-50": [
+          "7106ff0974daa1e0",
+          "7106ff097cd8a1e0",
+          "7106ff0b7cd8a0e0",
+          "7106ff0b7cd860e0",
+          "7106ff0b7cd860e0"
+        ],
+        "top-left-70": [
+          "403e97e03d42fc74",
+          "403e9fa03d42fc74",
+          "40369fa0bd62bc74",
+          "48369fa0bd62bc70",
+          "48369fa0bd62bc70"
+        ],
+        "top-right-70": [
+          "bea073e467006ed4",
+          "bea073e4e700e694",
+          "bea073e4c708e694",
+          "3ea073e4cf08e694",
+          "3ea073e0cf08e6b4"
+        ],
+        "bottom-left-70": [
+          "cd6238fe1d416386",
+          "cd6230fe1d436386",
+          "8d6230fe1d634396",
+          "8d4a30fe1d634396",
+          "8d5a30ce1d674396"
+        ],
+        "bottom-right-70": [
+          "973ea01c7b830567",
+          "973ea0187f811567",
+          "933ee0187f811567",
+          "933ec018ff811567",
+          "933ec018ff811567"
+        ]
+      }
+    },
+    {
+      "concertId": 50,
+      "phash": [
+        "392985079a51f8d7",
+        "b92987079a50f8c7",
+        "39298707ba50f8c7",
+        "392987079a50f8d7",
+        "392987079a50f8d7"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "5b39a52385397945",
+          "5b39a52385393947",
+          "5b39a5238539b147",
+          "5b39a5238539b147",
+          "5b39a5238539b147"
+        ],
+        "center-60": [
+          "1618ec64e733e5c1",
+          "1658e864e73be4c1",
+          "1618e864e73be4e1",
+          "1618e864cf3be4e1",
+          "1618e860ef3be471"
+        ],
+        "center-50": [
+          "931c706c6716e4a7",
+          "935c706c4716e4a7",
+          "935c706c471764a7",
+          "175c7068c71764a7",
+          "175c7068c71764a7"
+        ],
+        "top-left-70": [
+          "611d1f24a4febe80",
+          "211d1f24a4fefe80",
+          "211d1f24a4fefe80",
+          "211d1f26a4fefc80",
+          "211d1f26a4fefc04"
+        ],
+        "top-right-70": [
+          "a7b717826668d283",
+          "a5b31fc2666ad083",
+          "a5b39fca6662c083",
+          "a5b39fca6462c483",
+          "a5b39fca6462c483"
+        ],
+        "bottom-left-70": [
+          "a165b4c1e09cfa66",
+          "a165b481c89cfae6",
+          "a065b481cc9cfae6",
+          "a065d481cc9c7be6",
+          "a065d481cc9c7be6"
+        ],
+        "bottom-right-70": [
+          "ed06a057263b6ac5",
+          "ed04b05626bb6ac5",
+          "ed04b05626bb6ac5",
+          "ed00b07626bb6ac5",
+          "ed00b07626bb6ac5"
+        ]
+      }
+    },
+    {
+      "concertId": 51,
+      "phash": [
+        "5564bb5555685287",
+        "4524bb55756c5287",
+        "4524bb55756c5287",
+        "0534b957f52c5287",
+        "0534b957f54c5287"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "052c59f13f507467",
+          "052c59f1bf107467",
+          "052c59f1bf107467",
+          "052c59f1bf107467",
+          "052c1bf1bf107467"
+        ],
+        "center-60": [
+          "474c91af8bb927a0",
+          "c74c91af0bb927a0",
+          "c70c91a78bb937a0",
+          "c70c91a78bb937a0",
+          "c70c91a78bb93790"
+        ],
+        "center-50": [
+          "45449e6f983a53f0",
+          "45449c6f983a53f4",
+          "4544dc6f983a53b4",
+          "4544dc67983e53b4",
+          "4744d867983e53b4"
+        ],
+        "top-left-70": [
+          "1361e1f8741f2d07",
+          "1b61e1f83c172d07",
+          "1b61e1f83e132d07",
+          "1b61e1f83e132d07",
+          "1b65e1f03e132d07"
+        ],
+        "top-right-70": [
+          "552b4d562cf9c684",
+          "552b4d562cf9c684",
+          "51ab4d562cf1c686",
+          "51ab4d562c79c686",
+          "51aa4d566c79c686"
+        ],
+        "bottom-left-70": [
+          "1b5a703446d3d1f2",
+          "1b5a703c46d3d1b2",
+          "1b5e703c46d3d132",
+          "1b5e301c4ed3d532",
+          "1b5e301c4ed35d32"
+        ],
+        "bottom-right-70": [
+          "5556aaae08b8bb52",
+          "5556aaae08b8b3d1",
+          "7510aaae18b9b7c1",
+          "7510aaae18b9b7c1",
+          "7510aae618b9b7c1"
+        ]
+      }
+    },
+    {
+      "concertId": 52,
+      "phash": [
+        "9934e6ccd9133721",
+        "1934e6c8d9133fa2",
+        "193ce2c8d9133fa2",
+        "1b3ce2c8d1533f22",
+        "1b3ce2c8d3513ba2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "993466ccd833a786",
+          "193462ccd8b7a786",
+          "1934e2ccd8b7a784",
+          "193ce2ccd077a784",
+          "1934eaccd077a784"
+        ],
+        "center-60": [
+          "9f3e60c8f8e6c0c4",
+          "9f2e60c8fae6c0c4",
+          "9f2e60c8fae6c0c4",
+          "1f2e60ccfe66c0c4",
+          "1d2e62ccfe06e0e4"
+        ],
+        "center-50": [
+          "172766487a666ec4",
+          "172763483e666ec4",
+          "1f2763483e266e54",
+          "1f2761583e266e54",
+          "1f2761d81e266e54"
+        ],
+        "top-left-70": [
+          "2ed8d5af2b04ccd0",
+          "2ed095ef2b04ced0",
+          "2ed095ef2904eed0",
+          "2ed095ef3104eed0",
+          "2ed094ef31066ed4"
+        ],
+        "top-right-70": [
+          "803a7fc599a25c74",
+          "803a7f459da25c74",
+          "803a6f459da24e76",
+          "803a6f45bda24e74",
+          "803a6745bfa24e74"
+        ],
+        "bottom-left-70": [
+          "2f2f2b2913152567",
+          "2f2f6b3913150527",
+          "2f376b3913150723",
+          "2f776b3113150723",
+          "2f776931131d0723"
+        ],
+        "bottom-right-70": [
+          "87819d9db9b3a380",
+          "87819d9db9b3a380",
+          "878199bfb9b3a180",
+          "87c11dbbb9b3a180",
+          "87d15da3b9b3a180"
+        ]
+      }
+    },
+    {
+      "concertId": 53,
+      "phash": [
+        "131aece5664ccce4",
+        "131aece546cccce4",
+        "131aece546dc4ce4",
+        "131aeca546d86ce6",
+        "131afda546d868e4"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "13125ba7a6c6ccc6",
+          "1312cfa7a6c6cc46",
+          "13125fa7a786cc46",
+          "13125fa7a786cc46",
+          "1312dfa6a786cc46"
+        ],
+        "center-60": [
+          "b1121b3b3732ca63",
+          "b1101b3d3732ce63",
+          "b1105b2d37a2ce63",
+          "b1105b2d37a2ce63",
+          "b1101b6d37a28e73"
+        ],
+        "center-50": [
+          "b190d929371a1e67",
+          "b190d92d371a1e63",
+          "b990d82f37181e63",
+          "b990d02f37381e63",
+          "b990d02f37381e63"
+        ],
+        "top-left-70": [
+          "2cecd35a94652cb2",
+          "2c7cd35a94c52cb2",
+          "2c7cd34a94c56cb2",
+          "2c78d34a94c56db2",
+          "2c78d34e94c4e5b2"
+        ],
+        "top-right-70": [
+          "8e6e317873078663",
+          "8e6eb158622786e3",
+          "8e6eb158622786e3",
+          "8e6eb158622786e3",
+          "8e6eb958622686e3"
+        ],
+        "bottom-left-70": [
+          "292cbcb494d76b24",
+          "292cb4b494d76f24",
+          "092cb4b494df6f44",
+          "092cb4b494df6f44",
+          "012cb4b494df6f54"
+        ],
+        "bottom-right-70": [
+          "8f8e666272318d87",
+          "8f8e666672310d87",
+          "8fce626672310d87",
+          "8f4a6266f2710d17",
+          "8f4a6266b2710d37"
+        ]
+      }
+    },
+    {
+      "concertId": 54,
+      "phash": [
+        "8180665e7ef7a126",
+        "8980665e7ef78126",
+        "8980665e7ef78126",
+        "8908665e7ef78126",
+        "8908465e7ef7c126"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a9aa605056f65f64",
+          "89aa605056f65f65",
+          "89aa605056f65f55",
+          "892e60d056b64f75",
+          "892e60d856b64f55"
+        ],
+        "center-60": [
+          "892379d07eaa0ab5",
+          "892279d87ea84ab5",
+          "892679d87ea84a35",
+          "8926f9dc3aa84a35",
+          "8926f9dc3aa84a35"
+        ],
+        "center-50": [
+          "81037bd93deb4a50",
+          "89027bc13deb4b70",
+          "89067bc13deb4b30",
+          "89267bc135eb4b30",
+          "8926f9c135eb4b30"
+        ],
+        "top-left-70": [
+          "004efef341178eb2",
+          "004efcfbc1170eb2",
+          "004edcfbc1170eb3",
+          "004a9cfbc117ceb3",
+          "004a9cfbc117ceb3"
+        ],
+        "top-right-70": [
+          "a21c6849b7b79e60",
+          "a61c6849b7a79e60",
+          "a21c684cb7a69e71",
+          "a31c624c97a69e71",
+          "e31c620c97a69e71"
+        ],
+        "bottom-left-70": [
+          "9523434515375f47",
+          "b52363c514374d47",
+          "b52363cd94374d05",
+          "b5226bcd84376d05",
+          "b5226bcd84376d05"
+        ],
+        "bottom-right-70": [
+          "a1b39f93e3670016",
+          "a1a79e93e3670096",
+          "a3a59c93e3670896",
+          "e3ad9c93e3650886",
+          "e3ac9c93e3650c86"
+        ]
+      }
+    },
+    {
+      "concertId": 55,
+      "phash": [
+        "15dcd8b32ce0b287",
+        "15ccd8332cf0ba87",
+        "17ccd8332cb0ba87",
+        "17ccd8338cb0ba87",
+        "17ccd8338cb0ba87"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "23c8dd366c793223",
+          "23c8dd376c393223",
+          "23c8dd366d393223",
+          "23c8fd366d383223",
+          "23c8fd366d382323"
+        ],
+        "center-60": [
+          "33cc9fa2c9332361",
+          "33cc9f82c837a721",
+          "31dc9f82c917a721",
+          "31dc9f82c917e321",
+          "31dc9f82c917e321"
+        ],
+        "center-50": [
+          "31c897e4cc97cb22",
+          "31c89fe0cc97cb22",
+          "31c89fe0cc97cb22",
+          "31c89fe0cc95eb22",
+          "31c89fe0cc95eb22"
+        ],
+        "top-left-70": [
+          "09966b52e792a715",
+          "09966b52e790a795",
+          "09966b52ef90a794",
+          "09866b5aef90a794",
+          "09866b5aee98a794"
+        ],
+        "top-right-70": [
+          "947089b28cfae5d2",
+          "946089b68cfae5d2",
+          "946089b68cfae5d2",
+          "946089b68cfae1d6",
+          "94e009b68cfae1d6"
+        ],
+        "bottom-left-70": [
+          "291896e7699ad2a3",
+          "291c96e76998d2a3",
+          "291c96e76c98d2a3",
+          "691c96e7ac98d0a3",
+          "691c96e7ac9854a3"
+        ],
+        "bottom-right-70": [
+          "9fb670418eb2f260",
+          "9fb670408cfaf260",
+          "9fb670008cfaf262",
+          "9fb670010cfaf262",
+          "9df670014cfab262"
+        ]
+      }
+    },
+    {
+      "concertId": 56,
+      "phash": [
+        "3bb672d0c53e98c0",
+        "2bb672d0c53e9ac0",
+        "2bb672d0c51e9ac1",
+        "2bb673f0c51a9ac0",
+        "2bb673f0c51a1ec0"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "392656b8e126f1e1",
+          "392652fae126f161",
+          "392652bae126f361",
+          "292672bae126f361",
+          "292672bae126f361"
+        ],
+        "center-60": [
+          "096466f9678939a3",
+          "096416f9678d39a3",
+          "096416f96e8d39a3",
+          "096416fb6e8d3983",
+          "094416fb6e8d7983"
+        ],
+        "center-50": [
+          "1966c4fcc6996b05",
+          "996684fdc6996305",
+          "996e84fdc6996301",
+          "996e04fdc6997301",
+          "996e04fdc6997301"
+        ],
+        "top-left-70": [
+          "2cdaad1734873742",
+          "2cdae5173c833742",
+          "2cfae51735813742",
+          "2cfae5163d813742",
+          "2dfae1163d813742"
+        ],
+        "top-right-70": [
+          "823c47bbc273f181",
+          "821c47bbc673f181",
+          "821c47fbc473f121",
+          "a21c47fbc173f101",
+          "a21c47fbc173e103"
+        ],
+        "bottom-left-70": [
+          "2d305b3aa4cd9ab1",
+          "2d307b7aa0cd92b1",
+          "2d187f7aa0cd12b1",
+          "2d187f7aa0cd12b1",
+          "2d187f7aa0cd12b1"
+        ],
+        "bottom-right-70": [
+          "8792398cc66738f4",
+          "a79229acc66738f0",
+          "a79229acc60fb8f0",
+          "a79229acc60fb8f0",
+          "a7b269a8c60fb8e0"
+        ]
+      }
+    },
+    {
+      "concertId": 57,
+      "phash": [
+        "2526535a5b859597",
+        "2526577a1b819597",
+        "6526577a1b819596",
+        "6526576a1b0195d7",
+        "6526576a1b0195d7"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "692096565e49d397",
+          "6d20d7565e499217",
+          "6d20d7565e499217",
+          "6f20d7565f419207",
+          "6f20d74e5f419207"
+        ],
+        "center-60": [
+          "4f69a506827aa6d6",
+          "4f69a506037aa6d6",
+          "4f79a5060378a6d6",
+          "4fb9a50607f806d6",
+          "4fb9e50607f804d6"
+        ],
+        "center-50": [
+          "5f69ada421319497",
+          "5f69ada421319497",
+          "5f3ba5a44130d497",
+          "5f3be5844130d497",
+          "4f3be7844130d497"
+        ],
+        "top-left-70": [
+          "531ea83507bb3591",
+          "531eb83507bb05b1",
+          "511eb83507bb2d31",
+          "511ef83507fb0531",
+          "511ef83507fb0531"
+        ],
+        "top-right-70": [
+          "37184863d7d2c3e4",
+          "33584863d7d287e4",
+          "335c4863d7d287a4",
+          "335c4863d7d287a4",
+          "335c4863c7d387a4"
+        ],
+        "bottom-left-70": [
+          "51560f470bbaf2c2",
+          "51560f430bbaf296",
+          "51460f030ffaf296",
+          "514e0f032ff8f294",
+          "514e0f032ff8f294"
+        ],
+        "bottom-right-70": [
+          "3732979d9dd85012",
+          "33b2d71d95d85052",
+          "33a2df1d85d87052",
+          "33a2d73d85d87052",
+          "33a2d73585d870d2"
+        ]
+      }
+    },
+    {
+      "concertId": 58,
+      "phash": [
+        "6979f89696960705",
+        "2979f8969e960705",
+        "2978f8969e960707",
+        "2978f8969e940747",
+        "2978f8969ab40747"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "6b5b7fa49ca48482",
+          "6b5b7fa498b48482",
+          "6b5b7fa498b48482",
+          "295a7fa898b484c7",
+          "295a7fa898b405c7"
+        ],
+        "center-60": [
+          "775775481522a0b7",
+          "77576d481d22a037",
+          "77576d681d222037",
+          "7f166de81d320037",
+          "7f166de81c320137"
+        ],
+        "center-50": [
+          "75556dcb8d641322",
+          "65556bca8d6c1323",
+          "65156bc88dfc1323",
+          "65156bc88df41b23",
+          "65156bc80df41b27"
+        ],
+        "top-left-70": [
+          "61e12c2e0f2d6be2",
+          "61e13c2e0f2d6b62",
+          "61e03c2e0f25eb66",
+          "63e03c2e0f04eb76",
+          "67e01c2e4d04eb76"
+        ],
+        "top-right-70": [
+          "2d0ed2d697670493",
+          "2d0ed2c69f6e0493",
+          "2d4adac69f660493",
+          "2d4a9ac61fea0497",
+          "2d4a9ac61fea0497"
+        ],
+        "bottom-left-70": [
+          "5b2ce14b5995e541",
+          "5b2ce1c95915e543",
+          "5b2ee1d11915e543",
+          "5f2ee1c11915e543",
+          "5f2ee1c11915e1c3"
+        ],
+        "bottom-right-70": [
+          "3d276d3939696904",
+          "bd264d193b6b6904",
+          "bd264d193f6b6104",
+          "bd264d193f6b6180",
+          "b5264d193f6b6190"
+        ]
+      }
+    },
+    {
+      "concertId": 59,
+      "phash": [
+        "2d0ec0f49d370f07",
+        "2d0ac4f49d370f07",
+        "290ae4f49d271f07",
+        "290ae4f49d271f07",
+        "294aecb48d271f07"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "09ccf6faea22cd04",
+          "09cce6faeaa2cd04",
+          "09cce6faeab2c504",
+          "09cce6faee32c504",
+          "09c4e6faee3ac504"
+        ],
+        "center-60": [
+          "0bccf45a30f072d5",
+          "1bccf45a30f062d5",
+          "1bccf44a30f072d5",
+          "1bccf44a30f066d5",
+          "1bccf44a10f166d5"
+        ],
+        "center-50": [
+          "0f8fc782b8787834",
+          "1fcfef02b8686034",
+          "1fcfef02b8686034",
+          "1fcfff0288386434",
+          "13ceff02b8396434"
+        ],
+        "top-left-70": [
+          "3592c83d1f3ec8c4",
+          "3590e83d1f3ec8c4",
+          "3590ec3d1f3ec8c0",
+          "3590ec3d1f3e89c0",
+          "3590ec3d1f3e09c4"
+        ],
+        "top-right-70": [
+          "a3681797e9c89c16",
+          "a36815b7e9c89c16",
+          "a37815b56bc89c16",
+          "a37815b56bc89c16",
+          "a37815b56bc89c16"
+        ],
+        "bottom-left-70": [
+          "3737130b939322b3",
+          "3717130a979722b3",
+          "3711134e979722b3",
+          "3711934e979722b2",
+          "3f11934c979722b2"
+        ],
+        "bottom-right-70": [
+          "83e3e9696963c1e0",
+          "a3e3e90b6963c0e4",
+          "a3ebe90b6963c061",
+          "a3eb690f6963c061",
+          "a3eb690f49f30063"
+        ]
+      }
+    },
+    {
+      "concertId": 60,
+      "phash": [
+        "5b7c88916e5551a5",
+        "7b7c88916e1551a5",
+        "7b7c88912e3551a5",
+        "7b7c88d12e3443a5",
+        "7b5c88d32e3443a5"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "5b4aae9068fd4195",
+          "5b48ae9168bd4995",
+          "5b48ae9368bd4195",
+          "5b48ec9368f50995",
+          "5b48ac936cf50995"
+        ],
+        "center-60": [
+          "534ca590aa6f5cb1",
+          "534ca594aa6f5c91",
+          "534ca5d4aa6f48d1",
+          "534ca5d42a6fc8d1",
+          "534ca7d02a6fc8d1"
+        ],
+        "center-50": [
+          "5544a39ca96d6c63",
+          "554ca39c29696c73",
+          "554ca39c2869ec73",
+          "554ca39c2869ec73",
+          "554ca79c2869ec53"
+        ],
+        "top-left-70": [
+          "fed20c7c112b4336",
+          "fed20c7c112b4333",
+          "ff524c74112b4333",
+          "ff524c74112b4333",
+          "ff524c74112b4333"
+        ],
+        "top-right-70": [
+          "66a49b135dae9b20",
+          "66a49f135bac9b80",
+          "66a89f135bac9b80",
+          "67a81f135bac9b80",
+          "67b81f135ba89b80"
+        ],
+        "bottom-left-70": [
+          "fdfe52002dafa005",
+          "fdfe5200adaea005",
+          "fdff5200ad3aa005",
+          "fdff1202ad3aa005",
+          "fdff1202ad3aa005"
+        ],
+        "bottom-right-70": [
+          "434730d56dacd4a5",
+          "474730d56fa4c4a5",
+          "474730d46fa4c4a7",
+          "6747b0d46fa0c4a6",
+          "6747b0d46fa044a7"
+        ]
+      }
+    },
+    {
+      "concertId": 61,
+      "phash": [
+        "b11745e19b78a2c3",
+        "f11745a19b78a2c3",
+        "f11745a19b78a2c3",
+        "f11745819b79a2c3",
+        "f11745819b79a2c3"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "b91547e1953f8192",
+          "b91647e1153f81d2",
+          "b91645a3157f81d2",
+          "b91645a3157f81c3",
+          "f91645a3157f81c2"
+        ],
+        "center-60": [
+          "1a844bf20e35f987",
+          "1a844bf20e35f987",
+          "1a844bf24e35f983",
+          "1aa44bf24e34f983",
+          "3a245bf24e34d983"
+        ],
+        "center-50": [
+          "b48875f2067c18d7",
+          "348877f2063c38d7",
+          "3c0877f2463c3897",
+          "3c2877f20e3c3817",
+          "38287ff20e3c3817"
+        ],
+        "top-left-70": [
+          "2d318f70ec86f047",
+          "2d518770ec8ef047",
+          "2d518f70ec8e7047",
+          "2d538f70ec8ee007",
+          "6d538f70ec8e6007"
+        ],
+        "top-right-70": [
+          "8771bfa82cd23425",
+          "8779b7a82cd61425",
+          "8779f7a82cd61405",
+          "8779f7a82cd61405",
+          "8779f7a82cd61405"
+        ],
+        "bottom-left-70": [
+          "e12c3af18c8f91f0",
+          "e52c32f18c8f91b1",
+          "e52832f58c8f91b1",
+          "e52872f58c8f9191",
+          "e56872d58c9f8191"
+        ],
+        "bottom-right-70": [
+          "878a58349ecbf0f0",
+          "878a58249edbf0f0",
+          "878a58249edbf4d0",
+          "878a58249edbf4d0",
+          "878a58249edbf4d0"
+        ]
+      }
+    },
+    {
+      "concertId": 62,
+      "phash": [
+        "2d24939abd958ba4",
+        "2d24939abd958ba4",
+        "2d24931abd959ba4",
+        "0d26931abd959ba4",
+        "0d66931abd959ba0"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "49641452ff9d22a7",
+          "49643452ff9522a7",
+          "49643452ff9432a7",
+          "49643452ff9432a7",
+          "49643452ff9432a7"
+        ],
+        "center-60": [
+          "4b68ac52aab95993",
+          "4b68ac52aab96993",
+          "4b68ac52abb96893",
+          "4b68ac52abb96893",
+          "4b68ac52abb96893"
+        ],
+        "center-50": [
+          "576baa54827b4887",
+          "5769ae54827b4887",
+          "5769ae54827b4097",
+          "5769ae54827b4097",
+          "5769ae54827b6087"
+        ],
+        "top-left-70": [
+          "157caf2315939516",
+          "157c2f2315939596",
+          "157c2f2b35839496",
+          "177c2f2b35839416",
+          "177c2f233d839416"
+        ],
+        "top-right-70": [
+          "27cac9d5c0aacb32",
+          "271ac9d5c1ab4b32",
+          "271ac9d5c1ab4b32",
+          "271ac9d5c1ab4b32",
+          "271acdd5c0af4332"
+        ],
+        "bottom-left-70": [
+          "175155153c5bb3a1",
+          "175155143e5bb3a1",
+          "175175142e4bf3a1",
+          "1751f5142c4bf3a1",
+          "1751f51428cbf3a1"
+        ],
+        "bottom-right-70": [
+          "35361b512a3ed8c5",
+          "35369b502a3ed8c5",
+          "35369b5028bed8c5",
+          "35369b500abed8c5",
+          "25369b508abed8c5"
+        ]
+      }
+    },
+    {
+      "concertId": 63,
+      "phash": [
+        "87a70ececc4ccd11",
+        "87a60ececc4ccd51",
+        "83e60ececc4ccd51",
+        "83e704decc4ccd51",
+        "83e704decc4ccd51"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a7a73091ceccc847",
+          "a7a33091ceccd847",
+          "a7a32891ceccd863",
+          "b7e32891ce8cd063",
+          "b7e328954e8cd063"
+        ],
+        "center-60": [
+          "a531333727836897",
+          "a53133b7278b6886",
+          "a5313bb5278b6886",
+          "a5713ab7258b6886",
+          "a5713ab7258b6886"
+        ],
+        "center-50": [
+          "ef7d313d25a32900",
+          "ad7d313d25f32900",
+          "a57d313f25f32900",
+          "a77d103f25d32912",
+          "a77c123f25d32892"
+        ],
+        "top-left-70": [
+          "8b189c949d4b6b65",
+          "891c9c949d4b2fe1",
+          "8b1c9c909d4b2fe1",
+          "891cbc909d493fe1",
+          "891cb490bd493fe1"
+        ],
+        "top-right-70": [
+          "9b9ef470660d8d14",
+          "9b9ee470660d9d14",
+          "9b96e270e60d9594",
+          "9b56e0f0e60d9714",
+          "9b56e070e60d9754"
+        ],
+        "bottom-left-70": [
+          "89c9167cade84327",
+          "89c9167ca5e943a3",
+          "83c9067ca5e953a3",
+          "03e9067ca5e953a3",
+          "03eb067ca4e95ba1"
+        ],
+        "bottom-right-70": [
+          "ab3f3306c70d14c6",
+          "ab1f3516c30d34c6",
+          "ab1f3516c30d3cc2",
+          "ab1f3516c30d3cc2",
+          "ab1f3516c30d3cc2"
+        ]
+      }
+    },
+    {
+      "concertId": 64,
+      "phash": [
+        "12e4d358a766ccb4",
+        "1ae49358a766ccb4",
+        "1ae49358a366ccf4",
+        "1ae41358a36eccf4",
+        "1ae41258a36edcf4"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "16ec325c3350eb17",
+          "1ee4325e3350eb15",
+          "1ee0325e3350eb17",
+          "1ee0325e3350eb17",
+          "1ee0325e3350eb17"
+        ],
+        "center-60": [
+          "96ec9a0930797366",
+          "96e89a1930797366",
+          "96e88a113479f366",
+          "96e88a113479f366",
+          "96e88a113479f366"
+        ],
+        "center-50": [
+          "846cca9a369a5576",
+          "846cca9a369a5576",
+          "856cca93369a5536",
+          "857eca912a9a5536",
+          "857eca912a9a5536"
+        ],
+        "top-left-70": [
+          "2adc294a92b2d4d7",
+          "22cc68ca92b25dd7",
+          "22cc68ca92b25dd7",
+          "22cc78ca92b25d97",
+          "22cc78ca92b25d97"
+        ],
+        "top-right-70": [
+          "c8b64ebc70f85231",
+          "c8b24ebc72f85231",
+          "ccb24e3c72f852b0",
+          "cc324e3c72f852b2",
+          "cc324c3c72f8d2b2"
+        ],
+        "bottom-left-70": [
+          "2bd74d32954b3650",
+          "2bd74d32954b3710",
+          "2bd64d32954b3714",
+          "2bd64db2954a3714",
+          "2bd64db295ca3704"
+        ],
+        "bottom-right-70": [
+          "ccb09f60e39dc0b4",
+          "ccb09760e39dc8b4",
+          "cdb09760e29de894",
+          "cdb09760e28de895",
+          "cdb09760e28de895"
+        ]
+      }
+    },
+    {
+      "concertId": 65,
+      "phash": [
+        "2118d6d33b2e5dd0",
+        "a118f6d13b2e5d90",
+        "a118f6d13b2e59d0",
+        "a318f6d13b0e59b0",
+        "a318f6d13b4e59a0"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "2b0ab4f523237e46",
+          "ab0ab4fd22037e46",
+          "ab1aa4fd32017e16",
+          "ab1aa4fd32017e16",
+          "a31aa4fd32127e16"
+        ],
+        "center-60": [
+          "535eaaa8b1736152",
+          "531eaeabf0636052",
+          "531eae8bf0636072",
+          "731eae83f0636072",
+          "731cee83f0636072"
+        ],
+        "center-50": [
+          "55148a89bfa92b33",
+          "75148a89bea13b33",
+          "71148289bea13f37",
+          "711c8281bea13f37",
+          "719c8281be813f37"
+        ],
+        "top-left-70": [
+          "203ec16cb6b78d45",
+          "083ee16cb7a58d45",
+          "083ee16cb7a58d45",
+          "083ee16cb7a58d45",
+          "083ee16cb7858d47"
+        ],
+        "top-right-70": [
+          "a4c2db2764c0df07",
+          "a6c2db0764c29727",
+          "a6c0db0766e0b726",
+          "a6c0db0566e2b726",
+          "a6c0db0466e2f726"
+        ],
+        "bottom-left-70": [
+          "09253e9ef3c0aea4",
+          "09253e9eb3c0bea4",
+          "09353e9eb3c03ea4",
+          "09353e9e33903fa4",
+          "09353e9e33903fa4"
+        ],
+        "bottom-right-70": [
+          "a725247a48dac8d7",
+          "bf65245a48dac0c7",
+          "bf65245a619ac0c7",
+          "bf65245a619ac0c7",
+          "bf65045a61bac0c7"
+        ]
+      }
+    },
+    {
+      "concertId": 66,
+      "phash": [
+        "33da6f3449252ad1",
+        "33da6734496528d5",
+        "33d26734496568d5",
+        "33d22f34486768d5",
+        "33d22f34486768d5"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "34d2273cdb2c5d21",
+          "35d2273ccb2c5d21",
+          "35d2273c4b2c5d23",
+          "35d223bc432c5f23",
+          "3dd223bc432c5d23"
+        ],
+        "center-60": [
+          "28d36296e728d726",
+          "2cd36296e748dd24",
+          "2cd36296a748dd26",
+          "2ef36096a748cd26",
+          "2ff76096a1c84d26"
+        ],
+        "center-50": [
+          "0af16cb570c2d5e4",
+          "0af174b570d2d1e4",
+          "0af174b534d2d1e4",
+          "0af174b534d2d1e4",
+          "0af174a534d3d1e4"
+        ],
+        "top-left-70": [
+          "628852f756ab5cb0",
+          "629852f756ab1cb0",
+          "629852d656af1cb2",
+          "629852d656af4cb2",
+          "629852d656af4cb2"
+        ],
+        "top-right-70": [
+          "8a7c38613acdba62",
+          "8a7e38612ac5be62",
+          "8a7e38712ac5ba62",
+          "8a7e38712ac53e62",
+          "8a7e38712ac53e62"
+        ],
+        "bottom-left-70": [
+          "67a4895fa48b6b42",
+          "67a6994ba28b6b60",
+          "67a29d49a28b6b64",
+          "67a29d49a28f6b60",
+          "67a29d49a28f6b24"
+        ],
+        "bottom-right-70": [
+          "93ca6d9aa0cd9495",
+          "91ca6d9ba0cd9495",
+          "81ca6d9ba0cd9cc5",
+          "81ca6d9ba0cd9cc5",
+          "81ca6d9ba0cd9cc5"
+        ]
+      }
+    },
+    {
+      "concertId": 67,
+      "phash": [
+        "9dae20239f7430c7",
+        "9dee28039f3430c7",
+        "95ee28239f3430c7",
+        "95ee38039f3430c7",
+        "15ee38039f3438c7"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "81c87e1783393787",
+          "89c87e1583393787",
+          "89c07e15833937c7",
+          "89c17e14833937c7",
+          "89c17e14833937c7"
+        ],
+        "center-60": [
+          "cdcc3ac7d438a360",
+          "ddc83ac7d438a360",
+          "ddc81ae5d43aa360",
+          "ddc81ae5d43aa360",
+          "ddc81ae5d43aa360"
+        ],
+        "center-50": [
+          "cddc1ae2dc10d2b4",
+          "cddc1ae2dc10d2b4",
+          "cd5e1ae2dc10d2b4",
+          "8d5e1ae6dc10d2b4",
+          "8d5e1ae6dc10d2b4"
+        ],
+        "top-left-70": [
+          "bf6409be6490e615",
+          "bf6409be6490e615",
+          "bf6409be6490e615",
+          "bf6409be6490e615",
+          "bf6409be6490e615"
+        ],
+        "top-right-70": [
+          "f1a689d50ae046b7",
+          "f1a689d506e84697",
+          "f1a689d506e84697",
+          "f12689d506f84697",
+          "f12689d506f84697"
+        ],
+        "bottom-left-70": [
+          "bf9ff644409194c2",
+          "bf9ff444409994c2",
+          "3f9ff4444099b4c2",
+          "379ff5444099b4c2",
+          "27dff5444099b4c2"
+        ],
+        "bottom-right-70": [
+          "d571b706aa38f052",
+          "d571b707aa39e012",
+          "d579b707aa38e012",
+          "d579b706aa78e012",
+          "d579b706aa78e012"
+        ]
+      }
+    },
+    {
+      "concertId": 68,
+      "phash": [
+        "a7144dfa13788b13",
+        "a7144dfa13788e13",
+        "a7144dfa13788e13",
+        "a7140dfa13f88e13",
+        "a7140dfa13f88e13"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "a10c4cd43ff880f7",
+          "a10cccd437f804f7",
+          "a1accc5433f804f7",
+          "a1accc5433f80577",
+          "a1accc5433f80577"
+        ],
+        "center-60": [
+          "f300cee401d949f7",
+          "f308cee401d949d7",
+          "f302cee421d909d7",
+          "f302cee421d909d7",
+          "f302cee461d909d6"
+        ],
+        "center-50": [
+          "7348c6ee2349f445",
+          "7348c6ee2349f445",
+          "7340c6ee3349f445",
+          "7340c6ee3349f445",
+          "7340c7ae3349f445"
+        ],
+        "top-left-70": [
+          "4c30be68ae4ac637",
+          "4c30bf68a64ac637",
+          "4c30b768a64bc637",
+          "4d30b768a64bc437",
+          "4d30b768a64bc635"
+        ],
+        "top-right-70": [
+          "9ff0690e661d3780",
+          "9ff0690ee71c3580",
+          "9bf0690ee71c3780",
+          "9bf0690ee31c3782",
+          "9bf0690ee31c3782"
+        ],
+        "bottom-left-70": [
+          "cd483186be3bc1d1",
+          "cd483186be3bc195",
+          "cd4831a6ba3bc195",
+          "cd4811a63a1be1d7",
+          "cd4811a63a1be1d7"
+        ],
+        "bottom-right-70": [
+          "9f9ff262e09c0c42",
+          "9f97d362e09c0c62",
+          "9f97d3e2e01c0c62",
+          "9f97d3e2e91c0460",
+          "9f96d7a2e95c0422"
+        ]
+      }
+    },
+    {
+      "concertId": 69,
+      "phash": [
+        "284259b7873137c7",
+        "28425bb797113787",
+        "28425ba717b13787",
+        "a8425ba715b51787",
+        "a8425aa715b51f87"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "2e525925da3a9d61",
+          "ea525824fa3a9d61",
+          "ea525c24fa389d61",
+          "ea525c20fa3a9d61",
+          "ea725c20fa3a9561"
+        ],
+        "center-60": [
+          "44d61be8702e5be1",
+          "44d61be8702e5be1",
+          "4cd61be8702e5be0",
+          "4e564ae8702e5bf0",
+          "4e564ae8503e5bf0"
+        ],
+        "center-50": [
+          "40d40fe8f41e77e0",
+          "44d40be9f41e57e0",
+          "64d40ae9f41e57e0",
+          "64d40ae9f41e57e0",
+          "44d44ae9f41e57e0"
+        ],
+        "top-left-70": [
+          "12e77508371827f3",
+          "c2e7750b331824f3",
+          "c2e65d2b331924b3",
+          "c2e65d2b331924b3",
+          "c2e61d2b331934b3"
+        ],
+        "top-right-70": [
+          "344f9b95437f4121",
+          "344e9b95c37b4521",
+          "344e9b95c17bc521",
+          "346a9b95c17bc521",
+          "346a9b95c1fbc421"
+        ],
+        "bottom-left-70": [
+          "119aa26657b5d9a4",
+          "11caa27657bd49a4",
+          "21caa2765f9d49a4",
+          "21caa2765f9d49a4",
+          "21caa2765b9d59a4"
+        ],
+        "bottom-right-70": [
+          "b1744e011beb3cc6",
+          "b5744c211aeb3cc6",
+          "b5744e210aeb3cc6",
+          "b5344e210aeb3cd6",
+          "b5344ea10aeb3c56"
+        ]
+      }
+    },
+    {
+      "concertId": 70,
+      "phash": [
+        "2cdb5a26dad32522",
+        "2cd9daa6dad22522",
+        "2cd9daa6dad22522",
+        "2cd9daa6d2d26162",
+        "2cd9daa6c2d26163"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "289d906c92b7b366",
+          "289d906c92b7b366",
+          "289d906c96b73366",
+          "289d906e96b63366",
+          "289d906e96b63366"
+        ],
+        "center-60": [
+          "689b494ad4b72365",
+          "689b494ed4b72364",
+          "689bcb4ec0b72364",
+          "689bcb4fc0972364",
+          "689b9b4dc8873364"
+        ],
+        "center-50": [
+          "6c93554ccc957552",
+          "6c93554ccc957552",
+          "4c93554ecc957552",
+          "4893554cccd57752",
+          "4893174cccd57752"
+        ],
+        "top-left-70": [
+          "54a45aa94b56ab56",
+          "54b45aaa4b56ab52",
+          "54b4daaa4f56a350",
+          "55b49aaa4fd6a340",
+          "55bc9ae84bd6a340"
+        ],
+        "top-right-70": [
+          "36c338cd1d32c732",
+          "36c2b8cc0f32c733",
+          "b6c2b8cc0f32c732",
+          "b6c2b8cc0d32e732",
+          "b6c2b8cc0f32e332"
+        ],
+        "bottom-left-70": [
+          "56c9a54d535454a7",
+          "56e1a54c535554a7",
+          "56e1a56c535554a5",
+          "56e1a56c531554b5",
+          "46e1a56c531554b7"
+        ],
+        "bottom-right-70": [
+          "309fcb9731373045",
+          "3097c39f313730c5",
+          "3497c787313730c5",
+          "3497c787311732c5",
+          "3497c78f310732c5"
+        ]
+      }
+    },
+    {
+      "concertId": 71,
+      "phash": [
+        "b98c4ef33211d8c6",
+        "b98c4efb6210d8c6",
+        "b98c4ef96610d8c6",
+        "b9864ef86618d8c6",
+        "b9864ef86618f8c2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "bb8e40f33311cd94",
+          "bb8e40f3a3194d94",
+          "bb8e40eba3194d94",
+          "bb864aeae2194d94",
+          "bb864baae2194d94"
+        ],
+        "center-60": [
+          "138ecc7263634db1",
+          "138ecef2632349b1",
+          "13cec7f06332c931",
+          "13cec7f0e332c831",
+          "13e697f0e732c811"
+        ],
+        "center-50": [
+          "138eccd2e3704db1",
+          "13ceccd06370cdb1",
+          "11ceccd0e370cdb1",
+          "11cecde0a770cd31",
+          "11ce8de8a770cd31"
+        ],
+        "top-left-70": [
+          "2896cd4a36e2dad1",
+          "2816ed4a36f25ad1",
+          "2816ed4e36d25ad1",
+          "2816ed4e36d25ad1",
+          "3816ed4a76d25ad0"
+        ],
+        "top-right-70": [
+          "86702f1940f83e77",
+          "86f20f1040f87e77",
+          "86f60f1040787e77",
+          "86f40f104078fe77",
+          "86f407104878fe77"
+        ],
+        "bottom-left-70": [
+          "612212b7b5f4e964",
+          "61321237b5f4aa65",
+          "61381237f5d4e265",
+          "61781237f5d4a265",
+          "61581237ffd4a225"
+        ],
+        "bottom-right-70": [
+          "8791f0e1e2e2cc87",
+          "879178e1e270dc87",
+          "879578e1e270d887",
+          "879478e1e270d497",
+          "879478e16278d497"
+        ]
+      }
+    },
+    {
+      "concertId": 72,
+      "phash": [
+        "2d76d2992566cb14",
+        "2d76d2d92526cb14",
+        "3d76524935a68b16",
+        "3d76524915a68f16",
+        "bd76524915a68f06"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "2d66d2992c6693b4",
+          "2d66d2992c7691b4",
+          "2d66d2992cf291b4",
+          "2d64f2d92cf29134",
+          "2d64725d2cf29174"
+        ],
+        "center-60": [
+          "0962f79d6ce498a4",
+          "0962f78d6ce5d824",
+          "0922f78d6ce5d826",
+          "0922f78d66e5d826",
+          "0922f78d66e5d826"
+        ],
+        "center-50": [
+          "4b72b59d64a15a26",
+          "4972b59966e15a26",
+          "4972b59966e15a26",
+          "0972b59966e15a66",
+          "0972b58926e55a67"
+        ],
+        "top-left-70": [
+          "74caa750ad344ab6",
+          "74caa750ad344ab6",
+          "74cea750ad344ab2",
+          "70cea7548d744ab2",
+          "30cea7549d744ab2"
+        ],
+        "top-right-70": [
+          "b24cc5b0cf9219e3",
+          "b24cc5b0ef9219e1",
+          "b20c41b2efb319e1",
+          "b20c61b2efb31961",
+          "a20ce592efb31961"
+        ],
+        "bottom-left-70": [
+          "7554cc8eadb56141",
+          "3554ce8eadb56141",
+          "31544ecebd356161",
+          "31544ecebd356161",
+          "31554eceb535c161"
+        ],
+        "bottom-right-70": [
+          "b1b21e4ec7e71214",
+          "b1b21e4cc7e71294",
+          "a1b21e4ce7e31694",
+          "a1b21e2ce7e31694",
+          "a1b29e2ce3e31790"
+        ]
+      }
+    },
+    {
+      "concertId": 73,
+      "phash": [
+        "2d2ef2f0d4d2d302",
+        "2daef2f0c652d302",
+        "2daefaf0c662d102",
+        "2daefaf0c662d102",
+        "2daefaf0c662d102"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "2f0a12fc64707763",
+          "2f0a12fcc4707763",
+          "2b0a32fcc4707763",
+          "2b0a3abcc4707763",
+          "2b0a3abcc4707763"
+        ],
+        "center-60": [
+          "434395c9ca98b6d3",
+          "434395c9ca98b6d3",
+          "434395c9ca98bed2",
+          "63431dc9c898bed2",
+          "63411dc9c899bed2"
+        ],
+        "center-50": [
+          "43623fcb581ea6a2",
+          "43623fc3d81ea6a2",
+          "43623fc3d81ea6a2",
+          "43623fc3d91ea2a2",
+          "43623fc3d91ea2a2"
+        ],
+        "top-left-70": [
+          "192ce6d2eb1935a1",
+          "19ace6d2eb1135a1",
+          "19ace6d2eb1135a1",
+          "19fce6d2eb1025a1",
+          "19fce6d0eb1035a1"
+        ],
+        "top-right-70": [
+          "b7a4405a4db3e6c4",
+          "b7a4405a4df9c6c4",
+          "b7a4405a4df9c2d4",
+          "b7a4407a0df8c6d4",
+          "bfa8407a0df8c2d4"
+        ],
+        "bottom-left-70": [
+          "1919396f6f191916",
+          "1919396f6f191836",
+          "1919396f671b1836",
+          "1918396f671b1c36",
+          "1918396f671b1c36"
+        ],
+        "bottom-right-70": [
+          "b7b5ad0401b1b723",
+          "b7b5a50401b1b763",
+          "b7bd2d0481b13663",
+          "b7bd2d0481b13663",
+          "b7bd2d0481b13663"
+        ]
+      }
+    },
+    {
+      "concertId": 74,
+      "phash": [
+        "1d9c18f2c6ee6870",
+        "199c18f2c6ee6a70",
+        "199c18f2c6eb6a70",
+        "199818f2e6eb6a70",
+        "19b818d2eeeb6870"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "1f8d1292a58f3671",
+          "1f8d1292a58f3671",
+          "1f8d1212a5af3e70",
+          "1f8d1212a5ef1e70",
+          "1f8d1212a5ef1e70"
+        ],
+        "center-60": [
+          "878f1038bf8f83c1",
+          "878f1038fb878bc1",
+          "878f1028fb878be1",
+          "878f1028fb878be1",
+          "878b1020f397abe5"
+        ],
+        "center-50": [
+          "87871c3c3d8b8fa0",
+          "85871c3c7d83afa0",
+          "85c7143c7d83afa0",
+          "8547143c7f83afa0",
+          "8557143c7e83eba0"
+        ],
+        "top-left-70": [
+          "33306dd6d04d9731",
+          "333469d6b04f9531",
+          "332479d6b04f9531",
+          "332479d6b04f9133",
+          "332479d6a04f9933"
+        ],
+        "top-right-70": [
+          "c1c25eb2610be7f0",
+          "c1825eb2650b67f2",
+          "c1865eb2651366f2",
+          "c1865eb2651366f2",
+          "c1864eb2e51366f2"
+        ],
+        "bottom-left-70": [
+          "3313372a786e4c66",
+          "33133728386e4de5",
+          "33133728306e5de5",
+          "3b931568306a5de5",
+          "3b931568306a5db5"
+        ],
+        "bottom-right-70": [
+          "e9f1e1ad2d0e0e03",
+          "edb1a3ad650e2606",
+          "edb1a38d650f2606",
+          "edb1a38d650b2706",
+          "edb1a38d65092746"
+        ]
+      }
+    },
+    {
+      "concertId": 75,
+      "phash": [
+        "09829f9cb2b33732",
+        "0b829f9cb2933732",
+        "0b829b9cb2933f32",
+        "0ba09b9cb2937732",
+        "0ba09b9c32937fa2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "49618b9c9a9313b7",
+          "49608b9cba9313b7",
+          "49608b9cba9313b7",
+          "45608bdcba9213b7",
+          "45608bdcba9213b7"
+        ],
+        "center-60": [
+          "6b71c1cec4d8ad84",
+          "6b71c1ce44d8ad94",
+          "6b71c1ce44d8ad94",
+          "6b7581ce44d8ad94",
+          "6b7581ce44d8ad94"
+        ],
+        "center-50": [
+          "4f7de146c8e08e86",
+          "4f7de346c0e08e86",
+          "4b7dc347c0708e96",
+          "4b7dc347c0708e96",
+          "4b7dc34740748e96"
+        ],
+        "top-left-70": [
+          "052d312b6b52d1e7",
+          "052e302b6b52d2f7",
+          "052e302b6f5252f7",
+          "052e302b7f5250f7",
+          "052e302b7f5250f7"
+        ],
+        "top-right-70": [
+          "a3cec89f1d187a81",
+          "abceca8d9d187a80",
+          "abceca8d9d187a80",
+          "abccc28ddd387a80",
+          "abccc28ddd387a80"
+        ],
+        "bottom-left-70": [
+          "054d4f3f5d4b1312",
+          "054c4f3f5d6b1312",
+          "054c4f3f5d6b1312",
+          "054c4f3fdd691312",
+          "054c4f3fdd691312"
+        ],
+        "bottom-right-70": [
+          "a3050f5f03119f76",
+          "a3040ddf43119b77",
+          "ab040dd743119b77",
+          "ab040dc743959b76",
+          "ab140dc743951b76"
+        ]
+      }
+    },
+    {
+      "concertId": 76,
+      "phash": [
+        "999998e266667613",
+        "999998e066725e93",
+        "999998e0667a5e83",
+        "999998e0667a5e83",
+        "89999ce0567a5e83"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9d9d9d9864726261",
+          "9d9d9df864724260",
+          "9d9d9df864724260",
+          "9d9d99e8647a42e0",
+          "8d9d99e8647a52e0"
+        ],
+        "center-60": [
+          "8d8d8d8d8d8d8d86",
+          "8d8d8f8d8d0d8d86",
+          "8d8d9f8d2d0d9d02",
+          "8d8d9b8d2d0d9f02",
+          "8d8d9bad2d0d9b02"
+        ],
+        "center-50": [
+          "8d8d8b8d8d8d8783",
+          "8d8d9b8d8d899782",
+          "8d899bcd8d899782",
+          "8d8b93cd2d899782",
+          "8d8b93cd29899786"
+        ],
+        "top-left-70": [
+          "3726c6c8c90f3783",
+          "2726c6c8f98f3682",
+          "2726c6c8fd8b3682",
+          "2726c6c8bd8f3a82",
+          "2726c64abd8b7a82"
+        ],
+        "top-right-70": [
+          "c1c0101e3fdfe163",
+          "c1c0101e6fdfb163",
+          "c1c0141c6fdfb163",
+          "c1c0141c6fdfb463",
+          "c1c0541c4fd7bc63"
+        ],
+        "bottom-left-70": [
+          "273335b5b5170351",
+          "273335b5b5170351",
+          "073335b5b5070771",
+          "073335b5b5074371",
+          "073331b5b507c371"
+        ],
+        "bottom-right-70": [
+          "81c1c3e7c7d19994",
+          "81c1c3e7c3f19994",
+          "89c1c3e7c3f39190",
+          "89c1c2e7c3f39194",
+          "89c1c2e7c3f391b0"
+        ]
+      }
+    },
+    {
+      "concertId": 77,
+      "phash": [
+        "09c0f4b6736d0b33",
+        "89c0f4b673690b33",
+        "89c0f4b6732d0b33",
+        "89c0f4b6732d0b33",
+        "89c0f4f673250b33"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8bdcee863c591234",
+          "8bdcee963c591214",
+          "8bdcee963c591205",
+          "8bdcee963c591205",
+          "8bd4ee963c593205"
+        ],
+        "center-60": [
+          "90cc65a26fe19a17",
+          "90cc63b26fe19a13",
+          "91cc63b26fe19a03",
+          "91cc63b26ee99a03",
+          "91cc63a26ee9da03"
+        ],
+        "center-50": [
+          "b84fe1b24df01466",
+          "984fe1b26cf81466",
+          "b84ff1b268f81464",
+          "b84ff1b268f81464",
+          "b84df1b268fc1464"
+        ],
+        "top-left-70": [
+          "00d2b8677c3e9fa0",
+          "00d2f8675d38cfa1",
+          "00d2f8675d38cfa1",
+          "01d2f86f4d384fa1",
+          "01d3f86f4d384f21"
+        ],
+        "top-right-70": [
+          "ec709e01278c79c7",
+          "e8709f0137ac19c7",
+          "a8729f0137ac19c7",
+          "a8729f0137ac19c7",
+          "a872970137ac99c7"
+        ],
+        "bottom-left-70": [
+          "25247755a934f255",
+          "25247751b934f255",
+          "05a47751b934f255",
+          "058477519934fa75",
+          "058477519970fa75"
+        ],
+        "bottom-right-70": [
+          "afc83133cf8660b4",
+          "af483137efa46094",
+          "a7483137efa46494",
+          "ad483137efa46494",
+          "ad483137eda46c94"
+        ]
+      }
+    },
+    {
+      "concertId": 78,
+      "phash": [
+        "a1e1e9b194969786",
+        "a1a9ebb194969782",
+        "a9a9ebb134169782",
+        "a9a9ebb3341685c2",
+        "a9a9eba3349685c2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "fdfff37f24000020",
+          "fdfdf16f24102220",
+          "fdddd16f24302222",
+          "fdcdd17f24302222",
+          "fdcdd17f24302222"
+        ],
+        "center-60": [
+          "8bd9d5c780544b65",
+          "8bd9d5c7c8144a65",
+          "83d9d5c7c8154a65",
+          "83d9ddc7c8114a65",
+          "83c9ddc7c8116a65"
+        ],
+        "center-50": [
+          "c39eb5c388954b45",
+          "83dabdc18c954b45",
+          "83dabfc18c954b41",
+          "83dabfc18c954b41",
+          "83d8bfc18c954b61"
+        ],
+        "top-left-70": [
+          "81834b3e3d31af51",
+          "81834b3eadb1af50",
+          "818f4b3cad91af50",
+          "818f4a7cad91af50",
+          "838f4a7ca991af50"
+        ],
+        "top-right-70": [
+          "a1ad8892c7f3cd30",
+          "a1a98c9ac7f1cd30",
+          "a3a98c9a87f1c931",
+          "a3a1ac9a87f1c931",
+          "a3a1ac9a87f1c931"
+        ],
+        "bottom-left-70": [
+          "c1910e0ff1d13637",
+          "81110ecff1d13e27",
+          "a1110ccfe1d13ea7",
+          "a1111ccfc1d13ea7",
+          "a3111ccfc1d13aa7"
+        ],
+        "bottom-right-70": [
+          "b3b3820435b3f2c6",
+          "b3b3c20d2531f2c6",
+          "b3b3c209a531f2c6",
+          "b3b7c209a431f2c6",
+          "a7b7c209a435f2c4"
+        ]
+      }
+    },
+    {
+      "concertId": 79,
+      "phash": [
+        "81cbcf59392e0785",
+        "815b8e593bae0785",
+        "815b8e593ba61785",
+        "815b8ad93ba61785",
+        "815b8ed933a61785"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "e9f1c25f36363440",
+          "e9f1c25d76363140",
+          "f973c25d36a63140",
+          "f973c25d76a43140",
+          "f973c25d76a43140"
+        ],
+        "center-60": [
+          "9bf0e0d1dbaae480",
+          "9ff0e0d15baae480",
+          "1ff0e0d15baae482",
+          "1ff0e0d56baaa482",
+          "1ff1e0d56aaab402"
+        ],
+        "center-50": [
+          "1d68f8d95f1560a2",
+          "1f68f8dd45176086",
+          "1f68f8dd45156286",
+          "1f68f8dd41176286",
+          "1f68f8dd41176286"
+        ],
+        "top-left-70": [
+          "071879631f1746d5",
+          "071871621f1f47d5",
+          "071871621f1f47d5",
+          "079861621f1f47d5",
+          "079861621f1f47d5"
+        ],
+        "top-right-70": [
+          "a54de9a1b929b215",
+          "a34fa9a0b929ba15",
+          "a34fa9a0b929ba15",
+          "034fa9a0b92dba95",
+          "034fa9a0992dbad5"
+        ],
+        "bottom-left-70": [
+          "07431e9e9e959532",
+          "05e35e9e1e959522",
+          "05e35e9c1e9d9322",
+          "05e35e9c1e9d9322",
+          "05e35e9c1ead9322"
+        ],
+        "bottom-right-70": [
+          "a3259eda58656da0",
+          "a3051ef2586f6da0",
+          "a3051ef25c6f69a0",
+          "a3151ef2546f69a0",
+          "a3551ef2546f3980"
+        ]
+      }
+    },
+    {
+      "concertId": 80,
+      "phash": [
+        "1b9a92d6e7646864",
+        "9b939692e7646864",
+        "9f939682e7646864",
+        "9f839680f7646874",
+        "9f879680e7e46864"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "9d9d94a2a3a47456",
+          "9d9594a2a3a67456",
+          "9d859482a3af7456",
+          "9d859482a3af7456",
+          "9da59482a1af7456"
+        ],
+        "center-60": [
+          "9f8b8881b1f1f2e0",
+          "df8b8881b1f5b2a0",
+          "df898891b1e5b2a2",
+          "dfa98890b1e5b2a2",
+          "d7a98891b1e5b2a2"
+        ],
+        "center-50": [
+          "070f8a9b1d7572a1",
+          "070f8a9b1d7572a1",
+          "870b8a9b15f57261",
+          "870b8a9b15f57261",
+          "874b8a9b15e57261"
+        ],
+        "top-left-70": [
+          "372c6ccad2f48b84",
+          "3f3c2ccad2f48984",
+          "3f3c2ccad2f48984",
+          "3f2c2ccad2f48986",
+          "1f3c0ccad2f48987"
+        ],
+        "top-right-70": [
+          "838a9c3c6262f4d7",
+          "839a9c3c6262e4d7",
+          "839adc3c626264d7",
+          "819adc3c6262e4d7",
+          "919adc346262e4d7"
+        ],
+        "bottom-left-70": [
+          "33133734b4743476",
+          "3303773495743476",
+          "3703773495743474",
+          "370b773415743474",
+          "378b771415743474"
+        ],
+        "bottom-right-70": [
+          "a1a323636363e363",
+          "a1a383636b43a763",
+          "a13193636b43a763",
+          "a13593636b43a563",
+          "e13593626b43a563"
+        ]
+      }
+    },
+    {
+      "concertId": 81,
+      "phash": [
+        "084ef5f02cbb13a5",
+        "484ef1f0ac3b13a5",
+        "484ef1f0ec3b13a4",
+        "484ef1f0ec7b1384",
+        "484ef170ec7b13c4"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "dc46b1a868729567",
+          "dc44b1b868729567",
+          "dc44b1b868729567",
+          "dc44b1b868729177",
+          "5c44b1bc68729177"
+        ],
+        "center-60": [
+          "8e44b7485bbc1c33",
+          "8ec4b7485bbc1c23",
+          "8eccb7485bbc1c03",
+          "ceccb7484bbc1c03",
+          "ceccb7484bbc1c03"
+        ],
+        "center-50": [
+          "84ceb14b579c3b06",
+          "c4c6a14b57dc3b06",
+          "c0c6a14b57fc3916",
+          "c0c6a14b57fd3914",
+          "c0c6a14b57fd3914"
+        ],
+        "top-left-70": [
+          "32cbc4de2911be43",
+          "324fc4dc2b11be43",
+          "324fc4fc2b11be03",
+          "324fc4fc0b15be03",
+          "324bc4fc0b15be23"
+        ],
+        "top-right-70": [
+          "681c1635cdaae745",
+          "6a1c1635cdaae345",
+          "621c1635cdaae3c5",
+          "621c1635cdaae3c5",
+          "621c1635cdaae3c5"
+        ],
+        "bottom-left-70": [
+          "b2309eeb055459b5",
+          "b2329e6b0550d9b5",
+          "b2329e6b0550d9b5",
+          "b2329e6b0550d9b5",
+          "b23a9e2b0540d9f5"
+        ],
+        "bottom-right-70": [
+          "e168685d5a30beb2",
+          "e168685d5a30beb2",
+          "e168695d5a30aeb2",
+          "e168e95d5a10aeb2",
+          "e178e95c5b10acb2"
+        ]
+      }
+    },
+    {
+      "concertId": 82,
+      "phash": [
+        "a9a9a746626078d7",
+        "a9a9a747226078d7",
+        "a9a9a747027078d7",
+        "a9893747067078d7",
+        "a9893747067458d7"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8b8b8fc7e7636010",
+          "8b8ba7c7e7636010",
+          "8b8ba5c7e7637010",
+          "8b8ba5e767637010",
+          "8b8ba5e766637050"
+        ],
+        "center-60": [
+          "99998d85c5437371",
+          "99998d85c5437371",
+          "99998da5c5417761",
+          "99988da5c5517761",
+          "99988da5c5517761"
+        ],
+        "center-50": [
+          "93939b8989cb43c3",
+          "93939f8d888b47c2",
+          "93929fac898b47c2",
+          "93929fac898a47b2",
+          "93921fac899a47b2"
+        ],
+        "top-left-70": [
+          "b5b5ca4a6cb1b1c0",
+          "b5b54a0a6eb3b1c0",
+          "b5b74a0a6cb1b5c0",
+          "b5374a0a6cb3b5c0",
+          "b5374a0a6cb3b5c0"
+        ],
+        "top-right-70": [
+          "a7a1583e06c1f137",
+          "a7a5183e06c1f137",
+          "a7a5193e06c8f133",
+          "a7a1193e46c8f133",
+          "a3a1193e46d8f133"
+        ],
+        "bottom-left-70": [
+          "252525656d3f3433",
+          "a5a524656f3b3033",
+          "a5a524656f5b3033",
+          "a5a524656f5a3037",
+          "e5b424e52f523037"
+        ],
+        "bottom-right-70": [
+          "a7a78787c3c8c8d0",
+          "a7a7a707c3c8c8d0",
+          "a7e7a60743d8c8d0",
+          "a7e7a60743d8c8d0",
+          "a7e6a6074b78c8d0"
+        ]
+      }
+    },
+    {
+      "concertId": 83,
+      "phash": [
+        "8f623474eb4b0cd2",
+        "8f633562eb430cd2",
+        "8f633562eb4328d2",
+        "8f633562eb4328d2",
+        "8f633562eb4328d2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8f62aeaa715554e0",
+          "8f63a62a71555ce0",
+          "8f63a62af1555cc0",
+          "8f63a72af16558c0",
+          "8f63a72af16558c0"
+        ],
+        "center-60": [
+          "8163863c3f07f874",
+          "81630634bf25f974",
+          "81630614bf27f974",
+          "81630614bf25f975",
+          "81630614bf25f975"
+        ],
+        "center-50": [
+          "c1f3c414278599f6",
+          "c1f3c494278499f6",
+          "c1f34494a78499f6",
+          "c1734494af8499f6",
+          "c17b4494a78499f6"
+        ],
+        "top-left-70": [
+          "394866cdb0e37326",
+          "394866cdb0b37326",
+          "194866cfb0bb7322",
+          "19486ecfb0b37322",
+          "19486ecfb0b37a22"
+        ],
+        "top-right-70": [
+          "fb1e940be214d525",
+          "fb1e040be255d525",
+          "fb1e040be255d525",
+          "bf1e040be255d525",
+          "ff1e040be2559525"
+        ],
+        "bottom-left-70": [
+          "31ddc9133844ce75",
+          "33ddc9133002cf75",
+          "33ddc9113082dd75",
+          "33ddc91130829f75",
+          "33dde11130869f65"
+        ],
+        "bottom-right-70": [
+          "e12b6bf1b6161492",
+          "e12b0bf3b6525492",
+          "e12f0bf3a6525492",
+          "e12f8b73a6525492",
+          "e12acb77a6525492"
+        ]
+      }
+    },
+    {
+      "concertId": 84,
+      "phash": [
+        "f97862423e8635d2",
+        "e97862423e8675d2",
+        "e97862423e8675d1",
+        "e97862423e8675d1",
+        "a97862423e8675d5"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "d91ff25236e42d80",
+          "d93ff25076a42d80",
+          "d97ff25836a42c80",
+          "d97fe2583ea42c80",
+          "997fe2587ea42c80"
+        ],
+        "center-60": [
+          "df07f011d07561b4",
+          "9f17f011d07561b4",
+          "9f53f011d07561b4",
+          "9f52f011d07571b4",
+          "9f52f091d0757134"
+        ],
+        "center-50": [
+          "8f067d98b0747934",
+          "8f427d98b0747934",
+          "8f427d98b07471b4",
+          "8f407d9ab07471b4",
+          "8f40bd9ab86471b4"
+        ],
+        "top-left-70": [
+          "e7e84c1a5e2e0bc1",
+          "a7e84c1a5eae0bc2",
+          "a6e84c5a5eac0be2",
+          "a6e84c5a5eac0be2",
+          "a6d84c5a5eac0be2"
+        ],
+        "top-right-70": [
+          "e1260efb3bca0f01",
+          "e1260ebb1bce4d03",
+          "e1260ebb1aee4d03",
+          "c1264ebb1aee4d03",
+          "c1264abb1aee4d23"
+        ],
+        "bottom-left-70": [
+          "b773518675e58c20",
+          "a773518675e58c30",
+          "a7f7518675e50430",
+          "a7f7518675ec0430",
+          "a7f7518675ec0430"
+        ],
+        "bottom-right-70": [
+          "e1e131fa03c3e6c4",
+          "e1e133fa03e2e684",
+          "e1e133f203e6e684",
+          "c1f133f201e6e6a4",
+          "c1f137f201e6e684"
+        ]
+      }
+    },
+    {
+      "concertId": 85,
+      "phash": [
+        "843a63c62ff83ac1",
+        "843a63c727f83ac1",
+        "863a63c727f81ac1",
+        "843a63c7a7b89ac1",
+        "843a63c7a7b89ac1"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "8638e1c56fbc19d0",
+          "8e1861c56fbd09d1",
+          "8e1871456fbd09d1",
+          "8e1851456fbf09d1",
+          "861851456fbf89d1"
+        ],
+        "center-60": [
+          "8e389e61670458f7",
+          "8e189e63670458f7",
+          "8e189ee3670448f7",
+          "8e189ee2670c48f7",
+          "8e1896e3670c48f7"
+        ],
+        "center-50": [
+          "8038167fe1c9dc17",
+          "80381677e1c9dc57",
+          "8038167763c9dc57",
+          "a038167763c9dc56",
+          "a018967763c9dc56"
+        ],
+        "top-left-70": [
+          "986d9b9064ced0e3",
+          "986d9b90a4ced0f2",
+          "986d9b90a4ced0f2",
+          "986d9b90a48ed0f3",
+          "986d9b90a4aed0f1"
+        ],
+        "top-right-70": [
+          "f204f9f2827e3a60",
+          "f20679f2827e3a60",
+          "f20679f2866e3a60",
+          "f20679f2866e3870",
+          "f20679b2866e3a70"
+        ],
+        "bottom-left-70": [
+          "922465a62ecccfd1",
+          "922465a62e8ecfd1",
+          "922465a62e8ecfd1",
+          "922464ae2e8e4fd5",
+          "922464ae2e8e4fd5"
+        ],
+        "bottom-right-70": [
+          "f98607c0040e7ff6",
+          "f98606c4042e5ff6",
+          "f98606c4042e5ff6",
+          "f98606c4846e5f96",
+          "f98606c4846f5f86"
+        ]
+      }
+    },
+    {
+      "concertId": 86,
+      "phash": [
+        "83721c35e5ca7a32",
+        "83721c35e5cb5a32",
+        "83721c35e5cf1a32",
+        "83721c31e5cf5a32",
+        "83721c31e5cf5a32"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "e5700e33e1cf1634",
+          "e5700e33e4cf1634",
+          "e5700e33e4cf1634",
+          "e5700e33a4cf1674",
+          "e5700e33a4cf1674"
+        ],
+        "center-60": [
+          "ad381230e9e76547",
+          "ad381238e9e76147",
+          "ad389238e9e56147",
+          "ed389238a9e56147",
+          "ed389238adc56147"
+        ],
+        "center-50": [
+          "6b589418dbfd68c0",
+          "6b58943a9be568c4",
+          "6b58943a9be568c4",
+          "6b58943a8be568c5",
+          "6b58943a8be568c5"
+        ],
+        "top-left-70": [
+          "46b03bc4b8659b55",
+          "46b03bc4b8659b55",
+          "46b03bc4b8659b55",
+          "46303bd4b8659b55",
+          "46303bd4b8659b55"
+        ],
+        "top-right-70": [
+          "9862953b6c86f954",
+          "1866d5396c86f954",
+          "1866d6396c86f954",
+          "1866d6396c86f954",
+          "1866d6316c96f954"
+        ],
+        "bottom-left-70": [
+          "9bc794ba286c64a3",
+          "93c794ba2c6c64a3",
+          "93c794ba2c6c64a3",
+          "93c794ba2c6c64b2",
+          "83cf94ba2c6c64b2"
+        ],
+        "bottom-right-70": [
+          "f90962654f9486e3",
+          "f9096265479486f3",
+          "f9097265479486f2",
+          "f9097265469686f2",
+          "f9097265461686f3"
+        ]
+      }
+    },
+    {
+      "concertId": 87,
+      "phash": [
+        "8f84d87ae3e57011",
+        "874c987ae3e57013",
+        "a74c987aa3f57011",
+        "a74c987aa3f57011",
+        "a74c987ab3b57011"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "47ea9c3082eb6ac3",
+          "47ea985092eb6ac3",
+          "47ea985092eb6ac3",
+          "47ea985092eb6ac3",
+          "43ea985082eb6ee3"
+        ],
+        "center-60": [
+          "e3c81e3cb05b5271",
+          "e3e81e3cb05a5670",
+          "e3c81e3cb05b5670",
+          "e3c81e3cb15a5670",
+          "e3c81e3cb15a5670"
+        ],
+        "center-50": [
+          "75c20aacab0abf43",
+          "65c20aacab0abf47",
+          "65c20aacab0abf47",
+          "65c20aacab0abf47",
+          "65c20aacab0abf47"
+        ],
+        "top-left-70": [
+          "18a466c9d32f74e4",
+          "182466c9d32f74e6",
+          "182466c9c36f74e6",
+          "1a2466c9c36f74e4",
+          "1a247649c36f74e4"
+        ],
+        "top-right-70": [
+          "bec208bf35d88b22",
+          "bee208bf35c88b22",
+          "bee2489f35c88b22",
+          "bee2489f15c98b22",
+          "bee248bf15c88b22"
+        ],
+        "bottom-left-70": [
+          "19d990f2629baa95",
+          "1bd980f2669aaa93",
+          "1bd980f3669a2a93",
+          "1bd9a0f3669a2c92",
+          "1bd9a0f366ba2c12"
+        ],
+        "bottom-right-70": [
+          "bf3ff4750050c891",
+          "bf3df4750050c8d1",
+          "bf3df5350450c891",
+          "bf3df5370440c891",
+          "bf3df5370440c891"
+        ]
+      }
+    },
+    {
+      "concertId": 88,
+      "phash": [
+        "1569293da78cb8b1",
+        "156b293da78c38b1",
+        "156b2d3da78c38a1",
+        "156ba91da78c78a1",
+        "156ba91da78c78a1"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "19437939a3893c75",
+          "11436939a78d3c75",
+          "1143493da7897c75",
+          "1143493da78d7c55",
+          "1143693d878d7c55"
+        ],
+        "center-60": [
+          "9d761e31e18e2683",
+          "99761e31e1ae2683",
+          "99761a31e1aea683",
+          "99761a31e1aea683",
+          "99721a39e1aea683"
+        ],
+        "center-50": [
+          "9ce11a30f9ce2687",
+          "9ce11a30f9ec2687",
+          "9ce01a38f9ea2687",
+          "9ce01a39f9ea2607",
+          "9ce01a39f9ea2643"
+        ],
+        "top-left-70": [
+          "2555650b26e99ae5",
+          "2555650b26e99ae5",
+          "2555351ba4e91e65",
+          "2d59251ba46d1e65",
+          "2d59351ba06d1e65"
+        ],
+        "top-right-70": [
+          "2b258797c28e9c96",
+          "4b358797828e9c96",
+          "4b3583d7868e9496",
+          "cb3581d7a48e9496",
+          "cb3581d7a48e9496"
+        ],
+        "bottom-left-70": [
+          "2788dab664e8e992",
+          "2789dab464e86d92",
+          "27a9dab464a86d92",
+          "27b9dab464886d92",
+          "27b9cab464886d93"
+        ],
+        "bottom-right-70": [
+          "cb6a3d610a2e2fa1",
+          "cb6a3d61222e2fa1",
+          "cb6b3d61222e27a1",
+          "cb6a3d61226e27a1",
+          "cb6a3d61226e27a1"
+        ]
+      }
+    },
+    {
+      "concertId": 89,
+      "phash": [
+        "29299a5a6b6e4cd4",
+        "29299b4a6b6e4cd4",
+        "2988db4a6b7e4cd0",
+        "2988db4a7b7e48d0",
+        "2b80db0a7b7e48d2"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "29a99352332b6e47",
+          "29a99352332b6e47",
+          "29a99352332b47c7",
+          "29a893d6312b47c7",
+          "2ba883d6312b47c7"
+        ],
+        "center-60": [
+          "0b9b96b4b5313271",
+          "0b9a96b4bd313271",
+          "099ab6a4bf313271",
+          "099a96a4bf3132f1",
+          "09ba96a49f3132f1"
+        ],
+        "center-50": [
+          "5b1bc68c8db8b434",
+          "5b1ae68c8db8b434",
+          "1b5ae6ec8d38b430",
+          "1b58e6ec8d38b432",
+          "1b48e7ec8d38b432"
+        ],
+        "top-left-70": [
+          "352e3a7cd0a2ad46",
+          "352e3a74d0a2ed46",
+          "352e3a74d0a2ed46",
+          "352e3a74d0a2ed46",
+          "352e3a74d0a2ed46"
+        ],
+        "top-right-70": [
+          "a3846d2d7ac8ce07",
+          "a3846d277ac8ce07",
+          "a3c46d237ac8ce07",
+          "a3c46d237ac8c687",
+          "a3c46d237ac8c687"
+        ],
+        "bottom-left-70": [
+          "555535d1919393b1",
+          "7515b5d1919392b1",
+          "7505f5d1919392b1",
+          "7505fdd1919392b0",
+          "7505fdd9919382b0"
+        ],
+        "bottom-right-70": [
+          "23b393b478f0d0f0",
+          "23b393b478f0d0f0",
+          "23b393b478f0d0f0",
+          "23a393b578f0d0f0",
+          "2ba393b478f0d0f0"
+        ]
+      }
+    },
+    {
+      "concertId": 90,
+      "phash": [
+        "3514cac9b5371f14",
+        "3518cacbb5b70b14",
+        "3518cacfb5b50b14",
+        "3518cacfb5b50b14",
+        "3518cacff4b50b14"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "2d34d2c2eee70516",
+          "253cd2c2fee70506",
+          "2d3cc242feef0506",
+          "2d3cc242feaf0586",
+          "2d3cc242feaf0586"
+        ],
+        "center-60": [
+          "2f2cd2d258730f26",
+          "2f2cf2d258730f22",
+          "2f2cf0d658730f22",
+          "2f2cf0d658730f22",
+          "2f2cf0d658f20e23"
+        ],
+        "center-50": [
+          "0f0cf6d278f0c474",
+          "0f08f7d278f0c466",
+          "0f08f7d278f4c426",
+          "0f08f75678f4c426",
+          "0f08f75678f4c426"
+        ],
+        "top-left-70": [
+          "32ac8d513b36cd31",
+          "32ac8d513b36cd31",
+          "32ac8d711b36cd51",
+          "12ac9df11b36cc51",
+          "12ac9df11b36cc51"
+        ],
+        "top-right-70": [
+          "9866679189e267b4",
+          "98666f9189e227b4",
+          "98466f9189e627b4",
+          "98466f9189e627b4",
+          "98466f9189e627b4"
+        ],
+        "bottom-left-70": [
+          "3373652f33332426",
+          "3373640f3b372426",
+          "3373640f3b372426",
+          "3373600f3f373406",
+          "1373200e3f3774a6"
+        ],
+        "bottom-right-70": [
+          "9991818dcdd9d643",
+          "9991818dcde9d643",
+          "9991808dedf1d643",
+          "99918485edf1d643",
+          "999184856df5d643"
+        ]
+      }
+    },
+    {
+      "concertId": 91,
+      "phash": [
+        "39a492cb989e7334",
+        "39a492cb991e7334",
+        "39a492cb9d1e3334",
+        "39a492cb9c1eb334",
+        "39a492cb9c1eb334"
+      ],
+      "cropPhashes": {
+        "center-80": [
+          "292de0e39bc61ac3",
+          "292de0e38f863ac3",
+          "292df0e38f8638c3",
+          "29adf0e38dc638c1",
+          "29adf4e38dc638c0"
+        ],
+        "center-60": [
+          "1b286879cb8d3974",
+          "1b286879cb8db964",
+          "1b286879cb8db874",
+          "1b287879cb85b874",
+          "1928f879cb87b864"
+        ],
+        "center-50": [
+          "1f0a7870d787c8d4",
+          "170a7874d785e8d4",
+          "170a7874d785e8d4",
+          "170a7874d785e8d4",
+          "170a7854d785e8d5"
+        ],
+        "top-left-70": [
+          "35548bba2a6d3562",
+          "35148bba2a6d3d62",
+          "25148bba2aed3d62",
+          "25168bba2aed3d42",
+          "25168bba2aed3d42"
+        ],
+        "top-right-70": [
+          "a2d26fe5c80f8391",
+          "a3d26fe1c80f8383",
+          "a3d26fe0d80b8593",
+          "a3926fe0d80bc593",
+          "a3926df0d80bc593"
+        ],
+        "bottom-left-70": [
+          "2753345ecd64ca64",
+          "2753345ec964ca65",
+          "2753345ec964ca65",
+          "2553345ec964ce65",
+          "2571345ec964ce65"
+        ],
+        "bottom-right-70": [
+          "83b1d23a1f267a26",
+          "83b1d27a1f267a22",
+          "83b5d27a1f267a20",
+          "83b5d27a1f267a20",
+          "83b5d27a1f267a20"
+        ]
+      }
+    }
+  ]
+}

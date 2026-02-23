@@ -27,7 +27,6 @@ src/modules/secret-settings/
 ├── config.ts
 ├── useTripleTap.ts
 ├── useFeatureFlags.ts
-├── useCustomSettings.ts              # compatibility no-op
 ├── useSecretSettingsController.ts
 ├── SecretSettings.tsx
 ├── SecretSettings.module.css
@@ -43,14 +42,6 @@ src/modules/secret-settings/
 - Key: `photo-signal-feature-flags`
 - Shape: array of `{ id: string; enabled: boolean; ... }`
 - Managed by `useFeatureFlags`
-
-### Custom settings (legacy)
-
-- Legacy key may still exist: `photo-signal-custom-settings`
-- Current runtime does not use those values to tune recognition behavior
-- Keep reads/writes backward-compatible only when needed for migration safety
-
----
 
 ## Adding a New Feature Flag
 
@@ -128,7 +119,6 @@ npm run pre-commit
 
 - Reintroducing removed style modes (`ui-style`, classic/light branches)
 - Reintroducing runtime recognition tuning in settings UI
-- Assuming legacy `photo-signal-custom-settings` values are still active runtime inputs
 - Adding visual assertions without deterministic screenshot thresholds
 
 ---

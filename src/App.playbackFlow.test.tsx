@@ -156,10 +156,6 @@ vi.mock('./modules/secret-settings', () => ({
   useFeatureFlags: () => ({
     isEnabled: (flag: string) => enabledFlags.has(flag),
   }),
-  useCustomSettings: () => ({
-    getSetting: () => undefined,
-    settings: {},
-  }),
   useTripleTap: () => undefined,
 }));
 

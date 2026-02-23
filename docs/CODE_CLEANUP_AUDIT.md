@@ -13,6 +13,8 @@ Each item is classified by impact:
 
 ## 1. `useCustomSettings.ts` — Permanently Empty Stub
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Delete (hook, type exports, and tests)
 **Files**:
 
@@ -34,9 +36,18 @@ export function useCustomSettings() {
 
 **Action**: Delete `useCustomSettings.ts`, `useCustomSettings.test.ts`, and remove its exports from `index.ts`. The `CustomSetting` interface in `types.ts` can go with it (see item 2 below).
 
+**Completed work**:
+
+- Deleted `src/modules/secret-settings/useCustomSettings.ts`
+- Deleted `src/modules/secret-settings/useCustomSettings.test.ts`
+- Removed `useCustomSettings` export from `src/modules/secret-settings/index.ts`
+- Removed stale module mock export in `src/App.playbackFlow.test.tsx`
+
 ---
 
 ## 2. `CustomSetting.engines` — References Non-Existent Engines
+
+**Status**: ✅ Completed (2026-02-23)
 
 **Classification**: Delete (type field)
 **File**: `src/modules/secret-settings/types.ts:135`
@@ -50,6 +61,11 @@ engines?: Array<'perceptual' | 'orb' | 'parallel'>;
 The `orb` and `parallel` values have no runtime counterparts. The app uses a single pHash recognition algorithm. This field was scaffolded for a multi-engine architecture that was never shipped.
 
 **Action**: If `CustomSetting` is kept, remove the `engines` field. If `useCustomSettings` is deleted (item 1), delete the whole interface.
+
+**Completed work**:
+
+- Deleted `CustomSetting` from `src/modules/secret-settings/types.ts`
+- Removed `CustomSetting` from public type exports in `src/modules/secret-settings/index.ts`
 
 ---
 
@@ -246,8 +262,8 @@ Several source files and READMEs reference documents that do not exist:
 
 | #   | Item                             | Files                                               | Action                       | Risk   |
 | --- | -------------------------------- | --------------------------------------------------- | ---------------------------- | ------ |
-| 1   | `useCustomSettings` hook         | `useCustomSettings.ts`, `.test.ts`                  | Delete                       | Low    |
-| 2   | `CustomSetting.engines` field    | `types.ts`                                          | Delete field                 | Low    |
+| 1   | `useCustomSettings` hook         | `useCustomSettings.ts`, `.test.ts`                  | ✅ Completed (2026-02-23)    | Low    |
+| 2   | `CustomSetting.engines` field    | `types.ts`                                          | ✅ Completed (2026-02-23)    | Low    |
 | 3   | `FrameQualityIndicator`          | `FrameQualityIndicator.tsx`, `.css`                 | Delete                       | Low    |
 | 4   | `GuidanceMessage` (not rendered) | `GuidanceMessage.tsx`, `.css`                       | Wire up or delete            | Medium |
 | 5   | `guidanceConfig.ts` module       | `guidanceConfig.ts`, `.test.ts`, `README.md`        | Depends on #4 decision       | Medium |

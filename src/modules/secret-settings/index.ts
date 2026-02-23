@@ -10,5 +10,4 @@
 export { SecretSettings } from './SecretSettings';
 export { useTripleTap } from './useTripleTap';
 export { useFeatureFlags } from './useFeatureFlags';
-export { useCustomSettings } from './useCustomSettings';
-export type { UseTripleTapOptions, SecretSettingsProps, FeatureFlag, CustomSetting } from './types';
+export type { UseTripleTapOptions, SecretSettingsProps, FeatureFlag } from './types';

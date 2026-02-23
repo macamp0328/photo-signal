@@ -145,6 +145,17 @@ export interface RecognitionTelemetry {
   hammingDistanceLog: HammingDistanceLog;
   /** Detailed collision diagnostics to improve telemetry-driven tuning. */
   collisionStats: CollisionStats;
+  /** Frames evaluated while recognition index mode is active. */
+  index_mode_used?: number;
+  /** Frames that fell back from bucketed candidate scan to full scan. */
+  fallback_mode_used?: number;
+  /** Candidate comparisons executed per frame in pass-1 matching. */
+  candidate_count_per_frame?: {
+    last: number;
+    max: number;
+    total: number;
+    frames: number;
+  };
 }
 
 export interface RecognitionDebugInfo {

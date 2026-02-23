@@ -89,6 +89,14 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   frameQualityStats: emptyFrameQualityStats(),
   hammingDistanceLog: emptyHammingDistanceLog(),
   collisionStats: emptyCollisionStats(),
+  index_mode_used: 0,
+  fallback_mode_used: 0,
+  candidate_count_per_frame: {
+    last: 0,
+    max: 0,
+    total: 0,
+    frames: 0,
+  },
 });
 
 export const similarityPercent = (distance: number): number =>

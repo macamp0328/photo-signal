@@ -28,6 +28,8 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
  */
 class DataService {
   private cache: Concert[] | null = null;
+  private cacheById: Map<number, Concert> | null = null;
+  private cacheByBand: Map<string, Concert[]> | null = null;
   private inFlightRequest: Promise<Concert[]> | null = null;
   private isTestMode = false;
   private readonly productionDataUrl = '/data.app.v2.json';
@@ -204,6 +206,22 @@ class DataService {
     return 'production';
   }
 
+  private rebuildLookups(concerts: Concert[]): void {
+    const byId = new Map<number, Concert>();
+    const byBand = new Map<string, Concert[]>();
+
+    for (const concert of concerts) {
+      byId.set(concert.id, concert);
+
+      const existingBandConcerts = byBand.get(concert.band) ?? [];
+      existingBandConcerts.push(concert);
+      byBand.set(concert.band, existingBandConcerts);
+    }
+
+    this.cacheById = byId;
+    this.cacheByBand = byBand;
+  }
+
   /**
    * Get all concerts
    * Cached after first call for performance
@@ -231,6 +249,7 @@ class DataService {
         const { payload, loadedFrom } = await this.fetchDataPayload();
         const concerts = this.parseConcertsFromPayload(payload);
         this.cache = concerts;
+        this.rebuildLookups(concerts);
 
         const concertsWithHashes = concerts.filter((c: Concert) => hasAnyPhotoHashes(c)).length;
 
@@ -268,16 +287,16 @@ class DataService {
    * Get all concerts for a given band name (exact match)
    */
   getConcertsByBand(band: string): Concert[] {
-    if (!this.cache) return [];
-    return this.cache.filter((concert) => concert.band === band);
+    if (!this.cacheByBand) return [];
+    return this.cacheByBand.get(band) ?? [];
   }
 
   /**
    * Get concert by ID
    */
   getConcertById(id: number): Concert | null {
-    if (!this.cache) return null;
-    return this.cache.find((concert) => concert.id === id) || null;
+    if (!this.cacheById) return null;
+    return this.cacheById.get(id) ?? null;
   }
 
   /**
@@ -303,6 +322,8 @@ class DataService {
    */
   clearCache(): void {
     this.cache = null;
+    this.cacheById = null;
+    this.cacheByBand = null;
     this.inFlightRequest = null;
   }
 

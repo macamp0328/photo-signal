@@ -159,6 +159,10 @@ const RECOGNITION_INDEX_URL = '/data.recognition.v2.json';
 
 /** Compact type used throughout the matching pipeline. */
 export type MatchCandidate = { concert: Concert; distance: number };
+type HashEntry = { hash: string; concert: Concert };
+type CropHashEntry = { hash: string; concert: Concert; cropKey: CropRegionKey };
+
+const HASH_BUCKET_PREFIX_LENGTH = 2;
 
 interface RecognitionIndexEntryV2 {
   concertId: number;
@@ -196,7 +200,7 @@ const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
  */
 export function findBestMatches(
   currentHash: string,
-  concertHashList: ReadonlyArray<{ hash: string; concert: Concert }>
+  concertHashList: ReadonlyArray<HashEntry | CropHashEntry>
 ): { bestMatch: MatchCandidate | null; secondBestMatch: MatchCandidate | null } {
   let bestMatch: MatchCandidate | null = null;
   let secondBestMatch: MatchCandidate | null = null;
@@ -219,6 +223,26 @@ export function findBestMatches(
   }
 
   return { bestMatch, secondBestMatch };
+}
+
+function getHashBucketKey(hash: string): string {
+  return hash.slice(0, HASH_BUCKET_PREFIX_LENGTH).toLowerCase();
+}
+
+function bucketHashEntries<T extends { hash: string }>(
+  entries: ReadonlyArray<T>
+): Map<string, T[]> {
+  const buckets = new Map<string, T[]>();
+
+  for (const entry of entries) {
+    const bucketKey = getHashBucketKey(entry.hash);
+    if (!buckets.has(bucketKey)) {
+      buckets.set(bucketKey, []);
+    }
+    buckets.get(bucketKey)!.push(entry);
+  }
+
+  return buckets;
 }
 
 export interface BuildDebugInfoArgs {
@@ -461,20 +485,15 @@ export function usePhotoRecognition(
   const indexedHashData = useMemo(() => {
     if (recognitionIndexEntries.length === 0 || concerts.length === 0) {
       return {
-        concertHashList: [] as Array<{ hash: string; concert: Concert }>,
-        concertCropHashList: [] as Array<{
-          hash: string;
-          concert: Concert;
-          cropKey: CropRegionKey;
-        }>,
+        concertHashList: [] as Array<HashEntry>,
+        concertCropHashList: [] as Array<CropHashEntry>,
         eligibleConcertIds: new Set<number>(),
       };
     }
 
     const concertsById = new Map(concerts.map((concert) => [concert.id, concert]));
-    const concertHashList: Array<{ hash: string; concert: Concert }> = [];
-    const concertCropHashList: Array<{ hash: string; concert: Concert; cropKey: CropRegionKey }> =
-      [];
+    const concertHashList: Array<HashEntry> = [];
+    const concertCropHashList: Array<CropHashEntry> = [];
     const eligibleConcertIds = new Set<number>();
 
     for (const entry of recognitionIndexEntries) {
@@ -517,6 +536,13 @@ export function usePhotoRecognition(
     () =>
       usingRecognitionIndex ? indexedHashData.concertCropHashList : fallbackConcertCropHashList,
     [usingRecognitionIndex, indexedHashData.concertCropHashList, fallbackConcertCropHashList]
+  );
+
+  const concertHashBuckets = useMemo(() => bucketHashEntries(concertHashList), [concertHashList]);
+
+  const concertCropHashBuckets = useMemo(
+    () => bucketHashEntries(concertCropHashList),
+    [concertCropHashList]
   );
 
   const eligibleConcerts = useMemo(() => {
@@ -773,6 +799,8 @@ export function usePhotoRecognition(
       let frameCaptureMs = 0;
       let algorithmMs = 0;
       let confirmedMatch = false;
+      let comparedCandidates = 0;
+      let usedFallbackModeThisFrame = false;
 
       if (enableDebugInfo) {
         console.time(frameLabel);
@@ -911,12 +939,49 @@ export function usePhotoRecognition(
         // Hash matching — two-pass: full-image first, crop fallback if needed
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
+        comparedCandidates = 0;
+        usedFallbackModeThisFrame = false;
+
+        const runMatchScan = (candidates: ReadonlyArray<HashEntry | CropHashEntry>) => {
+          comparedCandidates += candidates.length;
+          return findBestMatches(currentHash, candidates);
+        };
+
+        if (usingRecognitionIndex) {
+          telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
+        }
 
         // Pass 1: full-image hashes (existing behavior)
-        const { bestMatch: bestFullMatch, secondBestMatch: bestFullSecondMatch } = findBestMatches(
-          currentHash,
-          concertHashList
-        );
+        const fullBucketCandidates = usingRecognitionIndex
+          ? (concertHashBuckets.get(getHashBucketKey(currentHash)) ?? [])
+          : [];
+
+        let fullPassResult =
+          usingRecognitionIndex && fullBucketCandidates.length > 0
+            ? runMatchScan(fullBucketCandidates)
+            : runMatchScan(concertHashList);
+
+        if (usingRecognitionIndex && fullBucketCandidates.length === 0) {
+          usedFallbackModeThisFrame = true;
+        }
+
+        if (usingRecognitionIndex && fullBucketCandidates.length > 0) {
+          const bucketBest = fullPassResult.bestMatch;
+          const bucketSecond = fullPassResult.secondBestMatch;
+          const bucketMargin =
+            bucketBest && bucketSecond ? bucketSecond.distance - bucketBest.distance : null;
+          const shouldFallbackToFullScan =
+            !bucketBest ||
+            bucketBest.distance > similarityThreshold ||
+            (bucketMargin !== null && bucketMargin < matchMarginThreshold);
+
+          if (shouldFallbackToFullScan) {
+            fullPassResult = runMatchScan(concertHashList);
+            usedFallbackModeThisFrame = true;
+          }
+        }
+
+        const { bestMatch: bestFullMatch, secondBestMatch: bestFullSecondMatch } = fullPassResult;
 
         let bestMatch = bestFullMatch;
         let secondBestMatch = bestFullSecondMatch;
@@ -928,8 +993,38 @@ export function usePhotoRecognition(
           (!bestFullMatch || bestFullMatch.distance > CROP_FALLBACK_TRIGGER_DISTANCE);
 
         if (shouldCheckCrops) {
-          const { bestMatch: bestCropMatch, secondBestMatch: bestCropSecondMatch } =
-            findBestMatches(currentHash, concertCropHashList);
+          const cropBucketCandidates = usingRecognitionIndex
+            ? (concertCropHashBuckets.get(getHashBucketKey(currentHash)) ?? [])
+            : [];
+
+          let cropPassResult =
+            usingRecognitionIndex && cropBucketCandidates.length > 0
+              ? runMatchScan(cropBucketCandidates)
+              : runMatchScan(concertCropHashList);
+
+          if (usingRecognitionIndex && cropBucketCandidates.length === 0) {
+            usedFallbackModeThisFrame = true;
+          }
+
+          if (usingRecognitionIndex && cropBucketCandidates.length > 0) {
+            const cropBucketBest = cropPassResult.bestMatch;
+            const cropBucketSecond = cropPassResult.secondBestMatch;
+            const cropBucketMargin =
+              cropBucketBest && cropBucketSecond
+                ? cropBucketSecond.distance - cropBucketBest.distance
+                : null;
+            const shouldFallbackToFullCropScan =
+              !cropBucketBest ||
+              cropBucketBest.distance > CROP_SIMILARITY_THRESHOLD ||
+              (cropBucketMargin !== null && cropBucketMargin < CROP_MATCH_MARGIN_THRESHOLD);
+
+            if (shouldFallbackToFullCropScan) {
+              cropPassResult = runMatchScan(concertCropHashList);
+              usedFallbackModeThisFrame = true;
+            }
+          }
+
+          const { bestMatch: bestCropMatch, secondBestMatch: bestCropSecondMatch } = cropPassResult;
           if (bestCropMatch && bestCropMatch.distance <= CROP_SIMILARITY_THRESHOLD) {
             if (!bestFullMatch || bestCropMatch.distance < bestFullMatch.distance) {
               bestMatch = bestCropMatch;
@@ -940,6 +1035,19 @@ export function usePhotoRecognition(
         }
 
         algorithmMs = performance.now() - algorithmStartAt;
+
+        if (usingRecognitionIndex && usedFallbackModeThisFrame) {
+          telemetryRef.current.fallback_mode_used =
+            (telemetryRef.current.fallback_mode_used ?? 0) + 1;
+        }
+
+        const candidateTelemetry = telemetryRef.current.candidate_count_per_frame;
+        if (candidateTelemetry) {
+          candidateTelemetry.last = comparedCandidates;
+          candidateTelemetry.frames += 1;
+          candidateTelemetry.total += comparedCandidates;
+          candidateTelemetry.max = Math.max(candidateTelemetry.max, comparedCandidates);
+        }
 
         // Decision variables
         const now = Date.now();
@@ -1189,6 +1297,9 @@ export function usePhotoRecognition(
             algorithmMs: Number(algorithmMs.toFixed(2)),
             totalPipelineMs: Number(totalPipelineMs.toFixed(2)),
             confirmedMatch,
+            usingRecognitionIndex,
+            usedFallbackMode: usedFallbackModeThisFrame,
+            candidateComparisons: comparedCandidates,
           });
           console.timeEnd(frameLabel);
         }
@@ -1226,6 +1337,9 @@ export function usePhotoRecognition(
     eligibleConcerts,
     concertHashList,
     concertCropHashList,
+    concertHashBuckets,
+    concertCropHashBuckets,
+    usingRecognitionIndex,
     checkInterval,
     recognitionDelay,
     similarityThreshold,

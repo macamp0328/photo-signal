@@ -242,6 +242,7 @@ describe('usePhotoRecognition', () => {
           enabled: true,
           recognitionDelay: 120,
           checkInterval: 50,
+          enableDebugInfo: true,
         })
       );
 
@@ -254,6 +255,10 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(result.current.recognizedConcert?.id).toBe(1);
+      expect((result.current.debugInfo?.telemetry.index_mode_used ?? 0) > 0).toBe(true);
+      expect((result.current.debugInfo?.telemetry.candidate_count_per_frame?.last ?? 0) > 0).toBe(
+        true
+      );
     } finally {
       createElementSpy.mockRestore();
     }

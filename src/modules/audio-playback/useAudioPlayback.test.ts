@@ -924,6 +924,32 @@ describe('useAudioPlayback', () => {
       expect(result.current.isPlaying).toBe(true);
     });
 
+    it('retries playback if the new track does not start after crossfade', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/first.opus');
+      });
+
+      act(() => {
+        result.current.crossfade('/audio/second.opus', 1000);
+      });
+
+      const howlInstances = getMockedHowlClass().instances;
+      const newSound = howlInstances[1] as unknown as {
+        playing: ReturnType<typeof vi.fn>;
+        play: ReturnType<typeof vi.fn>;
+      };
+
+      newSound.playing.mockReturnValue(false);
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      expect(newSound.play).toHaveBeenCalledTimes(2);
+    });
+
     it('should keep playback active when previous track ends after crossfade', () => {
       const { result } = renderHook(() => useAudioPlayback());
 

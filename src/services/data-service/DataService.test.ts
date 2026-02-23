@@ -771,6 +771,62 @@ describe('DataService', () => {
       // Should return null now
       expect(dataService.getRandomConcert()).toBeNull();
     });
+
+    it('should reset data source telemetry counters after clearing cache', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DATA_V2_FALLBACK_POLICY = 'warn';
+
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({ ok: false, status: 404 })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ concerts: mockConcerts }),
+        });
+      global.fetch = mockFetch;
+
+      await dataService.getConcerts();
+      expect(dataService.getDataSourceTelemetry().legacyFallbackLoads).toBe(1);
+
+      dataService.clearCache();
+
+      expect(dataService.getDataSourceTelemetry()).toEqual({
+        v2LoadAttempts: 0,
+        v2LoadFailures: 0,
+        legacyFallbackLoads: 0,
+        legacyFallbackLoadsInProduction: 0,
+      });
+    });
+  });
+
+  describe('getDataSourcePolicySnapshot()', () => {
+    it('should report default strict policy for production runtime', () => {
+      process.env.NODE_ENV = 'production';
+      delete process.env.VITE_DEPLOY_ENV;
+      delete process.env.VERCEL_ENV;
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+
+      expect(dataService.getDataSourcePolicySnapshot()).toEqual({
+        runtimeMode: 'production',
+        deployEnvironment: 'unknown',
+        fallbackPolicy: 'error',
+      });
+    });
+
+    it('should report preview-default warn policy for production runtime', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.VITE_DEPLOY_ENV = 'preview';
+      delete process.env.VITE_DATA_V2_FALLBACK_POLICY;
+      delete process.env.VITE_DATA_V2_REQUIRED;
+
+      expect(dataService.getDataSourcePolicySnapshot()).toEqual({
+        runtimeMode: 'production',
+        deployEnvironment: 'preview',
+        fallbackPolicy: 'warn',
+      });
+    });
   });
 
   describe('empty data handling', () => {

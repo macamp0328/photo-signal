@@ -12,6 +12,12 @@ interface DataSourceTelemetry {
   legacyFallbackLoadsInProduction: number;
 }
 
+interface DataSourcePolicySnapshot {
+  runtimeMode: RuntimeMode;
+  deployEnvironment: DeployEnvironment;
+  fallbackPolicy: DataV2FallbackPolicy;
+}
+
 /**
  * Check if a concert has pHash values.
  * Note: This only validates existence and type, not hash format/length.
@@ -470,6 +476,15 @@ class DataService {
 
   getDataSourceTelemetry(): DataSourceTelemetry {
     return { ...this.dataSourceTelemetry };
+  }
+
+  getDataSourcePolicySnapshot(): DataSourcePolicySnapshot {
+    const runtimeMode = this.getRuntimeMode();
+    return {
+      runtimeMode,
+      deployEnvironment: this.getDeployEnvironment(),
+      fallbackPolicy: this.getV2FallbackPolicy(runtimeMode),
+    };
   }
 
   /**

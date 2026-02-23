@@ -713,6 +713,9 @@ function AppContent() {
     const telemetry = capturedTelemetryRef.current;
     if (!telemetry) return;
 
+    const dataSourceTelemetry = dataService.getDataSourceTelemetry();
+    const dataSourcePolicy = dataService.getDataSourcePolicySnapshot();
+
     const activeSettings = computeActiveSettings(recognitionOptions);
     const aiRecommendations = computeAiRecommendations(telemetry, activeSettings);
 
@@ -819,6 +822,15 @@ function AppContent() {
         frameHash: failure.frameHash,
         timestamp: new Date(failure.timestamp).toISOString(),
       })),
+      dataSource: {
+        policy: dataSourcePolicy,
+        telemetry: dataSourceTelemetry,
+        cutoverReadiness: {
+          legacyFallbackObserved: dataSourceTelemetry.legacyFallbackLoads > 0,
+          legacyFallbackObservedInProduction:
+            dataSourceTelemetry.legacyFallbackLoadsInProduction > 0,
+        },
+      },
       rawData: telemetry,
     };
 

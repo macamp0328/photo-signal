@@ -121,6 +121,12 @@ Use `getDataSourceTelemetry()` to inspect fallback rollout usage:
 - `legacyFallbackLoads`
 - `legacyFallbackLoadsInProduction`
 
+Use `getDataSourcePolicySnapshot()` to capture current rollout policy context:
+
+- `runtimeMode`
+- `deployEnvironment`
+- `fallbackPolicy`
+
 ### Data Integrity Contract
 
 - `photoHashes.phash` is required for every concert entry consumed by runtime recognition

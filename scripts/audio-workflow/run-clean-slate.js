@@ -149,7 +149,7 @@ function buildCommand(phase, args) {
 
     const commandParts = [
       'npm run validate-audio --',
-      '--source=public/data.json',
+      '--source=public/data.app.v2.json',
       `--prefix=${prefix}`,
       '--trace',
     ];
@@ -353,7 +353,7 @@ async function main() {
   ) {
     selectedPhases = selectedPhases.filter((phase) => phase !== 'validate');
     console.log(
-      '⚠️  Smoke run detected: skipping full data.json validate phase. Use --force-full-validate or --validate-only-concert-ids to run it.'
+      '⚠️  Smoke run detected: skipping full dataset validate phase. Use --force-full-validate or --validate-only-concert-ids to run it.'
     );
   }
 

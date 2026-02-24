@@ -66,13 +66,6 @@ export interface Concert {
 }
 
 /**
- * Concert data response from API/JSON
- */
-export interface ConcertData {
-  concerts: Concert[];
-}
-
-/**
  * v2 runtime payload for normalized app metadata.
  *
  * This shape separates artists, photos, and tracks, then links them through

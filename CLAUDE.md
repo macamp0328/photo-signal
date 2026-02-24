@@ -94,7 +94,7 @@ src/
 ├── utils/                    # Utility functions
 ├── __tests__/                # Integration tests
 └── test/                     # Test setup and mocks
-public/                       # Static assets (data.json, audio, images, PWA)
+public/                       # Static assets (data.app.v2.json, data.recognition.v2.json, audio, images, PWA)
 scripts/                      # Automation (recognition data, audio workflow)
 cloudflare/                   # Cloudflare Worker for audio proxy
 tests/visual/                 # Playwright visual regression tests
@@ -128,7 +128,7 @@ Each module in `src/modules/` is self-contained with:
 
 ### Data Layer
 
-- Production: Static JSON at `/public/data.json` (~9.6 MB, includes pHash hashes per photo)
+- Production: Static JSON at `/public/data.app.v2.json` + `/public/data.recognition.v2.json`
 - Development/testing assets: `/assets/test-data/concerts.dev.json`
 - Service abstraction in `src/services/data-service.ts`
 
@@ -262,7 +262,7 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 
 ### Common Gotchas
 
-- `data.json` is 9.6 MB — don't read it in full; use `src/services/data-service.ts` to understand the data model instead
+- `data.app.v2.json` is large — don't read it in full; use `src/services/data-service.ts` to understand the data model instead
 - Browser APIs (camera, canvas, audio) are not available in tests — always use mocks from `src/test/mocks.ts`
 - The `scripts/` directory contains Node.js scripts (CommonJS-style `.js` files), not TypeScript — different lint rules apply
 - CSS Modules generate scoped class names at build time — reference styles via `import styles from './Foo.module.css'`

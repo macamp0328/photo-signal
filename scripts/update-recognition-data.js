@@ -18,8 +18,8 @@ const ORIGINAL_ARGS = process.argv.slice(2);
 const BATCH_CHILD_ENV = 'PHOTO_SIGNAL_BATCH_CHILD';
 const IS_BATCH_CHILD = process.env[BATCH_CHILD_ENV] === '1';
 const DEFAULT_BATCH_SIZE = 6;
-const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'public/data.json');
-const DEFAULT_PUBLIC_DATA = path.resolve(repoRoot, 'public/data.json');
+const DEFAULT_TEST_DATA = path.resolve(repoRoot, 'public/data.app.v2.json');
+const DEFAULT_PUBLIC_DATA = null;
 const DEFAULT_PUBLIC_APP_DATA_V2 = path.resolve(repoRoot, 'public/data.app.v2.json');
 const DEFAULT_PUBLIC_RECOGNITION_V2 = path.resolve(repoRoot, 'public/data.recognition.v2.json');
 const DEFAULT_IMAGE_DIR = path.resolve(repoRoot, 'assets/prod-photographs');
@@ -348,10 +348,78 @@ async function runBatchedProcessing(options, targets) {
 async function loadConcertFile(filePath) {
   const contents = await readFile(filePath, 'utf-8');
   const parsed = JSON.parse(contents);
-  if (!Array.isArray(parsed.concerts)) {
-    throw new Error(`Expected "concerts" array in ${filePath}`);
+
+  if (Array.isArray(parsed.concerts)) {
+    return {
+      format: 'legacy',
+      parsed,
+      concerts: parsed.concerts,
+    };
   }
-  return parsed;
+
+  if (
+    parsed?.version === 2 &&
+    Array.isArray(parsed?.artists) &&
+    Array.isArray(parsed?.tracks) &&
+    Array.isArray(parsed?.photos) &&
+    Array.isArray(parsed?.entries)
+  ) {
+    const artistsById = new Map(parsed.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(parsed.tracks.map((track) => [track.id, track]));
+    const photosById = new Map(parsed.photos.map((photo) => [photo.id, photo]));
+
+    const concerts = parsed.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          imageFile: photo?.imageFile,
+          recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
+          photoHashes: photo?.photoHashes,
+          _photoRef: photo,
+        },
+      ];
+    });
+
+    return {
+      format: 'v2',
+      parsed,
+      concerts,
+    };
+  }
+
+  throw new Error(`Expected legacy concerts[] or v2 payload in ${filePath}`);
+}
+
+async function writeConcertFile(filePath, dataset) {
+  if (dataset.format === 'legacy') {
+    await writeFile(filePath, `${JSON.stringify(dataset.parsed, null, 2)}\n`);
+    return;
+  }
+
+  if (dataset.format === 'v2') {
+    for (const concert of dataset.concerts) {
+      if (!concert._photoRef) {
+        continue;
+      }
+
+      if (concert.photoHashes) {
+        concert._photoRef.photoHashes = concert.photoHashes;
+      } else {
+        delete concert._photoRef.photoHashes;
+      }
+    }
+
+    await writeFile(filePath, `${JSON.stringify(dataset.parsed, null, 2)}\n`);
+  }
 }
 
 function resolveImagePath(imageFile) {
@@ -796,7 +864,7 @@ async function main() {
   }
 
   if (!options.dryRun) {
-    await writeFile(options.input, `${JSON.stringify(dataset, null, 2)}\n`);
+    await writeConcertFile(options.input, dataset);
     console.log(`💾 Updated ${options.input}`);
   } else {
     console.log('📝 Dry run complete. Input file not modified.');

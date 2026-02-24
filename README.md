@@ -101,7 +101,8 @@ Visit [http://localhost:5173](http://localhost:5173) on your phone and allow cam
 
 3. **Add an Opus audio file**
    - Place your Opus file at `public/audio/sample.opus`
-   - Or update the `audioFile` paths in `public/data.json`
+
+- Or regenerate runtime artifacts with `npm run audio:build-data`
 
 ### Development
 
@@ -171,23 +172,11 @@ npm run preview
 
 ### Concert Data
 
-Edit `public/data.json` to add your own concert data:
+Runtime metadata is sourced from `public/data.app.v2.json` and recognition indexes from
+`public/data.recognition.v2.json`. Regenerate both artifacts via:
 
-```json
-{
-  "concerts": [
-    {
-      "id": 1,
-      "band": "Band Name",
-      "venue": "Venue Name",
-      "date": "2023-08-15",
-      "audioFile": "/audio/sample.opus",
-      "photoHashes": {
-        "phash": ["dark-hash", "normal-hash", "bright-hash"]
-      }
-    }
-  ]
-}
+```bash
+npm run audio:build-data -- --no-output
 ```
 
 ### Photo Recognition
@@ -208,7 +197,7 @@ See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.m
 1. Open Secret Settings (triple-tap/click) and enable `Debug Overlay`
 2. Point camera at printed photo
 3. Copy hash from debug overlay
-4. Add hashes to `public/data.app.v2.json` (legacy `public/data.json` is fallback-only)
+4. Add hashes to `public/data.app.v2.json`
 5. Test recognition
 
 For automated hash generation from photo files:
@@ -249,7 +238,8 @@ photo-signal/
 ├── public/
 │   ├── audio/           # Opus audio files
 │   ├── images/          # Photo storage (future)
-│   ├── data.json        # Concert data
+│   ├── data.app.v2.json # Runtime app metadata
+│   ├── data.recognition.v2.json # Recognition index
 │   └── vite.svg         # Favicon
 ├── src/
 │   ├── components/

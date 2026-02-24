@@ -130,7 +130,7 @@ If future audits show a need for richer matching, add a second algorithm only be
 3. Copy hash from debug overlay (`Frame Hash` field)
 4. Add to `data.app.v2.json` under the linked photo record's `photoHashes.phash`
 
-Note: `data.json` remains a legacy fallback artifact and is only used when v2 loading is unavailable under current fallback policy.
+Note: Runtime recognition data is sourced from `data.recognition.v2.json`, with concert metadata from `data.app.v2.json`.
 
 **Script method:**
 

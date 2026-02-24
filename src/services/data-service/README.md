@@ -40,28 +40,19 @@ class DataService {
   // Clear all in-memory caches
   clearCache(): void;
 
-  // Advanced: inspect fallback/load telemetry counters
+  // Advanced: inspect v2 load telemetry counters
   getDataSourceTelemetry(): {
     v2LoadAttempts: number;
     v2LoadFailures: number;
-    legacyFallbackLoads: number;
-    legacyFallbackLoadsInProduction: number;
-  };
-
-  // Advanced: inspect current runtime/deploy policy snapshot
-  getDataSourcePolicySnapshot(): {
-    runtimeMode: 'development' | 'test' | 'production';
-    deployEnvironment: 'production' | 'preview' | 'development' | 'unknown';
-    fallbackPolicy: 'warn' | 'error';
   };
 }
 ```
 
 **Side Effects**:
 
-- Fetches from `/data.app.v2.json` first and falls back to `/data.json` when allowed
-- Logs which dataset is active to aid debugging
-- Emits fallback telemetry counters via `getDataSourceTelemetry()`
+- Fetches from `/data.app.v2.json`
+- Logs load details to aid debugging
+- Emits v2 load telemetry counters via `getDataSourceTelemetry()`
 - Caches results in memory
 - Future: Will query PostgreSQL API
 
@@ -86,63 +77,9 @@ const concertsByBand = dataService.getConcertsByBand('The Midnight Echoes');
 
 ## Data Source
 
-**Current**: v2-first runtime with compatibility fallback
+**Current**: v2-only runtime
 
-- **Primary (all modes)**: `/data.app.v2.json`
-- **Compatibility fallback**: `/data.json`
-
-### Phase C startup policy controls
-
-`DataService` supports production fallback policy configuration:
-
-- `VITE_DATA_V2_FALLBACK_POLICY=warn|error`
-  - `warn`: logs fallback and loads `/data.json`
-  - `error`: blocks fallback in production and returns empty data (startup failure path)
-- `VITE_DATA_V2_REQUIRED=true|1`
-  - Alias for strict mode (`error`) when `VITE_DATA_V2_FALLBACK_POLICY` is not set
-
-Default policy when not explicitly configured:
-
-- `production` runtime + deploy env `production` or unknown: `error`
-- `production` runtime + deploy env `preview`/`development`: `warn`
-- `development`/`test` runtime: `warn`
-
-Deploy environment resolution order:
-
-1. `VITE_DEPLOY_ENV`
-2. `VERCEL_ENV`
-3. `unknown`
-
-### Deploy-time artifact check
-
-Use `npm run data:check-v2-artifacts` to validate required runtime artifacts before deploy:
-
-- `public/data.app.v2.json`
-- `public/data.recognition.v2.json`
-
-Policy defaults mirror startup policy:
-
-- production deploys default to `error`
-- preview/development deploys default to `warn`
-
-Optional override:
-
-- `VITE_DATA_V2_ARTIFACT_POLICY=warn|error`
-
-### Fallback telemetry
-
-Use `getDataSourceTelemetry()` to inspect fallback rollout usage:
-
-- `v2LoadAttempts`
-- `v2LoadFailures`
-- `legacyFallbackLoads`
-- `legacyFallbackLoadsInProduction`
-
-Use `getDataSourcePolicySnapshot()` to capture current rollout policy context:
-
-- `runtimeMode`
-- `deployEnvironment`
-- `fallbackPolicy`
+- Runtime artifact: `/data.app.v2.json`
 
 ### Data Integrity Contract
 
@@ -156,8 +93,8 @@ Use `getDataSourcePolicySnapshot()` to capture current rollout policy context:
 When migrating to PostgreSQL:
 
 1. Add API route: `api/concerts.ts`
-2. Update the mode-specific URLs in the service to point at `/api/concerts`
-3. Zero changes to consuming modules!
+2. Update service URLs to point at `/api/concerts`
+3. Zero changes to consuming modules
 
 ```typescript
 // Before (current state)
@@ -168,14 +105,6 @@ const developmentDataUrl = '/data.app.v2.json';
 const productionDataUrl = '/api/concerts';
 const developmentDataUrl = '/api/concerts';
 ```
-
-### Legacy fallback removal criteria
-
-Keep `/data.json` fallback for one release window, then remove only when all criteria hold:
-
-1. Production telemetry shows `legacyFallbackLoadsInProduction === 0` for the full window.
-2. Deploy checks confirm `/public/data.app.v2.json` and `/public/data.recognition.v2.json` are always published.
-3. No open incidents tied to missing/invalid v2 artifacts.
 
 ---
 

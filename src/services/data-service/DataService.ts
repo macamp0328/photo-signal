@@ -1,20 +1,8 @@
-import type { AppDataV2, Concert, ConcertData } from '../../types';
-
-type DataV2FallbackPolicy = 'warn' | 'error';
-type RuntimeMode = 'development' | 'test' | 'production';
-type DeployEnvironment = 'production' | 'preview' | 'development' | 'unknown';
+import type { AppDataV2, Concert } from '../../types';
 
 interface DataSourceTelemetry {
   v2LoadAttempts: number;
   v2LoadFailures: number;
-  legacyFallbackLoads: number;
-  legacyFallbackLoadsInProduction: number;
-}
-
-interface DataSourcePolicySnapshot {
-  runtimeMode: RuntimeMode;
-  deployEnvironment: DeployEnvironment;
-  fallbackPolicy: DataV2FallbackPolicy;
 }
 
 /**
@@ -49,11 +37,8 @@ class DataService {
   private dataSourceTelemetry: DataSourceTelemetry = {
     v2LoadAttempts: 0,
     v2LoadFailures: 0,
-    legacyFallbackLoads: 0,
-    legacyFallbackLoadsInProduction: 0,
   };
   private readonly productionDataUrl = '/data.app.v2.json';
-  private readonly legacyDataUrl = '/data.json';
   private readonly developmentDataUrl = this.productionDataUrl;
 
   /**
@@ -114,11 +99,6 @@ class DataService {
       return [];
     }
 
-    const legacyConcerts = (payload as Partial<ConcertData>).concerts;
-    if (Array.isArray(legacyConcerts)) {
-      return legacyConcerts as Concert[];
-    }
-
     const v2Payload = payload as Partial<AppDataV2>;
     if (
       v2Payload.version === 2 &&
@@ -143,74 +123,6 @@ class DataService {
     return response.json();
   }
 
-  private readRuntimeEnv(name: string): string | undefined {
-    if (typeof process !== 'undefined' && process.env?.[name]) {
-      return process.env[name];
-    }
-
-    try {
-      const runtimeValue = import.meta.env[name];
-      if (typeof runtimeValue === 'string' && runtimeValue.length > 0) {
-        return runtimeValue;
-      }
-    } catch {
-      // ignore and fall through
-    }
-
-    return undefined;
-  }
-
-  private getDeployEnvironment(): DeployEnvironment {
-    const deployEnv =
-      this.readRuntimeEnv('VITE_DEPLOY_ENV') ?? this.readRuntimeEnv('VERCEL_ENV') ?? 'unknown';
-    const normalized = deployEnv.toLowerCase();
-
-    if (normalized === 'production') {
-      return 'production';
-    }
-
-    if (normalized === 'preview') {
-      return 'preview';
-    }
-
-    if (normalized === 'development') {
-      return 'development';
-    }
-
-    return 'unknown';
-  }
-
-  private getV2FallbackPolicy(runtimeMode: RuntimeMode): DataV2FallbackPolicy {
-    const configuredPolicy = this.readRuntimeEnv('VITE_DATA_V2_FALLBACK_POLICY')?.toLowerCase();
-    if (configuredPolicy === 'error') {
-      return 'error';
-    }
-
-    if (configuredPolicy === 'warn') {
-      return 'warn';
-    }
-
-    const strictFlag = this.readRuntimeEnv('VITE_DATA_V2_REQUIRED')?.toLowerCase();
-    if (strictFlag === 'true' || strictFlag === '1') {
-      return 'error';
-    }
-
-    if (runtimeMode !== 'production') {
-      return 'warn';
-    }
-
-    const deployEnvironment = this.getDeployEnvironment();
-    if (deployEnvironment === 'preview' || deployEnvironment === 'development') {
-      return 'warn';
-    }
-
-    return 'error';
-  }
-
-  private getPolicyDescriptor(runtimeMode: RuntimeMode): string {
-    return `${this.getV2FallbackPolicy(runtimeMode)} (${this.getDeployEnvironment()})`;
-  }
-
   private recordV2PrimaryAttempt(): void {
     this.dataSourceTelemetry.v2LoadAttempts += 1;
   }
@@ -219,52 +131,16 @@ class DataService {
     this.dataSourceTelemetry.v2LoadFailures += 1;
   }
 
-  private recordLegacyFallbackLoad(runtimeMode: RuntimeMode): void {
-    this.dataSourceTelemetry.legacyFallbackLoads += 1;
-
-    if (runtimeMode === 'production') {
-      this.dataSourceTelemetry.legacyFallbackLoadsInProduction += 1;
-    }
-  }
-
   private async fetchDataPayload(): Promise<{ payload: unknown; loadedFrom: string }> {
     const primaryDataUrl = this.getDataUrl();
-    const runtimeMode = this.getRuntimeMode();
-
-    if (primaryDataUrl === this.productionDataUrl) {
-      this.recordV2PrimaryAttempt();
-    }
+    this.recordV2PrimaryAttempt();
 
     try {
       const payload = await this.fetchJson(primaryDataUrl);
       return { payload, loadedFrom: primaryDataUrl };
     } catch (primaryError) {
-      if (primaryDataUrl === this.productionDataUrl) {
-        this.recordV2PrimaryFailure();
-      }
-
-      if (primaryDataUrl === this.legacyDataUrl) {
-        throw primaryError;
-      }
-
-      const fallbackPolicy = this.getV2FallbackPolicy(runtimeMode);
-
-      if (runtimeMode === 'production' && fallbackPolicy === 'error') {
-        console.error(
-          `[DataService] Phase C policy blocked legacy fallback: primary v2 data missing at ${primaryDataUrl}`,
-          primaryError
-        );
-        throw primaryError;
-      }
-
-      console.warn(
-        `[DataService] Failed loading primary data (${primaryDataUrl}), falling back to ${this.legacyDataUrl} (policy=${fallbackPolicy})`,
-        primaryError
-      );
-
-      const payload = await this.fetchJson(this.legacyDataUrl);
-      this.recordLegacyFallbackLoad(runtimeMode);
-      return { payload, loadedFrom: this.legacyDataUrl };
+      this.recordV2PrimaryFailure();
+      throw primaryError;
     }
   }
 
@@ -277,15 +153,7 @@ class DataService {
     return 'production';
   }
 
-  private getRuntimeMode(): RuntimeMode {
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV) {
-      const normalized = process.env.NODE_ENV.toLowerCase();
-      if (normalized === 'test' || normalized === 'development') {
-        return normalized;
-      }
-      return 'production';
-    }
-
+  private getRuntimeMode(): 'development' | 'test' | 'production' {
     try {
       const mode = import.meta.env.MODE;
       if (mode === 'test' || mode === 'development') {
@@ -348,20 +216,6 @@ class DataService {
         console.log(`[DataService] Loaded payload source: ${loadedFrom}`);
         console.log(`[DataService] Concerts with photo hashes: ${concertsWithHashes}`);
 
-        if (dataSource === 'production') {
-          const runtimeMode = this.getRuntimeMode();
-          console.log(
-            `[DataService] Production fallback policy: ${this.getPolicyDescriptor(runtimeMode)}`
-          );
-        }
-
-        if (loadedFrom === this.legacyDataUrl) {
-          console.warn('[DataService] Telemetry: legacy_data_fallback_used', {
-            ...this.dataSourceTelemetry,
-            policy: this.getPolicyDescriptor(this.getRuntimeMode()),
-          });
-        }
-
         if (concerts.length === 0) {
           console.warn('[DataService] Warning: No concerts found in data file');
         }
@@ -376,7 +230,6 @@ class DataService {
       } catch (error) {
         console.error('[DataService] Failed to load concert data:', error);
         console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
-        console.error(`[DataService] Legacy fallback URL: ${this.legacyDataUrl}`);
         return [];
       } finally {
         // Clear the in-flight request after it completes (success or failure)
@@ -414,22 +267,11 @@ class DataService {
     this.dataSourceTelemetry = {
       v2LoadAttempts: 0,
       v2LoadFailures: 0,
-      legacyFallbackLoads: 0,
-      legacyFallbackLoadsInProduction: 0,
     };
   }
 
   getDataSourceTelemetry(): DataSourceTelemetry {
     return { ...this.dataSourceTelemetry };
-  }
-
-  getDataSourcePolicySnapshot(): DataSourcePolicySnapshot {
-    const runtimeMode = this.getRuntimeMode();
-    return {
-      runtimeMode,
-      deployEnvironment: this.getDeployEnvironment(),
-      fallbackPolicy: this.getV2FallbackPolicy(runtimeMode),
-    };
   }
 }
 

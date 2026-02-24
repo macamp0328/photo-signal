@@ -15,7 +15,6 @@ import type { FeatureFlag } from './types';
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const DIALOG_DESCRIPTION_ID = 'secret-settings-intro-description';
-const DIALOG_MODE_STATUS_ID = 'secret-settings-mode-status';
 
 interface FeatureFlagsSectionProps {
   flags: FeatureFlag[];
@@ -98,7 +97,7 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const { flags, toggleFlag, isEnabled, handleSendIt } = useSecretSettingsController(onClose);
+  const { flags, toggleFlag, handleSendIt } = useSecretSettingsController(onClose);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -163,7 +162,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="secret-settings-title"
-      aria-describedby={`${DIALOG_DESCRIPTION_ID} ${DIALOG_MODE_STATUS_ID}`}
+      aria-describedby={DIALOG_DESCRIPTION_ID}
     >
       <div
         ref={modalRef}
@@ -194,15 +193,6 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           <div className={styles.section}>
             <p id={DIALOG_DESCRIPTION_ID} className={styles.intro}>
               This hidden menu opens with a triple tap in the center of the screen.
-            </p>
-            <p className={styles.intro}>
-              <span
-                id={DIALOG_MODE_STATUS_ID}
-                className={`${styles.modeBadge} ${isEnabled('test-mode') ? styles.modeBadgeTest : styles.modeBadgeProduction}`}
-                aria-live="polite"
-              >
-                {isEnabled('test-mode') ? '🧪 Test Mode' : '🎯 Production Mode'}
-              </span>
             </p>
           </div>
 

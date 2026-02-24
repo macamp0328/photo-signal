@@ -2,7 +2,7 @@
  * Debug Overlay Component
  *
  * Displays real-time photo recognition debugging information
- * Only visible when Test Mode is enabled
+ * Visible when the Debug Overlay feature flag is enabled
  */
 
 import { useEffect, useState } from 'react';

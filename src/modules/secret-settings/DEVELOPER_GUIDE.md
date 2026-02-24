@@ -90,7 +90,6 @@ Avoid reintroducing parameter sliders/selects unless there is an approved archit
 
 - Modal must keep focus trap and `Escape` close behavior
 - Keep checkbox hit targets touch-friendly
-- Preserve mode badge semantics (`Test Mode` / `Production Mode`)
 - Keep copy aligned with flags-only model (no mention of active custom tuning)
 
 ---

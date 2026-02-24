@@ -33,7 +33,7 @@ describe('SecretSettings', () => {
     it('should display feature flags from config', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByText(/Test Data Mode/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dynamic Rectangle Detection/i)).toBeInTheDocument();
     });
   });
 
@@ -81,25 +81,18 @@ describe('SecretSettings', () => {
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveAttribute('aria-modal', 'true');
-      expect(dialog).toHaveAttribute(
-        'aria-describedby',
-        'secret-settings-intro-description secret-settings-mode-status'
-      );
+      expect(dialog).toHaveAttribute('aria-describedby', 'secret-settings-intro-description');
 
       const document = screen.getByRole('document');
       expect(document).toHaveAttribute('aria-label', 'Secret Settings Menu');
     });
 
-    it('should expose intro and mode status with stable IDs for assistive tech', () => {
+    it('should expose intro text with a stable ID for assistive tech', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(
         screen.getByText(/opens with a triple tap in the center of the screen/i)
       ).toHaveAttribute('id', 'secret-settings-intro-description');
-
-      const modeBadge = screen.getByText(/production mode/i);
-      expect(modeBadge).toHaveAttribute('id', 'secret-settings-mode-status');
-      expect(modeBadge).toHaveAttribute('aria-live', 'polite');
     });
 
     it('should have accessible close button', () => {
@@ -209,13 +202,6 @@ describe('SecretSettings', () => {
 
       const checkboxes = screen.getAllByRole('checkbox');
       expect(checkboxes.length).toBeGreaterThan(0);
-    });
-
-    it('should display mode badge', () => {
-      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
-
-      // Should show production mode by default (test-mode flag is off by default)
-      expect(screen.getByText(/Production Mode/i)).toBeInTheDocument();
     });
   });
 
@@ -343,8 +329,10 @@ describe('SecretSettings', () => {
         render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
         // Toggle a feature flag
-        const testModeCheckbox = screen.getByRole('checkbox', { name: /test data mode/i });
-        await user.click(testModeCheckbox);
+        const rectangleDetectionCheckbox = screen.getByRole('checkbox', {
+          name: /dynamic rectangle detection/i,
+        });
+        await user.click(rectangleDetectionCheckbox);
 
         // Click Save & Reload
         const button = screen.getByText(/Save & Reload/i);
@@ -354,8 +342,8 @@ describe('SecretSettings', () => {
         const saved = localStorage.getItem('photo-signal-feature-flags');
         expect(saved).toBeTruthy();
         const flags = JSON.parse(saved!);
-        const testModeFlag = flags.find((f: { id: string }) => f.id === 'test-mode');
-        expect(testModeFlag?.enabled).toBe(true);
+        const rectangleFlag = flags.find((f: { id: string }) => f.id === 'rectangle-detection');
+        expect(rectangleFlag?.enabled).toBe(false);
 
         await new Promise((resolve) => setTimeout(resolve, 150));
         expect(reloadSpy).toHaveBeenCalled();

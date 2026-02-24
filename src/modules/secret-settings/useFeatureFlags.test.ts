@@ -39,8 +39,8 @@ describe('useFeatureFlags', () => {
     it('should load saved flags from localStorage', () => {
       const savedFlags = [
         {
-          id: 'test-mode',
-          name: 'Test Data Mode',
+          id: 'show-debug-overlay',
+          name: 'Debug Overlay',
           description: 'Test description',
           enabled: true,
           category: 'development' as const,
@@ -51,8 +51,28 @@ describe('useFeatureFlags', () => {
 
       const { result } = renderHook(() => useFeatureFlags());
 
-      const testModeFlag = result.current.flags.find((f) => f.id === 'test-mode');
-      expect(testModeFlag?.enabled).toBe(true);
+      const debugOverlayFlag = result.current.flags.find((f) => f.id === 'show-debug-overlay');
+      expect(debugOverlayFlag?.enabled).toBe(true);
+    });
+
+    it('should remove unsupported legacy flags from persisted localStorage', () => {
+      localStorage.setItem(
+        'photo-signal-feature-flags',
+        JSON.stringify([
+          {
+            id: 'test-mode',
+            enabled: true,
+          },
+        ])
+      );
+
+      renderHook(() => useFeatureFlags());
+
+      const saved = localStorage.getItem('photo-signal-feature-flags');
+      expect(saved).toBeTruthy();
+
+      const parsed = JSON.parse(saved!);
+      expect(parsed.some((flag: { id: string }) => flag.id === 'test-mode')).toBe(false);
     });
   });
 
@@ -74,7 +94,7 @@ describe('useFeatureFlags', () => {
     it('should toggle a flag from true to false', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
-      const flagId = result.current.flags[0].id;
+      const flagId = 'show-debug-overlay';
 
       // Toggle to true
       act(() => {
@@ -93,7 +113,7 @@ describe('useFeatureFlags', () => {
     it('should persist flag state to localStorage', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
-      const flagId = result.current.flags[0].id;
+      const flagId = 'show-debug-overlay';
 
       act(() => {
         result.current.toggleFlag(flagId);
@@ -113,16 +133,16 @@ describe('useFeatureFlags', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
       act(() => {
-        result.current.setFlagState('test-mode', true);
+        result.current.setFlagState('show-debug-overlay', true);
       });
 
-      expect(result.current.isEnabled('test-mode')).toBe(true);
+      expect(result.current.isEnabled('show-debug-overlay')).toBe(true);
 
       act(() => {
-        result.current.setFlagState('test-mode', false);
+        result.current.setFlagState('show-debug-overlay', false);
       });
 
-      expect(result.current.isEnabled('test-mode')).toBe(false);
+      expect(result.current.isEnabled('show-debug-overlay')).toBe(false);
     });
 
     it('should persist explicit flag changes to localStorage', () => {
@@ -144,20 +164,13 @@ describe('useFeatureFlags', () => {
     it('should return false for disabled flag', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
-      const flagId = result.current.flags[0].id;
-      expect(result.current.isEnabled(flagId)).toBe(false);
+      expect(result.current.isEnabled('show-debug-overlay')).toBe(false);
     });
 
     it('should return true for enabled flag', () => {
       const { result } = renderHook(() => useFeatureFlags());
 
-      const flagId = result.current.flags[0].id;
-
-      act(() => {
-        result.current.toggleFlag(flagId);
-      });
-
-      expect(result.current.isEnabled(flagId)).toBe(true);
+      expect(result.current.isEnabled('rectangle-detection')).toBe(true);
     });
 
     it('should return false for non-existent flag', () => {

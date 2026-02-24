@@ -2,15 +2,18 @@
  * Feature Flags State Management Hook
  *
  * Provides state management for feature flags with localStorage persistence.
- * Syncs test-mode flag with dataService for backwards compatibility.
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import type { FeatureFlag } from './types';
 import { FEATURE_FLAGS } from './config';
-import { dataService } from '../../services/data-service';
 
 const STORAGE_KEY = 'photo-signal-feature-flags';
+
+function sanitizeSavedFlags(savedFlags: FeatureFlag[]): FeatureFlag[] {
+  const supportedFlagIds = new Set(FEATURE_FLAGS.map((flag) => flag.id));
+  return savedFlags.filter((flag) => supportedFlagIds.has(flag.id));
+}
 
 /**
  * Hook for managing feature flags
@@ -25,12 +28,12 @@ const STORAGE_KEY = 'photo-signal-feature-flags';
  * const { flags, toggleFlag, isEnabled } = useFeatureFlags();
  *
  * // Check if a flag is enabled
- * if (isEnabled('test-mode')) {
- *   // Enable test data
+ * if (isEnabled('show-debug-overlay')) {
+ *   // Show debugging UI
  * }
  *
  * // Toggle a flag
- * toggleFlag('test-mode');
+ * toggleFlag('rectangle-detection');
  * ```
  */
 export function useFeatureFlags() {
@@ -39,7 +42,12 @@ export function useFeatureFlags() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        const savedFlags = JSON.parse(saved) as FeatureFlag[];
+        const parsed = JSON.parse(saved) as unknown;
+        const savedFlags = Array.isArray(parsed) ? sanitizeSavedFlags(parsed as FeatureFlag[]) : [];
+
+        // Persist cleanup to remove legacy/deleted flags (e.g., test-mode)
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedFlags));
+
         // Merge with config to ensure new flags are included
         return FEATURE_FLAGS.map((configFlag) => {
           const savedFlag = savedFlags.find((f) => f.id === configFlag.id);
@@ -61,12 +69,6 @@ export function useFeatureFlags() {
     } catch (error) {
       console.error('Failed to save feature flags to localStorage:', error);
     }
-  }, [flags]);
-
-  // Sync test-mode flag with dataService
-  useEffect(() => {
-    const testModeEnabled = flags.find((flag) => flag.id === 'test-mode')?.enabled ?? false;
-    dataService.setTestMode(testModeEnabled);
   }, [flags]);
 
   /**

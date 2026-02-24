@@ -79,7 +79,7 @@ Legacy fields such as `photoHashes.dhash` may remain in data for historical/back
 
 Use this loop when validating field performance on real devices:
 
-1. Capture two 30s telemetry exports in Test Mode from the same environment/device.
+1. Capture two 30s telemetry exports with `Debug Overlay` enabled from the same environment/device.
 2. Compare `collisionStats` (`ambiguousMarginHistogram`, `topAmbiguousPairs`, `ambiguousCount`).
 3. If collisions are low-margin dominated (`0-1` / `2` bins), raise `matchMarginThreshold` by 1.
 4. If collisions are not low-margin dominated, prioritize hash refresh and print/image alignment checks.
@@ -125,7 +125,7 @@ If future audits show a need for richer matching, add a second algorithm only be
 
 **Camera capture method (preferred):**
 
-1. Enable Test Mode (triple-tap → "Test Data Mode")
+1. Open Secret Settings (triple-tap) and enable `Debug Overlay`
 2. Point camera at the photo; wait for "Good" quality indicator
 3. Copy hash from debug overlay (`Frame Hash` field)
 4. Add to `data.json` under `photoHashes.phash`

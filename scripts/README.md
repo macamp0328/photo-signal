@@ -795,7 +795,7 @@ npm run hashes:paths -- --paths assets/example-real-photos,new-shots.jpg
 npm run hashes:refresh
 ```
 
-Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mode ...`, which prints per-image details and a ready-to-paste JSON block exactly like the full CLI. Re-run with `--algorithms phash` whenever you update photos used by Test Mode.
+Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mode ...`, which prints per-image details and a ready-to-paste JSON block exactly like the full CLI. Re-run with `--algorithms phash` whenever you update photos used in debug and validation workflows.
 
 **Browser alternative:** if you prefer a drag-and-drop UI, open `scripts/generate-photo-hashes.html` for an interactive hash workflow in the browser.
 

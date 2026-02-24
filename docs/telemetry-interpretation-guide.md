@@ -1,6 +1,6 @@
 # Telemetry Interpretation Guide
 
-> **Purpose**: Guide for understanding and using the telemetry data exported from Photo Signal's Test Mode.
+> **Purpose**: Guide for understanding and using telemetry data exported from Photo Signal.
 
 ## Overview
 
@@ -8,9 +8,9 @@ Photo Signal's telemetry system tracks photo recognition performance and failure
 
 ## Accessing Telemetry
 
-### In-App Export (Test Mode)
+### In-App Export (Debug Overlay)
 
-1. Enable **Test Data Mode** in Secret Settings (triple-tap/click anywhere)
+1. Open Secret Settings (triple-tap/click anywhere) and enable **Debug Overlay**
 2. Start scanning photos with the camera
 3. Telemetry widget appears in bottom-right corner showing live stats
 4. Click **"📥 Export JSON"** for raw structured data
@@ -325,7 +325,7 @@ These edge-case assertions are also exercised in standard CI test runs.
 
 ### For Testing
 
-1. **Use Test Mode**: Always enable for development testing
+1. **Enable Debug Overlay**: Keep it on for development telemetry sessions
 2. **Export regularly**: Export telemetry after each major test session
 3. **Document conditions**: Note lighting, photo types, environment in report
 4. **Test edge cases**: Specifically test motion blur, glare, angles
@@ -359,7 +359,7 @@ These edge-case assertions are also exercised in standard CI test runs.
 
 **A**: Telemetry tracks what the algorithm sees:
 
-- Use Test Mode debug overlay to verify frame processing
+- Use the debug overlay to verify frame processing
 - Compare telemetry counts with actual scan session duration
 - Export and review recent failures for plausibility
 

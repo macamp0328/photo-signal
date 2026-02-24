@@ -49,13 +49,13 @@ describe('useSecretSettingsController', () => {
     it('should toggle feature flags via toggleFlag', () => {
       const { result } = renderHook(() => useSecretSettingsController(mockOnClose));
 
-      const initialTestModeState = result.current.isEnabled('test-mode');
+      const initialFlagState = result.current.isEnabled('show-debug-overlay');
 
       act(() => {
-        result.current.toggleFlag('test-mode');
+        result.current.toggleFlag('show-debug-overlay');
       });
 
-      expect(result.current.isEnabled('test-mode')).toBe(!initialTestModeState);
+      expect(result.current.isEnabled('show-debug-overlay')).toBe(!initialFlagState);
     });
 
     it('should return false for unknown flag ids', () => {

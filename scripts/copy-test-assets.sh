@@ -78,4 +78,4 @@ fi
 
 echo ""
 echo "Test assets copied successfully!"
-echo "Test mode will now work correctly when enabled in Secret Settings."
+echo "Assets are now available for debug and validation workflows."

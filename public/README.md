@@ -46,7 +46,7 @@ The `assets/` subdirectory is **auto-generated** and should not be committed:
 - **`assets/example-real-photos/`** - Real photo references (copied from `assets/example-real-photos/`)
 - **`assets/example-real-songs/`** - Real Opus library for immersive test sessions (copied from `assets/example-real-songs/`)
 
-These directories are created by a Vite plugin during build and dev server startup, making test assets accessible at runtime when Test Mode is enabled in Secret Settings.
+These directories are created by a Vite plugin during build and dev server startup, making test assets accessible at runtime.
 
 **Note**: `public/assets/` is listed in `.gitignore` and will be recreated automatically. Do not commit it.
 

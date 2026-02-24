@@ -54,12 +54,6 @@ class DataService {
     deployEnvironment: 'production' | 'preview' | 'development' | 'unknown';
     fallbackPolicy: 'warn' | 'error';
   };
-
-  // Testing/feature-flag control: toggle test mode state
-  setTestMode(enabled: boolean): void;
-
-  // Testing/feature-flag control: inspect test mode state
-  getTestMode(): boolean;
 }
 ```
 
@@ -96,7 +90,6 @@ const concertsByBand = dataService.getConcertsByBand('The Midnight Echoes');
 
 - **Primary (all modes)**: `/data.app.v2.json`
 - **Compatibility fallback**: `/data.json`
-- **Test Data Mode**: Retained for feature toggles; data source remains v2-first
 
 ### Phase C startup policy controls
 

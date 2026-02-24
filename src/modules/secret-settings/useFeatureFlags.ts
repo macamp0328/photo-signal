@@ -10,9 +10,25 @@ import { FEATURE_FLAGS } from './config';
 
 const STORAGE_KEY = 'photo-signal-feature-flags';
 
-function sanitizeSavedFlags(savedFlags: FeatureFlag[]): FeatureFlag[] {
+function sanitizeSavedFlags(savedFlags: unknown[]): Array<Pick<FeatureFlag, 'id' | 'enabled'>> {
   const supportedFlagIds = new Set(FEATURE_FLAGS.map((flag) => flag.id));
-  return savedFlags.filter((flag) => supportedFlagIds.has(flag.id));
+
+  return savedFlags.flatMap((candidate) => {
+    if (typeof candidate !== 'object' || candidate === null) {
+      return [];
+    }
+
+    const record = candidate as Record<string, unknown>;
+    if (typeof record.id !== 'string' || typeof record.enabled !== 'boolean') {
+      return [];
+    }
+
+    if (!supportedFlagIds.has(record.id)) {
+      return [];
+    }
+
+    return [{ id: record.id, enabled: record.enabled }];
+  });
 }
 
 /**
@@ -43,10 +59,7 @@ export function useFeatureFlags() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as unknown;
-        const savedFlags = Array.isArray(parsed) ? sanitizeSavedFlags(parsed as FeatureFlag[]) : [];
-
-        // Persist cleanup to remove legacy/deleted flags (e.g., test-mode)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedFlags));
+        const savedFlags = Array.isArray(parsed) ? sanitizeSavedFlags(parsed) : [];
 
         // Merge with config to ensure new flags are included
         return FEATURE_FLAGS.map((configFlag) => {

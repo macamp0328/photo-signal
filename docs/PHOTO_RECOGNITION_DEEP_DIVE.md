@@ -121,14 +121,16 @@ If future audits show a need for richer matching, add a second algorithm only be
 
 ## Quick reference
 
-### Adding hashes to data.json
+### Adding hashes to runtime data
 
 **Camera capture method (preferred):**
 
 1. Open Secret Settings (triple-tap) and enable `Debug Overlay`
 2. Point camera at the photo; wait for "Good" quality indicator
 3. Copy hash from debug overlay (`Frame Hash` field)
-4. Add to `data.json` under `photoHashes.phash`
+4. Add to `data.app.v2.json` under the linked photo record's `photoHashes.phash`
+
+Note: `data.json` remains a legacy fallback artifact and is only used when v2 loading is unavailable under current fallback policy.
 
 **Script method:**
 

@@ -74,6 +74,18 @@ describe('useFeatureFlags', () => {
       const parsed = JSON.parse(saved!);
       expect(parsed.some((flag: { id: string }) => flag.id === 'test-mode')).toBe(false);
     });
+
+    it('should ignore malformed persisted entries and keep valid supported flags', () => {
+      localStorage.setItem(
+        'photo-signal-feature-flags',
+        JSON.stringify([null, 'bad', { id: 'show-debug-overlay', enabled: true }, { id: 42 }])
+      );
+
+      const { result } = renderHook(() => useFeatureFlags());
+
+      expect(result.current.isEnabled('show-debug-overlay')).toBe(true);
+      expect(result.current.flags.length).toBe(FEATURE_FLAGS.length);
+    });
   });
 
   describe('toggleFlag', () => {

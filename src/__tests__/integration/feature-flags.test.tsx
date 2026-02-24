@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import App from '../../App';
 import { setupBrowserMocks } from './setup';
 
@@ -101,7 +101,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
   });
 
-  it('should initialize when debug overlay flag is enabled', () => {
+  it('should render debug overlay when debug overlay flag is enabled', async () => {
     localStorage.setItem(
       FEATURE_FLAGS_STORAGE_KEY,
       JSON.stringify([
@@ -114,11 +114,11 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
     render(<App />);
 
-    // App should render (debug overlay loads lazily)
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(await screen.findByText(/🐛 Debug Info/i)).toBeInTheDocument();
   });
 
-  it('should initialize when debug overlay flag is disabled', () => {
+  it('should not render debug overlay when debug overlay flag is disabled', async () => {
     localStorage.setItem(
       FEATURE_FLAGS_STORAGE_KEY,
       JSON.stringify([
@@ -131,8 +131,10 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
     render(<App />);
 
-    // Debug overlay should not be visible
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText(/🐛 Debug Info/i)).not.toBeInTheDocument();
+    });
   });
 
   it('should remove legacy unsupported flags from storage during initialization', () => {

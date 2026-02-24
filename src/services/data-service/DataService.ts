@@ -40,7 +40,6 @@ function hasAnyPhotoHashes(concert: Concert): boolean {
  *
  * Manages concert data loading and caching.
  * Currently loads from static JSON, designed for easy PostgreSQL migration.
- * Test mode is retained as a feature flag but does not change the data source.
  */
 class DataService {
   private cache: Concert[] | null = null;
@@ -53,37 +52,12 @@ class DataService {
     legacyFallbackLoads: 0,
     legacyFallbackLoadsInProduction: 0,
   };
-  private isTestMode = false;
   private readonly productionDataUrl = '/data.app.v2.json';
   private readonly legacyDataUrl = '/data.json';
   private readonly developmentDataUrl = this.productionDataUrl;
-  private readonly testDataUrl = this.developmentDataUrl;
 
   /**
-   * Set test mode flag state.
-   *
-   * The flag is retained for compatibility with feature-flag flows,
-   * but data loading remains pinned to a single URL.
-   */
-  setTestMode(enabled: boolean): void {
-    if (this.isTestMode !== enabled) {
-      console.log(`[DataService] Test mode ${enabled ? 'ENABLED' : 'DISABLED'}`);
-      console.log(
-        `[DataService] Data will be loaded from: ${enabled ? this.testDataUrl : this.productionDataUrl}`
-      );
-      this.isTestMode = enabled;
-    }
-  }
-
-  /**
-   * Get current data mode
-   */
-  getTestMode(): boolean {
-    return this.isTestMode;
-  }
-
-  /**
-   * Get the current data URL based on test mode
+   * Get the current data URL based on runtime mode
    */
   private getDataUrl(): string {
     const dataSource = this.getActiveDataSource();
@@ -294,17 +268,9 @@ class DataService {
     }
   }
 
-  private getActiveDataSource(): 'production' | 'development' | 'test' {
-    if (this.isTestMode) {
-      return 'test';
-    }
-
+  private getActiveDataSource(): 'production' | 'development' {
     const mode = this.getRuntimeMode();
-    if (mode === 'test') {
-      return 'test';
-    }
-
-    if (mode === 'development') {
+    if (mode === 'test' || mode === 'development') {
       return 'development';
     }
 
@@ -370,7 +336,6 @@ class DataService {
         const dataUrl = this.getDataUrl();
         console.log(`[DataService] Loading concert data from: ${dataUrl}`);
         console.log(`[DataService] Data source: ${dataSource}`);
-        console.log(`[DataService] Test mode: ${this.isTestMode ? 'ENABLED' : 'DISABLED'}`);
 
         const { payload, loadedFrom } = await this.fetchDataPayload();
         const concerts = this.parseConcertsFromPayload(payload);
@@ -412,7 +377,6 @@ class DataService {
         console.error('[DataService] Failed to load concert data:', error);
         console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
         console.error(`[DataService] Legacy fallback URL: ${this.legacyDataUrl}`);
-        console.error(`[DataService] Test mode is ${this.isTestMode ? 'ENABLED' : 'DISABLED'}.`);
         return [];
       } finally {
         // Clear the in-flight request after it completes (success or failure)

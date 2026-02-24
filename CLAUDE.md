@@ -129,7 +129,7 @@ Each module in `src/modules/` is self-contained with:
 ### Data Layer
 
 - Production: Static JSON at `/public/data.json` (~9.6 MB, includes pHash hashes per photo)
-- Development: `/assets/test-data/concerts.dev.json` (Test Data Mode)
+- Development/testing assets: `/assets/test-data/concerts.dev.json`
 - Service abstraction in `src/services/data-service.ts`
 
 ### Key Types (`src/types/index.ts`)
@@ -183,7 +183,7 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` — Cloudflare credentials
 - `R2_BUCKET_NAME`, `R2_BASE_URL` — R2 bucket configuration
-- No `.env` file needed for local development (Test Data Mode works without it)
+- No `.env` file needed for local development
 
 ## Key Documentation
 
@@ -192,7 +192,6 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 - `TESTING.md` — Testing strategy
 - `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` — Recognition algorithm details
 - `docs/AUDIO_R2_WORKER.md` — Audio CDN setup
-- `docs/TEST_DATA_MODE_GUIDE.md` — Development testing guide
 
 ## Agent Workflow Guidelines
 

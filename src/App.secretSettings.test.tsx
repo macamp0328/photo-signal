@@ -31,8 +31,8 @@ describe('Secret Settings access', () => {
     expect(menu).toBeInTheDocument();
 
     // Toggle a feature flag inside the menu to mirror real usage
-    const testModeCheckbox = screen.getByRole('checkbox', { name: /test data mode/i });
-    await userEvent.click(testModeCheckbox);
+    const debugOverlayCheckbox = screen.getByRole('checkbox', { name: /debug overlay/i });
+    await userEvent.click(debugOverlayCheckbox);
 
     // Close the menu via close button
     const closeButton = screen.getByLabelText(/close settings menu/i);

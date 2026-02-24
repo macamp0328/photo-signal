@@ -91,7 +91,7 @@ describe('App Lifecycle Integration', () => {
       FEATURE_FLAGS_STORAGE_KEY,
       JSON.stringify([
         {
-          id: 'test-mode',
+          id: 'show-debug-overlay',
           enabled: true,
         },
       ])

@@ -85,7 +85,7 @@ function main() {
   console.log('\n⚠️  Solution 2: Dramatically Increase Threshold (NOT RECOMMENDED)');
   console.log('─'.repeat(60));
   console.log('  1. Triple-tap landing page to open Secret Settings');
-  console.log('  2. Enable "Test Mode" to see debug output');
+  console.log('  2. Enable "Debug Overlay" to see debug output');
   console.log('  3. Increase "Similarity Threshold" to 50-70');
   console.log('     (dHash: 50 = 60.9% similarity, 70 = 45.3% similarity)');
   console.log('');
@@ -95,7 +95,7 @@ function main() {
 
   console.log('\n🧪 Testing Your Setup:');
   console.log('─'.repeat(60));
-  console.log('  1. Enable Test Mode in Secret Settings');
+  console.log('  1. Enable Debug Overlay in Secret Settings');
   console.log('  2. Point camera at a printed photo');
   console.log('  3. Check console output for distance values:');
   console.log('     • If distance is 30-70: Photo-of-photo issue (use Solution 1)');

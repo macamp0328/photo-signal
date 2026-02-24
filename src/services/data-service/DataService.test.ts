@@ -64,7 +64,6 @@ describe('DataService', () => {
 
     // Clear cache before each test to ensure isolation
     dataService.clearCache();
-    dataService.setTestMode(false);
 
     // Clear all mock call history
     vi.clearAllMocks();
@@ -164,7 +163,6 @@ describe('DataService', () => {
         '[DataService] Attempted to load from: /data.app.v2.json'
       );
       expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Legacy fallback URL: /data.json');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[DataService] Test mode is DISABLED.');
       expect(concerts).toEqual([]);
 
       consoleErrorSpy.mockRestore();
@@ -690,96 +688,6 @@ describe('DataService', () => {
       const concert = dataService.getConcertById(1);
 
       expect(concert).toBeNull();
-    });
-  });
-
-  describe('setTestMode() behavior', () => {
-    it('should switch data source when test mode is enabled', async () => {
-      // Enable test mode
-      dataService.setTestMode(true);
-
-      // Mock fetch for test data URL
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch;
-
-      await dataService.getConcerts();
-
-      // Verify fetch was called with test data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
-      expect(dataService.getTestMode()).toBe(true);
-    });
-
-    it('should switch back to production data when test mode is disabled', async () => {
-      // Enable then disable test mode
-      dataService.setTestMode(true);
-      dataService.setTestMode(false);
-
-      // Mock fetch for production data URL
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch;
-
-      await dataService.getConcerts();
-
-      // Verify fetch was called with production data URL
-      expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
-      expect(dataService.getTestMode()).toBe(false);
-    });
-
-    it('should not clear cache when switching test mode', async () => {
-      // Load production data
-      const mockFetch1 = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ concerts: mockConcerts }),
-      });
-      global.fetch = mockFetch1;
-      await dataService.getConcerts();
-
-      expect(mockFetch1).toHaveBeenCalledTimes(1);
-      expect(mockFetch1).toHaveBeenCalledWith('/data.app.v2.json');
-
-      // Switch to test mode
-      dataService.setTestMode(true);
-
-      // Load again - should still use cache from first request
-      const concerts = await dataService.getConcerts();
-
-      expect(mockFetch1).toHaveBeenCalledTimes(1);
-      expect(concerts[0].band).toBe(mockConcerts[0].band);
-    });
-
-    it('should log when test mode changes', () => {
-      // Ensure starting state is disabled so subsequent toggle triggers logs
-      dataService.setTestMode(false);
-      consoleLogSpy.mockClear();
-
-      dataService.setTestMode(true);
-
-      // Verify logging occurred
-      expect(consoleLogSpy).toHaveBeenCalledWith('[DataService] Test mode ENABLED');
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[DataService] Data will be loaded from: /data.app.v2.json'
-      );
-    });
-
-    it('should not clear cache or notify if test mode does not change', () => {
-      // Set test mode to true
-      dataService.setTestMode(true);
-      consoleLogSpy.mockClear();
-
-      // Set it to true again (no change)
-      dataService.setTestMode(true);
-
-      // Should not log again
-      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
   });
 

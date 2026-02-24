@@ -26,7 +26,6 @@
 - **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** — Camera API, browser support, low-light optimization
 - **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** — Recognition telemetry and debugging
 - **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** — Cloudflare Worker audio proxy and R2 setup
-- **[docs/TEST_DATA_MODE_GUIDE.md](./docs/TEST_DATA_MODE_GUIDE.md)** — Test data mode user guide
 - **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** — CodeQL, Codecov, npm audit guide
 - **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** — Vercel deployment guide
 

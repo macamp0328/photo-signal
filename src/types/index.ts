@@ -43,7 +43,7 @@ export interface Concert {
   audioFile: string;
   /** Song title for the currently mapped audio track */
   songTitle?: string;
-  /** Optional path to reference image (used by test mode + docs) */
+  /** Optional path to reference image (used by recognition docs/workflows) */
   imageFile?: string;
   /** R2/Worker URL for full-quality scanned photo display in details mode */
   photoUrl?: string;

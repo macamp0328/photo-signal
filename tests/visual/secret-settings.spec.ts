@@ -32,8 +32,8 @@ test.describe('Secret Settings Menu', () => {
     await gotoLanding(page);
     await openSecretSettings(page);
 
-    await expect(page.getByText('Test Data Mode')).toBeVisible();
     await expect(page.getByText('Dynamic Rectangle Detection')).toBeVisible();
+    await expect(page.getByText('Debug Overlay')).toBeVisible();
 
     const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
     const maxDiffPixelRatio = getMaxDiffPixelRatio(
@@ -47,17 +47,17 @@ test.describe('Secret Settings Menu', () => {
     });
   });
 
-  test('@extended test mode toggle remains visible and checked', async ({ page }) => {
+  test('@extended debug overlay toggle remains visible and checked', async ({ page }) => {
     await bootstrapVisualState(page);
     await gotoLanding(page);
     await openSecretSettings(page);
 
-    const testModeToggle = page
-      .locator('label', { hasText: /test data mode/i })
+    const debugOverlayToggle = page
+      .locator('label', { hasText: /debug overlay/i })
       .locator('input[type="checkbox"]');
-    await expect(testModeToggle).toBeVisible();
-    await testModeToggle.check();
-    await expect(testModeToggle).toBeChecked();
+    await expect(debugOverlayToggle).toBeVisible();
+    await debugOverlayToggle.check();
+    await expect(debugOverlayToggle).toBeChecked();
 
     const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
     await modalDocument.evaluate((element) => {
@@ -70,7 +70,7 @@ test.describe('Secret Settings Menu', () => {
       VISUAL_MAX_DIFF_RATIO_LENIENT
     );
 
-    await expect(modalDocument).toHaveScreenshot('secret-settings-test-mode-enabled.png', {
+    await expect(modalDocument).toHaveScreenshot('secret-settings-debug-overlay-enabled.png', {
       maxDiffPixelRatio,
     });
   });

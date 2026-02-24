@@ -10,14 +10,6 @@ import type { FeatureFlag } from './types';
 
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
-    id: 'test-mode',
-    name: 'Test Data Mode',
-    description:
-      'Use test data with working photo hashes and sample audio/images. Test assets are automatically copied to public/assets/ during build. Enable this mode to test photo recognition with the provided gradients, high-contrast PNGs, and real photos in assets/test-images/ and assets/example-real-photos/.',
-    enabled: false,
-    category: 'development',
-  },
-  {
     id: 'rectangle-detection',
     name: 'Dynamic Rectangle Detection',
     description:

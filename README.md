@@ -205,10 +205,10 @@ See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.m
 
 **Quick Setup:**
 
-1. Enable Test Mode (triple-tap/click → "Test Data Mode")
+1. Open Secret Settings (triple-tap/click) and enable `Debug Overlay`
 2. Point camera at printed photo
 3. Copy hash from debug overlay
-4. Add to `public/data.json` photoHashes
+4. Add hashes to `public/data.app.v2.json` (legacy `public/data.json` is fallback-only)
 5. Test recognition
 
 For automated hash generation from photo files:

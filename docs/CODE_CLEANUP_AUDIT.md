@@ -267,6 +267,8 @@ The migration tooling for monitoring cutover readiness has served its purpose. O
 
 ## 9. `DataService.setTestMode()` / `getTestMode()` — No-Op Flag
 
+**Status**: ✅ Completed (2026-02-23)
+
 **Classification**: Refactor
 **File**: `src/services/data-service/DataService.ts:69–84`
 
@@ -283,6 +285,18 @@ All three URLs resolve to `/data.app.v2.json`. Enabling test mode just logs "Dat
 Separately, `App.tsx` hardcodes `isTestMode={false}` on `DebugOverlay`, so the debug overlay always shows "LIVE DATA" regardless of flag state.
 
 **Action**: Either make test mode meaningful (pointing to a real separate test data file) or remove the flag, the `setTestMode`/`getTestMode` methods, their sync in `useFeatureFlags.ts`, the "test-mode" entry in `FEATURE_FLAGS`, and the `isTestMode` prop from `DebugOverlay`.
+
+**Completed work**:
+
+- Removed `test-mode` from `src/modules/secret-settings/config.ts`
+- Removed stale mode badge UI and related CSS from:
+  - `src/modules/secret-settings/SecretSettings.tsx`
+  - `src/modules/secret-settings/SecretSettings.module.css`
+- Removed `setTestMode` sync from `src/modules/secret-settings/useFeatureFlags.ts`
+- Added legacy persisted-flag cleanup in `useFeatureFlags` to sanitize removed/unsupported flags (including `test-mode`)
+- Deleted `setTestMode()` / `getTestMode()` and test-mode logs/state from `src/services/data-service/DataService.ts`
+- Updated tests across secret settings, integration, data-service, and visual coverage to remove test-mode assumptions
+- Deleted `docs/TEST_DATA_MODE_GUIDE.md` and removed stale references from project documentation
 
 ---
 
@@ -369,7 +383,7 @@ Several source files and READMEs reference documents that do not exist:
 | 6   | `guidanceTracking` in telemetry   | `types.ts`, `helpers.ts`, test fixtures             | ✅ Completed (2026-02-23)    | Low    |
 | 7   | `orbFeatureUtils.js`              | `scripts/lib/orbFeatureUtils.js`                    | ✅ Completed (2026-02-23)    | Low    |
 | 8   | Legacy data fallback system       | `DataService.ts`, `data.json`, check scripts        | Delete after cutover confirm | High   |
-| 9   | `setTestMode` / test-mode flag    | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | Refactor or delete           | Medium |
+| 9   | `setTestMode` / test-mode flag    | `DataService.ts`, `useFeatureFlags.ts`, `config.ts` | ✅ Completed (2026-02-23)    | Medium |
 | 10  | `getRandomConcert` / `search`     | `DataService.ts`, `.test.ts`                        | ✅ Completed (2026-02-23)    | Low    |
 | 11  | `isTestMode` hardcoded prop       | `App.tsx`                                           | ✅ Completed (2026-02-23)    | Low    |
 | 12  | Broken doc references             | Multiple                                            | ✅ Completed (2026-02-23)    | Low    |
@@ -394,4 +408,4 @@ Several source files and READMEs reference documents that do not exist:
 
 **Phase 4 — Feature clarification**
 
-- Item 9 (test mode flag): decide if test mode is a real feature or remove it
+- Item 9 (test mode flag): remove test mode concept and migrate to explicit feature flags ✅ Completed (2026-02-23)

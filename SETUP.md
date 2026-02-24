@@ -45,7 +45,7 @@ See [DOCKER.md](./DOCKER.md) for complete Docker documentation.
 
 2. **Add an Opus audio file:**
 
-   Place your Opus file at `public/audio/sample.opus` or update the `audioFile` paths in `public/data.json`
+   Place your Opus file at `public/audio/sample.opus` or update the `audioFile` paths in `public/data.app.v2.json`
 
 3. **Start development server:**
 
@@ -331,7 +331,8 @@ The GitHub Actions CI workflow still runs on all PRs to catch issues before merg
 photo-signal/
 ├── public/
 │   ├── audio/           # Opus audio files
-│   ├── data.json        # Concert data
+│   ├── data.app.v2.json # App runtime data
+│   ├── data.recognition.v2.json # Recognition hash data
 │   └── vite.svg         # Favicon
 ├── src/
 │   ├── components/
@@ -420,7 +421,7 @@ photo-signal/
 - 3:2 aspect ratio overlay with corner markers
 - Motion detection using frame comparison
 - Placeholder photo recognition logic (3 second delay)
-- Fetches concert data from `data.json`
+- Fetches concert data from `data.app.v2.json`
 - Error handling for camera permissions
 
 ### Audio Playback
@@ -500,20 +501,13 @@ If port 5173 is in use, Vite will automatically use the next available port.
 
 ### Concert Data
 
-Edit `public/data.json` to add your own concert data:
+Edit `public/data.app.v2.json` (and `public/data.recognition.v2.json` for hashes) to add your own concert data.
 
-```json
-{
-  "concerts": [
-    {
-      "id": 1,
-      "band": "Band Name",
-      "venue": "Venue Name",
-      "date": "2023-08-15",
-      "audioFile": "/audio/sample.opus"
-    }
-  ]
-}
+For production updates, prefer regenerating both files from CSV + audio metadata:
+
+```bash
+npm run audio:build-data -- --base-url=https://<your-worker-domain> --prefix=prod/audio
+npm run hashes:refresh
 ```
 
 ### Photo Recognition

@@ -22,7 +22,7 @@ function main() {
 
   console.log('🔍 The Problem:');
   console.log('─'.repeat(60));
-  console.log('The hashes in data.json were generated from ORIGINAL digital');
+  console.log('The hashes in data.recognition.v2.json were generated from ORIGINAL digital');
   console.log('photo files (e.g., R0043815.jpg stored on disk).');
   console.log('');
   console.log('When you point your camera at a PRINTED photo, the captured');
@@ -75,7 +75,7 @@ function main() {
   console.log('  3. Crop to just the photo region (remove background)');
   console.log('  4. Save to a temp folder (e.g., assets/camera-captured)');
   console.log('  5. Generate hashes: npm run hashes:paths -- --paths assets/camera-captured');
-  console.log('  6. Copy the output hashes to replace existing hashes in data.json');
+  console.log('  6. Copy the output hashes to replace existing hashes in data.recognition.v2.json');
   console.log('');
   console.log('  This gives you hashes that match your ACTUAL setup:');
   console.log('    digital → print → camera');
@@ -124,7 +124,7 @@ function main() {
   console.log('  #   }');
   console.log('  # }');
   console.log('');
-  console.log('  # Copy those hashes to the matching concert in data.json');
+  console.log('  # Copy those hashes to the matching concert in data.recognition.v2.json');
   console.log('');
 }
 

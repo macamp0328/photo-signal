@@ -4,13 +4,13 @@
  * Audio CDN Migration Script
  *
  * This script migrates audio files to a CDN (GitHub Releases or Cloudflare R2)
- * and updates data.json with the new URLs.
+ * and updates runtime dataset JSON with the new URLs.
  *
  * Usage:
  *   node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
  *
  * Options:
- *   --source=<path>       Path to source data.json (default: public/data.json)
+ *   --source=<path>       Path to source dataset JSON (default: public/data.app.v2.json)
  *   --cdn=<provider>      CDN provider: github-release | r2 (default: github-release)
  *   --base-url=<url>      Base URL for CDN files
  *   --dry-run             Preview changes without writing files
@@ -36,9 +36,9 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
 
 /**
- * Load and parse data.json file
- * @param {string} dataPath - Path to data.json file
- * @returns {object} Parsed data.json object
+ * Load and parse dataset JSON file
+ * @param {string} dataPath - Path to dataset JSON file
+ * @returns {object} Parsed dataset object
  * @throws {Error} If file not found, invalid JSON, or invalid schema
  */
 export function loadDataJson(dataPath) {
@@ -55,8 +55,15 @@ export function loadDataJson(dataPath) {
     throw new Error(`Invalid JSON in ${dataPath}: ${error.message}`);
   }
 
-  if (!data.concerts || !Array.isArray(data.concerts)) {
-    throw new Error('Invalid data.json format: missing concerts array');
+  const isLegacy = Array.isArray(data?.concerts);
+  const isV2 =
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.entries);
+
+  if (!isLegacy && !isV2) {
+    throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
   }
 
   return data;
@@ -135,17 +142,20 @@ export function createBackup(filePath) {
  * @throws {Error} If validation fails
  */
 export function validateMigration(original, updated) {
+  const originalConcerts = extractConcertViews(original);
+  const updatedConcerts = extractConcertViews(updated);
+
   // Check concert count
-  if (original.concerts.length !== updated.concerts.length) {
+  if (originalConcerts.length !== updatedConcerts.length) {
     throw new Error(
-      `Concert count mismatch: original has ${original.concerts.length}, updated has ${updated.concerts.length}`
+      `Concert count mismatch: original has ${originalConcerts.length}, updated has ${updatedConcerts.length}`
     );
   }
 
   // Check that all original fields are preserved in each concert
-  for (let i = 0; i < original.concerts.length; i++) {
-    const originalConcert = original.concerts[i];
-    const updatedConcert = updated.concerts[i];
+  for (let i = 0; i < originalConcerts.length; i++) {
+    const originalConcert = originalConcerts[i];
+    const updatedConcert = updatedConcerts[i];
 
     // Check that all original fields still exist
     for (const key of Object.keys(originalConcert)) {
@@ -158,12 +168,90 @@ export function validateMigration(original, updated) {
   }
 }
 
+function extractConcertViews(data) {
+  if (Array.isArray(data?.concerts)) {
+    return data.concerts;
+  }
+
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.entries)
+  ) {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+
+    return data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          audioFile: track.audioFile,
+        },
+      ];
+    });
+  }
+
+  return [];
+}
+
+function createMutableConcerts(data) {
+  if (Array.isArray(data?.concerts)) {
+    return data.concerts.map((concert) => ({
+      id: concert.id,
+      band: concert.band,
+      getAudioFile: () => concert.audioFile,
+      setAudioFile: (value) => {
+        concert.audioFile = value;
+      },
+    }));
+  }
+
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.entries)
+  ) {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+
+    return data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          getAudioFile: () => track.audioFile,
+          setAudioFile: (value) => {
+            track.audioFile = value;
+          },
+        },
+      ];
+    });
+  }
+
+  return [];
+}
+
 // Only run CLI logic when executed directly (not when imported as a module)
 if (import.meta.url === `file://${process.argv[1]}`) {
   // Parse command line arguments
   const args = process.argv.slice(2);
   const options = {
-    source: 'public/data.json',
+    source: 'public/data.app.v2.json',
     cdn: 'github-release',
     baseUrl: '',
     dryRun: false,
@@ -204,13 +292,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`
 Audio CDN Migration Script
 
-This script migrates audio files to a CDN and updates data.json with the new URLs.
+This script migrates audio files to a CDN and updates runtime dataset JSON with the new URLs.
 
 Usage:
   node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 
 Options:
-  --source=<path>       Path to source data.json (default: public/data.json)
+  --source=<path>       Path to source dataset JSON (default: public/data.app.v2.json)
   --cdn=<provider>      CDN provider: github-release | r2 (default: github-release)
   --base-url=<url>      Base URL for CDN files (required)
   --dry-run             Preview changes without writing files
@@ -251,7 +339,7 @@ Examples:
     console.log(`  Base URL: ${options.baseUrl}`);
     console.log(`  Dry Run: ${options.dryRun ? 'Yes' : 'No'}\n`);
 
-    // Read source data.json
+    // Read source dataset
     const sourcePath = path.resolve(projectRoot, options.source);
 
     console.log(`📂 Reading source file: ${sourcePath}`);
@@ -264,7 +352,8 @@ Examples:
       process.exit(1);
     }
 
-    console.log(`✓ Found ${data.concerts.length} concerts\n`);
+    const mutableConcerts = createMutableConcerts(data);
+    console.log(`✓ Found ${mutableConcerts.length} concerts\n`);
 
     // Store original data for validation
     const originalData = JSON.parse(JSON.stringify(data));
@@ -274,9 +363,8 @@ Examples:
     let skippedCount = 0;
     const changes = [];
 
-    for (let i = 0; i < data.concerts.length; i++) {
-      const concert = data.concerts[i];
-      const originalAudioFile = concert.audioFile;
+    for (const concert of mutableConcerts) {
+      const originalAudioFile = concert.getAudioFile();
 
       // Check if already migrated
       if (originalAudioFile.startsWith('http://') || originalAudioFile.startsWith('https://')) {
@@ -288,10 +376,12 @@ Examples:
       }
 
       // Update concert using extracted function
-      const updatedConcert = updateConcert(concert, options.baseUrl, options.cdn);
-
-      // Replace concert in array
-      data.concerts[i] = updatedConcert;
+      const updatedConcert = updateConcert(
+        { id: concert.id, band: concert.band, audioFile: originalAudioFile },
+        options.baseUrl,
+        options.cdn
+      );
+      concert.setAudioFile(updatedConcert.audioFile);
 
       changes.push({
         id: concert.id,
@@ -313,7 +403,7 @@ Examples:
     console.log('📊 Migration Summary:\n');
     console.log(`  Migrated: ${migratedCount} concerts`);
     console.log(`  Skipped:  ${skippedCount} concerts (already using remote URLs)`);
-    console.log(`  Total:    ${data.concerts.length} concerts\n`);
+    console.log(`  Total:    ${mutableConcerts.length} concerts\n`);
 
     // Write output
     if (options.dryRun) {
@@ -338,10 +428,10 @@ Examples:
         process.exit(1);
       }
 
-      // Write updated data.json
+      // Write updated dataset
       const outputContent = JSON.stringify(data, null, 2) + '\n';
       fs.writeFileSync(sourcePath, outputContent, 'utf8');
-      console.log(`✅ Updated data.json: ${sourcePath}\n`);
+      console.log(`✅ Updated dataset: ${sourcePath}\n`);
 
       console.log('Next Steps:');
       console.log('1. Upload audio files to your CDN:');

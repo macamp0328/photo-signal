@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../../..');
 
-const DEFAULT_SOURCE = 'public/data.json';
+const DEFAULT_SOURCE = 'public/data.app.v2.json';
 const DEFAULT_AUDIO_PREFIX = 'prod/audio';
 const DEFAULT_PHOTO_PREFIX = 'prod/photos';
 
@@ -74,15 +74,93 @@ export function applyCdnToData(
   audioPrefix = DEFAULT_AUDIO_PREFIX,
   photoPrefix = DEFAULT_PHOTO_PREFIX
 ) {
-  if (!data?.concerts || !Array.isArray(data.concerts)) {
-    throw new Error('Invalid data.json format: missing concerts array');
+  if (Array.isArray(data?.concerts)) {
+    const updatedConcerts = data.concerts.map((concert) =>
+      updateConcertWithCdn(concert, baseUrl, audioPrefix, photoPrefix)
+    );
+
+    return { ...data, concerts: updatedConcerts };
   }
 
-  const updatedConcerts = data.concerts.map((concert) =>
-    updateConcertWithCdn(concert, baseUrl, audioPrefix, photoPrefix)
-  );
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.photos) &&
+    Array.isArray(data?.entries)
+  ) {
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+    const photosById = new Map(data.photos.map((photo) => [photo.id, photo]));
 
-  return { ...data, concerts: updatedConcerts };
+    for (const entry of data.entries) {
+      const track = tracksById.get(entry.trackId);
+      if (track?.audioFile) {
+        const pseudoConcert = { id: entry.id, audioFile: track.audioFile };
+        track.audioFile = buildAudioUrl(pseudoConcert, baseUrl, audioPrefix);
+      }
+
+      if (!entry.photoId) {
+        continue;
+      }
+
+      const photo = photosById.get(entry.photoId);
+      if (photo?.imageFile) {
+        const pseudoConcert = {
+          id: entry.id,
+          imageFile: photo.imageFile,
+          photoUrl: photo.photoUrl,
+        };
+        photo.photoUrl = buildPhotoUrl(pseudoConcert, baseUrl, photoPrefix);
+      }
+    }
+
+    return data;
+  }
+
+  throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
+}
+
+function extractConcertViews(data) {
+  if (Array.isArray(data?.concerts)) {
+    return data.concerts.map((concert) => ({
+      id: concert.id,
+      band: concert.band,
+      audioFile: concert.audioFile,
+      photoUrl: concert.photoUrl ?? null,
+    }));
+  }
+
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.photos) &&
+    Array.isArray(data?.entries)
+  ) {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+    const photosById = new Map(data.photos.map((photo) => [photo.id, photo]));
+
+    return data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          audioFile: track.audioFile,
+          photoUrl: photo?.photoUrl ?? null,
+        },
+      ];
+    });
+  }
+
+  throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
 }
 
 export function createBackup(filePath) {
@@ -114,13 +192,13 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`Apply Cloudflare Worker CDN URLs to data.json
+  console.log(`Apply Cloudflare Worker CDN URLs to runtime dataset JSON
 
 Usage:
   npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio --photo-prefix=prod/photos
 
 Options:
-  --source=<path>   Path to data.json (default: ${DEFAULT_SOURCE})
+  --source=<path>   Path to dataset JSON (default: ${DEFAULT_SOURCE})
   --base-url=<url>  Base URL for the Cloudflare Worker (required)
   --prefix=<path>   Audio key prefix inside the bucket (default: ${DEFAULT_AUDIO_PREFIX})
   --photo-prefix=<path>  Photo key prefix inside the bucket (default: ${DEFAULT_PHOTO_PREFIX})
@@ -180,6 +258,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   }
 
+  const beforeViews = extractConcertViews(parsed);
+
   let updated;
   try {
     updated = applyCdnToData(parsed, baseUrl, audioPrefix, photoPrefix);
@@ -188,11 +268,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   }
 
+  const afterViews = extractConcertViews(updated);
+
   const audioChanges = [];
   const photoChanges = [];
-  for (let i = 0; i < parsed.concerts.length; i++) {
-    const before = parsed.concerts[i];
-    const after = updated.concerts[i];
+  for (let i = 0; i < Math.min(beforeViews.length, afterViews.length); i++) {
+    const before = beforeViews[i];
+    const after = afterViews[i];
     if (before.audioFile !== after.audioFile) {
       audioChanges.push({
         id: before.id,
@@ -212,7 +294,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
   }
 
-  console.log('🎧 Apply CDN to data.json');
+  console.log('🎧 Apply CDN to runtime dataset');
   console.log(`  Source: ${dataPath}`);
   console.log(`  Base URL: ${baseUrl}`);
   console.log(`  Audio prefix: ${audioPrefix}`);
@@ -238,5 +320,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const output = JSON.stringify(updated, null, 2) + '\n';
   fs.writeFileSync(dataPath, output, 'utf8');
-  console.log('✅ data.json updated with CDN URLs');
+  console.log('✅ Dataset updated with CDN URLs');
 }

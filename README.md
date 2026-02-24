@@ -101,8 +101,7 @@ Visit [http://localhost:5173](http://localhost:5173) on your phone and allow cam
 
 3. **Add an Opus audio file**
    - Place your Opus file at `public/audio/sample.opus`
-
-- Or regenerate runtime artifacts with `npm run audio:build-data`
+   - Or regenerate runtime artifacts with `npm run audio:build-data`
 
 ### Development
 

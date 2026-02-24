@@ -33,20 +33,37 @@ describe('App Lifecycle Integration', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        concerts: [
+        version: 2,
+        artists: [{ id: 'artist-1', name: 'Test Band' }],
+        photos: [
+          {
+            id: 'photo-1',
+            artistId: 'artist-1',
+            imageFile: '/assets/test-images/gradient-16x16.jpg',
+            photoHashes: { phash: ['abc123def4567890'] },
+          },
+        ],
+        tracks: [
+          {
+            id: 'track-1',
+            artistId: 'artist-1',
+            audioFile: '/audio/test.opus',
+          },
+        ],
+        entries: [
           {
             id: 1,
-            band: 'Test Band',
+            artistId: 'artist-1',
+            trackId: 'track-1',
+            photoId: 'photo-1',
             venue: 'Test Venue',
             date: '2023-01-01T00:00:00-06:00',
-            audioFile: '/audio/test.opus',
-            photoHashes: { phash: ['abc123def4567890'] },
           },
         ],
       }),
     });
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     render(<App />);
 
@@ -56,7 +73,7 @@ describe('App Lifecycle Integration', () => {
 
   it('should handle network errors gracefully', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     // App should still render even if data loading will fail later
     render(<App />);

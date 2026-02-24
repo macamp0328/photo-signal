@@ -62,18 +62,18 @@ describe('migrate-audio-to-cdn', () => {
       expect(() => loadDataJson(tempFile)).toThrow('Invalid JSON');
     });
 
-    it('should throw error for invalid schema (no concerts array)', () => {
+    it('should throw error for invalid schema', () => {
       const testData = { notConcerts: [] };
       const tempFile = createTestFile('invalid-schema.json', testData);
 
-      expect(() => loadDataJson(tempFile)).toThrow('missing concerts array');
+      expect(() => loadDataJson(tempFile)).toThrow('Invalid dataset format');
     });
 
     it('should throw error for concerts not being an array', () => {
       const testData = { concerts: 'not-an-array' };
       const tempFile = createTestFile('invalid-concerts.json', testData);
 
-      expect(() => loadDataJson(tempFile)).toThrow('missing concerts array');
+      expect(() => loadDataJson(tempFile)).toThrow('Invalid dataset format');
     });
   });
 

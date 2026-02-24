@@ -3,14 +3,14 @@
 /**
  * Audio URL Validation Script
  *
- * This script validates that all audio URLs in data.json are accessible
+ * This script validates that all audio URLs in the runtime dataset are accessible
  * and reports any broken links or issues.
  *
  * Usage:
  *   node scripts/audio-workflow/update/validate-audio-urls.js [options]
  *
  * Options:
- *   --source=<path>       Path to data.json (default: public/data.json)
+ *   --source=<path>       Path to dataset JSON (default: public/data.app.v2.json)
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
  *   --prefix=<path>       Key prefix to join with audio filenames (default: prod/audio)
@@ -19,11 +19,11 @@
  *   --help                Show this help message
  *
  * Examples:
- *   # Validate production data.json
+ *   # Validate production dataset
  *   node scripts/audio-workflow/update/validate-audio-urls.js
  *
  *   # Validate test data
- *   node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.json
+ *   node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.app.v2.json
  */
 
 import fs from 'fs';
@@ -541,9 +541,6 @@ Options:
 Examples:
   # Validate production dataset
   node scripts/audio-workflow/update/validate-audio-urls.js
-
-  # Validate legacy payload explicitly
-  node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.json
 
   # Validate against a CDN base
   node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio

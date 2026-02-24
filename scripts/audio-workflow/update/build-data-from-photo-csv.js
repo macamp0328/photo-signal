@@ -550,8 +550,6 @@ Usage:
 Options:
   --source-csv=<path>   Photo source CSV (default: ${DEFAULT_SOURCE_CSV})
   --audio-index=<path>  Audio index JSON (default: ${DEFAULT_AUDIO_INDEX})
-  --output=<path>       Output legacy data.json path (disabled by default)
-  --no-output           Skip writing the legacy data.json artifact
   --output-v2=<path>    Output normalized app data path (default: ${DEFAULT_OUTPUT_V2})
   --no-output-v2        Skip writing the normalized app data artifact
   --output-recognition=<path>  Output recognition index path (default: ${DEFAULT_OUTPUT_RECOGNITION})
@@ -586,8 +584,6 @@ function main() {
     process.cwd(),
     String(args['audio-index'] ?? DEFAULT_AUDIO_INDEX)
   );
-  const outputPath = args.output ? path.resolve(process.cwd(), String(args.output)) : null;
-  const legacyOutputEnabled = Boolean(outputPath) && !args['no-output'];
   const outputV2Path = args['no-output-v2']
     ? null
     : path.resolve(process.cwd(), String(args['output-v2'] ?? DEFAULT_OUTPUT_V2));
@@ -686,19 +682,12 @@ function main() {
   const expandedConcerts = buildExpandedConcerts(extraTracks, baseUrl, prefix, maxPhotoId + 1);
 
   const allConcerts = [...concerts, ...expandedConcerts].sort((a, b) => a.id - b.id);
-  const output = { concerts: allConcerts };
   const outputV2 = buildAppDataV2(allConcerts);
   const outputRecognition = buildRecognitionIndexV2(allConcerts);
 
   console.log('🧱 Build runtime data artifacts from photo CSV');
   console.log(`  Source CSV: ${path.relative(process.cwd(), sourceCsvPath)}`);
   console.log(`  Audio index: ${path.relative(process.cwd(), audioIndexPath)}`);
-  if (legacyOutputEnabled) {
-    if (!outputPath) {
-      throw new Error('--output is required when writing legacy data.json output');
-    }
-    console.log(`  Output (legacy): ${path.relative(process.cwd(), outputPath)}`);
-  }
   if (outputV2Path) {
     console.log(`  Output (v2): ${path.relative(process.cwd(), outputV2Path)}`);
   }
@@ -738,13 +727,6 @@ function main() {
     return;
   }
 
-  if (legacyOutputEnabled) {
-    if (!outputPath) {
-      throw new Error('--output is required when writing legacy data.json output');
-    }
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
-  }
   if (outputV2Path) {
     fs.mkdirSync(path.dirname(outputV2Path), { recursive: true });
     fs.writeFileSync(outputV2Path, `${JSON.stringify(outputV2, null, 2)}\n`, 'utf8');
@@ -756,9 +738,6 @@ function main() {
       `${JSON.stringify(outputRecognition, null, 2)}\n`,
       'utf8'
     );
-  }
-  if (legacyOutputEnabled) {
-    console.log('✅ Wrote data.json');
   }
   if (outputV2Path) {
     console.log('✅ Wrote data.app.v2.json');

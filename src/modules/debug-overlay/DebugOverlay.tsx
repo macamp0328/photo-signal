@@ -48,7 +48,6 @@ export function DebugOverlay({
   const recognitionDelayMs = debugInfo?.recognitionDelay;
   const lastCheckTime = debugInfo?.lastCheckTime;
   const indexModeFrames = debugInfo?.telemetry.index_mode_used ?? 0;
-  const fallbackModeFrames = debugInfo?.telemetry.fallback_mode_used ?? 0;
   const candidateCountTelemetry = debugInfo?.telemetry.candidate_count_per_frame;
   const lastCandidateComparisons = candidateCountTelemetry?.last ?? 0;
   const averageCandidateComparisons =
@@ -320,10 +319,6 @@ export function DebugOverlay({
                 <div className={styles.metricItem}>
                   <span className={styles.metricLabel}>Index Frames</span>
                   <span className={styles.metricValue}>{indexModeFrames}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Fallback Frames</span>
-                  <span className={styles.metricValue}>{fallbackModeFrames}</span>
                 </div>
                 <div className={styles.metricItem}>
                   <span className={styles.metricLabel}>Candidates (Last)</span>

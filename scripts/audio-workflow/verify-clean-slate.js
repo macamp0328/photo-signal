@@ -117,10 +117,6 @@ function loadJson(filePath, fieldName, options = {}) {
 }
 
 function normalizeConcertsPayload(data) {
-  if (Array.isArray(data?.concerts)) {
-    return data.concerts;
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
@@ -361,7 +357,7 @@ function main() {
 
   const concerts = normalizeConcertsPayload(data);
   if (!concerts) {
-    throw new Error('dataset JSON missing v2 entries or legacy concerts array');
+    throw new Error('dataset JSON missing v2 entries');
   }
 
   const photoRowsById = new Map(photoRows.map((row) => [String(row.id), row]));

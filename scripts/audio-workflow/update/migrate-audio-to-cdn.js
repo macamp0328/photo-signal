@@ -55,15 +55,15 @@ export function loadDataJson(dataPath) {
     throw new Error(`Invalid JSON in ${dataPath}: ${error.message}`);
   }
 
-  const isLegacy = Array.isArray(data?.concerts);
   const isV2 =
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
+    Array.isArray(data?.photos) &&
     Array.isArray(data?.tracks) &&
     Array.isArray(data?.entries);
 
-  if (!isLegacy && !isV2) {
-    throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
+  if (!isV2) {
+    throw new Error('Invalid dataset format: expected v2 payload');
   }
 
   return data;
@@ -169,13 +169,10 @@ export function validateMigration(original, updated) {
 }
 
 function extractConcertViews(data) {
-  if (Array.isArray(data?.concerts)) {
-    return data.concerts;
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
+    Array.isArray(data?.photos) &&
     Array.isArray(data?.tracks) &&
     Array.isArray(data?.entries)
   ) {
@@ -203,20 +200,10 @@ function extractConcertViews(data) {
 }
 
 function createMutableConcerts(data) {
-  if (Array.isArray(data?.concerts)) {
-    return data.concerts.map((concert) => ({
-      id: concert.id,
-      band: concert.band,
-      getAudioFile: () => concert.audioFile,
-      setAudioFile: (value) => {
-        concert.audioFile = value;
-      },
-    }));
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
+    Array.isArray(data?.photos) &&
     Array.isArray(data?.tracks) &&
     Array.isArray(data?.entries)
   ) {

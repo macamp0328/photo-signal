@@ -11,7 +11,6 @@ Removed from runtime:
 - dHash matching path
 - Feature-descriptor matching path
 - Parallel recognizer voting path
-- Secondary fallback algorithm path
 - Multi-scale branching path
 
 This reduction is intentional: one deterministic path is easier to tune, debug, and maintain.
@@ -23,7 +22,8 @@ Camera frame
   → quality filter (blur / glare / lighting)
   → crop region (rectangle detection when confident, else centered frame)
   → pHash compute
-  → Hamming distance against all concert pHash variants
+  → bucket lookup in `/data.recognition.v2.json`
+  → Hamming distance against bucketed pHash variants
   → threshold + margin gate (reject ambiguous near-ties)
   → confirm path:
       - initial recognition: instant or short stability
@@ -61,9 +61,8 @@ From the project audit:
 
 Runtime recognizer reads:
 
-- `concert.photoHashes.phash: string[]`
-
-Legacy fields such as `photoHashes.dhash` may remain in data for historical/backfill purposes, but are not used by the runtime path.
+- app metadata from `/data.app.v2.json`
+- recognition hashes from `/data.recognition.v2.json`
 
 ## Debug + telemetry
 

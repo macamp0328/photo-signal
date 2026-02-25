@@ -45,6 +45,14 @@ interface AppDataV2 {
   }>;
 }
 
+interface RecognitionDataV2 {
+  version: number;
+  entries: Array<{
+    concertId: number;
+    phash: string[];
+  }>;
+}
+
 function loadConcerts(relativePath: string): RawConcert[] {
   const absolutePath = path.resolve(projectRoot, relativePath);
   const contents = readFileSync(absolutePath, 'utf-8');
@@ -79,6 +87,12 @@ function loadConcerts(relativePath: string): RawConcert[] {
       },
     ];
   });
+}
+
+function loadRecognitionData(relativePath: string): RecognitionDataV2 {
+  const absolutePath = path.resolve(projectRoot, relativePath);
+  const contents = readFileSync(absolutePath, 'utf-8');
+  return JSON.parse(contents) as RecognitionDataV2;
 }
 
 function expectHashArray(hashes: string[] | undefined): asserts hashes is string[] {
@@ -157,6 +171,18 @@ describe('Data files integrity', () => {
       if (concert.recognitionEnabled !== false) {
         expectHashSet(concert.photoHashes);
       }
+    });
+  });
+
+  it('public v2 recognition data exists and has valid hash entries', () => {
+    const recognition = loadRecognitionData('public/data.recognition.v2.json');
+    expect(recognition.version).toBe(2);
+    expect(Array.isArray(recognition.entries)).toBe(true);
+    expect(recognition.entries.length).toBeGreaterThan(0);
+
+    recognition.entries.forEach((entry) => {
+      expect(typeof entry.concertId).toBe('number');
+      expectHashArray(entry.phash);
     });
   });
 });

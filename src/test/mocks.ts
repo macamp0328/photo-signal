@@ -14,7 +14,12 @@ import { vi } from 'vitest';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const concertsFixturePath = resolve(__dirname, '../../public/data.app.v2.json');
+const recognitionFixturePath = resolve(__dirname, '../../public/data.recognition.v2.json');
 const concertsFixture = JSON.parse(readFileSync(concertsFixturePath, 'utf-8')) as Record<
+  string,
+  unknown
+>;
+const recognitionFixture = JSON.parse(readFileSync(recognitionFixturePath, 'utf-8')) as Record<
   string,
   unknown
 >;
@@ -298,6 +303,19 @@ export function mockCanvasRenderingContext2D() {
 export function mockFetch() {
   globalThis.fetch = vi.fn((url: string | URL | Request) => {
     const urlString = typeof url === 'string' ? url : url.toString();
+
+    if (urlString.includes('data.recognition.v2.json')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve(cloneFixture(recognitionFixture)),
+        text: () => Promise.resolve(JSON.stringify(recognitionFixture)),
+        blob: () => Promise.resolve(new Blob()),
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        headers: new Headers(),
+      } as Response);
+    }
 
     // Mock response for concert data files so tests exercise real fixtures
     if (

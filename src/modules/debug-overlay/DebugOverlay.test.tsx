@@ -241,13 +241,12 @@ describe('DebugOverlay', () => {
   });
 
   describe('Phase B Telemetry Metrics', () => {
-    it('displays index/fallback and candidate comparison counters', () => {
+    it('displays index and candidate comparison counters', () => {
       const debugInfoWithPhaseBMetrics: RecognitionDebugInfo = {
         ...mockDebugInfo,
         telemetry: {
           ...mockDebugInfo.telemetry,
           index_mode_used: 9,
-          fallback_mode_used: 3,
           candidate_count_per_frame: {
             last: 28,
             max: 64,
@@ -260,11 +259,9 @@ describe('DebugOverlay', () => {
       render(<DebugOverlay {...defaultProps} debugInfo={debugInfoWithPhaseBMetrics} />);
 
       expect(screen.getByText('Index Frames')).toBeInTheDocument();
-      expect(screen.getByText('Fallback Frames')).toBeInTheDocument();
       expect(screen.getByText('Candidates (Last)')).toBeInTheDocument();
       expect(screen.getByText('Candidates (Avg)')).toBeInTheDocument();
       expect(screen.getByText('9')).toBeInTheDocument();
-      expect(screen.getByText('3')).toBeInTheDocument();
       expect(screen.getByText('28')).toBeInTheDocument();
       expect(screen.getByText('20')).toBeInTheDocument();
     });

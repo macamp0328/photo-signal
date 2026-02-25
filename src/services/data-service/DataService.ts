@@ -61,42 +61,42 @@ class DataService {
     const photosById = new Map(data.photos.map((photo) => [photo.id, photo]));
     const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
 
-    return data.entries.flatMap((entry) => {
+    return data.entries.map((entry) => {
       const artist = artistsById.get(entry.artistId);
       const track = tracksById.get(entry.trackId);
 
       if (!artist || !track) {
-        return [];
+        throw new Error(
+          `Invalid app data payload: entry ${entry.id} references missing artist or track`
+        );
       }
 
       const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
 
-      return [
-        {
-          id: entry.id,
-          band: artist.name,
-          venue: entry.venue,
-          date: entry.date,
-          audioFile: track.audioFile,
-          songTitle: track.songTitle,
-          imageFile: photo?.imageFile,
-          photoUrl: photo?.photoUrl,
-          recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
-          camera: photo?.camera,
-          aperture: photo?.aperture,
-          focalLength: photo?.focalLength,
-          shutterSpeed: photo?.shutterSpeed,
-          iso: photo?.iso,
-          photoHashes: photo?.photoHashes,
-          albumCoverUrl: track.albumCoverUrl,
-        } satisfies Concert,
-      ];
+      return {
+        id: entry.id,
+        band: artist.name,
+        venue: entry.venue,
+        date: entry.date,
+        audioFile: track.audioFile,
+        songTitle: track.songTitle,
+        imageFile: photo?.imageFile,
+        photoUrl: photo?.photoUrl,
+        recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
+        camera: photo?.camera,
+        aperture: photo?.aperture,
+        focalLength: photo?.focalLength,
+        shutterSpeed: photo?.shutterSpeed,
+        iso: photo?.iso,
+        photoHashes: photo?.photoHashes,
+        albumCoverUrl: track.albumCoverUrl,
+      } satisfies Concert;
     });
   }
 
   private parseConcertsFromPayload(payload: unknown): Concert[] {
     if (!this.isObject(payload)) {
-      return [];
+      throw new Error('Invalid app data payload: expected v2 object');
     }
 
     const v2Payload = payload as Partial<AppDataV2>;
@@ -110,7 +110,7 @@ class DataService {
       return this.normalizeV2Payload(v2Payload as AppDataV2);
     }
 
-    return [];
+    throw new Error('Invalid app data payload: expected /data.app.v2.json schema');
   }
 
   private async fetchJson(url: string): Promise<unknown> {
@@ -230,7 +230,7 @@ class DataService {
       } catch (error) {
         console.error('[DataService] Failed to load concert data:', error);
         console.error(`[DataService] Attempted to load from: ${this.getDataUrl()}`);
-        return [];
+        throw error;
       } finally {
         // Clear the in-flight request after it completes (success or failure)
         this.inFlightRequest = null;

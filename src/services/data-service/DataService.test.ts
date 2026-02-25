@@ -145,16 +145,15 @@ describe('DataService', () => {
       expect(first).toEqual(normalizedConcerts);
     });
 
-    it('returns empty array on fetch failure', async () => {
+    it('throws on fetch failure', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'));
       globalThis.fetch = mockFetch;
 
-      const concerts = await dataService.getConcerts();
+      await expect(dataService.getConcerts()).rejects.toThrow('Network error');
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith('/data.app.v2.json');
-      expect(concerts).toEqual([]);
       expect(dataService.getDataSourceTelemetry()).toEqual({
         v2LoadAttempts: 1,
         v2LoadFailures: 1,
@@ -163,7 +162,7 @@ describe('DataService', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('returns empty array for non-v2 payloads', async () => {
+    it('throws for non-v2 payloads', async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
@@ -171,9 +170,9 @@ describe('DataService', () => {
       });
       globalThis.fetch = mockFetch;
 
-      const concerts = await dataService.getConcerts();
-
-      expect(concerts).toEqual([]);
+      await expect(dataService.getConcerts()).rejects.toThrow(
+        'Invalid app data payload: expected /data.app.v2.json schema'
+      );
     });
 
     it('deduplicates concurrent in-flight requests', async () => {

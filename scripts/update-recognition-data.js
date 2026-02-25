@@ -351,14 +351,6 @@ async function loadConcertFile(filePath) {
   const contents = await readFile(filePath, 'utf-8');
   const parsed = JSON.parse(contents);
 
-  if (Array.isArray(parsed.concerts)) {
-    return {
-      format: 'legacy',
-      parsed,
-      concerts: parsed.concerts,
-    };
-  }
-
   if (
     parsed?.version === 2 &&
     Array.isArray(parsed?.artists) &&
@@ -392,36 +384,28 @@ async function loadConcertFile(filePath) {
     });
 
     return {
-      format: 'v2',
       parsed,
       concerts,
     };
   }
 
-  throw new Error(`Expected legacy concerts[] or v2 payload in ${filePath}`);
+  throw new Error(`Expected v2 payload in ${filePath}`);
 }
 
 async function writeConcertFile(filePath, dataset) {
-  if (dataset.format === 'legacy') {
-    await writeFile(filePath, `${JSON.stringify(dataset.parsed, null, 2)}\n`);
-    return;
-  }
-
-  if (dataset.format === 'v2') {
-    for (const concert of dataset.concerts) {
-      if (!concert._photoRef) {
-        continue;
-      }
-
-      if (concert.photoHashes) {
-        concert._photoRef.photoHashes = concert.photoHashes;
-      } else {
-        delete concert._photoRef.photoHashes;
-      }
+  for (const concert of dataset.concerts) {
+    if (!concert._photoRef) {
+      continue;
     }
 
-    await writeFile(filePath, `${JSON.stringify(dataset.parsed, null, 2)}\n`);
+    if (concert.photoHashes) {
+      concert._photoRef.photoHashes = concert.photoHashes;
+    } else {
+      delete concert._photoRef.photoHashes;
+    }
   }
+
+  await writeFile(filePath, `${JSON.stringify(dataset.parsed, null, 2)}\n`);
 }
 
 function resolveImagePath(imageFile) {

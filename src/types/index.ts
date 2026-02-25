@@ -25,7 +25,6 @@ export interface PhotoHashes {
   /**
    * pHash variants for named crop sub-regions (partial photo recognition).
    * Each entry is an array of 5 gamma-variant hashes, same order as phash[].
-   * Absent in legacy records — runtime falls back gracefully.
    */
   cropPhashes?: Partial<Record<CropRegionKey, string[]>>;
 }

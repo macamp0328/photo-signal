@@ -1,4 +1,4 @@
-import type { Concert, CropRegionKey } from '../../types';
+import type { Concert } from '../../types';
 import type {
   CollisionStats,
   FailureCategory,
@@ -59,7 +59,6 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   hammingDistanceLog: emptyHammingDistanceLog(),
   collisionStats: emptyCollisionStats(),
   index_mode_used: 0,
-  fallback_mode_used: 0,
   candidate_count_per_frame: {
     last: 0,
     max: 0,
@@ -70,16 +69,6 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
 
 export const similarityPercent = (distance: number): number =>
   ((PHASH_MAX_DISTANCE - distance) / PHASH_MAX_DISTANCE) * 100;
-
-export const VALID_CROP_REGION_KEYS: ReadonlyArray<CropRegionKey> = [
-  'center-80',
-  'center-60',
-  'center-50',
-  'top-left-70',
-  'top-right-70',
-  'bottom-left-70',
-  'bottom-right-70',
-];
 
 export const getPHashes = (concert: Concert): string[] => {
   const hashes = concert.photoHashes?.phash;
@@ -93,30 +82,6 @@ export const getPHashes = (concert: Concert): string[] => {
       value.length === PHASH_HEX_LENGTH &&
       PHASH_HEX_PATTERN.test(value)
   );
-};
-
-/**
- * Returns all validated crop pHashes for a concert, flattened across all crop
- * regions. Invalid hashes (wrong length / non-hex) are filtered out.
- * Returns an empty array when cropPhashes is absent (legacy records).
- */
-export const getCropHashes = (
-  concert: Concert
-): Array<{ hash: string; cropKey: CropRegionKey }> => {
-  const cropPhashes = concert.photoHashes?.cropPhashes;
-  if (!cropPhashes) return [];
-
-  const result: Array<{ hash: string; cropKey: CropRegionKey }> = [];
-  for (const cropKey of VALID_CROP_REGION_KEYS) {
-    const hashes = cropPhashes[cropKey];
-    if (!Array.isArray(hashes)) continue;
-    for (const h of hashes) {
-      if (typeof h === 'string' && h.length === PHASH_HEX_LENGTH && PHASH_HEX_PATTERN.test(h)) {
-        result.push({ hash: h, cropKey });
-      }
-    }
-  }
-  return result;
 };
 
 export const recordFailure = (

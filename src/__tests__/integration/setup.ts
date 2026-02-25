@@ -110,6 +110,14 @@ export const mockConcertData = {
   ],
 };
 
+export const mockRecognitionData = {
+  version: 2,
+  entries: [
+    { concertId: 1, phash: ['aaaaaaaaaaaaaaaa'] },
+    { concertId: 2, phash: ['bbbbbbbbbbbbbbbb'] },
+  ],
+};
+
 /**
  * Create a mock MediaStream for camera tests
  */
@@ -145,11 +153,24 @@ export const setupBrowserMocks = () => {
     },
   });
 
-  // Mock fetch for concert data
-  globalThis.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => mockConcertData,
-  } as Response);
+  // Mock fetch for strict v2 app + recognition datasets
+  globalThis.fetch = vi.fn((url: string | URL | Request) => {
+    const urlString = typeof url === 'string' ? url : url.toString();
+
+    if (urlString.includes('data.recognition.v2.json')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => mockRecognitionData,
+      } as Response);
+    }
+
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => mockConcertData,
+    } as Response);
+  });
 
   // Mock HTMLVideoElement methods
   HTMLVideoElement.prototype.play = vi.fn().mockResolvedValue(undefined);

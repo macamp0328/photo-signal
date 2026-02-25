@@ -248,15 +248,6 @@ function buildSummaryPayload(summary, totalCases, startIndex, args) {
 }
 
 function buildConcertRecords(appData, recognitionData) {
-  if (Array.isArray(appData?.concerts)) {
-    return appData.concerts.map((concert) => ({
-      id: concert.id,
-      band: concert.band,
-      imageFile: concert.imageFile,
-      hashes: normalizeHexArray(concert.photoHashes?.phash, PHASH_LENGTH),
-    }));
-  }
-
   if (
     appData?.version === 2 &&
     Array.isArray(appData?.artists) &&
@@ -294,7 +285,7 @@ function buildConcertRecords(appData, recognitionData) {
     });
   }
 
-  throw new Error('Invalid app dataset format: expected v2 payload or legacy concerts array');
+  throw new Error('Invalid app dataset format: expected v2 payload');
 }
 
 async function main() {
@@ -305,11 +296,8 @@ async function main() {
   const appRaw = await readFile(APP_DATA_PATH, 'utf-8');
   const appData = JSON.parse(appRaw);
 
-  let recognitionData = null;
-  if (!Array.isArray(appData?.concerts)) {
-    const recognitionRaw = await readFile(RECOGNITION_DATA_PATH, 'utf-8');
-    recognitionData = JSON.parse(recognitionRaw);
-  }
+  const recognitionRaw = await readFile(RECOGNITION_DATA_PATH, 'utf-8');
+  const recognitionData = JSON.parse(recognitionRaw);
 
   const concerts = buildConcertRecords(appData, recognitionData);
 
@@ -320,9 +308,7 @@ async function main() {
 
   console.log(`Loaded records: ${concerts.length}`);
   console.log(`App dataset: ${path.relative(REPO_ROOT, APP_DATA_PATH)}`);
-  if (recognitionData) {
-    console.log(`Recognition dataset: ${path.relative(REPO_ROOT, RECOGNITION_DATA_PATH)}`);
-  }
+  console.log(`Recognition dataset: ${path.relative(REPO_ROOT, RECOGNITION_DATA_PATH)}`);
   console.log(`Concerts with imageFile: ${testCasesAll.length}`);
   console.log(`Start index: ${startIndex}`);
   console.log(`Test cases selected: ${testCases.length}`);

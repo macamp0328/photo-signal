@@ -32,7 +32,7 @@ The audio workflow scripts in `scripts/audio-workflow/` handle critical producti
 Unlike one-time helper scripts (create-test-images.js, generate-favicons.html), these are **production tools** that:
 
 - Run repeatedly in the audio production workflow
-- Modify critical data files (data.json, concerts.json)
+- Modify critical runtime data files (data.app.v2.json, data.recognition.v2.json)
 - Process expensive assets (downloaded audio files)
 - Require external dependencies (ffmpeg, yt-dlp)
 - Have complex error handling and retry logic

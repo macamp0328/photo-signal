@@ -450,7 +450,7 @@ When scaling beyond static JSON:
 
 ```typescript
 // Before
-const concerts = await fetch('/assets/test-data/concerts.json');
+const concerts = await fetch('/data.app.v2.json');
 
 // After
 const concerts = await fetch('/api/concerts');

@@ -675,15 +675,21 @@ test.describe('Feature Flag Variations', () => {
     });
 
     // Mock test data
-    await page.route('**/assets/test-data/concerts.json', (route) => {
+    await page.route('**/data.app.v2.json', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          concerts: [
+          version: 2,
+          artists: [{ id: 'artist-1', name: 'Test Band' }],
+          photos: [{ id: 'photo-1', artistId: 'artist-1', imageFile: '/assets/test.jpg' }],
+          tracks: [{ id: 'track-1', artistId: 'artist-1', audioFile: '/audio/test.opus' }],
+          entries: [
             {
               id: 1,
-              band: 'Test Band',
+              artistId: 'artist-1',
+              trackId: 'track-1',
+              photoId: 'photo-1',
               venue: 'Test Venue',
               date: '2023-01-01',
             },

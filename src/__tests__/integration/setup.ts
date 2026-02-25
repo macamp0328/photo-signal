@@ -157,6 +157,16 @@ export const setupBrowserMocks = () => {
   globalThis.fetch = vi.fn((url: string | URL | Request) => {
     const urlString = typeof url === 'string' ? url : url.toString();
 
+    if (
+      urlString.includes('concerts.dev.json') ||
+      urlString.includes('concerts.prod.json') ||
+      urlString.includes('concerts.json')
+    ) {
+      return Promise.reject(
+        new Error(`Legacy dataset URL is not supported in integration tests: ${urlString}`)
+      );
+    }
+
     if (urlString.includes('data.recognition.v2.json')) {
       return Promise.resolve({
         ok: true,
@@ -165,11 +175,19 @@ export const setupBrowserMocks = () => {
       } as Response);
     }
 
-    return Promise.resolve({
-      ok: true,
-      status: 200,
-      json: async () => mockConcertData,
-    } as Response);
+    if (urlString.includes('data.app.v2.json')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => mockConcertData,
+      } as Response);
+    }
+
+    if (urlString.includes('.json')) {
+      return Promise.reject(new Error(`Unexpected dataset URL in integration tests: ${urlString}`));
+    }
+
+    return Promise.resolve({ ok: true, status: 200, json: async () => ({}) } as Response);
   });
 
   // Mock HTMLVideoElement methods

@@ -55,7 +55,7 @@ export function updateConcertWithCdn(
     ? buildAudioUrl(concert, baseUrl, audioPrefix)
     : concert.audioFile;
   // If imageFile is absent, intentionally preserve any existing photoUrl.
-  // This supports manually curated or legacy photo URLs that should not be
+  // This supports manually curated or pre-existing photo URLs that should not be
   // overwritten/cleared during audio-only remap runs.
   const updatedPhotoUrl = concert.imageFile
     ? buildPhotoUrl(concert, baseUrl, photoPrefix)
@@ -74,14 +74,6 @@ export function applyCdnToData(
   audioPrefix = DEFAULT_AUDIO_PREFIX,
   photoPrefix = DEFAULT_PHOTO_PREFIX
 ) {
-  if (Array.isArray(data?.concerts)) {
-    const updatedConcerts = data.concerts.map((concert) =>
-      updateConcertWithCdn(concert, baseUrl, audioPrefix, photoPrefix)
-    );
-
-    return { ...data, concerts: updatedConcerts };
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
@@ -117,19 +109,10 @@ export function applyCdnToData(
     return data;
   }
 
-  throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
+  throw new Error('Invalid dataset format: expected v2 payload');
 }
 
 function extractConcertViews(data) {
-  if (Array.isArray(data?.concerts)) {
-    return data.concerts.map((concert) => ({
-      id: concert.id,
-      band: concert.band,
-      audioFile: concert.audioFile,
-      photoUrl: concert.photoUrl ?? null,
-    }));
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
@@ -160,7 +143,7 @@ function extractConcertViews(data) {
     });
   }
 
-  throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
+  throw new Error('Invalid dataset format: expected v2 payload');
 }
 
 export function createBackup(filePath) {

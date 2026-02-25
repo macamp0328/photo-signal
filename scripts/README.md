@@ -630,7 +630,7 @@ Monitors production bundle sizes and enforces size limits (used in CI).
 **What it does:**
 
 - Creates `public/assets/test-data/`, `test-audio/`, and `test-images/` directories
-- Copies `concerts.json` from `assets/test-data/`
+- Copies v2 runtime datasets (`data.app.v2.json`, `data.recognition.v2.json`) when present
 - Copies all Opus audio files from `assets/test-audio/`
 - Copies all JPG files from `assets/test-images/`
 

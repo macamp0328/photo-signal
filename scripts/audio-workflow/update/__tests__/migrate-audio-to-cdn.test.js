@@ -229,7 +229,7 @@ describe('migrate-audio-to-cdn', () => {
 
   describe('createBackup', () => {
     it('should create timestamped backup file', () => {
-      const originalPath = createTestFile('test-data.json', { concerts: [] });
+      const originalPath = createTestFile('test-data.json', createV2Dataset([]));
 
       const backupPath = createBackup(originalPath);
       testFiles.push(backupPath);
@@ -240,7 +240,7 @@ describe('migrate-audio-to-cdn', () => {
     });
 
     it('should preserve original file content in backup', () => {
-      const testData = { concerts: [{ id: 1 }] };
+      const testData = createV2Dataset(['/audio/a.opus']);
       const originalPath = createTestFile('test-data.json', JSON.stringify(testData, null, 2));
 
       const backupPath = createBackup(originalPath);

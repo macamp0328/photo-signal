@@ -129,7 +129,7 @@ Each module in `src/modules/` is self-contained with:
 ### Data Layer
 
 - Production: Static JSON at `/public/data.app.v2.json` + `/public/data.recognition.v2.json`
-- Development/testing assets: `/assets/test-data/concerts.dev.json`
+- Development/testing: Use the same v2 runtime artifacts (`/public/data.app.v2.json` and `/public/data.recognition.v2.json`)
 - Service abstraction in `src/services/data-service.ts`
 
 ### Key Types (`src/types/index.ts`)

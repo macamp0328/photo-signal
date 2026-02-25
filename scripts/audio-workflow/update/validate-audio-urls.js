@@ -102,10 +102,6 @@ export function findConcertById(concerts, concertId) {
 }
 
 function normalizeConcertsPayload(data) {
-  if (Array.isArray(data?.concerts)) {
-    return data.concerts;
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
@@ -132,7 +128,7 @@ function normalizeConcertsPayload(data) {
     });
   }
 
-  return null;
+  throw new Error('Invalid dataset format: expected v2 payload');
 }
 
 export function findLocalFilesByBasename(fileName, rootDir = DEFAULT_ENCODE_OUTPUT_DIR) {
@@ -604,9 +600,12 @@ Examples:
       process.exit(1);
     }
 
-    const concerts = normalizeConcertsPayload(data);
-    if (!concerts) {
-      console.error('❌ Error: Invalid dataset format (missing v2 entries or legacy concerts)');
+    let concerts;
+    try {
+      concerts = normalizeConcertsPayload(data);
+    } catch (error) {
+      console.error('❌ Error: Invalid dataset format (expected v2 payload)');
+      console.error(`   ${error.message}`);
       process.exit(1);
     }
 

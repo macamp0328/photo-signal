@@ -272,17 +272,6 @@ Options:
 }
 
 function normalizeConcertsPayload(data) {
-  if (Array.isArray(data?.concerts)) {
-    return {
-      format: 'legacy',
-      concerts: data.concerts,
-      commit: (updatedConcerts) => ({
-        ...data,
-        concerts: updatedConcerts,
-      }),
-    };
-  }
-
   if (
     data?.version === 2 &&
     Array.isArray(data?.artists) &&
@@ -328,7 +317,7 @@ function normalizeConcertsPayload(data) {
     };
   }
 
-  throw new Error('Invalid dataset format: expected v2 payload or legacy concerts array');
+  throw new Error('Invalid dataset format: expected v2 payload');
 }
 
 function main() {

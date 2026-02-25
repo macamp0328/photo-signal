@@ -24,6 +24,32 @@ const recognitionFixture = JSON.parse(readFileSync(recognitionFixturePath, 'utf-
   unknown
 >;
 
+const isV2AppFixture = (value: Record<string, unknown>): boolean => {
+  return (
+    value.version === 2 &&
+    Array.isArray(value.artists) &&
+    Array.isArray(value.photos) &&
+    Array.isArray(value.tracks) &&
+    Array.isArray(value.entries)
+  );
+};
+
+const isV2RecognitionFixture = (value: Record<string, unknown>): boolean => {
+  return value.version === 2 && Array.isArray(value.entries);
+};
+
+if (!isV2AppFixture(concertsFixture)) {
+  throw new Error(
+    'Invalid test fixture: expected strict v2 app payload from public/data.app.v2.json'
+  );
+}
+
+if (!isV2RecognitionFixture(recognitionFixture)) {
+  throw new Error(
+    'Invalid test fixture: expected strict v2 recognition payload from public/data.recognition.v2.json'
+  );
+}
+
 const cloneFixture = <T>(value: T): T => {
   if (typeof structuredClone === 'function') {
     return structuredClone(value);
@@ -304,6 +330,18 @@ export function mockFetch() {
   globalThis.fetch = vi.fn((url: string | URL | Request) => {
     const urlString = typeof url === 'string' ? url : url.toString();
 
+    if (
+      urlString.includes('concerts.dev.json') ||
+      urlString.includes('concerts.prod.json') ||
+      urlString.includes('concerts.json')
+    ) {
+      return Promise.reject(
+        new Error(
+          `Legacy dataset URL is not supported in tests: ${urlString}. Use /data.app.v2.json only.`
+        )
+      );
+    }
+
     if (urlString.includes('data.recognition.v2.json')) {
       return Promise.resolve({
         ok: true,
@@ -317,13 +355,8 @@ export function mockFetch() {
       } as Response);
     }
 
-    // Mock response for concert data files so tests exercise real fixtures
-    if (
-      urlString.includes('concerts.dev.json') ||
-      urlString.includes('concerts.prod.json') ||
-      urlString.includes('concerts.json') ||
-      urlString.includes('data.app.v2.json')
-    ) {
+    // Mock response for strict v2 app dataset so tests exercise real fixtures
+    if (urlString.includes('data.app.v2.json')) {
       return Promise.resolve({
         ok: true,
         status: 200,

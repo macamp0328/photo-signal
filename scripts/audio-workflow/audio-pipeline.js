@@ -335,7 +335,6 @@ async function main() {
       `--csv=${csvPath}`,
       `--base-url=${baseUrl}`,
       `--prefix=${prefix}`,
-      '--no-output',
     ].join(' ');
 
     const ok = run(

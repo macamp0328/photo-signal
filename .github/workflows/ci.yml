@@ -78,7 +78,7 @@ jobs:
 
           fs.writeFileSync('/tmp/audio-index.ci.json', JSON.stringify({ tracks }, null, 2));
           NODE
-          npm run audio:build-data -- --audio-index=/tmp/audio-index.ci.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json --no-output
+          npm run audio:build-data -- --audio-index=/tmp/audio-index.ci.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json
           test -f /tmp/data.app.v2.json
           test -f /tmp/data.recognition.v2.json
 

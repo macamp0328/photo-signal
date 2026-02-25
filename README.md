@@ -175,7 +175,7 @@ Runtime metadata is sourced from `public/data.app.v2.json` and recognition index
 `public/data.recognition.v2.json`. Regenerate both artifacts via:
 
 ```bash
-npm run audio:build-data -- --no-output
+npm run audio:build-data
 ```
 
 ### Photo Recognition

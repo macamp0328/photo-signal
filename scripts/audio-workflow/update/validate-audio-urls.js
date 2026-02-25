@@ -3,14 +3,14 @@
 /**
  * Audio URL Validation Script
  *
- * This script validates that all audio URLs in data.json are accessible
+ * This script validates that all audio URLs in the runtime dataset are accessible
  * and reports any broken links or issues.
  *
  * Usage:
  *   node scripts/audio-workflow/update/validate-audio-urls.js [options]
  *
  * Options:
- *   --source=<path>       Path to data.json (default: public/data.json)
+ *   --source=<path>       Path to dataset JSON (default: public/data.app.v2.json)
  *   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
  *   --base-url=<url>      Override audioFile with CDN base URL (e.g., Worker hostname)
  *   --prefix=<path>       Key prefix to join with audio filenames (default: prod/audio)
@@ -19,11 +19,11 @@
  *   --help                Show this help message
  *
  * Examples:
- *   # Validate production data.json
+ *   # Validate production dataset
  *   node scripts/audio-workflow/update/validate-audio-urls.js
  *
  *   # Validate test data
- *   node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.json
+ *   node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.app.v2.json
  */
 
 import fs from 'fs';
@@ -99,6 +99,36 @@ export function findConcertById(concerts, concertId) {
   }
 
   return concerts.find((concert) => Number(concert.id) === Number(concertId)) ?? null;
+}
+
+function normalizeConcertsPayload(data) {
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.entries)
+  ) {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+
+    return data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          audioFile: track.audioFile,
+        },
+      ];
+    });
+  }
+
+  throw new Error('Invalid dataset format: expected v2 payload');
 }
 
 export function findLocalFilesByBasename(fileName, rootDir = DEFAULT_ENCODE_OUTPUT_DIR) {
@@ -378,7 +408,7 @@ export function generateReport(stats) {
   if (failed > 0) {
     report += `Recommendations:\n`;
     report += `1. Check that audio files are uploaded to the CDN\n`;
-    report += `2. Verify CDN URLs are correct in data.json\n`;
+    report += `2. Verify CDN URLs are correct in the dataset artifact\n`;
     report += `3. Ensure CDN allows public access (CORS enabled)\n`;
     report += `4. Check network connectivity\n`;
   }
@@ -391,7 +421,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // Parse command line arguments
   const args = process.argv.slice(2);
   const options = {
-    source: 'public/data.json',
+    source: 'public/data.app.v2.json',
     timeout: 10000,
     baseUrl: '',
     prefix: 'prod/audio',
@@ -487,13 +517,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`
 Audio URL Validation Script
 
-This script validates that all audio URLs in data.json are accessible.
+This script validates that all audio URLs in the runtime dataset are accessible.
 
 Usage:
   node scripts/audio-workflow/update/validate-audio-urls.js [options]
 
 Options:
-  --source=<path>       Path to data.json (default: public/data.json)
+  --source=<path>       Path to dataset JSON (default: public/data.app.v2.json)
   --timeout=<ms>        Request timeout in milliseconds (default: 10000)
   --base-url=<url>      Override audioFile with CDN base URL
   --prefix=<path>       Key prefix for CDN paths (default: prod/audio)
@@ -505,11 +535,8 @@ Options:
   --help                Show this help message
 
 Examples:
-  # Validate production data.json
+  # Validate production dataset
   node scripts/audio-workflow/update/validate-audio-urls.js
-
-  # Validate test data
-  node scripts/audio-workflow/update/validate-audio-urls.js --source=public/data.json
 
   # Validate against a CDN base
   node scripts/audio-workflow/update/validate-audio-urls.js --base-url=https://audio.example.com --prefix=prod/audio
@@ -553,7 +580,7 @@ Examples:
       console.log('');
     }
 
-    // Read source data.json
+    // Read source dataset
     const sourcePath = path.resolve(projectRoot, options.source);
 
     if (!fs.existsSync(sourcePath)) {
@@ -573,10 +600,16 @@ Examples:
       process.exit(1);
     }
 
-    if (!data.concerts || !Array.isArray(data.concerts)) {
-      console.error('❌ Error: Invalid data.json format (missing concerts array)');
+    let concerts;
+    try {
+      concerts = normalizeConcertsPayload(data);
+    } catch (error) {
+      console.error('❌ Error: Invalid dataset format (expected v2 payload)');
+      console.error(`   ${error.message}`);
       process.exit(1);
     }
+
+    data.concerts = concerts;
 
     if (options.onlyConcertIds?.size) {
       data.concerts = data.concerts.filter((concert) =>
@@ -722,7 +755,7 @@ Examples:
 
       console.log('Recommendations:');
       console.log('1. Check that audio files are uploaded to the CDN');
-      console.log('2. Verify CDN URLs are correct in data.json');
+      console.log('2. Verify CDN URLs are correct in the dataset artifact');
       console.log('3. Ensure CDN allows public access (CORS enabled)');
       console.log('4. Retry with --origin=<allowed-origin> for CORS-protected workers');
       console.log(

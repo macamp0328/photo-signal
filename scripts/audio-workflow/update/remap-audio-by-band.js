@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const DEFAULT_SOURCE = 'public/data.json';
+const DEFAULT_SOURCE = 'public/data.app.v2.json';
 const DEFAULT_SOURCE_CSV = 'assets/prod-photographs/prod-photographs-details.csv';
 const DEFAULT_AUDIO_INDEX = 'scripts/audio-workflow/encode/output/audio-index.json';
 const DEFAULT_MIN_SCORE = 0.45;
@@ -133,9 +133,9 @@ function replaceFileName(audioUrl, fileName) {
  * Find audio tracks from the index that do not appear in any concert's audioFile.
  *
  * Useful for detecting songs that exist in the audio index but have been dropped
- * from data.json (e.g. a band with more tracks than photo rows).
+ * from the runtime dataset (e.g. a band with more tracks than photo rows).
  *
- * @param {object[]} concerts  - Concert entries from data.json
+ * @param {object[]} concerts  - Concert entries from the runtime dataset
  * @param {object[]} tracks    - Tracks from audio-index (must have .fileName)
  * @returns {object[]} Tracks whose fileName does not appear in any concert audioFile
  */
@@ -253,22 +253,71 @@ function toCsv(rows, headers) {
 }
 
 function printHelp() {
-  console.log(`Remap data.json audio files by fuzzy band matching
+  console.log(`Remap runtime dataset audio files by fuzzy band matching
 
 Usage:
   npm run audio:remap-by-band -- [options]
 
 Options:
-  --source=<path>        Path to data.json (default: ${DEFAULT_SOURCE})
+  --source=<path>        Path to runtime dataset JSON (default: ${DEFAULT_SOURCE})
   --source-csv=<path>    Path to prod photo details CSV source of truth (default: ${DEFAULT_SOURCE_CSV})
   --audio-index=<path>   Path to audio-index.json (default: ${DEFAULT_AUDIO_INDEX})
   --min-score=<0..1>     Minimum fuzzy score for a match (default: ${DEFAULT_MIN_SCORE})
   --report-json=<path>   Write detailed JSON report (default path when --report is used: ${DEFAULT_REPORT_JSON})
   --report-csv=<path>    Write tabular CSV report (default path when --report is used: ${DEFAULT_REPORT_CSV})
   --report               Write both report files to default output paths
-  --dry-run              Print results without writing data.json
+  --dry-run              Print results without writing the dataset file
   --help                 Show help
 `);
+}
+
+function normalizeConcertsPayload(data) {
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.photos) &&
+    Array.isArray(data?.entries)
+  ) {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+    const photosById = new Map(data.photos.map((photo) => [photo.id, photo]));
+
+    const concerts = data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          imageFile: photo?.imageFile,
+          audioFile: track.audioFile,
+          _trackRef: track,
+        },
+      ];
+    });
+
+    return {
+      format: 'v2',
+      concerts,
+      commit: (updatedConcerts) => {
+        for (const concert of updatedConcerts) {
+          if (concert?._trackRef) {
+            concert._trackRef.audioFile = concert.audioFile;
+          }
+        }
+        return data;
+      },
+    };
+  }
+
+  throw new Error('Invalid dataset format: expected v2 payload');
 }
 
 function main() {
@@ -317,7 +366,8 @@ function main() {
   const data = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
   const photoSourceRows = csvObjects(fs.readFileSync(sourceCsvPath, 'utf8'));
   const audioIndex = JSON.parse(fs.readFileSync(audioIndexPath, 'utf8'));
-  const concerts = Array.isArray(data?.concerts) ? data.concerts : [];
+  const dataset = normalizeConcertsPayload(data);
+  const concerts = dataset.concerts;
   const photoRowsById = new Map(
     photoSourceRows.map((row) => [Number.parseInt(String(row.id ?? ''), 10), row])
   );
@@ -479,10 +529,7 @@ function main() {
     };
   });
 
-  const nextData = {
-    ...data,
-    concerts: updatedConcerts,
-  };
+  const nextData = dataset.commit(updatedConcerts);
 
   console.log('🎯 Remap audio by band');
   console.log(`  Source: ${path.relative(process.cwd(), sourcePath)}`);
@@ -564,7 +611,7 @@ function main() {
   if (unmappedTracks.length > 0) {
     console.log('');
     console.log(
-      `⚠️  Unmapped audio tracks (in index but not in data.json): ${unmappedTracks.length}`
+      `⚠️  Unmapped audio tracks (in index but not in runtime dataset): ${unmappedTracks.length}`
     );
     console.log(
       '   These songs will not play in any playlist. Run audio:build-data to include them.'
@@ -582,7 +629,7 @@ function main() {
   }
 
   fs.writeFileSync(sourcePath, `${JSON.stringify(nextData, null, 2)}\n`, 'utf8');
-  console.log('✅ Updated data.json with remapped audio files');
+  console.log('✅ Updated runtime dataset with remapped audio files');
 }
 
 try {

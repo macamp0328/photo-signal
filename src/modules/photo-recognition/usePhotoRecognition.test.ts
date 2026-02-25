@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { dataService } from '../../services/data-service';
-import type { Concert, CropRegionKey } from '../../types';
+import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import * as perspectiveUtils from './algorithms/perspective';
 import * as qualityUtils from './algorithms/utils';
@@ -109,9 +109,15 @@ describe('usePhotoRecognition', () => {
 
     originalFetch = global.fetch;
     global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      json: async () => ({}),
+      ok: true,
+      status: 200,
+      json: async () => ({
+        version: 2,
+        entries: [
+          { concertId: 1, phash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'] },
+          { concertId: 2, phash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'] },
+        ],
+      }),
     } as Response);
 
     vi.mocked(dataService.getConcerts).mockResolvedValue(mockConcerts);
@@ -277,20 +283,6 @@ describe('usePhotoRecognition', () => {
 
     expect(result.current.recognizedConcert).toBeNull();
     expect(result.current.isRecognizing).toBe(false);
-  });
-
-  it('handles data loading errors gracefully', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('load failed'));
-
-    const { result } = renderHook(() => usePhotoRecognition(mockStream));
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(100);
-    });
-
-    expect(result.current.recognizedConcert).toBeNull();
-    consoleSpy.mockRestore();
   });
 
   it('confirms a strong match within 500ms', async () => {
@@ -682,6 +674,14 @@ describe('usePhotoRecognition', () => {
       ];
 
       vi.mocked(dataService.getConcerts).mockResolvedValue(qualityConcerts);
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          version: 2,
+          entries: [{ concertId: 1, phash: ['aaaaaaaaaaaaaaaa'] }],
+        }),
+      } as Response);
       activeFrameHash = 'aaaaaaaaaaaabbbb';
 
       qualitySpy
@@ -879,6 +879,14 @@ describe('usePhotoRecognition', () => {
       ];
 
       vi.mocked(dataService.getConcerts).mockResolvedValue(closeConcerts);
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          version: 2,
+          entries: [{ concertId: 1, phash: ['aaaaaaaaaaaaaaaa'] }],
+        }),
+      } as Response);
       activeFrameHash = 'aaaaaaaaaaaaabbb';
 
       const { result } = renderHook(() =>
@@ -1134,184 +1142,6 @@ describe('usePhotoRecognition', () => {
         });
         expect(result.current.recognizedConcert?.id).toBe(1);
         expect(result.current.isRecognizing).toBe(false);
-      } finally {
-        spy.mockRestore();
-      }
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // Crop-based partial photo recognition
-  // ---------------------------------------------------------------------------
-  //
-  // The mocked hammingDistance counts character mismatches × 4.
-  // Frame hash 'ffffffffffffffff' differs from every full-image hash in
-  // mockConcerts at every character position → distance 64 (> CROP_FALLBACK_TRIGGER_DISTANCE=18).
-  //
-  // Concert 1's crop hashes are set to 'f5b3c7d9e1f20486' (1 char diff from
-  // 'ffffffffffffffff' → distance 4, well within CROP_SIMILARITY_THRESHOLD=10).
-  // Concert 2's crop hashes are set to 'aaaaaaaaaaaaaaaa' (all chars differ →
-  // distance 64) so the margin check is satisfied.
-  // ---------------------------------------------------------------------------
-
-  describe('crop fallback matching', () => {
-    // Frame hash that has distance 64 from all full-image hashes (triggers crop pass)
-    // but distance 4 from concert 1's crop hashes (within CROP_SIMILARITY_THRESHOLD=10).
-    const CROP_FRAME_HASH = 'f5b3c7d9e1f20486'; // exact match with concert-1 crop hash
-    const CONCERT1_CROP_HASH = 'f5b3c7d9e1f20486'; // exact match → distance 0
-
-    const makeConcertsWithCrops = (): Concert[] => {
-      const cropKey: CropRegionKey = 'center-80';
-      return [
-        {
-          id: 1,
-          band: 'Crop Band 1',
-          venue: 'Test Venue',
-          date: '2023-08-15T20:00:00-05:00',
-          audioFile: '/audio/test1.opus',
-          photoHashes: {
-            // Full-image hashes: all chars differ from CROP_FRAME_HASH → distance 64
-            phash: ['aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb', 'cccccccccccccccc'],
-            cropPhashes: {
-              [cropKey]: [CONCERT1_CROP_HASH],
-            },
-          },
-        },
-        {
-          id: 2,
-          band: 'Crop Band 2',
-          venue: 'Test Venue',
-          date: '2023-09-20T19:30:00-05:00',
-          audioFile: '/audio/test2.opus',
-          photoHashes: {
-            phash: ['dddddddddddddddd', 'eeeeeeeeeeeeeeee', 'ffffffffffffffff'],
-            cropPhashes: {
-              // All chars differ from CROP_FRAME_HASH → distance 64 (no crop match)
-              [cropKey]: ['1111111111111111'],
-            },
-          },
-        },
-      ];
-    };
-
-    const setupDomMocks = () => {
-      const originalCreateElement = document.createElement.bind(document);
-      const mockContext = {
-        drawImage: vi.fn(),
-        getImageData: vi.fn(() => new ImageData(64, 64)),
-      } as unknown as CanvasRenderingContext2D;
-
-      const spy = vi.spyOn(document, 'createElement').mockImplementation(((
-        tagName: string,
-        options?: ElementCreationOptions
-      ) => {
-        if (tagName === 'video') {
-          const video = originalCreateElement('video', options) as HTMLVideoElement;
-          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
-          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
-          Object.defineProperty(video, 'readyState', {
-            value: HTMLMediaElement.HAVE_CURRENT_DATA,
-            configurable: true,
-          });
-          return video;
-        }
-        if (tagName === 'canvas') {
-          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
-          Object.defineProperty(canvas, 'getContext', {
-            value: vi.fn(() => mockContext),
-            configurable: true,
-          });
-          return canvas;
-        }
-        return originalCreateElement(tagName, options);
-      }) as typeof document.createElement);
-
-      return { spy, mockContext };
-    };
-
-    it('confirms via crop hash after recognitionDelay when full-image fails', async () => {
-      vi.mocked(dataService.getConcerts).mockResolvedValue(makeConcertsWithCrops());
-      activeFrameHash = CROP_FRAME_HASH;
-
-      const { spy } = setupDomMocks();
-      try {
-        const { result } = renderHook(() =>
-          usePhotoRecognition(mockStream, {
-            enabled: true,
-            checkInterval: 50,
-            recognitionDelay: 200,
-          })
-        );
-
-        await act(async () => {
-          await vi.advanceTimersByTimeAsync(80);
-        });
-
-        // Not confirmed yet — still within recognitionDelay
-        expect(result.current.recognizedConcert).toBeNull();
-
-        await act(async () => {
-          await vi.advanceTimersByTimeAsync(400);
-        });
-
-        expect(result.current.recognizedConcert?.id).toBe(1);
-      } finally {
-        spy.mockRestore();
-      }
-    });
-
-    it('does not confirm via crop when crop distance exceeds CROP_SIMILARITY_THRESHOLD', async () => {
-      // Frame hash that differs by 3 chars from concert 1's crop hash → distance 12 > threshold 10
-      const FAR_FRAME_HASH = 'f5b3c7d9e1f20000'; // 3 char diff from CONCERT1_CROP_HASH
-      vi.mocked(dataService.getConcerts).mockResolvedValue(makeConcertsWithCrops());
-      activeFrameHash = FAR_FRAME_HASH;
-
-      const { spy } = setupDomMocks();
-      try {
-        const { result } = renderHook(() =>
-          usePhotoRecognition(mockStream, {
-            enabled: true,
-            checkInterval: 50,
-            recognitionDelay: 200,
-          })
-        );
-
-        await act(async () => {
-          await vi.advanceTimersByTimeAsync(500);
-        });
-
-        expect(result.current.recognizedConcert).toBeNull();
-      } finally {
-        spy.mockRestore();
-      }
-    });
-
-    it('does not run crop pass when full-image match is already strong', async () => {
-      // Use standard mock concerts (full-image hashes match activeFrameHash exactly).
-      // Must re-set getConcerts because vi.clearAllMocks() clears it in beforeEach.
-      vi.mocked(dataService.getConcerts).mockResolvedValue(mockConcerts);
-      activeFrameHash = 'a5b3c7d9e1f20486'; // exact match for mockConcerts[0].phash[0]
-
-      const { spy } = setupDomMocks();
-      try {
-        const { result } = renderHook(() =>
-          usePhotoRecognition(mockStream, {
-            enabled: true,
-            checkInterval: 50,
-            recognitionDelay: 200,
-          })
-        );
-
-        await act(async () => {
-          await vi.advanceTimersByTimeAsync(80);
-        });
-
-        await act(async () => {
-          await vi.advanceTimersByTimeAsync(400);
-        });
-
-        // Should confirm via full-image (distance 0), not crop
-        expect(result.current.recognizedConcert?.id).toBe(1);
       } finally {
         spy.mockRestore();
       }

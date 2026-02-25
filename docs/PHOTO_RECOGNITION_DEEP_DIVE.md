@@ -11,7 +11,6 @@ Removed from runtime:
 - dHash matching path
 - Feature-descriptor matching path
 - Parallel recognizer voting path
-- Secondary fallback algorithm path
 - Multi-scale branching path
 
 This reduction is intentional: one deterministic path is easier to tune, debug, and maintain.
@@ -23,7 +22,8 @@ Camera frame
   → quality filter (blur / glare / lighting)
   → crop region (rectangle detection when confident, else centered frame)
   → pHash compute
-  → Hamming distance against all concert pHash variants
+  → bucket lookup in `/data.recognition.v2.json`
+  → Hamming distance against bucketed pHash variants
   → threshold + margin gate (reject ambiguous near-ties)
   → confirm path:
       - initial recognition: instant or short stability
@@ -61,9 +61,8 @@ From the project audit:
 
 Runtime recognizer reads:
 
-- `concert.photoHashes.phash: string[]`
-
-Legacy fields such as `photoHashes.dhash` may remain in data for historical/backfill purposes, but are not used by the runtime path.
+- app metadata from `/data.app.v2.json`
+- recognition hashes from `/data.recognition.v2.json`
 
 ## Debug + telemetry
 
@@ -86,7 +85,7 @@ Use this loop when validating field performance on real devices:
 5. Re-run the offline audit script using runtime-aligned settings:
 
 ```bash
-node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 3 --summary-json tmp/recognition-audit.json
+node scripts/recognition-accuracy-test.js --threshold 18 --margin-threshold 5 --summary-json tmp/recognition-audit.json
 ```
 
 6. Repeat until collision rate and recognition success meet acceptance targets.
@@ -130,7 +129,7 @@ If future audits show a need for richer matching, add a second algorithm only be
 3. Copy hash from debug overlay (`Frame Hash` field)
 4. Add to `data.app.v2.json` under the linked photo record's `photoHashes.phash`
 
-Note: `data.json` remains a legacy fallback artifact and is only used when v2 loading is unavailable under current fallback policy.
+Note: Runtime recognition data is sourced from `data.recognition.v2.json`, with concert metadata from `data.app.v2.json`.
 
 **Script method:**
 

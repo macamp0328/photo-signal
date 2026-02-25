@@ -46,7 +46,7 @@ This document consolidates ideas and plans for features that haven't been implem
 **Implementation Needs**:
 
 - Migration script to upload files
-- Update `data.json` to use CDN URLs
+- Update `data.app.v2.json` to use CDN URLs
 - Add fallback to local files for development
 - Update Concert interface to support URL sources
 

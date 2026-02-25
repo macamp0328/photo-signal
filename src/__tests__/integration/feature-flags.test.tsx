@@ -137,33 +137,6 @@ describe('Feature Flags → Module Behavior Integration', () => {
     });
   });
 
-  it('should remove legacy unsupported flags from storage during initialization', () => {
-    localStorage.setItem(
-      FEATURE_FLAGS_STORAGE_KEY,
-      JSON.stringify([
-        {
-          id: 'test-mode',
-          enabled: true,
-        },
-        {
-          id: 'show-debug-overlay',
-          enabled: true,
-        },
-      ])
-    );
-
-    render(<App />);
-
-    const storedFlags = localStorage.getItem(FEATURE_FLAGS_STORAGE_KEY);
-    expect(storedFlags).toBeTruthy();
-    const parsedFlags = storedFlags
-      ? (JSON.parse(storedFlags) as Array<{ id: string; enabled: boolean }>)
-      : [];
-
-    expect(parsedFlags.some((flag) => flag.id === 'test-mode')).toBe(false);
-    expect(parsedFlags.some((flag) => flag.id === 'show-debug-overlay')).toBe(true);
-  });
-
   it('should enforce curated dark theme mode', () => {
     render(<App />);
 

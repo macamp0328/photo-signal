@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const DEFAULT_DATA = path.resolve('public/data.json');
+const DEFAULT_DATA = path.resolve('public/data.app.v2.json');
 const DEFAULT_AUDIO_INDEX = path.resolve('scripts/audio-workflow/encode/output/audio-index.json');
 const DEFAULT_PHOTO_DETAILS = path.resolve('assets/prod-photographs/prod-photographs-details.csv');
 const DEFAULT_PREFIX = 'prod/audio';
@@ -114,6 +114,42 @@ function loadJson(filePath, fieldName, options = {}) {
   } catch (error) {
     throw new Error(`Invalid JSON in ${fieldName} (${filePath}): ${error.message}`);
   }
+}
+
+function normalizeConcertsPayload(data) {
+  if (
+    data?.version === 2 &&
+    Array.isArray(data?.artists) &&
+    Array.isArray(data?.tracks) &&
+    Array.isArray(data?.photos) &&
+    Array.isArray(data?.entries)
+  ) {
+    const artistsById = new Map(data.artists.map((artist) => [artist.id, artist]));
+    const tracksById = new Map(data.tracks.map((track) => [track.id, track]));
+    const photosById = new Map(data.photos.map((photo) => [photo.id, photo]));
+
+    return data.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const track = tracksById.get(entry.trackId);
+      if (!artist || !track) {
+        return [];
+      }
+
+      const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          audioFile: track.audioFile,
+          imageFile: photo?.imageFile ?? '',
+          recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
+        },
+      ];
+    });
+  }
+
+  return null;
 }
 
 function toPathname(urlOrPath) {
@@ -304,7 +340,7 @@ function printSummary(report) {
   console.log(`  Placeholder URL hits: ${report.summary.placeholderHits}`);
   console.log(`  Duplicate photo mappings: ${report.summary.duplicatePhotoMappings}`);
   console.log(`  Missing CSV ids: ${report.summary.missingPhotoDetailsIds}`);
-  console.log(`  Missing data.json ids: ${report.summary.missingDataJsonIds}`);
+  console.log(`  Missing dataset ids: ${report.summary.missingDataJsonIds}`);
 }
 
 function main() {
@@ -315,19 +351,20 @@ function main() {
   const expectedPrefix = sanitizePrefix(args.prefix ?? DEFAULT_PREFIX);
   const reportPath = path.resolve(args.report ?? DEFAULT_REPORT);
 
-  const data = loadJson(sourcePath, 'data.json');
+  const data = loadJson(sourcePath, 'dataset');
   const audioIndex = loadJson(audioIndexPath, 'audio index', { optional: true });
   const photoRows = loadCsvRows(photoDetailsPath);
 
-  if (!Array.isArray(data.concerts)) {
-    throw new Error('public/data.json missing concerts array');
+  const concerts = normalizeConcertsPayload(data);
+  if (!concerts) {
+    throw new Error('dataset JSON missing v2 entries');
   }
 
   const photoRowsById = new Map(photoRows.map((row) => [String(row.id), row]));
   const { index: audioIndexByPhotoId, duplicates } = indexAudioByPhotoId(audioIndex?.tracks ?? []);
 
   const verification = verifyConcertRows({
-    concerts: data.concerts,
+    concerts,
     photoRowsById,
     expectedPrefix,
     audioIndexByPhotoId,
@@ -340,9 +377,7 @@ function main() {
     (entry) => entry.issue !== 'audio-filename-mismatch-with-audio-index'
   );
 
-  const recognitionConcerts = data.concerts.filter(
-    (concert) => concert.recognitionEnabled !== false
-  );
+  const recognitionConcerts = concerts.filter((concert) => concert.recognitionEnabled !== false);
 
   const dataIds = new Set(recognitionConcerts.map((concert) => String(concert.id)));
   const photoIds = new Set(photoRows.map((row) => String(row.id)));
@@ -359,7 +394,7 @@ function main() {
       audioIndexPresent: Boolean(audioIndex),
     },
     summary: {
-      concertsChecked: data.concerts.length,
+      concertsChecked: concerts.length,
       urlMismatches: verification.urlMismatches.length,
       mappingMismatches: criticalMappingMismatches.length,
       audioIndexMappingMismatches: audioIndexMappingMismatches.length,

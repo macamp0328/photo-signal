@@ -57,8 +57,8 @@ function copyTestAssetsPlugin() {
         let copiedCount = 0;
         let skippedCount = 0;
 
-        // Copy dev/prod concert datasets
-        const datasetFiles = ['concerts.dev.json', 'concerts.prod.json'];
+        // Copy v2 runtime datasets when present
+        const datasetFiles = ['data.app.v2.json', 'data.recognition.v2.json'];
         for (const fileName of datasetFiles) {
           const src = path.join(testDataSrc, fileName);
           const dest = path.join(publicAssetsDir, 'test-data', fileName);

@@ -23,12 +23,76 @@ interface RawConcert {
   photoHashes?: RawHashSet;
 }
 
+interface AppDataV2 {
+  version: number;
+  artists: Array<{ id: string; name: string }>;
+  tracks: Array<{ id: string; artistId: string; audioFile: string; songTitle?: string }>;
+  photos: Array<{
+    id: string;
+    artistId: string;
+    imageFile?: string;
+    recognitionEnabled?: boolean;
+    photoHashes?: RawHashSet;
+  }>;
+  entries: Array<{
+    id: number;
+    artistId: string;
+    trackId: string;
+    photoId?: string;
+    venue: string;
+    date: string;
+    recognitionEnabled?: boolean;
+  }>;
+}
+
+interface RecognitionDataV2 {
+  version: number;
+  entries: Array<{
+    concertId: number;
+    phash: string[];
+  }>;
+}
+
 function loadConcerts(relativePath: string): RawConcert[] {
   const absolutePath = path.resolve(projectRoot, relativePath);
   const contents = readFileSync(absolutePath, 'utf-8');
-  const parsed = JSON.parse(contents);
-  expect(Array.isArray(parsed.concerts)).toBe(true);
-  return parsed.concerts as RawConcert[];
+  const parsed = JSON.parse(contents) as AppDataV2;
+  expect(parsed.version).toBe(2);
+  expect(Array.isArray(parsed.entries)).toBe(true);
+
+  const artistsById = new Map(parsed.artists.map((artist) => [artist.id, artist]));
+  const tracksById = new Map(parsed.tracks.map((track) => [track.id, track]));
+  const photosById = new Map(parsed.photos.map((photo) => [photo.id, photo]));
+
+  return parsed.entries.flatMap((entry) => {
+    const artist = artistsById.get(entry.artistId);
+    const track = tracksById.get(entry.trackId);
+    if (!artist || !track) {
+      return [];
+    }
+
+    const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+    return [
+      {
+        id: entry.id,
+        band: artist.name,
+        venue: entry.venue,
+        date: entry.date,
+        audioFile: track.audioFile,
+        songTitle: track.songTitle,
+        imageFile: photo?.imageFile,
+        recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
+        photoHashes: photo?.photoHashes,
+      },
+    ];
+  });
+}
+
+function loadRecognitionData(relativePath: string): RecognitionDataV2 {
+  const absolutePath = path.resolve(projectRoot, relativePath);
+  const contents = readFileSync(absolutePath, 'utf-8');
+  return JSON.parse(contents) as RecognitionDataV2;
 }
 
 function expectHashArray(hashes: string[] | undefined): asserts hashes is string[] {
@@ -86,8 +150,8 @@ function getRepositoryRelativeAssetPath(assetPath: string): string {
 }
 
 describe('Data files integrity', () => {
-  it('public data has unique ids, local audio files, and hashes for recognizable entries', () => {
-    const concerts = loadConcerts('public/data.json');
+  it('public v2 app data has unique ids, local audio files, and hashes for recognizable entries', () => {
+    const concerts = loadConcerts('public/data.app.v2.json');
     expect(concerts.length).toBeGreaterThanOrEqual(4);
     const seenIds = new Set<number>();
 
@@ -107,6 +171,18 @@ describe('Data files integrity', () => {
       if (concert.recognitionEnabled !== false) {
         expectHashSet(concert.photoHashes);
       }
+    });
+  });
+
+  it('public v2 recognition data exists and has valid hash entries', () => {
+    const recognition = loadRecognitionData('public/data.recognition.v2.json');
+    expect(recognition.version).toBe(2);
+    expect(Array.isArray(recognition.entries)).toBe(true);
+    expect(recognition.entries.length).toBeGreaterThan(0);
+
+    recognition.entries.forEach((entry) => {
+      expect(typeof entry.concertId).toBe('number');
+      expectHashArray(entry.phash);
     });
   });
 });

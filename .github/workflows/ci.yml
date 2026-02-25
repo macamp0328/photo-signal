@@ -65,27 +65,51 @@ jobs:
         run: |
           node <<'NODE'
           const fs = require('node:fs');
-          const source = JSON.parse(fs.readFileSync('public/data.json', 'utf8'));
-          const concerts = Array.isArray(source?.concerts) ? source.concerts : [];
-          const tracks = concerts.map((concert, index) => ({
-            id: String(index + 1),
-            band: String(concert.band ?? ''),
-            songTitle: String(concert.songTitle ?? ''),
-            fileName: String(concert.audioFile ?? '').split('/').pop() || 'track-' + (index + 1) + '.opus',
-          }));
+          const source = JSON.parse(fs.readFileSync('public/data.app.v2.json', 'utf8'));
+          const artistsById = new Map((source?.artists ?? []).map((artist) => [artist.id, artist]));
+          const tracks = Array.isArray(source?.tracks)
+            ? source.tracks.map((track, index) => ({
+                id: String(index + 1),
+                band: String(artistsById.get(track.artistId)?.name ?? ''),
+                songTitle: String(track.songTitle ?? ''),
+                fileName: String(track.audioFile ?? '').split('/').pop() || 'track-' + (index + 1) + '.opus',
+              }))
+            : [];
 
           fs.writeFileSync('/tmp/audio-index.ci.json', JSON.stringify({ tracks }, null, 2));
           NODE
-          npm run audio:build-data -- --audio-index=/tmp/audio-index.ci.json --output=/tmp/data.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json
-          test -f /tmp/data.json
+          npm run audio:build-data -- --audio-index=/tmp/audio-index.ci.json --output-v2=/tmp/data.app.v2.json --output-recognition=/tmp/data.recognition.v2.json
           test -f /tmp/data.app.v2.json
           test -f /tmp/data.recognition.v2.json
+          node <<'NODE'
+          const fs = require('node:fs');
 
-      - name: Verify v2 runtime artifacts for this deploy environment
-        env:
-          NODE_ENV: production
-          VITE_DEPLOY_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
-        run: npm run data:check-v2-artifacts
+          const appV2 = JSON.parse(fs.readFileSync('/tmp/data.app.v2.json', 'utf8'));
+          const recognitionV2 = JSON.parse(fs.readFileSync('/tmp/data.recognition.v2.json', 'utf8'));
+
+          const appValid =
+            appV2?.version === 2 &&
+            Array.isArray(appV2?.artists) &&
+            Array.isArray(appV2?.photos) &&
+            Array.isArray(appV2?.tracks) &&
+            Array.isArray(appV2?.entries) &&
+            appV2.entries.length > 0;
+
+          const recognitionValid =
+            recognitionV2?.version === 2 &&
+            Array.isArray(recognitionV2?.entries) &&
+            recognitionV2.entries.every(
+              (entry) => Number.isInteger(entry?.concertId) && Array.isArray(entry?.phash)
+            );
+
+          if (!appValid) {
+            throw new Error('Invalid generated /tmp/data.app.v2.json schema/content');
+          }
+
+          if (!recognitionValid) {
+            throw new Error('Invalid generated /tmp/data.recognition.v2.json schema/content');
+          }
+          NODE
 
       - name: Check bundle size
         run: ./scripts/check-bundle-size.sh

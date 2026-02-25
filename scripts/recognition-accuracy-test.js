@@ -8,10 +8,11 @@ import { loadImageData, computePHash } from './lib/photoHashUtils.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
-const DATA_PATH = path.join(REPO_ROOT, 'public', 'data.json');
+const APP_DATA_PATH = path.join(REPO_ROOT, 'public', 'data.app.v2.json');
+const RECOGNITION_DATA_PATH = path.join(REPO_ROOT, 'public', 'data.recognition.v2.json');
 
-const DEFAULT_PHASH_THRESHOLD = 14;
-const DEFAULT_MARGIN_THRESHOLD = 4;
+const DEFAULT_PHASH_THRESHOLD = 18;
+const DEFAULT_MARGIN_THRESHOLD = 5;
 const PHASH_LENGTH = 16;
 
 function parseArgs(argv) {
@@ -246,21 +247,68 @@ function buildSummaryPayload(summary, totalCases, startIndex, args) {
   return payload;
 }
 
+function buildConcertRecords(appData, recognitionData) {
+  if (
+    appData?.version === 2 &&
+    Array.isArray(appData?.artists) &&
+    Array.isArray(appData?.photos) &&
+    Array.isArray(appData?.entries)
+  ) {
+    if (recognitionData?.version !== 2 || !Array.isArray(recognitionData?.entries)) {
+      throw new Error('Invalid recognition dataset format: expected v2 recognition payload');
+    }
+
+    const artistsById = new Map(appData.artists.map((artist) => [artist.id, artist]));
+    const photosById = new Map(appData.photos.map((photo) => [photo.id, photo]));
+    const recognitionByConcertId = new Map(
+      recognitionData.entries.map((entry) => [entry.concertId, entry])
+    );
+
+    return appData.entries.flatMap((entry) => {
+      const artist = artistsById.get(entry.artistId);
+      const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+      if (!artist) {
+        return [];
+      }
+
+      const recognitionEntry = recognitionByConcertId.get(entry.id);
+
+      return [
+        {
+          id: entry.id,
+          band: artist.name,
+          imageFile: photo?.imageFile,
+          hashes: normalizeHexArray(recognitionEntry?.phash, PHASH_LENGTH),
+        },
+      ];
+    });
+  }
+
+  throw new Error('Invalid app dataset format: expected v2 payload');
+}
+
 async function main() {
   const args = parseArgs(process.argv);
 
   printHeader(args);
 
-  const raw = await readFile(DATA_PATH, 'utf-8');
-  const data = JSON.parse(raw);
-  const concerts = Array.isArray(data.concerts) ? data.concerts : [];
+  const appRaw = await readFile(APP_DATA_PATH, 'utf-8');
+  const appData = JSON.parse(appRaw);
+
+  const recognitionRaw = await readFile(RECOGNITION_DATA_PATH, 'utf-8');
+  const recognitionData = JSON.parse(recognitionRaw);
+
+  const concerts = buildConcertRecords(appData, recognitionData);
 
   const testCasesAll = concerts.filter((concert) => typeof concert.imageFile === 'string');
   const startIndex = Math.min(args.startIndex, testCasesAll.length);
   const sliced = testCasesAll.slice(startIndex);
   const testCases = args.maxCases ? sliced.slice(0, args.maxCases) : sliced;
 
-  console.log(`Loaded concerts: ${concerts.length}`);
+  console.log(`Loaded records: ${concerts.length}`);
+  console.log(`App dataset: ${path.relative(REPO_ROOT, APP_DATA_PATH)}`);
+  console.log(`Recognition dataset: ${path.relative(REPO_ROOT, RECOGNITION_DATA_PATH)}`);
   console.log(`Concerts with imageFile: ${testCasesAll.length}`);
   console.log(`Start index: ${startIndex}`);
   console.log(`Test cases selected: ${testCases.length}`);
@@ -270,7 +318,7 @@ async function main() {
     .map((concert) => ({
       id: concert.id,
       band: concert.band,
-      hashes: normalizeHexArray(concert.photoHashes?.phash, PHASH_LENGTH),
+      hashes: concert.hashes,
     }))
     .filter((entry) => entry.hashes.length > 0);
 
@@ -336,7 +384,6 @@ async function main() {
         } else if (
           best &&
           ref.id !== best.concertId &&
-          distance !== best.distance &&
           (!secondBest || distance < secondBest.distance)
         ) {
           secondBest = {

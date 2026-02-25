@@ -35,7 +35,7 @@ describe('Multi-Exposure Hash Matching', () => {
       expect(bestDistance).toBeLessThan(10); // Very close match
     });
 
-    it('should work with single-hash concerts (backward compatibility)', () => {
+    it('should work with single-hash concerts', () => {
       const referenceHashes = ['00000000000000000000000000ffffff']; // single hash
       const frameHash = '00000000000000000000000000fffffe'; // close match
 

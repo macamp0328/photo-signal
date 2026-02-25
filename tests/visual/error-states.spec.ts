@@ -35,7 +35,7 @@ test.describe('Error States', () => {
   test('@smoke network error fallback state', async ({ page }) => {
     await bootstrapVisualState(page);
 
-    await page.route('**/data.json', (route) => {
+    await page.route('**/data.app.v2.json', (route) => {
       route.abort('failed');
     });
 
@@ -52,11 +52,11 @@ test.describe('Error States', () => {
   test('@extended empty data state remains stable', async ({ page }) => {
     await bootstrapVisualState(page);
 
-    await page.route('**/data.json', (route) => {
+    await page.route('**/data.app.v2.json', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ concerts: [] }),
+        body: JSON.stringify({ version: 2, artists: [], photos: [], tracks: [], entries: [] }),
       });
     });
 

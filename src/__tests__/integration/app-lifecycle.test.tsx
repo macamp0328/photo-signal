@@ -11,7 +11,6 @@ import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
 
 const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
-const LEGACY_CUSTOM_SETTINGS_STORAGE_KEY = 'photo-signal-custom-settings';
 
 describe('App Lifecycle Integration', () => {
   beforeEach(() => {
@@ -33,20 +32,37 @@ describe('App Lifecycle Integration', () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        concerts: [
+        version: 2,
+        artists: [{ id: 'artist-1', name: 'Test Band' }],
+        photos: [
+          {
+            id: 'photo-1',
+            artistId: 'artist-1',
+            imageFile: '/assets/test-images/gradient-16x16.jpg',
+            photoHashes: { phash: ['abc123def4567890'] },
+          },
+        ],
+        tracks: [
+          {
+            id: 'track-1',
+            artistId: 'artist-1',
+            audioFile: '/audio/test.opus',
+          },
+        ],
+        entries: [
           {
             id: 1,
-            band: 'Test Band',
+            artistId: 'artist-1',
+            trackId: 'track-1',
+            photoId: 'photo-1',
             venue: 'Test Venue',
             date: '2023-01-01T00:00:00-06:00',
-            audioFile: '/audio/test.opus',
-            photoHashes: { phash: ['abc123def4567890'] },
           },
         ],
       }),
     });
 
-    global.fetch = mockFetch;
+    globalThis.fetch = mockFetch;
 
     render(<App />);
 
@@ -56,7 +72,7 @@ describe('App Lifecycle Integration', () => {
 
   it('should handle network errors gracefully', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
     // App should still render even if data loading will fail later
     render(<App />);
@@ -96,28 +112,17 @@ describe('App Lifecycle Integration', () => {
         },
       ])
     );
-    localStorage.setItem(
-      LEGACY_CUSTOM_SETTINGS_STORAGE_KEY,
-      JSON.stringify([
-        {
-          id: 'legacy-setting',
-          value: 1250,
-        },
-      ])
-    );
 
     render(<App />);
 
-    // App should load with feature flags; legacy custom settings should not break initialization
+    // App should load with feature flags from persisted state
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
 
-    // Verify localStorage values remain readable for backward compatibility
+    // Verify persisted feature flags remain readable
     const flags = localStorage.getItem(FEATURE_FLAGS_STORAGE_KEY);
-    const settings = localStorage.getItem(LEGACY_CUSTOM_SETTINGS_STORAGE_KEY);
     expect(flags).toBeTruthy();
-    expect(settings).toBeTruthy();
   });
 
   it('should initialize with defaults when localStorage is empty', () => {

@@ -34,7 +34,8 @@ Audio files are stored in the `audio/` subdirectory. See [audio/README.md](./aud
 
 ### Data Files
 
-- **`data.json`** - Concert metadata (band, venue, date, audio file paths)
+- **`data.app.v2.json`** - Normalized runtime app metadata
+- **`data.recognition.v2.json`** - Recognition hash index used by camera matching
 
 ### Test Assets (Auto-Generated)
 

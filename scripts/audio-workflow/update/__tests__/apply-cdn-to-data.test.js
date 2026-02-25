@@ -39,6 +39,55 @@ describe('apply-cdn-to-data', () => {
     return filepath;
   };
 
+  const createV2Dataset = () => ({
+    version: 2,
+    artists: [
+      { id: 'artist-1', name: 'Band A' },
+      { id: 'artist-2', name: 'Band B' },
+    ],
+    photos: [
+      {
+        id: 'photo-1',
+        artistId: 'artist-1',
+        imageFile: '/assets/prod-photographs/a.jpg',
+      },
+      {
+        id: 'photo-2',
+        artistId: 'artist-2',
+        imageFile: '/assets/prod-photographs/b.jpg',
+      },
+    ],
+    tracks: [
+      {
+        id: 'track-1',
+        artistId: 'artist-1',
+        audioFile: '/audio/a.opus',
+      },
+      {
+        id: 'track-2',
+        artistId: 'artist-2',
+      },
+    ],
+    entries: [
+      {
+        id: 1,
+        artistId: 'artist-1',
+        trackId: 'track-1',
+        photoId: 'photo-1',
+        venue: 'Venue A',
+        date: '2026-01-01T00:00:00-06:00',
+      },
+      {
+        id: 2,
+        artistId: 'artist-2',
+        trackId: 'track-2',
+        photoId: 'photo-2',
+        venue: 'Venue B',
+        date: '2026-01-02T00:00:00-06:00',
+      },
+    ],
+  });
+
   it('buildAudioUrl should include prefix and filename', () => {
     const concert = { id: 5, audioFile: '/audio/test-track.opus' };
     const url = buildAudioUrl(concert, 'https://audio.example.com', 'prod/audio');
@@ -72,34 +121,29 @@ describe('apply-cdn-to-data', () => {
     expect(url).toBe('https://photo.example.com/prod/photos/P3150376.jpg');
   });
 
-  it('applyCdnToData should update all concerts with audio', () => {
-    const data = {
-      concerts: [
-        { id: 1, audioFile: '/audio/a.opus', imageFile: '/assets/prod-photographs/a.jpg' },
-        { id: 2, band: 'No Audio' },
-      ],
-    };
+  it('applyCdnToData should update v2 tracks and photos with CDN URLs', () => {
+    const data = createV2Dataset();
 
     const updated = applyCdnToData(data, 'https://audio.example.com', 'prod/audio');
 
-    expect(updated.concerts[0].audioFile).toBe('https://audio.example.com/prod/audio/a.opus');
-    expect(updated.concerts[0].photoUrl).toBe('https://audio.example.com/prod/photos/a.jpg');
-    expect(updated.concerts[0].audioFileFallback).toBeUndefined();
-    expect(updated.concerts[1].audioFile).toBeUndefined();
+    expect(updated.tracks[0].audioFile).toBe('https://audio.example.com/prod/audio/a.opus');
+    expect(updated.photos[0].photoUrl).toBe('https://audio.example.com/prod/photos/a.jpg');
+    expect(updated.tracks[0].audioFileFallback).toBeUndefined();
+    expect(updated.tracks[1].audioFile).toBeUndefined();
   });
 
   it('updateConcertWithCdn should preserve existing photoUrl when imageFile is missing', () => {
     const concert = {
       id: 4,
-      band: 'Legacy Photo URL',
-      audioFile: '/audio/legacy.opus',
-      photoUrl: 'https://legacy.example.com/prod/photos/legacy.jpg',
+      band: 'Existing Photo URL',
+      audioFile: '/audio/existing.opus',
+      photoUrl: 'https://existing.example.com/prod/photos/existing.jpg',
     };
 
     const updated = updateConcertWithCdn(concert, 'https://cdn.example.com', 'prod/audio');
 
-    expect(updated.audioFile).toBe('https://cdn.example.com/prod/audio/legacy.opus');
-    expect(updated.photoUrl).toBe('https://legacy.example.com/prod/photos/legacy.jpg');
+    expect(updated.audioFile).toBe('https://cdn.example.com/prod/audio/existing.opus');
+    expect(updated.photoUrl).toBe('https://existing.example.com/prod/photos/existing.jpg');
   });
 
   it('sanitizePrefix should remove leading and trailing slashes', () => {
@@ -110,9 +154,9 @@ describe('apply-cdn-to-data', () => {
     expect(trimTrailingSlash('https://audio.example.com/')).toBe('https://audio.example.com');
   });
 
-  it('should throw when concerts array is missing', () => {
+  it('should throw when payload is not strict v2', () => {
     expect(() => applyCdnToData({}, 'https://audio.example.com', 'prod/audio')).toThrow(
-      'concerts array'
+      'expected v2 payload'
     );
   });
 
@@ -123,10 +167,10 @@ describe('apply-cdn-to-data', () => {
   });
 
   it('CLI dry run should not write file', () => {
-    const data = { concerts: [{ id: 1, audioFile: '/audio/a.opus' }] };
+    const data = createV2Dataset();
     const file = createTestFile('data.json', JSON.stringify(data));
     const output = applyCdnToData(JSON.parse(JSON.stringify(data)), 'https://audio.example.com');
-    expect(output.concerts[0].audioFile).toContain('/prod/audio/a.opus');
+    expect(output.tracks[0].audioFile).toContain('/prod/audio/a.opus');
     expect(existsSync(`${file}.backup`)).toBe(false);
   });
 

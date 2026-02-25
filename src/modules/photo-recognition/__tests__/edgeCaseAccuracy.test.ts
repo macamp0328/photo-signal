@@ -1,7 +1,7 @@
 /**
  * Production Data Recognition Regression Tests
  *
- * Uses canonical production `public/data.json` and production image assets to
+ * Uses canonical production `public/data.app.v2.json` and production image assets to
  * validate that core recognition inputs remain healthy and that pHash matching
  * still works for representative real photos.
  */
@@ -18,7 +18,7 @@ import { existsSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, '..', '..', '..', '..');
-const PRODUCTION_DATA_PATH = join(PROJECT_ROOT, 'public', 'data.json');
+const PRODUCTION_DATA_PATH = join(PROJECT_ROOT, 'public', 'data.app.v2.json');
 const SAMPLE_SIZE = 12;
 const MAX_PHASH_DISTANCE = 48;
 const MIN_DISCRIMINATION_PASS_RATE = 75;
@@ -35,12 +35,54 @@ interface Concert {
 }
 
 interface ProductionData {
-  concerts: Concert[];
+  version: 2;
+  artists: Array<{ id: string; name: string }>;
+  tracks: Array<{ id: string; artistId: string; audioFile: string; songTitle?: string }>;
+  photos: Array<{
+    id: string;
+    artistId: string;
+    imageFile?: string;
+    recognitionEnabled?: boolean;
+    photoHashes?: { phash?: string[] };
+  }>;
+  entries: Array<{
+    id: number;
+    artistId: string;
+    trackId: string;
+    photoId?: string;
+    venue: string;
+    date: string;
+    recognitionEnabled?: boolean;
+  }>;
 }
 
 async function loadProductionData(): Promise<ProductionData> {
   const data = await readFile(PRODUCTION_DATA_PATH, 'utf-8');
   return JSON.parse(data);
+}
+
+function toConcerts(payload: ProductionData): Concert[] {
+  const artistsById = new Map(payload.artists.map((artist) => [artist.id, artist]));
+  const photosById = new Map(payload.photos.map((photo) => [photo.id, photo]));
+
+  return payload.entries.flatMap((entry) => {
+    const artist = artistsById.get(entry.artistId);
+    if (!artist) {
+      return [];
+    }
+
+    const photo = entry.photoId ? photosById.get(entry.photoId) : undefined;
+
+    return [
+      {
+        id: entry.id,
+        band: artist.name,
+        imageFile: photo?.imageFile ?? '',
+        recognitionEnabled: entry.recognitionEnabled ?? photo?.recognitionEnabled,
+        photoHashes: photo?.photoHashes,
+      },
+    ];
+  });
 }
 
 function resolveImagePath(imageFile: string): string {
@@ -76,6 +118,7 @@ function getReferenceHashes(concert: Concert): string[] {
 
 describe('Production Data Recognition Regression Tests', () => {
   let productionData: ProductionData;
+  let concerts: Concert[];
   let recognitionEnabledConcerts: Concert[];
   let concertsWithImagesAndHashes: Concert[];
   let sampleConcerts: Concert[];
@@ -83,9 +126,8 @@ describe('Production Data Recognition Regression Tests', () => {
 
   beforeAll(async () => {
     productionData = await loadProductionData();
-    recognitionEnabledConcerts = productionData.concerts.filter(
-      (concert) => concert.recognitionEnabled !== false
-    );
+    concerts = toConcerts(productionData);
+    recognitionEnabledConcerts = concerts.filter((concert) => concert.recognitionEnabled !== false);
     concertsWithImagesAndHashes = recognitionEnabledConcerts.filter(
       (concert) =>
         Boolean(concert.imageFile) &&
@@ -105,8 +147,9 @@ describe('Production Data Recognition Regression Tests', () => {
   describe('Dataset Validation', () => {
     it('loads production data with concerts', () => {
       expect(productionData).toBeDefined();
-      expect(Array.isArray(productionData.concerts)).toBe(true);
-      expect(productionData.concerts.length).toBeGreaterThan(0);
+      expect(productionData.version).toBe(2);
+      expect(Array.isArray(concerts)).toBe(true);
+      expect(concerts.length).toBeGreaterThan(0);
     });
 
     it('has imageFile + pHash references for production concerts', () => {
@@ -124,11 +167,11 @@ describe('Production Data Recognition Regression Tests', () => {
     });
 
     it('keeps unique concert ids', () => {
-      const ids = productionData.concerts.map((concert) => concert.id);
+      const ids = concerts.map((concert) => concert.id);
       expect(new Set(ids).size).toBe(ids.length);
     });
 
-    it('resolves production image files from data.json paths', () => {
+    it('resolves production image files from v2 photo paths', () => {
       for (const concert of concertsWithImagesAndHashes) {
         const imagePath = resolveImagePath(concert.imageFile);
         expect(existsSync(imagePath)).toBe(true);

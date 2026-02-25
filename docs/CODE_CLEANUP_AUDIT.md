@@ -242,7 +242,8 @@ grep -r "orbFeatureUtils" scripts/ → no results outside the file itself
 
 ## 8. Legacy Data Format Fallback Infrastructure
 
-**Classification**: Delete (after v2 cutover is confirmed complete)
+**Status**: ✅ Completed (2026-02-25)
+**Classification**: Delete
 **Files**:
 
 - `public/data.json` (the legacy data file itself)
@@ -251,17 +252,7 @@ grep -r "orbFeatureUtils" scripts/ → no results outside the file itself
 - `scripts/check-v2-artifacts.js` + its test
 - `src/types/index.ts`: `ConcertData` interface (legacy v1 shape)
 
-**Problem**: The app has fully migrated to v2 data files (`data.app.v2.json` + `data.recognition.v2.json`), but the legacy `data.json` is still in `public/` and the `DataService` still maintains an elaborate fallback system with per-environment policy logic, "Phase C" messaging, and production telemetry for legacy loads. The two check scripts exist purely to determine if it's safe to delete this fallback.
-
-The migration tooling for monitoring cutover readiness has served its purpose. Once `public/data.json` is removed and the fallback has been stripped, `DataService` becomes significantly simpler.
-
-**Suggested order**:
-
-1. Confirm from telemetry that `legacyFallbackLoadsInProduction === 0`
-2. Delete `public/data.json`
-3. Strip the legacy fallback path from `DataService.ts`
-4. Delete `check-cutover-readiness.js` and `check-v2-artifacts.js` with their tests
-5. Remove `ConcertData` from `src/types/index.ts`
+**Result**: Runtime and tooling now enforce v2-only data contracts (`/data.app.v2.json` and `/data.recognition.v2.json`) without legacy fallback parsing or staged fallback behavior.
 
 ---
 

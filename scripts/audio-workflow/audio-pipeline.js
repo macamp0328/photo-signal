@@ -188,7 +188,7 @@ Options:
   --prefix=<path>         R2 key prefix (default: ${DEFAULT_PREFIX})
   --skip-download         Skip the download phase (reuse existing downloads)
   --skip-encode           Skip the encode phase (reuse existing encoded files)
-  --skip-upload           Skip the upload phase (build data.json without uploading)
+  --skip-upload           Skip the upload phase (build v2 artifacts without uploading)
   --dry-run               Print commands without running them
   --help                  Show this message
 
@@ -339,7 +339,7 @@ async function main() {
 
     const ok = run(
       buildDataCmd,
-      'Build public/data.json + public/data.app.v2.json + public/data.recognition.v2.json from CSV + audio index',
+      'Build public/data.app.v2.json + public/data.recognition.v2.json from CSV + audio index',
       dryRun
     );
     if (!ok) process.exit(1);
@@ -351,7 +351,6 @@ async function main() {
   console.log('✅  Pipeline complete!');
   console.log('');
   console.log('📋  What was produced:');
-  console.log('     public/data.json — legacy concert metadata with audio URLs');
   console.log('     public/data.app.v2.json — normalized app metadata (artists/photos/tracks)');
   console.log('     public/data.recognition.v2.json — recognition hash index for camera matching');
   if (!canUpload) {

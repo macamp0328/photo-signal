@@ -146,7 +146,7 @@ npm run upload-audio -- [options]
 - Accepts credentials via environment variables (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT` or `R2_ACCOUNT_ID`, `R2_BUCKET_NAME`) or CLI flags
 - Supports optional prefixes (`R2_PREFIX`) so you can keep `prod/` versus `staging/` uploads isolated
 - Understands dry runs, extension filters, concurrency limits, and `--skip-existing` (HEAD checks + SHA-256 metadata) for incremental uploads
-- Emits public CDN URLs for every freshly uploaded object when `R2_BASE_URL` (or `--base-url`) is provided, making it easy to paste into `data.json`
+- Emits public CDN URLs for every freshly uploaded object when `R2_BASE_URL` (or `--base-url`) is provided, making it easy to apply into `public/data.app.v2.json`
 - Preserves cache headers (`immutable` audio, short-lived JSON/Markdown) and records SHA-256 checksums in object metadata for later validation
 
 Common env var setup (copy `.env.example` to `.env.local` and fill in the secrets, or export manually):
@@ -171,7 +171,7 @@ npm run upload-audio:local -- --skip-existing
 npm run migrate-audio -- [options]
 ```
 
-- Rewrites `public/data.json` entries to point at GitHub Releases or Cloudflare R2
+- Rewrites runtime dataset entries (default `public/data.app.v2.json`) to point at GitHub Releases or Cloudflare R2
 - Preserves local fallbacks (`audioFileFallback`) and annotates the CDN provider (`audioFileSource`)
 - Provides dry-run previews, change summaries, and backups
 
@@ -181,7 +181,7 @@ npm run migrate-audio -- [options]
 npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio
 ```
 
-- Rewrites `audioFile` entries in `public/data.json` to point at a Cloudflare Worker hostname
+- Rewrites `audioFile` entries in the runtime dataset (default `public/data.app.v2.json`) to point at a Cloudflare Worker hostname
 - Builds paths using `/<prefix>/<concertId>/<filename>` so R2 keys stay organized by photo ID
 - Keeps existing `audioFileFallback` values (or sets them from the previous `audioFile`)
 - Supports dry runs and automatic backups before writing
@@ -192,8 +192,7 @@ npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/
 npm run audio:build-data -- --base-url=https://photo-signal-audio-worker.example.workers.dev --prefix=prod/audio
 ```
 
-- Builds `public/data.json` from `assets/prod-photographs/prod-photographs-details.csv`
-- Also builds `public/data.app.v2.json` (normalized app metadata)
+- Builds `public/data.app.v2.json` from `assets/prod-photographs/prod-photographs-details.csv`
 - Also builds `public/data.recognition.v2.json` (recognition hash index)
 - Uses `scripts/audio-workflow/encode/output/audio-index.json` as the audio metadata source
 - Applies strict band-name matching (exact + curated alias support; conservative fallback)
@@ -205,7 +204,7 @@ npm run audio:build-data -- --base-url=https://photo-signal-audio-worker.example
 npm run validate-audio -- [options]
 ```
 
-- Verifies that every `audioFile` (and optional fallback) in `data.json` loads successfully
+- Verifies that every `audioFile` (and optional fallback) in the runtime dataset loads successfully
 - Works with both local `/audio/*.mp3` files and remote CDN URLs
 - Supports adjustable timeouts plus optional fallback checks
 
@@ -238,16 +237,14 @@ Use this flow to keep photo IDs aligned with encoded tracks. It is intentionally
 
 5. **Build runtime dataset from CSV:**
    - Run `npm run audio:build-data -- --base-url=<worker-url> --prefix=prod/audio` to regenerate:
-     - `public/data.json`
      - `public/data.app.v2.json`
      - `public/data.recognition.v2.json`
        deterministically from `prod-photographs-details.csv` + `audio-index.json`.
-   - `songTitle` in `public/data.json` is sourced from CSV (`songTitle`) first, then falls back to `audio-index.json` track title.
+   - `songTitle` in `public/data.app.v2.json` is sourced from CSV (`songTitle`) first, then falls back to `audio-index.json` track title.
 
 6. **Regenerate recognition hashes:**
    - Run `npm run hashes:refresh` (or adjust batch size/paths for your environment).
    - Default sync targets are:
-     - `public/data.json`
      - `public/data.app.v2.json`
      - `public/data.recognition.v2.json`
 
@@ -285,15 +282,15 @@ Use this checklist when you need to refresh production data and gallery creative
    npm run audio:build-data -- --base-url=https://<your-worker-domain> --prefix=prod/audio
    ```
 
-   - This regenerates `public/data.json`, `public/data.app.v2.json`, and `public/data.recognition.v2.json` deterministically.
+   - This regenerates `public/data.app.v2.json` and `public/data.recognition.v2.json` deterministically.
 
-5. **Refresh recognition hashes in data.json**
+5. **Refresh recognition hashes**
 
    ```bash
    npm run hashes:refresh
    ```
 
-   - Updates recognition hash fields across legacy + v2 artifacts.
+   - Updates recognition hash fields across the v2 artifacts.
 
 6. **Upload CDN assets (audio + covers + manifests)**
 

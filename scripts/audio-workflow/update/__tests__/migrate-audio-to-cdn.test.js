@@ -13,6 +13,31 @@ describe('migrate-audio-to-cdn', () => {
   const testDir = '/tmp/migrate-audio-cdn-tests';
   let testFiles = [];
 
+  const createV2Dataset = (audioFiles) => ({
+    version: 2,
+    artists: audioFiles.map((_, index) => ({
+      id: `artist-${index + 1}`,
+      name: `Band ${index + 1}`,
+    })),
+    photos: audioFiles.map((_, index) => ({
+      id: `photo-${index + 1}`,
+      artistId: `artist-${index + 1}`,
+    })),
+    tracks: audioFiles.map((audioFile, index) => ({
+      id: `track-${index + 1}`,
+      artistId: `artist-${index + 1}`,
+      audioFile,
+    })),
+    entries: audioFiles.map((_, index) => ({
+      id: index + 1,
+      artistId: `artist-${index + 1}`,
+      trackId: `track-${index + 1}`,
+      photoId: `photo-${index + 1}`,
+      venue: `Venue ${index + 1}`,
+      date: '2026-01-01T00:00:00-06:00',
+    })),
+  });
+
   beforeEach(() => {
     // Create test directory
     mkdirSync(testDir, { recursive: true });
@@ -41,15 +66,13 @@ describe('migrate-audio-to-cdn', () => {
 
   describe('loadDataJson', () => {
     it('should load and parse valid data.json', () => {
-      const testData = {
-        concerts: [{ id: 1, audioFile: '/audio/test.opus' }],
-      };
+      const testData = createV2Dataset(['/audio/test.opus']);
       const tempFile = createTestFile('data.json', testData);
 
       const result = loadDataJson(tempFile);
 
       expect(result).toEqual(testData);
-      expect(result.concerts).toHaveLength(1);
+      expect(result.entries).toHaveLength(1);
     });
 
     it('should throw error for missing file', () => {
@@ -62,18 +85,18 @@ describe('migrate-audio-to-cdn', () => {
       expect(() => loadDataJson(tempFile)).toThrow('Invalid JSON');
     });
 
-    it('should throw error for invalid schema (no concerts array)', () => {
+    it('should throw error for invalid schema', () => {
       const testData = { notConcerts: [] };
       const tempFile = createTestFile('invalid-schema.json', testData);
 
-      expect(() => loadDataJson(tempFile)).toThrow('missing concerts array');
+      expect(() => loadDataJson(tempFile)).toThrow('Invalid dataset format');
     });
 
-    it('should throw error for concerts not being an array', () => {
-      const testData = { concerts: 'not-an-array' };
+    it('should throw error when required v2 arrays are missing', () => {
+      const testData = { version: 2, artists: [], tracks: [], entries: [] };
       const tempFile = createTestFile('invalid-concerts.json', testData);
 
-      expect(() => loadDataJson(tempFile)).toThrow('missing concerts array');
+      expect(() => loadDataJson(tempFile)).toThrow('Invalid dataset format');
     });
   });
 
@@ -206,7 +229,7 @@ describe('migrate-audio-to-cdn', () => {
 
   describe('createBackup', () => {
     it('should create timestamped backup file', () => {
-      const originalPath = createTestFile('test-data.json', { concerts: [] });
+      const originalPath = createTestFile('test-data.json', createV2Dataset([]));
 
       const backupPath = createBackup(originalPath);
       testFiles.push(backupPath);
@@ -217,7 +240,7 @@ describe('migrate-audio-to-cdn', () => {
     });
 
     it('should preserve original file content in backup', () => {
-      const testData = { concerts: [{ id: 1 }] };
+      const testData = createV2Dataset(['/audio/a.opus']);
       const originalPath = createTestFile('test-data.json', JSON.stringify(testData, null, 2));
 
       const backupPath = createBackup(originalPath);
@@ -234,99 +257,55 @@ describe('migrate-audio-to-cdn', () => {
 
   describe('validateMigration', () => {
     it('should pass for valid migration', () => {
-      const original = {
-        concerts: [
-          { id: 1, band: 'Band A', audioFile: '/audio/a.opus' },
-          { id: 2, band: 'Band B', audioFile: '/audio/b.opus' },
-        ],
-      };
-
-      const updated = {
-        concerts: [
-          {
-            id: 1,
-            band: 'Band A',
-            audioFile: 'https://cdn.com/a.opus',
-            audioFileFallback: '/audio/a.opus',
-            audioFileSource: 'r2',
-          },
-          {
-            id: 2,
-            band: 'Band B',
-            audioFile: 'https://cdn.com/b.opus',
-            audioFileFallback: '/audio/b.opus',
-            audioFileSource: 'r2',
-          },
-        ],
-      };
+      const original = createV2Dataset(['/audio/a.opus', '/audio/b.opus']);
+      const updated = createV2Dataset(['https://cdn.com/a.opus', 'https://cdn.com/b.opus']);
 
       expect(() => validateMigration(original, updated)).not.toThrow();
     });
 
     it('should throw error if concert count changes', () => {
-      const original = {
-        concerts: [
-          { id: 1, audioFile: '/audio/a.opus' },
-          { id: 2, audioFile: '/audio/b.opus' },
-        ],
-      };
-
-      const updated = {
-        concerts: [{ id: 1, audioFile: 'https://cdn.com/a.opus' }],
-      };
+      const original = createV2Dataset(['/audio/a.opus', '/audio/b.opus']);
+      const updated = createV2Dataset(['https://cdn.com/a.opus']);
 
       expect(() => validateMigration(original, updated)).toThrow('Concert count mismatch');
     });
 
     it('should throw error if required fields are removed', () => {
-      const original = {
-        concerts: [{ id: 1, band: 'Band A', venue: 'Venue A', audioFile: '/audio/a.opus' }],
-      };
-
+      const original = createV2Dataset(['/audio/a.opus']);
       const updated = {
-        concerts: [
-          { id: 1, audioFile: 'https://cdn.com/a.opus' }, // Missing band and venue
-        ],
-      };
-
-      expect(() => validateMigration(original, updated)).toThrow('Required field');
-    });
-
-    it('should allow adding new fields', () => {
-      const original = {
-        concerts: [{ id: 1, audioFile: '/audio/a.opus' }],
-      };
-
-      const updated = {
-        concerts: [
+        version: 2,
+        artists: [],
+        photos: [{ id: 'photo-1', artistId: 'artist-1' }],
+        tracks: [{ id: 'track-1', artistId: 'artist-1', audioFile: 'https://cdn.com/a.opus' }],
+        entries: [
           {
             id: 1,
-            audioFile: 'https://cdn.com/a.opus',
-            audioFileFallback: '/audio/a.opus',
-            audioFileSource: 'r2',
+            artistId: 'artist-1',
+            trackId: 'track-1',
+            photoId: 'photo-1',
+            venue: 'Venue 1',
+            date: '2026-01-01T00:00:00-06:00',
           },
         ],
       };
+
+      expect(() => validateMigration(original, updated)).toThrow('Concert count mismatch');
+    });
+
+    it('should allow adding new fields', () => {
+      const original = createV2Dataset(['/audio/a.opus']);
+      const updated = createV2Dataset(['https://cdn.com/a.opus']);
+      updated.tracks[0].audioFileSource = 'r2';
 
       expect(() => validateMigration(original, updated)).not.toThrow();
     });
 
     it('should validate each concert individually', () => {
-      const original = {
-        concerts: [
-          { id: 1, band: 'Band A', audioFile: '/audio/a.opus' },
-          { id: 2, band: 'Band B', venue: 'Venue B', audioFile: '/audio/b.opus' },
-        ],
-      };
+      const original = createV2Dataset(['/audio/a.opus', '/audio/b.opus']);
+      const updated = createV2Dataset(['https://cdn.com/a.opus', 'https://cdn.com/b.opus']);
+      updated.entries[1].trackId = 'missing-track';
 
-      const updated = {
-        concerts: [
-          { id: 1, band: 'Band A', audioFile: 'https://cdn.com/a.opus' },
-          { id: 2, audioFile: 'https://cdn.com/b.opus' }, // Missing band and venue
-        ],
-      };
-
-      expect(() => validateMigration(original, updated)).toThrow('Required field');
+      expect(() => validateMigration(original, updated)).toThrow('Concert count mismatch');
     });
   });
 });

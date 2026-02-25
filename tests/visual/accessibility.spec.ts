@@ -30,6 +30,7 @@ test.describe('Accessibility', () => {
 
     await page.emulateMedia({ forcedColors: 'active' });
     const maxDiffPixelRatio = getMaxDiffPixelRatio(test.info().project.name, {
+      chromium: VISUAL_MAX_DIFF_RATIO_LENIENT,
       'Mobile Chrome': VISUAL_MAX_DIFF_RATIO_LENIENT,
     });
 

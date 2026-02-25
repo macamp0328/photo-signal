@@ -34,7 +34,7 @@ npx wrangler deploy --minify
 
 ## Data Updates
 
-After deploying the Worker (e.g., `https://audio.example.com`), rewrite `public/data.json`:
+After deploying the Worker (e.g., `https://audio.example.com`), rewrite `public/data.app.v2.json`:
 
 ```bash
 npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio --photo-prefix=prod/photos
@@ -98,7 +98,7 @@ npm run trace-audio
 6. Validate all tracks after fixing one:
 
 ```bash
-npm run validate-audio -- --source=public/data.json --origin=https://www.whoisduck2.com
+npm run validate-audio -- --source=public/data.app.v2.json --origin=https://www.whoisduck2.com
 ```
 
 ## Root Cause Analysis (2026-02-18)
@@ -108,7 +108,7 @@ npm run validate-audio -- --source=public/data.json --origin=https://www.whoisdu
 The following command reproduces the current production failure pattern:
 
 ```bash
-npm run validate-audio -- --trace --concert-id=1 --origin=https://www.whoisduck2.com --source=public/data.json
+npm run validate-audio -- --trace --concert-id=1 --origin=https://www.whoisduck2.com --source=public/data.app.v2.json
 ```
 
 Observed output:
@@ -121,11 +121,11 @@ Observed output:
 
 The root cause is **dataset/object mismatch**, not a Howler runtime bug:
 
-1. App playback entry points all consume `concert.audioFile` from `public/data.json`:
+1. App playback entry points all consume `concert.audioFile` from `public/data.app.v2.json`:
    - Auto play: `src/App.tsx` (`play(selectedAudioUrl)` in recognized-concert effect)
    - Play button: `src/App.tsx` (`handleTogglePlayback`)
    - Play test song: `src/App.tsx` (`loadTestAudioUrl`) + `src/modules/debug-overlay/useAudioTest.ts`
-2. Many concerts currently point to `.../prod/audio/concert-4.opus` in `public/data.json`.
+2. Many concerts currently point to `.../prod/audio/concert-4.opus` in `public/data.app.v2.json`.
 3. Worker + R2 return `404` for that key, so all feature paths fail when they target those records.
 
 ### Scope confirmation (R2 response vs browser vs Howler)
@@ -152,11 +152,11 @@ on the current browser (for example, browsers that do not decode Ogg Opus).
 
 ### Recommended remediation
 
-1. Regenerate or patch `public/data.json` so all `audioFile` entries map to uploaded objects.
+1. Regenerate or patch `public/data.app.v2.json` so all `audioFile` entries map to uploaded objects.
 2. Upload a real `concert-4.opus` fallback object (short-term mitigation) **or** stop emitting that fallback URL.
 3. Gate releases with:
    ```bash
-   npm run validate-audio -- --source=public/data.json --origin=https://www.whoisduck2.com
+   npm run validate-audio -- --source=public/data.app.v2.json --origin=https://www.whoisduck2.com
    ```
    and require `100%` success before deploy.
 4. Keep Worker CORS allowlist checks (`--origin=...`) in place, but treat `404` as data/object mismatch first.

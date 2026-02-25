@@ -68,39 +68,6 @@ USE_DOCKER=true ./scripts/build.sh
 - Bundles with Vite
 - Outputs to `dist/` directory
 
----
-
-### `check-cutover-readiness.js` - Legacy Fallback Removal Readiness
-
-Scans exported telemetry JSON files and prints a single-line decision:
-
-- `safe to remove legacy fallback: yes|no`
-
-**Usage:**
-
-```bash
-# Scan current directory recursively for telemetry exports
-npm run data:cutover-readiness
-
-# Scan a specific folder
-npm run data:cutover-readiness -- ./telemetry-exports
-
-# Require at least one valid telemetry payload (otherwise fail)
-npm run data:cutover-readiness -- ./telemetry-exports --require-data
-
-# Override telemetry filename filter
-npm run data:cutover-readiness -- ./telemetry-exports --pattern=photo-signal-telemetry-
-```
-
-**What it checks:**
-
-- `dataSource.telemetry.legacyFallbackLoads`
-- `dataSource.telemetry.legacyFallbackLoadsInProduction`
-
-The result is **yes** only when analyzed sessions exist and production fallback usage is zero.
-
----
-
 ### `test.sh` - Run Tests
 
 Runs all tests using Vitest.
@@ -381,7 +348,7 @@ npm run encode-audio
 # 3. Upload to CDN (future)
 # npm run upload-audio
 
-# 4. Rewrite data.json to the CDN base
+# 4. Rewrite the runtime dataset to the CDN base
 npm run apply-cdn-to-data -- --base-url="https://audio.example.com" --prefix=prod/audio
 
 # 5. Validate URLs
@@ -526,10 +493,10 @@ npm run hashes:refresh -- \
 
 **Highlights:**
 
-- Reads from `public/data.json` (override via `--input`)
+- Reads from `public/data.app.v2.json` (override via `--input`)
 - Writes refreshed data back to the source file unless `--dry-run`
-- Mirrors updated entries into `public/data.json` unless `--skip-public`
-- Regenerates pHash values (three exposure variants)
+- Mirrors updated entries into `public/data.app.v2.json` and `public/data.recognition.v2.json` unless `--skip-public`
+- Regenerates pHash values (five exposure variants)
 - Supports targeted runs via `--id` / `--ids`
 - Offers hash-focused toggles such as `--hashes-only`
 - Includes a fast `--paths-mode` for ad-hoc hash generation (used by `npm run hashes:paths`)
@@ -663,7 +630,7 @@ Monitors production bundle sizes and enforces size limits (used in CI).
 **What it does:**
 
 - Creates `public/assets/test-data/`, `test-audio/`, and `test-images/` directories
-- Copies `concerts.json` from `assets/test-data/`
+- Copies v2 runtime datasets (`data.app.v2.json`, `data.recognition.v2.json`) when present
 - Copies all Opus audio files from `assets/test-audio/`
 - Copies all JPG files from `assets/test-images/`
 
@@ -791,7 +758,7 @@ npm run hashes:paths
 # Point to additional folders or files
 npm run hashes:paths -- --paths assets/example-real-photos,new-shots.jpg
 
-# Regenerate all concert hashes in public/data.json
+# Regenerate all concert hashes in public/data.app.v2.json / public/data.recognition.v2.json
 npm run hashes:refresh
 ```
 
@@ -803,7 +770,7 @@ Behind the scenes this runs `node scripts/update-recognition-data.js --paths-mod
 
 ### `audio-workflow/update/migrate-audio-to-cdn.js` - Migrate Audio to CDN
 
-Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates `data.json` with the new URLs.
+Migrates audio files to a CDN (GitHub Releases or Cloudflare R2) and updates the runtime dataset with the new URLs.
 
 **Requirements:** Node.js (ES modules support)
 
@@ -819,7 +786,7 @@ node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 
 **Options:**
 
-- `--source=<path>` - Path to data.json (default: `public/data.json`)
+- `--source=<path>` - Path to runtime dataset JSON (default: `public/data.app.v2.json`)
 - `--cdn=<provider>` - CDN provider: `github-release` | `r2` (default: `github-release`)
 - `--base-url=<url>` - Base URL for CDN files (required)
 - `--dry-run` - Preview changes without writing files
@@ -828,7 +795,7 @@ node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 **What it does:**
 
 - Updates `audioFile` field with CDN URLs
-- Creates backup of original data.json
+- Creates backup of original dataset file
 - Provides detailed migration summary
 
 **Example Output:**
@@ -837,7 +804,7 @@ node scripts/audio-workflow/update/migrate-audio-to-cdn.js [options]
 🎵 Audio CDN Migration Script
 
 Configuration:
-  Source: public/data.json
+  Source: public/data.app.v2.json
   CDN Provider: github-release
   Base URL: https://github.com/user/repo/releases/download/audio-v1
   Dry Run: No
@@ -851,7 +818,7 @@ Configuration:
   Skipped:  0 concerts
   Total:    12 concerts
 
-✅ Updated data.json: public/data.json
+✅ Updated dataset: public/data.app.v2.json
 ```
 
 **Examples:**
@@ -879,7 +846,7 @@ npm run migrate-audio -- --cdn=r2 --base-url=https://audio.example.com
 
 ### `audio-workflow/update/validate-audio-urls.js` - Validate Audio URLs
 
-Validates that all audio URLs in `data.json` are accessible and reports any broken links or issues.
+Validates that all audio URLs in the runtime dataset are accessible and reports any broken links or issues.
 
 **Requirements:** Node.js (ES modules support)
 
@@ -895,7 +862,7 @@ node scripts/audio-workflow/update/validate-audio-urls.js [options]
 
 **Options:**
 
-- `--source=<path>` - Path to data.json (default: `public/data.json`)
+- `--source=<path>` - Path to runtime dataset JSON (default: `public/data.app.v2.json`)
 - `--timeout=<ms>` - Request timeout in milliseconds (default: 10000)
 - `--help` - Show help message
 
@@ -912,7 +879,7 @@ node scripts/audio-workflow/update/validate-audio-urls.js [options]
 🎵 Audio URL Validation Script
 
 Configuration:
-  Source: public/data.json
+  Source: public/data.app.v2.json
   Timeout: 10000ms
 Checking Concert #1: The Midnight Echoes
   ✓ Audio:   /audio/concert-1.opus
@@ -929,11 +896,11 @@ Checking Concert #1: The Midnight Echoes
 **Examples:**
 
 ```bash
-# Validate production data.json
+# Validate production runtime dataset
 npm run validate-audio
 
 # Validate test data
-npm run validate-audio -- --source=public/data.json
+npm run validate-audio -- --source=public/data.app.v2.json
 ```
 
 **When to use:**

@@ -98,7 +98,7 @@ src/modules/          # Feature modules (camera, audio, recognition, etc.)
 src/services/         # Data service for concert metadata
 src/types/index.ts    # Shared TypeScript interfaces
 src/test/mocks.ts     # Browser API mocks for tests
-public/               # Static assets (data.json, audio, images)
+public/               # Static assets (data.app.v2.json, data.recognition.v2.json, audio, images)
 scripts/              # Node.js automation scripts (CommonJS .js files)
 ```
 
@@ -128,7 +128,7 @@ scripts/              # Node.js automation scripts (CommonJS .js files)
 
 ## Common Gotchas
 
-- `data.json` is ~9.6 MB — use `src/services/data-service.ts` to understand the data model
+- `data.app.v2.json` is large — use `src/services/data-service.ts` to understand the data model
 - Browser APIs (camera, canvas, audio) are not available in tests — always use mocks
 - `scripts/` contains CommonJS `.js` files, not TypeScript
 - CSS Modules generate scoped class names — reference via `import styles from './Foo.module.css'`

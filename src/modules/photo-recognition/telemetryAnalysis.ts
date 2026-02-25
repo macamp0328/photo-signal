@@ -178,7 +178,7 @@ export function computeAiRecommendations(
       issue: `High no-match rate: ${(noMatchRate * 100).toFixed(1)}% of frames found no match within the similarity threshold`,
       recommendation: hasNearMisses
         ? `Raise similarityThreshold from ${settings.similarityThreshold} to ${suggestedThreshold} — ${nearMissSamples.length} near-miss frames logged with avg distance ${avgNearMiss?.toFixed(1)}`
-        : `Raise similarityThreshold from ${settings.similarityThreshold} to ${suggestedThreshold} (no near-miss data; move camera closer to the photo or check that the photo hash is in data.json)`,
+        : `Raise similarityThreshold from ${settings.similarityThreshold} to ${suggestedThreshold} (no near-miss data; move camera closer to the photo or check that the photo hash exists in the v2 dataset)`,
       parameterChange: `similarityThreshold: ${suggestedThreshold}`,
     });
   }

@@ -280,7 +280,7 @@ Use this exact cycle for repeated tuning passes:
 4. Run the offline audit for regression guardrails:
 
 ```bash
-node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 4 --summary-json tmp/recognition-audit.json
+node scripts/recognition-accuracy-test.js --threshold 18 --margin-threshold 5 --summary-json tmp/recognition-audit.json
 ```
 
 5. Share telemetry JSON + audit summary for the next tuning iteration.

@@ -51,29 +51,70 @@ export const createMockHowl = () => {
  * Mock concert data for integration tests
  */
 export const mockConcertData = {
-  concerts: [
+  version: 2,
+  artists: [
+    { id: 'artist-1', name: 'Test Band 1' },
+    { id: 'artist-2', name: 'Test Band 2' },
+  ],
+  photos: [
     {
-      id: 1,
-      band: 'Test Band 1',
-      venue: 'Test Venue 1',
-      date: '2023-08-15T20:00:00-05:00',
-      audioFile: '/audio/test1.opus',
+      id: 'photo-1',
+      artistId: 'artist-1',
+      imageFile: '/assets/test-images/gradient-16x16.jpg',
       photoUrl: 'https://photo-cdn.example.com/prod/photos/test1.jpg',
       photoHashes: {
         phash: ['aaaaaaaaaaaaaaaa'],
       },
     },
     {
-      id: 2,
-      band: 'Test Band 2',
-      venue: 'Test Venue 2',
-      date: '2023-09-20T19:30:00-05:00',
-      audioFile: '/audio/test2.opus',
+      id: 'photo-2',
+      artistId: 'artist-2',
+      imageFile: '/assets/test-images/gradient-16x16.jpg',
       photoUrl: 'https://photo-cdn.example.com/prod/photos/test2.jpg',
       photoHashes: {
         phash: ['bbbbbbbbbbbbbbbb'],
       },
     },
+  ],
+  tracks: [
+    {
+      id: 'track-1',
+      artistId: 'artist-1',
+      audioFile: '/audio/test1.opus',
+      songTitle: 'Test Song 1',
+    },
+    {
+      id: 'track-2',
+      artistId: 'artist-2',
+      audioFile: '/audio/test2.opus',
+      songTitle: 'Test Song 2',
+    },
+  ],
+  entries: [
+    {
+      id: 1,
+      artistId: 'artist-1',
+      trackId: 'track-1',
+      venue: 'Test Venue 1',
+      date: '2023-08-15T20:00:00-05:00',
+      photoId: 'photo-1',
+    },
+    {
+      id: 2,
+      artistId: 'artist-2',
+      trackId: 'track-2',
+      venue: 'Test Venue 2',
+      date: '2023-09-20T19:30:00-05:00',
+      photoId: 'photo-2',
+    },
+  ],
+};
+
+export const mockRecognitionData = {
+  version: 2,
+  entries: [
+    { concertId: 1, phash: ['aaaaaaaaaaaaaaaa'] },
+    { concertId: 2, phash: ['bbbbbbbbbbbbbbbb'] },
   ],
 };
 
@@ -112,11 +153,42 @@ export const setupBrowserMocks = () => {
     },
   });
 
-  // Mock fetch for concert data
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => mockConcertData,
-  } as Response);
+  // Mock fetch for strict v2 app + recognition datasets
+  globalThis.fetch = vi.fn((url: string | URL | Request) => {
+    const urlString = typeof url === 'string' ? url : url.toString();
+
+    if (
+      urlString.includes('concerts.dev.json') ||
+      urlString.includes('concerts.prod.json') ||
+      urlString.includes('concerts.json')
+    ) {
+      return Promise.reject(
+        new Error(`Legacy dataset URL is not supported in integration tests: ${urlString}`)
+      );
+    }
+
+    if (urlString.includes('data.recognition.v2.json')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => mockRecognitionData,
+      } as Response);
+    }
+
+    if (urlString.includes('data.app.v2.json')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => mockConcertData,
+      } as Response);
+    }
+
+    if (urlString.includes('.json')) {
+      return Promise.reject(new Error(`Unexpected dataset URL in integration tests: ${urlString}`));
+    }
+
+    return Promise.resolve({ ok: true, status: 200, json: async () => ({}) } as Response);
+  });
 
   // Mock HTMLVideoElement methods
   HTMLVideoElement.prototype.play = vi.fn().mockResolvedValue(undefined);

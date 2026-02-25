@@ -175,10 +175,14 @@ function AppContent() {
 
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
-    const concerts = await dataService.getConcerts();
-    const withAudio = concerts.find((c) => !!c.audioFile);
-    if (withAudio?.audioFile) {
-      setTestAudioUrl(withAudio.audioFile);
+    try {
+      const concerts = await dataService.getConcerts();
+      const withAudio = concerts.find((c) => !!c.audioFile);
+      if (withAudio?.audioFile) {
+        setTestAudioUrl(withAudio.audioFile);
+      }
+    } catch (error) {
+      console.warn('[App] Test audio bootstrap skipped: unable to load concerts', error);
     }
   }, []);
 
@@ -767,7 +771,6 @@ function AppContent() {
     if (!telemetry) return;
 
     const dataSourceTelemetry = dataService.getDataSourceTelemetry();
-    const dataSourcePolicy = dataService.getDataSourcePolicySnapshot();
 
     const activeSettings = computeActiveSettings(recognitionOptions);
     const aiRecommendations = computeAiRecommendations(telemetry, activeSettings);
@@ -876,13 +879,7 @@ function AppContent() {
         timestamp: new Date(failure.timestamp).toISOString(),
       })),
       dataSource: {
-        policy: dataSourcePolicy,
         telemetry: dataSourceTelemetry,
-        cutoverReadiness: {
-          legacyFallbackObserved: dataSourceTelemetry.legacyFallbackLoads > 0,
-          legacyFallbackObservedInProduction:
-            dataSourceTelemetry.legacyFallbackLoadsInProduction > 0,
-        },
       },
       rawData: telemetry,
     };

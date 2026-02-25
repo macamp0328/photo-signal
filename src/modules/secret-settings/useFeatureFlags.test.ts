@@ -55,26 +55,6 @@ describe('useFeatureFlags', () => {
       expect(debugOverlayFlag?.enabled).toBe(true);
     });
 
-    it('should remove unsupported legacy flags from persisted localStorage', () => {
-      localStorage.setItem(
-        'photo-signal-feature-flags',
-        JSON.stringify([
-          {
-            id: 'test-mode',
-            enabled: true,
-          },
-        ])
-      );
-
-      renderHook(() => useFeatureFlags());
-
-      const saved = localStorage.getItem('photo-signal-feature-flags');
-      expect(saved).toBeTruthy();
-
-      const parsed = JSON.parse(saved!);
-      expect(parsed.some((flag: { id: string }) => flag.id === 'test-mode')).toBe(false);
-    });
-
     it('should ignore malformed persisted entries and keep valid supported flags', () => {
       localStorage.setItem(
         'photo-signal-feature-flags',

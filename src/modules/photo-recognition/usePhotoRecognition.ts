@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { dataService } from '../../services/data-service';
-import type { Concert, CropRegionKey } from '../../types';
+import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import {
   createEmptyTelemetry,
-  getCropHashes,
   getPHashes,
   recordCollisionDetails,
   recordFailure,
@@ -125,30 +124,6 @@ const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
 // Crop-based partial photo recognition thresholds
 // ---------------------------------------------------------------------------
 
-/**
- * pHash Hamming distance threshold for crop-based partial-photo matching.
- * Stricter than DEFAULT_SIMILARITY_THRESHOLD (14) because crop hashes cover
- * less image content and are inherently less distinctive — a partial crop of
- * one photo can coincidentally resemble a crop of a different photo.
- */
-const CROP_SIMILARITY_THRESHOLD = 10;
-
-/**
- * Full-image best-match distance above which the crop fallback pass activates.
- * When the full-image pass already produces a strong match (distance ≤ this
- * value), the crop pass is skipped entirely — no extra work needed.
- * Set above DEFAULT_SIMILARITY_THRESHOLD so borderline full-image matches
- * still win without triggering the crop pass.
- */
-const CROP_FALLBACK_TRIGGER_DISTANCE = 18;
-
-/**
- * Margin requirement for crop-based matches — stricter than
- * DEFAULT_MATCH_MARGIN_THRESHOLD (4) to offset the reduced distinctiveness
- * of crop hashes. The winning concert must be at least this many bits closer
- * than the nearest rival from any other concert.
- */
-const CROP_MATCH_MARGIN_THRESHOLD = 5;
 const RECOGNITION_INDEX_URL = '/data.recognition.v2.json';
 
 // ---------------------------------------------------------------------------
@@ -158,14 +133,12 @@ const RECOGNITION_INDEX_URL = '/data.recognition.v2.json';
 /** Compact type used throughout the matching pipeline. */
 export type MatchCandidate = { concert: Concert; distance: number };
 type HashEntry = { hash: string; concert: Concert };
-type CropHashEntry = { hash: string; concert: Concert; cropKey: CropRegionKey };
 
-const HASH_BUCKET_PREFIX_LENGTH = 2;
+const HASH_BUCKET_PREFIX_LENGTH = 0;
 
 interface RecognitionIndexEntryV2 {
   concertId: number;
   phash: string[];
-  cropPhashes?: Partial<Record<CropRegionKey, string[]>>;
 }
 
 interface RecognitionIndexPayloadV2 {
@@ -198,7 +171,7 @@ const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
  */
 export function findBestMatches(
   currentHash: string,
-  concertHashList: ReadonlyArray<HashEntry | CropHashEntry>
+  concertHashList: ReadonlyArray<HashEntry>
 ): { bestMatch: MatchCandidate | null; secondBestMatch: MatchCandidate | null } {
   let bestMatch: MatchCandidate | null = null;
   let secondBestMatch: MatchCandidate | null = null;
@@ -390,7 +363,6 @@ export function usePhotoRecognition(
       })
       .catch((error) => {
         console.error('Failed to load concert data:', error);
-        setConcerts([]);
       });
   }, []);
 
@@ -406,14 +378,14 @@ export function usePhotoRecognition(
     fetch(RECOGNITION_INDEX_URL)
       .then(async (response) => {
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(`Failed to load ${RECOGNITION_INDEX_URL}: HTTP ${response.status}`);
         }
 
         return response.json();
       })
       .then((payload: unknown) => {
         if (!isRecognitionIndexPayloadV2(payload)) {
-          return;
+          throw new Error(`Invalid recognition index payload: expected ${RECOGNITION_INDEX_URL}`);
         }
 
         if (!isCancelled) {
@@ -421,24 +393,13 @@ export function usePhotoRecognition(
         }
       })
       .catch((error) => {
-        const status =
-          typeof error === 'object' &&
-          error !== null &&
-          'message' in error &&
-          typeof error.message === 'string' &&
-          /HTTP 404/.test(error.message)
-            ? 404
-            : null;
-
-        // Missing file is expected during staged rollout; fallback silently.
-        if (status === 404) {
+        if (isCancelled) {
           return;
         }
 
-        console.warn(
-          `[photo-recognition] Recognition index unavailable at ${RECOGNITION_INDEX_URL}; using concert hashes fallback.`,
-          error
-        );
+        const resolvedError =
+          error instanceof Error ? error : new Error(`Failed to load ${RECOGNITION_INDEX_URL}`);
+        console.error('[photo-recognition] Recognition index load failed:', resolvedError);
       });
 
     return () => {
@@ -446,51 +407,16 @@ export function usePhotoRecognition(
     };
   }, []);
 
-  const fallbackEligibleConcerts = useMemo(
-    () => concerts.filter((concert) => getPHashes(concert).length > 0),
-    [concerts]
-  );
-
-  /**
-   * Pre-flattened list of all valid concert hashes, computed once when
-   * eligible concerts change.  Moving getPHashes() (which includes a regex
-   * validation pass) out of the per-frame hot path avoids redundant work on
-   * every camera tick.
-   */
-  const fallbackConcertHashList = useMemo(
-    () =>
-      fallbackEligibleConcerts.flatMap((concert) =>
-        getPHashes(concert).map((hash) => ({ hash, concert }))
-      ),
-    [fallbackEligibleConcerts]
-  );
-
-  /**
-   * Pre-flattened list of all valid crop-region hashes, used by the two-pass
-   * crop fallback when the full-image pass fails to find a strong match.
-   * Computed once when eligible concerts change; empty for legacy records
-   * without cropPhashes, in which case the crop pass is skipped entirely.
-   */
-  const fallbackConcertCropHashList = useMemo(
-    () =>
-      fallbackEligibleConcerts.flatMap((concert) =>
-        getCropHashes(concert).map(({ hash, cropKey }) => ({ hash, concert, cropKey }))
-      ),
-    [fallbackEligibleConcerts]
-  );
-
   const indexedHashData = useMemo(() => {
     if (recognitionIndexEntries.length === 0 || concerts.length === 0) {
       return {
         concertHashList: [] as Array<HashEntry>,
-        concertCropHashList: [] as Array<CropHashEntry>,
         eligibleConcertIds: new Set<number>(),
       };
     }
 
     const concertsById = new Map(concerts.map((concert) => [concert.id, concert]));
     const concertHashList: Array<HashEntry> = [];
-    const concertCropHashList: Array<CropHashEntry> = [];
     const eligibleConcertIds = new Set<number>();
 
     for (const entry of recognitionIndexEntries) {
@@ -503,57 +429,30 @@ export function usePhotoRecognition(
         ...concert,
         photoHashes: {
           phash: entry.phash,
-          cropPhashes: entry.cropPhashes,
         },
       };
 
       const hashes = getPHashes(indexedConcert);
-      if (hashes.length === 0) {
-        continue;
+      if (hashes.length === 0 || hashes.length !== entry.phash.length) {
+        throw new Error(
+          `[photo-recognition] Invalid recognition hashes for concert ${entry.concertId}`
+        );
       }
 
       eligibleConcertIds.add(concert.id);
       concertHashList.push(...hashes.map((hash) => ({ hash, concert })));
-      concertCropHashList.push(
-        ...getCropHashes(indexedConcert).map(({ hash, cropKey }) => ({ hash, concert, cropKey }))
-      );
     }
 
-    return { concertHashList, concertCropHashList, eligibleConcertIds };
+    return { concertHashList, eligibleConcertIds };
   }, [recognitionIndexEntries, concerts]);
 
-  const usingRecognitionIndex = indexedHashData.concertHashList.length > 0;
-
-  const concertHashList = useMemo(
-    () => (usingRecognitionIndex ? indexedHashData.concertHashList : fallbackConcertHashList),
-    [usingRecognitionIndex, indexedHashData.concertHashList, fallbackConcertHashList]
-  );
-
-  const concertCropHashList = useMemo(
-    () =>
-      usingRecognitionIndex ? indexedHashData.concertCropHashList : fallbackConcertCropHashList,
-    [usingRecognitionIndex, indexedHashData.concertCropHashList, fallbackConcertCropHashList]
-  );
+  const concertHashList = indexedHashData.concertHashList;
 
   const concertHashBuckets = useMemo(() => bucketHashEntries(concertHashList), [concertHashList]);
 
-  const concertCropHashBuckets = useMemo(
-    () => bucketHashEntries(concertCropHashList),
-    [concertCropHashList]
-  );
-
   const eligibleConcerts = useMemo(() => {
-    if (usingRecognitionIndex) {
-      return concerts.filter((concert) => indexedHashData.eligibleConcertIds.has(concert.id));
-    }
-
-    return fallbackEligibleConcerts;
-  }, [
-    usingRecognitionIndex,
-    concerts,
-    indexedHashData.eligibleConcertIds,
-    fallbackEligibleConcerts,
-  ]);
+    return concerts.filter((concert) => indexedHashData.eligibleConcertIds.has(concert.id));
+  }, [concerts, indexedHashData.eligibleConcertIds]);
 
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {
@@ -795,7 +694,6 @@ export function usePhotoRecognition(
       let algorithmMs = 0;
       let confirmedMatch = false;
       let comparedCandidates = 0;
-      let usedFallbackModeThisFrame = false;
 
       if (enableDebugInfo) {
         console.time(frameLabel);
@@ -931,110 +829,23 @@ export function usePhotoRecognition(
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
-        // Hash matching — two-pass: full-image first, crop fallback if needed
+        // Hash matching — bucketed full-image scan only
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
         comparedCandidates = 0;
-        usedFallbackModeThisFrame = false;
 
-        const runMatchScan = (candidates: ReadonlyArray<HashEntry | CropHashEntry>) => {
+        const runMatchScan = (candidates: ReadonlyArray<HashEntry>) => {
           comparedCandidates += candidates.length;
           return findBestMatches(currentHash, candidates);
         };
 
-        if (usingRecognitionIndex) {
-          telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
-        }
+        telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
 
-        // Pass 1: full-image hashes (existing behavior)
-        const fullBucketCandidates = usingRecognitionIndex
-          ? (concertHashBuckets.get(getHashBucketKey(currentHash)) ?? [])
-          : [];
+        const bucketCandidates = concertHashBuckets.get(getHashBucketKey(currentHash)) ?? [];
 
-        let fullPassResult =
-          usingRecognitionIndex && fullBucketCandidates.length > 0
-            ? runMatchScan(fullBucketCandidates)
-            : runMatchScan(concertHashList);
-
-        if (usingRecognitionIndex && fullBucketCandidates.length === 0) {
-          usedFallbackModeThisFrame = true;
-        }
-
-        if (usingRecognitionIndex && fullBucketCandidates.length > 0) {
-          const bucketBest = fullPassResult.bestMatch;
-          const bucketSecond = fullPassResult.secondBestMatch;
-          const bucketMargin =
-            bucketBest && bucketSecond ? bucketSecond.distance - bucketBest.distance : null;
-          const shouldFallbackToFullScan =
-            !bucketBest ||
-            bucketBest.distance > similarityThreshold ||
-            (bucketMargin !== null && bucketMargin < matchMarginThreshold);
-
-          if (shouldFallbackToFullScan) {
-            fullPassResult = runMatchScan(concertHashList);
-            usedFallbackModeThisFrame = true;
-          }
-        }
-
-        const { bestMatch: bestFullMatch, secondBestMatch: bestFullSecondMatch } = fullPassResult;
-
-        let bestMatch = bestFullMatch;
-        let secondBestMatch = bestFullSecondMatch;
-        let matchedViaCrop = false;
-
-        // Pass 2: crop hashes — only when full-image result is weak
-        const shouldCheckCrops =
-          concertCropHashList.length > 0 &&
-          (!bestFullMatch || bestFullMatch.distance > CROP_FALLBACK_TRIGGER_DISTANCE);
-
-        if (shouldCheckCrops) {
-          const cropBucketCandidates = usingRecognitionIndex
-            ? (concertCropHashBuckets.get(getHashBucketKey(currentHash)) ?? [])
-            : [];
-
-          let cropPassResult =
-            usingRecognitionIndex && cropBucketCandidates.length > 0
-              ? runMatchScan(cropBucketCandidates)
-              : runMatchScan(concertCropHashList);
-
-          if (usingRecognitionIndex && cropBucketCandidates.length === 0) {
-            usedFallbackModeThisFrame = true;
-          }
-
-          if (usingRecognitionIndex && cropBucketCandidates.length > 0) {
-            const cropBucketBest = cropPassResult.bestMatch;
-            const cropBucketSecond = cropPassResult.secondBestMatch;
-            const cropBucketMargin =
-              cropBucketBest && cropBucketSecond
-                ? cropBucketSecond.distance - cropBucketBest.distance
-                : null;
-            const shouldFallbackToFullCropScan =
-              !cropBucketBest ||
-              cropBucketBest.distance > CROP_SIMILARITY_THRESHOLD ||
-              (cropBucketMargin !== null && cropBucketMargin < CROP_MATCH_MARGIN_THRESHOLD);
-
-            if (shouldFallbackToFullCropScan) {
-              cropPassResult = runMatchScan(concertCropHashList);
-              usedFallbackModeThisFrame = true;
-            }
-          }
-
-          const { bestMatch: bestCropMatch, secondBestMatch: bestCropSecondMatch } = cropPassResult;
-          if (bestCropMatch && bestCropMatch.distance <= CROP_SIMILARITY_THRESHOLD) {
-            if (!bestFullMatch || bestCropMatch.distance < bestFullMatch.distance) {
-              bestMatch = bestCropMatch;
-              secondBestMatch = bestCropSecondMatch ?? bestFullSecondMatch;
-              matchedViaCrop = true;
-            }
-          }
-        }
+        const { bestMatch, secondBestMatch } = runMatchScan(bucketCandidates);
 
         algorithmMs = performance.now() - algorithmStartAt;
-
-        if (usingRecognitionIndex && usedFallbackModeThisFrame) {
-          telemetryRef.current.fallback_mode_used =
-            (telemetryRef.current.fallback_mode_used ?? 0) + 1;
-        }
 
         const candidateTelemetry = telemetryRef.current.candidate_count_per_frame;
         if (candidateTelemetry) {
@@ -1046,10 +857,10 @@ export function usePhotoRecognition(
 
         // Decision variables
         const now = Date.now();
-        const activeThreshold = matchedViaCrop ? CROP_SIMILARITY_THRESHOLD : similarityThreshold;
+        const activeThreshold = similarityThreshold;
         const bestMargin =
           bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
-        const requiredMargin = matchedViaCrop ? CROP_MATCH_MARGIN_THRESHOLD : matchMarginThreshold;
+        const requiredMargin = matchMarginThreshold;
         const marginBoostNearThreshold =
           bestMatch && bestMatch.distance >= Math.max(activeThreshold - 1, 0) ? 1 : 0;
         const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
@@ -1191,10 +1002,7 @@ export function usePhotoRecognition(
             ? consecutiveMatchCountRef.current + 1
             : 1;
 
-          // Crop matches never use the instant path — they always require dwell
-          // time to guard against the reduced distinctiveness of partial hashes.
-          const isInstantDistance =
-            !matchedViaCrop && !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
+          const isInstantDistance = !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
           const hasConsecutiveInstantConfidence =
             consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
 
@@ -1293,8 +1101,6 @@ export function usePhotoRecognition(
             algorithmMs: Number(algorithmMs.toFixed(2)),
             totalPipelineMs: Number(totalPipelineMs.toFixed(2)),
             confirmedMatch,
-            usingRecognitionIndex,
-            usedFallbackMode: usedFallbackModeThisFrame,
             candidateComparisons: comparedCandidates,
           });
           console.timeEnd(frameLabel);
@@ -1332,10 +1138,7 @@ export function usePhotoRecognition(
     enabled,
     eligibleConcerts,
     concertHashList,
-    concertCropHashList,
     concertHashBuckets,
-    concertCropHashBuckets,
-    usingRecognitionIndex,
     checkInterval,
     recognitionDelay,
     similarityThreshold,

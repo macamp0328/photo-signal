@@ -60,6 +60,41 @@ const MOCK_DATA = {
   ],
 };
 
+const buildV2PayloadFromConcerts = (concerts: Concert[]) => ({
+  version: 2 as const,
+  artists: concerts.map((concert) => ({
+    id: `artist-${concert.id}`,
+    name: concert.band,
+  })),
+  photos: concerts.map((concert) => ({
+    id: `photo-${concert.id}`,
+    artistId: `artist-${concert.id}`,
+    photoUrl: concert.photoUrl,
+    photoHashes: concert.photoHashes,
+  })),
+  tracks: concerts.map((concert) => ({
+    id: `track-${concert.id}`,
+    artistId: `artist-${concert.id}`,
+    audioFile: concert.audioFile,
+  })),
+  entries: concerts.map((concert) => ({
+    id: concert.id,
+    artistId: `artist-${concert.id}`,
+    trackId: `track-${concert.id}`,
+    photoId: `photo-${concert.id}`,
+    venue: concert.venue,
+    date: concert.date,
+  })),
+});
+
+const MOCK_RECOGNITION_DATA = {
+  version: 2,
+  entries: MOCK_DATA.concerts.map((concert) => ({
+    concertId: concert.id,
+    phash: concert.photoHashes?.phash ?? [],
+  })),
+};
+
 const concertA = MOCK_DATA.concerts[0] as Concert;
 const concertB1 = MOCK_DATA.concerts[1] as Concert;
 const concertB2 = MOCK_DATA.concerts[2] as Concert;
@@ -209,11 +244,23 @@ describe('Artist Audio Switch', () => {
     setupBrowserMocks();
     vi.clearAllMocks();
 
-    // Use extended concert data that includes two Artist B entries
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => MOCK_DATA,
-    } as Response);
+    // Use extended strict-v2 app + recognition data
+    global.fetch = vi.fn((url: string | URL | Request) => {
+      const urlString = typeof url === 'string' ? url : url.toString();
+      if (urlString.includes('data.recognition.v2.json')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => MOCK_RECOGNITION_DATA,
+        } as Response);
+      }
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => buildV2PayloadFromConcerts(MOCK_DATA.concerts as Concert[]),
+      } as Response);
+    });
   });
 
   it('closing details hides the card and resets recognition state', async () => {

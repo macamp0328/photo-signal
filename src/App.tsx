@@ -175,10 +175,14 @@ function AppContent() {
 
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
-    const concerts = await dataService.getConcerts();
-    const withAudio = concerts.find((c) => !!c.audioFile);
-    if (withAudio?.audioFile) {
-      setTestAudioUrl(withAudio.audioFile);
+    try {
+      const concerts = await dataService.getConcerts();
+      const withAudio = concerts.find((c) => !!c.audioFile);
+      if (withAudio?.audioFile) {
+        setTestAudioUrl(withAudio.audioFile);
+      }
+    } catch (error) {
+      console.warn('[App] Test audio bootstrap skipped: unable to load concerts', error);
     }
   }, []);
 

@@ -307,8 +307,6 @@ export function usePhotoRecognition(
   const [recognitionIndexEntries, setRecognitionIndexEntries] = useState<RecognitionIndexEntryV2[]>(
     []
   );
-  const [concertLoadError, setConcertLoadError] = useState<Error | null>(null);
-  const [recognitionIndexLoadError, setRecognitionIndexLoadError] = useState<Error | null>(null);
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
   const [detectedRectangle, setDetectedRectangle] = useState<DetectedRectangle | null>(null);
@@ -365,9 +363,6 @@ export function usePhotoRecognition(
       })
       .catch((error) => {
         console.error('Failed to load concert data:', error);
-        setConcertLoadError(
-          error instanceof Error ? error : new Error('Failed to load /data.app.v2.json')
-        );
       });
   }, []);
 
@@ -405,21 +400,12 @@ export function usePhotoRecognition(
         const resolvedError =
           error instanceof Error ? error : new Error(`Failed to load ${RECOGNITION_INDEX_URL}`);
         console.error('[photo-recognition] Recognition index load failed:', resolvedError);
-        setRecognitionIndexLoadError(resolvedError);
       });
 
     return () => {
       isCancelled = true;
     };
   }, []);
-
-  if (concertLoadError) {
-    throw concertLoadError;
-  }
-
-  if (recognitionIndexLoadError) {
-    throw recognitionIndexLoadError;
-  }
 
   const indexedHashData = useMemo(() => {
     if (recognitionIndexEntries.length === 0 || concerts.length === 0) {

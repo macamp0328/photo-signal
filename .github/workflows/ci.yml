@@ -98,7 +98,9 @@ jobs:
           const recognitionValid =
             recognitionV2?.version === 2 &&
             Array.isArray(recognitionV2?.entries) &&
-            recognitionV2.entries.length > 0;
+            recognitionV2.entries.every(
+              (entry) => Number.isInteger(entry?.concertId) && Array.isArray(entry?.phash)
+            );
 
           if (!appValid) {
             throw new Error('Invalid generated /tmp/data.app.v2.json schema/content');

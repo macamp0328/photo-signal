@@ -84,6 +84,8 @@ function parseArgs() {
         break;
       case '--skip-public':
         options.public = null;
+        options.appV2 = null;
+        options.recognitionV2 = null;
         break;
       case '--app-v2':
         if (!args[i + 1]) {

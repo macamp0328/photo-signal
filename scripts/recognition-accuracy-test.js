@@ -11,8 +11,8 @@ const REPO_ROOT = path.resolve(__dirname, '..');
 const APP_DATA_PATH = path.join(REPO_ROOT, 'public', 'data.app.v2.json');
 const RECOGNITION_DATA_PATH = path.join(REPO_ROOT, 'public', 'data.recognition.v2.json');
 
-const DEFAULT_PHASH_THRESHOLD = 14;
-const DEFAULT_MARGIN_THRESHOLD = 4;
+const DEFAULT_PHASH_THRESHOLD = 18;
+const DEFAULT_MARGIN_THRESHOLD = 5;
 const PHASH_LENGTH = 16;
 
 function parseArgs(argv) {
@@ -398,7 +398,6 @@ async function main() {
         } else if (
           best &&
           ref.id !== best.concertId &&
-          distance !== best.distance &&
           (!secondBest || distance < secondBest.distance)
         ) {
           secondBest = {

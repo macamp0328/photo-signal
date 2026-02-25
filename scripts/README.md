@@ -496,7 +496,7 @@ npm run hashes:refresh -- \
 - Reads from `public/data.app.v2.json` (override via `--input`)
 - Writes refreshed data back to the source file unless `--dry-run`
 - Mirrors updated entries into `public/data.app.v2.json` and `public/data.recognition.v2.json` unless `--skip-public`
-- Regenerates pHash values (three exposure variants)
+- Regenerates pHash values (five exposure variants)
 - Supports targeted runs via `--id` / `--ids`
 - Offers hash-focused toggles such as `--hashes-only`
 - Includes a fast `--paths-mode` for ad-hoc hash generation (used by `npm run hashes:paths`)

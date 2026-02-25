@@ -86,7 +86,7 @@ Use this loop when validating field performance on real devices:
 5. Re-run the offline audit script using runtime-aligned settings:
 
 ```bash
-node scripts/recognition-accuracy-test.js --threshold 14 --margin-threshold 3 --summary-json tmp/recognition-audit.json
+node scripts/recognition-accuracy-test.js --threshold 18 --margin-threshold 5 --summary-json tmp/recognition-audit.json
 ```
 
 6. Repeat until collision rate and recognition success meet acceptance targets.

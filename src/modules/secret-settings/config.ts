@@ -7,8 +7,16 @@
  */
 
 import type { FeatureFlag } from './types';
+import { PERSPECTIVE_NORMALIZATION_DEFAULT_ENABLED } from '../../config';
 
 export const FEATURE_FLAGS: FeatureFlag[] = [
+  {
+    id: 'perspective-normalization',
+    name: 'Perspective Normalization',
+    description: 'Warp detected photo corners before hashing when available.',
+    enabled: PERSPECTIVE_NORMALIZATION_DEFAULT_ENABLED,
+    category: 'experimental',
+  },
   {
     id: 'rectangle-detection',
     name: 'Dynamic Rectangle Detection',

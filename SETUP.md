@@ -119,4 +119,4 @@ Visual regression tests run in a separate workflow: [.github/workflows/visual-re
 - Site: Vercel static deployment
 - Audio proxy: Cloudflare Worker + R2
 
-See [docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md) and [docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md).
+See [docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md).

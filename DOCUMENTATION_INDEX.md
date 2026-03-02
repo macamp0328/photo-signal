@@ -21,19 +21,7 @@
 ## Technical Guides
 
 - **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** — Photo recognition algorithm, thresholds, troubleshooting, and quick reference
-- **[docs/camera-settings-guide.md](./docs/camera-settings-guide.md)** — Camera API, browser support, low-light optimization
-- **[docs/telemetry-interpretation-guide.md](./docs/telemetry-interpretation-guide.md)** — Recognition telemetry and debugging
 - **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** — Cloudflare Worker audio proxy and R2 setup
-- **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** — CodeQL, Codecov, npm audit guide
-- **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** — Vercel deployment guide
-
-## Accessibility
-
-- **[docs/ACCESSIBILITY.md](./docs/ACCESSIBILITY.md)** — WCAG 2.1 Level AA standards, color palette, and developer quick reference
-
-## Maintenance & Audits
-
-- **[docs/CODE_CLEANUP_AUDIT.md](./docs/CODE_CLEANUP_AUDIT.md)** — Audit of stale, dead, and redundant code with a phased remediation plan
 
 ## Module API Contracts
 

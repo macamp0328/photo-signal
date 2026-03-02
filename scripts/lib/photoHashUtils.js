@@ -37,8 +37,9 @@ export const DEFAULT_GAMMA_VARIANTS = [2.0, 1.4, 1.0, 0.7, 0.5];
 export const DEFAULT_ROTATION_VARIANTS = [-8, 8];
 
 /**
- * Maximum Hamming distance (in bits) considered near-duplicate for pHash
- * variant pruning. 1 is conservative and keeps most diversity.
+ * Maximum Hamming distance (in bits) considered near-duplicate when pruning
+ * perceptual hash variants (pHash and dHash). 1 is conservative and keeps
+ * most diversity.
  *
  * @type {number}
  */
@@ -486,8 +487,15 @@ export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS,
   );
   const dhashInputs = exposureVariants.map((variant) => resizeImageData(variant, 17, 8));
 
-  const basePHashes = phashInputs.map((variant) => computePHash(variant));
-  const baseDHashes = dhashInputs.map((variant) => computeDHash(variant));
+  const dedupThreshold = options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD;
+  const basePHashes = dedupeNearDuplicateHashes(
+    phashInputs.map((variant) => computePHash(variant)),
+    dedupThreshold
+  );
+  const baseDHashes = dedupeNearDuplicateHashes(
+    dhashInputs.map((variant) => computeDHash(variant)),
+    dedupThreshold
+  );
 
   const rotationAngles = normalizeRotationAngles(
     options.rotationAngles ?? DEFAULT_ROTATION_VARIANTS
@@ -510,16 +518,8 @@ export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS,
   const rotatedDHashes = rotatedDHashInputs.map((variant) => computeDHash(variant));
 
   return {
-    phash: appendNonDuplicateCandidates(
-      basePHashes,
-      rotatedPHashes,
-      options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD
-    ),
-    dhash: appendNonDuplicateCandidates(
-      baseDHashes,
-      rotatedDHashes,
-      options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD
-    ),
+    phash: appendNonDuplicateCandidates(basePHashes, rotatedPHashes, dedupThreshold),
+    dhash: appendNonDuplicateCandidates(baseDHashes, rotatedDHashes, dedupThreshold),
   };
 }
 
@@ -611,7 +611,10 @@ export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIA
     const phashInputs = exposureVariants.map((variant) =>
       resizeImageData(variant, DCT_SIZE, DCT_SIZE)
     );
-    const baseHashes = phashInputs.map((variant) => computePHash(variant));
+    const baseHashes = dedupeNearDuplicateHashes(
+      phashInputs.map((variant) => computePHash(variant)),
+      nearDupHammingThreshold
+    );
 
     const rotatedHashes = [];
     for (const phashInput of phashInputs) {

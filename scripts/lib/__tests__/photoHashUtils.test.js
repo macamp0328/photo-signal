@@ -5,6 +5,8 @@ import {
   dedupeNearDuplicateHashes,
   createExposureAndRotationVariants,
   computePHash,
+  generateHashVariants,
+  createExposureVariants,
 } from '../photoHashUtils.js';
 
 function makeImageData(width = 16, height = 16) {
@@ -66,5 +68,37 @@ describe('createExposureAndRotationVariants', () => {
 
     expect(deduped.length).toBeGreaterThan(0);
     expect(deduped.length).toBeLessThanOrEqual(hashes.length);
+  });
+});
+
+describe('generateHashVariants', () => {
+  it('matches base exposure output when rotation angles are disabled', () => {
+    const imageData = makeImageData();
+    const exposureVariants = createExposureVariants(imageData, [2.0, 1.4, 1.0, 0.7, 0.5]);
+    const basePHashes = exposureVariants.map((variant) => computePHash(variant));
+    const expected = dedupeNearDuplicateHashes(basePHashes, 1);
+
+    const generated = generateHashVariants(imageData, [2.0, 1.4, 1.0, 0.7, 0.5], {
+      rotationAngles: [],
+      nearDupHammingThreshold: 1,
+    });
+
+    expect(generated.phash).toEqual(expected);
+  });
+
+  it('retains fewer rotated hashes when dedup threshold increases', () => {
+    const imageData = makeImageData(48, 48);
+
+    const lowThreshold = generateHashVariants(imageData, [1.0], {
+      rotationAngles: [-8, 8],
+      nearDupHammingThreshold: 0,
+    });
+    const highThreshold = generateHashVariants(imageData, [1.0], {
+      rotationAngles: [-8, 8],
+      nearDupHammingThreshold: 4,
+    });
+
+    expect(highThreshold.phash.length).toBeLessThanOrEqual(lowThreshold.phash.length);
+    expect(highThreshold.dhash.length).toBeLessThanOrEqual(lowThreshold.dhash.length);
   });
 });

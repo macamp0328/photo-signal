@@ -5,7 +5,7 @@ its paired song.
 
 ## Live Demo
 
-- Live site: add your public URL here
+- Live site: https://www.whoisduck2.com/
 
 ![Photo Signal demo](docs/media/demo.gif)
 

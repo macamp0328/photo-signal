@@ -32,10 +32,6 @@ const SUPPORTED_AUDIO_FORMATS = new Set([
   'vorbis',
   'wav',
 ]);
-const DEFAULT_CONFIG_PATH = resolve(
-  process.cwd(),
-  'scripts/audio-workflow/download/download-yt-song.config.json'
-);
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -1078,7 +1074,7 @@ function detectDefaultJsRuntime() {
 }
 
 function loadConfig(explicitPath) {
-  const candidate = explicitPath ? resolvePath(explicitPath) : DEFAULT_CONFIG_PATH;
+  const candidate = explicitPath ? resolvePath(explicitPath) : null;
   if (!candidate || !existsSync(candidate)) {
     return {};
   }

@@ -13,11 +13,6 @@ import { createHash } from 'node:crypto';
 import { basename, dirname, join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
-const DEFAULT_CONFIG_PATH = resolve(
-  process.cwd(),
-  'scripts/audio-workflow/encode/encode.config.json'
-);
-
 /**
  * Main entry point for the audio encode script
  */
@@ -40,8 +35,8 @@ async function main() {
   }
 
   // Load configuration
-  const configPath = args.config ?? DEFAULT_CONFIG_PATH;
-  const config = loadConfig(configPath);
+  const configPath = args.config ?? null;
+  const config = configPath ? loadConfig(configPath) : getDefaultConfig();
 
   const metadataOverridesPath = resolvePath(
     args['metadata-overrides'] ?? config.metadataOverridesPath ?? null
@@ -1470,10 +1465,8 @@ function loadExistingAudioIndexMap(outputDir) {
 
 function loadConfig(configPath) {
   if (!existsSync(configPath)) {
-    if (configPath !== DEFAULT_CONFIG_PATH) {
-      console.warn(`⚠️  Config file not found: ${configPath}`);
-      console.warn('   Using default values');
-    }
+    console.warn(`⚠️  Config file not found: ${configPath}`);
+    console.warn('   Using default values');
     return getDefaultConfig();
   }
 

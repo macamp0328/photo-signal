@@ -594,7 +594,7 @@ describe('App playback flow', () => {
     ).toBeInTheDocument();
   });
 
-  it('wraps playlist navigation at boundaries and resets recognition state', async () => {
+  it('wraps playlist navigation at boundaries without resetting recognition state', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -613,7 +613,48 @@ describe('App playback flow', () => {
     await user.click(screen.getByRole('button', { name: 'Play next track' }));
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/one.opus');
 
-    expect(mockResetRecognition).toHaveBeenCalledTimes(2);
+    expect(mockResetRecognition).not.toHaveBeenCalled();
+  });
+
+  it('keeps the recognized photo displayed when navigating tracks within the same artist', async () => {
+    const sameBandDifferentPhotoTrack: Concert = {
+      ...sameBandTrackTwo,
+      photoUrl: 'https://photo-cdn.example.com/prod/photos/one-alt.jpg',
+      imageFile: '/images/one-alt.jpg',
+    };
+
+    vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
+      if (band === concertOne.band) {
+        return [concertOne, sameBandDifferentPhotoTrack];
+      }
+      return [];
+    });
+
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(screen.getByRole('img', { name: 'Band One scanned photograph' })).toHaveAttribute(
+      'src',
+      concertOne.photoUrl
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+
+    expect(screen.getByRole('img', { name: 'Band One scanned photograph' })).toHaveAttribute(
+      'src',
+      concertOne.photoUrl
+    );
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+    expect(mockResetRecognition).not.toHaveBeenCalled();
   });
 
   it('disables previous/next buttons when playlist has one track', async () => {

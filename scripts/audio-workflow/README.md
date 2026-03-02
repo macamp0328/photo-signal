@@ -208,7 +208,7 @@ npm run validate-audio -- [options]
 - Works with both local `/audio/*.mp3` files and remote CDN URLs
 - Supports adjustable timeouts plus optional fallback checks
 
-Refer to the corresponding sections inside [scripts/README.md](../README.md) for detailed flag descriptions, sample output, and troubleshooting tips.
+Use each script's `--help` output for detailed flags and troubleshooting details.
 
 ## Photo ↔ Audio Mapping Workflow (deterministic, band-based)
 

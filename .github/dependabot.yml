@@ -1,7 +1,6 @@
 # Dependabot Configuration
 #
 # Automatically checks for dependency updates and creates PRs
-# See docs/code-analysis-tooling-research.md for rationale
 #
 # Documentation: https://docs.github.com/en/code-security/dependabot
 #

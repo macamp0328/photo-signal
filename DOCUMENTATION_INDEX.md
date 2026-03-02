@@ -16,7 +16,6 @@
 
 - **[CLAUDE.md](./CLAUDE.md)** — Claude Code agent instructions
 - **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** — GitHub Copilot agent instructions
-- **[.github/agents/README.md](./.github/agents/README.md)** — Custom Copilot agents (implementation-planner, bug-fix-teammate, cleanup-specialist)
 
 ## Technical Guides
 
@@ -27,12 +26,10 @@
 
 Module API contracts live in the TypeScript source — see `types.ts` in each module directory.
 
-- **[src/modules/secret-settings/DEVELOPER_GUIDE.md](./src/modules/secret-settings/DEVELOPER_GUIDE.md)** — Adding feature flags and custom settings
 - **[src/services/data-service/README.md](./src/services/data-service/README.md)** — Concert data loading and caching
 
 ## Scripts & Workflows
 
-- **[scripts/README.md](./scripts/README.md)** — Helper scripts documentation
 - **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline
 - **[scripts/audio-workflow/download/README.md](./scripts/audio-workflow/download/README.md)** — yt-dlp downloader guide
 - **[scripts/audio-workflow/encode/README.md](./scripts/audio-workflow/encode/README.md)** — Opus encoding playbook

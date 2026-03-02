@@ -37,8 +37,9 @@ Module API contracts live in the TypeScript source — see `types.ts` in each mo
 
 ## Asset Documentation
 
-- **assets/prod-photographs/** — Canonical production photo source materials
-- **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical photo-to-band metadata and EXIF details
+- **assets/prod-photographs/** — Local-only source photo workflow (original images are intentionally not tracked)
+- **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical tracked photo-to-band metadata and EXIF details
+- **[assets/test-images/README.md](./assets/test-images/README.md)** — Git-tracked synthetic image fixtures for image-dependent tests
 
 ---
 

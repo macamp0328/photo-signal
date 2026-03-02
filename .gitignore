@@ -32,6 +32,12 @@ public/assets
 # Local audio downloads (yt-dlp output)
 downloads/
 
+# Source production photos are kept local-only; repo tracks only CSV metadata
+assets/prod-photographs/*.jpg
+assets/prod-photographs/*.jpeg
+assets/prod-photographs/*.png
+!assets/prod-photographs/prod-photographs-details.csv
+
 # Audio encoding work directories
 scripts/audio-workflow/encode/work/
 scripts/audio-workflow/encode/output/

@@ -9,6 +9,8 @@ import {
   generateHashVariants,
   generateCropHashVariants,
   DEFAULT_GAMMA_VARIANTS,
+  DEFAULT_ROTATION_VARIANTS,
+  DEFAULT_NEAR_DUP_HAMMING_THRESHOLD,
 } from './lib/photoHashUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +29,20 @@ const VALID_ALGORITHMS = new Set(['phash']);
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp)$/i;
 // Labels for each gamma variant in DEFAULT_GAMMA_VARIANTS order [2.0, 1.4, 1.0, 0.7, 0.5]
 const EXPOSURE_LABELS = ['very-dark', 'dark', 'normal', 'bright', 'very-bright'];
+
+function parseNumberList(value, label) {
+  const parsed = value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => Number(part));
+
+  if (parsed.length === 0 || parsed.some((num) => !Number.isFinite(num))) {
+    throw new Error(`${label} requires a comma-separated list of numbers`);
+  }
+
+  return parsed;
+}
 
 function parseIds(value, bucket) {
   if (!bucket) {
@@ -65,6 +81,10 @@ function parseArgs() {
     imageTargets: [],
     batchSize: IS_BATCH_CHILD ? Number.POSITIVE_INFINITY : DEFAULT_BATCH_SIZE,
     isBatchChild: IS_BATCH_CHILD,
+    hashVariants: {
+      rotationAngles: [...DEFAULT_ROTATION_VARIANTS],
+      nearDupHammingThreshold: DEFAULT_NEAR_DUP_HAMMING_THRESHOLD,
+    },
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -149,6 +169,26 @@ function parseArgs() {
       case '--paths-mode':
         options.pathsMode = true;
         break;
+      case '--rotation-angles':
+        if (!args[i + 1]) {
+          throw new Error('--rotation-angles requires a comma-separated list, e.g. -8,8');
+        }
+        options.hashVariants.rotationAngles = parseNumberList(args[++i], '--rotation-angles');
+        break;
+      case '--no-rotation-variants':
+        options.hashVariants.rotationAngles = [];
+        break;
+      case '--near-dup-hamming-threshold': {
+        if (!args[i + 1]) {
+          throw new Error('--near-dup-hamming-threshold requires an integer >= 0');
+        }
+        const threshold = Number(args[++i]);
+        if (!Number.isInteger(threshold) || threshold < 0) {
+          throw new Error('--near-dup-hamming-threshold must be an integer >= 0');
+        }
+        options.hashVariants.nearDupHammingThreshold = threshold;
+        break;
+      }
       case '--batch-size': {
         if (!args[i + 1]) {
           throw new Error('--batch-size requires a numeric value (use 0 to disable)');
@@ -464,12 +504,18 @@ async function processConcert(concert, options) {
   if (options.tasks.hashes) {
     try {
       const imageData = await ensureImageData();
-      const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS);
+      const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS, {
+        rotationAngles: options.hashVariants.rotationAngles,
+        nearDupHammingThreshold: options.hashVariants.nearDupHammingThreshold,
+      });
       const hashStore = ensurePhotoHashesStructure(concert);
 
       if (options.algorithms.has('phash')) {
         hashStore.phash = hashVariants.phash;
-        hashStore.cropPhashes = generateCropHashVariants(imageData, DEFAULT_GAMMA_VARIANTS);
+        hashStore.cropPhashes = generateCropHashVariants(imageData, DEFAULT_GAMMA_VARIANTS, {
+          rotationAngles: options.hashVariants.rotationAngles,
+          nearDupHammingThreshold: options.hashVariants.nearDupHammingThreshold,
+        });
       }
 
       status.hashes = true;
@@ -730,6 +776,8 @@ function formatTaskSummary(status, options) {
 async function runPathsMode(options) {
   console.log('📸 Photo Signal recognition data updater — paths mode');
   console.log(`Algorithms: ${Array.from(options.algorithms).join(', ')}`);
+  console.log(`Rotation angles: ${options.hashVariants.rotationAngles.join(', ') || '(disabled)'}`);
+  console.log(`Near-dup dedup threshold: ${options.hashVariants.nearDupHammingThreshold}`);
   console.log('Targets:');
   options.imageTargets.forEach((target) => console.log(`  • ${target}`));
   console.log('━'.repeat(60));
@@ -747,7 +795,10 @@ async function runPathsMode(options) {
     try {
       const imageData = await loadImageData(absolutePath);
       const { width, height } = imageData;
-      const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS);
+      const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS, {
+        rotationAngles: options.hashVariants.rotationAngles,
+        nearDupHammingThreshold: options.hashVariants.nearDupHammingThreshold,
+      });
       const photoHashes = {};
 
       for (const algorithm of options.algorithms) {
@@ -800,6 +851,10 @@ async function main() {
   console.log(`Tasks: hashes=${options.tasks.hashes ? 'on' : 'off'}`);
   if (options.tasks.hashes) {
     console.log(`Hash algorithms: ${Array.from(options.algorithms).join(', ')}`);
+    console.log(
+      `Rotation angles: ${options.hashVariants.rotationAngles.join(', ') || '(disabled)'}`
+    );
+    console.log(`Near-dup dedup threshold: ${options.hashVariants.nearDupHammingThreshold}`);
   }
   if (options.ids && options.ids.size > 0) {
     console.log(`Targeting concert ids: ${Array.from(options.ids).join(', ')}`);

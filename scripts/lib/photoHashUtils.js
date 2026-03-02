@@ -29,12 +29,64 @@ import { createCanvas, loadImage } from 'canvas';
 export const DEFAULT_GAMMA_VARIANTS = [2.0, 1.4, 1.0, 0.7, 0.5];
 
 /**
+ * Default small-angle rotation variants (degrees) used to improve tolerance
+ * for slight handheld camera tilt/rotation during recognition.
+ *
+ * @type {number[]}
+ */
+export const DEFAULT_ROTATION_VARIANTS = [-8, 8];
+
+/**
+ * Maximum Hamming distance (in bits) considered near-duplicate for pHash
+ * variant pruning. 1 is conservative and keeps most diversity.
+ *
+ * @type {number}
+ */
+export const DEFAULT_NEAR_DUP_HAMMING_THRESHOLD = 1;
+
+/**
  * Legacy linear exposure offsets — kept so callers that explicitly pass
  * these continue to work.  New code should use DEFAULT_GAMMA_VARIANTS.
  *
  * @deprecated Use DEFAULT_GAMMA_VARIANTS instead.
  */
 export const DEFAULT_EXPOSURE_OFFSETS = [-50, 0, 50];
+
+const POPCOUNT_NIBBLE = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
+
+function normalizeRotationAngles(angles = DEFAULT_ROTATION_VARIANTS) {
+  if (!Array.isArray(angles)) {
+    return [];
+  }
+
+  const deduped = [];
+  const seen = new Set();
+
+  for (const angle of angles) {
+    const parsed = Number(angle);
+    if (!Number.isFinite(parsed)) {
+      continue;
+    }
+
+    const normalized = Math.round(parsed * 100) / 100;
+    if (normalized === 0 || seen.has(normalized)) {
+      continue;
+    }
+
+    seen.add(normalized);
+    deduped.push(normalized);
+  }
+
+  return deduped;
+}
+
+function normalizeDedupThreshold(threshold = DEFAULT_NEAR_DUP_HAMMING_THRESHOLD) {
+  const parsed = Number(threshold);
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_NEAR_DUP_HAMMING_THRESHOLD;
+  }
+  return Math.max(0, Math.floor(parsed));
+}
 
 // ---------------------------------------------------------------------------
 // Internal image-processing helpers
@@ -254,6 +306,122 @@ export function adjustGamma(imageData, gamma) {
   return adjusted;
 }
 
+/**
+ * Rotate an image around its center while preserving original canvas size.
+ *
+ * @param {ImageData} imageData
+ * @param {number} angleDegrees
+ * @returns {ImageData}
+ */
+export function rotateImageData(imageData, angleDegrees) {
+  if (!Number.isFinite(angleDegrees) || angleDegrees === 0) {
+    return imageData;
+  }
+
+  const { width, height } = imageData;
+  const sourceCanvas = createCanvas(width, height);
+  const sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
+  sourceCtx.putImageData(imageData, 0, 0);
+
+  const targetCanvas = createCanvas(width, height);
+  const targetCtx = targetCanvas.getContext('2d', { willReadFrequently: true });
+  targetCtx.fillStyle = '#000';
+  targetCtx.fillRect(0, 0, width, height);
+  targetCtx.translate(width / 2, height / 2);
+  targetCtx.rotate((angleDegrees * Math.PI) / 180);
+  targetCtx.drawImage(sourceCanvas, -width / 2, -height / 2, width, height);
+
+  return targetCtx.getImageData(0, 0, width, height);
+}
+
+/**
+ * Compute bitwise Hamming distance for same-length hexadecimal strings.
+ *
+ * @param {string} leftHex
+ * @param {string} rightHex
+ * @returns {number}
+ */
+export function hammingDistanceHex(leftHex, rightHex) {
+  if (leftHex.length !== rightHex.length) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  let distance = 0;
+  for (let i = 0; i < leftHex.length; i++) {
+    const leftNibble = parseInt(leftHex[i], 16);
+    const rightNibble = parseInt(rightHex[i], 16);
+    if (Number.isNaN(leftNibble) || Number.isNaN(rightNibble)) {
+      return Number.POSITIVE_INFINITY;
+    }
+    distance += POPCOUNT_NIBBLE[leftNibble ^ rightNibble];
+  }
+
+  return distance;
+}
+
+/**
+ * Deduplicate pHash variants by exact match and near-duplicate Hamming distance.
+ * Keeps first-seen order for deterministic outputs.
+ *
+ * @param {string[]} hashes
+ * @param {number} maxDistance
+ * @returns {string[]}
+ */
+export function dedupeNearDuplicateHashes(
+  hashes,
+  maxDistance = DEFAULT_NEAR_DUP_HAMMING_THRESHOLD
+) {
+  const normalizedThreshold = normalizeDedupThreshold(maxDistance);
+  const deduped = [];
+
+  for (const hash of hashes) {
+    if (typeof hash !== 'string' || hash.length === 0) {
+      continue;
+    }
+
+    let isDuplicate = false;
+    for (const existing of deduped) {
+      const distance = hammingDistanceHex(hash, existing);
+      if (distance <= normalizedThreshold) {
+        isDuplicate = true;
+        break;
+      }
+    }
+
+    if (!isDuplicate) {
+      deduped.push(hash);
+    }
+  }
+
+  return deduped;
+}
+
+function appendNonDuplicateCandidates(baseHashes, candidates, maxDistance) {
+  const normalizedThreshold = normalizeDedupThreshold(maxDistance);
+  const merged = [...baseHashes];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string' || candidate.length === 0) {
+      continue;
+    }
+
+    let isDuplicate = false;
+    for (const existing of merged) {
+      const distance = hammingDistanceHex(candidate, existing);
+      if (distance <= normalizedThreshold) {
+        isDuplicate = true;
+        break;
+      }
+    }
+
+    if (!isDuplicate) {
+      merged.push(candidate);
+    }
+  }
+
+  return merged;
+}
+
 // ---------------------------------------------------------------------------
 // Variant generation
 // ---------------------------------------------------------------------------
@@ -275,17 +443,71 @@ export function createExposureVariants(imageData, gammas = DEFAULT_GAMMA_VARIANT
 }
 
 /**
+ * Build image variants by applying optional small-angle rotations on top of
+ * each exposure variant.
+ *
+ * Order is deterministic: base exposure (0°) first, then configured angles.
+ *
+ * @param {ImageData} imageData
+ * @param {number[]} gammas
+ * @param {number[]} rotationAngles
+ * @returns {ImageData[]}
+ */
+export function createExposureAndRotationVariants(
+  imageData,
+  gammas = DEFAULT_GAMMA_VARIANTS,
+  rotationAngles = DEFAULT_ROTATION_VARIANTS
+) {
+  const exposures = createExposureVariants(imageData, gammas);
+  const normalizedAngles = normalizeRotationAngles(rotationAngles);
+  const variants = [];
+
+  for (const exposureVariant of exposures) {
+    variants.push(exposureVariant);
+    for (const angle of normalizedAngles) {
+      variants.push(rotateImageData(exposureVariant, angle));
+    }
+  }
+
+  return variants;
+}
+
+/**
  * Generate pHash (and dHash) variants for multiple gamma-adjusted exposures.
  *
  * @param {ImageData} imageData
  * @param {number[]} gammas  Array of gamma exponents (default: DEFAULT_GAMMA_VARIANTS)
  * @returns {{ phash: string[], dhash: string[] }}
  */
-export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS) {
-  const variants = createExposureVariants(imageData, gammas);
+export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS, options = {}) {
+  const exposureVariants = createExposureVariants(imageData, gammas);
+  const basePHashes = exposureVariants.map((variant) => computePHash(variant));
+  const baseDHashes = exposureVariants.map((variant) => computeDHash(variant));
+
+  const rotationAngles = normalizeRotationAngles(
+    options.rotationAngles ?? DEFAULT_ROTATION_VARIANTS
+  );
+  const rotatedVariants = [];
+  for (const exposureVariant of exposureVariants) {
+    for (const angle of rotationAngles) {
+      rotatedVariants.push(rotateImageData(exposureVariant, angle));
+    }
+  }
+
+  const rotatedPHashes = rotatedVariants.map((variant) => computePHash(variant));
+  const rotatedDHashes = rotatedVariants.map((variant) => computeDHash(variant));
+
   return {
-    phash: variants.map((variant) => computePHash(variant)),
-    dhash: variants.map((variant) => computeDHash(variant)),
+    phash: appendNonDuplicateCandidates(
+      basePHashes,
+      rotatedPHashes,
+      options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD
+    ),
+    dhash: appendNonDuplicateCandidates(
+      baseDHashes,
+      rotatedDHashes,
+      options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD
+    ),
   };
 }
 
@@ -296,9 +518,13 @@ export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS)
  * @param {number[]} gammas
  * @returns {Promise<{ phash: string[], dhash: string[] }>}
  */
-export async function generateHashesForFile(imagePath, gammas = DEFAULT_GAMMA_VARIANTS) {
+export async function generateHashesForFile(
+  imagePath,
+  gammas = DEFAULT_GAMMA_VARIANTS,
+  options = {}
+) {
   const imageData = await loadImageData(imagePath);
-  return generateHashVariants(imageData, gammas);
+  return generateHashVariants(imageData, gammas, options);
 }
 
 // ---------------------------------------------------------------------------
@@ -359,12 +585,31 @@ export function extractCrop(imageData, regionKey) {
  * @param {number[]} gammas  Array of gamma exponents (default: DEFAULT_GAMMA_VARIANTS)
  * @returns {Record<string, string[]>}  Map of cropRegionKey -> array of pHash hex strings
  */
-export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS) {
+export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS, options = {}) {
   const result = {};
+  const rotationAngles = normalizeRotationAngles(
+    options.rotationAngles ?? DEFAULT_ROTATION_VARIANTS
+  );
+  const nearDupHammingThreshold =
+    options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD;
+
   for (const regionKey of Object.keys(CROP_REGIONS)) {
     const cropped = extractCrop(imageData, regionKey);
-    const variants = createExposureVariants(cropped, gammas);
-    result[regionKey] = variants.map((v) => computePHash(v));
+    const exposureVariants = createExposureVariants(cropped, gammas);
+    const baseHashes = exposureVariants.map((variant) => computePHash(variant));
+
+    const rotatedHashes = [];
+    for (const exposureVariant of exposureVariants) {
+      for (const angle of rotationAngles) {
+        rotatedHashes.push(computePHash(rotateImageData(exposureVariant, angle)));
+      }
+    }
+
+    result[regionKey] = appendNonDuplicateCandidates(
+      baseHashes,
+      rotatedHashes,
+      nearDupHammingThreshold
+    );
   }
   return result;
 }

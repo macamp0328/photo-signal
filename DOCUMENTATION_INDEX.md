@@ -9,10 +9,8 @@
 - **[README.md](./README.md)** — Project overview, features, and setup
 - **[SETUP.md](./SETUP.md)** — Development environment, CI/CD, DevContainer, Vercel deployment
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** — System architecture, module structure, data flow, design principles
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** — Contribution guidelines, feature-branch/PR workflow, and quality gates
 - **[TESTING.md](./TESTING.md)** — Testing strategy, framework, and coverage goals
 - **[DOCKER.md](./DOCKER.md)** — Docker and Docker Compose setup
-- **[FUTURE_FEATURES.md](./FUTURE_FEATURES.md)** — Unimplemented features and enhancement ideas
 
 ## AI Agent Instructions
 

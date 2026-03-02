@@ -188,7 +188,6 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 ## Key Documentation
 
 - `ARCHITECTURE.md` — System design and module contracts
-- `CONTRIBUTING.md` — Contribution guidelines (human and AI)
 - `TESTING.md` — Testing strategy
 - `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` — Recognition algorithm details
 - `docs/AUDIO_R2_WORKER.md` — Audio CDN setup
@@ -201,7 +200,7 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 2. Tiny docs-only edits may be done on `main`, but branches are still preferred.
 3. For AI-agent work, branch prefixes `copilot/` and `claude/` are recommended (not required).
 4. Planner mode is optional, but recommended for larger or multi-file changes.
-5. Use `CONTRIBUTING.md` as the canonical contributor workflow reference.
+5. Use this file as the canonical Claude workflow reference.
 
 ### Before Committing or Pushing (MANDATORY)
 

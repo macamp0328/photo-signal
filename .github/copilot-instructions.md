@@ -26,7 +26,7 @@ Before implementing any code change, create and switch to a feature branch.
 - Tiny docs-only edits may be done on `main`, but branches are still preferred.
 - For AI-agent work, branch prefixes `copilot/` and `claude/` are recommended (not required).
 - Planner mode is optional, but recommended for larger or multi-file changes.
-- Use `CONTRIBUTING.md` as the canonical contributor workflow reference.
+- Use this file as the canonical GitHub Copilot workflow reference.
 
 After completing implementation, ask the maintainer whether to update the feature branch from `main` before PR handoff.
 
@@ -135,7 +135,6 @@ scripts/              # Node.js automation scripts (CommonJS .js files)
 
 ## Key Documentation
 
-- **[CONTRIBUTING.md](../CONTRIBUTING.md)** — Contribution guidelines and quality gates
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)** — System design and module contracts
 - **[TESTING.md](../TESTING.md)** — Testing strategy
 - **[DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md)** — Complete documentation index

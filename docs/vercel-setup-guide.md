@@ -510,7 +510,7 @@ This project is configured to **stay within Vercel's free tier**:
 
 - [SETUP.md](../SETUP.md) - Development environment setup
 - [README.md](../README.md) - Project overview and features
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
+- [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) - Full documentation map
 
 ### Support
 

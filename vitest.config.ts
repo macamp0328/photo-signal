@@ -26,11 +26,12 @@ export default defineConfig({
         'src/vite-env.d.ts',
         'src/main.tsx',
       ],
-      all: true,
-      lines: 70,
-      functions: 70,
-      branches: 70,
-      statements: 70,
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+      },
     },
   },
 });

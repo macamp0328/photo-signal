@@ -26,8 +26,6 @@
 
 Module API contracts live in the TypeScript source — see `types.ts` in each module directory.
 
-- **[src/services/data-service/README.md](./src/services/data-service/README.md)** — Concert data loading and caching
-
 ## Scripts & Workflows
 
 - **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline

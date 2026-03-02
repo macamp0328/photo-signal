@@ -14,13 +14,28 @@ const OUTPUT_GIF = path.resolve(ROOT, 'docs/media/demo.gif');
 const OUTPUT_DIR = path.dirname(OUTPUT_GIF);
 
 const DEFAULT_LANDING_FRAMES = 8;
-const DEFAULT_CAPTURE_FRAMES = 90;
+const DEFAULT_CAPTURE_FRAMES = 320;
 const DEFAULT_FRAME_DELAY_MS = 100;
 const DEFAULT_FPS = 8;
-const DEFAULT_PRE_MATCH_MS = 5000;
+const DEFAULT_PRE_MATCH_MS = 6500;
 const DEFAULT_VIEWPORT_WIDTH = 412;
 const DEFAULT_VIEWPORT_HEIGHT = 915;
 const DEFAULT_OUTPUT_WIDTH = 480;
+
+const STORY_PACING_MS = {
+  postFirstMatchHold: 3400,
+  postPauseHold: 1800,
+  postPlayHold: 1800,
+  postNextHold: 2500,
+  postCloseHold: 8200,
+  postSecondTargetPreviewHold: 2800,
+  postSecondMatchHold: 2400,
+  postDropNeedleHold: 6200,
+};
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 function parseArgs(argv) {
   const parsed = {
@@ -106,16 +121,8 @@ function startPreviewServer() {
   );
 }
 
-function resolveDemoPhotoPath() {
-  const appDataPath = path.resolve(ROOT, 'public/data.app.v2.json');
-  const appData = JSON.parse(fs.readFileSync(appDataPath, 'utf8'));
-  const firstPhoto = appData.photos?.[0];
-
-  if (!firstPhoto?.imageFile) {
-    throw new Error('No photo.imageFile found in public/data.app.v2.json');
-  }
-
-  const relative = String(firstPhoto.imageFile).replace(/^\//, '');
+function resolvePhotoPath(imageFile) {
+  const relative = String(imageFile ?? '').replace(/^\//, '');
   const absolute = path.resolve(ROOT, relative);
 
   if (!fs.existsSync(absolute)) {
@@ -123,6 +130,90 @@ function resolveDemoPhotoPath() {
   }
 
   return absolute;
+}
+
+function resolveDemoTargets() {
+  const appDataPath = path.resolve(ROOT, 'public/data.app.v2.json');
+  const recognitionPath = path.resolve(ROOT, 'public/data.recognition.v2.json');
+
+  const appData = JSON.parse(fs.readFileSync(appDataPath, 'utf8'));
+  const recognitionData = JSON.parse(fs.readFileSync(recognitionPath, 'utf8'));
+
+  const appEntries = Array.isArray(appData.entries) ? appData.entries : [];
+  const tracks = Array.isArray(appData.tracks) ? appData.tracks : [];
+  const photos = Array.isArray(appData.photos) ? appData.photos : [];
+  const artists = Array.isArray(appData.artists) ? appData.artists : [];
+  const recognitionEntries = Array.isArray(recognitionData.entries) ? recognitionData.entries : [];
+
+  const tracksById = new Map(tracks.map((track) => [track.id, track]));
+  const photosById = new Map(photos.map((photo) => [photo.id, photo]));
+  const artistNameById = new Map(artists.map((artist) => [artist.id, artist.name ?? artist.id]));
+  const recognitionByConcertId = new Map(
+    recognitionEntries.map((entry, index) => [entry.concertId, { entry, index }])
+  );
+
+  const usableEntries = appEntries
+    .map((entry) => {
+      const track = tracksById.get(entry.trackId);
+      const photo = photosById.get(entry.photoId);
+      const recognition = recognitionByConcertId.get(entry.id);
+      const recognitionEnabled = entry.recognitionEnabled !== false;
+
+      if (!recognitionEnabled || !track?.audioFile || !photo?.imageFile || !recognition) {
+        return null;
+      }
+
+      return {
+        concertId: entry.id,
+        artistId: entry.artistId,
+        artistName: artistNameById.get(entry.artistId) ?? entry.artistId,
+        imageFile: photo.imageFile,
+        recognitionEntryIndex: recognition.index,
+      };
+    })
+    .filter(Boolean);
+
+  if (usableEntries.length < 2) {
+    throw new Error('Not enough recognition-enabled entries found for demo sequence.');
+  }
+
+  const countsByArtist = usableEntries.reduce((counts, entry) => {
+    counts.set(entry.artistId, (counts.get(entry.artistId) ?? 0) + 1);
+    return counts;
+  }, new Map());
+
+  const firstTarget = usableEntries.find((entry) => (countsByArtist.get(entry.artistId) ?? 0) > 1);
+
+  if (!firstTarget) {
+    throw new Error('No artist with multiple tracks found for deterministic next-track demo.');
+  }
+
+  const secondaryCandidates = usableEntries.filter(
+    (entry) => entry.artistId !== firstTarget.artistId
+  );
+
+  if (secondaryCandidates.length === 0) {
+    throw new Error(
+      'Could not find second target with a different artist for Drop the Needle demo.'
+    );
+  }
+
+  const orderedSecondaryCandidates = [...secondaryCandidates].sort((a, b) => {
+    const aPreferred = /jonny fritz/i.test(a.artistName) ? 0 : 1;
+    const bPreferred = /jonny fritz/i.test(b.artistName) ? 0 : 1;
+    return aPreferred - bPreferred;
+  });
+
+  return {
+    firstTarget: {
+      ...firstTarget,
+      photoPath: resolvePhotoPath(firstTarget.imageFile),
+    },
+    secondaryTargets: orderedSecondaryCandidates.slice(0, 3).map((candidate) => ({
+      ...candidate,
+      photoPath: resolvePhotoPath(candidate.imageFile),
+    })),
+  };
 }
 
 async function computeSeededMatchHash(photoPath) {
@@ -195,9 +286,19 @@ async function captureDemoFrames(options) {
   const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
     options;
 
-  const demoPhotoPath = resolveDemoPhotoPath();
-  const imageDataUrl = buildDataUrl(demoPhotoPath);
-  const seededMatchHash = await computeSeededMatchHash(demoPhotoPath);
+  const { firstTarget, secondaryTargets } = resolveDemoTargets();
+  if (secondaryTargets.length === 0) {
+    throw new Error('No secondary target available for second match.');
+  }
+  const allTargets = [firstTarget, ...secondaryTargets];
+  const targetImageDataUrls = allTargets.map((target) => buildDataUrl(target.photoPath));
+  const targetSeededHashes = await Promise.all(
+    allTargets.map(async (target) => computeSeededMatchHash(target.photoPath))
+  );
+
+  console.log(
+    `🎬 Demo targets: A=${firstTarget.artistName} (concert ${firstTarget.concertId}), secondary candidates=${secondaryTargets.length}`
+  );
 
   const browser = await chromium.launch({
     headless: true,
@@ -223,7 +324,7 @@ async function captureDemoFrames(options) {
   });
 
   await page.addInitScript(
-    ({ seededImageDataUrl, seededHash, preMatchDurationMs }) => {
+    ({ seededImageDataUrls, seededTargets }) => {
       try {
         const existingFlagsRaw = globalThis.localStorage.getItem('photo-signal-feature-flags');
         const existingFlags = existingFlagsRaw ? JSON.parse(existingFlagsRaw) : [];
@@ -231,7 +332,7 @@ async function captureDemoFrames(options) {
 
         byId.set('rectangle-detection', {
           ...(byId.get('rectangle-detection') ?? { id: 'rectangle-detection' }),
-          enabled: false,
+          enabled: true,
         });
         byId.set('show-debug-overlay', {
           ...(byId.get('show-debug-overlay') ?? { id: 'show-debug-overlay' }),
@@ -246,6 +347,27 @@ async function captureDemoFrames(options) {
         // ignore localStorage bootstrap failures
       }
 
+      const demoState = {
+        phase: 'pre-match',
+        targetIndex: 0,
+      };
+
+      globalThis.__photoSignalDemoSetPhase = (nextPhase) => {
+        if (typeof nextPhase === 'string') {
+          demoState.phase = nextPhase;
+        }
+      };
+      globalThis.__photoSignalDemoSetTargetIndex = (nextIndex) => {
+        if (typeof nextIndex === 'number' && Number.isFinite(nextIndex)) {
+          const normalized = Math.max(
+            0,
+            Math.min(Math.floor(nextIndex), seededImageDataUrls.length - 1)
+          );
+          demoState.targetIndex = normalized;
+        }
+      };
+      globalThis.__photoSignalDemoGetPhase = () => demoState.phase;
+
       const createSyntheticStream = async () => {
         const canvas = globalThis.document.createElement('canvas');
         canvas.width = 960;
@@ -256,64 +378,198 @@ async function captureDemoFrames(options) {
           throw new Error('Failed to create synthetic camera context');
         }
 
-        const image = new globalThis.Image();
-        image.src = seededImageDataUrl;
-        await image.decode();
-
-        const targetAspect = canvas.width / canvas.height;
-        const imageAspect = image.width / image.height;
-
-        let sourceWidth = image.width;
-        let sourceHeight = image.height;
-        let sourceX = 0;
-        let sourceY = 0;
-
-        if (imageAspect > targetAspect) {
-          sourceHeight = image.height;
-          sourceWidth = sourceHeight * targetAspect;
-          sourceX = (image.width - sourceWidth) / 2;
-        } else {
-          sourceWidth = image.width;
-          sourceHeight = sourceWidth / targetAspect;
-          sourceY = (image.height - sourceHeight) / 2;
+        const images = [];
+        for (const imageDataUrl of seededImageDataUrls) {
+          const image = new globalThis.Image();
+          image.src = imageDataUrl;
+          await image.decode();
+          images.push(image);
         }
+
+        const calculateImageCrop = (image) => {
+          const targetAspect = canvas.width / canvas.height;
+          const imageAspect = image.width / image.height;
+
+          let sourceWidth = image.width;
+          let sourceHeight = image.height;
+          let sourceX = 0;
+          let sourceY = 0;
+
+          if (imageAspect > targetAspect) {
+            sourceHeight = image.height;
+            sourceWidth = sourceHeight * targetAspect;
+            sourceX = (image.width - sourceWidth) / 2;
+          } else {
+            sourceWidth = image.width;
+            sourceHeight = sourceWidth / targetAspect;
+            sourceY = (image.height - sourceHeight) / 2;
+          }
+
+          return {
+            sourceX,
+            sourceY,
+            sourceWidth,
+            sourceHeight,
+          };
+        };
+
+        const cropsByIndex = images.map((image) => calculateImageCrop(image));
+
+        const createRecognitionBox = () => {
+          const videoElement = globalThis.document.querySelector('video');
+          if (!videoElement) {
+            return;
+          }
+
+          const host = videoElement.parentElement;
+          if (!host || host.querySelector('[data-demo-recognition-box="true"]')) {
+            return;
+          }
+
+          if (globalThis.getComputedStyle(host).position === 'static') {
+            host.style.position = 'relative';
+          }
+
+          const box = globalThis.document.createElement('div');
+          box.setAttribute('data-demo-recognition-box', 'true');
+          box.style.position = 'absolute';
+          box.style.left = '18%';
+          box.style.top = '20%';
+          box.style.width = '64%';
+          box.style.height = '58%';
+          box.style.border = '3px solid var(--color-warning, #fbbf24)';
+          box.style.boxShadow =
+            '0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent)';
+          box.style.pointerEvents = 'none';
+          box.style.zIndex = '16';
+
+          const createCorner = (left, top, right, bottom) => {
+            const corner = globalThis.document.createElement('div');
+            corner.style.position = 'absolute';
+            corner.style.width = '20px';
+            corner.style.height = '20px';
+            corner.style.border = '3px solid currentColor';
+            if (left) corner.style.left = '-3px';
+            if (top) corner.style.top = '-3px';
+            if (right) corner.style.right = '-3px';
+            if (bottom) corner.style.bottom = '-3px';
+            if (left) corner.style.borderRight = 'none';
+            if (right) corner.style.borderLeft = 'none';
+            if (top) corner.style.borderBottom = 'none';
+            if (bottom) corner.style.borderTop = 'none';
+            return corner;
+          };
+
+          box.appendChild(createCorner(true, true, false, false));
+          box.appendChild(createCorner(false, true, true, false));
+          box.appendChild(createCorner(false, false, true, true));
+          box.appendChild(createCorner(true, false, false, true));
+          host.appendChild(box);
+
+          const updateBoxStyle = () => {
+            const isPreMatch = demoState.phase === 'pre-match';
+            box.style.color = isPreMatch
+              ? 'var(--color-warning, #fbbf24)'
+              : 'var(--color-success, #10b981)';
+            box.style.borderColor = isPreMatch
+              ? 'var(--color-warning, #fbbf24)'
+              : 'var(--color-success, #10b981)';
+            box.style.boxShadow = isPreMatch
+              ? '0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent)'
+              : '0 0 0.95rem color-mix(in srgb, var(--color-success, #10b981) 65%, transparent)';
+            box.style.opacity = isPreMatch ? '0.8' : '1';
+          };
+
+          const animate = () => {
+            updateBoxStyle();
+            globalThis.requestAnimationFrame(animate);
+          };
+
+          animate();
+        };
+
+        const boxBoot = () => {
+          createRecognitionBox();
+          globalThis.requestAnimationFrame(boxBoot);
+        };
+        globalThis.requestAnimationFrame(boxBoot);
 
         const startMs = globalThis.performance.now();
 
         const render = (now) => {
           const elapsedMs = now - startMs;
           const elapsedSeconds = elapsedMs / 1000;
-          const isPreMatchPhase = elapsedMs < preMatchDurationMs;
+          const phase =
+            demoState.phase === 'target'
+              ? 'target'
+              : demoState.phase === 'target-preview'
+                ? 'target-preview'
+                : demoState.phase === 'no-match'
+                  ? 'no-match'
+                  : 'pre-match';
+          const isPreMatchPhase =
+            phase === 'pre-match' || phase === 'no-match' || phase === 'target-preview';
+
+          const activeIndex = Math.max(0, Math.min(demoState.targetIndex, images.length - 1));
+          const image = images[activeIndex];
+          const crop = cropsByIndex[activeIndex];
 
           const driftX = isPreMatchPhase ? Math.sin(elapsedSeconds * 1.15) * 8 : 0;
           const driftY = isPreMatchPhase ? Math.cos(elapsedSeconds * 0.9) * 6 : 0;
           const zoom = isPreMatchPhase ? 1.06 + Math.sin(elapsedSeconds * 0.75) * 0.01 : 1;
 
-          const drawWidth = sourceWidth / zoom;
-          const drawHeight = sourceHeight / zoom;
-          const drawX = sourceX + (sourceWidth - drawWidth) / 2 + driftX;
-          const drawY = sourceY + (sourceHeight - drawHeight) / 2 + driftY;
+          const drawWidth = crop.sourceWidth / zoom;
+          const drawHeight = crop.sourceHeight / zoom;
+          const drawX = crop.sourceX + (crop.sourceWidth - drawWidth) / 2 + driftX;
+          const drawY = crop.sourceY + (crop.sourceHeight - drawHeight) / 2 + driftY;
 
           context.clearRect(0, 0, canvas.width, canvas.height);
 
-          context.save();
-          if (isPreMatchPhase) {
-            context.filter = 'blur(1.8px) brightness(0.76) contrast(1.2) saturate(0.82)';
+          if (phase === 'no-match') {
+            const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 1.2);
+            context.fillStyle = `rgba(22, 22, 30, ${0.9 - pulse * 0.08})`;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            const scanHeight = Math.round(canvas.height * 0.28);
+            const scanY = Math.round(
+              ((elapsedSeconds * 85) % (canvas.height + scanHeight)) - scanHeight
+            );
+            const scanGradient = context.createLinearGradient(0, scanY, 0, scanY + scanHeight);
+            scanGradient.addColorStop(0, 'rgba(124, 58, 237, 0.0)');
+            scanGradient.addColorStop(0.5, 'rgba(124, 58, 237, 0.16)');
+            scanGradient.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
+            context.fillStyle = scanGradient;
+            context.fillRect(0, scanY, canvas.width, scanHeight);
+
+            for (let i = 0; i < 140; i += 1) {
+              const x = Math.floor(Math.random() * canvas.width);
+              const y = Math.floor(Math.random() * canvas.height);
+              const alpha = (Math.random() * 0.05).toFixed(3);
+              context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+              context.fillRect(x, y, 2, 2);
+            }
           } else {
-            context.filter = 'none';
+            context.save();
+            if (phase === 'target-preview') {
+              context.filter = 'blur(2.2px) brightness(0.72) contrast(1.15) saturate(0.78)';
+            } else if (isPreMatchPhase) {
+              context.filter = 'blur(1.8px) brightness(0.76) contrast(1.2) saturate(0.82)';
+            } else {
+              context.filter = 'none';
+            }
+            context.drawImage(
+              image,
+              drawX,
+              drawY,
+              drawWidth,
+              drawHeight,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+            context.restore();
           }
-          context.drawImage(
-            image,
-            drawX,
-            drawY,
-            drawWidth,
-            drawHeight,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-          context.restore();
 
           if (isPreMatchPhase) {
             const vignette = context.createRadialGradient(
@@ -379,9 +635,20 @@ async function captureDemoFrames(options) {
           return response;
         }
 
-        const firstEntry = payload.entries[0];
-        const existing = Array.isArray(firstEntry?.phash) ? firstEntry.phash : [];
-        payload.entries[0].phash = [seededHash, ...existing.filter((hash) => hash !== seededHash)];
+        for (const seededTarget of seededTargets) {
+          const entry = payload.entries.find(
+            (candidate) => candidate?.concertId === seededTarget.concertId
+          );
+          if (!entry) {
+            continue;
+          }
+
+          const existing = Array.isArray(entry.phash) ? entry.phash : [];
+          entry.phash = [
+            seededTarget.seededHash,
+            ...existing.filter((hash) => hash !== seededTarget.seededHash),
+          ];
+        }
 
         return new Response(JSON.stringify(payload), {
           status: response.status,
@@ -393,9 +660,11 @@ async function captureDemoFrames(options) {
       };
     },
     {
-      seededImageDataUrl: imageDataUrl,
-      seededHash: seededMatchHash,
-      preMatchDurationMs: preMatchMs,
+      seededImageDataUrls: targetImageDataUrls,
+      seededTargets: allTargets.map((target, index) => ({
+        concertId: target.concertId,
+        seededHash: targetSeededHashes[index],
+      })),
     }
   );
 
@@ -404,18 +673,235 @@ async function captureDemoFrames(options) {
     await page.getByRole('heading', { name: /photo signal/i }).waitFor({ timeout: 10000 });
 
     let frameIndex = 0;
+    const maxFrames = Math.max(landingFrames + captureFrames, 1);
+
     const saveFrame = async () => {
       if (page.isClosed()) {
         throw new Error(`Browser page closed unexpectedly before frame ${frameIndex}`);
       }
 
+      if (frameIndex >= maxFrames) {
+        return false;
+      }
+
       const framePath = path.join(FRAME_DIR, `frame-${String(frameIndex).padStart(4, '0')}.png`);
       await page.screenshot({ path: framePath, fullPage: false });
       frameIndex += 1;
+      return true;
+    };
+
+    const captureFor = async (durationMs) => {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < durationMs) {
+        const saved = await saveFrame();
+        if (!saved) {
+          return false;
+        }
+        await page.waitForTimeout(frameDelayMs);
+      }
+      return true;
+    };
+
+    const captureUntil = async (condition, timeoutMs) => {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < timeoutMs) {
+        const saved = await saveFrame();
+        if (!saved) {
+          return false;
+        }
+
+        if (await condition()) {
+          return true;
+        }
+
+        await page.waitForTimeout(frameDelayMs);
+      }
+      return false;
+    };
+
+    const waitUntil = async (condition, timeoutMs, pollMs = 120) => {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < timeoutMs) {
+        if (await condition()) {
+          return true;
+        }
+        await page.waitForTimeout(pollMs);
+      }
+      return false;
+    };
+
+    const captureForWithoutConcertInfo = async (durationMs) => {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < durationMs) {
+        const infoVisible = await hasConcertDetails();
+        if (infoVisible) {
+          const closeButtonVisible = await page
+            .getByRole('button', { name: /close concert details/i })
+            .isVisible()
+            .catch(() => false);
+
+          if (closeButtonVisible) {
+            await page.getByRole('button', { name: /close concert details/i }).click();
+          }
+
+          const infoHidden = await waitUntil(async () => !(await hasConcertDetails()), 1500, 80);
+          if (!infoHidden) {
+            return false;
+          }
+
+          await page.waitForTimeout(80);
+          continue;
+        }
+
+        const saved = await saveFrame();
+        if (!saved) {
+          return false;
+        }
+
+        await page.waitForTimeout(frameDelayMs);
+      }
+
+      return true;
+    };
+
+    const waitForEnabledButton = async (name, timeoutMs = 6000) => {
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < timeoutMs) {
+        const button = page.getByRole('button', { name });
+        const isVisible = await button.isVisible().catch(() => false);
+        if (isVisible) {
+          const disabled = await button.isDisabled().catch(() => false);
+          if (!disabled) {
+            return button;
+          }
+        }
+        await page.waitForTimeout(120);
+      }
+
+      throw new Error(`Button did not become enabled: ${name}`);
+    };
+
+    const tapWithHighlight = async (button) => {
+      await button.evaluate((element) => {
+        const target = element;
+        const rect = target.getBoundingClientRect();
+        const previous = {
+          transition: target.style.transition,
+          transform: target.style.transform,
+          boxShadow: target.style.boxShadow,
+          filter: target.style.filter,
+          outline: target.style.outline,
+          outlineOffset: target.style.outlineOffset,
+        };
+
+        const ripple = globalThis.document.createElement('div');
+        ripple.style.position = 'fixed';
+        ripple.style.left = `${rect.left + rect.width / 2}px`;
+        ripple.style.top = `${rect.top + rect.height / 2}px`;
+        ripple.style.width = '84px';
+        ripple.style.height = '84px';
+        ripple.style.marginLeft = '-42px';
+        ripple.style.marginTop = '-42px';
+        ripple.style.borderRadius = '9999px';
+        ripple.style.border = '3px solid rgba(255,255,255,0.92)';
+        ripple.style.background = 'rgba(124, 58, 237, 0.28)';
+        ripple.style.boxShadow = '0 0 0.9rem rgba(124, 58, 237, 0.65)';
+        ripple.style.pointerEvents = 'none';
+        ripple.style.zIndex = '999999';
+        ripple.style.transform = 'scale(0.55)';
+        ripple.style.opacity = '0.95';
+        ripple.style.transition = 'transform 380ms ease-out, opacity 380ms ease-out';
+        globalThis.document.body.appendChild(ripple);
+
+        globalThis.requestAnimationFrame(() => {
+          ripple.style.transform = 'scale(1.35)';
+          ripple.style.opacity = '0';
+        });
+
+        globalThis.setTimeout(() => {
+          ripple.remove();
+        }, 420);
+
+        target.style.transition = 'transform 120ms ease, box-shadow 120ms ease, filter 120ms ease';
+        target.style.transform = 'scale(0.9)';
+        target.style.boxShadow =
+          '0 0 0 0.2rem color-mix(in srgb, var(--color-accent, #7c3aed) 58%, transparent)';
+        target.style.filter = 'brightness(1.2) saturate(1.08)';
+        target.style.outline = '2px solid rgba(255,255,255,0.9)';
+        target.style.outlineOffset = '1px';
+
+        globalThis.setTimeout(() => {
+          target.style.transition = previous.transition;
+          target.style.transform = previous.transform;
+          target.style.boxShadow = previous.boxShadow;
+          target.style.filter = previous.filter;
+          target.style.outline = previous.outline;
+          target.style.outlineOffset = previous.outlineOffset;
+        }, 360);
+      });
+
+      await button.click();
+    };
+
+    const hasConcertDetails = async () =>
+      page
+        .getByLabel(/concert details/i)
+        .isVisible()
+        .catch(() => false);
+
+    const hasNowPlaying = async () =>
+      page
+        .getByLabel(/now playing controls/i)
+        .isVisible()
+        .catch(() => false);
+
+    const hasDropNeedle = async () =>
+      page
+        .getByRole('button', { name: /drop the needle/i })
+        .isVisible()
+        .catch(() => false);
+
+    const hasDropNeedleForTarget = async (target) =>
+      page
+        .getByRole('button', {
+          name: new RegExp(`drop the needle for\\s+${escapeRegex(target.artistName)}`, 'i'),
+        })
+        .isVisible()
+        .catch(() => false);
+
+    const setSyntheticPhase = async (phase) => {
+      const activePhase = await page.evaluate((nextPhase) => {
+        if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
+          globalThis.__photoSignalDemoSetPhase(nextPhase);
+        }
+        if (typeof globalThis.__photoSignalDemoGetPhase === 'function') {
+          return globalThis.__photoSignalDemoGetPhase();
+        }
+        return 'unknown';
+      }, phase);
+
+      console.log(`🎥 Synthetic camera phase -> ${activePhase}`);
+    };
+
+    const setSyntheticTargetIndex = async (targetIndex) => {
+      const applied = await page.evaluate((nextTargetIndex) => {
+        if (typeof globalThis.__photoSignalDemoSetTargetIndex === 'function') {
+          globalThis.__photoSignalDemoSetTargetIndex(nextTargetIndex);
+        }
+        if (typeof globalThis.__photoSignalDemoGetPhase === 'function') {
+          return globalThis.__photoSignalDemoGetPhase();
+        }
+        return 'unknown';
+      }, targetIndex);
+
+      console.log(`🎯 Synthetic camera target index -> ${targetIndex} (phase=${applied})`);
     };
 
     for (let i = 0; i < landingFrames; i += 1) {
-      await saveFrame();
+      const saved = await saveFrame();
+      if (!saved) {
+        break;
+      }
       await page.waitForTimeout(frameDelayMs);
     }
 
@@ -444,30 +930,22 @@ async function captureDemoFrames(options) {
       );
     }
 
-    let matched = false;
-
-    for (let i = 0; i < captureFrames; i += 1) {
-      await saveFrame();
-      if (!matched) {
-        const hasConcertDetails = await page
-          .getByLabel(/concert details/i)
-          .isVisible()
-          .catch(() => false);
-        const hasSignalBadge = await page
-          .getByText(/signal:\s*on air/i)
-          .isVisible()
-          .catch(() => false);
-        const hasNowPlaying = await page
-          .getByText(/now playing/i)
-          .isVisible()
-          .catch(() => false);
-
-        matched = hasConcertDetails || hasSignalBadge || hasNowPlaying;
-      }
-      await page.waitForTimeout(frameDelayMs);
+    await setSyntheticPhase('pre-match');
+    await setSyntheticTargetIndex(0);
+    const continuedAfterPreMatch = await captureFor(preMatchMs);
+    if (!continuedAfterPreMatch) {
+      return;
     }
 
-    if (!matched) {
+    await setSyntheticPhase('target');
+    await setSyntheticTargetIndex(0);
+
+    const firstMatchSeen = await captureUntil(
+      async () => (await hasConcertDetails()) || (await hasNowPlaying()),
+      20000
+    );
+
+    if (!firstMatchSeen) {
       const pageClosed = page.isClosed();
       const hasPermissionError = pageClosed
         ? false
@@ -506,6 +984,108 @@ async function captureDemoFrames(options) {
         `No photo match detected during demo capture. pageClosed=${pageClosed}, cameraError=${hasPermissionError}, bestMatchVisible=${hasBestMatch}, debugOverlayVisible=${hasDebugOverlay}, screenshot=${failureScreenshot}, body=${bodySnippet}`
       );
     }
+
+    await captureFor(STORY_PACING_MS.postFirstMatchHold);
+
+    const pauseButton = await waitForEnabledButton(/^pause$/i);
+    await tapWithHighlight(pauseButton);
+    await captureFor(STORY_PACING_MS.postPauseHold);
+
+    const playButton = await waitForEnabledButton(/^play$/i);
+    await tapWithHighlight(playButton);
+    await captureFor(STORY_PACING_MS.postPlayHold);
+
+    const nextButton = await waitForEnabledButton(/play next track/i);
+    await tapWithHighlight(nextButton);
+    await captureFor(STORY_PACING_MS.postNextHold);
+
+    await setSyntheticPhase('no-match');
+    await setSyntheticTargetIndex(0);
+
+    const closeButton = await waitForEnabledButton(/close concert details/i);
+    await tapWithHighlight(closeButton);
+
+    const closedDetails = await captureUntil(async () => !(await hasConcertDetails()), 3500);
+    if (!closedDetails) {
+      throw new Error('Concert details did not close after tapping close button.');
+    }
+
+    const noMatchWindowClean = await captureForWithoutConcertInfo(STORY_PACING_MS.postCloseHold);
+    if (!noMatchWindowClean) {
+      throw new Error('Concert info reappeared during the post-close no-match window.');
+    }
+
+    await setSyntheticPhase('target-preview');
+    await setSyntheticTargetIndex(1);
+    const secondTargetPreviewClean = await captureForWithoutConcertInfo(
+      STORY_PACING_MS.postSecondTargetPreviewHold
+    );
+    if (!secondTargetPreviewClean) {
+      throw new Error('Concert info reappeared during the second-target preview window.');
+    }
+
+    await setSyntheticPhase('target');
+
+    const matchedSecondTarget = allTargets[1];
+    const secondMatchSeen = await captureUntil(
+      async () => await hasDropNeedleForTarget(matchedSecondTarget),
+      9000
+    );
+
+    if (!secondMatchSeen) {
+      const secondFailureScreenshot = path.join(FRAME_DIR, 'second-match-debug.png');
+      await page.screenshot({ path: secondFailureScreenshot, fullPage: false });
+      const bodySnippet = await page
+        .locator('body')
+        .innerText()
+        .then((text) => text.replace(/\s+/g, ' ').slice(0, 500))
+        .catch(() => 'unavailable');
+      const activePhase = await page
+        .evaluate(() =>
+          typeof globalThis.__photoSignalDemoGetPhase === 'function'
+            ? globalThis.__photoSignalDemoGetPhase()
+            : 'unknown'
+        )
+        .catch(() => 'unknown');
+
+      throw new Error(
+        `Second match for expected secondary artists was not detected during demo. phase=${activePhase}, screenshot=${secondFailureScreenshot}, body=${bodySnippet}`
+      );
+    }
+
+    console.log(`🎵 Second match target: ${matchedSecondTarget.artistName}`);
+
+    let dropNeedleSeen = secondMatchSeen;
+
+    if (!dropNeedleSeen) {
+      dropNeedleSeen = await captureUntil(async () => await hasDropNeedle(), 5000);
+    }
+
+    if (!dropNeedleSeen) {
+      const playButtonVisible = await page
+        .getByRole('button', { name: /^play$/i })
+        .isVisible()
+        .catch(() => false);
+
+      if (playButtonVisible) {
+        const playButton = await waitForEnabledButton(/^play$/i);
+        await tapWithHighlight(playButton);
+        await captureFor(600);
+        dropNeedleSeen = await captureUntil(async () => await hasDropNeedle(), 5000);
+      }
+    }
+
+    if (!dropNeedleSeen) {
+      throw new Error('Drop the Needle prompt was not detected after second match.');
+    }
+
+    await captureFor(STORY_PACING_MS.postSecondMatchHold);
+
+    const dropNeedleButton = await waitForEnabledButton(
+      new RegExp(`drop the needle for\\s+${escapeRegex(matchedSecondTarget.artistName)}`, 'i')
+    );
+    await tapWithHighlight(dropNeedleButton);
+    await captureFor(STORY_PACING_MS.postDropNeedleHold);
   } finally {
     await browser.close();
   }

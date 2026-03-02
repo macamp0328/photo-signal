@@ -154,10 +154,10 @@ Common env var setup (copy `.env.example` to `.env.local` and fill in the secret
 ```bash
 export R2_ACCESS_KEY_ID="cf_..."
 export R2_SECRET_ACCESS_KEY="..."
-export R2_ACCOUNT_ID="bfeeec455b3ba60454d4164afa155ddc"
+export R2_ACCOUNT_ID="your-account-id-here"
 export R2_BUCKET_NAME="photo-signal-audio"
 export R2_PREFIX="prod/audio"
-export R2_BASE_URL="https://bfeeec455b3ba60454d4164afa155ddc.r2.cloudflarestorage.com/photo-signal-audio"
+export R2_BASE_URL="https://your-account-id-here.r2.cloudflarestorage.com/photo-signal-audio"
 
 npm run upload-audio -- --skip-existing
 

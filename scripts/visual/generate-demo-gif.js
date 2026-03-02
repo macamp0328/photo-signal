@@ -88,14 +88,37 @@ function run(command, args, options = {}) {
     ...options,
   });
 
+  if (result.error) {
+    const code = result.error.code ? ` (${result.error.code})` : '';
+    throw new Error(
+      `Failed to run command${code}: ${command} ${args.join(' ')} — ${result.error.message}`
+    );
+  }
+
   if (result.status !== 0) {
-    throw new Error(`Command failed: ${command} ${args.join(' ')}`);
+    throw new Error(
+      `Command failed with exit code ${result.status ?? 'unknown'}: ${command} ${args.join(' ')}`
+    );
   }
 }
 
-async function waitForServer(url, timeoutMs = 45000) {
+function getStderrTail(buffer) {
+  const text = buffer.join('').trim();
+  if (!text) {
+    return 'No stderr output from preview process.';
+  }
+  return text.split('\n').slice(-8).join('\n');
+}
+
+async function waitForServer(url, preview, stderrBuffer, timeoutMs = 45000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
+    if (preview.exitCode !== null) {
+      throw new Error(
+        `Preview server exited early with code ${preview.exitCode}.\n${getStderrTail(stderrBuffer)}`
+      );
+    }
+
     try {
       const response = await fetch(url);
       if (response.ok) {
@@ -107,7 +130,9 @@ async function waitForServer(url, timeoutMs = 45000) {
     await new Promise((resolve) => setTimeout(resolve, 400));
   }
 
-  throw new Error(`Preview server did not become ready at ${url}`);
+  throw new Error(
+    `Preview server did not become ready at ${url} within ${timeoutMs}ms.\n${getStderrTail(stderrBuffer)}`
+  );
 }
 
 function startPreviewServer() {
@@ -116,6 +141,7 @@ function startPreviewServer() {
     ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4173', '--strictPort'],
     {
       cwd: ROOT,
+      detached: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     }
   );
@@ -496,9 +522,17 @@ async function captureDemoFrames(options) {
 
         const startMs = globalThis.performance.now();
 
+        const deterministicUnit = (seed) => {
+          let value = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b);
+          value = Math.imul(value ^ (value >>> 13), 0xc2b2ae35);
+          value ^= value >>> 16;
+          return (value >>> 0) / 4294967295;
+        };
+
         const render = (now) => {
           const elapsedMs = now - startMs;
           const elapsedSeconds = elapsedMs / 1000;
+          const frameTick = Math.floor(elapsedMs / (1000 / 24));
           const phase =
             demoState.phase === 'target'
               ? 'target'
@@ -542,9 +576,10 @@ async function captureDemoFrames(options) {
             context.fillRect(0, scanY, canvas.width, scanHeight);
 
             for (let i = 0; i < 140; i += 1) {
-              const x = Math.floor(Math.random() * canvas.width);
-              const y = Math.floor(Math.random() * canvas.height);
-              const alpha = (Math.random() * 0.05).toFixed(3);
+              const baseSeed = frameTick * 811 + i * 131 + 17;
+              const x = Math.floor(deterministicUnit(baseSeed) * canvas.width);
+              const y = Math.floor(deterministicUnit(baseSeed + 1) * canvas.height);
+              const alpha = (deterministicUnit(baseSeed + 2) * 0.05).toFixed(3);
               context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
               context.fillRect(x, y, 2, 2);
             }
@@ -586,9 +621,10 @@ async function captureDemoFrames(options) {
             context.fillRect(0, 0, canvas.width, canvas.height);
 
             for (let i = 0; i < 80; i += 1) {
-              const x = Math.floor(Math.random() * canvas.width);
-              const y = Math.floor(Math.random() * canvas.height);
-              const alpha = (Math.random() * 0.1).toFixed(3);
+              const baseSeed = frameTick * 577 + i * 97 + 41;
+              const x = Math.floor(deterministicUnit(baseSeed) * canvas.width);
+              const y = Math.floor(deterministicUnit(baseSeed + 1) * canvas.height);
+              const alpha = (deterministicUnit(baseSeed + 2) * 0.1).toFixed(3);
               context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
               context.fillRect(x, y, 2, 2);
             }
@@ -1126,6 +1162,42 @@ function cleanup(keepFrames) {
   }
 }
 
+async function waitForExit(processHandle, timeoutMs) {
+  if (processHandle.exitCode !== null) {
+    return true;
+  }
+
+  return await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(false), timeoutMs);
+    processHandle.once('exit', () => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+}
+
+async function stopPreviewServer(preview) {
+  const killGroup = (signal) => {
+    const pid = preview.pid;
+    if (!pid) {
+      return;
+    }
+
+    try {
+      process.kill(-pid, signal);
+    } catch {
+      // Process group may already be gone
+    }
+  };
+
+  killGroup('SIGTERM');
+  const stoppedAfterTerm = await waitForExit(preview, 2000);
+  if (!stoppedAfterTerm) {
+    killGroup('SIGKILL');
+    await waitForExit(preview, 1500);
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
 
@@ -1133,24 +1205,25 @@ async function main() {
     run('npm', ['run', 'build']);
   }
 
-  spawnSync('pkill', ['-f', 'vite preview'], { stdio: 'ignore' });
-
   await ensureEmptyFrameDir();
 
   const preview = startPreviewServer();
+  const previewStderrBuffer = [];
   preview.stdout.on('data', (chunk) => process.stdout.write(chunk.toString()));
-  preview.stderr.on('data', (chunk) => process.stderr.write(chunk.toString()));
+  preview.stderr.on('data', (chunk) => {
+    const text = chunk.toString();
+    previewStderrBuffer.push(text);
+    process.stderr.write(text);
+  });
 
   try {
-    await waitForServer(BASE_URL);
+    await waitForServer(BASE_URL, preview, previewStderrBuffer);
     await captureDemoFrames(options);
     buildGif(options.fps, options.outputWidth);
     console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
   } finally {
-    if (!preview.killed) {
-      preview.kill('SIGTERM');
-    }
-    spawnSync('pkill', ['-f', 'vite preview --host 127.0.0.1 --port 4173'], { stdio: 'ignore' });
+    await stopPreviewServer(preview);
+
     cleanup(options.keepFrames);
   }
 }

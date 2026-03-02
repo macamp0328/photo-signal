@@ -481,21 +481,33 @@ export function createExposureAndRotationVariants(
  */
 export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS, options = {}) {
   const exposureVariants = createExposureVariants(imageData, gammas);
-  const basePHashes = exposureVariants.map((variant) => computePHash(variant));
-  const baseDHashes = exposureVariants.map((variant) => computeDHash(variant));
+  const phashInputs = exposureVariants.map((variant) =>
+    resizeImageData(variant, DCT_SIZE, DCT_SIZE)
+  );
+  const dhashInputs = exposureVariants.map((variant) => resizeImageData(variant, 17, 8));
+
+  const basePHashes = phashInputs.map((variant) => computePHash(variant));
+  const baseDHashes = dhashInputs.map((variant) => computeDHash(variant));
 
   const rotationAngles = normalizeRotationAngles(
     options.rotationAngles ?? DEFAULT_ROTATION_VARIANTS
   );
-  const rotatedVariants = [];
-  for (const exposureVariant of exposureVariants) {
+  const rotatedPHashInputs = [];
+  for (const phashInput of phashInputs) {
     for (const angle of rotationAngles) {
-      rotatedVariants.push(rotateImageData(exposureVariant, angle));
+      rotatedPHashInputs.push(rotateImageData(phashInput, angle));
     }
   }
 
-  const rotatedPHashes = rotatedVariants.map((variant) => computePHash(variant));
-  const rotatedDHashes = rotatedVariants.map((variant) => computeDHash(variant));
+  const rotatedDHashInputs = [];
+  for (const dhashInput of dhashInputs) {
+    for (const angle of rotationAngles) {
+      rotatedDHashInputs.push(rotateImageData(dhashInput, angle));
+    }
+  }
+
+  const rotatedPHashes = rotatedPHashInputs.map((variant) => computePHash(variant));
+  const rotatedDHashes = rotatedDHashInputs.map((variant) => computeDHash(variant));
 
   return {
     phash: appendNonDuplicateCandidates(
@@ -596,12 +608,15 @@ export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIA
   for (const regionKey of Object.keys(CROP_REGIONS)) {
     const cropped = extractCrop(imageData, regionKey);
     const exposureVariants = createExposureVariants(cropped, gammas);
-    const baseHashes = exposureVariants.map((variant) => computePHash(variant));
+    const phashInputs = exposureVariants.map((variant) =>
+      resizeImageData(variant, DCT_SIZE, DCT_SIZE)
+    );
+    const baseHashes = phashInputs.map((variant) => computePHash(variant));
 
     const rotatedHashes = [];
-    for (const exposureVariant of exposureVariants) {
+    for (const phashInput of phashInputs) {
       for (const angle of rotationAngles) {
-        rotatedHashes.push(computePHash(rotateImageData(exposureVariant, angle)));
+        rotatedHashes.push(computePHash(rotateImageData(phashInput, angle)));
       }
     }
 

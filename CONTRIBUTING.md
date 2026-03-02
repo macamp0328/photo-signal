@@ -35,6 +35,25 @@ This executes lint, format, type-check, tests, and build in order. **All checks 
 
 ---
 
+## Public Repo Safety Checklist
+
+Before opening a PR intended for a public branch or public repository visibility:
+
+1. Confirm no credentials are hardcoded (tokens, API keys, passwords, private certificates).
+2. Keep environment secrets only in local `.env.local` (or equivalent private env files), never in tracked files.
+3. Replace real infrastructure identifiers in docs/examples with placeholders when practical.
+4. Verify sample data and asset metadata do not expose private location, contact, or account details.
+5. Run a repo + git-history secret scan if sensitive files may have existed in previous commits.
+
+Recommended commands:
+
+```bash
+gitleaks dir . --no-banner --redact
+gitleaks git . --no-banner --redact
+```
+
+---
+
 ## Code Style
 
 - **TypeScript**: Strict mode, no `any`, typed props and return values

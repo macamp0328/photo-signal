@@ -297,6 +297,7 @@ export function usePhotoRecognition(
     minBrightness = 50,
     maxBrightness = 220,
     enableRectangleDetection = false,
+    enablePerspectiveNormalization = false,
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
   } = options;
@@ -742,7 +743,9 @@ export function usePhotoRecognition(
 
           const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
           const applyRectangleCrop = (rectangle: DetectedRectangle) => {
-            perspectiveImageData = getPerspectiveCroppedImageData(viewportImageData, rectangle);
+            if (enablePerspectiveNormalization) {
+              perspectiveImageData = getPerspectiveCroppedImageData(viewportImageData, rectangle);
+            }
 
             const pixelRectangle = {
               x: Math.round(rectangle.topLeft.x * visibleViewport.width),
@@ -1152,6 +1155,7 @@ export function usePhotoRecognition(
     maxBrightness,
     enableDebugInfo,
     enableRectangleDetection,
+    enablePerspectiveNormalization,
     rectangleConfidenceThreshold,
     displayAspectRatio,
     restartKey,

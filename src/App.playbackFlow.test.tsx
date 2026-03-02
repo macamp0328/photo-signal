@@ -230,6 +230,7 @@ describe('App playback flow', () => {
     expect(options?.sharpnessThreshold).toBe(85);
     expect(options?.recognitionDelay).toBe(180);
     expect(options?.continuousRecognition).toBe(true);
+    expect(options?.enablePerspectiveNormalization).toBe(false);
   });
 
   it('auto-plays first recognized concert after activation', async () => {

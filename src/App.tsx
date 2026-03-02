@@ -203,6 +203,7 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible || recordingState === 'recording',
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
+      enablePerspectiveNormalization: isEnabled('enablePerspectiveNormalization'),
       similarityThreshold: 18,
       matchMarginThreshold: 5,
       sharpnessThreshold: 85,

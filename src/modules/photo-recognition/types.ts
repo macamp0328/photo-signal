@@ -205,6 +205,8 @@ export interface PhotoRecognitionOptions {
   maxBrightness?: number;
   /** Use rectangle detection to crop to the photo boundary before hashing. Default: false */
   enableRectangleDetection?: boolean;
+  /** Apply perspective normalization when rectangle corners are available. Default: false */
+  enablePerspectiveNormalization?: boolean;
   /** Minimum rectangle detection confidence required to use the detected crop. Default: 0.35 */
   rectangleConfidenceThreshold?: number;
   /** Aspect ratio of the display viewport, used to compute crop regions. Default: 1 */

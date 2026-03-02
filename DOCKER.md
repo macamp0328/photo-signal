@@ -19,67 +19,7 @@ This guide explains how to use Docker and Docker Compose to develop, build, and 
 
 ## Quick Start
 
-### Option 1: Using Helper Scripts (Recommended)
-
-The project includes helper scripts in the `scripts/` directory that work both locally and with Docker.
-
-#### Development
-
-```bash
-# Start development server (local)
-./scripts/dev.sh
-
-# Start development server (Docker)
-USE_DOCKER=true ./scripts/dev.sh
-```
-
-#### Build
-
-```bash
-# Build for production (local)
-./scripts/build.sh
-
-# Build for production (Docker)
-USE_DOCKER=true ./scripts/build.sh
-```
-
-#### Test
-
-```bash
-# Run tests (local)
-./scripts/test.sh
-
-# Run tests (Docker)
-USE_DOCKER=true ./scripts/test.sh
-```
-
-#### Lint
-
-```bash
-# Lint code (local)
-./scripts/lint.sh
-
-# Lint and fix (local)
-./scripts/lint.sh --fix
-
-# Lint in Docker
-USE_DOCKER=true ./scripts/lint.sh
-```
-
-#### Format
-
-```bash
-# Format code (local)
-./scripts/format.sh
-
-# Check formatting (local)
-./scripts/format.sh --check
-
-# Format in Docker
-USE_DOCKER=true ./scripts/format.sh
-```
-
-### Option 2: Using Docker Compose Directly
+### Using Docker Compose Directly
 
 #### Development Mode
 
@@ -125,6 +65,25 @@ docker-compose run --rm dev npm run type-check
 
 # Install a new package
 docker-compose run --rm dev npm install package-name
+```
+
+### Equivalent local commands
+
+```bash
+# Development server
+npm run dev
+
+# Build
+npm run build
+
+# Tests
+npm run test:run
+
+# Lint / format
+npm run lint
+npm run lint:fix
+npm run format
+npm run format:check
 ```
 
 #### Stop Services

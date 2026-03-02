@@ -59,7 +59,7 @@ jobs:
         continue-on-error: true
         id: smoke
 
-      - name: Run extended visual checks (all projects)
+      - name: Run extended visual checks (mobile projects)
         run: npx cross-env CI=1 NODE_ENV=production PLAYWRIGHT_HTML_OPEN=never playwright test --grep @extended
         continue-on-error: true
         id: extended

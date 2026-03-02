@@ -1,162 +1,95 @@
-# Cloudflare Worker Asset Proxy
+# Cloudflare Worker + R2 Media Proxy
 
-Use this Worker to serve private R2 audio + photo objects to the Photo Signal web app without making the bucket public.
+This Worker serves private R2 media to the app without exposing the bucket publicly.
 
-## Worker Basics
+## Current Implementation
 
-- Entry point: `cloudflare/worker.ts`
-- Config: `wrangler.toml` (`AUDIO` binding to `photo-signal-audio`)
-- Supported paths: `/prod/audio/<filename>` and `/prod/photos/<filename>`
-- CORS: restricts to `ALLOWED_ORIGINS` (defaults to production site + localhost)
-- Optional hardening: set `SHARED_SECRET` to require `X-PS-Shared-Secret` on non-CORS calls
+- Worker entry: `cloudflare/worker.ts`
+- Wrangler config: `wrangler.toml`
+- R2 binding: `AUDIO`
+- Allowed asset prefixes:
+  - `/prod/audio/...`
+  - `/prod/photos/...`
 
-### Required Wrangler Vars
+Only `GET`, `HEAD`, and `OPTIONS` are supported.
 
-```toml
-[[r2_buckets]]
-binding = "AUDIO"
-bucket_name = "photo-signal-audio"
+## CORS and Origin Rules
 
-[vars]
-ALLOWED_ORIGINS = "https://www.whoisduck2.com,https://whoisduck2.com,https://photo-signal.vercel.app,https://photo-signal-*.vercel.app,https://photo-signal.whoisduck2.workers.dev,https://photo-signal.whoisduck2.com,http://localhost:5173,http://localhost:4173,http://127.0.0.1:5173"
-SHARED_SECRET = "generate-a-random-value" # optional
-```
+Origins are controlled by `ALLOWED_ORIGINS` in `wrangler.toml`.
 
-If you need to allow preview deployments, you can add a wildcard entry (e.g.,
-`https://photo-signal-*.vercel.app`) to `ALLOWED_ORIGINS` to keep those CORS-eligible
-without redeploying for every branch.
+- Exact origins are supported (`https://www.whoisduck2.com`)
+- Single-wildcard hostname patterns are supported (for example `https://photo-signal-*.vercel.app`)
+- Non-CORS requests can be additionally protected with optional `SHARED_SECRET`
 
-Publish with:
+If `SHARED_SECRET` is set, non-CORS requests must include:
 
-```bash
-npx wrangler deploy --minify
-```
+- `X-PS-Shared-Secret: <value>`
 
-## Data Updates
+## Response Behavior
 
-After deploying the Worker (e.g., `https://audio.example.com`), rewrite `public/data.app.v2.json`:
+The Worker currently provides:
 
-```bash
-npm run apply-cdn-to-data -- --base-url=https://audio.example.com --prefix=prod/audio --photo-prefix=prod/photos
-```
+- Content-Type inference by extension (`.opus`, `.jpg`, `.webp`, `.json`, etc.)
+- ETag + conditional `If-None-Match` handling (`304`)
+- Byte-range support (`206` / `416`) for streaming
+- Cache-Control:
+  - media files: long immutable cache
+  - metadata files: short cache
 
-This sets:
-
-- `audioFile` to `https://audio.example.com/prod/audio/<filename>`
-- `photoUrl` to `https://audio.example.com/prod/photos/<filename>`
-
-while leaving `imageFile` unchanged for local/tooling use.
-
-If you intentionally use id-scoped object keys (`<id>/<filename>`), update data URLs to match that
-shape with your own rewrite step so Worker paths and R2 keys stay aligned.
-
-## Validation
-
-Verify that Worker URLs are reachable:
+## Deploy
 
 ```bash
-npm run validate-audio -- --base-url=https://audio.example.com --prefix=prod/audio
+npm run worker:deploy
 ```
 
-All URLs should return 200/304 with correct CORS headers.
+(Equivalent to `npm exec wrangler -- deploy --minify`.)
 
-Photo quick check:
+## Update Runtime Data to Worker URLs
+
+After Worker deployment, rewrite runtime data URLs:
 
 ```bash
-curl -I https://audio.example.com/prod/photos/<photo-file>.jpg
+npm run apply-cdn-to-data -- --base-url=https://<worker-domain> --prefix=prod/audio --photo-prefix=prod/photos
 ```
 
-Expect `200` and an image `Content-Type`.
+This updates:
 
-## End-to-End Troubleshooting (Local file → R2/Worker → App playback)
+- `audioFile` → `https://<worker-domain>/prod/audio/<filename>`
+- `photoUrl` → `https://<worker-domain>/prod/photos/<filename>`
 
-Use this exact sequence when audio fails on mobile production:
+## Validate End-to-End
 
-1. Run a full production trace against the live origin:
+Quick validation:
+
+```bash
+npm run validate-audio -- --origin=https://www.whoisduck2.com --source=public/data.app.v2.json
+```
+
+Trace a failing path:
 
 ```bash
 npm run trace-audio
 ```
 
-2. Confirm in trace output:
-   - `Primary GET: 200`
-   - `HEAD probe: 200`
-   - `Range probe: 206`
-   - `Access-Control-Allow-Origin: https://www.whoisduck2.com`
-
-3. If trace fails with `403`, add your exact app origin to `ALLOWED_ORIGINS` in `wrangler.toml` and redeploy Worker.
-
-4. If trace fails with `404`, your dataset URL path and R2 object key differ.
-   - Compare `Worker key candidate` from trace to uploaded R2 key names.
-   - Align either data URLs or upload prefix/key layout.
-
-5. If trace passes but phone still has no audio:
-   - This is app/runtime behavior (not Cloudflare reachability).
-   - On Android Chrome, tap screen and use the in-app `Play` control once to satisfy autoplay policies.
-   - Look for the playback prompt: `Playback blocked by browser autoplay rules. Touch screen and tap Play again.`
-
-6. Validate all tracks after fixing one:
+Manual photo probe:
 
 ```bash
-npm run validate-audio -- --source=public/data.app.v2.json --origin=https://www.whoisduck2.com
+curl -I https://<worker-domain>/prod/photos/<photo-file>.jpg
 ```
 
-## Root Cause Analysis (2026-02-18)
+## Failure Triage
 
-### What was reproduced
+- `403 Forbidden`: origin not allowed (or missing/invalid shared secret for protected non-CORS calls)
+- `404 Not found`: object key/path mismatch between dataset URL and R2 object
+- `416 Requested Range Not Satisfiable`: invalid range request from client/proxy layer
+- `200/206` but no playback: browser/runtime audio decode/autoplay issue, not Worker reachability
 
-The following command reproduces the current production failure pattern:
+## Operational Checklist
 
-```bash
-npm run validate-audio -- --trace --concert-id=1 --origin=https://www.whoisduck2.com --source=public/data.app.v2.json
-```
+Before production rollout:
 
-Observed output:
-
-- `Primary GET: 200`, `HEAD probe: 200`, `Range probe: 206` for valid objects
-- Validation summary: `Successful: 56 (61.5%)`, `Failed: 35`
-- Every failure was `404 Not Found` for the same object path: `/prod/audio/concert-4.opus`
-
-### Technical root cause
-
-The root cause is **dataset/object mismatch**, not a Howler runtime bug:
-
-1. App playback entry points all consume `concert.audioFile` from `public/data.app.v2.json`:
-   - Auto play: `src/App.tsx` (`play(selectedAudioUrl)` in recognized-concert effect)
-   - Play button: `src/App.tsx` (`handleTogglePlayback`)
-   - Play test song: `src/App.tsx` (`loadTestAudioUrl`) + `src/modules/debug-overlay/useAudioTest.ts`
-2. Many concerts currently point to `.../prod/audio/concert-4.opus` in `public/data.app.v2.json`.
-3. Worker + R2 return `404` for that key, so all feature paths fail when they target those records.
-
-### Scope confirmation (R2 response vs browser vs Howler)
-
-- **R2/Worker behavior:** mixed (healthy for existing keys, failing for missing keys)
-- **Browser/Howler integration:** healthy for valid keys (`200/206` responses play normally)
-- **Primary failing component:** data/R2 object coverage (missing object for URL present in dataset)
-
-If debug overlay shows:
-
-- `fetch: 200`
-- `cors: No header` (or `Not exposed to browser`)
-- `playback: load-error`
-- `Content-Type: audio/ogg; codecs=opus`
-
-that means network reachability is fine, and the likely app/runtime issue is **codec decode support**
-on the current browser (for example, browsers that do not decode Ogg Opus).
-
-### Feature-by-feature reproduction
-
-1. **Auto play (photo detected):** detect a concert whose `audioFile` is `/prod/audio/concert-4.opus` → playback fails with load error.
-2. **Play button:** with the same recognized/active concert, tapping Play retries the same missing URL → same failure.
-3. **Play test song:** uses first available `audioFile` from data. If the first record is a missing key in an environment, the test also fails for the same reason.
-
-### Recommended remediation
-
-1. Regenerate or patch `public/data.app.v2.json` so all `audioFile` entries map to uploaded objects.
-2. Upload a real `concert-4.opus` fallback object (short-term mitigation) **or** stop emitting that fallback URL.
-3. Gate releases with:
-   ```bash
-   npm run validate-audio -- --source=public/data.app.v2.json --origin=https://www.whoisduck2.com
-   ```
-   and require `100%` success before deploy.
-4. Keep Worker CORS allowlist checks (`--origin=...`) in place, but treat `404` as data/object mismatch first.
+1. Deploy Worker (`npm run worker:deploy`)
+2. Rewrite dataset URLs (`npm run apply-cdn-to-data ...`)
+3. Validate all audio URLs (`npm run validate-audio ...`)
+4. Spot-check media via curl/browser
+5. Confirm app playback on target mobile browsers

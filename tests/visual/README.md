@@ -17,7 +17,7 @@ This suite is intentionally small and mobile-first. It is a guardrail for autono
 | `error-states.spec.ts`    | smoke + extended | Permission and network fallback states          |
 | `secret-settings.spec.ts` | smoke + extended | Settings dialog and key toggle behavior         |
 | `accessibility.spec.ts`   | extended         | Focus visibility, high-contrast, reduced motion |
-| `responsive.spec.ts`      | extended         | Small-mobile baseline + minimal desktop sanity  |
+| `responsive.spec.ts`      | extended         | Small-mobile baseline and settings layout       |
 
 Removed low-signal suites:
 
@@ -76,7 +76,7 @@ real project photo data, waits for recognition milestones, captures frames, and 
 Workflow: `.github/workflows/visual-regression.yml`
 
 - **Blocking**: `@smoke` on `Mobile Chrome` + `Mobile Safari`
-- **Extended coverage**: `@extended` runs after smoke across configured projects
+- **Extended coverage**: `@extended` runs after smoke across mobile projects
 - **PR outcome**: any detected visual change (smoke or extended) fails the workflow to provide a clear visual-change signal
 - **Diagnostics**: artifacts and PR comment are emitted on failures to support intentional snapshot updates vs unexpected regressions
 
@@ -93,8 +93,8 @@ Accept a snapshot update only when all are true:
 ## Mobile-First Rules
 
 1. New blocking visuals must prove mobile user value first.
-2. Desktop visuals are allowed only for layout/overflow classes of risk.
-3. Avoid adding tablet/desktop variants unless they catch a distinct regression class.
+2. Prefer mobile viewport variants over desktop/tablet unless there is a proven mobile gap.
+3. Avoid adding extra browser/project variants unless they catch a distinct regression class.
 4. Prefer one canonical viewport per risk area.
 
 ## Flake Triage Workflow

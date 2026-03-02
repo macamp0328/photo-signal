@@ -13,11 +13,6 @@ import { createHash } from 'node:crypto';
 import { basename, dirname, join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 
-const DEFAULT_CONFIG_PATH = resolve(
-  process.cwd(),
-  'scripts/audio-workflow/encode/encode.config.json'
-);
-
 /**
  * Main entry point for the audio encode script
  */
@@ -40,8 +35,8 @@ async function main() {
   }
 
   // Load configuration
-  const configPath = args.config ?? DEFAULT_CONFIG_PATH;
-  const config = loadConfig(configPath);
+  const configPath = args.config ?? null;
+  const config = configPath ? loadConfig(configPath) : getDefaultConfig();
 
   const metadataOverridesPath = resolvePath(
     args['metadata-overrides'] ?? config.metadataOverridesPath ?? null
@@ -1509,6 +1504,9 @@ function getDefaultConfig() {
       copyright: 'Photo Signal',
       website: 'https://photosignal.app',
     },
+    inputDir: './downloads',
+    workDir: './scripts/audio-workflow/encode/work',
+    outputDir: './scripts/audio-workflow/encode/output',
   };
 }
 
@@ -2001,7 +1999,7 @@ Options:
   --input-dir <path>       Directory containing downloads (default: from config)
   --output-dir <path>      Directory for encoded output (default: from config)
   --work-dir <path>        Directory for temporary files (default: from config)
-  --config <path>          Path to config file (default: encode.config.json)
+  --config <path>          Optional path to a JSON config file
   --metadata-overrides <path>  JSON file with manual metadata overrides
   --skip-existing[=true|false] Skip files that already have encoded output (default: true)
   --force-reencode          Re-encode all files even when output exists
@@ -2024,12 +2022,8 @@ Examples:
   npm run encode-audio -- --force-reencode
 
 Configuration:
-  Edit scripts/audio-workflow/encode/encode.config.json to set:
-  - Target LUFS, true peak, LRA
-  - Opus bitrate and complexity
-  - Fade in/out durations
-  - Default metadata values
-  - Default paths
+  Built-in defaults are used when no config file is provided.
+  Use --config <path> to override with a custom JSON file.
 `);
 }
 

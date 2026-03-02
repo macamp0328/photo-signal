@@ -1,195 +1,116 @@
 # Photo Recognition Deep Dive
 
-## Current architecture (2026 simplification)
+## Runtime Model (Current)
 
-Photo Signal now uses a **single recognition algorithm** in runtime:
+Photo Signal uses a single runtime recognizer:
 
-- **pHash only** (`src/modules/photo-recognition/algorithms/phash.ts`)
+- pHash only (`src/modules/photo-recognition/algorithms/phash.ts`)
 
-Removed from runtime:
+Recognition runs continuously while camera view is active and recognition is enabled.
 
-- dHash matching path
-- Feature-descriptor matching path
-- Parallel recognizer voting path
-- Multi-scale branching path
-
-This reduction is intentional: one deterministic path is easier to tune, debug, and maintain.
-
-## Runtime pipeline
+## Pipeline
 
 ```text
 Camera frame
-  → quality filter (blur / glare / lighting)
-  → crop region (rectangle detection when confident, else centered frame)
-  → pHash compute
-  → bucket lookup in `/data.recognition.v2.json`
-  → Hamming distance against bucketed pHash variants
-  → threshold + margin gate (reject ambiguous near-ties)
-  → confirm path:
-      - initial recognition: instant or short stability
-      - active-playback switch mode: stricter candidate confirmation
-  → recognized concert
+  → framed/cropped region selection
+  → pHash (64-bit)
+  → candidate lookup from /data.recognition.v2.json
+  → Hamming distance ranking
+  → threshold + margin gate
+  → stability/instant-confirm logic
+  → recognized concert (or categorized failure)
 ```
 
-## Why pHash
+## Data Inputs
 
-From the project audit:
+Runtime uses:
 
-- pHash and dHash both passed the reference-image sanity check
-- pHash remained comfortably fast for runtime use
-- pHash is generally more robust to lighting/perspective variance than dHash
-- Feature-descriptor strict mode was too expensive for practical frame-by-frame runtime behavior
+- `public/data.app.v2.json` (metadata + playback mapping)
+- `public/data.recognition.v2.json` (recognition hash index)
 
-## Key thresholds
+`usePhotoRecognition` loads both and normalizes candidate matching by concert id.
 
-- `similarityThreshold`: default `14` (pHash distance)
-- `checkInterval`: default `120ms` idle, adaptive `80ms` while tracking a candidate
-- `recognitionDelay`: default `200ms`
-- `sharpnessThreshold`: default `100`
-- `glareThreshold`: default `250`
-- `glarePercentageThreshold`: default `20`
-- `matchMarginThreshold`: default `3` (plus dynamic `+1` near threshold edge)
-- `switchMatchMarginThreshold`: default `6` (plus dynamic `+1` near threshold edge)
-- `switchDistanceThreshold`: default `7`
-- `switchRecognitionDelayMultiplier`: default `1.8` (switch hold time multiplier)
-- `rectangleConfidenceThreshold`: default `0.35` (minimum confidence for perspective crop)
-- Instant confirm distances:
-  - initial: `<= 10` (or 2 consecutive strong frames)
-  - switch mode: `<= 3` plus 3 consecutive strong frames
+## Active Thresholds
 
-## Data expectations
+### Hook defaults (`usePhotoRecognition`)
 
-Runtime recognizer reads:
+- `similarityThreshold`: `14`
+- `matchMarginThreshold`: `4`
+- `recognitionDelay`: `150ms`
+- `checkInterval`: `120ms` idle (adaptive faster cadence while tracking candidates)
+- `sharpnessThreshold`: `100`
+- `glareThreshold`: `250`
+- `glarePercentageThreshold`: `20`
+- `minBrightness`: `50`
+- `maxBrightness`: `220`
+- `rectangleConfidenceThreshold`: `0.35`
 
-- app metadata from `/data.app.v2.json`
-- recognition hashes from `/data.recognition.v2.json`
+### App runtime overrides (`src/App.tsx`)
 
-## Debug + telemetry
+The app currently passes:
 
-`usePhotoRecognition` still emits:
+- `similarityThreshold: 18`
+- `matchMarginThreshold: 5`
+- `recognitionDelay: 180ms`
+- `sharpnessThreshold: 85`
+- `continuousRecognition: true`
+- `enableRectangleDetection`: feature-flag controlled
 
-- `debugInfo` (last hash, best candidate, frame stats)
-- `frameQuality` (sharpness, glare, lighting)
-- telemetry counters and failure categories, including ambiguity/collision outcomes
-- collision diagnostics: ambiguous vs near-threshold collisions, margin histogram, and top ambiguous band pairs
-- switch decision telemetry consumed by `App` (`shownCount`, `confirmCount`, `dismissCount`, decision latency, last prompt confidence/margin snapshot)
+This means field behavior follows these app-provided values, not raw hook defaults.
 
-## Iterative tuning loop (recommended)
+## Confirmation Behavior
 
-Use this loop when validating field performance on real devices:
+- Very strong matches can confirm immediately (instant path).
+- Borderline-but-valid matches use dwell-time confirmation (`recognitionDelay`).
+- Ambiguous matches (insufficient best-vs-second margin) are rejected as collision/no-match outcomes.
 
-1. Capture two 30s telemetry exports with `Debug Overlay` enabled from the same environment/device.
-2. Compare `collisionStats` (`ambiguousMarginHistogram`, `topAmbiguousPairs`, `ambiguousCount`).
-3. If collisions are low-margin dominated (`0-1` / `2` bins), raise `matchMarginThreshold` by 1.
-4. If collisions are not low-margin dominated, prioritize hash refresh and print/image alignment checks.
-5. Re-run the offline audit script using runtime-aligned settings:
+## Quality Gating
+
+Frames are filtered before confirmation using:
+
+- blur/sharpness
+- glare percentage
+- lighting bounds
+
+Adaptive quality thresholds are derived from ambient frame trends to reduce false rejections in changing lighting.
+
+## Telemetry Output
+
+`debugInfo` and telemetry include:
+
+- frame quality metrics
+- best/second-best match and margin
+- categorized failures (`motion-blur`, `glare`, `poor-quality`, `no-match`, `collision`)
+- collision diagnostics (`ambiguousMarginHistogram`, recurring pair counts)
+
+## Practical Tuning Workflow
+
+1. Enable Debug Overlay and capture telemetry in the target environment.
+2. Check dominant failure category.
+3. Adjust one parameter at a time.
+4. Re-test in the same environment/device.
+5. Keep changes only if false positives/false negatives improve without regression.
+
+Useful local audit command:
 
 ```bash
 node scripts/recognition-accuracy-test.js --threshold 18 --margin-threshold 5 --summary-json tmp/recognition-audit.json
 ```
 
-6. Repeat until collision rate and recognition success meet acceptance targets.
+## Hash Maintenance
 
-This keeps diagnostics intact while removing algorithm-branch complexity.
-
-## Ambiguity + switch prompt behavior (current app flow)
-
-- Ambiguity is detected when best match is within threshold but too close to second-best (margin below configured guardrail).
-- In this state, recognition records a collision/no-match outcome and does **not** confirm a new concert.
-- While music is already playing, app-level switch prompts remain suppressed because no new concert is confirmed.
-- When ambiguity clears and a stronger candidate remains, the app can show a switch prompt:
-  - **Confirm** → crossfade to candidate track.
-  - **Keep current track** → dismiss that candidate until movement/reset changes context.
-
-## Operational guidance
-
-- Prefer good lighting and steady framing
-- Keep rectangle detection enabled when available
-- Tune threshold only after collecting failure telemetry from real camera sessions
-- If false positives occur, lower threshold (stricter)
-- If false negatives occur, raise threshold slightly
-- Mobile tuning baseline:
-  - iPhone Safari: keep defaults, prioritize stability over aggressive switching.
-  - Android Chrome: defaults are balanced; only relax switch distance to `8` for very sparse layouts.
-
-## Future extensions
-
-If future audits show a need for richer matching, add a second algorithm only behind an explicit experimental flag and benchmark gate. Keep the default production path single and deterministic.
-
----
-
-## Quick reference
-
-### Adding hashes to runtime data
-
-**Camera capture method (preferred):**
-
-1. Open Secret Settings (triple-tap) and enable `Debug Overlay`
-2. Point camera at the photo; wait for "Good" quality indicator
-3. Copy hash from debug overlay (`Frame Hash` field)
-4. Add to `data.app.v2.json` under the linked photo record's `photoHashes.phash`
-
-Note: Runtime recognition data is sourced from `data.recognition.v2.json`, with concert metadata from `data.app.v2.json`.
-
-**Script method:**
+Primary scripts:
 
 ```bash
-# Place photos in assets/reference-photos/
 npm run hashes:paths
-
-# Target specific paths
-npm run hashes:paths -- --paths assets/example-real-photos,assets/new-print-tests
-
-# Rebuild all hashes
-npm run hashes:refresh -- --hashes-only
+npm run hashes:refresh
 ```
 
-**Multi-exposure strategy** — capture 3 hashes per photo (bright / normal / dim lighting):
+Use multi-exposure hash sets (dark/normal/bright variants) for print + lighting robustness.
 
-```json
-{
-  "photoHashes": {
-    "phash": ["hash-bright", "hash-normal", "hash-dim"]
-  }
-}
-```
+## Troubleshooting Quick Guide
 
-### Hamming distance → similarity
-
-| Distance | Similarity | Interpretation     |
-| -------- | ---------- | ------------------ |
-| 0        | 100%       | Exact match        |
-| 0–10     | >84%       | Strong match       |
-| 11–14    | >78%       | Borderline (delay) |
-| 15–20    | >69%       | Below threshold    |
-| >30      | <53%       | Hash mismatch      |
-
-### Troubleshooting
-
-| Symptom                | Diagnosis                             | Fix                                          |
-| ---------------------- | ------------------------------------- | -------------------------------------------- |
-| Not recognized         | Distance >30                          | Regenerate hash via camera capture           |
-| Not recognized         | Distance 11–20                        | Increase `similarityThreshold` by 2–4        |
-| Wrong photo recognized | Two hashes too similar                | Decrease `similarityThreshold` by 2          |
-| >30% blur rejections   | Camera shake or threshold too strict  | Decrease `sharpnessThreshold` (try 80)       |
-| >25% glare rejections  | Lighting or photo surface             | Increase `glarePercentageThreshold` (try 30) |
-| Slow recognition (>5s) | `recognitionDelay` or `checkInterval` | Lower `recognitionDelay` (try 800)           |
-
-### Common failure categories
-
-| Category     | Cause                    | Fix                                            |
-| ------------ | ------------------------ | ---------------------------------------------- |
-| motion-blur  | Camera shake             | Lower `sharpnessThreshold`, hold steadier      |
-| glare        | Specular reflections     | Adjust lighting, tilt photo, raise threshold   |
-| no-match     | Hash not in database     | Regenerate hash, raise `similarityThreshold`   |
-| collision    | Multiple similar matches | Lower `similarityThreshold`, use distinct refs |
-| poor-quality | Low-quality frame        | Improve lighting, check camera                 |
-
-### Telemetry health thresholds
-
-| Metric             | Healthy | Investigate |
-| ------------------ | ------- | ----------- |
-| Quality frame rate | >70%    | <60%        |
-| Blur rejections    | <20%    | >30%        |
-| Glare rejections   | <15%    | >25%        |
-| Recognition rate   | >85%    | <70%        |
+- Frequent `motion-blur` failures: lower `sharpnessThreshold` incrementally or improve camera stability.
+- Frequent `glare` failures: improve lighting angle and/or raise `glarePercentageThreshold` slightly.
+- Frequent `no-match` with near misses: increase `similarityThreshold` carefully.
+- Frequent `collision`: increase `matchMarginThreshold` or refresh hashes for visually similar prints.

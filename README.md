@@ -40,6 +40,10 @@ Runtime data comes from:
 - `public/data.app.v2.json` (concert metadata + playback mapping)
 - `public/data.recognition.v2.json` (recognition index)
 
+Production source photo originals under `assets/prod-photographs/` are intentionally local-only and
+not tracked in git. Runtime display uses `photoUrl` values in `data.app.v2.json` (Cloudflare Worker/CDN
+paths), while `imageFile` entries are retained as metadata/workflow references.
+
 ## Tech Stack
 
 - Frontend: React 19, TypeScript 5.9, Vite 7

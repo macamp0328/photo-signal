@@ -15,7 +15,7 @@ import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path
 
 const DEFAULT_PLAYLIST_URL =
   'https://music.youtube.com/playlist?list=PLqTokna7EJXfBg0o2c629Bmnxk21-G_Dg';
-const DEFAULT_OUTPUT_DIR = 'downloads/yt-music';
+const DEFAULT_OUTPUT_DIR = 'downloads';
 const DEFAULT_TEMPLATE = '%(playlist_index)02d - %(title)s.%(ext)s';
 const DEFAULT_ARCHIVE_NAME = '.yt-dlp-archive.txt';
 const DEFAULT_PLAYER_CLIENT_ORDER = ['web', 'mweb', 'ios', 'tv'];
@@ -32,10 +32,6 @@ const SUPPORTED_AUDIO_FORMATS = new Set([
   'vorbis',
   'wav',
 ]);
-const DEFAULT_CONFIG_PATH = resolve(
-  process.cwd(),
-  'scripts/audio-workflow/download/download-yt-song.config.json'
-);
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -1078,7 +1074,7 @@ function detectDefaultJsRuntime() {
 }
 
 function loadConfig(explicitPath) {
-  const candidate = explicitPath ? resolvePath(explicitPath) : DEFAULT_CONFIG_PATH;
+  const candidate = explicitPath ? resolvePath(explicitPath) : null;
   if (!candidate || !existsSync(candidate)) {
     return {};
   }
@@ -1143,7 +1139,7 @@ Options:
   --max-yt-dlp-age-days <n>    Freshness limit in days (default: ${DEFAULT_YT_DLP_MAX_AGE_DAYS})
   --allow-stale-yt-dlp         Emergency bypass for freshness/update failures
 	--skip-prereq-check          Skip ffmpeg/yt-dlp availability checks
-  --config <path>              JSON file with default flags (auto-loads scripts/audio-workflow/download/download-yt-song.config.json)
+  --config <path>              Optional JSON file with default flags
 	--dry-run                    Print the final command instead of executing
 	--help                       Show this message
 	--version                    Print script version

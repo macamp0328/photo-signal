@@ -459,9 +459,8 @@ function AppContent() {
       playlistIndexRef.current = nextIndex;
       setActivePlaylistBand(targetTrack.band);
       setActiveConcert(targetTrack);
-      resetRecognition();
     },
-    [activeConcert, clearPlaybackError, crossfade, isPlaying, play, resetRecognition]
+    [activeConcert, clearPlaybackError, crossfade, isPlaying, play]
   );
 
   const handlePreviousTrack = useCallback(() => {

@@ -1,300 +1,90 @@
-# 📸 Photo Signal
+# Photo Signal
 
-> A quiet, camera-based gallery that plays music when you point at a printed photo.
+A camera-based music gallery: point your phone at a printed photo, and the app recognizes it and plays
+its paired song.
 
----
+## Live Demo
 
-## 🌄 Concept
+- Live site: add your public URL here (for example your Vercel URL)
+- Demo media: add a screenshot or GIF at `docs/media/demo.gif` and embed it below
 
-**Photo Signal** is an experiment in memory, music, and perception.  
-Visitors use their phone's camera to look at printed photographs — the site recognizes each image, displays its details, and plays a song tied to that moment.
+<!-- Example embed once media is added:
+![Photo Signal demo](docs/media/demo.gif)
+-->
 
-It's a small-scale, in-home installation: no QR codes, no visible markers.  
-Just light, sound, and the act of looking.
+## What It Is
 
-Inspired by [campmiles.com](https://www.campmiles.com), this project explores how technology can quietly deepen our connection to physical media without disrupting its stillness.
+Photo Signal is a portfolio project about linking physical photographs to sound without QR codes or visible
+markers. The experience is mobile-first and designed to feel quiet: frame a printed photo, get a match,
+see concert context, hear the song.
 
----
+## Project Intent
 
-## 🧠 Core Experience
+- Built primarily with AI coding agents as an experiment in shipping a production-style app while rarely
+  writing code directly by hand.
+- Part of a personal art project paired with a physical gallery wall of ~100 photographs I shot across
+  multiple years of SXSW performances.
+- Intentionally over-engineered so the core recognition + metadata + playback services can be reused for
+  other content types and mediums.
+- Designed so it could be extended into a multi-user product where people maintain their own collections
+  of recognizable photos paired with audio.
 
-1. User visits the site (mobile-first).
-2. Grants access to the camera and speakers.
-3. Aligns a printed photo within the on-screen frame.
-4. The app recognizes the image and overlays band, venue, and date.
-5. The corresponding song begins playing.
-6. Moving away fades out both the music and the overlay.
+This project is meant to signal creative direction, technical taste, and execution speed.
 
----
+## How It Works
 
-## 🧩 Architecture (MVP)
+1. User grants camera access.
+2. Camera frames a printed photo in a guided overlay.
+3. Client-side pHash recognition matches against indexed photo hashes.
+4. The app displays concert metadata and crossfades audio with Howler.
 
-| Layer           | Role                                    | Tech                                      |
-| --------------- | --------------------------------------- | ----------------------------------------- |
-| **Frontend**    | Camera view, hash recognition, playback | React (Vite), Howler.js, TypeScript       |
-| **Storage**     | Photos, Opus audio, metadata            | Local JSON (expandable to Supabase or S3) |
-| **Hosting**     | Static site                             | Vercel                                    |
-| **Recognition** | Placeholder logic (3s delay)            | Client-side only                          |
+Runtime data comes from:
 
-Everything runs in the browser. No backend needed.
-
----
-
-## Features
-
-- **Mobile-First Design**: Optimized for mobile devices with touch support
-- **Rear Camera Access**: Opens device's rear camera with 3:2 aspect ratio overlay
-- **Photo Recognition**: Real-time pHash matching recognizes printed photos and maps them to concert metadata
-- **Concert Information Display**: Shows band name, venue, and date when photo is recognized
-- **Audio Playback**: Uses Howler.js to play Opus audio files
-- **Motion Detection**: Detects movement to trigger a fresh recognition pass when you move to a new photo
-- **Persistent Playback**: Music keeps playing through small hand shakes and only crossfades when a different photo is confidently recognized
+- `public/data.app.v2.json` (concert metadata + playback mapping)
+- `public/data.recognition.v2.json` (recognition index)
 
 ## Tech Stack
 
-- **Vite** - Fast build tool and dev server
-- **React** - UI library
-- **TypeScript** - Type safety
-- **CSS Modules** - Scoped, modular CSS
-- **Howler.js** - Audio playback library
+- Frontend: React 19, TypeScript 5.9, Vite 7
+- Styling: CSS Modules
+- Audio: Howler.js (Opus playback)
+- Testing: Vitest + Playwright
+- Tooling: ESLint + Prettier
 
----
+## Architecture Snapshot
 
-## 🚀 Setup
+Pipeline:
 
-### Prerequisites
+`Camera Access → Motion/Frame Validation → Photo Recognition (pHash) → Audio Playback + Concert Info`
 
-- **Option 1 (Recommended)**: Docker Desktop (for fully containerized development)
-- **Option 2**: Node.js 20+ and npm
+Feature modules live in `src/modules/` and include:
 
-### Quick Start with Docker 🐳
+- `camera-access`, `camera-view`, `motion-detection`
+- `photo-rectangle-detection`, `photo-recognition`
+- `audio-playback`, `concert-info`, `debug-overlay`, `secret-settings`
 
-The easiest way to get started, especially on Mac:
+## Deployment and Services
 
-```bash
-# Clone the repo
-git clone https://github.com/macamp0328/photo-signal.git
-cd photo-signal
+- Frontend hosting: Vercel (static site)
+- Audio + protected asset proxy: Cloudflare Worker + Cloudflare R2
 
-# Start development server with Docker
-USE_DOCKER=true ./scripts/dev.sh
-```
-
-Visit [http://localhost:5173](http://localhost:5173) on your phone and allow camera access.
-
-**See [DOCKER.md](./DOCKER.md) for complete Docker documentation.**
-
-### Installation (Local Development)
-
-1. **Clone the repo**
-
-   ```bash
-   git clone https://github.com/macamp0328/photo-signal.git
-   cd photo-signal
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Add an Opus audio file**
-   - Place your Opus file at `public/audio/sample.opus`
-   - Or regenerate runtime artifacts with `npm run audio:build-data`
-
-### Development
-
-Start the development server:
+## Run Locally (Minimal)
 
 ```bash
+npm install
 npm run dev
 ```
 
-Visit [http://localhost:5173](http://localhost:5173) on your phone and allow camera access.
+Open `http://localhost:5173` on a mobile device and allow camera access.
 
-### Build
+## Documentation
 
-Build for production:
+- Architecture details: [ARCHITECTURE.md](./ARCHITECTURE.md)
+- Photo recognition deep dive: [docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)
+- Setup and environment: [SETUP.md](./SETUP.md)
+- Docker workflow: [DOCKER.md](./DOCKER.md)
+- Full documentation index: [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)
 
-```bash
-npm run build
-```
-
-Or with Docker:
-
-```bash
-USE_DOCKER=true ./scripts/build.sh
-```
-
-### Testing
-
-Run tests:
-
-```bash
-npm test
-```
-
-Or with Docker:
-
-```bash
-USE_DOCKER=true ./scripts/test.sh
-```
-
-Preview the production build:
-
-```bash
-npm run preview
-```
-
----
-
-## Usage
-
-1. Open the app on a mobile device or desktop with camera access
-2. Grant camera permissions when prompted
-3. Point the camera at a photo within the 3:2 overlay guide
-4. Hold the frame steady while pHash matching confirms a recognition
-5. Concert information will appear and music will start playing
-6. Move the camera to fade out the music
-
----
-
-## Configuration
-
-### Runtime Settings Policy
-
-- Theme is single curated mode: app always sets `data-theme='dark'`
-- Legacy `data-ui-style` modes are removed
-- Runtime toggles persist in localStorage key `photo-signal-feature-flags`
-- Legacy `photo-signal-custom-settings` may exist but is not used for active runtime tuning
-
-### Concert Data
-
-Runtime metadata is sourced from `public/data.app.v2.json` and recognition indexes from
-`public/data.recognition.v2.json`. Regenerate both artifacts via:
-
-```bash
-npm run audio:build-data
-```
-
-### Photo Recognition
-
-Photo Signal implements **real photo recognition** using a single pHash-based perceptual hashing pipeline to identify printed photographs.
-
-**🎯 Getting Started with Photo Recognition:**
-
-See **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** for a comprehensive guide covering:
-
-- How the pHash recognition pipeline works internally
-- Step-by-step hash generation workflow
-- Configuration recommendations for your environment
-- Systematic testing and troubleshooting procedures
-
-**Quick Setup:**
-
-1. Open Secret Settings (triple-tap/click) and enable `Debug Overlay`
-2. Point camera at printed photo
-3. Copy hash from debug overlay
-4. Add hashes to `public/data.app.v2.json`
-5. Test recognition
-
-For automated hash generation from photo files:
-
-```bash
-npm run hashes:paths
-```
-
----
-
-## 📚 Documentation
-
-For complete documentation including architecture, setup, testing, and all module READMEs, see:
-
-**[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - Central index of all project documentation
-
-Key docs:
-
-- **⭐ [docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** - **START HERE**: Complete guide to achieving successful photo recognition with printed photographs
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines, feature-branch workflow, and AI agent PR policy
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Module structure and design principles
-- **[SETUP.md](./SETUP.md)** - Development environment and CI/CD setup
-- **[docs/vercel-setup-guide.md](./docs/vercel-setup-guide.md)** - Vercel deployment configuration and troubleshooting
-- **[TESTING.md](./TESTING.md)** - Testing strategy
-- **[docs/code-analysis-tooling-guide.md](./docs/code-analysis-tooling-guide.md)** - Code analysis tools (CodeQL, Codecov, npm audit, etc.)
-
----
-
-## 🗂️ Project Structure
-
-```
-photo-signal/
-├── assets/              # Test assets (CC0 unless noted)
-│   ├── test-images/     # Gradient + high-contrast PNG targets for testing
-│   ├── test-audio/      # Sample Opus audio files for testing
-│   ├── test-data/       # Sample JSON/CSV data files
-│   └── example-real-photos/ # Contributor-provided photos for real-world testing
-├── public/
-│   ├── audio/           # Opus audio files
-│   ├── images/          # Photo storage (future)
-│   ├── data.app.v2.json # Runtime app metadata
-│   ├── data.recognition.v2.json # Recognition index
-│   └── vite.svg         # Favicon
-├── src/
-│   ├── components/
-│   │   ├── AudioPlayer.tsx    # Howler.js audio player
-│   │   ├── Camera.tsx         # Camera with motion detection
-│   │   └── InfoDisplay.tsx    # Concert info overlay
-│   ├── App.tsx          # Main app component
-│   ├── main.tsx         # Entry point
-│   ├── types.ts         # TypeScript types
-│   └── index.css        # Global styles and CSS reset
-├── index.html           # HTML entry point
-├── vite.config.ts       # Vite configuration
-├── tsconfig.json        # TypeScript configuration
-└── package.json         # Dependencies and scripts
-```
-
----
-
-## 🧪 Test Data
-
-The repository includes sample test assets to facilitate development and testing without requiring production data:
-
-### Test Assets Location
-
-- **Images**: `assets/test-images/` - 4 gradient JPEGs + 3 high-contrast PNG targets (all ~30KB)
-- **Audio**: `assets/test-audio/` - 4 sample Opus audio files (5 seconds each)
-- **Data**: `assets/test-data/` - Sample JSON and CSV data files
-- **Real Photos**: `assets/example-real-photos/` - 5 contributor-provided concert shots (internal testing)
-
-### License
-
-Generated test assets are CC0 (Public Domain). Example real photos remain proprietary to the contributor and are licensed for internal testing only.
-
-### Usage
-
-Test assets are suitable for:
-
-- Module and service-level testing
-- Development without production data
-- Verifying photo recognition, audio playback, and data loading features
-- CI/CD pipeline testing
-
-Each asset directory contains a README with detailed specifications and usage examples.
-
----
-
-## 🔮 Future Ideas
-
-- External playback via ESP32 or Google Home.
-- Audio-reactive visual overlays.
-- Offline PWA experience.
-- "Story mode" — written reflections fade in after the song ends.
-- Real photo recognition using perceptual hashing (image-phash).
-
----
-
-## ⚖️ License
+## License
 
 MIT © Miles Camp

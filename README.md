@@ -5,12 +5,9 @@ its paired song.
 
 ## Live Demo
 
-- Live site: add your public URL here (for example your Vercel URL)
-- Demo media: add a screenshot or GIF at `docs/media/demo.gif` and embed it below
+- Live site: add your public URL here
 
-<!-- Example embed once media is added:
 ![Photo Signal demo](docs/media/demo.gif)
--->
 
 ## What It Is
 

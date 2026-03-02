@@ -1,3 +1,1 @@
-export const DEFAULT_FEATURE_FLAGS = {
-  enablePerspectiveNormalization: false,
-} as const;
+export const PERSPECTIVE_NORMALIZATION_DEFAULT_ENABLED = false;

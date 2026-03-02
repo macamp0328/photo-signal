@@ -7,14 +7,14 @@
  */
 
 import type { FeatureFlag } from './types';
-import { DEFAULT_FEATURE_FLAGS } from '../../config';
+import { PERSPECTIVE_NORMALIZATION_DEFAULT_ENABLED } from '../../config';
 
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
-    id: 'enablePerspectiveNormalization',
+    id: 'perspective-normalization',
     name: 'Perspective Normalization',
     description: 'Warp detected photo corners before hashing when available.',
-    enabled: DEFAULT_FEATURE_FLAGS.enablePerspectiveNormalization,
+    enabled: PERSPECTIVE_NORMALIZATION_DEFAULT_ENABLED,
     category: 'experimental',
   },
   {

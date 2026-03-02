@@ -769,11 +769,7 @@ describe('usePhotoRecognition', () => {
       return originalCreateElement(tagName, options);
     }) as typeof document.createElement);
 
-    const perspectiveSpy = vi
-      .spyOn(perspectiveUtils, 'getPerspectiveCroppedImageData')
-      .mockReturnValue(new ImageData(64, 64));
-
-    const rectangle = {
+    const highConfidenceRectangle = {
       topLeft: { x: 0.1, y: 0.1 },
       topRight: { x: 0.9, y: 0.1 },
       bottomRight: { x: 0.9, y: 0.9 },
@@ -783,16 +779,26 @@ describe('usePhotoRecognition', () => {
       aspectRatio: 1,
     };
 
+    const lowConfidenceRectangle = {
+      topLeft: { x: 0.3, y: 0.3 },
+      topRight: { x: 0.7, y: 0.3 },
+      bottomRight: { x: 0.7, y: 0.7 },
+      bottomLeft: { x: 0.3, y: 0.7 },
+      width: 0.4,
+      height: 0.4,
+      aspectRatio: 1,
+    };
+
     const detectRectangleSpy = vi
       .spyOn(RectangleDetectionService.prototype, 'detectRectangle')
       .mockImplementationOnce(() => ({
-        rectangle,
+        rectangle: highConfidenceRectangle,
         confidence: 0.9,
         detected: true,
         timestamp: Date.now(),
       }))
       .mockImplementation(() => ({
-        rectangle,
+        rectangle: lowConfidenceRectangle,
         confidence: 0.2,
         detected: true,
         timestamp: Date.now(),
@@ -805,7 +811,7 @@ describe('usePhotoRecognition', () => {
         usePhotoRecognition(mockStream, {
           enabled: true,
           enableRectangleDetection: true,
-          enablePerspectiveNormalization: true,
+          enablePerspectiveNormalization: false,
           rectangleConfidenceThreshold: 0.35,
           checkInterval: 50,
         })
@@ -820,10 +826,15 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(result.current.rectangleConfidence).toBe(0.2);
-      expect(vi.mocked(mockContext.putImageData).mock.calls.length).toBeGreaterThanOrEqual(2);
+      const captureCalls = vi
+        .mocked(mockContext.drawImage)
+        .mock.calls.filter((call) => call.length === 9 && call[7] === 64 && call[8] === 64);
+
+      expect(captureCalls.length).toBeGreaterThanOrEqual(2);
+      expect(captureCalls.some((call) => call[1] === 128 && call[2] === 48)).toBe(true);
+      expect(captureCalls.some((call) => call[1] === 224 && call[2] === 144)).toBe(false);
     } finally {
       detectRectangleSpy.mockRestore();
-      perspectiveSpy.mockRestore();
       createElementSpy.mockRestore();
     }
   });

@@ -54,7 +54,22 @@ npm run test:visual:update
 
 # Open HTML report
 npm run test:visual:report
+
+# Regenerate README demo GIF from scripted camera + match flow
+npm run demo:gif
+
+# Faster local iteration (reuses existing build)
+npm run demo:gif:quick
 ```
+
+Prerequisites for GIF generation:
+
+- `ffmpeg` installed and available on `PATH`
+- Playwright browsers installed (`npx playwright install` if missing)
+
+`demo:gif` runs a deterministic Playwright capture flow that feeds a synthetic camera video stream from
+real project photo data, waits for recognition milestones, captures frames, and compiles
+`docs/media/demo.gif` with ffmpeg.
 
 ## CI Behavior
 

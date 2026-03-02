@@ -30,6 +30,8 @@
     "test:visual:ui": "npm run build && cross-env NODE_ENV=production playwright test --ui",
     "test:visual:update": "npm run build && cross-env NODE_ENV=production playwright test --update-snapshots",
     "test:visual:report": "playwright show-report --host 0.0.0.0 --port 9323",
+    "demo:gif": "node scripts/visual/generate-demo-gif.js",
+    "demo:gif:quick": "node scripts/visual/generate-demo-gif.js --skip-build",
     "hashes:refresh": "node scripts/update-recognition-data.js --algorithms phash --batch-size 2",
     "hashes:paths": "node scripts/update-recognition-data.js --paths-mode --algorithms phash",
     "create-easy-images": "node scripts/create-easy-test-images.js",

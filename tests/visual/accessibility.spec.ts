@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { bootstrapVisualState, gotoLanding, openSecretSettings } from './utils/visual-helpers';
-import { getMaxDiffPixelRatio, VISUAL_MAX_DIFF_RATIO_LENIENT } from './utils/visual-thresholds';
+import { VISUAL_MAX_DIFF_RATIO_LENIENT } from './utils/visual-thresholds';
 
 /**
  * Visual Regression Tests for Accessibility
@@ -29,13 +29,9 @@ test.describe('Accessibility', () => {
     await openSecretSettings(page);
 
     await page.emulateMedia({ forcedColors: 'active' });
-    const maxDiffPixelRatio = getMaxDiffPixelRatio(test.info().project.name, {
-      chromium: VISUAL_MAX_DIFF_RATIO_LENIENT,
-      'Mobile Chrome': VISUAL_MAX_DIFF_RATIO_LENIENT,
-    });
 
     await expect(page.getByRole('dialog')).toHaveScreenshot('a11y-settings-high-contrast.png', {
-      maxDiffPixelRatio,
+      maxDiffPixelRatio: VISUAL_MAX_DIFF_RATIO_LENIENT,
     });
   });
 

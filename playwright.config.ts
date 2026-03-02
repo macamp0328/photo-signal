@@ -57,22 +57,8 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
-  // Configure projects for major browsers and devices
-  // Firefox removed for speed; run Chrome/Safari + mobile variants in all environments
+  // Configure projects for mobile-first visual coverage
   projects: [
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
-        },
-      },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
     // Mobile devices
     {
       name: 'Mobile Chrome',

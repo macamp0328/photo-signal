@@ -64,3 +64,6 @@ output/
 
 # Local AI worktree clones (not part of project source)
 .claude/worktrees/
+
+# Local Claude permissions/settings (machine-specific)
+.claude/settings.local.json

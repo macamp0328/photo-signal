@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { bootstrapVisualState, gotoLanding, openSecretSettings } from './utils/visual-helpers';
-import { getMaxDiffPixelRatio, VISUAL_MAX_DIFF_RATIO_LENIENT } from './utils/visual-thresholds';
+import { VISUAL_MAX_DIFF_RATIO_LENIENT } from './utils/visual-thresholds';
 
 /**
  * Visual Regression Tests for Secret Settings Menu
@@ -16,14 +16,9 @@ test.describe('Secret Settings Menu', () => {
     await openSecretSettings(page);
 
     const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
-    const maxDiffPixelRatio = getMaxDiffPixelRatio(
-      test.info().project.name,
-      {},
-      VISUAL_MAX_DIFF_RATIO_LENIENT
-    );
 
     await expect(modalDocument).toHaveScreenshot('secret-settings-dialog.png', {
-      maxDiffPixelRatio,
+      maxDiffPixelRatio: VISUAL_MAX_DIFF_RATIO_LENIENT,
     });
   });
 
@@ -36,14 +31,9 @@ test.describe('Secret Settings Menu', () => {
     await expect(page.getByText('Debug Overlay')).toBeVisible();
 
     const modalDocument = page.getByRole('document', { name: /secret settings menu/i });
-    const maxDiffPixelRatio = getMaxDiffPixelRatio(
-      test.info().project.name,
-      {},
-      VISUAL_MAX_DIFF_RATIO_LENIENT
-    );
 
     await expect(modalDocument).toHaveScreenshot('secret-settings-feature-flags-visible.png', {
-      maxDiffPixelRatio,
+      maxDiffPixelRatio: VISUAL_MAX_DIFF_RATIO_LENIENT,
     });
   });
 
@@ -64,14 +54,8 @@ test.describe('Secret Settings Menu', () => {
       element.scrollTop = 0;
     });
 
-    const maxDiffPixelRatio = getMaxDiffPixelRatio(
-      test.info().project.name,
-      {},
-      VISUAL_MAX_DIFF_RATIO_LENIENT
-    );
-
     await expect(modalDocument).toHaveScreenshot('secret-settings-debug-overlay-enabled.png', {
-      maxDiffPixelRatio,
+      maxDiffPixelRatio: VISUAL_MAX_DIFF_RATIO_LENIENT,
     });
   });
 });

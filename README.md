@@ -9,6 +9,8 @@ its paired song.
 
 ![Photo Signal demo](docs/media/demo.gif)
 
+Regenerate this demo GIF programmatically with `npm run demo:gif`.
+
 ## What It Is
 
 Photo Signal is a portfolio project about linking physical photographs to sound without QR codes or visible

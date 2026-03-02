@@ -13,7 +13,7 @@ import { hammingDistance } from '../algorithms/hamming';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -126,6 +126,31 @@ function getReferenceHashes(concert: Concert): string[] {
   return hashes;
 }
 
+function hasAvailableProductionSamples(): boolean {
+  try {
+    const payload = JSON.parse(readFileSync(PRODUCTION_DATA_PATH, 'utf-8')) as ProductionData;
+    const concerts = toConcerts(payload);
+
+    return concerts.some((concert) => {
+      if (!concert.imageFile) {
+        return false;
+      }
+
+      const hasHashes =
+        Array.isArray(concert.photoHashes?.phash) && concert.photoHashes.phash.length > 0;
+      if (!hasHashes) {
+        return false;
+      }
+
+      return existsSync(resolveImagePath(concert.imageFile));
+    });
+  } catch {
+    return false;
+  }
+}
+
+const shouldSkipProductionSampleRegression = !hasAvailableProductionSamples();
+
 describe('Production Data Recognition Regression Tests', () => {
   let productionData: ProductionData;
   let concerts: Concert[];
@@ -220,75 +245,84 @@ describe('Production Data Recognition Regression Tests', () => {
   });
 
   describe('pHash Regression (Production Sample)', () => {
-    it(`matches sampled production images within distance <= ${MAX_PHASH_DISTANCE}`, async () => {
-      if (sampleConcerts.length === 0) {
-        return;
-      }
+    it.skipIf(shouldSkipProductionSampleRegression)(
+      `matches sampled production images within distance <= ${MAX_PHASH_DISTANCE}`,
+      async () => {
+        if (sampleConcerts.length === 0) {
+          return;
+        }
 
-      for (const concert of sampleConcerts) {
-        const computedHash = sampleComputedHashes.get(concert.id);
-        expect(computedHash).toBeDefined();
-        const referenceHashes = getReferenceHashes(concert);
-        const bestDistance = findBestDistance(computedHash!, referenceHashes);
+        for (const concert of sampleConcerts) {
+          const computedHash = sampleComputedHashes.get(concert.id);
+          expect(computedHash).toBeDefined();
+          const referenceHashes = getReferenceHashes(concert);
+          const bestDistance = findBestDistance(computedHash!, referenceHashes);
 
-        expect(bestDistance).toBeLessThanOrEqual(MAX_PHASH_DISTANCE);
-      }
-    });
-
-    it('keeps a strong pass rate across sampled production images', async () => {
-      if (sampleConcerts.length === 0) {
-        return;
-      }
-
-      let passing = 0;
-
-      for (const concert of sampleConcerts) {
-        const computedHash = sampleComputedHashes.get(concert.id);
-        expect(computedHash).toBeDefined();
-        const referenceHashes = getReferenceHashes(concert);
-        const bestDistance = findBestDistance(computedHash!, referenceHashes);
-
-        if (bestDistance <= MAX_PHASH_DISTANCE) {
-          passing += 1;
+          expect(bestDistance).toBeLessThanOrEqual(MAX_PHASH_DISTANCE);
         }
       }
+    );
 
-      const passRate = (passing / sampleConcerts.length) * 100;
-      expect(passRate).toBeGreaterThanOrEqual(90);
-    });
+    it.skipIf(shouldSkipProductionSampleRegression)(
+      'keeps a strong pass rate across sampled production images',
+      async () => {
+        if (sampleConcerts.length === 0) {
+          return;
+        }
 
-    it('matches own reference set better than other concerts for most sampled images', () => {
-      if (sampleConcerts.length === 0) {
-        return;
-      }
+        let passing = 0;
 
-      let ownBestWins = 0;
+        for (const concert of sampleConcerts) {
+          const computedHash = sampleComputedHashes.get(concert.id);
+          expect(computedHash).toBeDefined();
+          const referenceHashes = getReferenceHashes(concert);
+          const bestDistance = findBestDistance(computedHash!, referenceHashes);
 
-      for (const concert of sampleConcerts) {
-        const computedHash = sampleComputedHashes.get(concert.id);
-        expect(computedHash).toBeDefined();
-
-        const ownBestDistance = findBestDistance(computedHash!, getReferenceHashes(concert));
-
-        let nearestOtherDistance = Infinity;
-        for (const otherConcert of sampleConcerts) {
-          if (otherConcert.id === concert.id) {
-            continue;
+          if (bestDistance <= MAX_PHASH_DISTANCE) {
+            passing += 1;
           }
-          const candidateDistance = findBestDistance(
-            computedHash!,
-            getReferenceHashes(otherConcert)
-          );
-          nearestOtherDistance = Math.min(nearestOtherDistance, candidateDistance);
         }
 
-        if (ownBestDistance <= nearestOtherDistance) {
-          ownBestWins += 1;
-        }
+        const passRate = (passing / sampleConcerts.length) * 100;
+        expect(passRate).toBeGreaterThanOrEqual(90);
       }
+    );
 
-      const discriminationRate = (ownBestWins / sampleConcerts.length) * 100;
-      expect(discriminationRate).toBeGreaterThanOrEqual(MIN_DISCRIMINATION_PASS_RATE);
-    });
+    it.skipIf(shouldSkipProductionSampleRegression)(
+      'matches own reference set better than other concerts for most sampled images',
+      () => {
+        if (sampleConcerts.length === 0) {
+          return;
+        }
+
+        let ownBestWins = 0;
+
+        for (const concert of sampleConcerts) {
+          const computedHash = sampleComputedHashes.get(concert.id);
+          expect(computedHash).toBeDefined();
+
+          const ownBestDistance = findBestDistance(computedHash!, getReferenceHashes(concert));
+
+          let nearestOtherDistance = Infinity;
+          for (const otherConcert of sampleConcerts) {
+            if (otherConcert.id === concert.id) {
+              continue;
+            }
+            const candidateDistance = findBestDistance(
+              computedHash!,
+              getReferenceHashes(otherConcert)
+            );
+            nearestOtherDistance = Math.min(nearestOtherDistance, candidateDistance);
+          }
+
+          if (ownBestDistance <= nearestOtherDistance) {
+            ownBestWins += 1;
+          }
+        }
+
+        const discriminationRate = (ownBestWins / sampleConcerts.length) * 100;
+        expect(discriminationRate).toBeGreaterThanOrEqual(MIN_DISCRIMINATION_PASS_RATE);
+      }
+    );
   });
 });

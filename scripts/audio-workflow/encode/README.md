@@ -29,7 +29,7 @@ npm run encode-audio -- --force-reencode
 
 ## Inputs
 
-Default paths are read from `scripts/audio-workflow/encode/encode.config.json`.
+Default paths are built in. You can optionally pass `--config <path>` to override.
 
 - Input directory: downloaded audio + sidecar metadata
 - Metadata source: `*.metadata.json` (falls back to `*.info.json` when metadata sidecars are absent)

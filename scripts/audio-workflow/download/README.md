@@ -32,7 +32,7 @@ npm run download-song -- --dry-run
 
 ## Defaults
 
-- Output directory: `downloads/yt-music`
+- Output directory: `downloads`
 - Archive file: `<output-dir>/.yt-dlp-archive.txt`
 - Playlist client fallback: `web -> mweb -> ios -> tv`
 - Format preference: Opus-first with fallback

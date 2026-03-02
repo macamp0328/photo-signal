@@ -769,6 +769,200 @@ describe('usePhotoRecognition', () => {
       return originalCreateElement(tagName, options);
     }) as typeof document.createElement);
 
+    const highConfidenceRectangle = {
+      topLeft: { x: 0.1, y: 0.1 },
+      topRight: { x: 0.9, y: 0.1 },
+      bottomRight: { x: 0.9, y: 0.9 },
+      bottomLeft: { x: 0.1, y: 0.9 },
+      width: 0.8,
+      height: 0.8,
+      aspectRatio: 1,
+    };
+
+    const lowConfidenceRectangle = {
+      topLeft: { x: 0.3, y: 0.3 },
+      topRight: { x: 0.7, y: 0.3 },
+      bottomRight: { x: 0.7, y: 0.7 },
+      bottomLeft: { x: 0.3, y: 0.7 },
+      width: 0.4,
+      height: 0.4,
+      aspectRatio: 1,
+    };
+
+    const detectRectangleSpy = vi
+      .spyOn(RectangleDetectionService.prototype, 'detectRectangle')
+      .mockImplementationOnce(() => ({
+        rectangle: highConfidenceRectangle,
+        confidence: 0.9,
+        detected: true,
+        timestamp: Date.now(),
+      }))
+      .mockImplementation(() => ({
+        rectangle: lowConfidenceRectangle,
+        confidence: 0.2,
+        detected: true,
+        timestamp: Date.now(),
+      }));
+
+    try {
+      activeFrameHash = 'ffffffffffffffff';
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          enableRectangleDetection: true,
+          enablePerspectiveNormalization: false,
+          rectangleConfidenceThreshold: 0.35,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120);
+      });
+
+      expect(result.current.rectangleConfidence).toBe(0.2);
+      const captureCalls = vi
+        .mocked(mockContext.drawImage)
+        .mock.calls.filter((call) => call.length === 9 && call[7] === 64 && call[8] === 64);
+
+      expect(captureCalls.length).toBeGreaterThanOrEqual(2);
+      expect(captureCalls.some((call) => call[1] === 128 && call[2] === 48)).toBe(true);
+      expect(captureCalls.some((call) => call[1] === 224 && call[2] === 144)).toBe(false);
+    } finally {
+      detectRectangleSpy.mockRestore();
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('uses legacy rectangle crop when perspective normalization flag is false', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn((_: number, __: number, width: number, height: number) => {
+        return new ImageData(width, height);
+      }),
+      putImageData: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    const perspectiveSpy = vi.spyOn(perspectiveUtils, 'getPerspectiveCroppedImageData');
+
+    const rectangle = {
+      topLeft: { x: 0.1, y: 0.1 },
+      topRight: { x: 0.9, y: 0.1 },
+      bottomRight: { x: 0.9, y: 0.9 },
+      bottomLeft: { x: 0.1, y: 0.9 },
+      width: 0.8,
+      height: 0.8,
+      aspectRatio: 1,
+    };
+
+    const detectRectangleSpy = vi
+      .spyOn(RectangleDetectionService.prototype, 'detectRectangle')
+      .mockReturnValue({
+        rectangle,
+        confidence: 0.9,
+        detected: true,
+        timestamp: Date.now(),
+      });
+
+    try {
+      renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          enableRectangleDetection: true,
+          enablePerspectiveNormalization: false,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120);
+      });
+
+      expect(perspectiveSpy).not.toHaveBeenCalled();
+      expect(vi.mocked(mockContext.putImageData).mock.calls.length).toBe(0);
+    } finally {
+      detectRectangleSpy.mockRestore();
+      perspectiveSpy.mockRestore();
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('uses perspective path when flag is true and corners are valid', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn((_: number, __: number, width: number, height: number) => {
+        return new ImageData(width, height);
+      }),
+      putImageData: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
     const perspectiveSpy = vi
       .spyOn(perspectiveUtils, 'getPerspectiveCroppedImageData')
       .mockReturnValue(new ImageData(64, 64));
@@ -785,27 +979,19 @@ describe('usePhotoRecognition', () => {
 
     const detectRectangleSpy = vi
       .spyOn(RectangleDetectionService.prototype, 'detectRectangle')
-      .mockImplementationOnce(() => ({
+      .mockReturnValue({
         rectangle,
         confidence: 0.9,
         detected: true,
         timestamp: Date.now(),
-      }))
-      .mockImplementation(() => ({
-        rectangle,
-        confidence: 0.2,
-        detected: true,
-        timestamp: Date.now(),
-      }));
+      });
 
     try {
-      activeFrameHash = 'ffffffffffffffff';
-
-      const { result } = renderHook(() =>
+      renderHook(() =>
         usePhotoRecognition(mockStream, {
           enabled: true,
           enableRectangleDetection: true,
-          rectangleConfidenceThreshold: 0.35,
+          enablePerspectiveNormalization: true,
           checkInterval: 50,
         })
       );
@@ -818,8 +1004,96 @@ describe('usePhotoRecognition', () => {
         await vi.advanceTimersByTimeAsync(120);
       });
 
-      expect(result.current.rectangleConfidence).toBe(0.2);
-      expect(vi.mocked(mockContext.putImageData).mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(perspectiveSpy).toHaveBeenCalled();
+      expect(vi.mocked(mockContext.putImageData).mock.calls.length).toBeGreaterThan(0);
+    } finally {
+      detectRectangleSpy.mockRestore();
+      perspectiveSpy.mockRestore();
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('falls back to rectangle crop when perspective normalization returns null', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn((_: number, __: number, width: number, height: number) => {
+        return new ImageData(width, height);
+      }),
+      putImageData: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    const perspectiveSpy = vi
+      .spyOn(perspectiveUtils, 'getPerspectiveCroppedImageData')
+      .mockReturnValue(null);
+
+    const rectangle = {
+      topLeft: { x: 0.1, y: 0.1 },
+      topRight: { x: 0.9, y: 0.1 },
+      bottomRight: { x: 0.9, y: 0.9 },
+      bottomLeft: { x: 0.1, y: 0.9 },
+      width: 0.8,
+      height: 0.8,
+      aspectRatio: 1,
+    };
+
+    const detectRectangleSpy = vi
+      .spyOn(RectangleDetectionService.prototype, 'detectRectangle')
+      .mockReturnValue({
+        rectangle,
+        confidence: 0.9,
+        detected: true,
+        timestamp: Date.now(),
+      });
+
+    try {
+      renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          enableRectangleDetection: true,
+          enablePerspectiveNormalization: true,
+          checkInterval: 50,
+        })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(80);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120);
+      });
+
+      expect(perspectiveSpy).toHaveBeenCalled();
+      expect(vi.mocked(mockContext.putImageData).mock.calls.length).toBe(0);
     } finally {
       detectRectangleSpy.mockRestore();
       perspectiveSpy.mockRestore();

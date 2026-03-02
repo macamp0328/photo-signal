@@ -25,7 +25,7 @@ npm run audio:clean-slate -- --base-url=https://photo-signal-audio-worker.exampl
 # Fast smoke run (downloads only first 10 songs)
 npm run audio:clean-slate:smoke -- --base-url=https://photo-signal-audio-worker.example.workers.dev
 
-# 3) Verify mapping + URL integrity and detect stale placeholders
+# 3) Verify mapping + URL integrity
 npm run audio:verify
 ```
 
@@ -129,8 +129,6 @@ See [`encode/README.md`](./encode/README.md) for complete documentation covering
 - ✅ Opus encoding with metadata
 - ✅ Manifest generation
 - ✅ Checksum calculation
-- 🚧 Photo ID linking (placeholder mappings generated, awaiting photo manifest integration)
-- 🚧 Gallery-aware folder organization (currently flat output directory)
 
 ## Stage 3: Update (Ready)
 

@@ -17,6 +17,10 @@ const DEFAULT_LANDING_FRAMES = 8;
 const DEFAULT_CAPTURE_FRAMES = 90;
 const DEFAULT_FRAME_DELAY_MS = 100;
 const DEFAULT_FPS = 8;
+const DEFAULT_PRE_MATCH_MS = 5000;
+const DEFAULT_VIEWPORT_WIDTH = 412;
+const DEFAULT_VIEWPORT_HEIGHT = 915;
+const DEFAULT_OUTPUT_WIDTH = 480;
 
 function parseArgs(argv) {
   const parsed = {
@@ -26,6 +30,10 @@ function parseArgs(argv) {
     landingFrames: DEFAULT_LANDING_FRAMES,
     captureFrames: DEFAULT_CAPTURE_FRAMES,
     frameDelayMs: DEFAULT_FRAME_DELAY_MS,
+    preMatchMs: DEFAULT_PRE_MATCH_MS,
+    viewportWidth: DEFAULT_VIEWPORT_WIDTH,
+    viewportHeight: DEFAULT_VIEWPORT_HEIGHT,
+    outputWidth: DEFAULT_OUTPUT_WIDTH,
   };
 
   for (const arg of argv) {
@@ -40,6 +48,18 @@ function parseArgs(argv) {
     }
     if (arg.startsWith('--frame-delay-ms=')) {
       parsed.frameDelayMs = Number(arg.split('=')[1] ?? DEFAULT_FRAME_DELAY_MS);
+    }
+    if (arg.startsWith('--pre-match-ms=')) {
+      parsed.preMatchMs = Number(arg.split('=')[1] ?? DEFAULT_PRE_MATCH_MS);
+    }
+    if (arg.startsWith('--viewport-width=')) {
+      parsed.viewportWidth = Number(arg.split('=')[1] ?? DEFAULT_VIEWPORT_WIDTH);
+    }
+    if (arg.startsWith('--viewport-height=')) {
+      parsed.viewportHeight = Number(arg.split('=')[1] ?? DEFAULT_VIEWPORT_HEIGHT);
+    }
+    if (arg.startsWith('--output-width=')) {
+      parsed.outputWidth = Number(arg.split('=')[1] ?? DEFAULT_OUTPUT_WIDTH);
     }
   }
 
@@ -172,7 +192,8 @@ function buildDataUrl(filePath) {
 }
 
 async function captureDemoFrames(options) {
-  const { landingFrames, captureFrames, frameDelayMs } = options;
+  const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
+    options;
 
   const demoPhotoPath = resolveDemoPhotoPath();
   const imageDataUrl = buildDataUrl(demoPhotoPath);
@@ -189,8 +210,8 @@ async function captureDemoFrames(options) {
   });
 
   const context = await browser.newContext({
-    ...devices['Pixel 5'],
-    viewport: { width: 393, height: 727 },
+    ...devices['Pixel 7'],
+    viewport: { width: viewportWidth, height: viewportHeight },
   });
 
   const page = await context.newPage();
@@ -202,7 +223,7 @@ async function captureDemoFrames(options) {
   });
 
   await page.addInitScript(
-    ({ seededImageDataUrl, seededHash }) => {
+    ({ seededImageDataUrl, seededHash, preMatchDurationMs }) => {
       try {
         const existingFlagsRaw = globalThis.localStorage.getItem('photo-signal-feature-flags');
         const existingFlags = existingFlagsRaw ? JSON.parse(existingFlagsRaw) : [];
@@ -214,7 +235,7 @@ async function captureDemoFrames(options) {
         });
         byId.set('show-debug-overlay', {
           ...(byId.get('show-debug-overlay') ?? { id: 'show-debug-overlay' }),
-          enabled: true,
+          enabled: false,
         });
 
         globalThis.localStorage.setItem(
@@ -257,19 +278,66 @@ async function captureDemoFrames(options) {
           sourceY = (image.height - sourceHeight) / 2;
         }
 
-        const render = () => {
+        const startMs = globalThis.performance.now();
+
+        const render = (now) => {
+          const elapsedMs = now - startMs;
+          const elapsedSeconds = elapsedMs / 1000;
+          const isPreMatchPhase = elapsedMs < preMatchDurationMs;
+
+          const driftX = isPreMatchPhase ? Math.sin(elapsedSeconds * 1.15) * 8 : 0;
+          const driftY = isPreMatchPhase ? Math.cos(elapsedSeconds * 0.9) * 6 : 0;
+          const zoom = isPreMatchPhase ? 1.06 + Math.sin(elapsedSeconds * 0.75) * 0.01 : 1;
+
+          const drawWidth = sourceWidth / zoom;
+          const drawHeight = sourceHeight / zoom;
+          const drawX = sourceX + (sourceWidth - drawWidth) / 2 + driftX;
+          const drawY = sourceY + (sourceHeight - drawHeight) / 2 + driftY;
+
           context.clearRect(0, 0, canvas.width, canvas.height);
+
+          context.save();
+          if (isPreMatchPhase) {
+            context.filter = 'blur(1.8px) brightness(0.76) contrast(1.2) saturate(0.82)';
+          } else {
+            context.filter = 'none';
+          }
           context.drawImage(
             image,
-            sourceX,
-            sourceY,
-            sourceWidth,
-            sourceHeight,
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight,
             0,
             0,
             canvas.width,
             canvas.height
           );
+          context.restore();
+
+          if (isPreMatchPhase) {
+            const vignette = context.createRadialGradient(
+              canvas.width / 2,
+              canvas.height / 2,
+              canvas.width * 0.15,
+              canvas.width / 2,
+              canvas.height / 2,
+              canvas.width * 0.65
+            );
+            vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            vignette.addColorStop(1, 'rgba(0, 0, 0, 0.28)');
+            context.fillStyle = vignette;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < 80; i += 1) {
+              const x = Math.floor(Math.random() * canvas.width);
+              const y = Math.floor(Math.random() * canvas.height);
+              const alpha = (Math.random() * 0.1).toFixed(3);
+              context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+              context.fillRect(x, y, 2, 2);
+            }
+          }
+
           globalThis.requestAnimationFrame(render);
         };
 
@@ -324,7 +392,11 @@ async function captureDemoFrames(options) {
         });
       };
     },
-    { seededImageDataUrl: imageDataUrl, seededHash: seededMatchHash }
+    {
+      seededImageDataUrl: imageDataUrl,
+      seededHash: seededMatchHash,
+      preMatchDurationMs: preMatchMs,
+    }
   );
 
   try {
@@ -370,13 +442,6 @@ async function captureDemoFrames(options) {
           ? 'Camera did not activate (permission/error state visible).'
           : 'Camera video element did not become visible after activation.'
       );
-    }
-
-    const showOverlayButton = page.locator('button', { hasText: /show overlay/i }).first();
-    const canExpandOverlay = await showOverlayButton.isVisible().catch(() => false);
-    if (canExpandOverlay) {
-      await showOverlayButton.click({ force: true });
-      await page.waitForTimeout(150);
     }
 
     let matched = false;
@@ -446,7 +511,7 @@ async function captureDemoFrames(options) {
   }
 }
 
-function buildGif(fps) {
+function buildGif(fps, outputWidth) {
   const palettePath = path.resolve(FRAME_DIR, 'palette.png');
   const framePattern = path.join(FRAME_DIR, 'frame-%04d.png');
 
@@ -470,7 +535,7 @@ function buildGif(fps) {
     '-i',
     palettePath,
     '-lavfi',
-    `fps=${fps},scale=393:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=sierra2_4a`,
+    `fps=${fps},scale=${outputWidth}:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=sierra2_4a`,
     OUTPUT_GIF,
   ]);
 }
@@ -499,7 +564,7 @@ async function main() {
   try {
     await waitForServer(BASE_URL);
     await captureDemoFrames(options);
-    buildGif(options.fps);
+    buildGif(options.fps, options.outputWidth);
     console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
   } finally {
     if (!preview.killed) {

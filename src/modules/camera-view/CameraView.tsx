@@ -1,4 +1,4 @@
-import { useEffect, useRef, type PointerEvent, type TouchEvent } from 'react';
+import { useEffect, useRef, type PointerEvent } from 'react';
 import type { CameraViewProps } from './types';
 import { RectangleOverlay } from '../photo-rectangle-detection';
 import type { TapIntent } from '../../types';
@@ -62,20 +62,6 @@ export function CameraView({
     onTap(tap);
   };
 
-  const handleTouchEnd = (event: TouchEvent<HTMLVideoElement>) => {
-    if (!onTap || event.changedTouches.length === 0) {
-      return;
-    }
-
-    const touch = event.changedTouches[0];
-    const tap = normalizeTap(touch.clientX, touch.clientY);
-    if (!tap) {
-      return;
-    }
-
-    onTap({ ...tap, pointerType: 'touch' });
-  };
-
   // Update video element when stream changes
   useEffect(() => {
     if (videoRef.current && stream) {
@@ -120,7 +106,6 @@ export function CameraView({
         muted
         className={`${styles.video} ${grayscale ? styles.grayscale : ''}`}
         onPointerDown={handlePointerDown}
-        onTouchEnd={handleTouchEnd}
       />
 
       {/* Rectangle Detection Overlay */}

@@ -487,6 +487,45 @@ describe('useCameraAccess', () => {
       expect(outcome.status).toBe('applied');
       expect(applyConstraints).toHaveBeenCalledTimes(1);
     });
+
+    it('applies pointsOfInterest-only constraint when focus/exposure modes are unavailable', async () => {
+      const applyConstraints = vi.fn().mockResolvedValue(undefined);
+      const focusTrack = {
+        ...mockTrack,
+        getCapabilities: vi.fn(() => ({ pointsOfInterest: true })),
+        applyConstraints,
+      } as unknown as MediaStreamTrack;
+
+      const focusStream = {
+        ...mockStream,
+        getVideoTracks: vi.fn(() => [focusTrack]),
+        getTracks: vi.fn(() => [focusTrack]),
+      } as unknown as MediaStream;
+
+      navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(focusStream);
+
+      const { result } = renderHook(() => useCameraAccess());
+      await waitFor(() => {
+        expect(result.current.stream).toBe(focusStream);
+      });
+
+      const outcome = await result.current.requestTapFocus({
+        point: { x: 0.4, y: 0.6 },
+        timestamp: Date.now(),
+        pointerType: 'touch',
+      });
+
+      expect(outcome.status).toBe('applied');
+      expect(applyConstraints).toHaveBeenCalledWith(
+        expect.objectContaining({
+          advanced: [
+            expect.objectContaining({
+              pointsOfInterest: [{ x: 0.4, y: 0.6 }],
+            }),
+          ],
+        })
+      );
+    });
   });
 
   describe('Edge cases', () => {

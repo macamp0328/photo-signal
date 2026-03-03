@@ -161,6 +161,7 @@ const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
 const DEFAULT_TAP_ROI_LOCK_MS = 500;
 const DEFAULT_TAP_ROI_DECAY_MS = 1200;
 const DEFAULT_TAP_ROI_RADIUS = 0.28;
+const ROI_FALLBACK_FRAME_INTERVAL = 3;
 
 /**
  * Scans concertHashList and returns the best and second-best pHash matches for
@@ -818,10 +819,13 @@ export function usePhotoRecognition(
             viewportImageData,
             roiHint
           );
-          const fallbackResult =
-            roiHint && (!roiResult.detected || roiResult.confidence < rectangleConfidenceThreshold)
-              ? rectangleDetectorRef.current.detectRectangle(viewportImageData)
-              : null;
+          const shouldRunFallbackPass =
+            Boolean(roiHint) &&
+            (!roiResult.detected || roiResult.confidence < rectangleConfidenceThreshold) &&
+            frameCountRef.current % ROI_FALLBACK_FRAME_INTERVAL === 0;
+          const fallbackResult = shouldRunFallbackPass
+            ? rectangleDetectorRef.current.detectRectangle(viewportImageData)
+            : null;
           const detectionResult =
             fallbackResult && fallbackResult.confidence > roiResult.confidence
               ? fallbackResult

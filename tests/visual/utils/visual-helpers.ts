@@ -73,12 +73,17 @@ export async function waitForCameraState(page: Page): Promise<void> {
       .then(() => 'video' as const)
       .catch(() => null),
     page
-      .getByText(/camera access required/i)
+      .getByText(/camera blocked/i)
       .waitFor({ state: 'visible', timeout: 12000 })
       .then(() => 'permission' as const)
       .catch(() => null),
     page
-      .getByText(/point camera at a photo to play music/i)
+      .getByText(/summoning camera/i)
+      .waitFor({ state: 'visible', timeout: 12000 })
+      .then(() => 'loading' as const)
+      .catch(() => null),
+    page
+      .getByText(/point at a photo|point your camera at a photo/i)
       .waitFor({ state: 'visible', timeout: 12000 })
       .then(() => 'instruction' as const)
       .catch(() => null),

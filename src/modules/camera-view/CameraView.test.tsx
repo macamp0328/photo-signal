@@ -23,7 +23,9 @@ describe('CameraView', () => {
       );
 
       expect(screen.getByText('Camera blocked')).toBeInTheDocument();
-      expect(screen.getByText('Camera access denied by user')).toBeInTheDocument();
+      expect(
+        screen.getByText('Camera access is off. Let me in to keep scanning.')
+      ).toBeInTheDocument();
     });
 
     it('should not render video element when hasPermission is false', () => {

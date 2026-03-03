@@ -307,7 +307,7 @@ describe('App playback flow', () => {
     expect(screen.getByRole('button', { name: 'Next pic, please' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch artist to Band Two' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
   });
@@ -331,7 +331,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch artist to Band Two' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
   });
 
   it('switches artists via Switch Artist using crossfade while playback is active', async () => {
@@ -351,7 +351,7 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Switch artist to Band Two' }));
+    await user.click(screen.getByRole('button', { name: 'Switch Artist' }));
 
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
     expect(mockResetRecognition).toHaveBeenCalled();
@@ -584,7 +584,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Switch artist to Band Two' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries without resetting recognition state', async () => {

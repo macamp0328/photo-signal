@@ -10,7 +10,6 @@ import styles from './CameraView.module.css';
  */
 export function CameraView({
   stream,
-  error,
   hasPermission,
   onRetry,
   grayscale = false,
@@ -20,7 +19,7 @@ export function CameraView({
   showRectangleOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const permissionMessage = error ?? 'Camera access is off. Let me in to keep scanning.';
+  const permissionMessage = 'Camera access is off. Let me in to keep scanning.';
 
   // Update video element when stream changes
   useEffect(() => {

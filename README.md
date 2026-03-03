@@ -44,6 +44,15 @@ Production source photo originals under `assets/prod-photographs/` are intention
 not tracked in git. Runtime display uses `photoUrl` values in `data.app.v2.json` (Cloudflare Worker/CDN
 paths), while `imageFile` entries are retained as metadata/workflow references.
 
+## Standout Features
+
+- Client-side pHash recognition tuned for real-world print/photo conditions (lighting variance, motion,
+  and framing drift).
+- Dynamic rectangle detection mode that can auto-crop to detected photo boundaries instead of relying
+  only on fixed guides.
+- Mobile-first visual behavior with PWA metadata (`standalone`, portrait orientation, installable icon
+  set).
+
 ## Tech Stack
 
 - Frontend: React 19, TypeScript 5.9, Vite 7
@@ -51,6 +60,15 @@ paths), while `imageFile` entries are retained as metadata/workflow references.
 - Audio: Howler.js (Opus playback)
 - Testing: Vitest + Playwright
 - Tooling: ESLint + Prettier
+
+## Quality and CI Guardrails
+
+- Local quality gate: `npm run pre-commit` (lint fix, format, type-check, unit tests, production build,
+  bundle-size check).
+- CI workflow on `main` and pull requests runs lint, format check, type-check, coverage, build, artifact
+  validation, and bundle-size checks.
+- Visual regression suite covers mobile browsers (Mobile Chrome + Mobile Safari) with strict screenshot
+  diff tolerance.
 
 ## Architecture Snapshot
 
@@ -69,6 +87,44 @@ Feature modules live in `src/modules/` and include:
 - Frontend hosting: Vercel (static site)
 - Audio + protected asset proxy: Cloudflare Worker + Cloudflare R2
 
+## Data and Media Tooling
+
+- Recognition index refresh for the photo dataset: `npm run hashes:refresh`.
+- End-to-end audio pipeline orchestration (download, encode, upload, dataset remap/validation):
+  `npm run audio:clean-slate`.
+- Audio URL verification and troubleshooting utilities: `npm run validate-audio` and
+  `npm run trace-audio`.
+
+## Access Protection Note
+
+This project includes a small password barrier before full app access. Its purpose is practical abuse
+control: it reduces anonymous bot traffic and helps protect Cloudflare Worker/R2 usage from accidental
+cost spikes during automated scanning or DDoS-style traffic bursts.
+
+This gate is not intended as a strong authentication system for user accounts. It is a lightweight
+front-door control for a private/home deployment context.
+
+## Content Ownership and Audio Usage
+
+All photographs in this project are original images captured for this project.
+
+The paired audio tracks are not owned by this project's authors or maintainers and remain the property of
+their respective rights holders.
+
+From a technical perspective, the project includes a small audio pipeline script that automates
+playlist-based ingest using common open-source tooling, then transcodes files to a web-friendly format
+and publishes them to a private storage path used by this app.
+
+That implementation is presented as an engineering feature (automation, encoding, and delivery), not as
+proof of content ownership or redistribution rights.
+
+In this setup, playback is intended for private, in-home personal use (similar to listening through an
+individual YouTube Music account while using the gallery).
+
+If you plan to deploy this project publicly, you should replace all audio with content you are licensed
+to use and/or distribute, and ensure your use complies with applicable copyright rules and platform
+terms.
+
 ## Run Locally (Minimal)
 
 ```bash
@@ -77,6 +133,9 @@ npm run dev
 ```
 
 Open `http://localhost:5173` on a mobile device and allow camera access.
+
+For container-based development, see [DOCKER.md](./DOCKER.md) and the included
+`.devcontainer/devcontainer.json` setup.
 
 ## Documentation
 

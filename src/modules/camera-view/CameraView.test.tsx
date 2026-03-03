@@ -22,7 +22,7 @@ describe('CameraView', () => {
         <CameraView stream={null} error="Camera access denied by user" hasPermission={false} />
       );
 
-      expect(screen.getByText('Camera Access Required')).toBeInTheDocument();
+      expect(screen.getByText('Camera blocked')).toBeInTheDocument();
       expect(screen.getByText('Camera access denied by user')).toBeInTheDocument();
     });
 
@@ -47,7 +47,7 @@ describe('CameraView', () => {
         />
       );
 
-      const retryButton = screen.getByRole('button', { name: /retry/i });
+      const retryButton = screen.getByRole('button', { name: /let me in/i });
       expect(retryButton).toBeInTheDocument();
     });
 
@@ -64,7 +64,7 @@ describe('CameraView', () => {
         />
       );
 
-      const retryButton = screen.getByRole('button', { name: /retry/i });
+      const retryButton = screen.getByRole('button', { name: /let me in/i });
       await user.click(retryButton);
 
       expect(mockRetry).toHaveBeenCalledTimes(1);
@@ -73,7 +73,7 @@ describe('CameraView', () => {
     it('should not render retry button when onRetry is not provided', () => {
       render(<CameraView stream={null} error="Camera access denied" hasPermission={false} />);
 
-      const retryButton = screen.queryByRole('button', { name: /retry/i });
+      const retryButton = screen.queryByRole('button', { name: /let me in/i });
       expect(retryButton).not.toBeInTheDocument();
     });
   });
@@ -82,7 +82,7 @@ describe('CameraView', () => {
     it('should render loading message when hasPermission is null', () => {
       render(<CameraView stream={null} error={null} hasPermission={null} />);
 
-      expect(screen.getByText('Requesting camera access...')).toBeInTheDocument();
+      expect(screen.getByText('Summoning camera...')).toBeInTheDocument();
     });
 
     it('should not render video element when hasPermission is null', () => {
@@ -95,7 +95,7 @@ describe('CameraView', () => {
     it('should render loading message when stream is null even if hasPermission is true', () => {
       render(<CameraView stream={null} error={null} hasPermission={true} />);
 
-      expect(screen.getByText('Requesting camera access...')).toBeInTheDocument();
+      expect(screen.getByText('Summoning camera...')).toBeInTheDocument();
     });
   });
 
@@ -228,15 +228,15 @@ describe('CameraView', () => {
       render(<CameraView stream={null} error={null} hasPermission={true} />);
 
       // Should render loading state, not crash
-      expect(screen.getByText('Requesting camera access...')).toBeInTheDocument();
+      expect(screen.getByText('Summoning camera...')).toBeInTheDocument();
     });
 
     it('should handle error message being null', () => {
       render(<CameraView stream={null} error={null} hasPermission={false} />);
 
-      expect(screen.getByText('Camera Access Required')).toBeInTheDocument();
+      expect(screen.getByText('Camera blocked')).toBeInTheDocument();
       // Error text should be empty but not crash
-      const errorContainer = screen.getByText('Camera Access Required').parentElement;
+      const errorContainer = screen.getByText('Camera blocked').parentElement;
       expect(errorContainer).toBeInTheDocument();
     });
 

@@ -55,8 +55,8 @@ describe('Camera Access → Photo Recognition Integration', () => {
     // Wait for error message and retry button
     await waitFor(
       () => {
-        expect(screen.getByText(/Camera Access Required/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+        expect(screen.getByText(/Camera blocked/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /let me in/i })).toBeInTheDocument();
       },
       { timeout: 5000 }
     );
@@ -83,13 +83,13 @@ describe('Camera Access → Photo Recognition Integration', () => {
     // Wait for error and retry button
     await waitFor(
       () => {
-        expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /let me in/i })).toBeInTheDocument();
       },
       { timeout: 3000 }
     );
 
     // Click retry
-    const retryButton = screen.getByRole('button', { name: /retry/i });
+    const retryButton = screen.getByRole('button', { name: /let me in/i });
     await user.click(retryButton);
 
     // Verify camera was requested again

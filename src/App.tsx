@@ -38,7 +38,28 @@ const SecretSettings = lazy(async () => {
 });
 
 // Constants for retry guidance text
-const RETRY_HINT_TEXT = 'tap play to retry';
+const RETRY_HINT_TEXT = 'tap play to retry.';
+
+const UX_COPY = {
+  status: {
+    playbackProblem: 'Playback Tantrum',
+    newMatch: 'New Artist Spotted',
+    playingNow: 'Now Vibing',
+    matchReady: 'Photo Matched',
+    paused: 'Paused',
+    viewing: 'Gallery Mode',
+  },
+  prompt: {
+    retrySuffix: 'Check stream access, then tap Play again.',
+    newMatch: (band: string) => `New match: ${band}. Tap Switch Artist to jump ship.`,
+    nextPhoto: 'Seen enough? Tap Next pic, please.',
+    stillPlaying: 'Track still rolling. Pause it, or chase the next photo.',
+    pointToStart: 'Point at a photo to kick things off.',
+  },
+  actions: {
+    switchArtist: 'Switch Artist',
+  },
+} as const;
 
 const DebugOverlay = lazy(async () => {
   const module = await import('./modules/debug-overlay');
@@ -556,26 +577,28 @@ function AppContent() {
       : null;
 
   const statusLabel = playbackError
-    ? 'Playback Fault'
-    : isInfoActive && isPlaying
-      ? 'On Air'
-      : activeRecognitionConcert && !isInfoActive
-        ? 'Locked Frame'
-        : isInfoActive
-          ? 'Deck Paused'
-          : 'Preview';
+    ? UX_COPY.status.playbackProblem
+    : dropNeedleConcert
+      ? UX_COPY.status.newMatch
+      : isInfoActive && isPlaying
+        ? UX_COPY.status.playingNow
+        : activeRecognitionConcert && !isInfoActive
+          ? UX_COPY.status.matchReady
+          : isInfoActive
+            ? UX_COPY.status.paused
+            : UX_COPY.status.viewing;
 
   const promptText = playbackError
     ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
       ? playbackError
-      : `${playbackError} Check stream access and tap Play to retry.`
+      : `${playbackError} ${UX_COPY.prompt.retrySuffix}`
     : dropNeedleConcert
-      ? `New lock: ${dropNeedleConcert.band}. Tap Drop the Needle to switch artists.`
+      ? UX_COPY.prompt.newMatch(dropNeedleConcert.band)
       : activeRecognitionConcert
-        ? 'Signal is locked. Playback runs continuously until you pause.'
+        ? UX_COPY.prompt.nextPhoto
         : activeConcert
-          ? 'Archive is still live. Pause any time to stop the deck.'
-          : 'Aim at a print to lock signal and start the deck.';
+          ? UX_COPY.prompt.stillPlaying
+          : UX_COPY.prompt.pointToStart;
 
   const handleDropNeedle = useCallback(() => {
     if (!dropNeedleConcert) {
@@ -723,7 +746,7 @@ function AppContent() {
       promptText={promptText}
       onClose={() => handleCloseConcertInfo(infoConcert)}
       onSwitch={dropNeedleConcert ? handleDropNeedle : undefined}
-      switchLabel="Drop the Needle"
+      switchLabel={UX_COPY.actions.switchArtist}
     />
   );
 

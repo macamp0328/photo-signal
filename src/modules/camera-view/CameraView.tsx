@@ -20,6 +20,7 @@ export function CameraView({
   showRectangleOverlay = false,
 }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const permissionMessage = error ?? 'Camera access is off. Let me in to keep scanning.';
 
   // Update video element when stream changes
   useEffect(() => {
@@ -33,11 +34,11 @@ export function CameraView({
     return (
       <div className={styles.permissionDenied}>
         <div>
-          <p className={styles.permissionTitle}>Camera Access Required</p>
-          <p className={styles.permissionError}>{error}</p>
+          <p className={styles.permissionTitle}>Camera blocked</p>
+          <p className={styles.permissionError}>{permissionMessage}</p>
           {onRetry && (
             <button onClick={onRetry} className={styles.retryButton}>
-              Retry
+              Let me in
             </button>
           )}
         </div>
@@ -49,7 +50,7 @@ export function CameraView({
   if (hasPermission === null || !stream) {
     return (
       <div className={styles.loading}>
-        <p>Requesting camera access...</p>
+        <p>Summoning camera...</p>
       </div>
     );
   }

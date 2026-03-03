@@ -23,7 +23,7 @@ describe('GalleryLayout', () => {
 
     // Check for landing page elements
     expect(screen.getByText('Photo Signal')).toBeTruthy();
-    expect(screen.getByText(/Point your camera at a photograph/i)).toBeTruthy();
+    expect(screen.getByText(/Point your camera at a photo\. Let it talk back\./i)).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Activate camera and begin experience' })
     ).toBeTruthy();
@@ -66,7 +66,7 @@ describe('GalleryLayout', () => {
 
     // Check for active view elements
     expect(screen.getByText('Photo Signal')).toBeTruthy();
-    expect(screen.getByText(/Point at a photo to begin/i)).toBeTruthy();
+    expect(screen.getByText(/Point at a photo\. Stir up trouble\./i)).toBeTruthy();
 
     // Camera should be visible
     expect(screen.getByTestId('camera-view')).toBeTruthy();

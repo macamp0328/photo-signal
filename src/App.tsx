@@ -782,6 +782,8 @@ function AppContent() {
       const withAudio = concerts.find((c) => !!c.audioFile);
       if (withAudio) {
         forceMatch(withAudio);
+      } else {
+        console.warn('[App] Force match skipped: no concerts with an audioFile found');
       }
     } catch (error) {
       console.warn('[App] Force match failed: unable to load concerts', error);

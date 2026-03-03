@@ -1437,4 +1437,58 @@ describe('usePhotoRecognition', () => {
       }
     });
   });
+
+  describe('forceMatch', () => {
+    it('sets recognizedConcert to the provided concert', async () => {
+      const { result } = renderHook(() => usePhotoRecognition(null));
+
+      await act(async () => {
+        result.current.forceMatch(mockConcerts[0]);
+      });
+
+      expect(result.current.recognizedConcert).toEqual(mockConcerts[0]);
+    });
+
+    it('sets isRecognizing to false', async () => {
+      const { result } = renderHook(() => usePhotoRecognition(null));
+
+      await act(async () => {
+        result.current.forceMatch(mockConcerts[0]);
+      });
+
+      expect(result.current.isRecognizing).toBe(false);
+    });
+
+    it('can be reset after force match', async () => {
+      const { result } = renderHook(() => usePhotoRecognition(null));
+
+      await act(async () => {
+        result.current.forceMatch(mockConcerts[0]);
+      });
+
+      expect(result.current.recognizedConcert).toEqual(mockConcerts[0]);
+
+      await act(async () => {
+        result.current.reset();
+      });
+
+      expect(result.current.recognizedConcert).toBeNull();
+    });
+
+    it('overwrites a previous force match with a new one', async () => {
+      const { result } = renderHook(() => usePhotoRecognition(null));
+
+      await act(async () => {
+        result.current.forceMatch(mockConcerts[0]);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(1);
+
+      await act(async () => {
+        result.current.forceMatch(mockConcerts[1]);
+      });
+
+      expect(result.current.recognizedConcert?.id).toBe(2);
+    });
+  });
 });

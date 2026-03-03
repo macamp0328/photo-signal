@@ -115,7 +115,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     render(<App />);
 
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
-    expect(await screen.findByText(/🐛 Debug Info/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Debug/i)).toBeInTheDocument();
   });
 
   it('should not render debug overlay when debug overlay flag is disabled', async () => {
@@ -133,7 +133,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
     expect(screen.getByText('Photo Signal')).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.queryByText(/🐛 Debug Info/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Debug/i)).not.toBeInTheDocument();
     });
   });
 

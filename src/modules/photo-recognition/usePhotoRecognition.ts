@@ -334,6 +334,12 @@ export function usePhotoRecognition(
     telemetryRef.current = createEmptyTelemetry();
   }, []);
 
+  const forceMatch = useCallback((concert: Concert) => {
+    recognizedConcertRef.current = concert;
+    setRecognizedConcert(concert);
+    setIsRecognizing(false);
+  }, []);
+
   const reset = useCallback(() => {
     recognizedConcertRef.current = null;
     lastMatchedConcertRef.current = null;
@@ -1166,6 +1172,7 @@ export function usePhotoRecognition(
     isRecognizing,
     reset,
     resetTelemetry,
+    forceMatch,
     debugInfo,
     frameQuality,
     detectedRectangle,

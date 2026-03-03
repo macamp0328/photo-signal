@@ -166,6 +166,7 @@ export interface PhotoRecognitionHook {
   isRecognizing: boolean;
   reset: () => void;
   resetTelemetry: () => void;
+  forceMatch: (concert: Concert) => void;
   debugInfo: RecognitionDebugInfo | null;
   frameQuality: FrameQualityInfo | null;
   detectedRectangle: DetectedRectangle | null;

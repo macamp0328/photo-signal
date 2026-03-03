@@ -26,8 +26,11 @@ coverage
 test-results/
 playwright-report/
 
-# Generated test assets (copied from assets/ to public/ by Vite plugin)
-public/assets
+# Generated assets under public/assets are ignored by default,
+# except tracked test image fixtures.
+public/assets/*
+!public/assets/test-images/
+!public/assets/test-images/**
 
 # Local audio downloads (yt-dlp output)
 downloads/

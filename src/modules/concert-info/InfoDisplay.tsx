@@ -64,7 +64,7 @@ export function InfoDisplay({
           type="button"
           className={styles.switchButton}
           onClick={onSwitch}
-          aria-label={`Switch artist to ${concert.band}`}
+          aria-label={switchLabel}
         >
           {switchLabel}
         </button>

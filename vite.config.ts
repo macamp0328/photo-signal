@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
@@ -7,19 +7,16 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Plugin to copy test assets to public directory for runtime access
-function copyTestAssetsPlugin() {
-  return {
-    name: 'copy-test-assets',
+// Plugin to sync runtime fixture assets into public for production builds
+function syncRuntimeFixtureAssetsPlugin() {
+  const plugin: Plugin = {
+    name: 'sync-runtime-fixture-assets',
+    apply: 'build',
     async buildStart() {
       try {
-        // Copy test assets to public/assets during build
+        // Sync runtime image fixtures used by integration/visual tests
         const publicAssetsDir = path.resolve(__dirname, 'public/assets');
-        const testDataSrc = path.resolve(__dirname, 'assets/test-data');
-        const testAudioSrc = path.resolve(__dirname, 'assets/test-audio');
         const testImagesSrc = path.resolve(__dirname, 'assets/test-images');
-        const examplePhotosSrc = path.resolve(__dirname, 'assets/example-real-photos');
-        const exampleSongsSrc = path.resolve(__dirname, 'assets/example-real-songs');
 
         const { mkdir, copyFile, readdir, stat, access } = fs.promises;
         const startTime = Date.now();
@@ -45,139 +42,49 @@ function copyTestAssetsPlugin() {
           }
         }
 
-        // Create directories
-        await Promise.all([
-          mkdir(path.join(publicAssetsDir, 'test-data'), { recursive: true }),
-          mkdir(path.join(publicAssetsDir, 'test-audio'), { recursive: true }),
-          mkdir(path.join(publicAssetsDir, 'test-images'), { recursive: true }),
-          mkdir(path.join(publicAssetsDir, 'example-real-photos'), { recursive: true }),
-          mkdir(path.join(publicAssetsDir, 'example-real-songs'), { recursive: true }),
-        ]);
-
         let copiedCount = 0;
         let skippedCount = 0;
-
-        // Copy v2 runtime datasets when present
-        const datasetFiles = ['data.app.v2.json', 'data.recognition.v2.json'];
-        for (const fileName of datasetFiles) {
-          const src = path.join(testDataSrc, fileName);
-          const dest = path.join(publicAssetsDir, 'test-data', fileName);
-          if (await exists(src)) {
-            if (await needsCopy(src, dest)) {
-              await copyFile(src, dest);
-              copiedCount++;
-            } else {
-              skippedCount++;
-            }
-          } else {
-            console.warn(`⚠ ${fileName} not found in test-data directory`);
-          }
-        }
-
-        // Copy example real songs if directory exists
-        if (await exists(exampleSongsSrc)) {
-          const songFiles = (await readdir(exampleSongsSrc)).filter((f) => f.endsWith('.opus'));
-          if (songFiles.length > 0) {
-            await Promise.all(
-              songFiles.map(async (file) => {
-                const src = path.join(exampleSongsSrc, file);
-                const dest = path.join(publicAssetsDir, 'example-real-songs', file);
-                if (await needsCopy(src, dest)) {
-                  await copyFile(src, dest);
-                  copiedCount++;
-                } else {
-                  skippedCount++;
-                }
-              })
-            );
-          } else {
-            console.warn('⚠ No MP3 files found in example-real-songs directory');
-          }
-        }
-
-        // Copy test audio if directory exists
-        if (await exists(testAudioSrc)) {
-          const audioFiles = (await readdir(testAudioSrc)).filter((f) => f.endsWith('.opus'));
-          if (audioFiles.length > 0) {
-            await Promise.all(
-              audioFiles.map(async (file) => {
-                const src = path.join(testAudioSrc, file);
-                const dest = path.join(publicAssetsDir, 'test-audio', file);
-                if (await needsCopy(src, dest)) {
-                  await copyFile(src, dest);
-                  copiedCount++;
-                } else {
-                  skippedCount++;
-                }
-              })
-            );
-          } else {
-            console.warn('⚠ No MP3 files found in test-audio directory');
-          }
+        if (!(await exists(testImagesSrc))) {
+          this.warn('⚠ assets/test-images is missing; image fixture paths may fail at runtime');
         } else {
-          console.warn('⚠ Test audio directory not found, skipping');
-        }
+          const destinationDir = path.join(publicAssetsDir, 'test-images');
+          await mkdir(destinationDir, { recursive: true });
 
-        // Copy test images if directory exists
-        if (await exists(testImagesSrc)) {
-          const imageFiles = (await readdir(testImagesSrc)).filter((f) =>
-            /\.(jpg|jpeg|png)$/i.test(f)
+          const imageFiles = (await readdir(testImagesSrc)).filter((fileName) =>
+            /\.(jpg|jpeg|png)$/i.test(fileName)
           );
-          if (imageFiles.length > 0) {
-            await Promise.all(
-              imageFiles.map(async (file) => {
-                const src = path.join(testImagesSrc, file);
-                const dest = path.join(publicAssetsDir, 'test-images', file);
-                if (await needsCopy(src, dest)) {
-                  await copyFile(src, dest);
-                  copiedCount++;
-                } else {
-                  skippedCount++;
-                }
-              })
-            );
-          } else {
-            console.warn('⚠ No JPG files found in test-images directory');
+
+          if (imageFiles.length === 0) {
+            this.warn('⚠ assets/test-images exists but has no image files');
           }
-        } else {
-          console.warn('⚠ Test images directory not found, skipping');
-        }
-        // Copy example real photos if directory exists
-        if (await exists(examplePhotosSrc)) {
-          const photoFiles = (await readdir(examplePhotosSrc)).filter((f) =>
-            /\.(jpg|jpeg|png)$/i.test(f)
+
+          await Promise.all(
+            imageFiles.map(async (fileName) => {
+              const src = path.join(testImagesSrc, fileName);
+              const dest = path.join(destinationDir, fileName);
+              if (await needsCopy(src, dest)) {
+                await copyFile(src, dest);
+                copiedCount++;
+              } else {
+                skippedCount++;
+              }
+            })
           );
-          if (photoFiles.length > 0) {
-            await Promise.all(
-              photoFiles.map(async (file) => {
-                const src = path.join(examplePhotosSrc, file);
-                const dest = path.join(publicAssetsDir, 'example-real-photos', file);
-                if (await needsCopy(src, dest)) {
-                  await copyFile(src, dest);
-                  copiedCount++;
-                } else {
-                  skippedCount++;
-                }
-              })
-            );
-          } else {
-            console.warn('⚠ No image files found in example-real-photos directory');
-          }
         }
 
         const elapsed = Date.now() - startTime;
         console.log(
-          `✓ Test assets processed: ${copiedCount} copied, ${skippedCount} skipped (${elapsed}ms)`
+          `✓ Runtime fixture assets processed: ${copiedCount} copied, ${skippedCount} skipped (${elapsed}ms)`
         );
       } catch (error) {
-        console.error('❌ Failed to copy test assets:', error);
-        console.error(
-          'Ensure assets/test-data, assets/test-audio, assets/test-images, and assets/example-real-photos directories exist and are accessible.'
+        this.error(
+          `Failed to sync runtime fixture assets: ${error instanceof Error ? error.message : String(error)}`
         );
-        throw error;
       }
     },
   };
+
+  return plugin;
 }
 
 // https://vitejs.dev/config/
@@ -188,7 +95,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.NODE_ENV': JSON.stringify(nodeEnv),
     },
-    plugins: [react(), copyTestAssetsPlugin()],
+    plugins: [react(), syncRuntimeFixtureAssetsPlugin()],
     server: {
       host: true,
       port: 5173,

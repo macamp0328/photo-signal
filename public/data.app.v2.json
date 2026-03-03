@@ -6791,7 +6791,7 @@
     {
       "id": "photo-anniversary-2026",
       "artistId": "artist-anniversary-2026",
-      "imageFile": "/public/assets/test-images/DanielleMilesWed-2020-anniversary.jpg",
+      "imageFile": "/assets/test-images/DanielleMilesWed-2020-anniversary.jpg",
       "photoUrl": "/assets/test-images/DanielleMilesWed-2020.jpg",
       "recognitionEnabled": true,
       "photoHashes": {

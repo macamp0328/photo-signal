@@ -34,7 +34,7 @@
     "demo:gif:quick": "node scripts/visual/generate-demo-gif.js --skip-build",
     "hashes:refresh": "node scripts/update-recognition-data.js --algorithms phash --batch-size 2",
     "hashes:paths": "node scripts/update-recognition-data.js --paths-mode --algorithms phash",
-    "anniversary:download": "npm run download-song -- --track-url='https://music.youtube.com/watch?v=wNcz5AagtaU&si=JrP4bbZsi9jGROE9' --output-dir=downloads/anniversary-2026",
+    "anniversary:download": "npm run download-song -- --track-url=\"https://music.youtube.com/watch?v=wNcz5AagtaU&si=JrP4bbZsi9jGROE9\" --output-dir=downloads/anniversary-2026",
     "anniversary:encode": "npm run encode-audio -- --input-dir=downloads/anniversary-2026 --output-dir=scripts/audio-workflow/encode/output/anniversary-2026 --work-dir=scripts/audio-workflow/encode/work/anniversary-2026 --skip-existing=false",
     "anniversary:upload": "npm run upload-audio -- --input-dir=scripts/audio-workflow/encode/output/anniversary-2026 --include-ext=.opus,.json --skip-existing",
     "anniversary:hash": "npm run hashes:refresh -- --ids 153 --batch-size 0",

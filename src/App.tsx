@@ -16,6 +16,7 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import type { Concert } from './types';
+import type { TapIntent } from './types';
 import type { PhotoRecognitionOptions } from './modules/photo-recognition/types';
 import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
@@ -155,6 +156,15 @@ function AppContent() {
 
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
+  const [tapIntent, setTapIntent] = useState<TapIntent | null>(null);
+  const tapFocusStatsRef = useRef({
+    attempts: 0,
+    applied: 0,
+    unsupported: 0,
+    failed: 0,
+    noTrack: 0,
+    notActive: 0,
+  });
 
   const previousAutoplayIdRef = useRef<number | null>(null);
 
@@ -191,7 +201,7 @@ function AppContent() {
   }, [loadTestAudioUrl]);
 
   // Module: Camera Access (only initialize when active)
-  const { stream, error, hasPermission, retry } = useCameraAccess({
+  const { stream, error, hasPermission, retry, requestTapFocus } = useCameraAccess({
     autoStart: isActive,
   });
 
@@ -202,6 +212,9 @@ function AppContent() {
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
       enablePerspectiveNormalization: isEnabled('perspective-normalization'),
+      tapIntent: isEnabled('tap-guided-rectangle') ? tapIntent : null,
+      tapRoiLockMs: 500,
+      tapRoiDecayMs: 1200,
       similarityThreshold: 18,
       matchMarginThreshold: 5,
       sharpnessThreshold: 85,
@@ -209,7 +222,42 @@ function AppContent() {
       continuousRecognition: true,
       enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
-    [isDebugOverlayVisible, isEnabled, isConcertInfoVisible, showSecretSettings]
+    [isDebugOverlayVisible, isEnabled, tapIntent, isConcertInfoVisible, showSecretSettings]
+  );
+
+  const handleCameraTap = useCallback(
+    (tap: TapIntent) => {
+      setTapIntent(tap);
+
+      if (!isEnabled('tap-to-focus')) {
+        return;
+      }
+
+      tapFocusStatsRef.current.attempts += 1;
+
+      void requestTapFocus(tap).then((result) => {
+        switch (result.status) {
+          case 'applied':
+            tapFocusStatsRef.current.applied += 1;
+            break;
+          case 'unsupported':
+            tapFocusStatsRef.current.unsupported += 1;
+            break;
+          case 'failed':
+            tapFocusStatsRef.current.failed += 1;
+            break;
+          case 'no-track':
+            tapFocusStatsRef.current.noTrack += 1;
+            break;
+          case 'not-active':
+            tapFocusStatsRef.current.notActive += 1;
+            break;
+          default:
+            break;
+        }
+      });
+    },
+    [isEnabled, requestTapFocus]
   );
 
   const {
@@ -708,6 +756,7 @@ function AppContent() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
+      onTap={handleCameraTap}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       showRectangleOverlay={isEnabled('rectangle-detection')}

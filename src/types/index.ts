@@ -19,6 +19,17 @@ export type CropRegionKey =
   | 'bottom-left-70'
   | 'bottom-right-70';
 
+export interface NormalizedPoint {
+  x: number;
+  y: number;
+}
+
+export interface TapIntent {
+  point: NormalizedPoint;
+  timestamp: number;
+  pointerType: 'mouse' | 'touch' | 'pen' | 'unknown';
+}
+
 export interface PhotoHashes {
   /** Primary pHash variants (dark/normal/bright) */
   phash?: string[];

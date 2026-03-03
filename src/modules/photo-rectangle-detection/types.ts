@@ -39,6 +39,17 @@ export interface RectangleDetectionResult {
   timestamp: number;
 }
 
+export interface RectangleRoiHint {
+  /** ROI center in normalized viewport coordinates (0-1). */
+  center: { x: number; y: number };
+  /** Radius in normalized viewport units (0-1). */
+  radius: number;
+  /** Time elapsed since tap, used to decay ROI influence. */
+  ageMs: number;
+  /** Lock strength in range [0, 1]. */
+  lockStrength?: number;
+}
+
 /**
  * Configuration options for rectangle detection
  */

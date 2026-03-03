@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import type { TapIntent } from '../../types';
 
 const extendedImportMeta = import.meta as ImportMeta & {
   vitest?: unknown;
@@ -14,7 +15,7 @@ const isVitestEnvironment =
 const resolvedMode = extendedImportMeta.env?.MODE ?? process.env?.NODE_ENV ?? 'development';
 
 const shouldLogCameraSettings = resolvedMode === 'development' && !isVitestEnvironment;
-import type { CameraAccessHook, CameraAccessOptions } from './types';
+import type { CameraAccessHook, CameraAccessOptions, TapFocusResult } from './types';
 
 /**
  * Get camera constraints for getUserMedia
@@ -49,6 +50,35 @@ const logCameraSettings = (mediaStream: MediaStream) => {
     const settings = track?.getSettings();
     console.log('Camera settings applied:', settings);
   }
+};
+
+const supportsTapFocus = (track: MediaStreamTrack): boolean => {
+  const rawCapabilities = track.getCapabilities?.() as Record<string, unknown> | undefined;
+  if (!rawCapabilities) {
+    return false;
+  }
+
+  const focusMode = rawCapabilities.focusMode;
+  const exposureMode = rawCapabilities.exposureMode;
+  const pointsOfInterest = rawCapabilities.pointsOfInterest;
+
+  const hasFocusMode = Array.isArray(focusMode) && focusMode.length > 0;
+  const hasExposureMode = Array.isArray(exposureMode) && exposureMode.length > 0;
+  const hasPointsOfInterest = Boolean(pointsOfInterest);
+
+  return hasFocusMode || hasExposureMode || hasPointsOfInterest;
+};
+
+const buildTapFocusConstraint = (tap: TapIntent): MediaTrackConstraints => {
+  return {
+    advanced: [
+      {
+        pointsOfInterest: [{ x: tap.point.x, y: tap.point.y }],
+        focusMode: 'continuous',
+        exposureMode: 'continuous',
+      } as unknown as MediaTrackConstraintSet,
+    ],
+  };
 };
 
 /**
@@ -98,6 +128,30 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
       setHasPermission(false);
     }
   }, [stopCurrentStream]);
+
+  const requestTapFocus = useCallback(async (tap: TapIntent): Promise<TapFocusResult> => {
+    if (!streamRef.current) {
+      return { status: 'not-active', message: 'Camera stream is not active' };
+    }
+
+    const videoTrack = streamRef.current.getVideoTracks()[0];
+    if (!videoTrack) {
+      return { status: 'no-track', message: 'No active video track available' };
+    }
+
+    if (!supportsTapFocus(videoTrack)) {
+      return { status: 'unsupported', message: 'Track capabilities do not expose focus controls' };
+    }
+
+    try {
+      await videoTrack.applyConstraints(buildTapFocusConstraint(tap));
+      logCameraSettings(streamRef.current);
+      return { status: 'applied' };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown applyConstraints error';
+      return { status: 'failed', message };
+    }
+  }, []);
 
   // Start camera on mount if autoStart is true
   useEffect(() => {
@@ -154,5 +208,6 @@ export function useCameraAccess(options: CameraAccessOptions = {}): CameraAccess
     error,
     hasPermission,
     retry,
+    requestTapFocus,
   };
 }

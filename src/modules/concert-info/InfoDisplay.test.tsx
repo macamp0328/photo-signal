@@ -68,10 +68,10 @@ describe('InfoDisplay', () => {
       expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
     });
 
-    it('should display "Now Playing" label', () => {
+    it('should display "Playing" label', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.getByText(/Signal:\s*Now Playing/i)).toBeInTheDocument();
+      expect(screen.getByText(/^Playing$/i)).toBeInTheDocument();
     });
 
     it('should not display archive tag copy', () => {
@@ -83,7 +83,7 @@ describe('InfoDisplay', () => {
     it('should allow a custom status label', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} statusLabel="Now Viewing" />);
 
-      expect(screen.getByText(/Signal:\s*Now Viewing/i)).toBeInTheDocument();
+      expect(screen.getByText(/^Now Viewing$/i)).toBeInTheDocument();
     });
 
     it('should display EXIF metadata when available', () => {
@@ -214,29 +214,27 @@ describe('InfoDisplay', () => {
     });
   });
 
-  describe('Close Button', () => {
-    it('renders close button when onClose is provided', () => {
+  describe('Return Button', () => {
+    it('renders return button when onClose is provided', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Next pic, please' })).toBeInTheDocument();
     });
 
-    it('calls onClose when close button is clicked', async () => {
+    it('calls onClose when return button is clicked', async () => {
       const onClose = vi.fn();
       const user = userEvent.setup();
       render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={onClose} />);
 
-      await user.click(screen.getByRole('button', { name: 'Close concert details' }));
+      await user.click(screen.getByRole('button', { name: 'Next pic, please' }));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('does not render close button when onClose is not provided', () => {
+    it('does not render return button when onClose is not provided', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(
-        screen.queryByRole('button', { name: 'Close concert details' })
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Next pic, please' })).not.toBeInTheDocument();
     });
   });
 

@@ -11,7 +11,7 @@ export interface InfoDisplayProps {
   isVisible: boolean;
   /** Additional CSS classes */
   className?: string;
-  /** Label describing the state of this concert (e.g., Now Playing, Now Viewing) */
+  /** Label describing the state of this concert (e.g., Playing, Paused) */
   statusLabel?: string;
   /** Optional prompt or helper text shown below details */
   promptText?: string;
@@ -19,6 +19,6 @@ export interface InfoDisplayProps {
   onClose?: () => void;
   /** Optional callback for switching to this concert's audio */
   onSwitch?: () => void;
-  /** Optional label for the switch button (defaults to "Drop the Needle") */
+  /** Optional label for the switch button (defaults to "Switch Artist") */
   switchLabel?: string;
 }

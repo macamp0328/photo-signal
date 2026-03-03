@@ -227,7 +227,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
                 isMountedRef.current &&
                 (currentUrlRef.current === null || currentUrlRef.current === url)
               ) {
-                setPlaybackError(`Audio failed to load: ${result.message} Tap play to retry.`);
+                setPlaybackError(`Audio failed to load: ${result.message} Tap Play to retry.`);
               }
             })
             .catch((diagnosticError) => {

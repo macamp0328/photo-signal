@@ -247,9 +247,7 @@ describe('App playback flow', () => {
 
     expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
-    expect(
-      screen.getByText('Signal is locked. Playback runs continuously until you pause.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Seen enough? Tap Next pic, please.')).toBeInTheDocument();
   });
 
   it('stops playback and exits active mode when app is hidden', async () => {
@@ -286,7 +284,7 @@ describe('App playback flow', () => {
     });
   });
 
-  it('shows matched details and renders Drop the Needle when a different artist is recognized', async () => {
+  it('shows matched details and renders Switch Artist when a different artist is recognized', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -306,17 +304,15 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Close concert details' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next pic, please' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Drop the needle for Band Two' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
   });
 
-  it('renders Drop the Needle when recognizedConcert changes while song is playing', async () => {
+  it('renders Switch Artist when recognizedConcert changes while song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -335,12 +331,10 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Drop the needle for Band Two' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
   });
 
-  it('switches artists via Drop the Needle using crossfade while playback is active', async () => {
+  it('switches artists via Switch Artist using crossfade while playback is active', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -357,7 +351,7 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Drop the needle for Band Two' }));
+    await user.click(screen.getByRole('button', { name: 'Switch Artist' }));
 
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
     expect(mockResetRecognition).toHaveBeenCalled();
@@ -378,7 +372,7 @@ describe('App playback flow', () => {
 
     expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Close concert details' }));
+    await user.click(screen.getByRole('button', { name: 'Next pic, please' }));
 
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
     expect(mockResetRecognition).toHaveBeenCalled();
@@ -397,7 +391,7 @@ describe('App playback flow', () => {
       })
     );
 
-    await user.click(screen.getByRole('button', { name: 'Close concert details' }));
+    await user.click(screen.getByRole('button', { name: 'Next pic, please' }));
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
 
     recognitionState.recognizedConcert = concertOne;
@@ -418,7 +412,7 @@ describe('App playback flow', () => {
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close concert details' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next pic, please' }));
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
 
     recognitionState.recognizedConcert = concertOne;
@@ -545,7 +539,7 @@ describe('App playback flow', () => {
 
     // Should show error message without duplication (already has "Tap Play to retry")
     expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
-    expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Playback Tantrum$/i)).toBeInTheDocument();
   });
 
   it('shows playback error with additional guidance when retry hint not included', async () => {
@@ -564,13 +558,13 @@ describe('App playback flow', () => {
     // Should append retry guidance when error doesn't already include it
     expect(
       screen.getByText(
-        'Audio failed to load. Check your connection and try again. Check stream access and tap Play to retry.'
+        'Audio failed to load. Check your connection and try again. Check stream access, then tap Play again.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText(/Signal:\s*Playback Fault/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Playback Tantrum$/i)).toBeInTheDocument();
   });
 
-  it('shows Drop the Needle in matched-details mode for a different playing artist', async () => {
+  it('shows Switch Artist in matched-details mode for a different playing artist', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -590,9 +584,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(
-      screen.getByRole('button', { name: 'Drop the needle for Band Two' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries without resetting recognition state', async () => {

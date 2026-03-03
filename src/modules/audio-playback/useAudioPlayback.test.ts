@@ -681,7 +681,7 @@ describe('useAudioPlayback', () => {
       });
 
       expect(result.current.playbackError).toContain('Audio failed to load:');
-      expect(result.current.playbackError).toContain('Tap play to retry.');
+      expect(result.current.playbackError).toContain('Tap Play to retry.');
 
       consoleSpy.mockRestore();
       warnSpy.mockRestore();

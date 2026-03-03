@@ -27,11 +27,9 @@ export function GalleryLayout({
       <div className={styles.landing}>
         <div className={styles.landingContent}>
           <h1 className={styles.landingTitle}>Photo Signal</h1>
-          <p className={styles.landingSubtitle}>
-            Point your camera at a photograph to hear its story
-          </p>
+          <p className={styles.landingSubtitle}>Point your camera at a photo. Let it talk back.</p>
           <p className={styles.landingDescription}>
-            Each photo holds a memory, a moment in time. Let the music take you back.
+            Every photo has a soundtrack. Tap Begin to wake it up.
           </p>
           <button
             onClick={onActivate}
@@ -51,7 +49,7 @@ export function GalleryLayout({
       <div className={styles.header}>
         <div className={styles.headerText}>
           <h1 className={styles.headerTitle}>Photo Signal</h1>
-          <p className={styles.headerSubtitle}>Point at a photo to begin</p>
+          <p className={styles.headerSubtitle}>Point at a photo. Stir up trouble.</p>
         </div>
         <button
           type="button"

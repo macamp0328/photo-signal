@@ -12,11 +12,11 @@ export function InfoDisplay({
   concert,
   isVisible,
   className = '',
-  statusLabel = 'Now Playing',
-  promptText = 'Hold steady to keep the story playing.',
+  statusLabel = 'Playing',
+  promptText = 'Seen enough? Tap Next pic, please.',
   onClose,
   onSwitch,
-  switchLabel = 'Drop the Needle',
+  switchLabel = 'Switch Artist',
 }: InfoDisplayProps) {
   // Return null when not visible or no concert for better performance
   if (!concert || !isVisible) return null;
@@ -38,17 +38,7 @@ export function InfoDisplay({
   return (
     <section className={`${styles.card} ${className}`} aria-label="Concert details">
       <div className={styles.metaRow}>
-        <span className={styles.badge}>Signal: {statusLabel}</span>
-        {onClose ? (
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label="Close concert details"
-          >
-            ×
-          </button>
-        ) : null}
+        <span className={styles.badge}>{statusLabel}</span>
       </div>
 
       <div className={styles.headlineBlock}>
@@ -74,13 +64,20 @@ export function InfoDisplay({
           type="button"
           className={styles.switchButton}
           onClick={onSwitch}
-          aria-label={`Drop the needle for ${concert.band}`}
+          aria-label={switchLabel}
         >
           {switchLabel}
         </button>
       ) : null}
 
-      <p className={styles.prompt}>{promptText}</p>
+      <div className={styles.promptRow}>
+        <p className={styles.prompt}>{promptText}</p>
+        {onClose ? (
+          <button type="button" className={styles.returnButton} onClick={onClose}>
+            Next pic, please
+          </button>
+        ) : null}
+      </div>
     </section>
   );
 }

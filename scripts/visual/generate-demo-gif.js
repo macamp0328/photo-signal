@@ -219,9 +219,7 @@ function resolveDemoTargets() {
   );
 
   if (secondaryCandidates.length === 0) {
-    throw new Error(
-      'Could not find second target with a different artist for Drop the Needle demo.'
-    );
+    throw new Error('Could not find second target with a different artist for Switch Artist demo.');
   }
 
   const orderedSecondaryCandidates = [...secondaryCandidates].sort((a, b) => {
@@ -772,12 +770,14 @@ async function captureDemoFrames(options) {
         const infoVisible = await hasConcertDetails();
         if (infoVisible) {
           const closeButtonVisible = await page
-            .getByRole('button', { name: /close concert details/i })
+            .getByRole('button', { name: /next pic, please|close concert details/i })
             .isVisible()
             .catch(() => false);
 
           if (closeButtonVisible) {
-            await page.getByRole('button', { name: /close concert details/i }).click();
+            await page
+              .getByRole('button', { name: /next pic, please|close concert details/i })
+              .click();
           }
 
           const infoHidden = await waitUntil(async () => !(await hasConcertDetails()), 1500, 80);
@@ -893,14 +893,14 @@ async function captureDemoFrames(options) {
 
     const hasDropNeedle = async () =>
       page
-        .getByRole('button', { name: /drop the needle/i })
+        .getByRole('button', { name: /switch artist|drop the needle/i })
         .isVisible()
         .catch(() => false);
 
     const hasDropNeedleForTarget = async (target) =>
       page
         .getByRole('button', {
-          name: new RegExp(`drop the needle for\\s+${escapeRegex(target.artistName)}`, 'i'),
+          name: new RegExp(`switch artist to\\s+${escapeRegex(target.artistName)}`, 'i'),
         })
         .isVisible()
         .catch(() => false);
@@ -1038,7 +1038,7 @@ async function captureDemoFrames(options) {
     await setSyntheticPhase('no-match');
     await setSyntheticTargetIndex(0);
 
-    const closeButton = await waitForEnabledButton(/close concert details/i);
+    const closeButton = await waitForEnabledButton(/next pic, please|close concert details/i);
     await tapWithHighlight(closeButton);
 
     const closedDetails = await captureUntil(async () => !(await hasConcertDetails()), 3500);
@@ -1112,13 +1112,13 @@ async function captureDemoFrames(options) {
     }
 
     if (!dropNeedleSeen) {
-      throw new Error('Drop the Needle prompt was not detected after second match.');
+      throw new Error('Switch Artist prompt was not detected after second match.');
     }
 
     await captureFor(STORY_PACING_MS.postSecondMatchHold);
 
     const dropNeedleButton = await waitForEnabledButton(
-      new RegExp(`drop the needle for\\s+${escapeRegex(matchedSecondTarget.artistName)}`, 'i')
+      new RegExp(`switch artist to\\s+${escapeRegex(matchedSecondTarget.artistName)}`, 'i')
     );
     await tapWithHighlight(dropNeedleButton);
     await captureFor(STORY_PACING_MS.postDropNeedleHold);

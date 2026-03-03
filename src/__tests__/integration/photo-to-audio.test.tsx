@@ -95,15 +95,15 @@ describe('Photo Recognition → Audio Playback Integration', () => {
     const user = userEvent.setup();
     await user.click(activateButton);
 
-    // Wait for error state to appear (Camera Access Required)
+    // Wait for error state to appear (camera permission required)
     await waitFor(
       () => {
-        expect(screen.getByText(/Camera Access Required/i)).toBeInTheDocument();
+        expect(screen.getByText(/Camera blocked/i)).toBeInTheDocument();
       },
       { timeout: 5000 }
     );
 
     // Verify retry button is present
-    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /let me in/i })).toBeInTheDocument();
   });
 });

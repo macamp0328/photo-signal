@@ -106,19 +106,20 @@ front-door control for a private/home deployment context.
 
 ## Content Ownership and Audio Usage
 
-All photographs in this project are original images captured by me.
+All photographs in this project are original images captured for this project.
 
-The paired audio tracks are not owned by me and remain the property of their respective rights holders.
+The paired audio tracks are not owned by this project's authors or maintainers and remain the property of
+their respective rights holders.
 
-From a technical perspective, I built a small audio pipeline script that automates playlist-based ingest
-using common open-source tooling, then transcodes files to a web-friendly format and publishes them to
-my private storage path for this app.
+From a technical perspective, the project includes a small audio pipeline script that automates
+playlist-based ingest using common open-source tooling, then transcodes files to a web-friendly format
+and publishes them to a private storage path used by this app.
 
 That implementation is presented as an engineering feature (automation, encoding, and delivery), not as
 proof of content ownership or redistribution rights.
 
-In this setup, playback is intended for private, in-home personal use (similar to me listening through my
-own YouTube Music account while using the gallery).
+In this setup, playback is intended for private, in-home personal use (similar to listening through an
+individual YouTube Music account while using the gallery).
 
 If you plan to deploy this project publicly, you should replace all audio with content you are licensed
 to use and/or distribute, and ensure your use complies with applicable copyright rules and platform

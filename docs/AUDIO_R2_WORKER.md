@@ -7,7 +7,7 @@ This Worker serves private R2 media to the app without exposing the bucket publi
 This project's photo assets are original photographs, but audio rights remain with the respective
 copyright owners.
 
-The audio workflow (download → transcode → upload) is documented as a technical pipeline built with
+The audio workflow (download -> transcode -> upload) is documented as a technical pipeline built with
 open-source libraries for private/home use testing and playback.
 
 This documentation does not grant redistribution rights. Any public deployment should use only audio

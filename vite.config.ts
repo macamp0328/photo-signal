@@ -9,14 +9,19 @@ const __dirname = path.dirname(__filename);
 
 // Plugin to sync runtime fixture assets into public for production builds
 function syncRuntimeFixtureAssetsPlugin() {
+  let rootDir = __dirname;
+
   const plugin: Plugin = {
     name: 'sync-runtime-fixture-assets',
     apply: 'build',
+    configResolved(config) {
+      rootDir = config.root;
+    },
     async buildStart() {
       try {
         // Sync runtime image fixtures used by integration/visual tests
-        const publicAssetsDir = path.resolve(__dirname, 'public/assets');
-        const testImagesSrc = path.resolve(__dirname, 'assets/test-images');
+        const publicAssetsDir = path.resolve(rootDir, 'public/assets');
+        const testImagesSrc = path.resolve(rootDir, 'assets/test-images');
 
         const { mkdir, copyFile, readdir, stat, access } = fs.promises;
         const startTime = Date.now();
@@ -73,7 +78,7 @@ function syncRuntimeFixtureAssetsPlugin() {
         }
 
         const elapsed = Date.now() - startTime;
-        console.log(
+        this.info(
           `✓ Runtime fixture assets processed: ${copiedCount} copied, ${skippedCount} skipped (${elapsed}ms)`
         );
       } catch (error) {

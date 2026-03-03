@@ -97,16 +97,6 @@
   color: var(--debug-text);
 }
 
-.badge {
-  background: color-mix(in srgb, var(--debug-accent) 25%, transparent);
-  color: var(--debug-text);
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.03125rem;
-}
-
 .resetButton {
   background: rgba(255, 255, 255, 0.08);
   color: var(--debug-text);
@@ -194,7 +184,7 @@
   letter-spacing: 0.03125rem;
 }
 
-/* Frame Hash Section */
+/* Section Labels */
 .label {
   font-size: 0.6875rem;
   text-transform: uppercase;
@@ -202,20 +192,6 @@
   margin-bottom: 0.375rem;
   font-weight: 600;
   letter-spacing: 0.03125rem;
-}
-
-.hash {
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 0.75rem;
-  color: var(--debug-accent);
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.hint {
-  font-size: 0.6875rem;
-  color: var(--debug-muted);
-  font-style: italic;
 }
 
 /* Best Match Section */
@@ -251,106 +227,6 @@
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
-/* Countdown Section */
-.timerSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.timerStats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-.progressTrack {
-  width: 100%;
-  height: 0.375rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.progressBar {
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--debug-accent),
-    var(--debug-warning),
-    var(--debug-success)
-  );
-  transition: width 0.2s ease-out;
-}
-
-.timerHint {
-  font-size: 0.6875rem;
-  color: var(--debug-muted);
-  font-style: italic;
-}
-
-/* Metrics Section */
-.metricGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.metricItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.metricLabel {
-  font-size: 0.625rem;
-  color: var(--debug-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03125rem;
-}
-
-.metricValue {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--debug-text);
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-/* Threshold Section */
-.thresholdInfo {
-  font-size: 0.75rem;
-  color: var(--debug-subtext);
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-/* Recognized Concert Section */
-.recognized {
-  background: color-mix(in srgb, var(--debug-success) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--debug-success) 42%, transparent);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-}
-
-.concertName {
-  font-weight: 700;
-  font-size: 0.9375rem;
-  color: var(--debug-success);
-  margin-bottom: 0.25rem;
-}
-
-.concertVenue {
-  font-size: 0.75rem;
-  color: var(--debug-text);
-  margin-bottom: 0.125rem;
-}
-
-.concertDate {
-  font-size: 0.6875rem;
-  color: var(--debug-muted);
-}
-
 /* Accessibility: Ensure focus is visible */
 .overlay:focus-within {
   outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)
@@ -374,10 +250,6 @@
   }
 
   .statusText {
-    font-size: 0.875rem;
-  }
-
-  .hash {
     font-size: 0.875rem;
   }
 }
@@ -417,7 +289,7 @@
   outline: none;
 }
 
-/* Mobile responsive improvements */
+/* Mobile responsive */
 @media (max-width: 768px) {
   .overlay {
     bottom: calc(env(safe-area-inset-bottom) + 10px);
@@ -444,11 +316,6 @@
     font-size: 0.75rem;
   }
 
-  .badge {
-    font-size: 0.5625rem;
-    padding: 0.0625rem 0.375rem;
-  }
-
   .toggleButton,
   .resetButton {
     font-size: 0.625rem;
@@ -472,41 +339,12 @@
     font-size: 0.625rem;
   }
 
-  .hash {
-    font-size: 0.6875rem;
-  }
-
-  .hint {
-    font-size: 0.625rem;
-  }
-
   .matchName {
     font-size: 0.8125rem;
   }
 
   .statValue {
     font-size: 0.8125rem;
-  }
-
-  .metricGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.375rem;
-  }
-
-  .metricValue {
-    font-size: 0.75rem;
-  }
-
-  .concertName {
-    font-size: 0.875rem;
-  }
-
-  .concertVenue {
-    font-size: 0.6875rem;
-  }
-
-  .concertDate {
-    font-size: 0.625rem;
   }
 
   .collapsedButton {
@@ -527,10 +365,6 @@
 
   .statusIndicator {
     font-size: 0.875rem;
-  }
-
-  .metricGrid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -637,109 +471,4 @@
   background: rgba(255, 255, 255, 0.1);
   color: var(--debug-text);
   outline: none;
-}
-
-/* Telemetry Recording Section */
-.telemetrySection {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.telemetryButton {
-  background: color-mix(in srgb, var(--debug-accent) 15%, transparent);
-  color: var(--debug-accent);
-  border: 1px solid color-mix(in srgb, var(--debug-accent) 45%, transparent);
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.telemetryButton:hover,
-.telemetryButton:focus-visible {
-  background: color-mix(in srgb, var(--debug-accent) 35%, transparent);
-  color: var(--debug-text);
-  border-color: color-mix(in srgb, var(--debug-accent) 70%, transparent);
-  outline: none;
-}
-
-.telemetryButtonSecondary {
-  background: transparent;
-  color: var(--debug-muted);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.625rem;
-  font-size: 0.6875rem;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.telemetryButtonSecondary:hover,
-.telemetryButtonSecondary:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--debug-text);
-  outline: none;
-}
-
-.telemetryRecording {
-  margin: 0;
-  font-size: 0.6875rem;
-  color: var(--debug-warning);
-  font-style: italic;
-}
-
-.telemetryActions {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-/* Routine Picker */
-.routinePicker {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.routineSelect {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--debug-text);
-  border: 1px solid color-mix(in srgb, var(--debug-border) 60%, transparent);
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.5rem;
-  font-size: 0.6875rem;
-  width: 100%;
-  cursor: pointer;
-}
-
-.routineSelect:focus-visible {
-  outline: 2px solid var(--debug-accent);
-  outline-offset: 1px;
-}
-
-.routineReady {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.routineInstructions {
-  margin: 0;
-  font-size: 0.6875rem;
-  color: var(--debug-subtext);
-  line-height: 1.45;
-}
-
-.routineActiveLabel {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--debug-warning);
 }

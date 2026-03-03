@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DebugOverlay } from './DebugOverlay';
-import { ROUTINE_DEFINITIONS } from './routineDefinitions';
 import type { DebugOverlayProps } from './types';
 import type { Concert } from '../../types';
 import type { RecognitionDebugInfo } from '../photo-recognition/types';
@@ -84,18 +83,7 @@ describe('DebugOverlay', () => {
     isRecognizing: false,
     enabled: true,
     debugInfo: mockDebugInfo,
-    threshold: undefined,
     onReset: undefined,
-    telemetryRecording: {
-      state: 'idle',
-      secondsRemaining: 30,
-      selectedRoutine: null,
-      onSelectRoutine: vi.fn(),
-      onClearRoutine: vi.fn(),
-      onStart: vi.fn(),
-      onDownload: vi.fn(),
-      onDiscard: vi.fn(),
-    },
   };
 
   beforeEach(() => {
@@ -113,157 +101,18 @@ describe('DebugOverlay', () => {
     it('should render when enabled is true', () => {
       render(<DebugOverlay {...defaultProps} />);
 
-      expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
-    });
-  });
-
-  describe('Threshold Display - Bug Regression Tests', () => {
-    it('should display custom threshold when threshold prop is provided', () => {
-      render(<DebugOverlay {...defaultProps} threshold={25} />);
-
-      // Custom threshold: distance ≤ 25
-      expect(screen.getByText(/Distance ≤ 25/)).toBeInTheDocument();
+      expect(screen.getByText('Debug')).toBeInTheDocument();
     });
 
-    it('should display debugInfo threshold when threshold prop is not provided', () => {
-      render(<DebugOverlay {...defaultProps} threshold={undefined} />);
+    it('should return null when enabled is false', () => {
+      const { container, rerender } = render(<DebugOverlay {...defaultProps} enabled={true} />);
 
-      // Should use debugInfo.similarityThreshold which is 14
-      expect(screen.getByText(/Distance ≤ 14/)).toBeInTheDocument();
-    });
+      expect(screen.getByText('Debug')).toBeInTheDocument();
 
-    it('should default to 14 when neither threshold prop nor debugInfo.similarityThreshold is available', () => {
-      const debugInfoWithoutThreshold = {
-        ...mockDebugInfo,
-      };
-      // Remove similarityThreshold to test fallback
-      delete (debugInfoWithoutThreshold as Partial<RecognitionDebugInfo>).similarityThreshold;
-
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          threshold={undefined}
-          debugInfo={debugInfoWithoutThreshold as RecognitionDebugInfo}
-        />
-      );
-
-      // Should default to 14
-      expect(screen.getByText(/Distance ≤ 14/)).toBeInTheDocument();
-    });
-
-    it('should prioritize threshold prop over debugInfo.similarityThreshold', () => {
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          threshold={30}
-          debugInfo={{
-            ...mockDebugInfo,
-            similarityThreshold: 50, // Different value
-          }}
-        />
-      );
-
-      // Should use threshold prop (30), not debugInfo.similarityThreshold (50)
-      expect(screen.getByText(/Distance ≤ 30/)).toBeInTheDocument();
-      expect(screen.queryByText(/Distance ≤ 50/)).not.toBeInTheDocument();
-    });
-
-    it('should calculate correct similarity percentage from threshold', () => {
-      render(<DebugOverlay {...defaultProps} threshold={14} />);
-
-      // Similarity = ((64 - 14) / 64) * 100 = 78.125%
-      expect(screen.getByText(/≥ 78% similarity/)).toBeInTheDocument();
-    });
-  });
-
-  describe('DebugInfo Null Handling - Bug Regression Tests', () => {
-    it('should display placeholder values when debugInfo is null', () => {
-      render(<DebugOverlay {...defaultProps} debugInfo={null} />);
-
-      // Frame hash should show N/A
-      expect(screen.getByText('N/A')).toBeInTheDocument();
-
-      // No metrics section should be displayed when debugInfo is null
-      expect(screen.queryByText('Metrics')).not.toBeInTheDocument();
-
-      // No best match section should be displayed
-      expect(screen.queryByText('Best Match')).not.toBeInTheDocument();
-    });
-
-    it('should display placeholder values when debugInfo is undefined', () => {
-      render(<DebugOverlay {...defaultProps} debugInfo={undefined} />);
-
-      // Frame hash should show N/A
-      expect(screen.getByText('N/A')).toBeInTheDocument();
-
-      // No metrics section when debugInfo is undefined
-      expect(screen.queryByText('Metrics')).not.toBeInTheDocument();
-    });
-
-    it('should display actual values when debugInfo is provided', () => {
-      render(<DebugOverlay {...defaultProps} debugInfo={mockDebugInfo} />);
-
-      // Frame hash should be truncated and displayed
-      expect(screen.getByText(/abcdef...7890/)).toBeInTheDocument();
-
-      // Metrics section should be displayed
-      expect(screen.getByText('Metrics')).toBeInTheDocument();
-      expect(screen.getByText('Concerts')).toBeInTheDocument();
-      expect(screen.getByText('Frames')).toBeInTheDocument();
-    });
-
-    it('should handle transition from null to populated debugInfo', () => {
-      const { rerender } = render(<DebugOverlay {...defaultProps} debugInfo={null} />);
-
-      // Initially should show placeholders
-      expect(screen.getByText('N/A')).toBeInTheDocument();
-
-      // Update with actual debugInfo
-      rerender(<DebugOverlay {...defaultProps} debugInfo={mockDebugInfo} />);
-
-      // Should now show actual values
-      expect(screen.getByText(/abcdef...7890/)).toBeInTheDocument();
-      expect(screen.getByText('Metrics')).toBeInTheDocument();
-    });
-
-    it('should handle transition from populated to null debugInfo (after reset)', () => {
-      const { rerender } = render(<DebugOverlay {...defaultProps} debugInfo={mockDebugInfo} />);
-
-      // Initially should show actual values
-      expect(screen.getByText(/abcdef...7890/)).toBeInTheDocument();
-
-      // Simulate reset by setting debugInfo to null
-      rerender(<DebugOverlay {...defaultProps} debugInfo={null} />);
-
-      // Should now show placeholders
-      expect(screen.getByText('N/A')).toBeInTheDocument();
-    });
-  });
-
-  describe('Phase B Telemetry Metrics', () => {
-    it('displays index and candidate comparison counters', () => {
-      const debugInfoWithPhaseBMetrics: RecognitionDebugInfo = {
-        ...mockDebugInfo,
-        telemetry: {
-          ...mockDebugInfo.telemetry,
-          index_mode_used: 9,
-          candidate_count_per_frame: {
-            last: 28,
-            max: 64,
-            total: 140,
-            frames: 7,
-          },
-        },
-      };
-
-      render(<DebugOverlay {...defaultProps} debugInfo={debugInfoWithPhaseBMetrics} />);
-
-      expect(screen.getByText('Index Frames')).toBeInTheDocument();
-      expect(screen.getByText('Candidates (Last)')).toBeInTheDocument();
-      expect(screen.getByText('Candidates (Avg)')).toBeInTheDocument();
-      expect(screen.getByText('9')).toBeInTheDocument();
-      expect(screen.getByText('28')).toBeInTheDocument();
-      expect(screen.getByText('20')).toBeInTheDocument();
+      rerender(<DebugOverlay {...defaultProps} enabled={false} />);
+      // Component returns null when disabled
+      expect(container.firstChild).toBeNull();
+      expect(screen.queryByText('Show overlay')).not.toBeInTheDocument();
     });
   });
 
@@ -355,101 +204,6 @@ describe('DebugOverlay', () => {
     });
   });
 
-  describe('Metrics Display', () => {
-    it('should display all metrics when debugInfo is provided', () => {
-      render(<DebugOverlay {...defaultProps} debugInfo={mockDebugInfo} />);
-
-      expect(screen.getByText('Metrics')).toBeInTheDocument();
-
-      // Frame count
-      expect(screen.getByText('Frames')).toBeInTheDocument();
-
-      // Concert count
-      expect(screen.getByText('Concerts')).toBeInTheDocument();
-
-      // Check interval
-      expect(screen.getByText('Interval')).toBeInTheDocument();
-
-      // Aspect ratio
-      expect(screen.getByText('Aspect')).toBeInTheDocument();
-
-      // Frame size
-      expect(screen.getByText('Frame Size')).toBeInTheDocument();
-    });
-
-    it('should display placeholder dashes when debugInfo is null', () => {
-      render(<DebugOverlay {...defaultProps} debugInfo={null} />);
-
-      // Metrics section should not be displayed when debugInfo is null
-      expect(screen.queryByText('Metrics')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Recognized Concert Display', () => {
-    it('should display recognized concert information', () => {
-      render(
-        <DebugOverlay {...defaultProps} recognizedConcert={mockConcert} debugInfo={mockDebugInfo} />
-      );
-
-      expect(screen.getByText('🎵 Recognized')).toBeInTheDocument();
-      // Use getAllByText since "Test Band" appears in both Best Match and Recognized sections
-      const bandNames = screen.getAllByText('Test Band');
-      expect(bandNames.length).toBeGreaterThan(0);
-      expect(screen.getByText('Test Venue')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023 at 8:00 PM CDT')).toBeInTheDocument();
-    });
-
-    it('should not display recognized section when concert is null', () => {
-      render(<DebugOverlay {...defaultProps} recognizedConcert={null} />);
-
-      expect(screen.queryByText('🎵 Recognized')).not.toBeInTheDocument();
-    });
-
-    it('should include time data when recognized concert has a timestamp', () => {
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          recognizedConcert={{ ...mockConcert, date: '2023-08-15T21:30:00-05:00' }}
-          debugInfo={mockDebugInfo}
-        />
-      );
-
-      expect(screen.getByText('August 15, 2023 at 9:30 PM CDT')).toBeInTheDocument();
-    });
-  });
-
-  describe('Frame Hash Display', () => {
-    it('should truncate long frame hash correctly', () => {
-      const longHash = 'abcdef1234567890abcdef1234567890';
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          debugInfo={{
-            ...mockDebugInfo,
-            lastFrameHash: longHash,
-          }}
-        />
-      );
-
-      // Should show first 6 and last 4 characters: "abcdef...7890"
-      expect(screen.getByText(/abcdef...7890/)).toBeInTheDocument();
-    });
-
-    it('should display N/A when frame hash is null', () => {
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          debugInfo={{
-            ...mockDebugInfo,
-            lastFrameHash: null,
-          }}
-        />
-      );
-
-      expect(screen.getByText('N/A')).toBeInTheDocument();
-    });
-  });
-
   describe('Reset Button', () => {
     it('should display reset button when onReset is provided', () => {
       const onReset = vi.fn();
@@ -478,46 +232,6 @@ describe('DebugOverlay', () => {
 
       const resetButton = screen.getByText('Reset');
       expect(resetButton).toBeDisabled();
-    });
-  });
-
-  describe('Edge Cases', () => {
-    it('should handle all null/undefined fields gracefully', () => {
-      const minimalDebugInfo: RecognitionDebugInfo = {
-        lastFrameHash: null,
-        bestMatch: null,
-        secondBestMatch: null,
-        bestMatchMargin: null,
-        lastCheckTime: 0,
-        concertCount: 0,
-        frameCount: 0,
-        checkInterval: 1000,
-        aspectRatio: '3:2',
-        frameSize: null,
-        stability: null,
-        similarityThreshold: 40,
-        recognitionDelay: 3000,
-        frameQuality: null,
-        telemetry: createEmptyTelemetry(),
-        hashAlgorithm: 'phash',
-      };
-
-      const { container } = render(<DebugOverlay {...defaultProps} debugInfo={minimalDebugInfo} />);
-
-      // Should render without errors
-      expect(container).toBeInTheDocument();
-      expect(screen.getByText('N/A')).toBeInTheDocument();
-    });
-
-    it('should return null when enabled is false', () => {
-      const { container, rerender } = render(<DebugOverlay {...defaultProps} enabled={true} />);
-
-      expect(screen.getByText('🐛 Debug Info')).toBeInTheDocument();
-
-      rerender(<DebugOverlay {...defaultProps} enabled={false} />);
-      // Component returns null when disabled — no "Show overlay" button
-      expect(container.firstChild).toBeNull();
-      expect(screen.queryByText('Show overlay')).not.toBeInTheDocument();
     });
   });
 
@@ -556,130 +270,61 @@ describe('DebugOverlay', () => {
     });
   });
 
-  describe('Routine Picker', () => {
-    it('should show the routine selector when no routine is selected and state is idle', () => {
+  describe('Force Match Button', () => {
+    it('should show Force Match button when onForceMatch is provided', () => {
+      const onForceMatch = vi.fn();
+      render(<DebugOverlay {...defaultProps} onForceMatch={onForceMatch} />);
+
+      expect(screen.getByLabelText('Force photo match')).toBeInTheDocument();
+    });
+
+    it('should not show Force Match button when onForceMatch is not provided', () => {
       render(<DebugOverlay {...defaultProps} />);
 
-      expect(screen.getByLabelText('Select test routine')).toBeInTheDocument();
-      expect(screen.getByText('Choose a routine…')).toBeInTheDocument();
+      expect(screen.queryByText('Force Match')).not.toBeInTheDocument();
     });
 
-    it('should not show "Record 30s" button before a routine is selected', () => {
-      render(<DebugOverlay {...defaultProps} />);
+    it('should call onForceMatch when Force Match button is clicked', () => {
+      const onForceMatch = vi.fn();
+      render(<DebugOverlay {...defaultProps} onForceMatch={onForceMatch} />);
 
-      expect(screen.queryByText('Record 30s')).not.toBeInTheDocument();
-    });
+      fireEvent.click(screen.getByLabelText('Force photo match'));
 
-    it('should call onSelectRoutine when user picks a routine from the dropdown', () => {
-      const onSelectRoutine = vi.fn();
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          telemetryRecording={{ ...defaultProps.telemetryRecording, onSelectRoutine }}
-        />
-      );
-
-      fireEvent.change(screen.getByLabelText('Select test routine'), {
-        target: { value: 'baseline' },
-      });
-
-      expect(onSelectRoutine).toHaveBeenCalledWith('baseline');
-    });
-
-    it('should show routine label, instructions and "Record 30s" after a routine is selected', () => {
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          telemetryRecording={{
-            ...defaultProps.telemetryRecording,
-            selectedRoutine: 'baseline',
-          }}
-        />
-      );
-
-      expect(screen.getByText('Baseline (steady hold)')).toBeInTheDocument();
-      expect(screen.getByText(/Hold the camera steady/)).toBeInTheDocument();
-      expect(screen.getByText('Record 30s')).toBeInTheDocument();
-    });
-
-    it('should call onClearRoutine when "Change" button is clicked', () => {
-      const onClearRoutine = vi.fn();
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          telemetryRecording={{
-            ...defaultProps.telemetryRecording,
-            selectedRoutine: 'glare',
-            onClearRoutine,
-          }}
-        />
-      );
-
-      fireEvent.click(screen.getByText('Change'));
-
-      expect(onClearRoutine).toHaveBeenCalled();
-    });
-
-    it('should show routine label during recording', () => {
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          telemetryRecording={{
-            ...defaultProps.telemetryRecording,
-            state: 'recording',
-            secondsRemaining: 25,
-            selectedRoutine: 'motion-blur',
-          }}
-        />
-      );
-
-      expect(screen.getByText('Motion blur (shaky camera)')).toBeInTheDocument();
-      expect(screen.getByText(/Recording… 25s/)).toBeInTheDocument();
-    });
-
-    it('should show routine label in done state', () => {
-      render(
-        <DebugOverlay
-          {...defaultProps}
-          telemetryRecording={{
-            ...defaultProps.telemetryRecording,
-            state: 'done',
-            selectedRoutine: 'collision',
-          }}
-        />
-      );
-
-      expect(screen.getByText('Collision test (visually similar photos)')).toBeInTheDocument();
-      expect(screen.getByText('Download Report')).toBeInTheDocument();
+      expect(onForceMatch).toHaveBeenCalledOnce();
     });
   });
 
-  describe('ROUTINE_DEFINITIONS', () => {
-    it('should export exactly 6 routine definitions', () => {
-      expect(ROUTINE_DEFINITIONS).toHaveLength(6);
+  describe('Edge Cases', () => {
+    it('should handle all null/undefined fields gracefully', () => {
+      const minimalDebugInfo: RecognitionDebugInfo = {
+        lastFrameHash: null,
+        bestMatch: null,
+        secondBestMatch: null,
+        bestMatchMargin: null,
+        lastCheckTime: 0,
+        concertCount: 0,
+        frameCount: 0,
+        checkInterval: 1000,
+        aspectRatio: '3:2',
+        frameSize: null,
+        stability: null,
+        similarityThreshold: 40,
+        recognitionDelay: 3000,
+        frameQuality: null,
+        telemetry: createEmptyTelemetry(),
+        hashAlgorithm: 'phash',
+      };
+
+      const { container } = render(<DebugOverlay {...defaultProps} debugInfo={minimalDebugInfo} />);
+
+      // Should render without errors
+      expect(container).toBeInTheDocument();
     });
 
-    it('should have non-empty labels and instructions for every routine', () => {
-      ROUTINE_DEFINITIONS.forEach((r) => {
-        expect(r.label.length).toBeGreaterThan(0);
-        expect(r.instructions.length).toBeGreaterThan(0);
-      });
-    });
+    it('should not display best match when debugInfo has no best match', () => {
+      render(<DebugOverlay {...defaultProps} debugInfo={null} />);
 
-    it('should have unique type values', () => {
-      const types = ROUTINE_DEFINITIONS.map((r) => r.type);
-      const uniqueTypes = new Set(types);
-      expect(uniqueTypes.size).toBe(ROUTINE_DEFINITIONS.length);
-    });
-
-    it('should include all expected routine types', () => {
-      const types = ROUTINE_DEFINITIONS.map((r) => r.type);
-      expect(types).toContain('baseline');
-      expect(types).toContain('glare');
-      expect(types).toContain('motion-blur');
-      expect(types).toContain('poor-lighting');
-      expect(types).toContain('multi-photo-switch');
-      expect(types).toContain('collision');
+      expect(screen.queryByText('Best Match')).not.toBeInTheDocument();
     });
   });
 });

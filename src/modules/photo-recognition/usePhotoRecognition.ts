@@ -343,6 +343,18 @@ export function usePhotoRecognition(
     telemetryRef.current = createEmptyTelemetry();
   }, []);
 
+  const forceMatch = useCallback((concert: Concert) => {
+    // Clear in-flight tracking refs so the pipeline doesn't continue
+    // in "tracking" mode after the forced match.
+    lastMatchedConcertRef.current = null;
+    consecutiveMatchCountRef.current = 0;
+    matchStartTimeRef.current = null;
+
+    recognizedConcertRef.current = concert;
+    setRecognizedConcert(concert);
+    setIsRecognizing(false);
+  }, []);
+
   const reset = useCallback(() => {
     recognizedConcertRef.current = null;
     lastMatchedConcertRef.current = null;
@@ -1251,6 +1263,7 @@ export function usePhotoRecognition(
     isRecognizing,
     reset,
     resetTelemetry,
+    forceMatch,
     debugInfo,
     frameQuality,
     detectedRectangle,

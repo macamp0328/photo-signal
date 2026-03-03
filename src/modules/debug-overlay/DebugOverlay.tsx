@@ -1,21 +1,14 @@
 /**
  * Debug Overlay Component
  *
- * Displays real-time photo recognition debugging information
+ * Displays actionable photo recognition debugging controls
  * Visible when the Debug Overlay feature flag is enabled
  */
 
 import { useEffect, useState } from 'react';
 import type { DebugOverlayProps, RecognitionStatus } from './types';
-import { ROUTINE_DEFINITIONS } from './routineDefinitions';
 import styles from './DebugOverlay.module.css';
-import { formatConcertTimestamp } from '../../utils/dateUtils';
 import { useAudioTest } from './useAudioTest';
-
-// Display "waiting for frame" message if no frame received in 2x the normal check interval (≈1s)
-const FRAME_TIMEOUT_THRESHOLD = 2;
-const DEFAULT_SIMILARITY_THRESHOLD = 14;
-const PHASH_DISTANCE_RANGE = 64;
 
 export function DebugOverlay({
   recognizedConcert,
@@ -23,13 +16,11 @@ export function DebugOverlay({
   enabled,
   onVisibilityChange,
   debugInfo,
-  threshold,
   onReset,
   testAudioUrl,
-  telemetryRecording,
+  onForceMatch,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
-  const [timeSinceLastCheck, setTimeSinceLastCheck] = useState<number>(0);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const { runTest, isTestRunning, testResult, resetTest } = useAudioTest();
 
@@ -37,23 +28,6 @@ export function DebugOverlay({
   const bestMatch = debugInfo?.bestMatch ?? null;
   const secondBestMatch = debugInfo?.secondBestMatch ?? null;
   const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
-  const derivedThreshold =
-    threshold ?? debugInfo?.similarityThreshold ?? DEFAULT_SIMILARITY_THRESHOLD;
-  const stability = debugInfo?.stability ?? null;
-  const frameSize = debugInfo?.frameSize;
-  const frameCount = debugInfo?.frameCount;
-  const concertCount = debugInfo?.concertCount;
-  const checkInterval = debugInfo?.checkInterval;
-  const aspectRatio = debugInfo?.aspectRatio;
-  const recognitionDelayMs = debugInfo?.recognitionDelay;
-  const lastCheckTime = debugInfo?.lastCheckTime;
-  const indexModeFrames = debugInfo?.telemetry.index_mode_used ?? 0;
-  const candidateCountTelemetry = debugInfo?.telemetry.candidate_count_per_frame;
-  const lastCandidateComparisons = candidateCountTelemetry?.last ?? 0;
-  const averageCandidateComparisons =
-    candidateCountTelemetry && candidateCountTelemetry.frames > 0
-      ? Math.round(candidateCountTelemetry.total / candidateCountTelemetry.frames)
-      : 0;
 
   // Default to collapsed on mobile screens
   useEffect(() => {
@@ -82,21 +56,6 @@ export function DebugOverlay({
     }
   }, [recognizedConcert, isRecognizing, lastFrameHash]);
 
-  // Update time since last check using the actual timestamp from debug info
-  useEffect(() => {
-    if (!lastCheckTime) {
-      return;
-    }
-
-    const updateTime = () => {
-      setTimeSinceLastCheck(Math.max((Date.now() - lastCheckTime) / 1000, 0));
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 100);
-    return () => clearInterval(interval);
-  }, [enabled, lastCheckTime]);
-
   // Status indicator color
   const statusColors: Record<RecognitionStatus, string> = {
     IDLE: styles.statusIdle,
@@ -120,31 +79,12 @@ export function DebugOverlay({
     RECOGNIZED: 'Recognized',
   };
 
-  const displayHash = lastFrameHash
-    ? `${lastFrameHash.slice(0, 6)}...${lastFrameHash.slice(-4)}`
-    : 'N/A';
-
-  const similarityThreshold =
-    ((PHASH_DISTANCE_RANGE - Math.min(derivedThreshold, PHASH_DISTANCE_RANGE)) /
-      PHASH_DISTANCE_RANGE) *
-    100;
-  const countdownText = recognitionDelayMs
-    ? `${(recognitionDelayMs / 1000).toFixed(1)}s hold required`
-    : 'Hold steady to confirm match';
-  const stabilityPercent = stability ? Math.round(stability.progress * 100) : 0;
-  const lastCheckFormatted = lastCheckTime
-    ? new Date(lastCheckTime).toLocaleTimeString([], { hour12: false })
-    : '—';
-
   const isCollapsedView = isCollapsed;
   const statusCode = testResult?.diagnostic.httpStatus;
   const isSuccessfulFetch = typeof statusCode === 'number' && statusCode >= 200 && statusCode < 300;
   const corsDisplay = testResult
     ? (testResult.diagnostic.corsOrigin ??
       (isSuccessfulFetch ? 'Not exposed to browser' : 'No header'))
-    : null;
-  const selectedRoutineDefinition = telemetryRecording.selectedRoutine
-    ? (ROUTINE_DEFINITIONS.find((r) => r.type === telemetryRecording.selectedRoutine) ?? null)
     : null;
 
   useEffect(() => {
@@ -172,7 +112,7 @@ export function DebugOverlay({
       ) : (
         <>
           <div className={styles.header}>
-            <span className={styles.title}>🐛 Debug Info</span>
+            <span className={styles.title}>Debug</span>
             <div className={styles.headerActions}>
               {onReset && (
                 <button
@@ -207,17 +147,6 @@ export function DebugOverlay({
             </div>
           </div>
 
-          {/* Frame Hash */}
-          <div className={styles.section}>
-            <div className={styles.label}>Frame Hash</div>
-            <div className={styles.hash}>{displayHash}</div>
-            <div className={styles.hint}>
-              {timeSinceLastCheck < FRAME_TIMEOUT_THRESHOLD
-                ? `Updated ${timeSinceLastCheck.toFixed(1)}s ago`
-                : 'Waiting for frame...'}
-            </div>
-          </div>
-
           {/* Best Match */}
           {bestMatch && (
             <div className={styles.section}>
@@ -247,100 +176,6 @@ export function DebugOverlay({
                   </div>
                 </div>
               ) : null}
-            </div>
-          )}
-
-          {/* Countdown */}
-          <div className={styles.section}>
-            <div className={styles.label}>Countdown</div>
-            {stability ? (
-              <div className={styles.timerSection}>
-                <div className={styles.timerStats}>
-                  <span>{(stability.elapsedMs / 1000).toFixed(1)}s elapsed</span>
-                  <span>{(stability.remainingMs / 1000).toFixed(1)}s remaining</span>
-                </div>
-                <div className={styles.progressTrack}>
-                  <div
-                    className={styles.progressBar}
-                    style={{ width: `${stabilityPercent}%` }}
-                    aria-valuenow={stabilityPercent}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                  />
-                </div>
-                <div className={styles.timerHint}>Hold steady for {countdownText}</div>
-              </div>
-            ) : (
-              <div className={styles.timerHint}>{countdownText}</div>
-            )}
-          </div>
-
-          {/* Threshold */}
-          <div className={styles.section}>
-            <div className={styles.label}>Threshold</div>
-            <div className={styles.thresholdInfo}>
-              Distance ≤ {derivedThreshold} (≥ {similarityThreshold.toFixed(0)}% similarity)
-            </div>
-          </div>
-
-          {/* Metrics */}
-          {debugInfo && (
-            <div className={styles.section}>
-              <div className={styles.label}>Metrics</div>
-              <div className={styles.metricGrid}>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Frames</span>
-                  <span className={styles.metricValue}>{frameCount ?? '—'}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Concerts</span>
-                  <span className={styles.metricValue}>{concertCount ?? '—'}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Interval</span>
-                  <span className={styles.metricValue}>
-                    {checkInterval ? `${(checkInterval / 1000).toFixed(1)}s` : '—'}
-                  </span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Aspect</span>
-                  <span className={styles.metricValue}>{aspectRatio ?? '—'}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Frame Size</span>
-                  <span className={styles.metricValue}>
-                    {frameSize ? `${frameSize.width}×${frameSize.height}` : '—'}
-                  </span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Last Check</span>
-                  <span className={styles.metricValue}>{lastCheckFormatted}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Index Frames</span>
-                  <span className={styles.metricValue}>{indexModeFrames}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Candidates (Last)</span>
-                  <span className={styles.metricValue}>{lastCandidateComparisons}</span>
-                </div>
-                <div className={styles.metricItem}>
-                  <span className={styles.metricLabel}>Candidates (Avg)</span>
-                  <span className={styles.metricValue}>{averageCandidateComparisons}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Recognized Concert */}
-          {recognizedConcert && (
-            <div className={`${styles.section} ${styles.recognized}`}>
-              <div className={styles.label}>🎵 Recognized</div>
-              <div className={styles.concertName}>{recognizedConcert.band}</div>
-              <div className={styles.concertVenue}>{recognizedConcert.venue}</div>
-              <div className={styles.concertDate}>
-                {formatConcertTimestamp(recognizedConcert.date)}
-              </div>
             </div>
           )}
 
@@ -408,97 +243,21 @@ export function DebugOverlay({
               )}
             </div>
           )}
-          {/* Telemetry Recording */}
-          <div className={styles.telemetrySection}>
-            {telemetryRecording.state === 'idle' &&
-              (telemetryRecording.selectedRoutine === null ? (
-                <div className={styles.routinePicker}>
-                  <div className={styles.label}>Test Routine</div>
-                  <select
-                    className={styles.routineSelect}
-                    value=""
-                    onChange={(e) => {
-                      const routine = ROUTINE_DEFINITIONS.find((r) => r.type === e.target.value);
-                      if (routine) {
-                        telemetryRecording.onSelectRoutine(routine.type);
-                      }
-                    }}
-                    aria-label="Select test routine"
-                  >
-                    <option value="" disabled>
-                      Choose a routine…
-                    </option>
-                    {ROUTINE_DEFINITIONS.map((r) => (
-                      <option key={r.type} value={r.type}>
-                        {r.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : (
-                <div className={styles.routineReady}>
-                  <div className={styles.label}>{selectedRoutineDefinition?.label}</div>
-                  <p className={styles.routineInstructions}>
-                    {selectedRoutineDefinition?.instructions}
-                  </p>
-                  <div className={styles.telemetryActions}>
-                    <button
-                      type="button"
-                      className={styles.telemetryButton}
-                      onClick={telemetryRecording.onStart}
-                      aria-label="Start 30-second telemetry recording"
-                    >
-                      Record 30s
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.telemetryButtonSecondary}
-                      onClick={telemetryRecording.onClearRoutine}
-                      aria-label="Change routine selection"
-                    >
-                      Change
-                    </button>
-                  </div>
-                </div>
-              ))}
-            {telemetryRecording.state === 'recording' && (
-              <div className={styles.routineReady}>
-                {telemetryRecording.selectedRoutine && (
-                  <div className={styles.routineActiveLabel}>
-                    {selectedRoutineDefinition?.label}
-                  </div>
-                )}
-                <p className={styles.telemetryRecording}>
-                  Recording… {telemetryRecording.secondsRemaining}s
-                </p>
-              </div>
-            )}
-            {telemetryRecording.state === 'done' && (
-              <div className={styles.telemetryActions}>
-                {telemetryRecording.selectedRoutine && (
-                  <div className={styles.routineActiveLabel}>
-                    {selectedRoutineDefinition?.label}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className={styles.telemetryButton}
-                  onClick={telemetryRecording.onDownload}
-                  aria-label="Download telemetry report"
-                >
-                  Download Report
-                </button>
-                <button
-                  type="button"
-                  className={styles.telemetryButtonSecondary}
-                  onClick={telemetryRecording.onDiscard}
-                  aria-label="Discard telemetry recording"
-                >
-                  Discard
-                </button>
-              </div>
-            )}
-          </div>
+
+          {/* Force Match */}
+          {onForceMatch && (
+            <div className={styles.section}>
+              <div className={styles.label}>Force Match</div>
+              <button
+                type="button"
+                className={styles.testButton}
+                onClick={onForceMatch}
+                aria-label="Force photo match"
+              >
+                Force Match
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

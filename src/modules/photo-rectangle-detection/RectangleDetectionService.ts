@@ -9,6 +9,7 @@ import type {
   DetectedRectangle,
   RectangleDetectionResult,
   RectangleDetectionOptions,
+  RectangleRoiHint,
 } from './types';
 
 /**
@@ -81,7 +82,10 @@ export class RectangleDetectionService {
    * @param imageData - Image data from canvas
    * @returns Detection result with rectangle coordinates (if found)
    */
-  public detectRectangle(imageData: ImageData): RectangleDetectionResult {
+  public detectRectangle(
+    imageData: ImageData,
+    roiHint: RectangleRoiHint | null = null
+  ): RectangleDetectionResult {
     try {
       // Convert to grayscale
       const grayData = this.toGrayscale(imageData);
@@ -105,7 +109,8 @@ export class RectangleDetectionService {
       const candidates = this.filterRectangularContours(
         contours,
         imageData.width,
-        imageData.height
+        imageData.height,
+        roiHint
       );
 
       if (candidates.length === 0) {
@@ -404,7 +409,8 @@ export class RectangleDetectionService {
   private filterRectangularContours(
     contours: Contour[],
     width: number,
-    height: number
+    height: number,
+    roiHint: RectangleRoiHint | null
   ): Array<{ rectangle: DetectedRectangle; confidence: number }> {
     const candidates: Array<{ rectangle: DetectedRectangle; confidence: number }> = [];
 
@@ -430,7 +436,11 @@ export class RectangleDetectionService {
         continue;
 
       // Calculate confidence based on rectangularity
-      const confidence = this.calculateConfidence(approx, rect, area);
+      let confidence = this.calculateConfidence(approx, rect, area);
+
+      if (roiHint) {
+        confidence *= this.calculateRoiWeight(rect, width, height, roiHint);
+      }
 
       if (confidence >= this.options.minConfidence) {
         candidates.push({ rectangle: rect, confidence });
@@ -441,6 +451,37 @@ export class RectangleDetectionService {
     candidates.sort((a, b) => b.confidence - a.confidence);
 
     return candidates;
+  }
+
+  private calculateRoiWeight(
+    rect: DetectedRectangle,
+    width: number,
+    height: number,
+    roiHint: RectangleRoiHint
+  ): number {
+    const safeRadius = Math.max(roiHint.radius, 0.05);
+    const centerX = (rect.topLeft.x + rect.width / 2) / width;
+    const centerY = (rect.topLeft.y + rect.height / 2) / height;
+
+    const dx = centerX - roiHint.center.x;
+    const dy = centerY - roiHint.center.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const distanceFactor = Math.max(0, 1 - distance / safeRadius);
+    const boundedLockStrength = Math.max(0, Math.min(1, roiHint.lockStrength ?? 1));
+
+    const tapInsideRectangle =
+      roiHint.center.x >= rect.topLeft.x / width &&
+      roiHint.center.x <= (rect.topLeft.x + rect.width) / width &&
+      roiHint.center.y >= rect.topLeft.y / height &&
+      roiHint.center.y <= (rect.topLeft.y + rect.height) / height;
+
+    const containmentBoost = tapInsideRectangle ? 0.15 : 0;
+    const agePenalty = Math.min(roiHint.ageMs / 3000, 0.2);
+    const roiInfluence = 0.5 + 0.5 * distanceFactor + containmentBoost - agePenalty;
+    const blended = 1 - boundedLockStrength + boundedLockStrength * roiInfluence;
+
+    return Math.max(0.4, Math.min(1.2, blended));
   }
 
   /**

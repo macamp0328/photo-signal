@@ -1,4 +1,4 @@
-import type { Concert, AspectRatio as AspectRatioType } from '../../types';
+import type { Concert, AspectRatio as AspectRatioType, TapIntent } from '../../types';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 
 export type AspectRatio = AspectRatioType;
@@ -140,6 +140,13 @@ export interface RecognitionTelemetry {
     total: number;
     frames: number;
   };
+  tapAssist?: {
+    tapEvents: number;
+    roiGuidedFrames: number;
+    roiAcceptedDetections: number;
+    roiFallbackDetections: number;
+    postTapBlurRejections: number;
+  };
 }
 
 export interface RecognitionDebugInfo {
@@ -211,4 +218,10 @@ export interface PhotoRecognitionOptions {
   rectangleConfidenceThreshold?: number;
   /** Aspect ratio of the display viewport, used to compute crop regions. Default: 1 */
   displayAspectRatio?: number;
+  /** Active tap guidance hint from camera preview space. */
+  tapIntent?: TapIntent | null;
+  /** Time window to keep ROI lock fully active after tap. Default: 500ms */
+  tapRoiLockMs?: number;
+  /** Additional decay window for ROI influence after lock. Default: 1200ms */
+  tapRoiDecayMs?: number;
 }

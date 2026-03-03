@@ -2,6 +2,15 @@
  * Camera Access Module Types
  */
 
+import type { TapIntent } from '../../types';
+
+export type TapFocusStatus = 'applied' | 'unsupported' | 'failed' | 'no-track' | 'not-active';
+
+export interface TapFocusResult {
+  status: TapFocusStatus;
+  message?: string;
+}
+
 export interface CameraAccessHook {
   /** Camera video stream, null if not yet available */
   stream: MediaStream | null;
@@ -11,6 +20,8 @@ export interface CameraAccessHook {
   hasPermission: boolean | null;
   /** Retry camera access after error */
   retry: () => void;
+  /** Request focus/exposure metering near tapped point when supported */
+  requestTapFocus: (tap: TapIntent) => Promise<TapFocusResult>;
 }
 
 export interface CameraAccessOptions {

@@ -1,3 +1,5 @@
+import type { NormalizedPoint } from '../../types';
+
 /**
  * Photo Rectangle Detection Types
  *
@@ -37,6 +39,17 @@ export interface RectangleDetectionResult {
   detected: boolean;
   /** Timestamp when detection was performed */
   timestamp: number;
+}
+
+export interface RectangleRoiHint {
+  /** ROI center in normalized viewport coordinates (0-1). */
+  center: NormalizedPoint;
+  /** Radius in normalized viewport units (0-1). */
+  radius: number;
+  /** Time elapsed since tap, used to decay ROI influence. */
+  ageMs: number;
+  /** Lock strength in range [0, 1]. */
+  lockStrength?: number;
 }
 
 /**

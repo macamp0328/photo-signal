@@ -26,6 +26,22 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     category: 'experimental',
   },
   {
+    id: 'tap-to-focus',
+    name: 'Tap to Focus',
+    description:
+      'Attempt camera focus/exposure metering near user tap when the device supports focus controls.',
+    enabled: true,
+    category: 'camera',
+  },
+  {
+    id: 'tap-guided-rectangle',
+    name: 'Tap-Guided Rectangle Detection',
+    description:
+      'Prioritize rectangle detection around the tapped preview region for faster and steadier photo alignment.',
+    enabled: true,
+    category: 'experimental',
+  },
+  {
     id: 'show-debug-overlay',
     name: 'Debug Overlay',
     description:

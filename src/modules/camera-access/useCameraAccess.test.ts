@@ -411,6 +411,7 @@ describe('useCameraAccess', () => {
       expect(result.current).toHaveProperty('error');
       expect(result.current).toHaveProperty('hasPermission');
       expect(result.current).toHaveProperty('retry');
+      expect(result.current).toHaveProperty('requestTapFocus');
     });
 
     it('should have correct types for all properties', async () => {
@@ -433,6 +434,97 @@ describe('useCameraAccess', () => {
 
       // retry: () => void
       expect(typeof result.current.retry).toBe('function');
+
+      // requestTapFocus: (tap) => Promise<TapFocusResult>
+      expect(typeof result.current.requestTapFocus).toBe('function');
+    });
+  });
+
+  describe('Tap focus controls', () => {
+    it('returns unsupported when track capabilities do not include focus controls', async () => {
+      const { result } = renderHook(() => useCameraAccess());
+
+      await waitFor(() => {
+        expect(result.current.stream).toBe(mockStream);
+      });
+
+      const outcome = await result.current.requestTapFocus({
+        point: { x: 0.5, y: 0.5 },
+        timestamp: Date.now(),
+        pointerType: 'touch',
+      });
+
+      expect(outcome.status).toBe('unsupported');
+    });
+
+    it('applies constraints when capabilities support pointsOfInterest', async () => {
+      const applyConstraints = vi.fn().mockResolvedValue(undefined);
+      const focusTrack = {
+        ...mockTrack,
+        getCapabilities: vi.fn(() => ({ pointsOfInterest: true, focusMode: ['continuous'] })),
+        applyConstraints,
+      } as unknown as MediaStreamTrack;
+
+      const focusStream = {
+        ...mockStream,
+        getVideoTracks: vi.fn(() => [focusTrack]),
+        getTracks: vi.fn(() => [focusTrack]),
+      } as unknown as MediaStream;
+
+      navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(focusStream);
+
+      const { result } = renderHook(() => useCameraAccess());
+      await waitFor(() => {
+        expect(result.current.stream).toBe(focusStream);
+      });
+
+      const outcome = await result.current.requestTapFocus({
+        point: { x: 0.2, y: 0.8 },
+        timestamp: Date.now(),
+        pointerType: 'touch',
+      });
+
+      expect(outcome.status).toBe('applied');
+      expect(applyConstraints).toHaveBeenCalledTimes(1);
+    });
+
+    it('applies pointsOfInterest-only constraint when focus/exposure modes are unavailable', async () => {
+      const applyConstraints = vi.fn().mockResolvedValue(undefined);
+      const focusTrack = {
+        ...mockTrack,
+        getCapabilities: vi.fn(() => ({ pointsOfInterest: true })),
+        applyConstraints,
+      } as unknown as MediaStreamTrack;
+
+      const focusStream = {
+        ...mockStream,
+        getVideoTracks: vi.fn(() => [focusTrack]),
+        getTracks: vi.fn(() => [focusTrack]),
+      } as unknown as MediaStream;
+
+      navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(focusStream);
+
+      const { result } = renderHook(() => useCameraAccess());
+      await waitFor(() => {
+        expect(result.current.stream).toBe(focusStream);
+      });
+
+      const outcome = await result.current.requestTapFocus({
+        point: { x: 0.4, y: 0.6 },
+        timestamp: Date.now(),
+        pointerType: 'touch',
+      });
+
+      expect(outcome.status).toBe('applied');
+      expect(applyConstraints).toHaveBeenCalledWith(
+        expect.objectContaining({
+          advanced: [
+            expect.objectContaining({
+              pointsOfInterest: [{ x: 0.4, y: 0.6 }],
+            }),
+          ],
+        })
+      );
     });
   });
 

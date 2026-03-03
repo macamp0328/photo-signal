@@ -65,6 +65,13 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
     total: 0,
     frames: 0,
   },
+  tapAssist: {
+    tapEvents: 0,
+    roiGuidedFrames: 0,
+    roiAcceptedDetections: 0,
+    roiFallbackDetections: 0,
+    postTapBlurRejections: 0,
+  },
 });
 
 export const similarityPercent = (distance: number): number =>

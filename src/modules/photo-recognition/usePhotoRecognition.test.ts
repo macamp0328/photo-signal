@@ -8,6 +8,16 @@ import { usePhotoRecognition } from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
+const mockWorkerProcessFrame = vi.fn();
+const workerHookState: {
+  isReady: boolean;
+  isSupported: boolean;
+  onResult: ((result: unknown) => void) | null;
+} = {
+  isReady: false,
+  isSupported: false,
+  onResult: null,
+};
 
 vi.mock('../secret-settings', () => ({
   useFeatureFlags: vi.fn(() => ({
@@ -39,6 +49,17 @@ vi.mock('./algorithms/hamming', () => ({
       }
     }
     return distance;
+  }),
+}));
+
+vi.mock('./useRecognitionWorker', () => ({
+  useRecognitionWorker: vi.fn((args: { onResult: (result: unknown) => void }) => {
+    workerHookState.onResult = args.onResult;
+    return {
+      processFrame: mockWorkerProcessFrame,
+      isReady: workerHookState.isReady,
+      isSupported: workerHookState.isSupported,
+    };
   }),
 }));
 
@@ -74,6 +95,11 @@ describe('usePhotoRecognition', () => {
     vi.useFakeTimers();
     mockIsEnabled.mockReturnValue(false);
     activeFrameHash = 'a5b3c7d9e1f20486';
+    workerHookState.isReady = false;
+    workerHookState.isSupported = false;
+    workerHookState.onResult = null;
+    mockWorkerProcessFrame.mockReset();
+    mockWorkerProcessFrame.mockReturnValue(false);
 
     const mockTrack = {
       kind: 'video',
@@ -1225,6 +1251,201 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(result.current.recognizedConcert?.id).toBe(2);
+    });
+  });
+
+  describe('worker scheduling path', () => {
+    it('uses requestVideoFrame worker scheduling and confirms via worker result', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const requestFrameCallbacks: Array<VideoFrameRequestCallback> = [];
+      const cancelVideoFrameCallback = vi.fn();
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          Object.defineProperty(video, 'requestVideoFrame', {
+            value: vi.fn((cb: VideoFrameRequestCallback) => {
+              requestFrameCallbacks.push(cb);
+              return requestFrameCallbacks.length;
+            }),
+            configurable: true,
+          });
+          Object.defineProperty(video, 'cancelVideoFrameCallback', {
+            value: cancelVideoFrameCallback,
+            configurable: true,
+          });
+          return video;
+        }
+
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => ({
+              drawImage: vi.fn(),
+              getImageData: vi.fn(() => new ImageData(64, 64)),
+            })),
+            configurable: true,
+          });
+          return canvas;
+        }
+
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      const createImageBitmapMock = vi
+        .fn()
+        .mockResolvedValue({ close: vi.fn() } as unknown as ImageBitmap);
+      const originalCreateImageBitmap = globalThis.createImageBitmap;
+      vi.stubGlobal('createImageBitmap', createImageBitmapMock);
+
+      workerHookState.isReady = true;
+      workerHookState.isSupported = true;
+      mockWorkerProcessFrame.mockImplementation((_: ImageBitmap, frameId: number) => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId,
+          hash: 'aaaaaaaaaaaaaaaa',
+          bestMatch: { concertId: 1, distance: 4 },
+          secondBestMatch: null,
+          quality: null,
+          processingMs: 0.6,
+        });
+        return true;
+      });
+
+      try {
+        const { result, unmount } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            checkInterval: 50,
+            recognitionDelay: 120,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(120);
+        });
+
+        expect(requestFrameCallbacks.length).toBeGreaterThan(0);
+
+        await act(async () => {
+          requestFrameCallbacks[0]?.(0, {} as VideoFrameCallbackMetadata);
+        });
+        expect(mockWorkerProcessFrame).toHaveBeenCalledTimes(0);
+
+        await act(async () => {
+          requestFrameCallbacks[1]?.(16, {} as VideoFrameCallbackMetadata);
+          await Promise.resolve();
+        });
+
+        expect(createImageBitmapMock).toHaveBeenCalled();
+        expect(mockWorkerProcessFrame).toHaveBeenCalledTimes(1);
+        expect(result.current.recognizedConcert?.id).toBe(1);
+
+        unmount();
+        expect(cancelVideoFrameCallback).toHaveBeenCalled();
+      } finally {
+        createElementSpy.mockRestore();
+        if (originalCreateImageBitmap) {
+          vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);
+        } else {
+          vi.unstubAllGlobals();
+        }
+      }
+    });
+
+    it('handles createImageBitmap rejection in worker path', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const requestFrameCallbacks: Array<VideoFrameRequestCallback> = [];
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          Object.defineProperty(video, 'requestVideoFrame', {
+            value: vi.fn((cb: VideoFrameRequestCallback) => {
+              requestFrameCallbacks.push(cb);
+              return requestFrameCallbacks.length;
+            }),
+            configurable: true,
+          });
+          return video;
+        }
+
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => ({
+              drawImage: vi.fn(),
+              getImageData: vi.fn(() => new ImageData(64, 64)),
+            })),
+            configurable: true,
+          });
+          return canvas;
+        }
+
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      const createImageBitmapMock = vi.fn().mockRejectedValue(new Error('bitmap failed'));
+      const originalCreateImageBitmap = globalThis.createImageBitmap;
+      vi.stubGlobal('createImageBitmap', createImageBitmapMock);
+
+      workerHookState.isReady = true;
+      workerHookState.isSupported = true;
+      mockWorkerProcessFrame.mockReturnValue(true);
+
+      try {
+        renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            checkInterval: 50,
+            recognitionDelay: 120,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(120);
+        });
+
+        await act(async () => {
+          requestFrameCallbacks[0]?.(0, {} as VideoFrameCallbackMetadata);
+          requestFrameCallbacks[1]?.(16, {} as VideoFrameCallbackMetadata);
+          await Promise.resolve();
+        });
+
+        expect(mockWorkerProcessFrame).not.toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+          '[photo-recognition] createImageBitmap failed:',
+          expect.any(Error)
+        );
+      } finally {
+        warnSpy.mockRestore();
+        createElementSpy.mockRestore();
+        if (originalCreateImageBitmap) {
+          vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);
+        } else {
+          vi.unstubAllGlobals();
+        }
+      }
     });
   });
 });

@@ -14,7 +14,12 @@ import {
 } from './helpers';
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
 import { calculateAdaptiveQualityThresholds, computeAllQualityMetrics } from './algorithms/utils';
-import { getPerspectiveCroppedImageData } from './algorithms/perspective';
+import { useRecognitionWorker } from './useRecognitionWorker';
+import type {
+  WorkerFrameResult,
+  WorkerHashEntry,
+  WorkerRecognitionConfig,
+} from './worker-protocol';
 import type {
   AspectRatio,
   FailureCategory,
@@ -301,7 +306,6 @@ export function usePhotoRecognition(
     minBrightness = 50,
     maxBrightness = 220,
     enableRectangleDetection = false,
-    enablePerspectiveNormalization = false,
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
     tapIntent = null,
@@ -493,6 +497,80 @@ export function usePhotoRecognition(
     return concerts.filter((concert) => indexedHashData.eligibleConcertIds.has(concert.id));
   }, [concerts, indexedHashData.eligibleConcertIds]);
 
+  // -------------------------------------------------------------------------
+  // Web Worker pipeline (off-main-thread hash computation + matching)
+  // -------------------------------------------------------------------------
+
+  /** Map concertId → Concert for resolving worker results back to Concert objects. */
+  const concertsById = useMemo(() => new Map(concerts.map((c) => [c.id, c])), [concerts]);
+
+  /** Lightweight hash entries sent to the worker (no full Concert objects). */
+  const workerHashEntries: WorkerHashEntry[] = useMemo(
+    () => concertHashList.map(({ hash, concert }) => ({ hash, concertId: concert.id })),
+    [concertHashList]
+  );
+
+  /** Recognition + quality config forwarded to the worker. */
+  const workerConfig: WorkerRecognitionConfig = useMemo(
+    () => ({
+      similarityThreshold,
+      matchMarginThreshold,
+      qualityGatingDistanceThreshold: QUALITY_GATING_DISTANCE_THRESHOLD,
+      quality: {
+        sharpnessThreshold,
+        glareThreshold: glareThreshold ?? 250,
+        glarePercentageThreshold: glarePercentageThreshold ?? 20,
+        minBrightness: minBrightness ?? 50,
+        maxBrightness: maxBrightness ?? 220,
+      },
+    }),
+    [
+      similarityThreshold,
+      matchMarginThreshold,
+      sharpnessThreshold,
+      glareThreshold,
+      glarePercentageThreshold,
+      minBrightness,
+      maxBrightness,
+    ]
+  );
+
+  /**
+   * Ref-based callback for worker results. The actual handler is assigned
+   * inside the main useEffect so it can close over the inner helpers
+   * (processQualityFilters, computeStability) and frame-scoped variables.
+   */
+  const workerResultHandlerRef = useRef<((result: WorkerFrameResult) => void) | null>(null);
+
+  const handleWorkerResult = useCallback((result: WorkerFrameResult) => {
+    workerResultHandlerRef.current?.(result);
+  }, []);
+
+  const {
+    processFrame: workerProcessFrame,
+    isReady: isWorkerReady,
+    isSupported: isWorkerSupported,
+  } = useRecognitionWorker({
+    hashEntries: workerHashEntries,
+    config: workerConfig,
+    onResult: handleWorkerResult,
+    enabled: enabled && eligibleConcerts.length > 0,
+  });
+
+  // isWorkerSupported is the result of feature-detection run once at mount — it
+  // never changes. Storing it in a ref keeps it out of the main scheduling
+  // effect's dependency array without risk of staleness.
+  const isWorkerSupportedRef = useRef(isWorkerSupported);
+  // isWorkerReady and workerProcessFrame change when the worker transitions to
+  // ready (isReady state flip → new processFrame useCallback reference). Tracking
+  // them via refs lets the scheduling effect read the latest values per-frame
+  // without tearing down and recreating the video element + canvas + scheduler
+  // every time the worker finishes initialising.
+  const isWorkerReadyRef = useRef(false);
+  isWorkerReadyRef.current = isWorkerReady;
+  const workerProcessFrameRef = useRef(workerProcessFrame);
+  workerProcessFrameRef.current = workerProcessFrame;
+
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {
       return;
@@ -540,6 +618,17 @@ export function usePhotoRecognition(
     rectangleDetectorRef.current = enableRectangleDetection
       ? new RectangleDetectionService()
       : null;
+
+    // -----------------------------------------------------------------------
+    // Worker path control
+    // -----------------------------------------------------------------------
+    // canUseWorkerPath is stable across the effect's lifetime — it depends only
+    // on browser capability (never-changing) and requestVideoFrame availability
+    // on the video element. Actual worker readiness is checked per-frame via
+    // isWorkerReadyRef so the scheduling loop never restarts when the worker
+    // finishes initialising.
+    const canUseWorkerPath =
+      isWorkerSupportedRef.current && typeof video.requestVideoFrame === 'function';
 
     // -----------------------------------------------------------------------
     // Inner helper: quality filtering
@@ -769,7 +858,6 @@ export function usePhotoRecognition(
         let framedRegion = offsetRegionToVideo(
           calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
-        let perspectiveImageData: ImageData | null = null;
         const activeTap = lastTapIntentRef.current;
         const tapAgeMs = activeTap ? Date.now() - activeTap.timestamp : Number.POSITIVE_INFINITY;
         const tapWindowMs = tapRoiLockMs + tapRoiDecayMs;
@@ -798,10 +886,6 @@ export function usePhotoRecognition(
 
           const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
           const applyRectangleCrop = (rectangle: DetectedRectangle) => {
-            if (enablePerspectiveNormalization) {
-              perspectiveImageData = getPerspectiveCroppedImageData(viewportImageData, rectangle);
-            }
-
             const pixelRectangle = {
               x: Math.round(rectangle.topLeft.x * visibleViewport.width),
               y: Math.round(rectangle.topLeft.y * visibleViewport.height),
@@ -886,44 +970,73 @@ export function usePhotoRecognition(
           }
         }
 
-        const frameCaptureStartAt = performance.now();
-        let imageData: ImageData;
-        const capturedPerspectiveImageData = perspectiveImageData as ImageData | null;
+        // -----------------------------------------------------------------
+        // Worker path: send bitmap to worker and return immediately.
+        // The result callback (workerResultHandlerRef) handles the
+        // quality/stability/confirmation logic when the worker replies.
+        // -----------------------------------------------------------------
+        if (canUseWorkerPath && isWorkerReadyRef.current) {
+          const workerFrameId = frameCountRef.current;
+          const workerAspect = chosenAspectRatio;
+          const workerFramedRegion = { ...framedRegion };
 
-        if (capturedPerspectiveImageData) {
-          canvas.width = capturedPerspectiveImageData.width;
-          canvas.height = capturedPerspectiveImageData.height;
-          context.putImageData(capturedPerspectiveImageData, 0, 0);
-          framedRegion = {
-            x: framedRegion.x,
-            y: framedRegion.y,
-            width: capturedPerspectiveImageData.width,
-            height: capturedPerspectiveImageData.height,
-          };
-          imageData = capturedPerspectiveImageData;
-        } else {
-          // Downscale directly to 64×64 during capture so getImageData() only
-          // returns 4 096 pixels instead of the full framed-region dimensions
-          // (often 200 000+ pixels). The browser's canvas drawImage() performs
-          // hardware-accelerated bilinear downscaling. computePHash() will then
-          // resize 64×64 → 32×32, which is nearly free.
-          const CAPTURE_SIZE = 64;
-          canvas.width = CAPTURE_SIZE;
-          canvas.height = CAPTURE_SIZE;
-          context.drawImage(
+          createImageBitmap(
             video,
             framedRegion.x,
             framedRegion.y,
             framedRegion.width,
             framedRegion.height,
-            0,
-            0,
-            CAPTURE_SIZE,
-            CAPTURE_SIZE
-          );
+            {
+              resizeWidth: 128,
+              resizeHeight: 128,
+            }
+          )
+            .then((bitmap) => {
+              const sent = workerProcessFrameRef.current(bitmap, workerFrameId);
+              if (!sent && enableDebugInfo) {
+                console.debug('[photo-recognition] Worker busy, skipped frame', workerFrameId);
+              }
+            })
+            .catch((err) => {
+              console.warn('[photo-recognition] createImageBitmap failed:', err);
+            });
 
-          imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
+          // Debug timing for the main-thread portion only
+          if (enableDebugInfo) {
+            const mainThreadMs = performance.now() - frameStartAt;
+            console.debug('[photo-recognition] Worker frame (main-thread portion)', {
+              frame: workerFrameId,
+              mainThreadMs: Number(mainThreadMs.toFixed(2)),
+              aspect: workerAspect,
+              framedRegion: workerFramedRegion,
+            });
+            console.timeEnd(frameLabel);
+          }
+          return;
         }
+
+        const frameCaptureStartAt = performance.now();
+        // Downscale directly to 64×64 during capture so getImageData() only
+        // returns 4 096 pixels instead of the full framed-region dimensions
+        // (often 200 000+ pixels). The browser's canvas drawImage() performs
+        // hardware-accelerated bilinear downscaling. computePHash() will then
+        // resize 64×64 → 32×32, which is nearly free.
+        const CAPTURE_SIZE = 64;
+        canvas.width = CAPTURE_SIZE;
+        canvas.height = CAPTURE_SIZE;
+        context.drawImage(
+          video,
+          framedRegion.x,
+          framedRegion.y,
+          framedRegion.width,
+          framedRegion.height,
+          0,
+          0,
+          CAPTURE_SIZE,
+          CAPTURE_SIZE
+        );
+
+        const imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
@@ -980,12 +1093,11 @@ export function usePhotoRecognition(
         const shouldRunQualityCheck =
           !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
 
-        // When quality checks are needed and we used the 64×64 hash capture,
-        // re-capture at QUALITY_CAPTURE_SIZE so that resolution-sensitive
-        // metrics (especially Laplacian variance for sharpness) are not
-        // distorted by the downscaled hash image.
+        // When quality checks are needed, re-capture at QUALITY_CAPTURE_SIZE so
+        // that resolution-sensitive metrics (especially Laplacian variance for
+        // sharpness) are not distorted by the downscaled 64×64 hash image.
         let qualityImageData = imageData;
-        if (shouldRunQualityCheck && !perspectiveImageData) {
+        if (shouldRunQualityCheck) {
           canvas.width = QUALITY_CAPTURE_SIZE;
           canvas.height = QUALITY_CAPTURE_SIZE;
           context.drawImage(
@@ -1206,23 +1318,379 @@ export function usePhotoRecognition(
       }
     };
 
-    // Adaptive scheduling: scan faster when tracking a candidate, slower when idle.
-    // A fixed checkInterval (non-default) overrides this for test compatibility.
-    const scheduleNext = () => {
-      const isTracking = lastMatchedConcertRef.current !== null;
-      const delay =
-        checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 120;
-      intervalRef.current = window.setTimeout(() => {
-        checkFrame();
-        scheduleNext();
-      }, delay);
+    // -------------------------------------------------------------------
+    // Worker result handler — processes async results from the recognition
+    // worker using the same stability/confirmation logic as the inline path.
+    // Assigned to the ref so the useRecognitionWorker callback can invoke it.
+    // -------------------------------------------------------------------
+    workerResultHandlerRef.current = (result: WorkerFrameResult) => {
+      // Accumulate the FrameQualityInfo built during this handler so it can be
+      // forwarded to the debug overlay — mirrors the inline path behaviour.
+      let workerFrameQuality: FrameQualityInfo | null = null;
+
+      // Map worker concertId results back to Concert objects
+      const bestMatch: MatchCandidate | null = result.bestMatch
+        ? (() => {
+            const c = concertsById.get(result.bestMatch!.concertId);
+            return c ? { concert: c, distance: result.bestMatch!.distance } : null;
+          })()
+        : null;
+      const secondBestMatch: MatchCandidate | null = result.secondBestMatch
+        ? (() => {
+            const c = concertsById.get(result.secondBestMatch!.concertId);
+            return c ? { concert: c, distance: result.secondBestMatch!.distance } : null;
+          })()
+        : null;
+
+      // Decision variables (mirrors inline path logic)
+      const now = Date.now();
+      const activeThreshold = similarityThreshold;
+      const bestMargin =
+        bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
+      const requiredMargin = matchMarginThreshold;
+      const marginBoostNearThreshold =
+        bestMatch && bestMatch.distance >= Math.max(activeThreshold - 1, 0) ? 1 : 0;
+      const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
+      const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveRequiredMargin;
+      const isWithinThreshold = !!bestMatch && bestMatch.distance <= activeThreshold;
+      const isExactCrossConcertTie =
+        !!bestMatch &&
+        !!secondBestMatch &&
+        bestMatch.concert.id !== secondBestMatch.concert.id &&
+        bestMatch.distance === secondBestMatch.distance;
+      const isAmbiguousMatchCandidate =
+        isWithinThreshold && (!hasSufficientMargin || isExactCrossConcertTie);
+      const activeMatch =
+        isWithinThreshold && hasSufficientMargin && !isExactCrossConcertTie
+          ? bestMatch!.concert
+          : null;
+
+      // Quality filtering — apply adaptive thresholds on main thread
+      const shouldRunQualityCheck =
+        !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
+
+      if (shouldRunQualityCheck && result.quality) {
+        const metrics = result.quality;
+
+        // Update ambient brightness EMA
+        ambientBrightnessRef.current =
+          ambientBrightnessRef.current === null
+            ? metrics.averageBrightness
+            : ambientBrightnessRef.current * 0.85 + metrics.averageBrightness * 0.15;
+        ambientGlarePercentageRef.current =
+          ambientGlarePercentageRef.current === null
+            ? metrics.glarePercentage
+            : ambientGlarePercentageRef.current * 0.85 + metrics.glarePercentage * 0.15;
+
+        const adaptiveThresholds = calculateAdaptiveQualityThresholds(
+          minBrightness ?? 50,
+          maxBrightness ?? 220,
+          glarePercentageThreshold ?? 20,
+          ambientBrightnessRef.current,
+          ambientGlarePercentageRef.current
+        );
+
+        const hasAdaptiveGlare =
+          metrics.glarePercentage > adaptiveThresholds.glarePercentageThreshold;
+        const hasAdaptivePoorLighting =
+          metrics.averageBrightness < adaptiveThresholds.minBrightness ||
+          metrics.averageBrightness > adaptiveThresholds.maxBrightness;
+        // Re-derive lightingType from adaptive thresholds so it is consistent
+        // with hasPoorLighting (the worker's lightingType uses base thresholds).
+        const adaptiveLightingType: 'underexposed' | 'overexposed' | 'ok' =
+          metrics.averageBrightness < adaptiveThresholds.minBrightness
+            ? 'underexposed'
+            : metrics.averageBrightness > adaptiveThresholds.maxBrightness
+              ? 'overexposed'
+              : 'ok';
+
+        const quality: FrameQualityInfo = {
+          sharpness: metrics.sharpness,
+          isSharp: metrics.isSharp,
+          glarePercentage: metrics.glarePercentage,
+          hasGlare: hasAdaptiveGlare,
+          averageBrightness: metrics.averageBrightness,
+          hasPoorLighting: hasAdaptivePoorLighting,
+          lightingType: adaptiveLightingType,
+        };
+
+        workerFrameQuality = quality;
+        setFrameQuality(quality);
+
+        if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
+          if (!quality.isSharp) {
+            consecutiveBlurFramesRef.current += 1;
+            if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
+              return;
+            }
+            telemetryRef.current.blurRejections += 1;
+            // Mirror inline path: postTapBlurRejections telemetry
+            const tapAge =
+              lastTapIntentRef.current !== null
+                ? Date.now() - lastTapIntentRef.current.timestamp
+                : Number.POSITIVE_INFINITY;
+            if (tapAge <= tapRoiLockMs + tapRoiDecayMs && telemetryRef.current.tapAssist) {
+              telemetryRef.current.tapAssist.postTapBlurRejections += 1;
+            }
+            recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
+            telemetryRef.current.frameQualityStats.blur.sharpnessSum += quality.sharpness;
+            telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
+            // Mirror inline path: only clear tracking after BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES
+            const shouldClearTracking =
+              consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES;
+            if (shouldClearTracking) {
+              lastMatchedConcertRef.current = null;
+              consecutiveMatchCountRef.current = 0;
+              matchStartTimeRef.current = null;
+            }
+            setIsRecognizing(false);
+            return;
+          } else if (quality.hasGlare) {
+            consecutiveBlurFramesRef.current = 0;
+            telemetryRef.current.glareRejections += 1;
+            recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+            telemetryRef.current.frameQualityStats.glare.glarePercentSum += quality.glarePercentage;
+            telemetryRef.current.frameQualityStats.glare.sampleCount += 1;
+          } else {
+            consecutiveBlurFramesRef.current = 0;
+            telemetryRef.current.lightingRejections += 1;
+            recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+            telemetryRef.current.frameQualityStats.lighting.brightnessSum +=
+              quality.averageBrightness ?? 0;
+            telemetryRef.current.frameQualityStats.lighting.sampleCount += 1;
+          }
+
+          lastMatchedConcertRef.current = null;
+          consecutiveMatchCountRef.current = 0;
+          matchStartTimeRef.current = null;
+          setIsRecognizing(false);
+          return;
+        }
+
+        consecutiveBlurFramesRef.current = 0;
+        telemetryRef.current.qualityFrames += 1;
+      } else if (!shouldRunQualityCheck) {
+        telemetryRef.current.qualityBypassFrames =
+          (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
+        consecutiveBlurFramesRef.current = 0;
+        setFrameQuality(null);
+      } else {
+        // shouldRunQualityCheck is true but result.quality is null — the worker
+        // skipped quality computation (e.g. config was updated between frame
+        // dispatch and result delivery, causing a transient gate mismatch).
+        // Reset blur tracking and clear quality display to stay consistent with
+        // the quality-bypass path; the frame is still allowed to proceed to
+        // match confirmation.
+        consecutiveBlurFramesRef.current = 0;
+        setFrameQuality(null);
+      }
+
+      // Hamming distance telemetry
+      if (bestMatch !== null) {
+        const dist = bestMatch.distance;
+        const hdLog = telemetryRef.current.hammingDistanceLog;
+        hdLog.matchedFrameDistances.count += 1;
+        hdLog.matchedFrameDistances.sum += dist;
+        if (hdLog.matchedFrameDistances.min === null || dist < hdLog.matchedFrameDistances.min) {
+          hdLog.matchedFrameDistances.min = dist;
+        }
+        if (hdLog.matchedFrameDistances.max === null || dist > hdLog.matchedFrameDistances.max) {
+          hdLog.matchedFrameDistances.max = dist;
+        }
+        if (dist > activeThreshold && dist <= activeThreshold + 8) {
+          const hdLogRef = telemetryRef.current.hammingDistanceLog;
+          hdLogRef.nearMisses.push({
+            distance: dist,
+            frameHash: result.hash,
+            timestamp: Date.now(),
+            thresholdUsed: activeThreshold,
+            mode: 'initial',
+          });
+          if (hdLogRef.nearMisses.length > 20) {
+            hdLogRef.nearMisses.shift();
+          }
+        }
+      }
+
+      // Debug info
+      if (enableDebugInfo) {
+        const stability = computeStability(activeMatch, now);
+        setDebugInfo(
+          buildDebugInfo({
+            currentHash: result.hash,
+            bestMatch,
+            secondBestMatch,
+            bestMargin,
+            now,
+            concertCount: eligibleConcerts.length,
+            frameCount: frameCountRef.current,
+            checkInterval,
+            aspectRatio: aspectRatio === 'auto' ? '3:2' : aspectRatio,
+            framedRegion: { width: 128, height: 128 },
+            stability,
+            similarityThreshold,
+            recognitionDelay,
+            frameQuality: workerFrameQuality,
+            telemetry: { ...telemetryRef.current },
+          })
+        );
+      }
+
+      // Match confirmation (mirrors inline path)
+      if (activeMatch) {
+        const isAlreadyRecognizedConcert = recognizedConcertRef.current?.id === activeMatch.id;
+        if (isAlreadyRecognizedConcert) {
+          lastMatchedConcertRef.current = null;
+          consecutiveMatchCountRef.current = 0;
+          matchStartTimeRef.current = null;
+          setIsRecognizing(false);
+          return;
+        }
+
+        const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
+        consecutiveMatchCountRef.current = isSameConcert ? consecutiveMatchCountRef.current + 1 : 1;
+
+        const isInstantDistance = !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
+        const hasConsecutiveInstantConfidence =
+          consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
+
+        if (isInstantDistance || hasConsecutiveInstantConfidence) {
+          recognizedConcertRef.current = activeMatch;
+          if (isInstantDistance) {
+            telemetryRef.current.instantConfirmations =
+              (telemetryRef.current.instantConfirmations ?? 0) + 1;
+          }
+          setRecognizedConcert(activeMatch);
+          setIsRecognizing(false);
+          telemetryRef.current.successfulRecognitions += 1;
+          lastMatchedConcertRef.current = null;
+          consecutiveMatchCountRef.current = 0;
+          matchStartTimeRef.current = null;
+          return;
+        }
+
+        if (isSameConcert) {
+          if (
+            matchStartTimeRef.current !== null &&
+            now - matchStartTimeRef.current >= recognitionDelay
+          ) {
+            recognizedConcertRef.current = activeMatch;
+            setRecognizedConcert(activeMatch);
+            setIsRecognizing(false);
+            telemetryRef.current.successfulRecognitions += 1;
+            lastMatchedConcertRef.current = null;
+            consecutiveMatchCountRef.current = 0;
+            matchStartTimeRef.current = null;
+            return;
+          }
+          setIsRecognizing(true);
+          return;
+        }
+
+        lastMatchedConcertRef.current = activeMatch;
+        matchStartTimeRef.current = now;
+        setIsRecognizing(true);
+        return;
+      }
+
+      // No active match — record failure
+      if (bestMatch) {
+        const isAmbiguousCollision = isAmbiguousMatchCandidate;
+        const isNearThresholdNoMatch =
+          !isAmbiguousCollision && bestMatch.distance <= activeThreshold + 2;
+
+        const category: FailureCategory =
+          isAmbiguousCollision || isNearThresholdNoMatch ? 'collision' : 'no-match';
+
+        if (category === 'collision') {
+          recordCollisionDetails(telemetryRef.current, {
+            isAmbiguous: isAmbiguousCollision,
+            margin: bestMargin,
+            bestBand: bestMatch.concert.band,
+            secondBand: secondBestMatch?.concert.band ?? null,
+          });
+        }
+
+        recordFailure(
+          telemetryRef.current,
+          category,
+          category === 'collision'
+            ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band ?? 'unknown'}`
+            : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
+          result.hash
+        );
+      } else {
+        recordFailure(
+          telemetryRef.current,
+          'no-match',
+          'No concerts with valid pHash',
+          result.hash
+        );
+      }
+
+      if (lastMatchedConcertRef.current) {
+        telemetryRef.current.failedAttempts += 1;
+      }
+      lastMatchedConcertRef.current = null;
+      consecutiveMatchCountRef.current = 0;
+      matchStartTimeRef.current = null;
+      setIsRecognizing(false);
     };
-    scheduleNext();
+
+    // -------------------------------------------------------------------
+    // Dual-path scheduling
+    // -------------------------------------------------------------------
+    let rVFHandle: number | undefined;
+
+    if (canUseWorkerPath) {
+      // requestVideoFrame-based scheduling — fires exactly when new video
+      // frames are presented, avoiding duplicate processing and enabling
+      // higher effective frame rates than setTimeout polling.
+      // canUseWorkerPath (not isWorkerReadyRef) gates scheduling so that
+      // requestVideoFrame is set up immediately; checkFrame decides at runtime
+      // whether to route each frame to the worker or inline path.
+      let workerFrameSkip = 0;
+      const onVideoFrame = () => {
+        // Idle throttle: skip every other frame when not tracking a candidate.
+        const isTracking = lastMatchedConcertRef.current !== null;
+        workerFrameSkip += 1;
+        if (!isTracking && workerFrameSkip % 2 !== 0) {
+          rVFHandle = video.requestVideoFrame(onVideoFrame);
+          return;
+        }
+        checkFrame();
+        rVFHandle = video.requestVideoFrame(onVideoFrame);
+      };
+      rVFHandle = video.requestVideoFrame(onVideoFrame);
+    } else {
+      // Adaptive setTimeout scheduling (existing fallback path).
+      // A fixed checkInterval (non-default) overrides this for test compatibility.
+      const scheduleNext = () => {
+        const isTracking = lastMatchedConcertRef.current !== null;
+        const delay =
+          checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 120;
+        intervalRef.current = window.setTimeout(() => {
+          checkFrame();
+          scheduleNext();
+        }, delay);
+      };
+      scheduleNext();
+    }
 
     return () => {
+      workerResultHandlerRef.current = null;
+
       if (intervalRef.current) {
         clearTimeout(intervalRef.current);
         intervalRef.current = undefined;
+      }
+
+      if (
+        rVFHandle !== undefined &&
+        video &&
+        typeof video.cancelVideoFrameCallback === 'function'
+      ) {
+        video.cancelVideoFrameCallback(rVFHandle);
       }
 
       if (videoRef.current) {
@@ -1237,6 +1705,7 @@ export function usePhotoRecognition(
     eligibleConcerts,
     concertHashList,
     concertHashBuckets,
+    concertsById,
     checkInterval,
     recognitionDelay,
     similarityThreshold,
@@ -1250,12 +1719,16 @@ export function usePhotoRecognition(
     maxBrightness,
     enableDebugInfo,
     enableRectangleDetection,
-    enablePerspectiveNormalization,
     rectangleConfidenceThreshold,
     displayAspectRatio,
     tapRoiLockMs,
     tapRoiDecayMs,
     restartKey,
+    // isWorkerSupported, isWorkerReady, workerProcessFrame are intentionally
+    // omitted: all three are accessed via refs (isWorkerSupportedRef,
+    // isWorkerReadyRef, workerProcessFrameRef) so the scheduler never restarts
+    // — and never recreates the video/canvas — when the worker transitions to
+    // ready or its processFrame reference changes.
   ]);
 
   return {

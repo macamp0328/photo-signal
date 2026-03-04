@@ -82,8 +82,25 @@ Photo recognition uses pHash with multiple robustness layers:
 - crop-region variants for partial/off-center photos
 - configurable thresholds and timing controls via feature settings
 
+### Dual-path execution
+
+`usePhotoRecognition` supports two recognition paths:
+
+- **Worker path** (preferred): hash computation runs in `recognition.worker.ts`
+  off the main thread using `OffscreenCanvas` + zero-copy `ImageBitmap` transfer.
+  Frame scheduling uses `requestVideoFrame` for exact per-frame cadence. Requires
+  `Worker`, `OffscreenCanvas`, `createImageBitmap`, and
+  `HTMLVideoElement.requestVideoFrame`.
+- **Inline path** (universal fallback): hash computation runs synchronously on the
+  main thread using a standard `<canvas>`. Frame scheduling uses adaptive `setTimeout`
+  polling.
+
+The active path is selected at mount via `isWorkerPipelineSupported()` in
+`useRecognitionWorker.ts` and never changes mid-session. Both paths share identical
+quality gating and match confirmation logic on the main thread.
+
 See [docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md) for algorithm
-internals.
+internals and the worker protocol.
 
 ## Playback and Media Delivery
 

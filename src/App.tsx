@@ -211,7 +211,6 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible,
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
-      enablePerspectiveNormalization: isEnabled('perspective-normalization'),
       tapIntent: isEnabled('tap-guided-rectangle') ? tapIntent : null,
       tapRoiLockMs: 500,
       tapRoiDecayMs: 1200,

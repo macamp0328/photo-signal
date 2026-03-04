@@ -2,24 +2,67 @@
 
 ## Runtime Model (Current)
 
-Photo Signal uses a single runtime recognizer:
+Photo Signal uses a single recognition algorithm:
 
 - pHash only (`src/modules/photo-recognition/algorithms/phash.ts`)
 
 Recognition runs continuously while camera view is active and recognition is enabled.
+
+## Dual-Path Architecture
+
+`usePhotoRecognition` supports two execution paths that share identical recognition
+logic but differ in how they schedule frames and run the hash pipeline:
+
+### Worker path (preferred on supporting browsers)
+
+- Requires: `Worker`, `OffscreenCanvas`, `createImageBitmap`,
+  `HTMLVideoElement.requestVideoFrame`
+- Detected at mount by `isWorkerPipelineSupported()` in `useRecognitionWorker.ts`
+- Frame scheduling: `requestVideoFrame` — fires once per new decoded video frame,
+  eliminating duplicate processing and achieving higher throughput than polling
+- Hash computation: runs entirely in `recognition.worker.ts` off the main thread
+  via `OffscreenCanvas` + `ImageBitmap` transfer (zero-copy)
+- Quality metrics and match confirmation run on the main thread after the worker
+  posts its `WorkerFrameResult` — using adaptive thresholds computed there
+
+### Inline path (universal fallback)
+
+- Always available; used when the Worker API set is absent or `enabled=false`
+- Frame scheduling: adaptive `setTimeout` polling (80 ms tracking, 120 ms idle)
+- Hash computation: synchronous on the main thread using a regular `<canvas>`
+
+The scheduling loop (`requestVideoFrame` vs `setTimeout`) is set up once at effect
+mount and never restarts, even when the worker transitions from initialising to
+ready — `isWorkerReady` is read via a ref at per-frame time so the video element
+and canvas are never recreated unnecessarily.
 
 ## Pipeline
 
 ```text
 Camera frame
   → framed/cropped region selection
-  → pHash (64-bit)
+  → pHash (64-bit)  ← off-thread on worker path, main-thread on inline path
   → candidate lookup from /data.recognition.v2.json
   → Hamming distance ranking
   → threshold + margin gate
+  → adaptive quality gating (blur / glare / lighting — always on main thread)
   → stability/instant-confirm logic
   → recognized concert (or categorized failure)
 ```
+
+## Worker Protocol (`worker-protocol.ts`)
+
+| Message (main → worker) | Purpose                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| `init`                  | Load hash index + initial config; worker replies with `ready`       |
+| `config-update`         | Live-tune thresholds without reloading hashes                       |
+| `frame`                 | Transfer `ImageBitmap` for processing; worker replies with `result` |
+
+| Message (worker → main) | Purpose                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| `ready`                 | Hash DB loaded; `hashCount` confirms entry count                                  |
+| `result`                | `WorkerFrameResult`: hash string, best/second-best match, quality metrics, timing |
+| `error`                 | Unhandled exception details                                                       |
 
 ## Data Inputs
 

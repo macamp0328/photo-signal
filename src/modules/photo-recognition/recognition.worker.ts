@@ -40,7 +40,19 @@ let hashCtx: OffscreenCanvasRenderingContext2D | null = null;
 let qualityCanvas: OffscreenCanvas | null = null;
 let qualityCtx: OffscreenCanvasRenderingContext2D | null = null;
 
-/** pHash internal DCT size — match phash.ts DCT_SIZE constant. */
+/**
+ * pHash internal DCT size — MUST equal phash.ts `DCT_SIZE` (currently 32).
+ *
+ * The worker draws the incoming bitmap at exactly PHASH_SIZE × PHASH_SIZE and
+ * passes the resulting ImageData directly to `computePHash`. Inside
+ * `computePHash`, `resizeImageData` detects that the input already matches the
+ * target size and returns early — avoiding the `document.createElement('canvas')`
+ * call that would throw in a Worker context.
+ *
+ * If PHASH_SIZE ever diverges from phash.ts `DCT_SIZE`, that short-circuit no
+ * longer fires and the worker will crash. Consider importing DCT_SIZE directly
+ * if phash.ts ever exports it as a named constant.
+ */
 const PHASH_SIZE = 32;
 
 /** Quality capture size — match usePhotoRecognition QUALITY_CAPTURE_SIZE. */
@@ -130,12 +142,30 @@ function processFrame(bitmap: ImageBitmap, frameId: number): WorkerFrameResult {
   // 3. Find best matches
   const { bestMatch, secondBestMatch } = findBestMatches(hash, hashEntries);
 
-  // 4. Determine if quality checks are needed
+  // 4. Determine if quality checks are needed, mirroring the main-thread condition:
+  //    shouldRunQualityCheck = !bestMatch || !activeMatch || distance > gatingThreshold
+  //
+  // We replicate the active-match decision here so quality always runs for
+  // ambiguous candidates (within threshold but failing margin / tie checks) —
+  // same as the inline pipeline.
   const cfg = config!;
-  const shouldRunQuality = !bestMatch || bestMatch.distance > cfg.qualityGatingDistanceThreshold;
+  const isWithinThreshold = !!bestMatch && bestMatch.distance <= cfg.similarityThreshold;
+  let activeMatchExists = false;
+  if (isWithinThreshold) {
+    const bestMargin =
+      bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
+    const marginBoost =
+      bestMatch && bestMatch.distance >= Math.max(cfg.similarityThreshold - 1, 0) ? 1 : 0;
+    const effectiveMarginRequired = cfg.matchMarginThreshold + marginBoost;
+    const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveMarginRequired;
+    const isExactCrossConcertTie =
+      secondBestMatch !== null && bestMatch!.distance === secondBestMatch.distance;
+    activeMatchExists = hasSufficientMargin && !isExactCrossConcertTie;
+  }
+  const shouldRunQuality =
+    !bestMatch || !activeMatchExists || bestMatch.distance > cfg.qualityGatingDistanceThreshold;
 
   let quality: WorkerFrameResult['quality'] = null;
-  let qualityRejected = false;
 
   if (shouldRunQuality) {
     // Draw bitmap at 128×128 for quality metrics
@@ -155,7 +185,6 @@ function processFrame(bitmap: ImageBitmap, frameId: number): WorkerFrameResult {
     );
 
     quality = metrics;
-    qualityRejected = !metrics.isSharp || metrics.hasGlare || metrics.hasPoorLighting;
   }
 
   // 5. Release bitmap memory
@@ -171,7 +200,6 @@ function processFrame(bitmap: ImageBitmap, frameId: number): WorkerFrameResult {
     bestMatch: toResult(bestMatch),
     secondBestMatch: toResult(secondBestMatch),
     quality,
-    qualityRejected,
     processingMs: performance.now() - startMs,
   };
 }

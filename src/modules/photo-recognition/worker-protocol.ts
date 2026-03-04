@@ -89,8 +89,6 @@ export interface WorkerFrameResult {
   secondBestMatch: WorkerMatchResult | null;
   /** null when quality checks were skipped (distance ≤ gating threshold). */
   quality: WorkerQualityResult | null;
-  /** Whether quality checks rejected the frame. */
-  qualityRejected: boolean;
   /** Total worker-side processing time in milliseconds. */
   processingMs: number;
 }

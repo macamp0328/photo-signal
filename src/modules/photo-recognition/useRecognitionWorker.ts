@@ -92,7 +92,12 @@ export function useRecognitionWorker({
   const onResultRef = useRef(onResult);
   onResultRef.current = onResult;
 
-  // Keep a stable ref to config for comparison.
+  // Always-current ref so the init effect can read the latest config without
+  // including it as a dependency (which would cause unnecessary re-inits).
+  const latestConfigRef = useRef(config);
+  latestConfigRef.current = config;
+
+  // Keep a stable ref to the last-sent config for dedup in the config-update effect.
   const prevConfigRef = useRef<WorkerRecognitionConfig | null>(null);
 
   // -----------------------------------------------------------------------
@@ -162,14 +167,17 @@ export function useRecognitionWorker({
     }
 
     setIsReady(false);
-    prevConfigRef.current = config;
+    // Read from the ref so this effect doesn't re-fire on config-only changes —
+    // config changes are handled by the config-update effect below.
+    const cfg = latestConfigRef.current;
+    prevConfigRef.current = cfg;
 
     worker.postMessage({
       type: 'init',
       hashEntries,
-      config,
+      config: cfg,
     });
-  }, [hashEntries, config]);
+  }, [hashEntries]); // config intentionally omitted — see latestConfigRef above
 
   // -----------------------------------------------------------------------
   // Send config-update when config changes without a hash reload

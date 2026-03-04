@@ -1305,6 +1305,10 @@ export function usePhotoRecognition(
     // Assigned to the ref so the useRecognitionWorker callback can invoke it.
     // -------------------------------------------------------------------
     workerResultHandlerRef.current = (result: WorkerFrameResult) => {
+      // Accumulate the FrameQualityInfo built during this handler so it can be
+      // forwarded to the debug overlay — mirrors the inline path behaviour.
+      let workerFrameQuality: FrameQualityInfo | null = null;
+
       // Map worker concertId results back to Concert objects
       const bestMatch: MatchCandidate | null = result.bestMatch
         ? (() => {
@@ -1372,6 +1376,14 @@ export function usePhotoRecognition(
         const hasAdaptivePoorLighting =
           metrics.averageBrightness < adaptiveThresholds.minBrightness ||
           metrics.averageBrightness > adaptiveThresholds.maxBrightness;
+        // Re-derive lightingType from adaptive thresholds so it is consistent
+        // with hasPoorLighting (the worker's lightingType uses base thresholds).
+        const adaptiveLightingType: 'underexposed' | 'overexposed' | 'ok' =
+          metrics.averageBrightness < adaptiveThresholds.minBrightness
+            ? 'underexposed'
+            : metrics.averageBrightness > adaptiveThresholds.maxBrightness
+              ? 'overexposed'
+              : 'ok';
 
         const quality: FrameQualityInfo = {
           sharpness: metrics.sharpness,
@@ -1380,28 +1392,53 @@ export function usePhotoRecognition(
           hasGlare: hasAdaptiveGlare,
           averageBrightness: metrics.averageBrightness,
           hasPoorLighting: hasAdaptivePoorLighting,
-          lightingType: metrics.lightingType,
+          lightingType: adaptiveLightingType,
         };
 
+        workerFrameQuality = quality;
         setFrameQuality(quality);
 
         if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
-          // Blur tracking
           if (!quality.isSharp) {
             consecutiveBlurFramesRef.current += 1;
             if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
               return;
             }
             telemetryRef.current.blurRejections += 1;
+            // Mirror inline path: postTapBlurRejections telemetry
+            const tapAge =
+              lastTapIntentRef.current !== null
+                ? Date.now() - lastTapIntentRef.current.timestamp
+                : Number.POSITIVE_INFINITY;
+            if (tapAge <= tapRoiLockMs + tapRoiDecayMs && telemetryRef.current.tapAssist) {
+              telemetryRef.current.tapAssist.postTapBlurRejections += 1;
+            }
             recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
+            telemetryRef.current.frameQualityStats.blur.sharpnessSum += quality.sharpness;
+            telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
+            // Mirror inline path: only clear tracking after BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES
+            const shouldClearTracking =
+              consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES;
+            if (shouldClearTracking) {
+              lastMatchedConcertRef.current = null;
+              consecutiveMatchCountRef.current = 0;
+              matchStartTimeRef.current = null;
+            }
+            setIsRecognizing(false);
+            return;
           } else if (quality.hasGlare) {
             consecutiveBlurFramesRef.current = 0;
             telemetryRef.current.glareRejections += 1;
             recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+            telemetryRef.current.frameQualityStats.glare.glarePercentSum += quality.glarePercentage;
+            telemetryRef.current.frameQualityStats.glare.sampleCount += 1;
           } else {
             consecutiveBlurFramesRef.current = 0;
             telemetryRef.current.lightingRejections += 1;
             recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+            telemetryRef.current.frameQualityStats.lighting.brightnessSum +=
+              quality.averageBrightness ?? 0;
+            telemetryRef.current.frameQualityStats.lighting.sampleCount += 1;
           }
 
           lastMatchedConcertRef.current = null;
@@ -1465,7 +1502,7 @@ export function usePhotoRecognition(
             stability,
             similarityThreshold,
             recognitionDelay,
-            frameQuality: null,
+            frameQuality: workerFrameQuality,
             telemetry: { ...telemetryRef.current },
           })
         );

@@ -15,6 +15,12 @@ import {
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
 import { calculateAdaptiveQualityThresholds, computeAllQualityMetrics } from './algorithms/utils';
 import { getPerspectiveCroppedImageData } from './algorithms/perspective';
+import { useRecognitionWorker } from './useRecognitionWorker';
+import type {
+  WorkerFrameResult,
+  WorkerHashEntry,
+  WorkerRecognitionConfig,
+} from './worker-protocol';
 import type {
   AspectRatio,
   FailureCategory,
@@ -493,6 +499,66 @@ export function usePhotoRecognition(
     return concerts.filter((concert) => indexedHashData.eligibleConcertIds.has(concert.id));
   }, [concerts, indexedHashData.eligibleConcertIds]);
 
+  // -------------------------------------------------------------------------
+  // Web Worker pipeline (off-main-thread hash computation + matching)
+  // -------------------------------------------------------------------------
+
+  /** Map concertId → Concert for resolving worker results back to Concert objects. */
+  const concertsById = useMemo(() => new Map(concerts.map((c) => [c.id, c])), [concerts]);
+
+  /** Lightweight hash entries sent to the worker (no full Concert objects). */
+  const workerHashEntries: WorkerHashEntry[] = useMemo(
+    () => concertHashList.map(({ hash, concert }) => ({ hash, concertId: concert.id })),
+    [concertHashList]
+  );
+
+  /** Recognition + quality config forwarded to the worker. */
+  const workerConfig: WorkerRecognitionConfig = useMemo(
+    () => ({
+      similarityThreshold,
+      matchMarginThreshold,
+      qualityGatingDistanceThreshold: QUALITY_GATING_DISTANCE_THRESHOLD,
+      quality: {
+        sharpnessThreshold,
+        glareThreshold: glareThreshold ?? 250,
+        glarePercentageThreshold: glarePercentageThreshold ?? 20,
+        minBrightness: minBrightness ?? 50,
+        maxBrightness: maxBrightness ?? 220,
+      },
+    }),
+    [
+      similarityThreshold,
+      matchMarginThreshold,
+      sharpnessThreshold,
+      glareThreshold,
+      glarePercentageThreshold,
+      minBrightness,
+      maxBrightness,
+    ]
+  );
+
+  /**
+   * Ref-based callback for worker results. The actual handler is assigned
+   * inside the main useEffect so it can close over the inner helpers
+   * (processQualityFilters, computeStability) and frame-scoped variables.
+   */
+  const workerResultHandlerRef = useRef<((result: WorkerFrameResult) => void) | null>(null);
+
+  const handleWorkerResult = useCallback((result: WorkerFrameResult) => {
+    workerResultHandlerRef.current?.(result);
+  }, []);
+
+  const {
+    processFrame: workerProcessFrame,
+    isReady: isWorkerReady,
+    isSupported: isWorkerSupported,
+  } = useRecognitionWorker({
+    hashEntries: workerHashEntries,
+    config: workerConfig,
+    onResult: handleWorkerResult,
+    enabled: enabled && eligibleConcerts.length > 0,
+  });
+
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {
       return;
@@ -540,6 +606,12 @@ export function usePhotoRecognition(
     rectangleDetectorRef.current = enableRectangleDetection
       ? new RectangleDetectionService()
       : null;
+
+    // -----------------------------------------------------------------------
+    // Worker path control
+    // -----------------------------------------------------------------------
+    const useWorkerPath =
+      isWorkerReady && isWorkerSupported && typeof video.requestVideoFrame === 'function';
 
     // -----------------------------------------------------------------------
     // Inner helper: quality filtering
@@ -886,6 +958,53 @@ export function usePhotoRecognition(
           }
         }
 
+        // -----------------------------------------------------------------
+        // Worker path: send bitmap to worker and return immediately.
+        // The result callback (workerResultHandlerRef) handles the
+        // quality/stability/confirmation logic when the worker replies.
+        // Falls back to inline when perspective normalization produced
+        // custom ImageData (the worker doesn't handle perspective warp).
+        // -----------------------------------------------------------------
+        if (useWorkerPath && !perspectiveImageData) {
+          const workerFrameId = frameCountRef.current;
+          const workerAspect = chosenAspectRatio;
+          const workerFramedRegion = { ...framedRegion };
+
+          createImageBitmap(
+            video,
+            framedRegion.x,
+            framedRegion.y,
+            framedRegion.width,
+            framedRegion.height,
+            {
+              resizeWidth: 128,
+              resizeHeight: 128,
+            }
+          )
+            .then((bitmap) => {
+              const sent = workerProcessFrame(bitmap, workerFrameId);
+              if (!sent && enableDebugInfo) {
+                console.debug('[photo-recognition] Worker busy, skipped frame', workerFrameId);
+              }
+            })
+            .catch((err) => {
+              console.warn('[photo-recognition] createImageBitmap failed:', err);
+            });
+
+          // Debug timing for the main-thread portion only
+          if (enableDebugInfo) {
+            const mainThreadMs = performance.now() - frameStartAt;
+            console.debug('[photo-recognition] Worker frame (main-thread portion)', {
+              frame: workerFrameId,
+              mainThreadMs: Number(mainThreadMs.toFixed(2)),
+              aspect: workerAspect,
+              framedRegion: workerFramedRegion,
+            });
+            console.timeEnd(frameLabel);
+          }
+          return;
+        }
+
         const frameCaptureStartAt = performance.now();
         let imageData: ImageData;
         const capturedPerspectiveImageData = perspectiveImageData as ImageData | null;
@@ -1206,23 +1325,330 @@ export function usePhotoRecognition(
       }
     };
 
-    // Adaptive scheduling: scan faster when tracking a candidate, slower when idle.
-    // A fixed checkInterval (non-default) overrides this for test compatibility.
-    const scheduleNext = () => {
-      const isTracking = lastMatchedConcertRef.current !== null;
-      const delay =
-        checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 120;
-      intervalRef.current = window.setTimeout(() => {
-        checkFrame();
-        scheduleNext();
-      }, delay);
+    // -------------------------------------------------------------------
+    // Worker result handler — processes async results from the recognition
+    // worker using the same stability/confirmation logic as the inline path.
+    // Assigned to the ref so the useRecognitionWorker callback can invoke it.
+    // -------------------------------------------------------------------
+    workerResultHandlerRef.current = (result: WorkerFrameResult) => {
+      // Map worker concertId results back to Concert objects
+      const bestMatch: MatchCandidate | null = result.bestMatch
+        ? (() => {
+            const c = concertsById.get(result.bestMatch!.concertId);
+            return c ? { concert: c, distance: result.bestMatch!.distance } : null;
+          })()
+        : null;
+      const secondBestMatch: MatchCandidate | null = result.secondBestMatch
+        ? (() => {
+            const c = concertsById.get(result.secondBestMatch!.concertId);
+            return c ? { concert: c, distance: result.secondBestMatch!.distance } : null;
+          })()
+        : null;
+
+      // Decision variables (mirrors inline path logic)
+      const now = Date.now();
+      const activeThreshold = similarityThreshold;
+      const bestMargin =
+        bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
+      const requiredMargin = matchMarginThreshold;
+      const marginBoostNearThreshold =
+        bestMatch && bestMatch.distance >= Math.max(activeThreshold - 1, 0) ? 1 : 0;
+      const effectiveRequiredMargin = requiredMargin + marginBoostNearThreshold;
+      const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveRequiredMargin;
+      const isWithinThreshold = !!bestMatch && bestMatch.distance <= activeThreshold;
+      const isExactCrossConcertTie =
+        !!bestMatch &&
+        !!secondBestMatch &&
+        bestMatch.concert.id !== secondBestMatch.concert.id &&
+        bestMatch.distance === secondBestMatch.distance;
+      const isAmbiguousMatchCandidate =
+        isWithinThreshold && (!hasSufficientMargin || isExactCrossConcertTie);
+      const activeMatch =
+        isWithinThreshold && hasSufficientMargin && !isExactCrossConcertTie
+          ? bestMatch!.concert
+          : null;
+
+      // Quality filtering — apply adaptive thresholds on main thread
+      const shouldRunQualityCheck =
+        !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
+
+      if (shouldRunQualityCheck && result.quality) {
+        const metrics = result.quality;
+
+        // Update ambient brightness EMA
+        ambientBrightnessRef.current =
+          ambientBrightnessRef.current === null
+            ? metrics.averageBrightness
+            : ambientBrightnessRef.current * 0.85 + metrics.averageBrightness * 0.15;
+        ambientGlarePercentageRef.current =
+          ambientGlarePercentageRef.current === null
+            ? metrics.glarePercentage
+            : ambientGlarePercentageRef.current * 0.85 + metrics.glarePercentage * 0.15;
+
+        const adaptiveThresholds = calculateAdaptiveQualityThresholds(
+          minBrightness ?? 50,
+          maxBrightness ?? 220,
+          glarePercentageThreshold ?? 20,
+          ambientBrightnessRef.current,
+          ambientGlarePercentageRef.current
+        );
+
+        const hasAdaptiveGlare =
+          metrics.glarePercentage > adaptiveThresholds.glarePercentageThreshold;
+        const hasAdaptivePoorLighting =
+          metrics.averageBrightness < adaptiveThresholds.minBrightness ||
+          metrics.averageBrightness > adaptiveThresholds.maxBrightness;
+
+        const quality: FrameQualityInfo = {
+          sharpness: metrics.sharpness,
+          isSharp: metrics.isSharp,
+          glarePercentage: metrics.glarePercentage,
+          hasGlare: hasAdaptiveGlare,
+          averageBrightness: metrics.averageBrightness,
+          hasPoorLighting: hasAdaptivePoorLighting,
+          lightingType: metrics.lightingType,
+        };
+
+        setFrameQuality(quality);
+
+        if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
+          // Blur tracking
+          if (!quality.isSharp) {
+            consecutiveBlurFramesRef.current += 1;
+            if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
+              return;
+            }
+            telemetryRef.current.blurRejections += 1;
+            recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
+          } else if (quality.hasGlare) {
+            consecutiveBlurFramesRef.current = 0;
+            telemetryRef.current.glareRejections += 1;
+            recordFailure(telemetryRef.current, 'glare', 'Frame has significant glare', 'N/A');
+          } else {
+            consecutiveBlurFramesRef.current = 0;
+            telemetryRef.current.lightingRejections += 1;
+            recordFailure(telemetryRef.current, 'poor-quality', 'Frame has poor lighting', 'N/A');
+          }
+
+          lastMatchedConcertRef.current = null;
+          consecutiveMatchCountRef.current = 0;
+          matchStartTimeRef.current = null;
+          setIsRecognizing(false);
+          return;
+        }
+
+        consecutiveBlurFramesRef.current = 0;
+        telemetryRef.current.qualityFrames += 1;
+      } else if (!shouldRunQualityCheck) {
+        telemetryRef.current.qualityBypassFrames =
+          (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
+        consecutiveBlurFramesRef.current = 0;
+        setFrameQuality(null);
+      }
+
+      // Hamming distance telemetry
+      if (bestMatch !== null) {
+        const dist = bestMatch.distance;
+        const hdLog = telemetryRef.current.hammingDistanceLog;
+        hdLog.matchedFrameDistances.count += 1;
+        hdLog.matchedFrameDistances.sum += dist;
+        if (hdLog.matchedFrameDistances.min === null || dist < hdLog.matchedFrameDistances.min) {
+          hdLog.matchedFrameDistances.min = dist;
+        }
+        if (hdLog.matchedFrameDistances.max === null || dist > hdLog.matchedFrameDistances.max) {
+          hdLog.matchedFrameDistances.max = dist;
+        }
+        if (dist > activeThreshold && dist <= activeThreshold + 8) {
+          const hdLogRef = telemetryRef.current.hammingDistanceLog;
+          hdLogRef.nearMisses.push({
+            distance: dist,
+            frameHash: result.hash,
+            timestamp: Date.now(),
+            thresholdUsed: activeThreshold,
+            mode: 'initial',
+          });
+          if (hdLogRef.nearMisses.length > 20) {
+            hdLogRef.nearMisses.shift();
+          }
+        }
+      }
+
+      // Debug info
+      if (enableDebugInfo) {
+        const stability = computeStability(activeMatch, now);
+        setDebugInfo(
+          buildDebugInfo({
+            currentHash: result.hash,
+            bestMatch,
+            secondBestMatch,
+            bestMargin,
+            now,
+            concertCount: eligibleConcerts.length,
+            frameCount: frameCountRef.current,
+            checkInterval,
+            aspectRatio: aspectRatio === 'auto' ? '3:2' : aspectRatio,
+            framedRegion: { width: 128, height: 128 },
+            stability,
+            similarityThreshold,
+            recognitionDelay,
+            frameQuality: null,
+            telemetry: { ...telemetryRef.current },
+          })
+        );
+      }
+
+      // Match confirmation (mirrors inline path)
+      if (activeMatch) {
+        const isAlreadyRecognizedConcert = recognizedConcertRef.current?.id === activeMatch.id;
+        if (isAlreadyRecognizedConcert) {
+          lastMatchedConcertRef.current = null;
+          consecutiveMatchCountRef.current = 0;
+          matchStartTimeRef.current = null;
+          setIsRecognizing(false);
+          return;
+        }
+
+        const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
+        consecutiveMatchCountRef.current = isSameConcert ? consecutiveMatchCountRef.current + 1 : 1;
+
+        const isInstantDistance = !!bestMatch && bestMatch.distance <= INSTANT_DISTANCE_THRESHOLD;
+        const hasConsecutiveInstantConfidence =
+          consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
+
+        if (isInstantDistance || hasConsecutiveInstantConfidence) {
+          recognizedConcertRef.current = activeMatch;
+          if (isInstantDistance) {
+            telemetryRef.current.instantConfirmations =
+              (telemetryRef.current.instantConfirmations ?? 0) + 1;
+          }
+          setRecognizedConcert(activeMatch);
+          setIsRecognizing(false);
+          telemetryRef.current.successfulRecognitions += 1;
+          lastMatchedConcertRef.current = null;
+          consecutiveMatchCountRef.current = 0;
+          matchStartTimeRef.current = null;
+          return;
+        }
+
+        if (isSameConcert) {
+          if (
+            matchStartTimeRef.current !== null &&
+            now - matchStartTimeRef.current >= recognitionDelay
+          ) {
+            recognizedConcertRef.current = activeMatch;
+            setRecognizedConcert(activeMatch);
+            setIsRecognizing(false);
+            telemetryRef.current.successfulRecognitions += 1;
+            lastMatchedConcertRef.current = null;
+            consecutiveMatchCountRef.current = 0;
+            matchStartTimeRef.current = null;
+            return;
+          }
+          setIsRecognizing(true);
+          return;
+        }
+
+        lastMatchedConcertRef.current = activeMatch;
+        matchStartTimeRef.current = now;
+        setIsRecognizing(true);
+        return;
+      }
+
+      // No active match — record failure
+      if (bestMatch) {
+        const isAmbiguousCollision = isAmbiguousMatchCandidate;
+        const isNearThresholdNoMatch =
+          !isAmbiguousCollision && bestMatch.distance <= activeThreshold + 2;
+
+        const category: FailureCategory =
+          isAmbiguousCollision || isNearThresholdNoMatch ? 'collision' : 'no-match';
+
+        if (category === 'collision') {
+          recordCollisionDetails(telemetryRef.current, {
+            isAmbiguous: isAmbiguousCollision,
+            margin: bestMargin,
+            bestBand: bestMatch.concert.band,
+            secondBand: secondBestMatch?.concert.band ?? null,
+          });
+        }
+
+        recordFailure(
+          telemetryRef.current,
+          category,
+          category === 'collision'
+            ? `Ambiguous match: ${bestMatch.concert.band} vs ${secondBestMatch?.concert.band ?? 'unknown'}`
+            : `Best match ${bestMatch.concert.band} (distance ${bestMatch.distance})`,
+          result.hash
+        );
+      } else {
+        recordFailure(
+          telemetryRef.current,
+          'no-match',
+          'No concerts with valid pHash',
+          result.hash
+        );
+      }
+
+      if (lastMatchedConcertRef.current) {
+        telemetryRef.current.failedAttempts += 1;
+      }
+      lastMatchedConcertRef.current = null;
+      consecutiveMatchCountRef.current = 0;
+      matchStartTimeRef.current = null;
+      setIsRecognizing(false);
     };
-    scheduleNext();
+
+    // -------------------------------------------------------------------
+    // Dual-path scheduling
+    // -------------------------------------------------------------------
+    let rVFHandle: number | undefined;
+
+    if (useWorkerPath) {
+      // requestVideoFrame-based scheduling — fires exactly when new video
+      // frames are presented, avoiding duplicate processing and enabling
+      // higher effective frame rates than setTimeout polling.
+      let workerFrameSkip = 0;
+      const onVideoFrame = () => {
+        // Idle throttle: skip every other frame when not tracking a candidate.
+        const isTracking = lastMatchedConcertRef.current !== null;
+        workerFrameSkip += 1;
+        if (!isTracking && workerFrameSkip % 2 !== 0) {
+          rVFHandle = video.requestVideoFrame(onVideoFrame);
+          return;
+        }
+        checkFrame();
+        rVFHandle = video.requestVideoFrame(onVideoFrame);
+      };
+      rVFHandle = video.requestVideoFrame(onVideoFrame);
+    } else {
+      // Adaptive setTimeout scheduling (existing fallback path).
+      // A fixed checkInterval (non-default) overrides this for test compatibility.
+      const scheduleNext = () => {
+        const isTracking = lastMatchedConcertRef.current !== null;
+        const delay =
+          checkInterval !== DEFAULT_CHECK_INTERVAL ? checkInterval : isTracking ? 80 : 120;
+        intervalRef.current = window.setTimeout(() => {
+          checkFrame();
+          scheduleNext();
+        }, delay);
+      };
+      scheduleNext();
+    }
 
     return () => {
+      workerResultHandlerRef.current = null;
+
       if (intervalRef.current) {
         clearTimeout(intervalRef.current);
         intervalRef.current = undefined;
+      }
+
+      if (
+        rVFHandle !== undefined &&
+        video &&
+        typeof video.cancelVideoFrameCallback === 'function'
+      ) {
+        video.cancelVideoFrameCallback(rVFHandle);
       }
 
       if (videoRef.current) {
@@ -1237,6 +1663,7 @@ export function usePhotoRecognition(
     eligibleConcerts,
     concertHashList,
     concertHashBuckets,
+    concertsById,
     checkInterval,
     recognitionDelay,
     similarityThreshold,
@@ -1256,6 +1683,9 @@ export function usePhotoRecognition(
     tapRoiLockMs,
     tapRoiDecayMs,
     restartKey,
+    isWorkerReady,
+    isWorkerSupported,
+    workerProcessFrame,
   ]);
 
   return {

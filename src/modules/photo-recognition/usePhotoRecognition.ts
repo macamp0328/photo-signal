@@ -14,7 +14,6 @@ import {
 } from './helpers';
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
 import { calculateAdaptiveQualityThresholds, computeAllQualityMetrics } from './algorithms/utils';
-import { getPerspectiveCroppedImageData } from './algorithms/perspective';
 import { useRecognitionWorker } from './useRecognitionWorker';
 import type {
   WorkerFrameResult,
@@ -307,7 +306,6 @@ export function usePhotoRecognition(
     minBrightness = 50,
     maxBrightness = 220,
     enableRectangleDetection = false,
-    enablePerspectiveNormalization = false,
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
     tapIntent = null,
@@ -841,7 +839,6 @@ export function usePhotoRecognition(
         let framedRegion = offsetRegionToVideo(
           calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
-        let perspectiveImageData: ImageData | null = null;
         const activeTap = lastTapIntentRef.current;
         const tapAgeMs = activeTap ? Date.now() - activeTap.timestamp : Number.POSITIVE_INFINITY;
         const tapWindowMs = tapRoiLockMs + tapRoiDecayMs;
@@ -870,10 +867,6 @@ export function usePhotoRecognition(
 
           const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
           const applyRectangleCrop = (rectangle: DetectedRectangle) => {
-            if (enablePerspectiveNormalization) {
-              perspectiveImageData = getPerspectiveCroppedImageData(viewportImageData, rectangle);
-            }
-
             const pixelRectangle = {
               x: Math.round(rectangle.topLeft.x * visibleViewport.width),
               y: Math.round(rectangle.topLeft.y * visibleViewport.height),
@@ -962,10 +955,8 @@ export function usePhotoRecognition(
         // Worker path: send bitmap to worker and return immediately.
         // The result callback (workerResultHandlerRef) handles the
         // quality/stability/confirmation logic when the worker replies.
-        // Falls back to inline when perspective normalization produced
-        // custom ImageData (the worker doesn't handle perspective warp).
         // -----------------------------------------------------------------
-        if (useWorkerPath && !perspectiveImageData) {
+        if (useWorkerPath) {
           const workerFrameId = frameCountRef.current;
           const workerAspect = chosenAspectRatio;
           const workerFramedRegion = { ...framedRegion };
@@ -1006,43 +997,27 @@ export function usePhotoRecognition(
         }
 
         const frameCaptureStartAt = performance.now();
-        let imageData: ImageData;
-        const capturedPerspectiveImageData = perspectiveImageData as ImageData | null;
+        // Downscale directly to 64×64 during capture so getImageData() only
+        // returns 4 096 pixels instead of the full framed-region dimensions
+        // (often 200 000+ pixels). The browser's canvas drawImage() performs
+        // hardware-accelerated bilinear downscaling. computePHash() will then
+        // resize 64×64 → 32×32, which is nearly free.
+        const CAPTURE_SIZE = 64;
+        canvas.width = CAPTURE_SIZE;
+        canvas.height = CAPTURE_SIZE;
+        context.drawImage(
+          video,
+          framedRegion.x,
+          framedRegion.y,
+          framedRegion.width,
+          framedRegion.height,
+          0,
+          0,
+          CAPTURE_SIZE,
+          CAPTURE_SIZE
+        );
 
-        if (capturedPerspectiveImageData) {
-          canvas.width = capturedPerspectiveImageData.width;
-          canvas.height = capturedPerspectiveImageData.height;
-          context.putImageData(capturedPerspectiveImageData, 0, 0);
-          framedRegion = {
-            x: framedRegion.x,
-            y: framedRegion.y,
-            width: capturedPerspectiveImageData.width,
-            height: capturedPerspectiveImageData.height,
-          };
-          imageData = capturedPerspectiveImageData;
-        } else {
-          // Downscale directly to 64×64 during capture so getImageData() only
-          // returns 4 096 pixels instead of the full framed-region dimensions
-          // (often 200 000+ pixels). The browser's canvas drawImage() performs
-          // hardware-accelerated bilinear downscaling. computePHash() will then
-          // resize 64×64 → 32×32, which is nearly free.
-          const CAPTURE_SIZE = 64;
-          canvas.width = CAPTURE_SIZE;
-          canvas.height = CAPTURE_SIZE;
-          context.drawImage(
-            video,
-            framedRegion.x,
-            framedRegion.y,
-            framedRegion.width,
-            framedRegion.height,
-            0,
-            0,
-            CAPTURE_SIZE,
-            CAPTURE_SIZE
-          );
-
-          imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
-        }
+        const imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
@@ -1099,12 +1074,11 @@ export function usePhotoRecognition(
         const shouldRunQualityCheck =
           !bestMatch || !activeMatch || bestMatch.distance > QUALITY_GATING_DISTANCE_THRESHOLD;
 
-        // When quality checks are needed and we used the 64×64 hash capture,
-        // re-capture at QUALITY_CAPTURE_SIZE so that resolution-sensitive
-        // metrics (especially Laplacian variance for sharpness) are not
-        // distorted by the downscaled hash image.
+        // When quality checks are needed, re-capture at QUALITY_CAPTURE_SIZE so
+        // that resolution-sensitive metrics (especially Laplacian variance for
+        // sharpness) are not distorted by the downscaled 64×64 hash image.
         let qualityImageData = imageData;
-        if (shouldRunQualityCheck && !perspectiveImageData) {
+        if (shouldRunQualityCheck) {
           canvas.width = QUALITY_CAPTURE_SIZE;
           canvas.height = QUALITY_CAPTURE_SIZE;
           context.drawImage(
@@ -1677,7 +1651,6 @@ export function usePhotoRecognition(
     maxBrightness,
     enableDebugInfo,
     enableRectangleDetection,
-    enablePerspectiveNormalization,
     rectangleConfidenceThreshold,
     displayAspectRatio,
     tapRoiLockMs,

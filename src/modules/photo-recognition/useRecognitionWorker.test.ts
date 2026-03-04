@@ -365,7 +365,7 @@ describe('useRecognitionWorker — supported environment', () => {
     expect(result.current.isReady).toBe(true);
   });
 
-  it('resets isReady=false when worker sends an error', async () => {
+  it('clears isReady and isBusy when worker fires an unhandled error', async () => {
     const { result } = renderHook(() =>
       useRecognitionWorker({
         hashEntries: sampleHashEntries,
@@ -380,13 +380,14 @@ describe('useRecognitionWorker — supported environment', () => {
     });
     expect(result.current.isReady).toBe(true);
 
-    // An unhandled worker crash clears busy/isBusy but isReady was already set —
-    // this tests onerror path specifically.
     await act(async () => {
       lastWorker?.simulateError('Worker crashed');
     });
 
-    // isBusy should be cleared on error
+    // An unhandled crash leaves the worker in an undefined state — both
+    // isReady and isBusy must be cleared to prevent processFrame from sending
+    // further frames to a broken worker.
+    expect(result.current.isReady).toBe(false);
     expect(result.current.isBusy).toBe(false);
   });
 

@@ -143,6 +143,9 @@ export function useRecognitionWorker({
       console.error('[recognition-worker] Unhandled error:', err);
       busyRef.current = false;
       setIsBusy(false);
+      // A crash leaves the worker in an undefined state — mark it not-ready so
+      // processFrame won't attempt to send further frames to a broken worker.
+      setIsReady(false);
     };
 
     workerRef.current = worker;

@@ -557,6 +557,20 @@ export function usePhotoRecognition(
     enabled: enabled && eligibleConcerts.length > 0,
   });
 
+  // isWorkerSupported is the result of feature-detection run once at mount — it
+  // never changes. Storing it in a ref keeps it out of the main scheduling
+  // effect's dependency array without risk of staleness.
+  const isWorkerSupportedRef = useRef(isWorkerSupported);
+  // isWorkerReady and workerProcessFrame change when the worker transitions to
+  // ready (isReady state flip → new processFrame useCallback reference). Tracking
+  // them via refs lets the scheduling effect read the latest values per-frame
+  // without tearing down and recreating the video element + canvas + scheduler
+  // every time the worker finishes initialising.
+  const isWorkerReadyRef = useRef(false);
+  isWorkerReadyRef.current = isWorkerReady;
+  const workerProcessFrameRef = useRef(workerProcessFrame);
+  workerProcessFrameRef.current = workerProcessFrame;
+
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {
       return;
@@ -608,8 +622,13 @@ export function usePhotoRecognition(
     // -----------------------------------------------------------------------
     // Worker path control
     // -----------------------------------------------------------------------
-    const useWorkerPath =
-      isWorkerReady && isWorkerSupported && typeof video.requestVideoFrame === 'function';
+    // canUseWorkerPath is stable across the effect's lifetime — it depends only
+    // on browser capability (never-changing) and requestVideoFrame availability
+    // on the video element. Actual worker readiness is checked per-frame via
+    // isWorkerReadyRef so the scheduling loop never restarts when the worker
+    // finishes initialising.
+    const canUseWorkerPath =
+      isWorkerSupportedRef.current && typeof video.requestVideoFrame === 'function';
 
     // -----------------------------------------------------------------------
     // Inner helper: quality filtering
@@ -956,7 +975,7 @@ export function usePhotoRecognition(
         // The result callback (workerResultHandlerRef) handles the
         // quality/stability/confirmation logic when the worker replies.
         // -----------------------------------------------------------------
-        if (useWorkerPath) {
+        if (canUseWorkerPath && isWorkerReadyRef.current) {
           const workerFrameId = frameCountRef.current;
           const workerAspect = chosenAspectRatio;
           const workerFramedRegion = { ...framedRegion };
@@ -973,7 +992,7 @@ export function usePhotoRecognition(
             }
           )
             .then((bitmap) => {
-              const sent = workerProcessFrame(bitmap, workerFrameId);
+              const sent = workerProcessFrameRef.current(bitmap, workerFrameId);
               if (!sent && enableDebugInfo) {
                 console.debug('[photo-recognition] Worker busy, skipped frame', workerFrameId);
               }
@@ -1455,6 +1474,15 @@ export function usePhotoRecognition(
           (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
         consecutiveBlurFramesRef.current = 0;
         setFrameQuality(null);
+      } else {
+        // shouldRunQualityCheck is true but result.quality is null — the worker
+        // skipped quality computation (e.g. config was updated between frame
+        // dispatch and result delivery, causing a transient gate mismatch).
+        // Reset blur tracking and clear quality display to stay consistent with
+        // the quality-bypass path; the frame is still allowed to proceed to
+        // match confirmation.
+        consecutiveBlurFramesRef.current = 0;
+        setFrameQuality(null);
       }
 
       // Hamming distance telemetry
@@ -1614,10 +1642,13 @@ export function usePhotoRecognition(
     // -------------------------------------------------------------------
     let rVFHandle: number | undefined;
 
-    if (useWorkerPath) {
+    if (canUseWorkerPath) {
       // requestVideoFrame-based scheduling — fires exactly when new video
       // frames are presented, avoiding duplicate processing and enabling
       // higher effective frame rates than setTimeout polling.
+      // canUseWorkerPath (not isWorkerReadyRef) gates scheduling so that
+      // requestVideoFrame is set up immediately; checkFrame decides at runtime
+      // whether to route each frame to the worker or inline path.
       let workerFrameSkip = 0;
       const onVideoFrame = () => {
         // Idle throttle: skip every other frame when not tracking a candidate.
@@ -1693,9 +1724,11 @@ export function usePhotoRecognition(
     tapRoiLockMs,
     tapRoiDecayMs,
     restartKey,
-    isWorkerReady,
-    isWorkerSupported,
-    workerProcessFrame,
+    // isWorkerSupported, isWorkerReady, workerProcessFrame are intentionally
+    // omitted: all three are accessed via refs (isWorkerSupportedRef,
+    // isWorkerReadyRef, workerProcessFrameRef) so the scheduler never restarts
+    // — and never recreates the video/canvas — when the worker transitions to
+    // ready or its processFrame reference changes.
   ]);
 
   return {

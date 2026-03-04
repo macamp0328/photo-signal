@@ -72,6 +72,24 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
     roiFallbackDetections: 0,
     postTapBlurRejections: 0,
   },
+  startup: {
+    milestones: {
+      recognitionEnabledAt: null,
+      artifactsReadyAt: null,
+      streamReadyAt: null,
+      workerReadyAt: null,
+      firstFrameAt: null,
+      firstMatchAt: null,
+    },
+    durationsMs: {
+      enabledToArtifactsReady: null,
+      enabledToStreamReady: null,
+      enabledToWorkerReady: null,
+      enabledToFirstFrame: null,
+      enabledToFirstMatch: null,
+      firstFrameToFirstMatch: null,
+    },
+  },
 });
 
 export const similarityPercent = (distance: number): number =>

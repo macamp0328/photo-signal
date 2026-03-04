@@ -9,8 +9,9 @@
  */
 
 import '@testing-library/jest-dom';
+import { clearRecognitionIndexCache } from '../services/recognition-index-service';
 import { setupGlobalMocks } from './mocks';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 
 const hasDom = typeof window !== 'undefined' && typeof document !== 'undefined';
 
@@ -65,3 +66,7 @@ console.error = vi.fn(createConsoleFilter(originalConsoleError, EXPECTED_MESSAGE
 
 // Mock console.warn to suppress expected messages
 console.warn = vi.fn(createConsoleFilter(originalConsoleWarn, EXPECTED_MESSAGES));
+
+beforeEach(() => {
+  clearRecognitionIndexCache();
+});

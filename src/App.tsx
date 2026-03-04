@@ -20,6 +20,7 @@ import type { TapIntent } from './types';
 import type { PhotoRecognitionOptions } from './modules/photo-recognition/types';
 import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
+import { preloadRecognitionIndex } from './services/recognition-index-service';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -132,7 +133,7 @@ function AppContent() {
   const [showSecretSettings, setShowSecretSettings] = useState(false);
 
   // Track whether debug overlay is currently visible/expanded
-  const [isDebugOverlayVisible, setIsDebugOverlayVisible] = useState(true);
+  const [isDebugOverlayVisible, setIsDebugOverlayVisible] = useState(false);
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
@@ -828,6 +829,13 @@ function AppContent() {
 }
 
 function App() {
+  useEffect(() => {
+    preloadRecognitionIndex();
+    void dataService.getConcerts().catch(() => {
+      // AppContent and recognition hook log specific load failures.
+    });
+  }, []);
+
   const gateConfig = getAccessGateConfig();
   const [isUnlocked, setIsUnlocked] = useState(
     () => !gateConfig.enabled || hasValidAccessSession()

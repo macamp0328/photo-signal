@@ -897,13 +897,41 @@ async function captureDemoFrames(options) {
         .isVisible()
         .catch(() => false);
 
-    const hasDropNeedleForTarget = async (target) =>
-      page
+    const hasDropNeedleForTarget = async (target) => {
+      const targetSpecificVisible = await page
         .getByRole('button', {
           name: new RegExp(`switch artist to\\s+${escapeRegex(target.artistName)}`, 'i'),
         })
         .isVisible()
         .catch(() => false);
+
+      if (targetSpecificVisible) {
+        return true;
+      }
+
+      const genericVisible = await hasDropNeedle();
+      if (!genericVisible) {
+        return false;
+      }
+
+      const bodyText = await page
+        .locator('body')
+        .innerText()
+        .then((text) => text.replace(/\s+/g, ' '))
+        .catch(() => '');
+
+      return new RegExp(escapeRegex(target.artistName), 'i').test(bodyText);
+    };
+
+    const waitForDropNeedleButtonForTarget = async (target, timeoutMs = 6000) => {
+      const specificName = new RegExp(`switch artist to\\s+${escapeRegex(target.artistName)}`, 'i');
+
+      try {
+        return await waitForEnabledButton(specificName, timeoutMs);
+      } catch {
+        return await waitForEnabledButton(/switch artist|drop the needle/i, timeoutMs);
+      }
+    };
 
     const setSyntheticPhase = async (phase) => {
       const activePhase = await page.evaluate((nextPhase) => {
@@ -1117,9 +1145,7 @@ async function captureDemoFrames(options) {
 
     await captureFor(STORY_PACING_MS.postSecondMatchHold);
 
-    const dropNeedleButton = await waitForEnabledButton(
-      new RegExp(`switch artist to\\s+${escapeRegex(matchedSecondTarget.artistName)}`, 'i')
-    );
+    const dropNeedleButton = await waitForDropNeedleButtonForTarget(matchedSecondTarget);
     await tapWithHighlight(dropNeedleButton);
     await captureFor(STORY_PACING_MS.postDropNeedleHold);
   } finally {

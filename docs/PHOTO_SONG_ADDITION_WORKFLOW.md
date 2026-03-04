@@ -4,22 +4,22 @@ Use this runbook when you want to temporarily add a single photo + song reveal w
 
 ## Prerequisites
 
-- A photo file available under `public/assets/test-images/` (or another public path).
+- A recognition source photo placed under `assets/` at the **repo root** (e.g., `assets/one-off/<name>.jpg`). This is a local-only file used by the hashing script and is not committed.
 - A song source URL or a prepared audio file.
 - A unique numeric `concertId` not currently used in `public/data.app.v2.json`.
 
 ## Quick Add Flow
 
 1. Add media files:
-   - Photo preview file (optional but recommended): `public/assets/test-images/<name>.jpg`
-   - Recognition source photo: `public/assets/test-images/<name>-anniversary.jpg` (or same file)
+   - Recognition source photo (hashing input): `assets/one-off/<name>.jpg` — place at the **repo root** `assets/` directory, NOT under `public/`. The hashing script resolves `imageFile` paths against the repo root, so `/assets/one-off/<name>.jpg` maps to `<repo>/assets/one-off/<name>.jpg`.
+   - Photo display preview (optional but recommended): `public/assets/test-images/<name>.jpg`
    - Audio file: `public/audio/<name>.opus`
    - Optional cover art: `public/audio/<name>-cover.webp`
 2. Add one artist/photo/track/entry tuple in `public/data.app.v2.json`:
    - `artists[]`: add temporary artist id/name.
    - `photos[]`: add photo row with:
-     - `imageFile` for recognition input (`/assets/...` path style)
-     - `photoUrl` for matched preview image (`/assets/...` path style)
+     - `imageFile: "/assets/one-off/<name>.jpg"` — repo-root path used by the hashing script (resolves to `<repo>/assets/one-off/<name>.jpg`)
+     - `photoUrl: "/assets/test-images/<name>.jpg"` — web-root path for the matched preview image served from `public/`
      - `recognitionEnabled: true`
    - `tracks[]`: add track row with `audioFile` (and optional `albumCoverUrl`).
    - `entries[]`: add one entry using the same numeric `id` as your target `concertId`.
@@ -45,7 +45,8 @@ Manual check:
 
 ## Common Pitfalls
 
-- `imageFile` and `photoUrl` should be public-root paths like `/assets/...` (not `/public/assets/...`).
+- `imageFile` is a **repo-root filesystem path** used only by the hashing script. Place the source image under `assets/` at the repo root (e.g., `assets/one-off/<name>.jpg`) and set `imageFile: "/assets/one-off/<name>.jpg"`. Do NOT put the hashing source image under `public/` — the script strips the leading slash and resolves against the repo root, so `/assets/...` maps to `<repo>/assets/...`, not `<repo>/public/assets/...`.
+- `photoUrl` is a **web-root URL** for the display preview image served by the web server. Point it at a file under `public/` using `/assets/...` style (e.g., `/assets/test-images/<name>.jpg`).
 - Matched preview uses `photoUrl`; if omitted, UI falls back to placeholder.
 - Keep one-off scripts/data out of long-term mainline unless intentionally permanent.
 
@@ -54,6 +55,6 @@ Manual check:
 1. Remove temporary rows from:
    - `public/data.app.v2.json` (`artists`, `photos`, `tracks`, `entries`)
    - `public/data.recognition.v2.json` (`entries` by `concertId`)
-2. Delete temporary media files from `public/assets/test-images/` and `public/audio/`.
+2. Delete temporary media files from `public/assets/test-images/`, `public/audio/`, and the recognition source image from `assets/one-off/` (or wherever you placed it under `assets/`).
 3. Remove temporary npm scripts from `package.json`.
 4. Re-run `npm run pre-commit`.

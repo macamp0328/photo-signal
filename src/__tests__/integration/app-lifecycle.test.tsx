@@ -38,7 +38,7 @@ describe('App Lifecycle Integration', () => {
           {
             id: 'photo-1',
             artistId: 'artist-1',
-            imageFile: '/assets/test-images/gradient-16x16.jpg',
+            imageFile: '/assets/test-images/easy-target-bullseye.png',
             photoHashes: { phash: ['abc123def4567890'] },
           },
         ],

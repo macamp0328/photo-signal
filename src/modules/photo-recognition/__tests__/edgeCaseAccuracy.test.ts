@@ -19,7 +19,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PROJECT_ROOT = join(__dirname, '..', '..', '..', '..');
 const PRODUCTION_DATA_PATH = join(PROJECT_ROOT, 'public', 'data.app.v2.json');
-const TEST_IMAGES_DIR = join(PROJECT_ROOT, 'assets', 'test-images');
+const TEST_IMAGES_DIR = join(PROJECT_ROOT, 'public', 'assets', 'test-images');
 const REQUIRED_TEST_IMAGES = [
   'easy-target-bullseye.png',
   'easy-target-checker.png',

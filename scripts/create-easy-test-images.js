@@ -7,7 +7,7 @@ import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const OUTPUT_DIR = path.resolve(__dirname, '../assets/test-images');
+const OUTPUT_DIR = path.resolve(__dirname, '../public/assets/test-images');
 const WIDTH = 640;
 const HEIGHT = 480;
 

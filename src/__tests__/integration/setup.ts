@@ -60,7 +60,7 @@ export const mockConcertData = {
     {
       id: 'photo-1',
       artistId: 'artist-1',
-      imageFile: '/assets/test-images/gradient-16x16.jpg',
+      imageFile: '/assets/test-images/easy-target-bullseye.png',
       photoUrl: 'https://photo-cdn.example.com/prod/photos/test1.jpg',
       photoHashes: {
         phash: ['aaaaaaaaaaaaaaaa'],
@@ -69,7 +69,7 @@ export const mockConcertData = {
     {
       id: 'photo-2',
       artistId: 'artist-2',
-      imageFile: '/assets/test-images/gradient-16x16.jpg',
+      imageFile: '/assets/test-images/easy-target-checker.png',
       photoUrl: 'https://photo-cdn.example.com/prod/photos/test2.jpg',
       photoHashes: {
         phash: ['bbbbbbbbbbbbbbbb'],

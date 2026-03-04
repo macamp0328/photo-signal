@@ -20,7 +20,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const OUTPUT_DIR = join(__dirname, '..', 'assets', 'test-images');
+const OUTPUT_DIR = join(__dirname, '..', 'public', 'assets', 'test-images');
 
 // Ensure output directory exists
 mkdirSync(OUTPUT_DIR, { recursive: true });

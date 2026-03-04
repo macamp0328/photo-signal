@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { dataService } from '../../services/data-service';
+import {
+  getRecognitionIndexEntries,
+  type RecognitionIndexEntryV2,
+} from '../../services/recognition-index-service';
 import type { Concert, TapIntent } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import type { DetectedRectangle, RectangleRoiHint } from '../photo-rectangle-detection';
@@ -29,6 +33,9 @@ import type {
   RecognitionDebugInfo,
   RecognitionTelemetry,
   StabilityDebugInfo,
+  StartupDurationsMs,
+  StartupMilestones,
+  StartupTelemetry,
 } from './types';
 
 /**
@@ -129,8 +136,6 @@ const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
 // Crop-based partial photo recognition thresholds
 // ---------------------------------------------------------------------------
 
-const RECOGNITION_INDEX_URL = '/data.recognition.v2.json';
-
 // ---------------------------------------------------------------------------
 // Module-level pure helpers (no React state, no refs)
 // ---------------------------------------------------------------------------
@@ -141,24 +146,53 @@ type HashEntry = { hash: string; concert: Concert };
 
 const HASH_BUCKET_PREFIX_LENGTH = 0;
 
-interface RecognitionIndexEntryV2 {
-  concertId: number;
-  phash: string[];
-}
+const createEmptyStartupMilestones = (): StartupMilestones => ({
+  recognitionEnabledAt: null,
+  artifactsReadyAt: null,
+  streamReadyAt: null,
+  workerReadyAt: null,
+  firstFrameAt: null,
+  firstMatchAt: null,
+});
 
-interface RecognitionIndexPayloadV2 {
-  version: 2;
-  entries: RecognitionIndexEntryV2[];
-}
-
-function isRecognitionIndexPayloadV2(payload: unknown): payload is RecognitionIndexPayloadV2 {
-  if (!payload || typeof payload !== 'object') {
-    return false;
+const calculateDuration = (from: number | null, to: number | null): number | null => {
+  if (from === null || to === null) {
+    return null;
   }
 
-  const asPayload = payload as Partial<RecognitionIndexPayloadV2>;
-  return asPayload.version === 2 && Array.isArray(asPayload.entries);
-}
+  return Math.max(0, to - from);
+};
+
+const buildStartupTelemetry = (milestones: StartupMilestones): StartupTelemetry => {
+  const durationsMs: StartupDurationsMs = {
+    enabledToArtifactsReady: calculateDuration(
+      milestones.recognitionEnabledAt,
+      milestones.artifactsReadyAt
+    ),
+    enabledToStreamReady: calculateDuration(
+      milestones.recognitionEnabledAt,
+      milestones.streamReadyAt
+    ),
+    enabledToWorkerReady: calculateDuration(
+      milestones.recognitionEnabledAt,
+      milestones.workerReadyAt
+    ),
+    enabledToFirstFrame: calculateDuration(
+      milestones.recognitionEnabledAt,
+      milestones.firstFrameAt
+    ),
+    enabledToFirstMatch: calculateDuration(
+      milestones.recognitionEnabledAt,
+      milestones.firstMatchAt
+    ),
+    firstFrameToFirstMatch: calculateDuration(milestones.firstFrameAt, milestones.firstMatchAt),
+  };
+
+  return {
+    milestones,
+    durationsMs,
+  };
+};
 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
@@ -342,10 +376,36 @@ export function usePhotoRecognition(
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null);
   const lastTapIntentRef = useRef<TapIntent | null>(null);
   const lastTapTimestampRef = useRef<number | null>(null);
+  const startupMilestonesRef = useRef<StartupMilestones>(createEmptyStartupMilestones());
+
+  const syncStartupTelemetry = useCallback(() => {
+    telemetryRef.current.startup = buildStartupTelemetry(startupMilestonesRef.current);
+  }, []);
+
+  const resetStartupMilestones = useCallback(() => {
+    startupMilestonesRef.current = createEmptyStartupMilestones();
+    syncStartupTelemetry();
+  }, [syncStartupTelemetry]);
+
+  const markStartupMilestone = useCallback(
+    (milestone: keyof StartupMilestones) => {
+      if (startupMilestonesRef.current[milestone] !== null) {
+        return;
+      }
+
+      startupMilestonesRef.current = {
+        ...startupMilestonesRef.current,
+        [milestone]: performance.now(),
+      };
+      syncStartupTelemetry();
+    },
+    [syncStartupTelemetry]
+  );
 
   const resetTelemetry = useCallback(() => {
     telemetryRef.current = createEmptyTelemetry();
-  }, []);
+    resetStartupMilestones();
+  }, [resetStartupMilestones]);
 
   const forceMatch = useCallback((concert: Concert) => {
     // Clear in-flight tracking refs so the pipeline doesn't continue
@@ -373,6 +433,7 @@ export function usePhotoRecognition(
     lastTapIntentRef.current = null;
     lastTapTimestampRef.current = null;
     telemetryRef.current = createEmptyTelemetry();
+    resetStartupMilestones();
 
     setRecognizedConcert(null);
     setIsRecognizing(false);
@@ -381,7 +442,16 @@ export function usePhotoRecognition(
     setDetectedRectangle(null);
     setRectangleConfidence(0);
     setRestartKey((value) => value + 1);
-  }, []);
+  }, [resetStartupMilestones]);
+
+  useEffect(() => {
+    if (enabled) {
+      markStartupMilestone('recognitionEnabledAt');
+      return;
+    }
+
+    resetStartupMilestones();
+  }, [enabled, markStartupMilestone, resetStartupMilestones]);
 
   useEffect(() => {
     if (!tapIntent) {
@@ -412,27 +482,10 @@ export function usePhotoRecognition(
   useEffect(() => {
     let isCancelled = false;
 
-    if (typeof fetch !== 'function') {
-      return () => {
-        isCancelled = true;
-      };
-    }
-
-    fetch(RECOGNITION_INDEX_URL)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to load ${RECOGNITION_INDEX_URL}: HTTP ${response.status}`);
-        }
-
-        return response.json();
-      })
-      .then((payload: unknown) => {
-        if (!isRecognitionIndexPayloadV2(payload)) {
-          throw new Error(`Invalid recognition index payload: expected ${RECOGNITION_INDEX_URL}`);
-        }
-
+    getRecognitionIndexEntries()
+      .then((entries) => {
         if (!isCancelled) {
-          setRecognitionIndexEntries(payload.entries);
+          setRecognitionIndexEntries(entries);
         }
       })
       .catch((error) => {
@@ -440,8 +493,7 @@ export function usePhotoRecognition(
           return;
         }
 
-        const resolvedError =
-          error instanceof Error ? error : new Error(`Failed to load ${RECOGNITION_INDEX_URL}`);
+        const resolvedError = error instanceof Error ? error : new Error('Failed to load index');
         console.error('[photo-recognition] Recognition index load failed:', resolvedError);
       });
 
@@ -496,6 +548,28 @@ export function usePhotoRecognition(
   const eligibleConcerts = useMemo(() => {
     return concerts.filter((concert) => indexedHashData.eligibleConcertIds.has(concert.id));
   }, [concerts, indexedHashData.eligibleConcertIds]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    if (
+      concerts.length === 0 ||
+      recognitionIndexEntries.length === 0 ||
+      eligibleConcerts.length === 0
+    ) {
+      return;
+    }
+
+    markStartupMilestone('artifactsReadyAt');
+  }, [
+    enabled,
+    concerts.length,
+    recognitionIndexEntries.length,
+    eligibleConcerts.length,
+    markStartupMilestone,
+  ]);
 
   // -------------------------------------------------------------------------
   // Web Worker pipeline (off-main-thread hash computation + matching)
@@ -570,6 +644,18 @@ export function usePhotoRecognition(
   isWorkerReadyRef.current = isWorkerReady;
   const workerProcessFrameRef = useRef(workerProcessFrame);
   workerProcessFrameRef.current = workerProcessFrame;
+
+  useEffect(() => {
+    if (enabled && stream) {
+      markStartupMilestone('streamReadyAt');
+    }
+  }, [enabled, stream, markStartupMilestone]);
+
+  useEffect(() => {
+    if (enabled && isWorkerReady) {
+      markStartupMilestone('workerReadyAt');
+    }
+  }, [enabled, isWorkerReady, markStartupMilestone]);
 
   useEffect(() => {
     if (!stream || !enabled || eligibleConcerts.length === 0) {
@@ -823,6 +909,7 @@ export function usePhotoRecognition(
 
       frameCountRef.current += 1;
       telemetryRef.current.totalFrames += 1;
+      markStartupMilestone('firstFrameAt');
       const frameStartAt = performance.now();
       const frameLabel = `photo-recognition:frame-${frameCountRef.current}`;
       let frameCaptureMs = 0;
@@ -1217,6 +1304,7 @@ export function usePhotoRecognition(
             consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
 
           if (isInstantDistance || hasConsecutiveInstantConfidence) {
+            markStartupMilestone('firstMatchAt');
             recognizedConcertRef.current = activeMatch;
             confirmedMatch = true;
             if (isInstantDistance) {
@@ -1237,6 +1325,7 @@ export function usePhotoRecognition(
               matchStartTimeRef.current !== null &&
               now - matchStartTimeRef.current >= recognitionDelay
             ) {
+              markStartupMilestone('firstMatchAt');
               recognizedConcertRef.current = activeMatch;
               confirmedMatch = true;
               setRecognizedConcert(activeMatch);
@@ -1555,6 +1644,7 @@ export function usePhotoRecognition(
           consecutiveMatchCountRef.current >= CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM;
 
         if (isInstantDistance || hasConsecutiveInstantConfidence) {
+          markStartupMilestone('firstMatchAt');
           recognizedConcertRef.current = activeMatch;
           if (isInstantDistance) {
             telemetryRef.current.instantConfirmations =
@@ -1574,6 +1664,7 @@ export function usePhotoRecognition(
             matchStartTimeRef.current !== null &&
             now - matchStartTimeRef.current >= recognitionDelay
           ) {
+            markStartupMilestone('firstMatchAt');
             recognizedConcertRef.current = activeMatch;
             setRecognizedConcert(activeMatch);
             setIsRecognizing(false);
@@ -1723,6 +1814,7 @@ export function usePhotoRecognition(
     displayAspectRatio,
     tapRoiLockMs,
     tapRoiDecayMs,
+    markStartupMilestone,
     restartKey,
     // isWorkerSupported, isWorkerReady, workerProcessFrame are intentionally
     // omitted: all three are accessed via refs (isWorkerSupportedRef,

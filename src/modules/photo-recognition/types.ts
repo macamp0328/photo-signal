@@ -113,6 +113,29 @@ export interface TemporalTelemetrySnapshot {
   };
 }
 
+export interface StartupMilestones {
+  recognitionEnabledAt: number | null;
+  artifactsReadyAt: number | null;
+  streamReadyAt: number | null;
+  workerReadyAt: number | null;
+  firstFrameAt: number | null;
+  firstMatchAt: number | null;
+}
+
+export interface StartupDurationsMs {
+  enabledToArtifactsReady: number | null;
+  enabledToStreamReady: number | null;
+  enabledToWorkerReady: number | null;
+  enabledToFirstFrame: number | null;
+  enabledToFirstMatch: number | null;
+  firstFrameToFirstMatch: number | null;
+}
+
+export interface StartupTelemetry {
+  milestones: StartupMilestones;
+  durationsMs: StartupDurationsMs;
+}
+
 export interface RecognitionTelemetry {
   totalFrames: number;
   blurRejections: number;
@@ -147,6 +170,7 @@ export interface RecognitionTelemetry {
     roiFallbackDetections: number;
     postTapBlurRejections: number;
   };
+  startup?: StartupTelemetry;
 }
 
 export interface RecognitionDebugInfo {

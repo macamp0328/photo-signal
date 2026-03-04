@@ -829,19 +829,23 @@ function AppContent() {
 }
 
 function App() {
-  useEffect(() => {
-    preloadRecognitionIndex();
-    void dataService.getConcerts().catch(() => {
-      // AppContent and recognition hook log specific load failures.
-    });
-  }, []);
-
   const gateConfig = getAccessGateConfig();
   const [isUnlocked, setIsUnlocked] = useState(
     () => !gateConfig.enabled || hasValidAccessSession()
   );
   const [passcodeInput, setPasscodeInput] = useState('');
   const [passcodeError, setPasscodeError] = useState('');
+
+  useEffect(() => {
+    if (gateConfig.enabled && !isUnlocked) {
+      return;
+    }
+
+    preloadRecognitionIndex();
+    void dataService.getConcerts().catch(() => {
+      // AppContent and recognition hook log specific load failures.
+    });
+  }, [gateConfig.enabled, isUnlocked]);
 
   useEffect(() => {
     if (!gateConfig.enabled) {

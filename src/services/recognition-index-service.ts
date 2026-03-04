@@ -12,6 +12,7 @@ const RECOGNITION_INDEX_URL = '/data.recognition.v2.json';
 
 let cachedEntries: RecognitionIndexEntryV2[] | null = null;
 let inFlightLoad: Promise<RecognitionIndexEntryV2[]> | null = null;
+let cacheGeneration = 0;
 
 function isRecognitionIndexPayloadV2(payload: unknown): payload is RecognitionIndexPayloadV2 {
   if (!payload || typeof payload !== 'object') {
@@ -35,6 +36,8 @@ export async function getRecognitionIndexEntries(): Promise<RecognitionIndexEntr
     throw new Error('Fetch API is unavailable while loading recognition index');
   }
 
+  const loadGeneration = cacheGeneration;
+
   inFlightLoad = fetch(RECOGNITION_INDEX_URL)
     .then(async (response) => {
       if (!response.ok) {
@@ -46,11 +49,16 @@ export async function getRecognitionIndexEntries(): Promise<RecognitionIndexEntr
         throw new Error(`Invalid recognition index payload: expected ${RECOGNITION_INDEX_URL}`);
       }
 
-      cachedEntries = payload.entries;
+      if (loadGeneration === cacheGeneration) {
+        cachedEntries = payload.entries;
+      }
+
       return payload.entries;
     })
     .finally(() => {
-      inFlightLoad = null;
+      if (loadGeneration === cacheGeneration) {
+        inFlightLoad = null;
+      }
     });
 
   return inFlightLoad;
@@ -65,6 +73,7 @@ export function preloadRecognitionIndex(): void {
 }
 
 export function clearRecognitionIndexCache(): void {
+  cacheGeneration += 1;
   cachedEntries = null;
   inFlightLoad = null;
 }

@@ -18,7 +18,7 @@ const HALF_SPEED_VIDEO_DIR = path.resolve(VIDEO_SAMPLE_DIR, 'half-speed');
 const DEMO_VIDEO_ROUTE_PREFIX = '/__demo-video/';
 
 const DEFAULT_LANDING_FRAMES = 20; // 20 × 80ms = 1.6s on landing (was 15 = 1.2s)
-const DEFAULT_CAPTURE_FRAMES = 220;
+const DEFAULT_CAPTURE_FRAMES = 800; // safety cap only; scenes drive actual GIF length
 const DEFAULT_FRAME_DELAY_MS = 80;
 const DEFAULT_FPS = 12;
 const DEFAULT_PRE_MATCH_MS = 3500; // 3.5s scan before first match (was 1400ms)
@@ -740,6 +740,8 @@ async function captureDemoFrames(options) {
       const demoState = {
         targetIndex: 0,
         phase: 'search',
+        searchStartTime: null, // set by __photoSignalDemoStartSearch
+        clearDurationSec: 4.0, // how long haze takes to fully clear
       };
 
       globalThis.__photoSignalDemoSetTargetIndex = (nextIndex) => {
@@ -753,6 +755,19 @@ async function captureDemoFrames(options) {
         if (nextPhase === 'search' || nextPhase === 'target') {
           demoState.phase = nextPhase;
         }
+      };
+
+      /**
+       * Start a new search phase with progressive haze clearing.
+       * The canvas starts heavily blurred/darkened and gradually clears over
+       * clearDurationSec seconds, so recognition fires naturally when the
+       * image becomes sharp enough for pHash to match.
+       */
+      globalThis.__photoSignalDemoStartSearch = (clearDurationSec) => {
+        demoState.phase = 'search';
+        demoState.searchStartTime = globalThis.performance.now();
+        demoState.clearDurationSec =
+          typeof clearDurationSec === 'number' && clearDurationSec > 0 ? clearDurationSec : 4.0;
       };
 
       const waitForVideoLoaded = (video) =>
@@ -866,32 +881,54 @@ async function captureDemoFrames(options) {
           context.clearRect(0, 0, canvas.width, canvas.height);
           const isSearchPhase = demoState.phase === 'search';
 
+          // Compute haze-clearing progress: 0 = full haze, 1 = clear
+          let clearT = 1.0;
+          if (isSearchPhase && demoState.searchStartTime !== null) {
+            const elapsedSec = (globalThis.performance.now() - demoState.searchStartTime) / 1000;
+            clearT = Math.min(elapsedSec / demoState.clearDurationSec, 1.0);
+          } else if (!isSearchPhase) {
+            clearT = 1.0;
+          } else {
+            clearT = 0.0; // search phase not yet started, full haze
+          }
+
           const activeVideo = videos[Math.max(activeIndex, 0)];
           if (activeVideo && activeVideo.readyState >= 2) {
             context.save();
             if (isSearchPhase) {
-              context.filter = 'blur(1.8px) brightness(0.72) contrast(1.08) saturate(0.92)';
+              // Blur fades from 3px → 0 as image clears; recognition fires
+              // naturally once blur drops low enough to match the seeded hash
+              const blur = (3.0 * (1 - clearT)).toFixed(2);
+              const brightness = (0.62 + 0.38 * clearT).toFixed(2);
+              const contrast = (1.1 - 0.1 * clearT).toFixed(2);
+              const saturate = (0.88 + 0.12 * clearT).toFixed(2);
+              context.filter = `blur(${blur}px) brightness(${brightness}) contrast(${contrast}) saturate(${saturate})`;
             }
             drawCoverFrame(activeVideo);
             context.restore();
           }
 
           if (isSearchPhase) {
+            // Dark overlay and scan line fade out as image clears
+            const overlayAlpha = 0.18 * (1 - clearT * 0.8);
             const time = globalThis.performance.now() / 1000;
             const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, 'rgba(18, 20, 28, 0.18)');
-            gradient.addColorStop(1, 'rgba(34, 36, 46, 0.14)');
+            gradient.addColorStop(0, `rgba(18, 20, 28, ${overlayAlpha.toFixed(3)})`);
+            gradient.addColorStop(1, `rgba(34, 36, 46, ${(overlayAlpha * 0.78).toFixed(3)})`);
             context.fillStyle = gradient;
             context.fillRect(0, 0, canvas.width, canvas.height);
 
-            const scanHeight = Math.round(canvas.height * 0.18);
-            const scanY = Math.round(((time * 95) % (canvas.height + scanHeight)) - scanHeight);
-            const scanGradient = context.createLinearGradient(0, scanY, 0, scanY + scanHeight);
-            scanGradient.addColorStop(0, 'rgba(95, 211, 179, 0.0)');
-            scanGradient.addColorStop(0.5, 'rgba(95, 211, 179, 0.16)');
-            scanGradient.addColorStop(1, 'rgba(95, 211, 179, 0.0)');
-            context.fillStyle = scanGradient;
-            context.fillRect(0, scanY, canvas.width, scanHeight);
+            const scanAlpha = 0.16 * (1 - clearT * 0.85);
+            if (scanAlpha > 0.005) {
+              const scanHeight = Math.round(canvas.height * 0.18);
+              const scanY = Math.round(((time * 95) % (canvas.height + scanHeight)) - scanHeight);
+              const scanGradient = context.createLinearGradient(0, scanY, 0, scanY + scanHeight);
+              scanGradient.addColorStop(0, 'rgba(95, 211, 179, 0.0)');
+              scanGradient.addColorStop(0.5, `rgba(95, 211, 179, ${scanAlpha.toFixed(3)})`);
+              scanGradient.addColorStop(1, 'rgba(95, 211, 179, 0.0)');
+              context.fillStyle = scanGradient;
+              context.fillRect(0, scanY, canvas.width, scanHeight);
+            }
           }
 
           globalThis.requestAnimationFrame(render);
@@ -1014,8 +1051,13 @@ async function captureDemoFrames(options) {
     };
 
     /**
-     * Injects a mobile-style tap ripple at the element's center, captures
-     * ~350ms of frames showing it expanding, then performs the actual click.
+     * Injects a static visible tap indicator at the element's center, captures
+     * ~500ms of frames with the indicator fully visible, removes it, then clicks.
+     *
+     * No CSS transitions: Playwright headless captures snapshots between rAF ticks,
+     * so transition-based animation is invisible. The dot stays fully opaque during
+     * the capture window and is removed synchronously before the click fires.
+     *
      * Falls back to a plain .click() if the bounding box is unavailable.
      */
     const clickWithIndicator = async (locator) => {
@@ -1030,46 +1072,40 @@ async function captureDemoFrames(options) {
         const cx = Math.round(box.x + box.width / 2);
         const cy = Math.round(box.y + box.height / 2);
 
+        // Inject fully-visible static dot — no transitions
         await page.evaluate(
           ({ x, y }) => {
-            const stale = globalThis.document.querySelector('[data-demo-ripple="true"]');
+            const stale = globalThis.document.querySelector('[data-demo-tap="true"]');
             if (stale) stale.remove();
 
-            const ripple = globalThis.document.createElement('div');
-            ripple.setAttribute('data-demo-ripple', 'true');
+            const dot = globalThis.document.createElement('div');
+            dot.setAttribute('data-demo-tap', 'true');
 
-            Object.assign(ripple.style, {
+            Object.assign(dot.style, {
               position: 'fixed',
               left: `${x}px`,
               top: `${y}px`,
-              width: '0px',
-              height: '0px',
+              width: '60px',
+              height: '60px',
               borderRadius: '50%',
-              background: 'rgba(95, 211, 179, 0.55)', // app accent teal
-              border: '2px solid rgba(255, 255, 255, 0.75)',
+              background: 'rgba(95, 211, 179, 0.45)',
+              border: '3px solid rgba(255, 255, 255, 0.92)',
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'none',
               zIndex: '999999',
-              transition: 'width 320ms ease-out, height 320ms ease-out, opacity 320ms ease-out',
-              opacity: '1',
             });
 
-            globalThis.document.body.appendChild(ripple);
-
-            globalThis.requestAnimationFrame(() => {
-              ripple.style.width = '72px';
-              ripple.style.height = '72px';
-              ripple.style.opacity = '0';
-            });
-
-            globalThis.setTimeout(() => {
-              if (ripple.parentNode) ripple.remove();
-            }, 400);
+            globalThis.document.body.appendChild(dot);
           },
           { x: cx, y: cy }
         );
 
-        await captureFor(350); // ~4 frames showing the ripple mid-expansion
+        await captureFor(500); // ~6 frames with dot fully visible
+
+        // Remove dot synchronously before clicking so it doesn't linger
+        await page.evaluate(() => {
+          globalThis.document.querySelector('[data-demo-tap="true"]')?.remove();
+        });
       }
 
       await locator.click();
@@ -1152,13 +1188,18 @@ async function captureDemoFrames(options) {
       console.log(`🎯 Camera clip target index -> ${targetIndex}`);
     };
 
-    const setCameraPhase = async (phase) => {
-      await page.evaluate((nextPhase) => {
-        if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
-          globalThis.__photoSignalDemoSetPhase(nextPhase);
+    /**
+     * Start a progressive haze-clearing search on the current video clip.
+     * The canvas begins blurry/dark and clears over clearDurationSec seconds.
+     * Recognition fires naturally once the image is sharp enough for pHash to match.
+     */
+    const startSearch = async (clearDurationSec) => {
+      await page.evaluate((sec) => {
+        if (typeof globalThis.__photoSignalDemoStartSearch === 'function') {
+          globalThis.__photoSignalDemoStartSearch(sec);
         }
-      }, phase);
-      console.log(`🎥 Camera phase -> ${phase}`);
+      }, clearDurationSec);
+      console.log(`🔍 Haze-clearing search started (${clearDurationSec}s to clear)`);
     };
 
     const activateButton = page.getByRole('button', {
@@ -1186,21 +1227,14 @@ async function captureDemoFrames(options) {
       throw new Error('Camera video element did not become visible after activation.');
     }
 
-    await setCameraPhase('search');
+    // Scene 1: start haze-clearing search — recognition fires naturally as canvas sharpens
+    const firstClearSec = preMatchMs / 1000; // preMatchMs repurposed as clear duration
+    await startSearch(firstClearSec);
     await setCameraTargetIndex(0);
-    const firstSceneMaxMs = Math.max(1200, firstTarget.sourceDurationMs * 2 - 200);
-    const firstSearchWarmupMs = Math.min(preMatchMs, Math.max(firstSceneMaxMs - 600, 900));
-
-    const continuedAfterWarmup = await captureFor(firstSearchWarmupMs);
-    if (!continuedAfterWarmup) {
-      return;
-    }
-
-    await setCameraPhase('target');
 
     const firstMatchSeen = await captureUntil(
       async () => await hasArtistMatchState(firstTarget.artistName),
-      firstSceneMaxMs
+      Math.max(preMatchMs + 8000, firstTarget.sourceDurationMs * 2)
     );
 
     if (!firstMatchSeen) {
@@ -1276,22 +1310,15 @@ async function captureDemoFrames(options) {
 
     await captureFor(700); // ~8–9 frames showing the dim flash
 
-    await setCameraPhase('search');
+    // Scene 5: second haze-clearing search
+    const secondClearSec =
+      (STORY_PACING_MS.secondTargetWarmup + STORY_PACING_MS.secondTargetWarmupPadding) / 1000;
+    await startSearch(secondClearSec);
     await setCameraTargetIndex(1);
-    const secondSceneMaxMs = Math.max(
-      1200,
-      secondTarget.sourceDurationMs * 2 - 200 + STORY_PACING_MS.secondTargetMatchPadding
-    );
-    const secondWarmupMs = Math.min(
-      STORY_PACING_MS.secondTargetWarmup + STORY_PACING_MS.secondTargetWarmupPadding,
-      secondSceneMaxMs
-    );
-    await captureFor(secondWarmupMs);
-    await setCameraPhase('target');
 
     const secondMatchSeen = await captureUntil(
       async () => await hasArtistMatchState(secondTarget.artistName),
-      secondSceneMaxMs
+      Math.max(secondClearSec * 1000 + 8000, secondTarget.sourceDurationMs * 2)
     );
 
     if (!secondMatchSeen) {

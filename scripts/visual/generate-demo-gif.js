@@ -255,32 +255,9 @@ function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
   ]);
 }
 
-function prepareHalfSpeedReverseVideo(sourceVideoPath, outputPath) {
-  run('ffmpeg', [
-    '-y',
-    '-i',
-    sourceVideoPath,
-    '-an',
-    '-r',
-    '24',
-    '-vf',
-    'reverse,setpts=2*PTS,scale=960:-2:flags=lanczos,format=yuv420p',
-    '-c:v',
-    'libvpx-vp9',
-    '-b:v',
-    '2M',
-    outputPath,
-  ]);
-}
-
 function getHalfSpeedVideoPath(sourceVideoPath) {
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
   return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.webm`);
-}
-
-function getHalfSpeedReverseVideoPath(sourceVideoPath) {
-  const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.reverse.webm`);
 }
 
 function ensureHalfSpeedVideo(sourceVideoPath) {
@@ -296,22 +273,6 @@ function ensureHalfSpeedVideo(sourceVideoPath) {
   }
 
   prepareHalfSpeedVideo(sourceVideoPath, outputPath);
-  return outputPath;
-}
-
-function ensureHalfSpeedReverseVideo(sourceVideoPath) {
-  fs.mkdirSync(HALF_SPEED_VIDEO_DIR, { recursive: true });
-  const outputPath = getHalfSpeedReverseVideoPath(sourceVideoPath);
-
-  if (fs.existsSync(outputPath)) {
-    const sourceStat = fs.statSync(sourceVideoPath);
-    const outputStat = fs.statSync(outputPath);
-    if (outputStat.mtimeMs >= sourceStat.mtimeMs && outputStat.size > 0) {
-      return outputPath;
-    }
-  }
-
-  prepareHalfSpeedReverseVideo(sourceVideoPath, outputPath);
   return outputPath;
 }
 
@@ -624,12 +585,6 @@ async function captureDemoFrames(options) {
     };
   });
 
-  const reverseSecondTargetPath = ensureHalfSpeedReverseVideo(secondTarget.sourceVideoPath);
-  const preparedReverseSecondTarget = {
-    ...secondTarget,
-    sourceVideoPath: reverseSecondTargetPath,
-  };
-
   console.log(
     `🎬 Demo targets (${sourceMode}): ${firstTarget.artistName} -> ${secondTarget.artistName}`
   );
@@ -663,7 +618,8 @@ async function captureDemoFrames(options) {
   });
 
   const routeToVideoPath = new Map();
-  const targetVideoInputs = [...preparedCameraTargets, preparedReverseSecondTarget];
+  // Only load the two main demo targets; don't load the reverse video
+  const targetVideoInputs = preparedCameraTargets;
   const targetVideoUrls = targetVideoInputs.map((target, index) => {
     const routePath = `${DEMO_VIDEO_ROUTE_PREFIX}${index}-${path.basename(target.sourceVideoPath)}`;
     routeToVideoPath.set(routePath, target.sourceVideoPath);

@@ -768,6 +768,14 @@ async function captureDemoFrames(options) {
         demoState.searchStartTime = globalThis.performance.now();
         demoState.clearDurationSec =
           typeof clearDurationSec === 'number' && clearDurationSec > 0 ? clearDurationSec : 4.0;
+        // Auto-switch to 'target' phase after haze clears so canvas applies
+        // zero filters — blur(0px) still differs subtly from no filter, which
+        // can prevent pHash from reaching match threshold.
+        globalThis.setTimeout(() => {
+          if (demoState.phase === 'search') {
+            demoState.phase = 'target';
+          }
+        }, demoState.clearDurationSec * 1000);
       };
 
       const waitForVideoLoaded = (video) =>

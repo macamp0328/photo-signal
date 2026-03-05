@@ -1113,13 +1113,27 @@ export function usePhotoRecognition(
           const workerFramedRegion = { ...framedRegion };
           const workerPerspectiveFrame = workerPerspective;
 
-          createImageBitmap(
-            video,
-            framedRegion.x,
-            framedRegion.y,
-            framedRegion.width,
-            framedRegion.height
-          )
+          const bitmapPromise = workerPerspectiveFrame
+            ? createImageBitmap(
+                video,
+                framedRegion.x,
+                framedRegion.y,
+                framedRegion.width,
+                framedRegion.height
+              )
+            : createImageBitmap(
+                video,
+                framedRegion.x,
+                framedRegion.y,
+                framedRegion.width,
+                framedRegion.height,
+                {
+                  resizeWidth: 128,
+                  resizeHeight: 128,
+                }
+              );
+
+          bitmapPromise
             .then((bitmap) => {
               const sent = workerProcessFrameRef.current(
                 bitmap,

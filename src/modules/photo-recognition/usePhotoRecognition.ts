@@ -22,6 +22,7 @@ import { useRecognitionWorker } from './useRecognitionWorker';
 import type {
   WorkerFrameResult,
   WorkerHashEntry,
+  WorkerPerspectiveFrameData,
   WorkerRecognitionConfig,
 } from './worker-protocol';
 import type {
@@ -945,6 +946,7 @@ export function usePhotoRecognition(
         let framedRegion = offsetRegionToVideo(
           calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
+        let workerPerspective: WorkerPerspectiveFrameData | undefined;
         const activeTap = lastTapIntentRef.current;
         const tapAgeMs = activeTap ? Date.now() - activeTap.timestamp : Number.POSITIVE_INFINITY;
         const tapWindowMs = tapRoiLockMs + tapRoiDecayMs;
@@ -973,15 +975,58 @@ export function usePhotoRecognition(
 
           const viewportImageData = context.getImageData(0, 0, canvas.width, canvas.height);
           const applyRectangleCrop = (rectangle: DetectedRectangle) => {
+            const points = [
+              rectangle.topLeft,
+              rectangle.topRight,
+              rectangle.bottomRight,
+              rectangle.bottomLeft,
+            ].map((point) => ({
+              x: point.x * visibleViewport.width,
+              y: point.y * visibleViewport.height,
+            }));
+
+            const minX = Math.max(0, Math.min(...points.map((point) => point.x)));
+            const maxX = Math.min(
+              visibleViewport.width,
+              Math.max(...points.map((point) => point.x))
+            );
+            const minY = Math.max(0, Math.min(...points.map((point) => point.y)));
+            const maxY = Math.min(
+              visibleViewport.height,
+              Math.max(...points.map((point) => point.y))
+            );
+
             const pixelRectangle = {
-              x: Math.round(rectangle.topLeft.x * visibleViewport.width),
-              y: Math.round(rectangle.topLeft.y * visibleViewport.height),
-              width: Math.round(rectangle.width * visibleViewport.width),
-              height: Math.round(rectangle.height * visibleViewport.height),
+              x: Math.round(minX),
+              y: Math.round(minY),
+              width: Math.round(maxX - minX),
+              height: Math.round(maxY - minY),
             };
 
             if (pixelRectangle.width > 0 && pixelRectangle.height > 0) {
               framedRegion = offsetRegionToVideo(pixelRectangle);
+
+              const clampedCorners = points.map((point) => ({
+                x: Math.max(0, Math.min(pixelRectangle.width, point.x - pixelRectangle.x)),
+                y: Math.max(0, Math.min(pixelRectangle.height, point.y - pixelRectangle.y)),
+              }));
+
+              const topEdge = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+              const rightEdge = Math.hypot(points[2].x - points[1].x, points[2].y - points[1].y);
+              const bottomEdge = Math.hypot(points[2].x - points[3].x, points[2].y - points[3].y);
+              const leftEdge = Math.hypot(points[3].x - points[0].x, points[3].y - points[0].y);
+              const avgHorizontalEdge = (topEdge + bottomEdge) / 2;
+              const avgVerticalEdge = (leftEdge + rightEdge) / 2;
+
+              workerPerspective = {
+                corners: [
+                  clampedCorners[0],
+                  clampedCorners[1],
+                  clampedCorners[2],
+                  clampedCorners[3],
+                ],
+                targetAspect: avgHorizontalEdge >= avgVerticalEdge ? '3:2' : '2:3',
+              };
             }
           };
           const roiHint: RectangleRoiHint | null =
@@ -1066,20 +1111,21 @@ export function usePhotoRecognition(
           const workerFrameId = frameCountRef.current;
           const workerAspect = chosenAspectRatio;
           const workerFramedRegion = { ...framedRegion };
+          const workerPerspectiveFrame = workerPerspective;
 
           createImageBitmap(
             video,
             framedRegion.x,
             framedRegion.y,
             framedRegion.width,
-            framedRegion.height,
-            {
-              resizeWidth: 128,
-              resizeHeight: 128,
-            }
+            framedRegion.height
           )
             .then((bitmap) => {
-              const sent = workerProcessFrameRef.current(bitmap, workerFrameId);
+              const sent = workerProcessFrameRef.current(
+                bitmap,
+                workerFrameId,
+                workerPerspectiveFrame
+              );
               if (!sent && enableDebugInfo) {
                 console.debug('[photo-recognition] Worker busy, skipped frame', workerFrameId);
               }

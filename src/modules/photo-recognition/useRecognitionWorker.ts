@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
+  WorkerPerspectiveFrameData,
   WorkerFrameResult,
   WorkerHashEntry,
   WorkerRecognitionConfig,
@@ -66,7 +67,11 @@ export interface UseRecognitionWorkerReturn {
    * The bitmap is transferred (zero-copy) and must not be used after this call.
    * Returns false if the worker is busy or not ready, so the caller can skip.
    */
-  processFrame: (bitmap: ImageBitmap, frameId: number) => boolean;
+  processFrame: (
+    bitmap: ImageBitmap,
+    frameId: number,
+    perspective?: WorkerPerspectiveFrameData
+  ) => boolean;
   /** True while the worker is processing a frame. */
   isBusy: boolean;
   /** True once the worker has acknowledged the init message. */
@@ -209,7 +214,7 @@ export function useRecognitionWorker({
   // -----------------------------------------------------------------------
 
   const processFrame = useCallback(
-    (bitmap: ImageBitmap, frameId: number): boolean => {
+    (bitmap: ImageBitmap, frameId: number, perspective?: WorkerPerspectiveFrameData): boolean => {
       const worker = workerRef.current;
       if (!worker || !isReady || busyRef.current) {
         // Release the bitmap since we won't use it
@@ -222,7 +227,7 @@ export function useRecognitionWorker({
 
       // Transfer the bitmap (zero-copy). After this call the bitmap is
       // neutered and must not be used on the main thread.
-      worker.postMessage({ type: 'frame', bitmap, frameId }, [bitmap]);
+      worker.postMessage({ type: 'frame', bitmap, frameId, perspective }, [bitmap]);
       return true;
     },
     [isReady]

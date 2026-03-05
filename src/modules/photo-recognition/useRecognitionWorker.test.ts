@@ -482,9 +482,10 @@ describe('useRecognitionWorker — supported environment', () => {
     });
 
     expect(sent).toBe(true);
-    expect(lastWorker?.postMessage).toHaveBeenCalledWith({ type: 'frame', bitmap, frameId: 42 }, [
-      bitmap,
-    ]);
+    expect(lastWorker?.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'frame', bitmap, frameId: 42 }),
+      [bitmap]
+    );
   });
 
   it('processFrame returns false and closes bitmap when worker is busy', async () => {

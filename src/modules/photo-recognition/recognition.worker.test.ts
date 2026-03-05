@@ -53,6 +53,8 @@ class MockOffscreenCanvas {
   getContext() {
     return {
       drawImage: vi.fn(),
+      clearRect: vi.fn(),
+      putImageData: vi.fn(),
       getImageData: vi.fn((x: number, y: number, width: number, height: number) => {
         void x;
         void y;
@@ -64,6 +66,8 @@ class MockOffscreenCanvas {
 
 function makeBitmap() {
   return {
+    width: 64,
+    height: 64,
     close: vi.fn(),
   } as unknown as ImageBitmap;
 }
@@ -221,6 +225,52 @@ describe('recognition.worker', () => {
           hasGlare: false,
           hasPoorLighting: false,
         }),
+      })
+    );
+  });
+
+  it('accepts perspective metadata and still returns a match result', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    mockHammingDistance.mockImplementation((_: string, candidateHash: string) =>
+      candidateHash === 'aaaaaaaaaaaaaaaa' ? 6 : 24
+    );
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [
+          { hash: 'aaaaaaaaaaaaaaaa', concertId: 1 },
+          { hash: 'bbbbbbbbbbbbbbbb', concertId: 2 },
+        ],
+        config: baseConfig,
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 12,
+        perspective: {
+          corners: [
+            { x: 4, y: 4 },
+            { x: 60, y: 8 },
+            { x: 58, y: 58 },
+            { x: 6, y: 56 },
+          ],
+          targetAspect: '3:2',
+        },
+      },
+    } as MessageEvent);
+
+    expect(bitmap.close).toHaveBeenCalled();
+    expect(selfRef.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'result',
+        frameId: 12,
+        bestMatch: { concertId: 1, distance: 6 },
       })
     );
   });

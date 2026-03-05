@@ -72,4 +72,30 @@ describe('RectangleDetectionService ROI weighting', () => {
     const score = invokeRoiWeight(rect, roiHint);
     expect(score).toBe(1);
   });
+
+  it('preserves quadrilateral corners when building rectangle geometry', () => {
+    const service = new RectangleDetectionService();
+    const internal = service as unknown as {
+      calculateBoundingBox: (points: Array<{ x: number; y: number }>) => {
+        topLeft: { x: number; y: number };
+        topRight: { x: number; y: number };
+        bottomRight: { x: number; y: number };
+        bottomLeft: { x: number; y: number };
+      };
+    };
+
+    const corners = [
+      { x: 20, y: 15 },
+      { x: 90, y: 25 },
+      { x: 80, y: 95 },
+      { x: 10, y: 85 },
+    ];
+
+    const rectangle = internal.calculateBoundingBox(corners);
+
+    expect(rectangle.topLeft).toEqual(corners[0]);
+    expect(rectangle.topRight).toEqual(corners[1]);
+    expect(rectangle.bottomRight).toEqual(corners[2]);
+    expect(rectangle.bottomLeft).toEqual(corners[3]);
+  });
 });

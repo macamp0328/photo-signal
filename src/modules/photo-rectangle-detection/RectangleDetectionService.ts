@@ -421,8 +421,11 @@ export class RectangleDetectionService {
       // Must be quadrilateral (4 corners)
       if (approx.length !== 4) continue;
 
+      const orderedCorners = this.orderCorners(approx);
+      if (orderedCorners.length !== 4) continue;
+
       // Calculate area and aspect ratio
-      const rect = this.calculateBoundingBox(approx);
+      const rect = this.calculateBoundingBox(orderedCorners);
       const area = (rect.width * rect.height) / (width * height);
 
       // Filter by area
@@ -436,7 +439,7 @@ export class RectangleDetectionService {
         continue;
 
       // Calculate confidence based on rectangularity
-      let confidence = this.calculateConfidence(approx, rect, area);
+      let confidence = this.calculateConfidence(orderedCorners, rect, area);
 
       if (roiHint) {
         confidence *= this.calculateRoiWeight(rect, width, height, roiHint);
@@ -482,6 +485,58 @@ export class RectangleDetectionService {
     const blended = 1 - boundedLockStrength + boundedLockStrength * roiInfluence;
 
     return Math.max(0.4, Math.min(1.2, blended));
+  }
+
+  /**
+   * Order quadrilateral points consistently as:
+   * [topLeft, topRight, bottomRight, bottomLeft]
+   */
+  private orderCorners(points: Contour): Contour {
+    if (points.length !== 4) {
+      return points;
+    }
+
+    let minSum = Infinity;
+    let maxSum = -Infinity;
+    let minDiff = Infinity;
+    let maxDiff = -Infinity;
+    let topLeft: Point | null = null;
+    let topRight: Point | null = null;
+    let bottomLeft: Point | null = null;
+    let bottomRight: Point | null = null;
+
+    for (const point of points) {
+      const sum = point.x + point.y;
+      const diff = point.x - point.y;
+
+      if (sum < minSum) {
+        minSum = sum;
+        topLeft = point;
+      }
+      if (sum > maxSum) {
+        maxSum = sum;
+        bottomRight = point;
+      }
+      if (diff > maxDiff) {
+        maxDiff = diff;
+        topRight = point;
+      }
+      if (diff < minDiff) {
+        minDiff = diff;
+        bottomLeft = point;
+      }
+    }
+
+    if (!topLeft || !topRight || !bottomRight || !bottomLeft) {
+      return [];
+    }
+
+    const uniquePoints = new Set([topLeft, topRight, bottomRight, bottomLeft]);
+    if (uniquePoints.size !== 4) {
+      return [];
+    }
+
+    return [topLeft, topRight, bottomRight, bottomLeft];
   }
 
   /**
@@ -691,10 +746,10 @@ export class RectangleDetectionService {
     // Guard against division by zero (degenerate rectangle)
     if (height === 0) {
       return {
-        topLeft: { x: minX, y: minY },
-        topRight: { x: maxX, y: minY },
-        bottomRight: { x: maxX, y: maxY },
-        bottomLeft: { x: minX, y: maxY },
+        topLeft: { x: points[0]?.x ?? minX, y: points[0]?.y ?? minY },
+        topRight: { x: points[1]?.x ?? maxX, y: points[1]?.y ?? minY },
+        bottomRight: { x: points[2]?.x ?? maxX, y: points[2]?.y ?? maxY },
+        bottomLeft: { x: points[3]?.x ?? minX, y: points[3]?.y ?? maxY },
         width,
         height,
         aspectRatio: 0,
@@ -702,10 +757,10 @@ export class RectangleDetectionService {
     }
 
     return {
-      topLeft: { x: minX, y: minY },
-      topRight: { x: maxX, y: minY },
-      bottomRight: { x: maxX, y: maxY },
-      bottomLeft: { x: minX, y: maxY },
+      topLeft: points[0],
+      topRight: points[1],
+      bottomRight: points[2],
+      bottomLeft: points[3],
       width,
       height,
       aspectRatio: width / height,

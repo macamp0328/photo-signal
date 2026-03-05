@@ -10,65 +10,56 @@
   z-index: 10;
 }
 
-.rectangle {
-  position: absolute;
-  border: 3px solid transparent;
+.polygonSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.polygon {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 0.65;
   transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
+    stroke 0.3s ease,
+    filter 0.3s ease,
+    opacity 0.3s ease;
 }
 
 /* Detection states */
-.rectangle.detecting {
-  border-color: var(--color-warning, #fbbf24);
+.polygon.detecting,
+.corner.detecting {
+  stroke: var(--color-warning, #fbbf24);
+  background-color: var(--color-warning, #fbbf24);
   box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent);
   animation: pulse 2s ease-in-out infinite;
 }
 
-.rectangle.detected {
-  border-color: var(--color-success, #10b981);
+.polygon.detected,
+.corner.detected {
+  stroke: var(--color-success, #10b981);
+  background-color: var(--color-success, #10b981);
   box-shadow: 0 0 0.95rem color-mix(in srgb, var(--color-success, #10b981) 65%, transparent);
 }
 
-.rectangle.error {
-  border-color: var(--color-error, #ef4444);
+.polygon.error,
+.corner.error {
+  stroke: var(--color-error, #ef4444);
+  background-color: var(--color-error, #ef4444);
   box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-error, #ef4444) 55%, transparent);
 }
 
 /* Corner markers */
 .corner {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 3px solid inherit;
-}
-
-.corner.topLeft {
-  top: -3px;
-  left: -3px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.corner.topRight {
-  top: -3px;
-  right: -3px;
-  border-left: none;
-  border-bottom: none;
-}
-
-.corner.bottomRight {
-  bottom: -3px;
-  right: -3px;
-  border-left: none;
-  border-top: none;
-}
-
-.corner.bottomLeft {
-  bottom: -3px;
-  left: -3px;
-  border-right: none;
-  border-top: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background-color: transparent;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    opacity 0.3s ease;
 }
 
 /* Pulse animation for detecting state */
@@ -85,7 +76,7 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .corner {
-    width: 15px;
-    height: 15px;
+    width: 8px;
+    height: 8px;
   }
 }

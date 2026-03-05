@@ -1,0 +1,102 @@
+{
+  "version": 2,
+  "description": "Deterministic real-world phone video captures for scripts/visual/generate-demo-gif.js",
+  "samples": [
+    {
+      "sampleId": "sample-01",
+      "filename": "test_1_overcoats.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 16,
+          "photoId": "photo-16"
+        }
+      ]
+    },
+    {
+      "sampleId": "sample-02",
+      "filename": "test_5_barna.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 35,
+          "photoId": "photo-35"
+        }
+      ]
+    },
+    {
+      "sampleId": "sample-03",
+      "filename": "test_3_four_pictures_and_movement.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 16,
+          "photoId": "photo-16"
+        },
+        {
+          "captureId": "02",
+          "concertId": 35,
+          "photoId": "photo-35"
+        },
+        {
+          "captureId": "03",
+          "concertId": 21,
+          "photoId": "photo-21"
+        },
+        {
+          "captureId": "04",
+          "concertId": 15,
+          "photoId": "photo-15"
+        }
+      ]
+    },
+    {
+      "sampleId": "sample-04",
+      "filename": "test_4_four_pictures_less_shake.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 35,
+          "photoId": "photo-35"
+        },
+        {
+          "captureId": "02",
+          "concertId": 16,
+          "photoId": "photo-16"
+        },
+        {
+          "captureId": "03",
+          "concertId": 21,
+          "photoId": "photo-21"
+        },
+        {
+          "captureId": "04",
+          "concertId": 15,
+          "photoId": "photo-15"
+        }
+      ]
+    },
+    {
+      "sampleId": "sample-06",
+      "filename": "test_6_voxtrot.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 21,
+          "photoId": "photo-21"
+        }
+      ]
+    },
+    {
+      "sampleId": "sample-07",
+      "filename": "test_2_croy.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 14,
+          "photoId": "photo-14"
+        }
+      ]
+    }
+  ]
+}

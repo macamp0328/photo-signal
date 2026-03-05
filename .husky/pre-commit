@@ -1,3 +1,5 @@
 #!/usr/bin/env sh
 
+exec < /dev/null
+
 npm run pre-commit

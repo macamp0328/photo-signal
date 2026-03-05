@@ -6,6 +6,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "ms-vscode.vscode-typescript-next",
@@ -39,5 +41,14 @@
     }
   },
   "forwardPorts": [5173, 9323],
-  "postCreateCommand": "npm install"
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "notify"
+    },
+    "9323": {
+      "label": "Playwright Report"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
 }

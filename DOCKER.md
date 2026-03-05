@@ -17,16 +17,16 @@ npm run pre-commit
 
 ```bash
 # Start development server
-docker-compose up dev
+docker compose up dev
 
 # Build production image
-docker-compose build prod
+docker compose build prod
 
 # Start production service
-docker-compose up prod
+docker compose up prod
 
 # Run quality checks in dev container
-docker-compose run --rm dev npm run pre-commit
+docker compose run --rm dev npm run pre-commit
 ```
 
 ## Services
@@ -44,7 +44,23 @@ Typical usage:
 
 1. Open the repo in VS Code.
 2. Run **Dev Containers: Reopen in Container**.
-3. Use normal npm commands inside the container.
+3. After setup finishes, run normal npm commands inside the container.
+
+Optional audio workflow tooling in container environments:
+
+```bash
+bash scripts/dev/install-audio-tools.sh
+```
+
+## GitHub Codespaces
+
+This repo is Codespaces-ready via `.devcontainer/devcontainer.json`.
+
+Quick start:
+
+1. Open `https://codespaces.new/macamp0328/photo-signal`
+2. Wait for setup to complete
+3. Run `npm run dev`
 
 ## Notes
 

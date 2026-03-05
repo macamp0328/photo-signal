@@ -19,7 +19,7 @@ Optional:
 1. Install dependencies:
 
    ```bash
-   npm install
+   npm ci
    ```
 
 2. Start the app:
@@ -33,6 +33,28 @@ Optional:
    ```text
    http://localhost:5173
    ```
+
+## GitHub Codespaces (Recommended Fast Onboarding)
+
+1. Open:
+
+```text
+https://codespaces.new/macamp0328/photo-signal
+```
+
+2. Wait for container setup to finish (dependencies + lightweight type-check run automatically).
+
+3. Start app:
+
+```bash
+npm run dev
+```
+
+4. Optional audio workflow tools (only when needed):
+
+```bash
+bash scripts/dev/install-audio-tools.sh
+```
 
 ## Core Commands
 

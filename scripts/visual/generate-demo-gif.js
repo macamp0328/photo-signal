@@ -4,8 +4,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { chromium, devices } from '@playwright/test';
-import { createCanvas } from 'canvas';
-import { computePHash, loadImageData } from '../lib/photoHashUtils.js';
 
 const ROOT = process.cwd();
 const BASE_URL = 'http://127.0.0.1:4173';
@@ -295,59 +293,6 @@ function getVideoDurationMs(videoPath) {
   return Math.floor(seconds * 1000);
 }
 
-async function computeSeededMatchHash(photoPath) {
-  const source = await loadImageData(photoPath);
-
-  const cameraCanvas = createCanvas(960, 640);
-  const cameraContext = cameraCanvas.getContext('2d', { willReadFrequently: true });
-
-  const sourceCanvas = createCanvas(source.width, source.height);
-  const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
-  sourceContext.putImageData(source, 0, 0);
-
-  const targetAspect = cameraCanvas.width / cameraCanvas.height;
-  const imageAspect = source.width / source.height;
-
-  let sourceWidth = source.width;
-  let sourceHeight = source.height;
-  let sourceX = 0;
-  let sourceY = 0;
-
-  if (imageAspect > targetAspect) {
-    sourceHeight = source.height;
-    sourceWidth = sourceHeight * targetAspect;
-    sourceX = (source.width - sourceWidth) / 2;
-  } else {
-    sourceWidth = source.width;
-    sourceHeight = sourceWidth / targetAspect;
-    sourceY = (source.height - sourceHeight) / 2;
-  }
-
-  cameraContext.drawImage(
-    sourceCanvas,
-    sourceX,
-    sourceY,
-    sourceWidth,
-    sourceHeight,
-    0,
-    0,
-    cameraCanvas.width,
-    cameraCanvas.height
-  );
-
-  const framedWidth = 512;
-  const framedHeight = 341;
-  const framedX = Math.round((cameraCanvas.width - framedWidth) / 2);
-  const framedY = Math.round((cameraCanvas.height - framedHeight) / 2);
-
-  const hashCanvas = createCanvas(64, 64);
-  const hashContext = hashCanvas.getContext('2d', { willReadFrequently: true });
-  hashContext.drawImage(cameraCanvas, framedX, framedY, framedWidth, framedHeight, 0, 0, 64, 64);
-
-  const imageData = hashContext.getImageData(0, 0, 64, 64);
-  return computePHash(imageData);
-}
-
 function pickTwoSingleCaptureTargets(samples, usableByConcertId) {
   const singleCaptureTargets = [];
 
@@ -556,18 +501,38 @@ async function captureDemoFrames(options) {
 
   const { firstTarget, secondTarget, sourceMode } = resolveDemoTargets();
   const cameraTargets = [firstTarget, secondTarget];
-  const targetSeededHashes = await Promise.all(
-    cameraTargets.map(async (target) => computeSeededMatchHash(target.photoPath))
+
+  // Load recognition data to get existing hashes (real hashes from video captures)
+  const recognitionPath = path.resolve(ROOT, 'public/data.recognition.v2.json');
+  const recognitionData = JSON.parse(fs.readFileSync(recognitionPath, 'utf8'));
+  const recognitionByConcertId = new Map(
+    (recognitionData.entries ?? []).map((entry) => [entry.concertId, entry])
   );
+
+  // Use existing hashes from recognition data instead of computing new ones
+  const targetSeededHashes = cameraTargets.map((target) => {
+    const recognitionEntry = recognitionByConcertId.get(target.concertId);
+    if (
+      !recognitionEntry ||
+      !Array.isArray(recognitionEntry.phash) ||
+      recognitionEntry.phash.length === 0
+    ) {
+      throw new Error(
+        `No recognition hashes found for concertId=${target.concertId}. Cannot seed demo with missing recognition data.`
+      );
+    }
+    // Use the first (primary) hash from recognition data
+    return recognitionEntry.phash[0];
+  });
 
   // Log seeding details for debugging
   cameraTargets.forEach((target, idx) => {
     console.log(
-      `📸 Seeding target ${idx}: ${target.artistName} (concertId=${target.concertId}, photoId=${target.photoId}) from ${target.photoPath}`
+      `📸 Seeding target ${idx}: ${target.artistName} (concertId=${target.concertId}, photoId=${target.photoId})`
     );
     console.log(`   ├─ Source video: ${target.sourceVideoPath}`);
     console.log(`   ├─ Duration: ${target.sourceDurationMs}ms`);
-    console.log(`   └─ Seeded hash: ${targetSeededHashes[idx]}`);
+    console.log(`   └─ Using existing hash: ${targetSeededHashes[idx]}`);
   });
 
   // Only process half-speed versions for the two demo targets (don't process unused manifest videos)

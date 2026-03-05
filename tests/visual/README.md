@@ -71,13 +71,14 @@ Prerequisites for GIF generation:
 manifest-defined real phone video clips, waits for recognition milestones, captures frames, and compiles
 `docs/media/demo.gif` with ffmpeg.
 
-Real-world sample mode is automatic when these files exist:
+Real-world sample mode requires these files. `demo:gif` fails fast if they are missing:
 
 - `assets/test-videos/phone-samples/samples.manifest.json`
 - mapped videos referenced by the manifest in `assets/test-videos/phone-samples/`
 
-In this mode, the generator uses video clips directly as the fake camera feed and selects two
-single-capture manifest samples for the GIF recognition story.
+In this mode, the generator always uses manifest-defined video clips as the fake camera feed and
+selects two single-capture manifest samples for the GIF recognition story. There is currently no
+synthetic fallback path.
 
 Because samples live under `assets/` (not `public/`), they are dev/test inputs only and are not
 copied to production site output.

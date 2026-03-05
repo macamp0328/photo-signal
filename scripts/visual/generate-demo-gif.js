@@ -2,6 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import { chromium, devices } from '@playwright/test';
 import { createCanvas } from 'canvas';
@@ -10,7 +11,6 @@ import { computePHash, loadImageData } from '../lib/photoHashUtils.js';
 const ROOT = process.cwd();
 const BASE_URL = 'http://127.0.0.1:4173';
 const FRAME_DIR = path.resolve(ROOT, 'scripts/visual/output/demo-frames');
-const PREPARED_VIDEO_DIR = path.resolve(FRAME_DIR, 'prepared-camera-videos');
 const OUTPUT_GIF = path.resolve(ROOT, 'docs/media/demo.gif');
 const OUTPUT_DIR = path.dirname(OUTPUT_GIF);
 const VIDEO_SAMPLE_DIR = path.resolve(ROOT, 'assets/test-videos/phone-samples');
@@ -214,6 +214,18 @@ function resolvePhotoPath(imageFile) {
   return absolute;
 }
 
+function readFileRange(filePath, start, end) {
+  const length = end - start + 1;
+  const body = Buffer.allocUnsafe(length);
+  const fd = fs.openSync(filePath, 'r');
+  try {
+    fs.readSync(fd, body, 0, length, start);
+  } finally {
+    fs.closeSync(fd);
+  }
+  return body;
+}
+
 function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
   run('ffmpeg', [
     '-y',
@@ -251,13 +263,17 @@ function prepareHalfSpeedReverseVideo(sourceVideoPath, outputPath) {
 }
 
 function getHalfSpeedVideoPath(sourceVideoPath) {
+  const relativePath = path.relative(VIDEO_SAMPLE_DIR, sourceVideoPath).replace(/\\/g, '/');
+  const sourceKey = createHash('sha1').update(relativePath).digest('hex').slice(0, 8);
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.webm`);
+  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.${sourceKey}.half.webm`);
 }
 
 function getHalfSpeedReverseVideoPath(sourceVideoPath) {
+  const relativePath = path.relative(VIDEO_SAMPLE_DIR, sourceVideoPath).replace(/\\/g, '/');
+  const sourceKey = createHash('sha1').update(relativePath).digest('hex').slice(0, 8);
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.reverse.webm`);
+  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.${sourceKey}.half.reverse.webm`);
 }
 
 function ensureHalfSpeedVideo(sourceVideoPath) {
@@ -554,7 +570,6 @@ function resolveDemoTargets() {
 async function ensureEmptyFrameDir() {
   fs.rmSync(FRAME_DIR, { recursive: true, force: true });
   fs.mkdirSync(FRAME_DIR, { recursive: true });
-  fs.mkdirSync(PREPARED_VIDEO_DIR, { recursive: true });
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
@@ -625,7 +640,7 @@ async function captureDemoFrames(options) {
     return routePath;
   });
 
-  await page.route('**/__demo-video/*', async (route) => {
+  await page.route(`**${DEMO_VIDEO_ROUTE_PREFIX}*`, async (route) => {
     const requestUrl = route.request().url();
     const pathname = new URL(requestUrl).pathname;
     const sourceVideoPath = routeToVideoPath.get(pathname);
@@ -654,7 +669,7 @@ async function captureDemoFrames(options) {
 
     if (byteRange) {
       const { start, end } = byteRange;
-      const body = fs.readFileSync(sourceVideoPath).subarray(start, end + 1);
+      const body = readFileRange(sourceVideoPath, start, end);
       await route.fulfill({
         status: 206,
         body,

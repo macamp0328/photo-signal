@@ -19,12 +19,14 @@ fi
 
 echo "Installing optional audio workflow tools (ffmpeg + python3-mutagen + yt-dlp)..."
 $SUDO apt-get update
-$SUDO apt-get install -y --no-install-recommends ffmpeg python3 python3-pip python3-venv python3-mutagen
-
-if ! command -v yt-dlp >/dev/null 2>&1; then
-  $SUDO curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-  $SUDO chmod +x /usr/local/bin/yt-dlp
-fi
+$SUDO apt-get install -y --no-install-recommends \
+  ca-certificates \
+  ffmpeg \
+  python3 \
+  python3-mutagen \
+  python3-pip \
+  python3-venv \
+  yt-dlp
 
 $SUDO apt-get clean
 $SUDO rm -rf /var/lib/apt/lists/*

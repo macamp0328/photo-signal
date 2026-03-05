@@ -1362,9 +1362,27 @@ async function captureDemoFrames(options) {
     await startSearch(secondClearSec);
     await setCameraTargetIndex(1);
 
+    // Wait for haze to clear, then force phase='target' to ensure completely clean rendering
+    const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
+    console.log(`⏳ Waiting ${clearWaitMs}ms for haze to fully clear...`);
+    await page.waitForTimeout(clearWaitMs);
+
+    // Force phase='target' to guarantee no canvas filters are applied
+    await page.evaluate(() => {
+      if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
+        globalThis.__photoSignalDemoSetPhase('target');
+        globalThis.console.log('[demo] forcing phase=target for clean rendering');
+      }
+    });
+
+    // Capture a few clean frames to trigger recognition
+    console.log(`📹 Capturing clean frames after haze clear...`);
+    await captureFor(500);
+
+    // Now run the match check
     const secondTimeout = Math.max(secondClearSec * 1000 + 8000, secondTarget.sourceDurationMs * 2);
     console.log(
-      `⏱️ Waiting for match with ${secondTimeout}ms timeout (clearSec=${secondClearSec}, sourceDurationMs=${secondTarget.sourceDurationMs})`
+      `⏱️ Checking for match (clearSec=${secondClearSec}, sourceDurationMs=${secondTarget.sourceDurationMs})`
     );
     const secondMatchSeen = await captureUntil(
       async () => await hasArtistMatchState(secondTarget.artistName),

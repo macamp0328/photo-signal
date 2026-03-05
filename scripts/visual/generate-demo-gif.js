@@ -599,6 +599,16 @@ async function captureDemoFrames(options) {
     cameraTargets.map(async (target) => computeSeededMatchHash(target.photoPath))
   );
 
+  // Log seeding details for debugging
+  cameraTargets.forEach((target, idx) => {
+    console.log(
+      `📸 Seeding target ${idx}: ${target.artistName} (concertId=${target.concertId}, photoId=${target.photoId}) from ${target.photoPath}`
+    );
+    console.log(`   ├─ Source video: ${target.sourceVideoPath}`);
+    console.log(`   ├─ Duration: ${target.sourceDurationMs}ms`);
+    console.log(`   └─ Seeded hash: ${targetSeededHashes[idx]}`);
+  });
+
   const halfSpeedMap = new Map(
     manifestVideoSources.map((sourcePath) => [sourcePath, ensureHalfSpeedVideo(sourcePath)])
   );
@@ -990,6 +1000,9 @@ async function captureDemoFrames(options) {
             (candidate) => candidate?.concertId === seededTarget.concertId
           );
           if (!entry) {
+            globalThis.console.log(
+              `[demo] ⚠️ concertId=${seededTarget.concertId} NOT FOUND in recognition data`
+            );
             continue;
           }
 
@@ -998,6 +1011,9 @@ async function captureDemoFrames(options) {
             seededTarget.seededHash,
             ...existing.filter((hash) => hash !== seededTarget.seededHash),
           ];
+          globalThis.console.log(
+            `[demo] ✅ seeded concertId=${seededTarget.concertId} with hash=${seededTarget.seededHash}`
+          );
         }
 
         return new Response(JSON.stringify(payload), {

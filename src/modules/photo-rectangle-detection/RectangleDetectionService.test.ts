@@ -114,7 +114,7 @@ describe('RectangleDetectionService ROI weighting', () => {
     expect(internal.orderCorners(triangle)).toEqual(triangle);
   });
 
-  it('returns empty array when corner ordering resolves duplicate corners', () => {
+  it('falls back to original points when corner ordering encounters duplicate corners', () => {
     const service = new RectangleDetectionService();
     const internal = service as unknown as {
       orderCorners: (points: Array<{ x: number; y: number }>) => Array<{ x: number; y: number }>;
@@ -127,7 +127,29 @@ describe('RectangleDetectionService ROI weighting', () => {
       { x: 20, y: 80 },
     ];
 
-    expect(internal.orderCorners(duplicateCornerPoints)).toEqual([]);
+    expect(internal.orderCorners(duplicateCornerPoints)).toEqual(duplicateCornerPoints);
+  });
+
+  it('uses quad bounds (not topLeft+width) for ROI center/containment weighting', () => {
+    const roiHint: RectangleRoiHint = {
+      center: { x: 0.8, y: 0.8 },
+      radius: 0.25,
+      ageMs: 100,
+      lockStrength: 1,
+    };
+
+    const rotatedQuadWithOffBoundsTopLeft: DetectedRectangle = {
+      topLeft: { x: 5, y: 5 },
+      topRight: { x: 95, y: 15 },
+      bottomRight: { x: 90, y: 90 },
+      bottomLeft: { x: 15, y: 95 },
+      width: 20,
+      height: 20,
+      aspectRatio: 1,
+    };
+
+    const score = invokeRoiWeight(rotatedQuadWithOffBoundsTopLeft, roiHint);
+    expect(score).toBeGreaterThan(0.6);
   });
 
   it('returns aspectRatio 0 for degenerate zero-height quadrilateral', () => {

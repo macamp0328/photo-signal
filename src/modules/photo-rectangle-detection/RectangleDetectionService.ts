@@ -463,8 +463,16 @@ export class RectangleDetectionService {
     roiHint: RectangleRoiHint
   ): number {
     const safeRadius = Math.max(roiHint.radius, 0.05);
-    const centerX = (rect.topLeft.x + rect.width / 2) / width;
-    const centerY = (rect.topLeft.y + rect.height / 2) / height;
+
+    const xValues = [rect.topLeft.x, rect.topRight.x, rect.bottomRight.x, rect.bottomLeft.x];
+    const yValues = [rect.topLeft.y, rect.topRight.y, rect.bottomRight.y, rect.bottomLeft.y];
+    const minX = Math.min(...xValues);
+    const maxX = Math.max(...xValues);
+    const minY = Math.min(...yValues);
+    const maxY = Math.max(...yValues);
+
+    const centerX = (minX + maxX) / 2 / width;
+    const centerY = (minY + maxY) / 2 / height;
 
     const dx = centerX - roiHint.center.x;
     const dy = centerY - roiHint.center.y;
@@ -474,10 +482,10 @@ export class RectangleDetectionService {
     const boundedLockStrength = Math.max(0, Math.min(1, roiHint.lockStrength ?? 1));
 
     const tapInsideRectangle =
-      roiHint.center.x >= rect.topLeft.x / width &&
-      roiHint.center.x <= (rect.topLeft.x + rect.width) / width &&
-      roiHint.center.y >= rect.topLeft.y / height &&
-      roiHint.center.y <= (rect.topLeft.y + rect.height) / height;
+      roiHint.center.x >= minX / width &&
+      roiHint.center.x <= maxX / width &&
+      roiHint.center.y >= minY / height &&
+      roiHint.center.y <= maxY / height;
 
     const containmentBoost = tapInsideRectangle ? 0.15 : 0;
     const agePenalty = Math.min(roiHint.ageMs / 3000, 0.2);
@@ -528,12 +536,17 @@ export class RectangleDetectionService {
     }
 
     if (!topLeft || !topRight || !bottomRight || !bottomLeft) {
-      return [];
+      return points;
     }
 
-    const uniquePoints = new Set([topLeft, topRight, bottomRight, bottomLeft]);
+    const uniquePoints = new Set([
+      `${topLeft.x},${topLeft.y}`,
+      `${topRight.x},${topRight.y}`,
+      `${bottomRight.x},${bottomRight.y}`,
+      `${bottomLeft.x},${bottomLeft.y}`,
+    ]);
     if (uniquePoints.size !== 4) {
-      return [];
+      return points;
     }
 
     return [topLeft, topRight, bottomRight, bottomLeft];

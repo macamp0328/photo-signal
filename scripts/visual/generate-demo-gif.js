@@ -17,24 +17,24 @@ const VIDEO_SAMPLE_MANIFEST_PATH = path.resolve(VIDEO_SAMPLE_DIR, 'samples.manif
 const HALF_SPEED_VIDEO_DIR = path.resolve(VIDEO_SAMPLE_DIR, 'half-speed');
 const DEMO_VIDEO_ROUTE_PREFIX = '/__demo-video/';
 
-const DEFAULT_LANDING_FRAMES = 15;
+const DEFAULT_LANDING_FRAMES = 20; // 20 × 80ms = 1.6s on landing (was 15 = 1.2s)
 const DEFAULT_CAPTURE_FRAMES = 220;
 const DEFAULT_FRAME_DELAY_MS = 80;
 const DEFAULT_FPS = 12;
-const DEFAULT_PRE_MATCH_MS = 1400;
+const DEFAULT_PRE_MATCH_MS = 3500; // 3.5s scan before first match (was 1400ms)
 const DEFAULT_VIEWPORT_WIDTH = 412;
 const DEFAULT_VIEWPORT_HEIGHT = 915;
 const DEFAULT_OUTPUT_WIDTH = 480;
 
 const STORY_PACING_MS = {
   postFirstMatchHold: 4000,
-  controlTapGap: 4000,
-  secondTargetWarmup: 1400,
-  secondTargetWarmupPadding: 700,
+  controlTapGap: 2500, // was 4000; visual ripple makes each tap clear
+  secondTargetWarmup: 3000, // was 1400; 3s base scan for second clip
+  secondTargetWarmupPadding: 1000, // was 700; total second search = 4s
   secondTargetMatchPadding: 1200,
   postSecondMatchHold: 3000,
   postSwitchArtistHold: 4000,
-  fadeToBlack: 1200,
+  fadeToBlack: 1500, // was 1200; slightly longer closing
 };
 
 function parseArgs(argv) {
@@ -1013,6 +1013,68 @@ async function captureDemoFrames(options) {
       return false;
     };
 
+    /**
+     * Injects a mobile-style tap ripple at the element's center, captures
+     * ~350ms of frames showing it expanding, then performs the actual click.
+     * Falls back to a plain .click() if the bounding box is unavailable.
+     */
+    const clickWithIndicator = async (locator) => {
+      let box = null;
+      try {
+        box = await locator.boundingBox();
+      } catch {
+        // element not in layout — fall back silently
+      }
+
+      if (box) {
+        const cx = Math.round(box.x + box.width / 2);
+        const cy = Math.round(box.y + box.height / 2);
+
+        await page.evaluate(
+          ({ x, y }) => {
+            const stale = globalThis.document.querySelector('[data-demo-ripple="true"]');
+            if (stale) stale.remove();
+
+            const ripple = globalThis.document.createElement('div');
+            ripple.setAttribute('data-demo-ripple', 'true');
+
+            Object.assign(ripple.style, {
+              position: 'fixed',
+              left: `${x}px`,
+              top: `${y}px`,
+              width: '0px',
+              height: '0px',
+              borderRadius: '50%',
+              background: 'rgba(95, 211, 179, 0.55)', // app accent teal
+              border: '2px solid rgba(255, 255, 255, 0.75)',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              zIndex: '999999',
+              transition: 'width 320ms ease-out, height 320ms ease-out, opacity 320ms ease-out',
+              opacity: '1',
+            });
+
+            globalThis.document.body.appendChild(ripple);
+
+            globalThis.requestAnimationFrame(() => {
+              ripple.style.width = '72px';
+              ripple.style.height = '72px';
+              ripple.style.opacity = '0';
+            });
+
+            globalThis.setTimeout(() => {
+              if (ripple.parentNode) ripple.remove();
+            }, 400);
+          },
+          { x: cx, y: cy }
+        );
+
+        await captureFor(350); // ~4 frames showing the ripple mid-expansion
+      }
+
+      await locator.click();
+    };
+
     const hasConcertDetails = async () =>
       page
         .getByLabel(/concert details/i)
@@ -1051,7 +1113,7 @@ async function captureDemoFrames(options) {
       if (playVisible) {
         const disabled = await playButton.isDisabled().catch(() => false);
         if (!disabled) {
-          await playButton.click();
+          await clickWithIndicator(playButton);
           await captureFor(900);
         }
       }
@@ -1111,7 +1173,7 @@ async function captureDemoFrames(options) {
       await page.waitForTimeout(frameDelayMs);
     }
 
-    await activateButton.click();
+    await clickWithIndicator(activateButton);
 
     const hasVideo = await page
       .locator('video')
@@ -1148,19 +1210,19 @@ async function captureDemoFrames(options) {
     await captureFor(STORY_PACING_MS.postFirstMatchHold);
 
     const stopButton = await waitForEnabledButton(/^pause$|^stop$/i);
-    await stopButton.click();
+    await clickWithIndicator(stopButton);
     await captureFor(STORY_PACING_MS.controlTapGap);
 
     const playButton = await waitForEnabledButton(/^play$/i);
-    await playButton.click();
+    await clickWithIndicator(playButton);
     await captureFor(STORY_PACING_MS.controlTapGap);
 
     const previousButton = await waitForEnabledButton(/play previous track|previous track/i);
-    await previousButton.click();
+    await clickWithIndicator(previousButton);
     await captureFor(STORY_PACING_MS.controlTapGap);
 
     const nextButton = await waitForEnabledButton(/play next track|next track/i);
-    await nextButton.click();
+    await clickWithIndicator(nextButton);
     await captureFor(STORY_PACING_MS.controlTapGap);
 
     const closeButton = page.getByRole('button', {
@@ -1168,12 +1230,51 @@ async function captureDemoFrames(options) {
     });
     const closeButtonVisible = await closeButton.isVisible().catch(() => false);
     if (closeButtonVisible) {
-      await closeButton.click();
+      await clickWithIndicator(closeButton);
       await page
         .getByLabel(/concert details/i)
         .waitFor({ state: 'hidden', timeout: 3000 })
         .catch(() => null);
     }
+
+    // Brief dim-flash signals "new photo being searched" before the second scan begins.
+    await page.evaluate(() => {
+      const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
+      if (existing) existing.remove();
+
+      const dimOverlay = globalThis.document.createElement('div');
+      dimOverlay.setAttribute('data-demo-clip-reset', 'true');
+
+      Object.assign(dimOverlay.style, {
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        width: '100vw',
+        height: '100vh',
+        background: '#000',
+        opacity: '0',
+        pointerEvents: 'none',
+        zIndex: '99998', // below ripple (999999), above app content
+        transition: 'opacity 220ms linear',
+      });
+
+      globalThis.document.body.appendChild(dimOverlay);
+
+      globalThis.requestAnimationFrame(() => {
+        dimOverlay.style.opacity = '0.72';
+      });
+
+      // Fade back out after 500ms so the search scan is visible shortly after
+      globalThis.setTimeout(() => {
+        dimOverlay.style.transition = 'opacity 280ms linear';
+        dimOverlay.style.opacity = '0';
+        globalThis.setTimeout(() => {
+          if (dimOverlay.parentNode) dimOverlay.remove();
+        }, 350);
+      }, 500);
+    });
+
+    await captureFor(700); // ~8–9 frames showing the dim flash
 
     await setCameraPhase('search');
     await setCameraTargetIndex(1);
@@ -1214,7 +1315,7 @@ async function captureDemoFrames(options) {
       console.warn('⚠️ Scene 8: Switch Artist button not visible; skipping press and proceeding.');
     } else {
       const switchArtistButton = await waitForEnabledButton(/switch artist|drop the needle/i, 4000);
-      await switchArtistButton.click();
+      await clickWithIndicator(switchArtistButton);
       await captureFor(STORY_PACING_MS.postSwitchArtistHold);
     }
 

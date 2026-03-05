@@ -1536,11 +1536,23 @@ async function main() {
     process.stderr.write(text);
   });
 
+  let captureError = null;
   try {
     await waitForServer(BASE_URL, preview, previewStderrBuffer);
     await captureDemoFrames(options);
+  } catch (error) {
+    captureError = error;
+    console.log('\n⚠️  Frame capture failed, but building partial GIF from captured frames...');
+  }
+
+  try {
     buildGif(options.fps, options.outputWidth);
-    console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
+    if (captureError) {
+      console.log(`\n⚠️  Partial Demo GIF generated: ${OUTPUT_GIF}`);
+      throw captureError;
+    } else {
+      console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
+    }
   } finally {
     await stopPreviewServer(preview);
     cleanup(options.keepFrames);

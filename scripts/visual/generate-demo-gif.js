@@ -643,8 +643,12 @@ async function captureDemoFrames(options) {
 
   page.on('console', (message) => {
     const type = message.type();
+    const text = message.text();
     if (type === 'error' || type === 'warning') {
-      console.log(`[browser:${type}] ${message.text()}`);
+      console.log(`[browser:${type}] ${text}`);
+    } else if (text.includes('[demo]')) {
+      // Print all demo-related logs
+      console.log(`[browser:log] ${text}`);
     }
   });
 
@@ -771,11 +775,18 @@ async function captureDemoFrames(options) {
         // Auto-switch to 'target' phase after haze clears so canvas applies
         // zero filters — blur(0px) still differs subtly from no filter, which
         // can prevent pHash from reaching match threshold.
+        const timeoutMs = demoState.clearDurationSec * 1000;
+        globalThis.console.log(
+          `[demo] scheduling phase switch to 'target' in ${timeoutMs}ms (clearDurationSec=${demoState.clearDurationSec})`
+        );
         globalThis.setTimeout(() => {
           if (demoState.phase === 'search') {
+            globalThis.console.log(`[demo] phase auto-switched to 'target' after ${timeoutMs}ms`);
             demoState.phase = 'target';
+          } else {
+            globalThis.console.log(`[demo] phase already ${demoState.phase}, skipping auto-switch`);
           }
-        }, demoState.clearDurationSec * 1000);
+        }, timeoutMs);
       };
 
       const waitForVideoLoaded = (video) =>
@@ -1148,7 +1159,15 @@ async function captureDemoFrames(options) {
         return false;
       }
 
-      return (await hasConcertDetails()) || (await hasNowPlaying());
+      const hasDetails = await hasConcertDetails();
+      const hasPlaying = await hasNowPlaying();
+      const matched = hasDetails || hasPlaying;
+      if (!matched) {
+        console.log(
+          `[captureUntil] ${artistName} visible but no details/playing. details=${hasDetails}, playing=${hasPlaying}`
+        );
+      }
+      return matched;
     };
 
     const ensurePlaybackActive = async () => {
@@ -1321,17 +1340,27 @@ async function captureDemoFrames(options) {
     // Scene 5: second haze-clearing search
     const secondClearSec =
       (STORY_PACING_MS.secondTargetWarmup + STORY_PACING_MS.secondTargetWarmupPadding) / 1000;
+    console.log(
+      `📹 Scene 5: Starting second search for "${secondTarget.artistName}" with ${secondClearSec}s haze clear`
+    );
     await startSearch(secondClearSec);
     await setCameraTargetIndex(1);
 
+    const secondTimeout = Math.max(secondClearSec * 1000 + 8000, secondTarget.sourceDurationMs * 2);
+    console.log(
+      `⏱️ Waiting for match with ${secondTimeout}ms timeout (clearSec=${secondClearSec}, sourceDurationMs=${secondTarget.sourceDurationMs})`
+    );
     const secondMatchSeen = await captureUntil(
       async () => await hasArtistMatchState(secondTarget.artistName),
-      Math.max(secondClearSec * 1000 + 8000, secondTarget.sourceDurationMs * 2)
+      secondTimeout
     );
 
     if (!secondMatchSeen) {
-      throw new Error(`Second target did not match for artist ${secondTarget.artistName}.`);
+      throw new Error(
+        `Second target did not match for artist ${secondTarget.artistName}. Timeout was ${secondTimeout}ms.`
+      );
     }
+    console.log(`✅ Second match found for "${secondTarget.artistName}"`);
 
     await captureFor(STORY_PACING_MS.postSecondMatchHold);
 

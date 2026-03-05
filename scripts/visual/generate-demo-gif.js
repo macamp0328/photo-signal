@@ -554,7 +554,7 @@ async function captureDemoFrames(options) {
   const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
     options;
 
-  const { firstTarget, secondTarget, manifestVideoSources, sourceMode } = resolveDemoTargets();
+  const { firstTarget, secondTarget, sourceMode } = resolveDemoTargets();
   const cameraTargets = [firstTarget, secondTarget];
   const targetSeededHashes = await Promise.all(
     cameraTargets.map(async (target) => computeSeededMatchHash(target.photoPath))
@@ -570,8 +570,12 @@ async function captureDemoFrames(options) {
     console.log(`   └─ Seeded hash: ${targetSeededHashes[idx]}`);
   });
 
+  // Only process half-speed versions for the two demo targets (don't process unused manifest videos)
   const halfSpeedMap = new Map(
-    manifestVideoSources.map((sourcePath) => [sourcePath, ensureHalfSpeedVideo(sourcePath)])
+    cameraTargets.map((target) => [
+      target.sourceVideoPath,
+      ensureHalfSpeedVideo(target.sourceVideoPath),
+    ])
   );
 
   const preparedCameraTargets = cameraTargets.map((target) => {

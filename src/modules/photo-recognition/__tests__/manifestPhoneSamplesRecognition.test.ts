@@ -28,6 +28,9 @@ const MANIFEST_PATH = join(
 const PHONE_SAMPLES_DIR = join(PROJECT_ROOT, 'assets', 'test-videos', 'phone-samples');
 const APP_DATA_PATH = join(PROJECT_ROOT, 'public', 'data.app.v2.json');
 
+// Thresholds are empirically tuned against the current phone-samples manifest.
+// Re-baseline only when sample data changes materially or when pHash matching
+// implementation changes shift expected Hamming distance variance.
 const MAX_TARGET_DISTANCE = 48;
 const MIN_DISCRIMINATION_PASS_RATE = 75;
 
@@ -101,7 +104,7 @@ async function computeHashForImage(imagePath: string): Promise<string> {
   const context = canvas.getContext('2d');
   context.drawImage(image, 0, 0);
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  return computePHash(imageData as unknown as ImageData);
+  return computePHash(imageData as Parameters<typeof computePHash>[0]);
 }
 
 describe('Phone Sample Manifest Recognition Regression', () => {
@@ -194,15 +197,17 @@ describe('Phone Sample Manifest Recognition Regression', () => {
 
     uniqueTargets = Array.from(uniqueByPhoto.values());
 
-    for (const target of uniqueTargets) {
-      const imagePath = resolveImagePath(target.imageFile);
-      if (!existsSync(imagePath)) {
-        throw new Error(`Mapped image for target ${target.key} is missing: ${imagePath}`);
-      }
+    await Promise.all(
+      uniqueTargets.map(async (target) => {
+        const imagePath = resolveImagePath(target.imageFile);
+        if (!existsSync(imagePath)) {
+          throw new Error(`Mapped image for target ${target.key} is missing: ${imagePath}`);
+        }
 
-      const computedHash = await computeHashForImage(imagePath);
-      computedHashesByPhotoId.set(target.photoId, computedHash);
-    }
+        const computedHash = await computeHashForImage(imagePath);
+        computedHashesByPhotoId.set(target.photoId, computedHash);
+      })
+    );
   });
 
   it('loads a v2 manifest with committed phone sample files', () => {

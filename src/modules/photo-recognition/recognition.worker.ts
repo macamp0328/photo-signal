@@ -63,6 +63,7 @@ const PHASH_SIZE = 32;
 
 /** Quality capture size — match usePhotoRecognition QUALITY_CAPTURE_SIZE. */
 const QUALITY_SIZE = 128;
+const MAX_PERSPECTIVE_SOURCE_DIMENSION = 256;
 
 // ---------------------------------------------------------------------------
 // Canvas helpers
@@ -430,12 +431,45 @@ function processFrame(
 
   let rectifiedImageData: ImageData | null = null;
   if (isPerspectiveValid(perspective, bitmap.width, bitmap.height)) {
-    const sCtx = ensureSourceCanvas(bitmap.width, bitmap.height);
-    sourceCanvas!.width = bitmap.width;
-    sourceCanvas!.height = bitmap.height;
-    sCtx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height);
-    const sourceImageData = sCtx.getImageData(0, 0, bitmap.width, bitmap.height);
-    rectifiedImageData = warpToAspectImageData(sourceImageData, perspective);
+    const sourceScale = Math.min(
+      1,
+      MAX_PERSPECTIVE_SOURCE_DIMENSION / Math.max(bitmap.width, bitmap.height)
+    );
+    const sourceWidth = Math.max(1, Math.round(bitmap.width * sourceScale));
+    const sourceHeight = Math.max(1, Math.round(bitmap.height * sourceScale));
+
+    const sCtx = ensureSourceCanvas(sourceWidth, sourceHeight);
+    sourceCanvas!.width = sourceWidth;
+    sourceCanvas!.height = sourceHeight;
+    sCtx.drawImage(bitmap, 0, 0, sourceWidth, sourceHeight);
+
+    const scaledPerspective: WorkerPerspectiveFrameData =
+      sourceScale < 1
+        ? {
+            corners: [
+              {
+                x: Math.max(0, Math.min(sourceWidth, perspective.corners[0].x * sourceScale)),
+                y: Math.max(0, Math.min(sourceHeight, perspective.corners[0].y * sourceScale)),
+              },
+              {
+                x: Math.max(0, Math.min(sourceWidth, perspective.corners[1].x * sourceScale)),
+                y: Math.max(0, Math.min(sourceHeight, perspective.corners[1].y * sourceScale)),
+              },
+              {
+                x: Math.max(0, Math.min(sourceWidth, perspective.corners[2].x * sourceScale)),
+                y: Math.max(0, Math.min(sourceHeight, perspective.corners[2].y * sourceScale)),
+              },
+              {
+                x: Math.max(0, Math.min(sourceWidth, perspective.corners[3].x * sourceScale)),
+                y: Math.max(0, Math.min(sourceHeight, perspective.corners[3].y * sourceScale)),
+              },
+            ],
+            targetAspect: perspective.targetAspect,
+          }
+        : perspective;
+
+    const sourceImageData = sCtx.getImageData(0, 0, sourceWidth, sourceHeight);
+    rectifiedImageData = warpToAspectImageData(sourceImageData, scaledPerspective);
   }
 
   // 1. Draw bitmap at 32×32 for pHash — resizeImageData will short-circuit

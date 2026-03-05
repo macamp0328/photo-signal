@@ -102,7 +102,9 @@ describe('RectangleDetectionService ROI weighting', () => {
   it('returns original points when ordering corners with non-quadrilateral input', () => {
     const service = new RectangleDetectionService();
     const internal = service as unknown as {
-      orderCorners: (points: Array<{ x: number; y: number }>) => Array<{ x: number; y: number }>;
+      orderCorners: (
+        points: Array<{ x: number; y: number }>
+      ) => Array<{ x: number; y: number }> | null;
     };
 
     const triangle = [
@@ -111,13 +113,15 @@ describe('RectangleDetectionService ROI weighting', () => {
       { x: 25, y: 60 },
     ];
 
-    expect(internal.orderCorners(triangle)).toEqual(triangle);
+    expect(internal.orderCorners(triangle)).toBeNull();
   });
 
-  it('falls back to original points when corner ordering encounters duplicate corners', () => {
+  it('returns null when corner ordering encounters duplicate corners', () => {
     const service = new RectangleDetectionService();
     const internal = service as unknown as {
-      orderCorners: (points: Array<{ x: number; y: number }>) => Array<{ x: number; y: number }>;
+      orderCorners: (
+        points: Array<{ x: number; y: number }>
+      ) => Array<{ x: number; y: number }> | null;
     };
 
     const duplicateCornerPoints = [
@@ -127,7 +131,7 @@ describe('RectangleDetectionService ROI weighting', () => {
       { x: 20, y: 80 },
     ];
 
-    expect(internal.orderCorners(duplicateCornerPoints)).toEqual(duplicateCornerPoints);
+    expect(internal.orderCorners(duplicateCornerPoints)).toBeNull();
   });
 
   it('uses quad bounds (not topLeft+width) for ROI center/containment weighting', () => {

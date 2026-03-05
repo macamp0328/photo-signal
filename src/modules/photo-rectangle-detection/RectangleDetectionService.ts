@@ -422,7 +422,7 @@ export class RectangleDetectionService {
       if (approx.length !== 4) continue;
 
       const orderedCorners = this.orderCorners(approx);
-      if (orderedCorners.length !== 4) continue;
+      if (!orderedCorners || orderedCorners.length !== 4) continue;
 
       // Calculate area and aspect ratio
       const rect = this.calculateBoundingBox(orderedCorners);
@@ -499,57 +499,44 @@ export class RectangleDetectionService {
    * Order quadrilateral points consistently as:
    * [topLeft, topRight, bottomRight, bottomLeft]
    */
-  private orderCorners(points: Contour): Contour {
+  private orderCorners(points: Contour): Contour | null {
     if (points.length !== 4) {
-      return points;
+      return null;
     }
 
-    let minSum = Infinity;
-    let maxSum = -Infinity;
-    let minDiff = Infinity;
-    let maxDiff = -Infinity;
-    let topLeft: Point | null = null;
-    let topRight: Point | null = null;
-    let bottomLeft: Point | null = null;
-    let bottomRight: Point | null = null;
-
-    for (const point of points) {
-      const sum = point.x + point.y;
-      const diff = point.x - point.y;
-
-      if (sum < minSum) {
-        minSum = sum;
-        topLeft = point;
-      }
-      if (sum > maxSum) {
-        maxSum = sum;
-        bottomRight = point;
-      }
-      if (diff > maxDiff) {
-        maxDiff = diff;
-        topRight = point;
-      }
-      if (diff < minDiff) {
-        minDiff = diff;
-        bottomLeft = point;
-      }
-    }
-
-    if (!topLeft || !topRight || !bottomRight || !bottomLeft) {
-      return points;
-    }
-
-    const uniquePoints = new Set([
-      `${topLeft.x},${topLeft.y}`,
-      `${topRight.x},${topRight.y}`,
-      `${bottomRight.x},${bottomRight.y}`,
-      `${bottomLeft.x},${bottomLeft.y}`,
-    ]);
+    const uniquePoints = new Set(points.map((point) => `${point.x},${point.y}`));
     if (uniquePoints.size !== 4) {
-      return points;
+      return null;
     }
 
-    return [topLeft, topRight, bottomRight, bottomLeft];
+    const centerX = points.reduce((sum, point) => sum + point.x, 0) / 4;
+    const centerY = points.reduce((sum, point) => sum + point.y, 0) / 4;
+
+    const aroundCenter = points
+      .slice()
+      .sort(
+        (a, b) =>
+          Math.atan2(a.y - centerY, a.x - centerX) - Math.atan2(b.y - centerY, b.x - centerX)
+      );
+
+    const topLeftIndex = aroundCenter.reduce((bestIndex, point, index, arr) => {
+      const bestPoint = arr[bestIndex];
+      if (point.y < bestPoint.y) {
+        return index;
+      }
+      if (point.y === bestPoint.y && point.x < bestPoint.x) {
+        return index;
+      }
+      return bestIndex;
+    }, 0);
+
+    const rotated = aroundCenter.slice(topLeftIndex).concat(aroundCenter.slice(0, topLeftIndex));
+
+    if (rotated[1].x < rotated[3].x) {
+      return [rotated[0], rotated[3], rotated[2], rotated[1]];
+    }
+
+    return [rotated[0], rotated[1], rotated[2], rotated[3]];
   }
 
   /**

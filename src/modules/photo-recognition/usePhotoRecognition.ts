@@ -111,6 +111,7 @@ if (import.meta.env.DEV && QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARIT
  * being far smaller than the full framed-region dimensions.
  */
 const QUALITY_CAPTURE_SIZE = 128;
+const WORKER_PERSPECTIVE_MAX_DIMENSION = 256;
 
 /**
  * Consecutive frames returning the same match needed for the "instant
@@ -1111,16 +1112,51 @@ export function usePhotoRecognition(
           const workerFrameId = frameCountRef.current;
           const workerAspect = chosenAspectRatio;
           const workerFramedRegion = { ...framedRegion };
-          const workerPerspectiveFrame = workerPerspective;
+          let workerPerspectiveFrame = workerPerspective;
 
           const bitmapPromise = workerPerspectiveFrame
-            ? createImageBitmap(
-                video,
-                framedRegion.x,
-                framedRegion.y,
-                framedRegion.width,
-                framedRegion.height
-              )
+            ? (() => {
+                const perspectiveScale = Math.min(
+                  1,
+                  WORKER_PERSPECTIVE_MAX_DIMENSION /
+                    Math.max(framedRegion.width, framedRegion.height)
+                );
+
+                const resizeWidth = Math.max(1, Math.round(framedRegion.width * perspectiveScale));
+                const resizeHeight = Math.max(
+                  1,
+                  Math.round(framedRegion.height * perspectiveScale)
+                );
+
+                if (perspectiveScale < 1 && workerPerspectiveFrame) {
+                  const scaledCorners = workerPerspectiveFrame.corners.map((corner) => ({
+                    x: Math.max(0, Math.min(resizeWidth, corner.x * perspectiveScale)),
+                    y: Math.max(0, Math.min(resizeHeight, corner.y * perspectiveScale)),
+                  }));
+
+                  workerPerspectiveFrame = {
+                    corners: [
+                      scaledCorners[0],
+                      scaledCorners[1],
+                      scaledCorners[2],
+                      scaledCorners[3],
+                    ],
+                    targetAspect: workerPerspectiveFrame.targetAspect,
+                  };
+                }
+
+                return createImageBitmap(
+                  video,
+                  framedRegion.x,
+                  framedRegion.y,
+                  framedRegion.width,
+                  framedRegion.height,
+                  {
+                    resizeWidth,
+                    resizeHeight,
+                  }
+                );
+              })()
             : createImageBitmap(
                 video,
                 framedRegion.x,

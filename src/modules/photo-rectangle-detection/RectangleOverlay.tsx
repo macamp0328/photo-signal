@@ -28,24 +28,43 @@ export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
     error: styles.error,
   }[state];
 
+  const points = [
+    rectangle.topLeft,
+    rectangle.topRight,
+    rectangle.bottomRight,
+    rectangle.bottomLeft,
+  ]
+    .map((point) => `${point.x * 100},${point.y * 100}`)
+    .join(' ');
+
   return (
     <div className={styles.overlay}>
-      {/* Rectangle outline */}
+      <svg className={styles.polygonSvg} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polygon className={`${styles.polygon} ${stateClass}`} points={points} />
+      </svg>
+
       <div
-        className={`${styles.rectangle} ${stateClass}`}
+        className={`${styles.corner} ${stateClass}`}
+        style={{ left: `${rectangle.topLeft.x * 100}%`, top: `${rectangle.topLeft.y * 100}%` }}
+      />
+      <div
+        className={`${styles.corner} ${stateClass}`}
+        style={{ left: `${rectangle.topRight.x * 100}%`, top: `${rectangle.topRight.y * 100}%` }}
+      />
+      <div
+        className={`${styles.corner} ${stateClass}`}
         style={{
-          left: `${rectangle.topLeft.x * 100}%`,
-          top: `${rectangle.topLeft.y * 100}%`,
-          width: `${rectangle.width * 100}%`,
-          height: `${rectangle.height * 100}%`,
+          left: `${rectangle.bottomRight.x * 100}%`,
+          top: `${rectangle.bottomRight.y * 100}%`,
         }}
-      >
-        {/* Corner markers */}
-        <div className={`${styles.corner} ${styles.topLeft}`} />
-        <div className={`${styles.corner} ${styles.topRight}`} />
-        <div className={`${styles.corner} ${styles.bottomRight}`} />
-        <div className={`${styles.corner} ${styles.bottomLeft}`} />
-      </div>
+      />
+      <div
+        className={`${styles.corner} ${stateClass}`}
+        style={{
+          left: `${rectangle.bottomLeft.x * 100}%`,
+          top: `${rectangle.bottomLeft.y * 100}%`,
+        }}
+      />
     </div>
   );
 }

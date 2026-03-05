@@ -19,6 +19,7 @@ import { useRecognitionWorker } from './useRecognitionWorker';
 import type {
   WorkerFrameResult,
   WorkerHashEntry,
+  WorkerPerspectiveFrameData,
   WorkerRecognitionConfig,
 } from './worker-protocol';
 
@@ -482,9 +483,52 @@ describe('useRecognitionWorker — supported environment', () => {
     });
 
     expect(sent).toBe(true);
-    expect(lastWorker?.postMessage).toHaveBeenCalledWith({ type: 'frame', bitmap, frameId: 42 }, [
-      bitmap,
-    ]);
+    expect(lastWorker?.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'frame', bitmap, frameId: 42 }),
+      [bitmap]
+    );
+  });
+
+  it('processFrame includes perspective in frame message when provided', async () => {
+    const { result } = renderHook(() =>
+      useRecognitionWorker({
+        hashEntries: sampleHashEntries,
+        config: baseConfig,
+        onResult: vi.fn(),
+        enabled: true,
+      })
+    );
+
+    await act(async () => {
+      lastWorker?.simulateMessage({ type: 'ready', hashCount: 2 });
+    });
+
+    const bitmap = makeBitmap();
+    const perspective: WorkerPerspectiveFrameData = {
+      corners: [
+        { x: 5, y: 5 },
+        { x: 55, y: 8 },
+        { x: 52, y: 56 },
+        { x: 7, y: 54 },
+      ],
+      targetAspect: '3:2',
+    };
+
+    let sent = false;
+    act(() => {
+      sent = result.current.processFrame(bitmap, 43, perspective);
+    });
+
+    expect(sent).toBe(true);
+    expect(lastWorker?.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'frame',
+        bitmap,
+        frameId: 43,
+        perspective,
+      }),
+      [bitmap]
+    );
   });
 
   it('processFrame returns false and closes bitmap when worker is busy', async () => {

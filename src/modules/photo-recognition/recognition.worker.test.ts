@@ -53,6 +53,8 @@ class MockOffscreenCanvas {
   getContext() {
     return {
       drawImage: vi.fn(),
+      clearRect: vi.fn(),
+      putImageData: vi.fn(),
       getImageData: vi.fn((x: number, y: number, width: number, height: number) => {
         void x;
         void y;
@@ -64,6 +66,8 @@ class MockOffscreenCanvas {
 
 function makeBitmap() {
   return {
+    width: 64,
+    height: 64,
     close: vi.fn(),
   } as unknown as ImageBitmap;
 }
@@ -221,6 +225,144 @@ describe('recognition.worker', () => {
           hasGlare: false,
           hasPoorLighting: false,
         }),
+      })
+    );
+  });
+
+  it('accepts perspective metadata and still returns a match result', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    mockHammingDistance.mockImplementation((_: string, candidateHash: string) =>
+      candidateHash === 'aaaaaaaaaaaaaaaa' ? 6 : 24
+    );
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [
+          { hash: 'aaaaaaaaaaaaaaaa', concertId: 1 },
+          { hash: 'bbbbbbbbbbbbbbbb', concertId: 2 },
+        ],
+        config: baseConfig,
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 12,
+        perspective: {
+          corners: [
+            { x: 4, y: 4 },
+            { x: 60, y: 8 },
+            { x: 58, y: 58 },
+            { x: 6, y: 56 },
+          ],
+          targetAspect: '3:2',
+        },
+      },
+    } as MessageEvent);
+
+    expect(bitmap.close).toHaveBeenCalled();
+    expect(selfRef.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'result',
+        frameId: 12,
+        bestMatch: { concertId: 1, distance: 6 },
+      })
+    );
+  });
+
+  it('falls back gracefully when perspective metadata is out of source bounds', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    mockHammingDistance.mockImplementation((_: string, candidateHash: string) =>
+      candidateHash === 'aaaaaaaaaaaaaaaa' ? 8 : 21
+    );
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [
+          { hash: 'aaaaaaaaaaaaaaaa', concertId: 1 },
+          { hash: 'bbbbbbbbbbbbbbbb', concertId: 2 },
+        ],
+        config: baseConfig,
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 13,
+        perspective: {
+          corners: [
+            { x: -5, y: 4 },
+            { x: 60, y: 8 },
+            { x: 58, y: 58 },
+            { x: 6, y: 56 },
+          ],
+          targetAspect: '3:2',
+        },
+      },
+    } as MessageEvent);
+
+    expect(bitmap.close).toHaveBeenCalled();
+    expect(selfRef.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'result',
+        frameId: 13,
+        bestMatch: { concertId: 1, distance: 8 },
+      })
+    );
+  });
+
+  it('handles portrait-aspect perspective rectification', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    mockHammingDistance.mockImplementation((_: string, candidateHash: string) =>
+      candidateHash === 'aaaaaaaaaaaaaaaa' ? 7 : 22
+    );
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [
+          { hash: 'aaaaaaaaaaaaaaaa', concertId: 1 },
+          { hash: 'bbbbbbbbbbbbbbbb', concertId: 2 },
+        ],
+        config: baseConfig,
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 14,
+        perspective: {
+          corners: [
+            { x: 10, y: 4 },
+            { x: 36, y: 6 },
+            { x: 34, y: 60 },
+            { x: 8, y: 58 },
+          ],
+          targetAspect: '2:3',
+        },
+      },
+    } as MessageEvent);
+
+    expect(bitmap.close).toHaveBeenCalled();
+    expect(selfRef.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'result',
+        frameId: 14,
+        bestMatch: { concertId: 1, distance: 7 },
       })
     );
   });

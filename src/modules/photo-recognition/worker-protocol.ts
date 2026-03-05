@@ -46,10 +46,24 @@ export interface WorkerInitMessage {
 
 export interface WorkerFrameMessage {
   type: 'frame';
-  /** Transferable ImageBitmap captured at 128×128 from the framed region. */
+  /** Transferable ImageBitmap captured from the framed region. */
   bitmap: ImageBitmap;
   /** Monotonically increasing frame identifier for correlating results. */
   frameId: number;
+  /** Optional perspective metadata for quadrilateral rectification. */
+  perspective?: WorkerPerspectiveFrameData;
+}
+
+export interface WorkerPoint {
+  x: number;
+  y: number;
+}
+
+export interface WorkerPerspectiveFrameData {
+  /** Corners in source bitmap pixel space ordered as TL, TR, BR, BL. */
+  corners: [WorkerPoint, WorkerPoint, WorkerPoint, WorkerPoint];
+  /** Target photo aspect ratio to preserve during rectification. */
+  targetAspect: '3:2' | '2:3';
 }
 
 export interface WorkerConfigUpdateMessage {

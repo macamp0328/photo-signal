@@ -451,5 +451,21 @@ describe('CameraView', () => {
       expect(screen.queryByText('Photo detected!')).not.toBeInTheDocument();
       expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
     });
+
+    it('renders perspective polygon overlay when rectangle is present', () => {
+      const { container } = render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={true}
+          detectedRectangle={mockRectangle}
+          rectangleConfidence={0.85}
+          rectangleDetectionConfidenceThreshold={0.6}
+        />
+      );
+
+      expect(container.querySelector('svg polygon')).toBeInTheDocument();
+    });
   });
 });

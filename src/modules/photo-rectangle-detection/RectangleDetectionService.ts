@@ -421,8 +421,11 @@ export class RectangleDetectionService {
       // Must be quadrilateral (4 corners)
       if (approx.length !== 4) continue;
 
+      const orderedCorners = this.orderCorners(approx);
+      if (!orderedCorners || orderedCorners.length !== 4) continue;
+
       // Calculate area and aspect ratio
-      const rect = this.calculateBoundingBox(approx);
+      const rect = this.calculateBoundingBox(orderedCorners);
       const area = (rect.width * rect.height) / (width * height);
 
       // Filter by area
@@ -436,7 +439,7 @@ export class RectangleDetectionService {
         continue;
 
       // Calculate confidence based on rectangularity
-      let confidence = this.calculateConfidence(approx, rect, area);
+      let confidence = this.calculateConfidence(orderedCorners, rect, area);
 
       if (roiHint) {
         confidence *= this.calculateRoiWeight(rect, width, height, roiHint);
@@ -460,8 +463,16 @@ export class RectangleDetectionService {
     roiHint: RectangleRoiHint
   ): number {
     const safeRadius = Math.max(roiHint.radius, 0.05);
-    const centerX = (rect.topLeft.x + rect.width / 2) / width;
-    const centerY = (rect.topLeft.y + rect.height / 2) / height;
+
+    const xValues = [rect.topLeft.x, rect.topRight.x, rect.bottomRight.x, rect.bottomLeft.x];
+    const yValues = [rect.topLeft.y, rect.topRight.y, rect.bottomRight.y, rect.bottomLeft.y];
+    const minX = Math.min(...xValues);
+    const maxX = Math.max(...xValues);
+    const minY = Math.min(...yValues);
+    const maxY = Math.max(...yValues);
+
+    const centerX = (minX + maxX) / 2 / width;
+    const centerY = (minY + maxY) / 2 / height;
 
     const dx = centerX - roiHint.center.x;
     const dy = centerY - roiHint.center.y;
@@ -471,10 +482,10 @@ export class RectangleDetectionService {
     const boundedLockStrength = Math.max(0, Math.min(1, roiHint.lockStrength ?? 1));
 
     const tapInsideRectangle =
-      roiHint.center.x >= rect.topLeft.x / width &&
-      roiHint.center.x <= (rect.topLeft.x + rect.width) / width &&
-      roiHint.center.y >= rect.topLeft.y / height &&
-      roiHint.center.y <= (rect.topLeft.y + rect.height) / height;
+      roiHint.center.x >= minX / width &&
+      roiHint.center.x <= maxX / width &&
+      roiHint.center.y >= minY / height &&
+      roiHint.center.y <= maxY / height;
 
     const containmentBoost = tapInsideRectangle ? 0.15 : 0;
     const agePenalty = Math.min(roiHint.ageMs / 3000, 0.2);
@@ -482,6 +493,50 @@ export class RectangleDetectionService {
     const blended = 1 - boundedLockStrength + boundedLockStrength * roiInfluence;
 
     return Math.max(0.4, Math.min(1.2, blended));
+  }
+
+  /**
+   * Order quadrilateral points consistently as:
+   * [topLeft, topRight, bottomRight, bottomLeft]
+   */
+  private orderCorners(points: Contour): Contour | null {
+    if (points.length !== 4) {
+      return null;
+    }
+
+    const uniquePoints = new Set(points.map((point) => `${point.x},${point.y}`));
+    if (uniquePoints.size !== 4) {
+      return null;
+    }
+
+    const centerX = points.reduce((sum, point) => sum + point.x, 0) / 4;
+    const centerY = points.reduce((sum, point) => sum + point.y, 0) / 4;
+
+    const aroundCenter = points
+      .slice()
+      .sort(
+        (a, b) =>
+          Math.atan2(a.y - centerY, a.x - centerX) - Math.atan2(b.y - centerY, b.x - centerX)
+      );
+
+    const topLeftIndex = aroundCenter.reduce((bestIndex, point, index, arr) => {
+      const bestPoint = arr[bestIndex];
+      if (point.y < bestPoint.y) {
+        return index;
+      }
+      if (point.y === bestPoint.y && point.x < bestPoint.x) {
+        return index;
+      }
+      return bestIndex;
+    }, 0);
+
+    const rotated = aroundCenter.slice(topLeftIndex).concat(aroundCenter.slice(0, topLeftIndex));
+
+    if (rotated[1].x < rotated[3].x) {
+      return [rotated[0], rotated[3], rotated[2], rotated[1]];
+    }
+
+    return [rotated[0], rotated[1], rotated[2], rotated[3]];
   }
 
   /**
@@ -691,10 +746,10 @@ export class RectangleDetectionService {
     // Guard against division by zero (degenerate rectangle)
     if (height === 0) {
       return {
-        topLeft: { x: minX, y: minY },
-        topRight: { x: maxX, y: minY },
-        bottomRight: { x: maxX, y: maxY },
-        bottomLeft: { x: minX, y: maxY },
+        topLeft: { x: points[0]?.x ?? minX, y: points[0]?.y ?? minY },
+        topRight: { x: points[1]?.x ?? maxX, y: points[1]?.y ?? minY },
+        bottomRight: { x: points[2]?.x ?? maxX, y: points[2]?.y ?? maxY },
+        bottomLeft: { x: points[3]?.x ?? minX, y: points[3]?.y ?? maxY },
         width,
         height,
         aspectRatio: 0,
@@ -702,10 +757,10 @@ export class RectangleDetectionService {
     }
 
     return {
-      topLeft: { x: minX, y: minY },
-      topRight: { x: maxX, y: minY },
-      bottomRight: { x: maxX, y: maxY },
-      bottomLeft: { x: minX, y: maxY },
+      topLeft: points[0],
+      topRight: points[1],
+      bottomRight: points[2],
+      bottomLeft: points[3],
       width,
       height,
       aspectRatio: width / height,

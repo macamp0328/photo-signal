@@ -799,9 +799,17 @@ async function captureDemoFrames(options) {
           video.loop = true;
           video.playsInline = true;
           video.preload = 'auto';
+
+          // Log errors if video fails to load
+          video.addEventListener('error', () => {
+            globalThis.console.error(
+              `[demo] ❌ video[${i}] failed to load: ${videoUrl} (readyState=${video.readyState}, error=${video.error?.message})`
+            );
+          });
+
           await waitForVideoLoaded(video);
           globalThis.console.log(
-            `[demo] video[${i}] loaded (${video.videoWidth}x${video.videoHeight})`
+            `[demo] video[${i}] loaded (${video.videoWidth}x${video.videoHeight}, duration=${video.duration}s)`
           );
           videos.push(video);
         }

@@ -834,7 +834,9 @@ async function captureDemoFrames(options) {
         }
 
         const videos = [];
-        for (const videoUrl of videoUrls) {
+        for (let i = 0; i < videoUrls.length; i++) {
+          const videoUrl = videoUrls[i];
+          globalThis.console.log(`[demo] loading video[${i}]: ${videoUrl}`);
           const video = globalThis.document.createElement('video');
           video.src = videoUrl;
           video.muted = true;
@@ -842,6 +844,9 @@ async function captureDemoFrames(options) {
           video.playsInline = true;
           video.preload = 'auto';
           await waitForVideoLoaded(video);
+          globalThis.console.log(
+            `[demo] video[${i}] loaded (${video.videoWidth}x${video.videoHeight})`
+          );
           videos.push(video);
         }
 
@@ -851,6 +856,8 @@ async function captureDemoFrames(options) {
           if (nextIndex === activeIndex) {
             return;
           }
+
+          globalThis.console.log(`[demo] switching active video: ${activeIndex} → ${nextIndex}`);
 
           if (activeIndex >= 0) {
             videos[activeIndex].pause();
@@ -862,6 +869,9 @@ async function captureDemoFrames(options) {
           activeVideo.playbackRate = 1;
           try {
             await activeVideo.play();
+            globalThis.console.log(
+              `[demo] video[${activeIndex}] playing (currentTime=0, playbackRate=1)`
+            );
           } catch {
             // ignore autoplay restrictions in headless mode
           }

@@ -67,9 +67,21 @@ Prerequisites for GIF generation:
 - `ffmpeg` installed and available on `PATH`
 - Playwright browsers installed (`npx playwright install` if missing)
 
-`demo:gif` runs a deterministic Playwright capture flow that feeds a synthetic camera video stream from
-real project photo data, waits for recognition milestones, captures frames, and compiles
+`demo:gif` runs a deterministic Playwright capture flow that feeds the app camera from
+manifest-defined real phone video clips, waits for recognition milestones, captures frames, and compiles
 `docs/media/demo.gif` with ffmpeg.
+
+Real-world sample mode requires these files. `demo:gif` fails fast if they are missing:
+
+- `assets/test-videos/phone-samples/samples.manifest.json`
+- mapped videos referenced by the manifest in `assets/test-videos/phone-samples/`
+
+In this mode, the generator always uses manifest-defined video clips as the fake camera feed and
+selects two single-capture manifest samples for the GIF recognition story. There is currently no
+synthetic fallback path.
+
+Because samples live under `assets/` (not `public/`), they are dev/test inputs only and are not
+copied to production site output.
 
 ## CI Behavior
 

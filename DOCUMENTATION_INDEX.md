@@ -38,6 +38,7 @@ Module API contracts live in the TypeScript source — see `types.ts` in each mo
 
 - **assets/prod-photographs/** — Local-only source photo workflow (original images are intentionally not tracked)
 - **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical tracked photo-to-band metadata and EXIF details
+- **[assets/test-videos/phone-samples/README.md](./assets/test-videos/phone-samples/README.md)** — Dev/test-only real-world phone video samples for deterministic demo GIF generation
 - **[public/assets/test-images/README.md](./public/assets/test-images/README.md)** — Git-tracked synthetic image fixtures for image-dependent tests
 
 ---

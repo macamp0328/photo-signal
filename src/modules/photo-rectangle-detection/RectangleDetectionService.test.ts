@@ -98,4 +98,61 @@ describe('RectangleDetectionService ROI weighting', () => {
     expect(rectangle.bottomRight).toEqual(corners[2]);
     expect(rectangle.bottomLeft).toEqual(corners[3]);
   });
+
+  it('returns original points when ordering corners with non-quadrilateral input', () => {
+    const service = new RectangleDetectionService();
+    const internal = service as unknown as {
+      orderCorners: (points: Array<{ x: number; y: number }>) => Array<{ x: number; y: number }>;
+    };
+
+    const triangle = [
+      { x: 10, y: 10 },
+      { x: 40, y: 12 },
+      { x: 25, y: 60 },
+    ];
+
+    expect(internal.orderCorners(triangle)).toEqual(triangle);
+  });
+
+  it('returns empty array when corner ordering resolves duplicate corners', () => {
+    const service = new RectangleDetectionService();
+    const internal = service as unknown as {
+      orderCorners: (points: Array<{ x: number; y: number }>) => Array<{ x: number; y: number }>;
+    };
+
+    const duplicateCornerPoints = [
+      { x: 10, y: 10 },
+      { x: 10, y: 10 },
+      { x: 90, y: 90 },
+      { x: 20, y: 80 },
+    ];
+
+    expect(internal.orderCorners(duplicateCornerPoints)).toEqual([]);
+  });
+
+  it('returns aspectRatio 0 for degenerate zero-height quadrilateral', () => {
+    const service = new RectangleDetectionService();
+    const internal = service as unknown as {
+      calculateBoundingBox: (points: Array<{ x: number; y: number }>) => {
+        topLeft: { x: number; y: number };
+        topRight: { x: number; y: number };
+        bottomRight: { x: number; y: number };
+        bottomLeft: { x: number; y: number };
+        width: number;
+        height: number;
+        aspectRatio: number;
+      };
+    };
+
+    const flatPoints = [
+      { x: 5, y: 30 },
+      { x: 45, y: 30 },
+      { x: 85, y: 30 },
+      { x: 15, y: 30 },
+    ];
+
+    const rectangle = internal.calculateBoundingBox(flatPoints);
+    expect(rectangle.height).toBe(0);
+    expect(rectangle.aspectRatio).toBe(0);
+  });
 });

@@ -1,7 +1,15 @@
 {
   "recommendations": [
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+    "Anthropic.claude-code",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "ms-vscode.vscode-typescript-next"
+    "ms-vscode.vscode-typescript-next",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "github.vscode-github-actions",
+    "usernamehw.errorlens",
+    "ms-azuretools.vscode-docker"
   ]
 }

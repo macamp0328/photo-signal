@@ -1,5 +1,7 @@
 # Photo Signal
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/macamp0328/photo-signal)
+
 A camera-based music gallery: point your phone at a printed photo, and the app recognizes it and plays
 its paired song.
 
@@ -125,10 +127,28 @@ If you plan to deploy this project publicly, you should replace all audio with c
 to use and/or distribute, and ensure your use complies with applicable copyright rules and platform
 terms.
 
+## Open in GitHub Codespaces
+
+One-click launch:
+
+- https://codespaces.new/macamp0328/photo-signal
+
+First-run in Codespaces:
+
+```bash
+npm run dev
+```
+
+Optional (only if you need audio pipeline tooling inside Codespaces/devcontainer):
+
+```bash
+bash scripts/dev/install-audio-tools.sh
+```
+
 ## Run Locally (Minimal)
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 

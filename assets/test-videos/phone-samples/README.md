@@ -39,8 +39,9 @@ Use this structure for all samples (single-photo videos just have one capture):
 
 `captures` order is deterministic and is the order used by the demo generator.
 
-For GIF generation, the script automatically chooses the first two single-capture samples and
-uses those two videos as the camera feed in sequence.
+For GIF generation, the script automatically chooses the first single-capture sample, then prefers
+a second single-capture sample with a different `artistId` (which may skip earlier single-capture
+entries), and uses those two videos as the camera feed in sequence.
 
 Before capture, demo generation preprocesses all manifest video clips into half-speed duplicates at:
 

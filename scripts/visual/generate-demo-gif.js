@@ -2,7 +2,6 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import { chromium, devices } from '@playwright/test';
 import { createCanvas } from 'canvas';
@@ -216,12 +215,24 @@ function resolvePhotoPath(imageFile) {
 
 function readFileRange(filePath, start, end) {
   const length = end - start + 1;
-  const body = Buffer.allocUnsafe(length);
+  const body = Buffer.alloc(length);
   const fd = fs.openSync(filePath, 'r');
+  let offset = 0;
+  let position = start;
   try {
-    fs.readSync(fd, body, 0, length, start);
+    while (offset < length) {
+      const bytesRead = fs.readSync(fd, body, offset, length - offset, position);
+      if (bytesRead === 0) {
+        break;
+      }
+      offset += bytesRead;
+      position += bytesRead;
+    }
   } finally {
     fs.closeSync(fd);
+  }
+  if (offset < length) {
+    return body.subarray(0, offset);
   }
   return body;
 }
@@ -263,17 +274,13 @@ function prepareHalfSpeedReverseVideo(sourceVideoPath, outputPath) {
 }
 
 function getHalfSpeedVideoPath(sourceVideoPath) {
-  const relativePath = path.relative(VIDEO_SAMPLE_DIR, sourceVideoPath).replace(/\\/g, '/');
-  const sourceKey = createHash('sha1').update(relativePath).digest('hex').slice(0, 8);
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.${sourceKey}.half.webm`);
+  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.webm`);
 }
 
 function getHalfSpeedReverseVideoPath(sourceVideoPath) {
-  const relativePath = path.relative(VIDEO_SAMPLE_DIR, sourceVideoPath).replace(/\\/g, '/');
-  const sourceKey = createHash('sha1').update(relativePath).digest('hex').slice(0, 8);
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.${sourceKey}.half.reverse.webm`);
+  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.reverse.webm`);
 }
 
 function ensureHalfSpeedVideo(sourceVideoPath) {
@@ -461,6 +468,7 @@ function pickTwoSingleCaptureTargets(samples, usableByConcertId) {
 function resolveManifestVideoSources(samples) {
   const sources = [];
   const seen = new Set();
+  const seenBaseNames = new Map();
 
   samples.forEach((sample, sampleIndex) => {
     const sampleLabel = `samples[${sampleIndex}]`;
@@ -482,6 +490,14 @@ function resolveManifestVideoSources(samples) {
     }
 
     if (!seen.has(sourceVideoPath)) {
+      const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
+      const existingPath = seenBaseNames.get(baseName);
+      if (existingPath && existingPath !== sourceVideoPath) {
+        throw new Error(
+          `Duplicate sample basename detected (${baseName}) between ${existingPath} and ${sourceVideoPath}. Rename one file to keep half-speed outputs unique.`
+        );
+      }
+      seenBaseNames.set(baseName, sourceVideoPath);
       seen.add(sourceVideoPath);
       sources.push(sourceVideoPath);
     }
@@ -1173,7 +1189,7 @@ async function captureDemoFrames(options) {
     await setCameraPhase('target');
 
     const secondMatchSeen = await captureUntil(
-      async () => (await hasConcertDetails()) || (await hasNowPlaying()),
+      async () => await hasArtistMatchState(secondTarget.artistName),
       secondSceneMaxMs
     );
 

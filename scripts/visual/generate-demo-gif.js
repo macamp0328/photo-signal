@@ -17,7 +17,7 @@ const VIDEO_SAMPLE_MANIFEST_PATH = path.resolve(VIDEO_SAMPLE_DIR, 'samples.manif
 const HALF_SPEED_VIDEO_DIR = path.resolve(VIDEO_SAMPLE_DIR, 'half-speed');
 const DEMO_VIDEO_ROUTE_PREFIX = '/__demo-video/';
 
-const DEFAULT_LANDING_FRAMES = 20; // 20 × 80ms = 1.6s on landing (was 15 = 1.2s)
+const DEFAULT_LANDING_FRAMES = 30; // 30 × 80ms = 2.4s on landing (was 20 = 1.6s)
 const DEFAULT_CAPTURE_FRAMES = 800; // safety cap only; scenes drive actual GIF length
 const DEFAULT_FRAME_DELAY_MS = 80;
 const DEFAULT_FPS = 12;
@@ -27,32 +27,32 @@ const DEFAULT_VIEWPORT_HEIGHT = 915;
 const DEFAULT_OUTPUT_WIDTH = 480;
 
 const STORY_PACING_MS = {
-  postFirstMatchHold: 4000,
-  controlTapGap: 2500, // was 4000; visual ripple makes each tap clear
+  postFirstMatchHold: 6000, // was 4000; extra time to read Overcoats concert info
+  controlTapGap: 3000, // was 2500; slightly more breathing room between taps
   secondTargetWarmup: 3000, // was 1400; 3s base scan for second clip
   secondTargetWarmupPadding: 1000, // was 700; total second search = 4s
-  postSecondMatchHold: 4500,
+  postSecondMatchHold: 6500, // was 4500; extra time to read Barna concert info
   thirdTargetWarmup: 3000,
   thirdTargetWarmupPadding: 1000,
-  postThirdMatchHold: 4500,
-  postSwitchArtistHold: 4000,
-  fadeToBlack: 1500, // was 1200; slightly longer closing
+  postThirdMatchHold: 6500, // was 4500; extra time to read Croy concert info
+  postSwitchArtistHold: 6000, // was 4000; more time after Switch Artist
+  fadeToBlack: 2000, // was 1500; slightly longer closing fade
 };
 
 // ── Demo GIF Timeline Spec ────────────────────────────────────────────────────
 //
-// Scene 0  Landing hold — ~1.6s (DEFAULT_LANDING_FRAMES × DEFAULT_FRAME_DELAY_MS)
+// Scene 0  Landing hold — ~2.4s (DEFAULT_LANDING_FRAMES × DEFAULT_FRAME_DELAY_MS)
 //
 // Scene 1  Activate camera + haze-clearing search on test_1_overcoats.mp4 at
 //          3× half-speed palindrome with scan overlay and rectangle-detection
 //          visible. Duration: event-driven, bounded by preMatchMs + 8s or
 //          sourceDurationMs × 2.
 //
-// Scene 2  First match (Overcoats) shown with concert info — 4s
+// Scene 2  First match (Overcoats) shown with concert info — 6s
 //          (STORY_PACING_MS.postFirstMatchHold)
 //
 // Scene 3  Audio controls choreography — tap Stop/Pause, Play, Previous, Next
-//          with 2.5s between each tap (STORY_PACING_MS.controlTapGap)
+//          with 3s between each tap (STORY_PACING_MS.controlTapGap)
 //
 // Scene 4  Close details ("Next pic, please") and wait until panel is hidden.
 //
@@ -62,7 +62,7 @@ const STORY_PACING_MS = {
 //          palindrome with scan overlay and rectangle-detection visible.
 //          Duration: secondTargetWarmup + secondTargetWarmupPadding = 4s.
 //
-// Scene 7  Second match (Sean Barna) shown with concert info — 4.5s
+// Scene 7  Second match (Sean Barna) shown with concert info — 6.5s
 //          (STORY_PACING_MS.postSecondMatchHold)
 //
 // Scene 8  Close Barna details, dim flash transition (~800ms).
@@ -71,13 +71,13 @@ const STORY_PACING_MS = {
 //          palindrome with scan overlay and rectangle-detection visible.
 //          Duration: thirdTargetWarmup + thirdTargetWarmupPadding = 4s.
 //
-// Scene 10 Third match (Croy and the Boys) shown with concert info — 4.5s
+// Scene 10 Third match (Croy and the Boys) shown with concert info — 6.5s
 //          (STORY_PACING_MS.postThirdMatchHold)
 //
-// Scene 11 Tap "Switch Artist" and hold 4s while new track starts
+// Scene 11 Tap "Switch Artist" and hold 6s while new track starts
 //          (STORY_PACING_MS.postSwitchArtistHold)
 //
-// Scene 12 Fade to black — 1.5s (STORY_PACING_MS.fadeToBlack)
+// Scene 12 Fade to black — 2s (STORY_PACING_MS.fadeToBlack)
 //
 // If this spec changes, update this comment first, then mirror changes in the
 // constants and flow below. Also update assets/test-videos/phone-samples/README.md.
@@ -1589,6 +1589,8 @@ function buildGif(fps, outputWidth) {
     '-loglevel',
     'error',
     '-y',
+    '-thread_queue_size',
+    '512',
     '-framerate',
     String(fps),
     '-i',

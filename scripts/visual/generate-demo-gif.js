@@ -29,7 +29,6 @@ const STORY_PACING_MS = {
   controlTapGap: 2500, // was 4000; visual ripple makes each tap clear
   secondTargetWarmup: 3000, // was 1400; 3s base scan for second clip
   secondTargetWarmupPadding: 1000, // was 700; total second search = 4s
-  secondTargetMatchPadding: 1200,
   postSecondMatchHold: 3000,
   postSwitchArtistHold: 4000,
   fadeToBlack: 1500, // was 1200; slightly longer closing
@@ -371,47 +370,6 @@ function pickTwoSingleCaptureTargets(samples, usableByConcertId) {
   return [firstTarget, secondTarget];
 }
 
-function resolveManifestVideoSources(samples) {
-  const sources = [];
-  const seen = new Set();
-  const seenBaseNames = new Map();
-
-  samples.forEach((sample, sampleIndex) => {
-    const sampleLabel = `samples[${sampleIndex}]`;
-    const filename = String(sample?.filename ?? '').trim();
-
-    if (!filename) {
-      throw new Error(`Missing filename in ${sampleLabel} in ${VIDEO_SAMPLE_MANIFEST_PATH}.`);
-    }
-
-    const sourceVideoPath = path.resolve(VIDEO_SAMPLE_DIR, filename);
-    if (!isPathInside(VIDEO_SAMPLE_DIR, sourceVideoPath)) {
-      throw new Error(`Invalid filename path traversal in ${sampleLabel}: ${filename}`);
-    }
-
-    if (!fs.existsSync(sourceVideoPath)) {
-      throw new Error(
-        `Video sample file not found: ${sourceVideoPath}. Place the sample videos under ${VIDEO_SAMPLE_DIR}.`
-      );
-    }
-
-    if (!seen.has(sourceVideoPath)) {
-      const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-      const existingPath = seenBaseNames.get(baseName);
-      if (existingPath && existingPath !== sourceVideoPath) {
-        throw new Error(
-          `Duplicate sample basename detected (${baseName}) between ${existingPath} and ${sourceVideoPath}. Rename one file to keep half-speed outputs unique.`
-        );
-      }
-      seenBaseNames.set(baseName, sourceVideoPath);
-      seen.add(sourceVideoPath);
-      sources.push(sourceVideoPath);
-    }
-  });
-
-  return sources;
-}
-
 function resolveDemoTargets() {
   if (!fs.existsSync(VIDEO_SAMPLE_MANIFEST_PATH)) {
     throw new Error(
@@ -458,12 +416,18 @@ function resolveDemoTargets() {
         return null;
       }
 
+      const phash = Array.isArray(recognition.entry?.phash) ? recognition.entry.phash : [];
+      if (phash.length === 0) {
+        return null;
+      }
+
       return {
         concertId: entry.id,
         artistId: entry.artistId,
         artistName: artistNameById.get(entry.artistId) ?? entry.artistId,
         photoId: entry.photoId,
         imageFile: photo.imageFile,
+        seededHash: phash[0],
       };
     })
     .filter(Boolean);
@@ -477,14 +441,11 @@ function resolveDemoTargets() {
     );
   }
 
-  const manifestVideoSources = resolveManifestVideoSources(samples);
-
   const cameraTargets = pickTwoSingleCaptureTargets(samples, usableByConcertId);
 
   return {
     firstTarget: cameraTargets[0],
     secondTarget: cameraTargets[1],
-    manifestVideoSources,
     sourceMode: 'video-clips-camera-feed',
   };
 }
@@ -501,29 +462,7 @@ async function captureDemoFrames(options) {
 
   const { firstTarget, secondTarget, sourceMode } = resolveDemoTargets();
   const cameraTargets = [firstTarget, secondTarget];
-
-  // Load recognition data to get existing hashes (real hashes from video captures)
-  const recognitionPath = path.resolve(ROOT, 'public/data.recognition.v2.json');
-  const recognitionData = JSON.parse(fs.readFileSync(recognitionPath, 'utf8'));
-  const recognitionByConcertId = new Map(
-    (recognitionData.entries ?? []).map((entry) => [entry.concertId, entry])
-  );
-
-  // Use existing hashes from recognition data instead of computing new ones
-  const targetSeededHashes = cameraTargets.map((target) => {
-    const recognitionEntry = recognitionByConcertId.get(target.concertId);
-    if (
-      !recognitionEntry ||
-      !Array.isArray(recognitionEntry.phash) ||
-      recognitionEntry.phash.length === 0
-    ) {
-      throw new Error(
-        `No recognition hashes found for concertId=${target.concertId}. Cannot seed demo with missing recognition data.`
-      );
-    }
-    // Use the first (primary) hash from recognition data
-    return recognitionEntry.phash[0];
-  });
+  const targetSeededHashes = cameraTargets.map((target) => target.seededHash);
 
   // Log seeding details for debugging
   cameraTargets.forEach((target, idx) => {
@@ -1063,8 +1002,8 @@ async function captureDemoFrames(options) {
               position: 'fixed',
               left: `${x}px`,
               top: `${y}px`,
-              width: '60px',
-              height: '60px',
+              width: '72px',
+              height: '72px',
               borderRadius: '50%',
               background: 'rgba(95, 211, 179, 0.45)',
               border: '3px solid rgba(255, 255, 255, 0.92)',
@@ -1120,13 +1059,7 @@ async function captureDemoFrames(options) {
 
       const hasDetails = await hasConcertDetails();
       const hasPlaying = await hasNowPlaying();
-      const matched = hasDetails || hasPlaying;
-      if (!matched) {
-        console.log(
-          `[captureUntil] ${artistName} visible but no details/playing. details=${hasDetails}, playing=${hasPlaying}`
-        );
-      }
-      return matched;
+      return hasDetails || hasPlaying;
     };
 
     const ensurePlaybackActive = async () => {
@@ -1294,7 +1227,7 @@ async function captureDemoFrames(options) {
       }, 500);
     });
 
-    await captureFor(700); // ~8–9 frames showing the dim flash
+    await captureFor(800); // ~10 frames showing full dim flash, including fade-out
 
     // Scene 5: second haze-clearing search
     const secondClearSec =
@@ -1305,21 +1238,16 @@ async function captureDemoFrames(options) {
     await startSearch(secondClearSec);
     await setCameraTargetIndex(1);
 
-    // Wait for haze to clear, then force phase='target' to ensure completely clean rendering
+    // Capture during haze clearing so Scene 5 scan progression is visible in the GIF
     const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
-    console.log(`⏳ Waiting ${clearWaitMs}ms for haze to fully clear...`);
-    await page.waitForTimeout(clearWaitMs);
+    console.log(`📹 Capturing frames during second haze clear for ${clearWaitMs}ms...`);
+    await captureFor(clearWaitMs);
 
-    // Force phase='target' to guarantee no canvas filters are applied
     await page.evaluate(() => {
       if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
         globalThis.__photoSignalDemoSetPhase('target');
-        globalThis.console.log('[demo] forcing phase=target for clean rendering');
       }
     });
-
-    // Capture a few clean frames to trigger recognition
-    console.log(`📹 Capturing clean frames after haze clear...`);
     await captureFor(500);
 
     // Now run the match check
@@ -1489,13 +1417,24 @@ async function main() {
   }
 
   try {
-    buildGif(options.fps, options.outputWidth);
+    try {
+      buildGif(options.fps, options.outputWidth);
+    } catch (buildError) {
+      if (captureError) {
+        throw new AggregateError(
+          [captureError, buildError],
+          'Frame capture failed and partial GIF build also failed.'
+        );
+      }
+      throw buildError;
+    }
+
     if (captureError) {
       console.log(`\n⚠️  Partial Demo GIF generated: ${OUTPUT_GIF}`);
       throw captureError;
-    } else {
-      console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
     }
+
+    console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
   } finally {
     await stopPreviewServer(preview);
     cleanup(options.keepFrames);

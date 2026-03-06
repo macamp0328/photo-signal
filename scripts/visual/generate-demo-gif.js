@@ -316,7 +316,7 @@ function getVideoRotation(videoPath) {
 }
 
 function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
-  // Produces a palindrome (forward + reverse at 3× slow-speed) so the video loops
+  // Produces a palindrome (forward + reverse at 2× slow-speed) so the video loops
   // smoothly without a jarring jump-cut, and the printed photo is visible for
   // longer per loop — giving rectangle detection more stable frames.
   // split=2 creates two copies so [fwd1] feeds concat while [fwd2] feeds reverse.
@@ -347,7 +347,7 @@ function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
     '-i',
     sourceVideoPath,
     '-filter_complex',
-    `[0:v]${rotationFilter}setpts=3*PTS,scale=960:-2:flags=lanczos,format=yuv420p,split=2[fwd1][fwd2];[fwd2]reverse[rev];[fwd1][rev]concat=n=2:v=1:a=0[out]`,
+    `[0:v]${rotationFilter}setpts=2*PTS,scale=960:-2:flags=lanczos,format=yuv420p,split=2[fwd1][fwd2];[fwd2]reverse[rev];[fwd1][rev]concat=n=2:v=1:a=0[out]`,
     '-map',
     '[out]',
     '-r',
@@ -362,7 +362,7 @@ function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
 
 function getHalfSpeedVideoPath(sourceVideoPath) {
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.3x-palindrome.webm`);
+  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.2x-palindrome.webm`);
 }
 
 function ensureHalfSpeedVideo(sourceVideoPath) {
@@ -788,6 +788,7 @@ async function captureDemoFrames(options) {
             'photo-signal-feature-flags',
             JSON.stringify(Array.from(byId.values()))
           );
+          globalThis.localStorage.setItem('photo-signal-demo-no-audio-fade', 'true');
         } catch {
           // ignore localStorage bootstrap failures
         }
@@ -997,35 +998,28 @@ async function captureDemoFrames(options) {
 
           await setActiveVideo(0);
 
-          const drawCoverFrame = (video) => {
-            const targetAspect = canvas.width / canvas.height;
-            const videoAspect = video.videoWidth / video.videoHeight;
+          const drawContainFrame = (video) => {
+            const scale = Math.min(
+              canvas.width / video.videoWidth,
+              canvas.height / video.videoHeight
+            );
+            const drawWidth = video.videoWidth * scale;
+            const drawHeight = video.videoHeight * scale;
+            const offsetX = (canvas.width - drawWidth) / 2;
+            const offsetY = (canvas.height - drawHeight) / 2;
 
-            let sourceWidth = video.videoWidth;
-            let sourceHeight = video.videoHeight;
-            let sourceX = 0;
-            let sourceY = 0;
-
-            if (videoAspect > targetAspect) {
-              sourceHeight = video.videoHeight;
-              sourceWidth = sourceHeight * targetAspect;
-              sourceX = (video.videoWidth - sourceWidth) / 2;
-            } else {
-              sourceWidth = video.videoWidth;
-              sourceHeight = sourceWidth / targetAspect;
-              sourceY = (video.videoHeight - sourceHeight) / 2;
-            }
-
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, canvas.width, canvas.height);
             context.drawImage(
               video,
-              sourceX,
-              sourceY,
-              sourceWidth,
-              sourceHeight,
               0,
               0,
-              canvas.width,
-              canvas.height
+              video.videoWidth,
+              video.videoHeight,
+              offsetX,
+              offsetY,
+              drawWidth,
+              drawHeight
             );
           };
 
@@ -1061,7 +1055,7 @@ async function captureDemoFrames(options) {
                 const saturate = (0.88 + 0.12 * clearT).toFixed(2);
                 context.filter = `blur(${blur}px) brightness(${brightness}) contrast(${contrast}) saturate(${saturate})`;
               }
-              drawCoverFrame(activeVideo);
+              drawContainFrame(activeVideo);
               context.restore();
             }
 

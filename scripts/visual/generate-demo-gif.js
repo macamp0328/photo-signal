@@ -80,7 +80,8 @@ const STORY_PACING_MS = {
 // Scene 12 Fade to black — 2s (STORY_PACING_MS.fadeToBlack)
 //
 // If this spec changes, update this comment first, then mirror changes in the
-// constants and flow below. Also update assets/test-videos/phone-samples/README.md.
+// constants and flow below. The README.md in phone-samples/ points here as the
+// canonical spec and does not need a separate copy of the timeline.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function parseArgs(argv) {
@@ -564,18 +565,12 @@ function resolveDemoTargets() {
         return null;
       }
 
-      const phash = Array.isArray(recognition.entry?.phash) ? recognition.entry.phash : [];
-      if (phash.length === 0) {
-        return null;
-      }
-
       return {
         concertId: entry.id,
         artistId: entry.artistId,
         artistName: artistNameById.get(entry.artistId) ?? entry.artistId,
         photoId: entry.photoId,
         imageFile: photo.imageFile,
-        seededHash: phash[0],
       };
     })
     .filter(Boolean);
@@ -1407,12 +1402,8 @@ async function captureDemoFrames(options) {
     const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
     console.log(`📹 Capturing frames during second haze clear for ${clearWaitMs}ms...`);
     await captureFor(clearWaitMs);
-
-    await page.evaluate(() => {
-      if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
-        globalThis.__photoSignalDemoSetPhase('target');
-      }
-    });
+    // The auto-switch timer (scheduled by startSearch) fires at clearWaitMs,
+    // so the phase is already 'target' by this point — no explicit call needed.
     await captureFor(500);
 
     // Now run the match check
@@ -1500,12 +1491,8 @@ async function captureDemoFrames(options) {
     const thirdClearWaitMs = Math.ceil(thirdClearSec * 1000) + 100;
     console.log(`📹 Capturing frames during third haze clear for ${thirdClearWaitMs}ms...`);
     await captureFor(thirdClearWaitMs);
-
-    await page.evaluate(() => {
-      if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
-        globalThis.__photoSignalDemoSetPhase('target');
-      }
-    });
+    // The auto-switch timer (scheduled by startSearch) fires at thirdClearWaitMs,
+    // so the phase is already 'target' by this point — no explicit call needed.
     await captureFor(500);
 
     const thirdTimeout = Math.max(thirdClearSec * 1000 + 8000, thirdTarget.sourceDurationMs * 2);

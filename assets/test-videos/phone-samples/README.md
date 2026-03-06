@@ -53,7 +53,7 @@ more stable frames per loop.
 ## Demo GIF Timeline Spec
 
 The canonical scene-by-scene spec lives as a comment block in `scripts/visual/generate-demo-gif.js`
-(just below `STORY_PACING_MS`). Edit it there — this file is the source of truth for pacing values
+(just below `STORY_PACING_MS`). Edit it there — `scripts/visual/generate-demo-gif.js` is the source of truth for pacing values
 and storyboard flow.
 
 ## Shipping safety

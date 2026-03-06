@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { chromium, devices } from '@playwright/test';
+import { loadImageData, computePHash } from '../lib/photoHashUtils.js';
 
 const ROOT = process.cwd();
 const BASE_URL = 'http://127.0.0.1:4173';
@@ -19,7 +21,7 @@ const DEFAULT_LANDING_FRAMES = 20; // 20 × 80ms = 1.6s on landing (was 15 = 1.2
 const DEFAULT_CAPTURE_FRAMES = 800; // safety cap only; scenes drive actual GIF length
 const DEFAULT_FRAME_DELAY_MS = 80;
 const DEFAULT_FPS = 12;
-const DEFAULT_PRE_MATCH_MS = 3500; // 3.5s scan before first match (was 1400ms)
+const DEFAULT_PRE_MATCH_MS = 6000; // 6s scan before first match (was 3500ms)
 const DEFAULT_VIEWPORT_WIDTH = 412;
 const DEFAULT_VIEWPORT_HEIGHT = 915;
 const DEFAULT_OUTPUT_WIDTH = 480;
@@ -29,10 +31,57 @@ const STORY_PACING_MS = {
   controlTapGap: 2500, // was 4000; visual ripple makes each tap clear
   secondTargetWarmup: 3000, // was 1400; 3s base scan for second clip
   secondTargetWarmupPadding: 1000, // was 700; total second search = 4s
-  postSecondMatchHold: 3000,
+  postSecondMatchHold: 4500,
+  thirdTargetWarmup: 3000,
+  thirdTargetWarmupPadding: 1000,
+  postThirdMatchHold: 4500,
   postSwitchArtistHold: 4000,
   fadeToBlack: 1500, // was 1200; slightly longer closing
 };
+
+// ── Demo GIF Timeline Spec ────────────────────────────────────────────────────
+//
+// Scene 0  Landing hold — ~1.6s (DEFAULT_LANDING_FRAMES × DEFAULT_FRAME_DELAY_MS)
+//
+// Scene 1  Activate camera + haze-clearing search on test_1_overcoats.mp4 at
+//          3× half-speed palindrome with scan overlay and rectangle-detection
+//          visible. Duration: event-driven, bounded by preMatchMs + 8s or
+//          sourceDurationMs × 2.
+//
+// Scene 2  First match (Overcoats) shown with concert info — 4s
+//          (STORY_PACING_MS.postFirstMatchHold)
+//
+// Scene 3  Audio controls choreography — tap Stop/Pause, Play, Previous, Next
+//          with 2.5s between each tap (STORY_PACING_MS.controlTapGap)
+//
+// Scene 4  Close details ("Next pic, please") and wait until panel is hidden.
+//
+// Scene 5  Dim flash transition (~800ms) signals new photo being searched.
+//
+// Scene 6  Second haze-clearing search on test_5_barna.mp4 at 3× half-speed
+//          palindrome with scan overlay and rectangle-detection visible.
+//          Duration: secondTargetWarmup + secondTargetWarmupPadding = 4s.
+//
+// Scene 7  Second match (Sean Barna) shown with concert info — 4.5s
+//          (STORY_PACING_MS.postSecondMatchHold)
+//
+// Scene 8  Close Barna details, dim flash transition (~800ms).
+//
+// Scene 9  Third haze-clearing search on test_2_croy.mp4 at 3× half-speed
+//          palindrome with scan overlay and rectangle-detection visible.
+//          Duration: thirdTargetWarmup + thirdTargetWarmupPadding = 4s.
+//
+// Scene 10 Third match (Croy and the Boys) shown with concert info — 4.5s
+//          (STORY_PACING_MS.postThirdMatchHold)
+//
+// Scene 11 Tap "Switch Artist" and hold 4s while new track starts
+//          (STORY_PACING_MS.postSwitchArtistHold)
+//
+// Scene 12 Fade to black — 1.5s (STORY_PACING_MS.fadeToBlack)
+//
+// If this spec changes, update this comment first, then mirror changes in the
+// constants and flow below. Also update assets/test-videos/phone-samples/README.md.
+// ─────────────────────────────────────────────────────────────────────────────
 
 function parseArgs(argv) {
   const parsed = {
@@ -234,16 +283,69 @@ function readFileRange(filePath, start, end) {
   return body;
 }
 
+/**
+ * Reads the rotation angle (degrees) recorded in the video stream's displaymatrix
+ * side-data. Returns 0 when no rotation is found.
+ *
+ * This is needed because `-filter_complex` in FFmpeg 5.x does NOT honour the
+ * `autorotate` option — rotation must be applied explicitly in the filter chain.
+ */
+function getVideoRotation(videoPath) {
+  const result = spawnSync(
+    'ffprobe',
+    [
+      '-v',
+      'error',
+      '-select_streams',
+      'v:0',
+      '-show_entries',
+      'stream_tags=rotate',
+      '-of',
+      'default=nw=1:nk=1',
+      videoPath,
+    ],
+    { cwd: ROOT, encoding: 'utf8' }
+  );
+  const rotStr = String(result.stdout ?? '').trim();
+  const rot = Number.parseInt(rotStr, 10);
+  return Number.isFinite(rot) ? rot : 0;
+}
+
 function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
+  // Produces a palindrome (forward + reverse at 3× slow-speed) so the video loops
+  // smoothly without a jarring jump-cut, and the printed photo is visible for
+  // longer per loop — giving rectangle detection more stable frames.
+  // split=2 creates two copies so [fwd1] feeds concat while [fwd2] feeds reverse.
+  //
+  // Rotation must be corrected explicitly: -filter_complex does not honour
+  // autorotate in FFmpeg 5.x, so videos recorded with displaymatrix metadata
+  // (e.g. upside-down phone clips) would otherwise play inverted in the browser.
+  const rotationDeg = getVideoRotation(sourceVideoPath);
+  let rotationFilter = '';
+  if (rotationDeg === 180 || rotationDeg === -180) {
+    rotationFilter = 'hflip,vflip,'; // 180° correction
+  } else if (rotationDeg === 90 || rotationDeg === -270) {
+    rotationFilter = 'transpose=1,'; // 90° clockwise
+  } else if (rotationDeg === -90 || rotationDeg === 270) {
+    rotationFilter = 'transpose=2,'; // 90° counter-clockwise
+  }
+
+  if (rotationDeg !== 0) {
+    console.log(
+      `   ↻ Applying ${rotationDeg}° rotation correction to ${path.basename(sourceVideoPath)}`
+    );
+  }
+
   run('ffmpeg', [
     '-y',
     '-i',
     sourceVideoPath,
-    '-an',
+    '-filter_complex',
+    `[0:v]${rotationFilter}setpts=3*PTS,scale=960:-2:flags=lanczos,format=yuv420p,split=2[fwd1][fwd2];[fwd2]reverse[rev];[fwd1][rev]concat=n=2:v=1:a=0[out]`,
+    '-map',
+    '[out]',
     '-r',
     '24',
-    '-vf',
-    'setpts=2*PTS,scale=960:-2:flags=lanczos,format=yuv420p',
     '-c:v',
     'libvpx-vp9',
     '-b:v',
@@ -254,7 +356,7 @@ function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
 
 function getHalfSpeedVideoPath(sourceVideoPath) {
   const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.half.webm`);
+  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.3x-palindrome.webm`);
 }
 
 function ensureHalfSpeedVideo(sourceVideoPath) {
@@ -292,7 +394,27 @@ function getVideoDurationMs(videoPath) {
   return Math.floor(seconds * 1000);
 }
 
-function pickTwoSingleCaptureTargets(samples, usableByConcertId) {
+async function computeHashFromVideoFrame(videoPath) {
+  const durationSec = getVideoDurationMs(videoPath) / 1000;
+  // Seek to 30% of the file duration. For palindrome files this lands in the
+  // middle of the clean forward pass (past the haze-clearing period), so the
+  // extracted frame represents what the browser recognition will actually see.
+  const seekSec = durationSec * 0.3;
+  const tmpFile = path.join(os.tmpdir(), `demo-frame-${Date.now()}.png`);
+  try {
+    run('ffmpeg', ['-ss', String(seekSec), '-i', videoPath, '-vframes', '1', '-q:v', '2', tmpFile]);
+    const imageData = await loadImageData(tmpFile);
+    return computePHash(imageData);
+  } finally {
+    try {
+      fs.unlinkSync(tmpFile);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+function pickDemoTargets(samples, usableByConcertId, count = 3) {
   const singleCaptureTargets = [];
 
   samples.forEach((sample, sampleIndex) => {
@@ -352,22 +474,34 @@ function pickTwoSingleCaptureTargets(samples, usableByConcertId) {
     });
   });
 
-  if (singleCaptureTargets.length < 2) {
+  if (singleCaptureTargets.length < count) {
     throw new Error(
-      `Need at least 2 single-capture samples in ${VIDEO_SAMPLE_MANIFEST_PATH} for demo GIF generation.`
+      `Need at least ${count} single-capture samples in ${VIDEO_SAMPLE_MANIFEST_PATH} for demo GIF generation.`
     );
   }
 
-  const firstTarget = singleCaptureTargets[0];
-  const secondTarget =
-    singleCaptureTargets.find((candidate) => candidate.artistId !== firstTarget.artistId) ??
-    singleCaptureTargets[1];
-
-  if (!secondTarget) {
-    throw new Error('Could not choose a second single-capture target from manifest.');
+  // Pick `count` targets, preferring distinct artists.
+  const chosen = [];
+  for (const candidate of singleCaptureTargets) {
+    if (chosen.length >= count) break;
+    if (chosen.every((c) => c.artistId !== candidate.artistId)) {
+      chosen.push(candidate);
+    }
+  }
+  // Fill remaining slots with next available targets if not enough distinct artists.
+  let fillIdx = 0;
+  while (chosen.length < count && fillIdx < singleCaptureTargets.length) {
+    if (!chosen.includes(singleCaptureTargets[fillIdx])) {
+      chosen.push(singleCaptureTargets[fillIdx]);
+    }
+    fillIdx++;
   }
 
-  return [firstTarget, secondTarget];
+  if (chosen.length < count) {
+    throw new Error(`Could not choose ${count} targets from manifest.`);
+  }
+
+  return chosen;
 }
 
 function resolveDemoTargets() {
@@ -435,17 +569,18 @@ function resolveDemoTargets() {
   const usableByConcertId = new Map(usableEntries.map((entry) => [String(entry.concertId), entry]));
   const samples = Array.isArray(manifest?.samples) ? manifest.samples : [];
 
-  if (samples.length < 2) {
+  if (samples.length < 3) {
     throw new Error(
-      `Expected at least 2 samples in ${VIDEO_SAMPLE_MANIFEST_PATH}, found ${samples.length}.`
+      `Expected at least 3 samples in ${VIDEO_SAMPLE_MANIFEST_PATH}, found ${samples.length}.`
     );
   }
 
-  const cameraTargets = pickTwoSingleCaptureTargets(samples, usableByConcertId);
+  const [firstTarget, secondTarget, thirdTarget] = pickDemoTargets(samples, usableByConcertId);
 
   return {
-    firstTarget: cameraTargets[0],
-    secondTarget: cameraTargets[1],
+    firstTarget,
+    secondTarget,
+    thirdTarget,
     sourceMode: 'video-clips-camera-feed',
   };
 }
@@ -460,27 +595,40 @@ async function captureDemoFrames(options) {
   const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
     options;
 
-  const { firstTarget, secondTarget, sourceMode } = resolveDemoTargets();
-  const cameraTargets = [firstTarget, secondTarget];
-  const targetSeededHashes = cameraTargets.map((target) => target.seededHash);
+  const { firstTarget, secondTarget, thirdTarget, sourceMode } = resolveDemoTargets();
+  const cameraTargets = [firstTarget, secondTarget, thirdTarget];
 
-  // Log seeding details for debugging
-  cameraTargets.forEach((target, idx) => {
-    console.log(
-      `📸 Seeding target ${idx}: ${target.artistName} (concertId=${target.concertId}, photoId=${target.photoId})`
-    );
-    console.log(`   ├─ Source video: ${target.sourceVideoPath}`);
-    console.log(`   ├─ Duration: ${target.sourceDurationMs}ms`);
-    console.log(`   └─ Using existing hash: ${targetSeededHashes[idx]}`);
-  });
-
-  // Only process half-speed versions for the two demo targets (don't process unused manifest videos)
+  // Generate palindrome videos FIRST so hashes can be extracted from them.
+  // Hash extraction from the palindrome ensures pixel values are identical
+  // to what the browser recognition pipeline sees (same encoding, same
+  // rotation correction applied) rather than the raw HDR source file.
+  console.log('🎞️  Preparing palindrome videos...');
   const halfSpeedMap = new Map(
     cameraTargets.map((target) => [
       target.sourceVideoPath,
       ensureHalfSpeedVideo(target.sourceVideoPath),
     ])
   );
+
+  // Extract seeded hashes from the palindrome files at 30% duration — the
+  // middle of the clean forward pass after the haze-clearing overlay ends.
+  // This guarantees the seeded hash matches what recognition sees in the browser.
+  console.log('🔍 Computing video-frame hashes for seeding...');
+  const targetSeededHashes = await Promise.all(
+    cameraTargets.map((target) =>
+      computeHashFromVideoFrame(halfSpeedMap.get(target.sourceVideoPath))
+    )
+  );
+
+  // Log seeding details for debugging
+  cameraTargets.forEach((target, idx) => {
+    console.log(
+      `📸 Seeding target ${idx}: ${target.artistName} (concertId=${target.concertId}, photoId=${target.photoId})`
+    );
+    console.log(`   ├─ Palindrome: ${path.basename(halfSpeedMap.get(target.sourceVideoPath))}`);
+    console.log(`   ├─ Source duration: ${target.sourceDurationMs}ms`);
+    console.log(`   └─ Computed video hash: ${targetSeededHashes[idx]}`);
+  });
 
   const preparedCameraTargets = cameraTargets.map((target) => {
     const preparedPath = halfSpeedMap.get(target.sourceVideoPath);
@@ -494,7 +642,7 @@ async function captureDemoFrames(options) {
   });
 
   console.log(
-    `🎬 Demo targets (${sourceMode}): ${firstTarget.artistName} -> ${secondTarget.artistName}`
+    `🎬 Demo targets (${sourceMode}): ${firstTarget.artistName} -> ${secondTarget.artistName} -> ${thirdTarget.artistName}`
   );
 
   const browser = await chromium.launch({
@@ -1190,6 +1338,10 @@ async function captureDemoFrames(options) {
         .catch(() => null);
     }
 
+    // Switch video first so the new clip is already playing when the dim flash
+    // fades out. This prevents a frame of the previous video appearing uncovered.
+    await setCameraTargetIndex(1);
+
     // Brief dim-flash signals "new photo being searched" before the second scan begins.
     await page.evaluate(() => {
       const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
@@ -1229,14 +1381,13 @@ async function captureDemoFrames(options) {
 
     await captureFor(800); // ~10 frames showing full dim flash, including fade-out
 
-    // Scene 5: second haze-clearing search
+    // Scene 5: second haze-clearing search (video already switched above)
     const secondClearSec =
       (STORY_PACING_MS.secondTargetWarmup + STORY_PACING_MS.secondTargetWarmupPadding) / 1000;
     console.log(
       `📹 Scene 5: Starting second search for "${secondTarget.artistName}" with ${secondClearSec}s haze clear`
     );
     await startSearch(secondClearSec);
-    await setCameraTargetIndex(1);
 
     // Capture during haze clearing so Scene 5 scan progression is visible in the GIF
     const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
@@ -1269,19 +1420,104 @@ async function captureDemoFrames(options) {
 
     await captureFor(STORY_PACING_MS.postSecondMatchHold);
 
-    await ensurePlaybackActive();
-
-    let hasSwitchArtist = await isSwitchArtistVisible();
-    if (!hasSwitchArtist) {
-      await setCameraTargetIndex(1);
-      await captureFor(500);
-      await setCameraTargetIndex(2);
-      await captureFor(900);
-      hasSwitchArtist = await captureUntil(async () => await isSwitchArtistVisible(), 6000);
+    // Close Barna concert details before transitioning to third artist.
+    const closeBarnaButton = page.getByRole('button', {
+      name: /next pic, please|close concert details/i,
+    });
+    if (await closeBarnaButton.isVisible().catch(() => false)) {
+      await clickWithIndicator(closeBarnaButton);
+      await page
+        .getByLabel(/concert details/i)
+        .waitFor({ state: 'hidden', timeout: 3000 })
+        .catch(() => null);
     }
 
+    // Switch video first so the new clip is already playing when the dim flash
+    // fades out. This prevents a frame of the previous video appearing uncovered.
+    await setCameraTargetIndex(2);
+
+    // Brief dim-flash signals "new photo being searched" before the third scan begins.
+    await page.evaluate(() => {
+      const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
+      if (existing) existing.remove();
+
+      const dimOverlay = globalThis.document.createElement('div');
+      dimOverlay.setAttribute('data-demo-clip-reset', 'true');
+
+      Object.assign(dimOverlay.style, {
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        width: '100vw',
+        height: '100vh',
+        background: '#000',
+        opacity: '0',
+        pointerEvents: 'none',
+        zIndex: '99998', // below ripple (999999), above app content
+        transition: 'opacity 220ms linear',
+      });
+
+      globalThis.document.body.appendChild(dimOverlay);
+
+      globalThis.requestAnimationFrame(() => {
+        dimOverlay.style.opacity = '0.72';
+      });
+
+      // Fade back out after 500ms so the search scan is visible shortly after
+      globalThis.setTimeout(() => {
+        dimOverlay.style.transition = 'opacity 280ms linear';
+        dimOverlay.style.opacity = '0';
+        globalThis.setTimeout(() => {
+          if (dimOverlay.parentNode) dimOverlay.remove();
+        }, 350);
+      }, 500);
+    });
+
+    await captureFor(800); // ~10 frames showing full dim flash, including fade-out
+
+    // Scene: third haze-clearing search — video already switched above
+    const thirdClearSec =
+      (STORY_PACING_MS.thirdTargetWarmup + STORY_PACING_MS.thirdTargetWarmupPadding) / 1000;
+    console.log(
+      `📹 Scene: Starting third search for "${thirdTarget.artistName}" with ${thirdClearSec}s haze clear`
+    );
+    await startSearch(thirdClearSec);
+
+    const thirdClearWaitMs = Math.ceil(thirdClearSec * 1000) + 100;
+    console.log(`📹 Capturing frames during third haze clear for ${thirdClearWaitMs}ms...`);
+    await captureFor(thirdClearWaitMs);
+
+    await page.evaluate(() => {
+      if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
+        globalThis.__photoSignalDemoSetPhase('target');
+      }
+    });
+    await captureFor(500);
+
+    const thirdTimeout = Math.max(thirdClearSec * 1000 + 8000, thirdTarget.sourceDurationMs * 2);
+    console.log(
+      `⏱️ Checking for third match (clearSec=${thirdClearSec}, sourceDurationMs=${thirdTarget.sourceDurationMs})`
+    );
+    const thirdMatchSeen = await captureUntil(
+      async () => await hasArtistMatchState(thirdTarget.artistName),
+      thirdTimeout
+    );
+
+    if (!thirdMatchSeen) {
+      throw new Error(
+        `Third target did not match for artist ${thirdTarget.artistName}. Timeout was ${thirdTimeout}ms.`
+      );
+    }
+    console.log(`✅ Third match found for "${thirdTarget.artistName}"`);
+
+    await captureFor(STORY_PACING_MS.postThirdMatchHold);
+
+    await ensurePlaybackActive();
+
+    const hasSwitchArtist = await captureUntil(async () => await isSwitchArtistVisible(), 6000);
+
     if (!hasSwitchArtist) {
-      console.warn('⚠️ Scene 8: Switch Artist button not visible; skipping press and proceeding.');
+      console.warn('⚠️ Switch Artist button not visible; skipping press and proceeding.');
     } else {
       const switchArtistButton = await waitForEnabledButton(/switch artist|drop the needle/i, 4000);
       await clickWithIndicator(switchArtistButton);

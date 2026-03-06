@@ -470,6 +470,99 @@ describe('App playback flow', () => {
     expect(screen.queryByText('Photo unavailable')).not.toBeInTheDocument();
   });
 
+  it('opens zoom dialog when matched photo is clicked', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open matched photo zoom' }));
+
+    expect(screen.getByRole('dialog', { name: 'Matched photo zoom' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
+
+  it('opens long-press download prompt and suppresses zoom for that interaction', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const anchorClickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    try {
+      render(<App />);
+
+      await user.click(
+        screen.getByRole('button', {
+          name: 'Activate camera and begin experience',
+        })
+      );
+
+      const matchedPhotoButton = screen.getByRole('button', { name: 'Open matched photo zoom' });
+
+      fireEvent.mouseDown(matchedPhotoButton, { button: 0 });
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('dialog', {
+            name: 'Download full-size photo',
+          })
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.mouseUp(matchedPhotoButton, { button: 0 });
+      fireEvent.click(matchedPhotoButton);
+
+      expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Download' }));
+      expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      anchorClickSpy.mockRestore();
+    }
+  });
+
+  it('cancels long-press when pointer moves and allows click-to-zoom', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    const matchedPhotoButton = screen.getByRole('button', { name: 'Open matched photo zoom' });
+
+    fireEvent.mouseDown(matchedPhotoButton, { button: 0 });
+    fireEvent.mouseMove(matchedPhotoButton);
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 550);
+    });
+    fireEvent.mouseUp(matchedPhotoButton, { button: 0 });
+
+    expect(
+      screen.queryByRole('dialog', {
+        name: 'Download full-size photo',
+      })
+    ).not.toBeInTheDocument();
+
+    await user.click(matchedPhotoButton);
+    expect(screen.getByRole('dialog', { name: 'Matched photo zoom' })).toBeInTheDocument();
+  });
+
   it('auto-plays a newly recognized match when no music is currently playing', async () => {
     recognitionState.recognizedConcert = concertOne;
 

@@ -126,6 +126,8 @@ function buildPlaylist(songs: Concert[], preferredId?: number): Concert[] {
 }
 
 function AppContent() {
+  const LONG_PRESS_DURATION_MS = 500;
+
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -139,10 +141,14 @@ function AppContent() {
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
   const [isConcertInfoVisible, setIsConcertInfoVisible] = useState(false);
   const [hasScannedPhotoLoadFailed, setHasScannedPhotoLoadFailed] = useState(false);
+  const [isZoomedPhotoVisible, setIsZoomedPhotoVisible] = useState(false);
+  const [isDownloadPromptVisible, setIsDownloadPromptVisible] = useState(false);
   const [closedConcertCooldown, setClosedConcertCooldown] = useState<{
     concertId: number;
     expiresAt: number;
   } | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const suppressNextPhotoClickRef = useRef(false);
 
   // Playlist bookkeeping — stored in refs because these values are never rendered;
   // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
@@ -539,12 +545,33 @@ function AppContent() {
     setIsActive(true);
   };
 
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  const getPhotoDownloadFilename = useCallback((url: string) => {
+    try {
+      const parsedUrl = new URL(url, window.location.href);
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+      const fileName = pathSegments[pathSegments.length - 1];
+      return fileName || 'matched-photo.jpg';
+    } catch {
+      return 'matched-photo.jpg';
+    }
+  }, []);
+
   const shutdownExperience = useCallback(() => {
+    clearLongPressTimer();
     userPausedRef.current = true;
     stop();
     setIsActive(false);
     setIsConcertInfoVisible(false);
     setHasScannedPhotoLoadFailed(false);
+    setIsZoomedPhotoVisible(false);
+    setIsDownloadPromptVisible(false);
     setClosedConcertCooldown(null);
     setActiveConcert(null);
     setActivePlaylistBand(null);
@@ -552,7 +579,7 @@ function AppContent() {
     playlistIndexRef.current = 0;
     previousAutoplayIdRef.current = null;
     resetRecognition();
-  }, [resetRecognition, stop]);
+  }, [clearLongPressTimer, resetRecognition, stop]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -590,6 +617,90 @@ function AppContent() {
   useEffect(() => {
     setHasScannedPhotoLoadFailed(false);
   }, [scannedPhotoUrl]);
+
+  useEffect(() => {
+    if (shouldShowScannedPhoto) {
+      return;
+    }
+
+    clearLongPressTimer();
+    setIsZoomedPhotoVisible(false);
+    setIsDownloadPromptVisible(false);
+  }, [clearLongPressTimer, shouldShowScannedPhoto]);
+
+  useEffect(() => {
+    return () => {
+      clearLongPressTimer();
+    };
+  }, [clearLongPressTimer]);
+
+  useEffect(() => {
+    if (!isZoomedPhotoVisible && !isDownloadPromptVisible) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      setIsDownloadPromptVisible(false);
+      setIsZoomedPhotoVisible(false);
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDownloadPromptVisible, isZoomedPhotoVisible]);
+
+  const handleMatchedPhotoClick = useCallback(() => {
+    if (suppressNextPhotoClickRef.current) {
+      suppressNextPhotoClickRef.current = false;
+      return;
+    }
+
+    setIsZoomedPhotoVisible(true);
+  }, []);
+
+  const startLongPress = useCallback(() => {
+    suppressNextPhotoClickRef.current = false;
+    clearLongPressTimer();
+
+    longPressTimerRef.current = window.setTimeout(() => {
+      suppressNextPhotoClickRef.current = true;
+      setIsZoomedPhotoVisible(false);
+      setIsDownloadPromptVisible(true);
+    }, LONG_PRESS_DURATION_MS);
+  }, [LONG_PRESS_DURATION_MS, clearLongPressTimer]);
+
+  const handleMatchedPhotoMouseDown = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      startLongPress();
+    },
+    [startLongPress]
+  );
+
+  const handleDownloadMatchedPhoto = useCallback(() => {
+    if (!scannedPhotoUrl) {
+      setIsDownloadPromptVisible(false);
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = scannedPhotoUrl;
+    link.download = getPhotoDownloadFilename(scannedPhotoUrl);
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setIsDownloadPromptVisible(false);
+  }, [getPhotoDownloadFilename, scannedPhotoUrl]);
 
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const dropNeedleConcert =
@@ -738,13 +849,29 @@ function AppContent() {
 
   const cameraView = shouldShowScannedPhoto ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
-      <img
-        src={scannedPhotoUrl}
-        alt={`${infoConcert?.band ?? 'Matched concert'} scanned photograph`}
-        className={styles.scannedPhotoImage}
-        loading="eager"
-        onError={() => setHasScannedPhotoLoadFailed(true)}
-      />
+      <button
+        type="button"
+        className={styles.scannedPhotoButton}
+        aria-label="Open matched photo zoom"
+        onClick={handleMatchedPhotoClick}
+        onTouchStart={startLongPress}
+        onTouchEnd={clearLongPressTimer}
+        onTouchCancel={clearLongPressTimer}
+        onTouchMove={clearLongPressTimer}
+        onMouseDown={handleMatchedPhotoMouseDown}
+        onMouseUp={clearLongPressTimer}
+        onMouseLeave={clearLongPressTimer}
+        onMouseMove={clearLongPressTimer}
+        onContextMenu={(event) => event.preventDefault()}
+      >
+        <img
+          src={scannedPhotoUrl}
+          alt={`${infoConcert?.band ?? 'Matched concert'} scanned photograph`}
+          className={styles.scannedPhotoImage}
+          loading="eager"
+          onError={() => setHasScannedPhotoLoadFailed(true)}
+        />
+      </button>
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">
@@ -800,6 +927,68 @@ function AppContent() {
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
       />
+      {isZoomedPhotoVisible && shouldShowScannedPhoto && scannedPhotoUrl ? (
+        <div
+          className={styles.photoOverlayBackdrop}
+          role="presentation"
+          onClick={() => setIsZoomedPhotoVisible(false)}
+        >
+          <div
+            className={styles.photoOverlayDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Matched photo zoom"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.photoOverlayCloseButton}
+              onClick={() => setIsZoomedPhotoVisible(false)}
+            >
+              Close
+            </button>
+            <img
+              src={scannedPhotoUrl}
+              alt={`${infoConcert?.band ?? 'Matched concert'} scanned photograph zoomed view`}
+              className={styles.photoOverlayImage}
+              loading="eager"
+            />
+          </div>
+        </div>
+      ) : null}
+      {isDownloadPromptVisible && shouldShowScannedPhoto ? (
+        <div
+          className={styles.photoOverlayBackdrop}
+          role="presentation"
+          onClick={() => setIsDownloadPromptVisible(false)}
+        >
+          <div
+            className={styles.photoPromptDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Download full-size photo"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className={styles.photoPromptText}>Download full-size photo?</p>
+            <div className={styles.photoPromptActions}>
+              <button
+                type="button"
+                className={styles.photoPromptSecondaryButton}
+                onClick={() => setIsDownloadPromptVisible(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.photoPromptPrimaryButton}
+                onClick={handleDownloadMatchedPhoto}
+              >
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {showSecretSettings && (
         <Suspense fallback={null}>
           <SecretSettings

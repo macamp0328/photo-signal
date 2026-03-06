@@ -143,6 +143,20 @@
   object-fit: contain;
 }
 
+.scannedPhotoButton {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.scannedPhotoButton:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
 .scannedPhotoPlaceholder {
   border: 1px dashed var(--color-accent);
   color: var(--color-bonus-text);
@@ -150,6 +164,91 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.68rem;
+}
+
+.photoOverlayBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.photoOverlayDialog {
+  width: min(94vw, 900px);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.photoOverlayCloseButton {
+  align-self: flex-end;
+  border: 1px solid var(--color-accent);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--color-main-text);
+  min-height: 2.4rem;
+  padding: 0.45rem 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.photoOverlayImage {
+  width: 100%;
+  max-height: calc(90vh - 3.2rem);
+  object-fit: contain;
+  background: var(--color-background);
+}
+
+.photoPromptDialog {
+  width: min(92vw, 420px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  border: 1px solid var(--color-accent);
+  background: var(--color-background);
+  padding: 1rem;
+}
+
+.photoPromptText {
+  margin: 0;
+  color: var(--color-main-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.photoPromptActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.photoPromptPrimaryButton,
+.photoPromptSecondaryButton {
+  min-height: 2.5rem;
+  border: 1px solid transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.photoPromptPrimaryButton {
+  background: var(--color-accent);
+  color: var(--color-background);
+}
+
+.photoPromptSecondaryButton {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-main-text);
+  border-color: var(--color-accent);
 }
 
 @media (max-width: 767px) {

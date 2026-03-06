@@ -337,6 +337,8 @@ function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
   }
 
   run('ffmpeg', [
+    '-loglevel',
+    'error',
     '-y',
     '-i',
     sourceVideoPath,
@@ -402,7 +404,19 @@ async function computeHashFromVideoFrame(videoPath) {
   const seekSec = durationSec * 0.3;
   const tmpFile = path.join(os.tmpdir(), `demo-frame-${Date.now()}.png`);
   try {
-    run('ffmpeg', ['-ss', String(seekSec), '-i', videoPath, '-vframes', '1', '-q:v', '2', tmpFile]);
+    run('ffmpeg', [
+      '-loglevel',
+      'error',
+      '-ss',
+      String(seekSec),
+      '-i',
+      videoPath,
+      '-vframes',
+      '1',
+      '-q:v',
+      '2',
+      tmpFile,
+    ]);
     const imageData = await loadImageData(tmpFile);
     return computePHash(imageData);
   } finally {
@@ -1559,6 +1573,8 @@ function buildGif(fps, outputWidth) {
   const framePattern = path.join(FRAME_DIR, 'frame-%04d.png');
 
   run('ffmpeg', [
+    '-loglevel',
+    'error',
     '-y',
     '-framerate',
     String(fps),
@@ -1570,6 +1586,8 @@ function buildGif(fps, outputWidth) {
   ]);
 
   run('ffmpeg', [
+    '-loglevel',
+    'error',
     '-y',
     '-framerate',
     String(fps),

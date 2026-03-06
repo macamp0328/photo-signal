@@ -114,6 +114,18 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
+const isDemoNoAudioFadeEnabled = (): boolean => {
+  if (typeof window === 'undefined' || !('localStorage' in window)) {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem('photo-signal-demo-no-audio-fade') === 'true';
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Build a shuffled playlist for an artist, optionally placing a preferred song first.
  * The remaining songs are shuffled randomly behind it.
@@ -346,7 +358,8 @@ function AppContent() {
     clearPlaybackError,
   } = useAudioPlayback({
     volume: 1.0,
-    fadeTime: 1000,
+    fadeTime: isDemoNoAudioFadeEnabled() ? 0 : 1000,
+    crossfadeDuration: isDemoNoAudioFadeEnabled() ? 0 : 1000,
     onSongEnd: () => {
       if (userPausedRef.current) return;
       const currentPlaylist = playlistRef.current;

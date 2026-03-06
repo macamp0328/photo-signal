@@ -1888,19 +1888,24 @@ function buildMp4(rawVideoPath, audioPath, outputPath, targetDurationSeconds = n
   const shouldRetime =
     Number.isFinite(speedFactor) && speedFactor > 0 && Math.abs(1 - speedFactor) > 0.02;
 
+  // yuv420p (required by libx264) needs even dimensions; force them via scale.
+  const evenScale = 'scale=trunc(iw/2)*2:trunc(ih/2)*2';
+
   if (hasAudio && shouldRetime) {
     const audioTempo = 1 / speedFactor;
     const audioFilter = buildAtempoChain(audioTempo);
     args.push(
       '-filter_complex',
-      `[0:v]setpts=${speedFactor.toFixed(6)}*PTS[v];[1:a]${audioFilter}[a]`,
+      `[0:v]setpts=${speedFactor.toFixed(6)}*PTS,${evenScale}[v];[1:a]${audioFilter}[a]`,
       '-map',
       '[v]',
       '-map',
       '[a]'
     );
   } else if (shouldRetime) {
-    args.push('-vf', `setpts=${speedFactor.toFixed(6)}*PTS`);
+    args.push('-vf', `setpts=${speedFactor.toFixed(6)}*PTS,${evenScale}`);
+  } else {
+    args.push('-vf', evenScale);
   }
 
   args.push('-c:v', 'libx264', '-crf', '22', '-preset', 'fast', '-pix_fmt', 'yuv420p');

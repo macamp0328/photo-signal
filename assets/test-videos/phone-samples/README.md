@@ -39,32 +39,22 @@ Use this structure for all samples (single-photo videos just have one capture):
 
 `captures` order is deterministic and is the order used by the demo generator.
 
-For GIF generation, the script automatically chooses the first single-capture sample, then prefers
-a second single-capture sample with a different `artistId` (which may skip earlier single-capture
-entries), and uses those two videos as the camera feed in sequence.
+For GIF generation, the script automatically chooses the first three single-capture samples with
+distinct artists (in manifest order) and uses them as the camera feed in sequence.
 
-Before capture, demo generation preprocesses all manifest video clips into half-speed duplicates at:
+Before capture, demo generation preprocesses all demo target clips into 3× half-speed palindrome
+(forward + reverse) videos at:
 
-- `assets/test-videos/phone-samples/half-speed/*.half.webm`
+- `assets/test-videos/phone-samples/half-speed/*.3x-palindrome.webm`
 
-This avoids runtime playback-rate hacks and keeps demo timing stable.
+This avoids runtime playback-rate hacks, smooths out loop restarts, and gives rectangle detection
+more stable frames per loop.
 
-## Demo GIF Timeline Spec (Editable)
+## Demo GIF Timeline Spec
 
-Use this section to tune pacing/storyboard behavior in `scripts/visual/generate-demo-gif.js`.
-
-- Scene 0: Landing hold — 1.5s
-- Scene 1: Activate camera + search phase on `test_1_overcoats.mp4` at half speed with scan overlay and rectangle-detection visible.
-  Duration: event-driven, bounded by `< clipDuration * 2`.
-- Scene 2: First match (Overcoats) shown with concert info — 4s.
-- Scene 3: Audio controls choreography — tap `Stop/Pause`, `Play`, `Previous`, `Next` with >=4s between taps.
-- Scene 4: Close details (`Next pic, please`) and wait until hidden.
-- Scene 5: Search phase on `test_5_barna.mp4` at half speed with scan overlay and rectangle-detection visible.
-- Scene 6: Second match (Sean Barna) shown with concert info — 3s.
-- Scene 7: Tap `Switch Artist` and hold for 4s while new track starts.
-- Scene 8: Fade to black
-
-If this spec changes, update this section first, then mirror changes in `scripts/visual/generate-demo-gif.js` constants/flow.
+The canonical scene-by-scene spec lives as a comment block in `scripts/visual/generate-demo-gif.js`
+(just below `STORY_PACING_MS`). Edit it there — this file is the source of truth for pacing values
+and storyboard flow.
 
 ## Shipping safety
 

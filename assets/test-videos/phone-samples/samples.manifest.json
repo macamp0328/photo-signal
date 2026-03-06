@@ -77,17 +77,6 @@
       ]
     },
     {
-      "sampleId": "sample-06",
-      "filename": "test_6_voxtrot.mp4",
-      "captures": [
-        {
-          "captureId": "01",
-          "concertId": 21,
-          "photoId": "photo-21"
-        }
-      ]
-    },
-    {
       "sampleId": "sample-07",
       "filename": "test_2_croy.mp4",
       "captures": [
@@ -95,6 +84,17 @@
           "captureId": "01",
           "concertId": 14,
           "photoId": "photo-14"
+        }
+      ]
+    },
+    {
+      "sampleId": "sample-06",
+      "filename": "test_6_voxtrot.mp4",
+      "captures": [
+        {
+          "captureId": "01",
+          "concertId": 21,
+          "photoId": "photo-21"
         }
       ]
     }

@@ -11,7 +11,10 @@ const ROOT = process.cwd();
 const BASE_URL = 'http://127.0.0.1:4173';
 const FRAME_DIR = path.resolve(ROOT, 'scripts/visual/output/demo-frames');
 const OUTPUT_GIF = path.resolve(ROOT, 'docs/media/demo.gif');
+const OUTPUT_MP4 = path.resolve(ROOT, 'docs/media/demo.mp4');
 const OUTPUT_DIR = path.dirname(OUTPUT_GIF);
+const VIDEO_OUTPUT_DIR = path.resolve(ROOT, 'scripts/visual/output/video');
+const TEMP_AUDIO_WEBM = path.resolve(VIDEO_OUTPUT_DIR, 'demo-audio.webm');
 const VIDEO_SAMPLE_DIR = path.resolve(ROOT, 'assets/test-videos/phone-samples');
 const VIDEO_SAMPLE_MANIFEST_PATH = path.resolve(VIDEO_SAMPLE_DIR, 'samples.manifest.json');
 const HALF_SPEED_VIDEO_DIR = path.resolve(VIDEO_SAMPLE_DIR, 'half-speed');
@@ -600,9 +603,17 @@ async function ensureEmptyFrameDir() {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
+async function ensureEmptyVideoDir() {
+  fs.rmSync(VIDEO_OUTPUT_DIR, { recursive: true, force: true });
+  fs.mkdirSync(VIDEO_OUTPUT_DIR, { recursive: true });
+}
+
 async function captureDemoFrames(options) {
   const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
     options;
+  let rawVideoPath = null;
+  let audioPath = null;
+  let frameCount = 0;
 
   const { firstTarget, secondTarget, thirdTarget, sourceMode } = resolveDemoTargets();
   const cameraTargets = [firstTarget, secondTarget, thirdTarget];
@@ -661,419 +672,496 @@ async function captureDemoFrames(options) {
       '--use-fake-ui-for-media-stream',
       '--disable-dev-shm-usage',
       '--no-sandbox',
+      '--autoplay-policy=no-user-gesture-required',
     ],
   });
 
-  const context = await browser.newContext({
-    ...devices['Pixel 7'],
-    viewport: { width: viewportWidth, height: viewportHeight },
-  });
+  let context;
+  let page;
 
-  const page = await context.newPage();
+  try {
+    context = await browser.newContext({
+      ...devices['Pixel 7'],
+      viewport: { width: viewportWidth, height: viewportHeight },
+      recordVideo: {
+        dir: VIDEO_OUTPUT_DIR,
+        size: { width: viewportWidth, height: viewportHeight },
+      },
+    });
 
-  page.on('console', (message) => {
-    const type = message.type();
-    const text = message.text();
-    if (type === 'error' || type === 'warning') {
-      console.log(`[browser:${type}] ${text}`);
-    } else if (text.includes('[demo]')) {
-      // Print all demo-related logs
-      console.log(`[browser:log] ${text}`);
-    }
-  });
+    page = await context.newPage();
 
-  const routeToVideoPath = new Map();
-  // Only load the two main demo targets; don't load the reverse video
-  const targetVideoInputs = preparedCameraTargets;
-  const targetVideoUrls = targetVideoInputs.map((target, index) => {
-    const routePath = `${DEMO_VIDEO_ROUTE_PREFIX}${index}-${path.basename(target.sourceVideoPath)}`;
-    routeToVideoPath.set(routePath, target.sourceVideoPath);
-    return routePath;
-  });
+    page.on('console', (message) => {
+      const type = message.type();
+      const text = message.text();
+      if (type === 'error' || type === 'warning') {
+        console.log(`[browser:${type}] ${text}`);
+      } else if (text.includes('[demo]')) {
+        // Print all demo-related logs
+        console.log(`[browser:log] ${text}`);
+      }
+    });
 
-  await page.route(`**${DEMO_VIDEO_ROUTE_PREFIX}*`, async (route) => {
-    const requestUrl = route.request().url();
-    const pathname = new URL(requestUrl).pathname;
-    const sourceVideoPath = routeToVideoPath.get(pathname);
+    const routeToVideoPath = new Map();
+    // Only load the two main demo targets; don't load the reverse video
+    const targetVideoInputs = preparedCameraTargets;
+    const targetVideoUrls = targetVideoInputs.map((target, index) => {
+      const routePath = `${DEMO_VIDEO_ROUTE_PREFIX}${index}-${path.basename(target.sourceVideoPath)}`;
+      routeToVideoPath.set(routePath, target.sourceVideoPath);
+      return routePath;
+    });
 
-    if (!sourceVideoPath) {
-      await route.abort();
-      return;
-    }
+    await page.route(`**${DEMO_VIDEO_ROUTE_PREFIX}*`, async (route) => {
+      const requestUrl = route.request().url();
+      const pathname = new URL(requestUrl).pathname;
+      const sourceVideoPath = routeToVideoPath.get(pathname);
 
-    const stats = fs.statSync(sourceVideoPath);
-    const totalSize = stats.size;
-    const rangeHeader = route.request().headers()['range'];
-    const byteRange = parseByteRange(rangeHeader, totalSize);
+      if (!sourceVideoPath) {
+        await route.abort();
+        return;
+      }
 
-    if (rangeHeader && !byteRange) {
+      const stats = fs.statSync(sourceVideoPath);
+      const totalSize = stats.size;
+      const rangeHeader = route.request().headers()['range'];
+      const byteRange = parseByteRange(rangeHeader, totalSize);
+
+      if (rangeHeader && !byteRange) {
+        await route.fulfill({
+          status: 416,
+          headers: {
+            'Content-Range': `bytes */${totalSize}`,
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'no-store',
+          },
+        });
+        return;
+      }
+
+      if (byteRange) {
+        const { start, end } = byteRange;
+        const body = readFileRange(sourceVideoPath, start, end);
+        await route.fulfill({
+          status: 206,
+          body,
+          contentType: getMimeTypeForVideo(sourceVideoPath),
+          headers: {
+            'Content-Range': `bytes ${start}-${end}/${totalSize}`,
+            'Content-Length': String(body.length),
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'no-store',
+          },
+        });
+        return;
+      }
+
+      const body = fs.readFileSync(sourceVideoPath);
       await route.fulfill({
-        status: 416,
-        headers: {
-          'Content-Range': `bytes */${totalSize}`,
-          'Accept-Ranges': 'bytes',
-          'Cache-Control': 'no-store',
-        },
-      });
-      return;
-    }
-
-    if (byteRange) {
-      const { start, end } = byteRange;
-      const body = readFileRange(sourceVideoPath, start, end);
-      await route.fulfill({
-        status: 206,
+        status: 200,
         body,
         contentType: getMimeTypeForVideo(sourceVideoPath),
         headers: {
-          'Content-Range': `bytes ${start}-${end}/${totalSize}`,
-          'Content-Length': String(body.length),
+          'Content-Length': String(totalSize),
           'Accept-Ranges': 'bytes',
           'Cache-Control': 'no-store',
         },
       });
-      return;
-    }
-
-    const body = fs.readFileSync(sourceVideoPath);
-    await route.fulfill({
-      status: 200,
-      body,
-      contentType: getMimeTypeForVideo(sourceVideoPath),
-      headers: {
-        'Content-Length': String(totalSize),
-        'Accept-Ranges': 'bytes',
-        'Cache-Control': 'no-store',
-      },
     });
-  });
 
-  await page.addInitScript(
-    ({ videoUrls, seededTargets }) => {
-      try {
-        const existingFlagsRaw = globalThis.localStorage.getItem('photo-signal-feature-flags');
-        const existingFlags = existingFlagsRaw ? JSON.parse(existingFlagsRaw) : [];
-        const byId = new Map(existingFlags.map((flag) => [flag.id, flag]));
+    await page.addInitScript(
+      ({ videoUrls, seededTargets }) => {
+        try {
+          const existingFlagsRaw = globalThis.localStorage.getItem('photo-signal-feature-flags');
+          const existingFlags = existingFlagsRaw ? JSON.parse(existingFlagsRaw) : [];
+          const byId = new Map(existingFlags.map((flag) => [flag.id, flag]));
 
-        byId.set('rectangle-detection', {
-          ...(byId.get('rectangle-detection') ?? { id: 'rectangle-detection' }),
-          enabled: true,
-        });
-        byId.set('show-debug-overlay', {
-          ...(byId.get('show-debug-overlay') ?? { id: 'show-debug-overlay' }),
-          enabled: false,
-        });
-
-        globalThis.localStorage.setItem(
-          'photo-signal-feature-flags',
-          JSON.stringify(Array.from(byId.values()))
-        );
-      } catch {
-        // ignore localStorage bootstrap failures
-      }
-
-      const demoState = {
-        targetIndex: 0,
-        phase: 'search',
-        searchStartTime: null, // set by __photoSignalDemoStartSearch
-        clearDurationSec: 4.0, // how long haze takes to fully clear
-      };
-
-      globalThis.__photoSignalDemoSetTargetIndex = (nextIndex) => {
-        if (typeof nextIndex === 'number' && Number.isFinite(nextIndex)) {
-          const normalized = Math.max(0, Math.min(Math.floor(nextIndex), videoUrls.length - 1));
-          demoState.targetIndex = normalized;
-        }
-      };
-
-      globalThis.__photoSignalDemoSetPhase = (nextPhase) => {
-        if (nextPhase === 'search' || nextPhase === 'target') {
-          demoState.phase = nextPhase;
-        }
-      };
-
-      /**
-       * Start a new search phase with progressive haze clearing.
-       * The canvas starts heavily blurred/darkened and gradually clears over
-       * clearDurationSec seconds, so recognition fires naturally when the
-       * image becomes sharp enough for pHash to match.
-       */
-      globalThis.__photoSignalDemoStartSearch = (clearDurationSec) => {
-        demoState.phase = 'search';
-        demoState.searchStartTime = globalThis.performance.now();
-        demoState.clearDurationSec =
-          typeof clearDurationSec === 'number' && clearDurationSec > 0 ? clearDurationSec : 4.0;
-        // Auto-switch to 'target' phase after haze clears so canvas applies
-        // zero filters — blur(0px) still differs subtly from no filter, which
-        // can prevent pHash from reaching match threshold.
-        const timeoutMs = demoState.clearDurationSec * 1000;
-        globalThis.console.log(
-          `[demo] scheduling phase switch to 'target' in ${timeoutMs}ms (clearDurationSec=${demoState.clearDurationSec})`
-        );
-        globalThis.setTimeout(() => {
-          if (demoState.phase === 'search') {
-            globalThis.console.log(`[demo] phase auto-switched to 'target' after ${timeoutMs}ms`);
-            demoState.phase = 'target';
-          } else {
-            globalThis.console.log(`[demo] phase already ${demoState.phase}, skipping auto-switch`);
-          }
-        }, timeoutMs);
-      };
-
-      const waitForVideoLoaded = (video) =>
-        new Promise((resolve, reject) => {
-          const onLoaded = () => {
-            cleanup();
-            resolve();
-          };
-          const onError = () => {
-            cleanup();
-            reject(new Error('Failed to load demo video stream source'));
-          };
-          const cleanup = () => {
-            video.removeEventListener('loadeddata', onLoaded);
-            video.removeEventListener('error', onError);
-          };
-
-          if (video.readyState >= 2) {
-            resolve();
-            return;
-          }
-
-          video.addEventListener('loadeddata', onLoaded, { once: true });
-          video.addEventListener('error', onError, { once: true });
-        });
-
-      const createVideoCameraStream = async () => {
-        const canvas = globalThis.document.createElement('canvas');
-        canvas.width = 960;
-        canvas.height = 640;
-        const context = canvas.getContext('2d');
-
-        if (!context) {
-          throw new Error('Failed to create camera canvas context');
-        }
-
-        const videos = [];
-        for (let i = 0; i < videoUrls.length; i++) {
-          const videoUrl = videoUrls[i];
-          globalThis.console.log(`[demo] loading video[${i}]: ${videoUrl}`);
-          const video = globalThis.document.createElement('video');
-          video.src = videoUrl;
-          video.muted = true;
-          video.loop = true;
-          video.playsInline = true;
-          video.preload = 'auto';
-
-          // Log errors if video fails to load
-          video.addEventListener('error', () => {
-            globalThis.console.error(
-              `[demo] ❌ video[${i}] failed to load: ${videoUrl} (readyState=${video.readyState}, error=${video.error?.message})`
-            );
+          byId.set('rectangle-detection', {
+            ...(byId.get('rectangle-detection') ?? { id: 'rectangle-detection' }),
+            enabled: true,
+          });
+          byId.set('show-debug-overlay', {
+            ...(byId.get('show-debug-overlay') ?? { id: 'show-debug-overlay' }),
+            enabled: false,
           });
 
-          await waitForVideoLoaded(video);
-          globalThis.console.log(
-            `[demo] video[${i}] loaded (${video.videoWidth}x${video.videoHeight}, duration=${video.duration}s)`
+          globalThis.localStorage.setItem(
+            'photo-signal-feature-flags',
+            JSON.stringify(Array.from(byId.values()))
           );
-          videos.push(video);
+        } catch {
+          // ignore localStorage bootstrap failures
         }
 
-        let activeIndex = -1;
+        if (!globalThis.__demoAudioTapInstalled) {
+          globalThis.__demoAudioTapInstalled = true;
 
-        const setActiveVideo = async (nextIndex) => {
-          if (nextIndex === activeIndex) {
-            return;
+          const attachTapForContext = (ctx) => {
+            if (!ctx || globalThis.__demoAudioTapDestination) {
+              return;
+            }
+
+            try {
+              const destination = ctx.createMediaStreamDestination();
+              globalThis.__demoAudioTapContext = ctx;
+              globalThis.__demoAudioTapDestination = destination;
+            } catch {
+              // ignore context tap setup failures
+            }
+          };
+
+          const patchContextConstructor = (name) => {
+            const Original = globalThis[name];
+            if (typeof Original !== 'function') {
+              return;
+            }
+
+            const Patched = class extends Original {
+              constructor(...args) {
+                super(...args);
+                attachTapForContext(this);
+              }
+            };
+
+            globalThis[name] = Patched;
+          };
+
+          patchContextConstructor('AudioContext');
+          patchContextConstructor('webkitAudioContext');
+
+          if (globalThis.AudioNode?.prototype && !globalThis.AudioNode.prototype.__demoTapPatched) {
+            const originalConnect = globalThis.AudioNode.prototype.connect;
+
+            globalThis.AudioNode.prototype.connect = function patchedConnect(...args) {
+              const result = originalConnect.apply(this, args);
+
+              try {
+                const tapDestination = globalThis.__demoAudioTapDestination;
+                const tapContext = globalThis.__demoAudioTapContext;
+                const targetNode = args[0];
+
+                if (
+                  tapDestination &&
+                  tapContext &&
+                  this?.context === tapContext &&
+                  targetNode === tapContext.destination &&
+                  this !== tapDestination
+                ) {
+                  originalConnect.call(this, tapDestination);
+                }
+              } catch {
+                // ignore duplicate/invalid tap connections
+              }
+
+              return result;
+            };
+
+            globalThis.AudioNode.prototype.__demoTapPatched = true;
           }
+        }
 
-          globalThis.console.log(`[demo] switching active video: ${activeIndex} → ${nextIndex}`);
+        const demoState = {
+          targetIndex: 0,
+          phase: 'search',
+          searchStartTime: null, // set by __photoSignalDemoStartSearch
+          clearDurationSec: 4.0, // how long haze takes to fully clear
+        };
 
-          if (activeIndex >= 0) {
-            videos[activeIndex].pause();
-          }
-
-          activeIndex = nextIndex;
-          const activeVideo = videos[activeIndex];
-          activeVideo.currentTime = 0;
-          activeVideo.playbackRate = 1;
-          try {
-            await activeVideo.play();
-            globalThis.console.log(
-              `[demo] video[${activeIndex}] playing (currentTime=0, playbackRate=1)`
-            );
-          } catch {
-            // ignore autoplay restrictions in headless mode
+        globalThis.__photoSignalDemoSetTargetIndex = (nextIndex) => {
+          if (typeof nextIndex === 'number' && Number.isFinite(nextIndex)) {
+            const normalized = Math.max(0, Math.min(Math.floor(nextIndex), videoUrls.length - 1));
+            demoState.targetIndex = normalized;
           }
         };
 
-        await setActiveVideo(0);
-
-        const drawCoverFrame = (video) => {
-          const targetAspect = canvas.width / canvas.height;
-          const videoAspect = video.videoWidth / video.videoHeight;
-
-          let sourceWidth = video.videoWidth;
-          let sourceHeight = video.videoHeight;
-          let sourceX = 0;
-          let sourceY = 0;
-
-          if (videoAspect > targetAspect) {
-            sourceHeight = video.videoHeight;
-            sourceWidth = sourceHeight * targetAspect;
-            sourceX = (video.videoWidth - sourceWidth) / 2;
-          } else {
-            sourceWidth = video.videoWidth;
-            sourceHeight = sourceWidth / targetAspect;
-            sourceY = (video.videoHeight - sourceHeight) / 2;
+        globalThis.__photoSignalDemoSetPhase = (nextPhase) => {
+          if (nextPhase === 'search' || nextPhase === 'target') {
+            demoState.phase = nextPhase;
           }
+        };
 
-          context.drawImage(
-            video,
-            sourceX,
-            sourceY,
-            sourceWidth,
-            sourceHeight,
-            0,
-            0,
-            canvas.width,
-            canvas.height
+        /**
+         * Start a new search phase with progressive haze clearing.
+         * The canvas starts heavily blurred/darkened and gradually clears over
+         * clearDurationSec seconds, so recognition fires naturally when the
+         * image becomes sharp enough for pHash to match.
+         */
+        globalThis.__photoSignalDemoStartSearch = (clearDurationSec) => {
+          demoState.phase = 'search';
+          demoState.searchStartTime = globalThis.performance.now();
+          demoState.clearDurationSec =
+            typeof clearDurationSec === 'number' && clearDurationSec > 0 ? clearDurationSec : 4.0;
+          // Auto-switch to 'target' phase after haze clears so canvas applies
+          // zero filters — blur(0px) still differs subtly from no filter, which
+          // can prevent pHash from reaching match threshold.
+          const timeoutMs = demoState.clearDurationSec * 1000;
+          globalThis.console.log(
+            `[demo] scheduling phase switch to 'target' in ${timeoutMs}ms (clearDurationSec=${demoState.clearDurationSec})`
           );
+          globalThis.setTimeout(() => {
+            if (demoState.phase === 'search') {
+              globalThis.console.log(`[demo] phase auto-switched to 'target' after ${timeoutMs}ms`);
+              demoState.phase = 'target';
+            } else {
+              globalThis.console.log(
+                `[demo] phase already ${demoState.phase}, skipping auto-switch`
+              );
+            }
+          }, timeoutMs);
         };
 
-        const render = () => {
-          const desiredIndex = Math.max(0, Math.min(demoState.targetIndex, videos.length - 1));
-          if (desiredIndex !== activeIndex) {
-            void setActiveVideo(desiredIndex);
+        const waitForVideoLoaded = (video) =>
+          new Promise((resolve, reject) => {
+            const onLoaded = () => {
+              cleanup();
+              resolve();
+            };
+            const onError = () => {
+              cleanup();
+              reject(new Error('Failed to load demo video stream source'));
+            };
+            const cleanup = () => {
+              video.removeEventListener('loadeddata', onLoaded);
+              video.removeEventListener('error', onError);
+            };
+
+            if (video.readyState >= 2) {
+              resolve();
+              return;
+            }
+
+            video.addEventListener('loadeddata', onLoaded, { once: true });
+            video.addEventListener('error', onError, { once: true });
+          });
+
+        const createVideoCameraStream = async () => {
+          const canvas = globalThis.document.createElement('canvas');
+          canvas.width = 960;
+          canvas.height = 640;
+          const context = canvas.getContext('2d');
+
+          if (!context) {
+            throw new Error('Failed to create camera canvas context');
           }
 
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          const isSearchPhase = demoState.phase === 'search';
+          const videos = [];
+          for (let i = 0; i < videoUrls.length; i++) {
+            const videoUrl = videoUrls[i];
+            globalThis.console.log(`[demo] loading video[${i}]: ${videoUrl}`);
+            const video = globalThis.document.createElement('video');
+            video.src = videoUrl;
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.preload = 'auto';
 
-          // Compute haze-clearing progress: 0 = full haze, 1 = clear
-          let clearT = 1.0;
-          if (isSearchPhase && demoState.searchStartTime !== null) {
-            const elapsedSec = (globalThis.performance.now() - demoState.searchStartTime) / 1000;
-            clearT = Math.min(elapsedSec / demoState.clearDurationSec, 1.0);
-          } else if (!isSearchPhase) {
-            clearT = 1.0;
-          } else {
-            clearT = 0.0; // search phase not yet started, full haze
+            // Log errors if video fails to load
+            video.addEventListener('error', () => {
+              globalThis.console.error(
+                `[demo] ❌ video[${i}] failed to load: ${videoUrl} (readyState=${video.readyState}, error=${video.error?.message})`
+              );
+            });
+
+            await waitForVideoLoaded(video);
+            globalThis.console.log(
+              `[demo] video[${i}] loaded (${video.videoWidth}x${video.videoHeight}, duration=${video.duration}s)`
+            );
+            videos.push(video);
           }
 
-          const activeVideo = videos[Math.max(activeIndex, 0)];
-          if (activeVideo && activeVideo.readyState >= 2) {
-            context.save();
+          let activeIndex = -1;
+
+          const setActiveVideo = async (nextIndex) => {
+            if (nextIndex === activeIndex) {
+              return;
+            }
+
+            globalThis.console.log(`[demo] switching active video: ${activeIndex} → ${nextIndex}`);
+
+            if (activeIndex >= 0) {
+              videos[activeIndex].pause();
+            }
+
+            activeIndex = nextIndex;
+            const activeVideo = videos[activeIndex];
+            activeVideo.currentTime = 0;
+            activeVideo.playbackRate = 1;
+            try {
+              await activeVideo.play();
+              globalThis.console.log(
+                `[demo] video[${activeIndex}] playing (currentTime=0, playbackRate=1)`
+              );
+            } catch {
+              // ignore autoplay restrictions in headless mode
+            }
+          };
+
+          await setActiveVideo(0);
+
+          const drawCoverFrame = (video) => {
+            const targetAspect = canvas.width / canvas.height;
+            const videoAspect = video.videoWidth / video.videoHeight;
+
+            let sourceWidth = video.videoWidth;
+            let sourceHeight = video.videoHeight;
+            let sourceX = 0;
+            let sourceY = 0;
+
+            if (videoAspect > targetAspect) {
+              sourceHeight = video.videoHeight;
+              sourceWidth = sourceHeight * targetAspect;
+              sourceX = (video.videoWidth - sourceWidth) / 2;
+            } else {
+              sourceWidth = video.videoWidth;
+              sourceHeight = sourceWidth / targetAspect;
+              sourceY = (video.videoHeight - sourceHeight) / 2;
+            }
+
+            context.drawImage(
+              video,
+              sourceX,
+              sourceY,
+              sourceWidth,
+              sourceHeight,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+          };
+
+          const render = () => {
+            const desiredIndex = Math.max(0, Math.min(demoState.targetIndex, videos.length - 1));
+            if (desiredIndex !== activeIndex) {
+              void setActiveVideo(desiredIndex);
+            }
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            const isSearchPhase = demoState.phase === 'search';
+
+            // Compute haze-clearing progress: 0 = full haze, 1 = clear
+            let clearT = 1.0;
+            if (isSearchPhase && demoState.searchStartTime !== null) {
+              const elapsedSec = (globalThis.performance.now() - demoState.searchStartTime) / 1000;
+              clearT = Math.min(elapsedSec / demoState.clearDurationSec, 1.0);
+            } else if (!isSearchPhase) {
+              clearT = 1.0;
+            } else {
+              clearT = 0.0; // search phase not yet started, full haze
+            }
+
+            const activeVideo = videos[Math.max(activeIndex, 0)];
+            if (activeVideo && activeVideo.readyState >= 2) {
+              context.save();
+              if (isSearchPhase) {
+                // Blur fades from 3px → 0 as image clears; recognition fires
+                // naturally once blur drops low enough to match the seeded hash
+                const blur = (3.0 * (1 - clearT)).toFixed(2);
+                const brightness = (0.62 + 0.38 * clearT).toFixed(2);
+                const contrast = (1.1 - 0.1 * clearT).toFixed(2);
+                const saturate = (0.88 + 0.12 * clearT).toFixed(2);
+                context.filter = `blur(${blur}px) brightness(${brightness}) contrast(${contrast}) saturate(${saturate})`;
+              }
+              drawCoverFrame(activeVideo);
+              context.restore();
+            }
+
             if (isSearchPhase) {
-              // Blur fades from 3px → 0 as image clears; recognition fires
-              // naturally once blur drops low enough to match the seeded hash
-              const blur = (3.0 * (1 - clearT)).toFixed(2);
-              const brightness = (0.62 + 0.38 * clearT).toFixed(2);
-              const contrast = (1.1 - 0.1 * clearT).toFixed(2);
-              const saturate = (0.88 + 0.12 * clearT).toFixed(2);
-              context.filter = `blur(${blur}px) brightness(${brightness}) contrast(${contrast}) saturate(${saturate})`;
-            }
-            drawCoverFrame(activeVideo);
-            context.restore();
-          }
+              // Dark overlay and scan line fade out as image clears
+              const overlayAlpha = 0.18 * (1 - clearT * 0.8);
+              const time = globalThis.performance.now() / 1000;
+              const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+              gradient.addColorStop(0, `rgba(18, 20, 28, ${overlayAlpha.toFixed(3)})`);
+              gradient.addColorStop(1, `rgba(34, 36, 46, ${(overlayAlpha * 0.78).toFixed(3)})`);
+              context.fillStyle = gradient;
+              context.fillRect(0, 0, canvas.width, canvas.height);
 
-          if (isSearchPhase) {
-            // Dark overlay and scan line fade out as image clears
-            const overlayAlpha = 0.18 * (1 - clearT * 0.8);
-            const time = globalThis.performance.now() / 1000;
-            const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, `rgba(18, 20, 28, ${overlayAlpha.toFixed(3)})`);
-            gradient.addColorStop(1, `rgba(34, 36, 46, ${(overlayAlpha * 0.78).toFixed(3)})`);
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            const scanAlpha = 0.16 * (1 - clearT * 0.85);
-            if (scanAlpha > 0.005) {
-              const scanHeight = Math.round(canvas.height * 0.18);
-              const scanY = Math.round(((time * 95) % (canvas.height + scanHeight)) - scanHeight);
-              const scanGradient = context.createLinearGradient(0, scanY, 0, scanY + scanHeight);
-              scanGradient.addColorStop(0, 'rgba(95, 211, 179, 0.0)');
-              scanGradient.addColorStop(0.5, `rgba(95, 211, 179, ${scanAlpha.toFixed(3)})`);
-              scanGradient.addColorStop(1, 'rgba(95, 211, 179, 0.0)');
-              context.fillStyle = scanGradient;
-              context.fillRect(0, scanY, canvas.width, scanHeight);
+              const scanAlpha = 0.16 * (1 - clearT * 0.85);
+              if (scanAlpha > 0.005) {
+                const scanHeight = Math.round(canvas.height * 0.18);
+                const scanY = Math.round(((time * 95) % (canvas.height + scanHeight)) - scanHeight);
+                const scanGradient = context.createLinearGradient(0, scanY, 0, scanY + scanHeight);
+                scanGradient.addColorStop(0, 'rgba(95, 211, 179, 0.0)');
+                scanGradient.addColorStop(0.5, `rgba(95, 211, 179, ${scanAlpha.toFixed(3)})`);
+                scanGradient.addColorStop(1, 'rgba(95, 211, 179, 0.0)');
+                context.fillStyle = scanGradient;
+                context.fillRect(0, scanY, canvas.width, scanHeight);
+              }
             }
-          }
+
+            globalThis.requestAnimationFrame(render);
+          };
 
           globalThis.requestAnimationFrame(render);
+          return canvas.captureStream(24);
         };
 
-        globalThis.requestAnimationFrame(render);
-        return canvas.captureStream(24);
-      };
+        if (navigator.mediaDevices?.getUserMedia) {
+          const streamPromise = createVideoCameraStream();
 
-      if (navigator.mediaDevices?.getUserMedia) {
-        const streamPromise = createVideoCameraStream();
-
-        navigator.mediaDevices.getUserMedia = async () => {
-          return await streamPromise;
-        };
-      }
-
-      const originalFetch = globalThis.fetch.bind(globalThis);
-      globalThis.fetch = async (input, init) => {
-        const requestUrl =
-          typeof input === 'string' ? input : input instanceof Request ? input.url : '';
-        const isRecognitionIndexRequest = requestUrl.includes('/data.recognition.v2.json');
-
-        if (!isRecognitionIndexRequest) {
-          return originalFetch(input, init);
+          navigator.mediaDevices.getUserMedia = async () => {
+            return await streamPromise;
+          };
         }
 
-        const response = await originalFetch(input, init);
-        const payload = await response
-          .clone()
-          .json()
-          .catch(() => null);
+        const originalFetch = globalThis.fetch.bind(globalThis);
+        globalThis.fetch = async (input, init) => {
+          const requestUrl =
+            typeof input === 'string' ? input : input instanceof Request ? input.url : '';
+          const isRecognitionIndexRequest = requestUrl.includes('/data.recognition.v2.json');
 
-        if (!payload || !Array.isArray(payload.entries) || payload.entries.length === 0) {
-          return response;
-        }
-
-        for (const seededTarget of seededTargets) {
-          const entry = payload.entries.find(
-            (candidate) => candidate?.concertId === seededTarget.concertId
-          );
-          if (!entry) {
-            globalThis.console.log(
-              `[demo] ⚠️ concertId=${seededTarget.concertId} NOT FOUND in recognition data`
-            );
-            continue;
+          if (!isRecognitionIndexRequest) {
+            return originalFetch(input, init);
           }
 
-          const existing = Array.isArray(entry.phash) ? entry.phash : [];
-          entry.phash = [
-            seededTarget.seededHash,
-            ...existing.filter((hash) => hash !== seededTarget.seededHash),
-          ];
-          globalThis.console.log(
-            `[demo] ✅ seeded concertId=${seededTarget.concertId} with hash=${seededTarget.seededHash}`
-          );
-        }
+          const response = await originalFetch(input, init);
+          const payload = await response
+            .clone()
+            .json()
+            .catch(() => null);
 
-        return new Response(JSON.stringify(payload), {
-          status: response.status,
-          statusText: response.statusText,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      };
-    },
-    {
-      videoUrls: targetVideoUrls,
-      seededTargets: preparedCameraTargets.map((target, index) => ({
-        concertId: target.concertId,
-        seededHash: targetSeededHashes[index],
-      })),
-    }
-  );
+          if (!payload || !Array.isArray(payload.entries) || payload.entries.length === 0) {
+            return response;
+          }
 
-  try {
+          for (const seededTarget of seededTargets) {
+            const entry = payload.entries.find(
+              (candidate) => candidate?.concertId === seededTarget.concertId
+            );
+            if (!entry) {
+              globalThis.console.log(
+                `[demo] ⚠️ concertId=${seededTarget.concertId} NOT FOUND in recognition data`
+              );
+              continue;
+            }
+
+            const existing = Array.isArray(entry.phash) ? entry.phash : [];
+            entry.phash = [
+              seededTarget.seededHash,
+              ...existing.filter((hash) => hash !== seededTarget.seededHash),
+            ];
+            globalThis.console.log(
+              `[demo] ✅ seeded concertId=${seededTarget.concertId} with hash=${seededTarget.seededHash}`
+            );
+          }
+
+          return new Response(JSON.stringify(payload), {
+            status: response.status,
+            statusText: response.statusText,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        };
+      },
+      {
+        videoUrls: targetVideoUrls,
+        seededTargets: preparedCameraTargets.map((target, index) => ({
+          concertId: target.concertId,
+          seededHash: targetSeededHashes[index],
+        })),
+      }
+    );
+
     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
     await page.getByRole('heading', { name: /photo signal/i }).waitFor({ timeout: 10000 });
 
@@ -1302,6 +1390,77 @@ async function captureDemoFrames(options) {
     if (!hasVideo) {
       throw new Error('Camera video element did not become visible after activation.');
     }
+
+    await page.evaluate(() => {
+      try {
+        if (globalThis.__demoAudioRecorderBootstrapped) {
+          return;
+        }
+        globalThis.__demoAudioRecorderBootstrapped = true;
+
+        if (typeof globalThis.MediaRecorder === 'undefined') {
+          return;
+        }
+
+        const startDeadline = globalThis.performance.now() + 120000;
+
+        const tryStartRecorder = async () => {
+          const destination = globalThis.__demoAudioTapDestination;
+          const audioContext = globalThis.__demoAudioTapContext;
+
+          if (!destination?.stream || !audioContext) {
+            if (globalThis.performance.now() < startDeadline) {
+              globalThis.setTimeout(() => {
+                void tryStartRecorder();
+              }, 120);
+            }
+            return;
+          }
+
+          if (typeof audioContext.resume === 'function' && audioContext.state === 'suspended') {
+            try {
+              await audioContext.resume();
+            } catch {
+              // ignore resume failures
+            }
+          }
+
+          if (globalThis.__demoAudioRecorder) {
+            return;
+          }
+
+          const chunks = [];
+          const mimeType = globalThis.MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+            ? 'audio/webm;codecs=opus'
+            : undefined;
+
+          let recorder;
+          try {
+            recorder = mimeType
+              ? new globalThis.MediaRecorder(destination.stream, { mimeType })
+              : new globalThis.MediaRecorder(destination.stream);
+          } catch {
+            return;
+          }
+
+          recorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              chunks.push(event.data);
+            }
+          };
+          recorder.start(100);
+
+          globalThis.__demoAudioRecorder = recorder;
+          globalThis.__demoAudioChunks = chunks;
+        };
+
+        void tryStartRecorder();
+      } catch {
+        globalThis.console?.warn?.(
+          '[demo] Audio recorder bootstrap failed; continuing without audio.'
+        );
+      }
+    });
 
     // Scene 1: start haze-clearing search — recognition fires naturally as canvas sharpens
     const firstClearSec = preMatchMs / 1000; // preMatchMs repurposed as clear duration
@@ -1550,9 +1709,84 @@ async function captureDemoFrames(options) {
       });
     });
     await captureFor(STORY_PACING_MS.fadeToBlack);
+
+    const audioBase64 = await page.evaluate(async () => {
+      const recorder = globalThis.__demoAudioRecorder;
+      if (!recorder) {
+        return null;
+      }
+
+      return await new Promise((resolve) => {
+        recorder.onstop = async () => {
+          try {
+            const chunks = Array.isArray(globalThis.__demoAudioChunks)
+              ? globalThis.__demoAudioChunks
+              : [];
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+
+            const reader = new globalThis.FileReader();
+            reader.onloadend = () => {
+              try {
+                const result = reader.result;
+                if (typeof result !== 'string') {
+                  resolve(null);
+                  return;
+                }
+
+                const commaIndex = result.indexOf(',');
+                if (commaIndex === -1 || commaIndex >= result.length - 1) {
+                  resolve(null);
+                  return;
+                }
+
+                resolve(result.slice(commaIndex + 1));
+              } catch {
+                resolve(null);
+              }
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(blob);
+          } catch {
+            resolve(null);
+          }
+        };
+
+        try {
+          recorder.stop();
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+
+    if (audioBase64) {
+      audioPath = TEMP_AUDIO_WEBM;
+      fs.writeFileSync(audioPath, Buffer.from(audioBase64, 'base64'));
+    }
   } finally {
+    if (page) {
+      await page.close().catch(() => null);
+    }
+    if (context) {
+      await context.close().catch(() => null);
+    }
     await browser.close();
+
+    if (fs.existsSync(VIDEO_OUTPUT_DIR)) {
+      const videoFiles = fs
+        .readdirSync(VIDEO_OUTPUT_DIR)
+        .filter((file) => file.endsWith('.webm') && file !== path.basename(TEMP_AUDIO_WEBM));
+      if (videoFiles.length > 0) {
+        rawVideoPath = path.join(VIDEO_OUTPUT_DIR, videoFiles[0]);
+      }
+    }
   }
+
+  frameCount = fs
+    .readdirSync(FRAME_DIR)
+    .filter((file) => file.startsWith('frame-') && file.endsWith('.png')).length;
+
+  return { rawVideoPath, audioPath, frameCount };
 }
 
 function buildGif(fps, outputWidth) {
@@ -1588,6 +1822,99 @@ function buildGif(fps, outputWidth) {
     `fps=${fps},scale=${outputWidth}:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=sierra2_4a`,
     OUTPUT_GIF,
   ]);
+}
+
+function readMediaDurationSeconds(mediaPath) {
+  const result = spawnSync(
+    'ffprobe',
+    [
+      '-v',
+      'error',
+      '-show_entries',
+      'format=duration',
+      '-of',
+      'default=noprint_wrappers=1:nokey=1',
+      mediaPath,
+    ],
+    {
+      cwd: ROOT,
+      encoding: 'utf8',
+    }
+  );
+
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat((result.stdout ?? '').trim());
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function buildAtempoChain(speedMultiplier) {
+  const clamped = Number.isFinite(speedMultiplier) && speedMultiplier > 0 ? speedMultiplier : 1;
+  const filters = [];
+  let remaining = clamped;
+
+  while (remaining > 2.0) {
+    filters.push('atempo=2.0');
+    remaining /= 2.0;
+  }
+
+  while (remaining < 0.5) {
+    filters.push('atempo=0.5');
+    remaining /= 0.5;
+  }
+
+  filters.push(`atempo=${remaining.toFixed(6)}`);
+  return filters.join(',');
+}
+
+function buildMp4(rawVideoPath, audioPath, outputPath, targetDurationSeconds = null) {
+  const hasAudio = Boolean(audioPath && fs.existsSync(audioPath));
+  const args = ['-loglevel', 'error', '-y', '-i', rawVideoPath];
+  const rawDurationSeconds = readMediaDurationSeconds(rawVideoPath);
+  const hasTargetDuration =
+    Number.isFinite(targetDurationSeconds) && targetDurationSeconds && targetDurationSeconds > 0;
+
+  let speedFactor = 1;
+  if (rawDurationSeconds && hasTargetDuration) {
+    speedFactor = targetDurationSeconds / rawDurationSeconds;
+  }
+
+  if (hasAudio) {
+    args.push('-i', audioPath);
+  }
+
+  const shouldRetime =
+    Number.isFinite(speedFactor) && speedFactor > 0 && Math.abs(1 - speedFactor) > 0.02;
+
+  if (hasAudio && shouldRetime) {
+    const audioTempo = 1 / speedFactor;
+    const audioFilter = buildAtempoChain(audioTempo);
+    args.push(
+      '-filter_complex',
+      `[0:v]setpts=${speedFactor.toFixed(6)}*PTS[v];[1:a]${audioFilter}[a]`,
+      '-map',
+      '[v]',
+      '-map',
+      '[a]'
+    );
+  } else if (shouldRetime) {
+    args.push('-vf', `setpts=${speedFactor.toFixed(6)}*PTS`);
+  }
+
+  args.push('-c:v', 'libx264', '-crf', '22', '-preset', 'fast', '-pix_fmt', 'yuv420p');
+
+  if (hasAudio) {
+    args.push('-c:a', 'aac', '-b:a', '128k', '-shortest');
+  }
+
+  args.push(outputPath);
+  run('ffmpeg', args);
+}
+
+function cleanupVideoDir() {
+  fs.rmSync(VIDEO_OUTPUT_DIR, { recursive: true, force: true });
 }
 
 function cleanup(keepFrames) {
@@ -1640,6 +1967,7 @@ async function main() {
   }
 
   await ensureEmptyFrameDir();
+  await ensureEmptyVideoDir();
 
   const preview = startPreviewServer();
   const previewStderrBuffer = [];
@@ -1651,9 +1979,10 @@ async function main() {
   });
 
   let captureError = null;
+  let captureArtifacts = { rawVideoPath: null, audioPath: null, frameCount: 0 };
   try {
     await waitForServer(BASE_URL, preview, previewStderrBuffer);
-    await captureDemoFrames(options);
+    captureArtifacts = await captureDemoFrames(options);
   } catch (error) {
     captureError = error;
     console.log('\n⚠️  Frame capture failed, but building partial GIF from captured frames...');
@@ -1670,6 +1999,27 @@ async function main() {
         );
       }
       throw buildError;
+    }
+
+    try {
+      if (captureArtifacts.rawVideoPath && fs.existsSync(captureArtifacts.rawVideoPath)) {
+        const targetDurationSeconds =
+          captureArtifacts.frameCount > 0 ? captureArtifacts.frameCount / options.fps : null;
+
+        buildMp4(
+          captureArtifacts.rawVideoPath,
+          captureArtifacts.audioPath,
+          OUTPUT_MP4,
+          targetDurationSeconds
+        );
+        cleanupVideoDir();
+        console.log(`✅ Demo MP4 generated: ${OUTPUT_MP4}`);
+      } else {
+        console.warn('⚠️  No video file found — MP4 skipped');
+      }
+    } catch (mp4Error) {
+      const message = mp4Error instanceof Error ? mp4Error.message : String(mp4Error);
+      console.warn(`⚠️  Demo MP4 generation failed: ${message}`);
     }
 
     if (captureError) {

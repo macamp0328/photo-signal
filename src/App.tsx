@@ -9,6 +9,7 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
@@ -60,6 +61,9 @@ const DebugOverlay = lazy(async () => {
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
 const DETAILS_RECOGNITION_COOLDOWN_MS = 2000;
+const LONG_PRESS_DURATION_MS = 500;
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 interface AccessGateConfig {
   enabled: boolean;
@@ -126,8 +130,6 @@ function buildPlaylist(songs: Concert[], preferredId?: number): Concert[] {
 }
 
 function AppContent() {
-  const LONG_PRESS_DURATION_MS = 500;
-
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -147,6 +149,13 @@ function AppContent() {
     concertId: number;
     expiresAt: number;
   } | null>(null);
+  const matchedPhotoButtonRef = useRef<HTMLButtonElement | null>(null);
+  const zoomDialogRef = useRef<HTMLDivElement | null>(null);
+  const zoomCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+  const zoomPreviousFocusRef = useRef<HTMLElement | null>(null);
+  const downloadPromptDialogRef = useRef<HTMLDivElement | null>(null);
+  const downloadCancelButtonRef = useRef<HTMLButtonElement | null>(null);
+  const downloadPreviousFocusRef = useRef<HTMLElement | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
   const suppressNextPhotoClickRef = useRef(false);
 
@@ -552,6 +561,14 @@ function AppContent() {
     }
   }, []);
 
+  const handleCloseZoomedPhoto = useCallback(() => {
+    setIsZoomedPhotoVisible(false);
+  }, []);
+
+  const handleCloseDownloadPrompt = useCallback(() => {
+    setIsDownloadPromptVisible(false);
+  }, []);
+
   const getPhotoDownloadFilename = useCallback((url: string) => {
     try {
       const parsedUrl = new URL(url, window.location.href);
@@ -561,6 +578,19 @@ function AppContent() {
     } catch {
       return 'matched-photo.jpg';
     }
+  }, []);
+
+  const restoreDialogFocus = useCallback((elementToRestore: HTMLElement | null) => {
+    if (
+      elementToRestore &&
+      elementToRestore !== document.body &&
+      document.contains(elementToRestore)
+    ) {
+      elementToRestore.focus();
+      return;
+    }
+
+    matchedPhotoButtonRef.current?.focus();
   }, []);
 
   const shutdownExperience = useCallback(() => {
@@ -635,24 +665,87 @@ function AppContent() {
   }, [clearLongPressTimer]);
 
   useEffect(() => {
-    if (!isZoomedPhotoVisible && !isDownloadPromptVisible) {
+    if (!isZoomedPhotoVisible) {
       return;
     }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') {
+    zoomPreviousFocusRef.current = document.activeElement as HTMLElement | null;
+    zoomCloseButtonRef.current?.focus();
+
+    return () => {
+      restoreDialogFocus(zoomPreviousFocusRef.current);
+      zoomPreviousFocusRef.current = null;
+    };
+  }, [isZoomedPhotoVisible, restoreDialogFocus]);
+
+  useEffect(() => {
+    if (!isDownloadPromptVisible) {
+      return;
+    }
+
+    downloadPreviousFocusRef.current = document.activeElement as HTMLElement | null;
+    downloadCancelButtonRef.current?.focus();
+
+    return () => {
+      restoreDialogFocus(downloadPreviousFocusRef.current);
+      downloadPreviousFocusRef.current = null;
+    };
+  }, [isDownloadPromptVisible, restoreDialogFocus]);
+
+  const trapDialogFocus = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>, dialogElement: HTMLDivElement | null) => {
+      if (event.key !== 'Tab' || !dialogElement) {
         return;
       }
 
-      setIsDownloadPromptVisible(false);
-      setIsZoomedPhotoVisible(false);
-    };
+      const focusableElements = Array.from(
+        dialogElement.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+      ).filter((element) => !element.hasAttribute('disabled') && element.tabIndex !== -1);
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isDownloadPromptVisible, isZoomedPhotoVisible]);
+      if (focusableElements.length === 0) {
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    },
+    []
+  );
+
+  const handleZoomDialogKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleCloseZoomedPhoto();
+        return;
+      }
+
+      trapDialogFocus(event, zoomDialogRef.current);
+    },
+    [handleCloseZoomedPhoto, trapDialogFocus]
+  );
+
+  const handleDownloadDialogKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleCloseDownloadPrompt();
+        return;
+      }
+
+      trapDialogFocus(event, downloadPromptDialogRef.current);
+    },
+    [handleCloseDownloadPrompt, trapDialogFocus]
+  );
 
   const handleMatchedPhotoClick = useCallback(() => {
     if (suppressNextPhotoClickRef.current) {
@@ -669,10 +762,10 @@ function AppContent() {
 
     longPressTimerRef.current = window.setTimeout(() => {
       suppressNextPhotoClickRef.current = true;
-      setIsZoomedPhotoVisible(false);
+      handleCloseZoomedPhoto();
       setIsDownloadPromptVisible(true);
     }, LONG_PRESS_DURATION_MS);
-  }, [LONG_PRESS_DURATION_MS, clearLongPressTimer]);
+  }, [clearLongPressTimer, handleCloseZoomedPhoto]);
 
   const handleMatchedPhotoMouseDown = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -685,22 +778,39 @@ function AppContent() {
     [startLongPress]
   );
 
-  const handleDownloadMatchedPhoto = useCallback(() => {
+  const handleDownloadMatchedPhoto = useCallback(async () => {
     if (!scannedPhotoUrl) {
-      setIsDownloadPromptVisible(false);
+      handleCloseDownloadPrompt();
       return;
     }
 
-    const link = document.createElement('a');
-    link.href = scannedPhotoUrl;
-    link.download = getPhotoDownloadFilename(scannedPhotoUrl);
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(scannedPhotoUrl);
+      if (!response.ok || typeof window.URL.createObjectURL !== 'function') {
+        window.location.assign(scannedPhotoUrl);
+        return;
+      }
 
-    setIsDownloadPromptVisible(false);
-  }, [getPhotoDownloadFilename, scannedPhotoUrl]);
+      const blob = await response.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = getPhotoDownloadFilename(scannedPhotoUrl);
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.setTimeout(() => {
+        window.URL.revokeObjectURL(objectUrl);
+      }, 0);
+    } catch {
+      window.location.assign(scannedPhotoUrl);
+    } finally {
+      handleCloseDownloadPrompt();
+    }
+  }, [getPhotoDownloadFilename, handleCloseDownloadPrompt, scannedPhotoUrl]);
 
   const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
   const dropNeedleConcert =
@@ -850,6 +960,7 @@ function AppContent() {
   const cameraView = shouldShowScannedPhoto ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
       <button
+        ref={matchedPhotoButtonRef}
         type="button"
         className={styles.scannedPhotoButton}
         aria-label="Open matched photo zoom"
@@ -931,9 +1042,11 @@ function AppContent() {
         <div
           className={styles.photoOverlayBackdrop}
           role="presentation"
-          onClick={() => setIsZoomedPhotoVisible(false)}
+          onClick={handleCloseZoomedPhoto}
+          onKeyDown={handleZoomDialogKeyDown}
         >
           <div
+            ref={zoomDialogRef}
             className={styles.photoOverlayDialog}
             role="dialog"
             aria-modal="true"
@@ -941,9 +1054,10 @@ function AppContent() {
             onClick={(event) => event.stopPropagation()}
           >
             <button
+              ref={zoomCloseButtonRef}
               type="button"
               className={styles.photoOverlayCloseButton}
-              onClick={() => setIsZoomedPhotoVisible(false)}
+              onClick={handleCloseZoomedPhoto}
             >
               Close
             </button>
@@ -960,9 +1074,11 @@ function AppContent() {
         <div
           className={styles.photoOverlayBackdrop}
           role="presentation"
-          onClick={() => setIsDownloadPromptVisible(false)}
+          onClick={handleCloseDownloadPrompt}
+          onKeyDown={handleDownloadDialogKeyDown}
         >
           <div
+            ref={downloadPromptDialogRef}
             className={styles.photoPromptDialog}
             role="dialog"
             aria-modal="true"
@@ -972,9 +1088,10 @@ function AppContent() {
             <p className={styles.photoPromptText}>Download full-size photo?</p>
             <div className={styles.photoPromptActions}>
               <button
+                ref={downloadCancelButtonRef}
                 type="button"
                 className={styles.photoPromptSecondaryButton}
-                onClick={() => setIsDownloadPromptVisible(false)}
+                onClick={handleCloseDownloadPrompt}
               >
                 Cancel
               </button>

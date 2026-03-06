@@ -216,6 +216,30 @@ describe('App playback flow', () => {
     vi.clearAllMocks();
   });
 
+  const activateExperience = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    return screen.getByRole('button', { name: 'Open matched photo zoom' });
+  };
+
+  const openDownloadPromptWithLongPress = async (matchedPhotoButton: HTMLElement) => {
+    fireEvent.mouseDown(matchedPhotoButton, { button: 0 });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('dialog', {
+          name: 'Download full-size photo',
+        })
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.mouseUp(matchedPhotoButton, { button: 0 });
+  };
+
   it('passes telemetry-aligned recognition defaults', () => {
     render(<App />);
 
@@ -468,6 +492,196 @@ describe('App playback flow', () => {
 
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.queryByText('Photo unavailable')).not.toBeInTheDocument();
+  });
+
+  it('opens zoom dialog when matched photo is clicked', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+
+    await user.click(matchedPhotoButton);
+
+    expect(screen.getByRole('dialog', { name: 'Matched photo zoom' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+  });
+
+  it('opens long-press download prompt and suppresses zoom for that interaction', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const createObjectUrlMock = vi.fn(() => 'blob:matched-photo-download');
+    const revokeObjectUrlMock = vi.fn();
+    Object.defineProperty(window.URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: createObjectUrlMock,
+    });
+    Object.defineProperty(window.URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: revokeObjectUrlMock,
+    });
+
+    const anchorClickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    try {
+      render(<App />);
+
+      const matchedPhotoButton = await activateExperience(user);
+      await openDownloadPromptWithLongPress(matchedPhotoButton);
+      fireEvent.click(matchedPhotoButton);
+
+      expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Download' }));
+      await waitFor(() => {
+        expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+      });
+      expect(createObjectUrlMock).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(revokeObjectUrlMock).toHaveBeenCalledTimes(1);
+      });
+    } finally {
+      anchorClickSpy.mockRestore();
+    }
+  });
+
+  it('cancels long-press when pointer moves and allows click-to-zoom', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+
+    fireEvent.mouseDown(matchedPhotoButton, { button: 0 });
+    fireEvent.mouseMove(matchedPhotoButton);
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 550);
+    });
+    fireEvent.mouseUp(matchedPhotoButton, { button: 0 });
+
+    expect(
+      screen.queryByRole('dialog', {
+        name: 'Download full-size photo',
+      })
+    ).not.toBeInTheDocument();
+
+    await user.click(matchedPhotoButton);
+    expect(screen.getByRole('dialog', { name: 'Matched photo zoom' })).toBeInTheDocument();
+  });
+
+  it('closes zoom dialog on Escape and restores focus to matched photo button', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await user.click(matchedPhotoButton);
+
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    fireEvent.keyDown(closeButton, { key: 'Escape' });
+
+    expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
+    expect(matchedPhotoButton).toHaveFocus();
+  });
+
+  it('closes zoom dialog on backdrop click', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(await activateExperience(user));
+
+    const zoomDialog = screen.getByRole('dialog', { name: 'Matched photo zoom' });
+    const zoomBackdrop = zoomDialog.parentElement;
+    expect(zoomBackdrop).not.toBeNull();
+
+    if (zoomBackdrop) {
+      fireEvent.click(zoomBackdrop);
+    }
+
+    expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
+  });
+
+  it('closes download prompt on Escape and restores focus to matched photo button', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await openDownloadPromptWithLongPress(matchedPhotoButton);
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    fireEvent.keyDown(cancelButton, { key: 'Escape' });
+
+    expect(
+      screen.queryByRole('dialog', {
+        name: 'Download full-size photo',
+      })
+    ).not.toBeInTheDocument();
+    expect(matchedPhotoButton).toHaveFocus();
+  });
+
+  it('closes download prompt on backdrop click', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await openDownloadPromptWithLongPress(matchedPhotoButton);
+
+    const downloadDialog = screen.getByRole('dialog', { name: 'Download full-size photo' });
+    const downloadBackdrop = downloadDialog.parentElement;
+    expect(downloadBackdrop).not.toBeNull();
+
+    if (downloadBackdrop) {
+      fireEvent.click(downloadBackdrop);
+    }
+
+    expect(
+      screen.queryByRole('dialog', {
+        name: 'Download full-size photo',
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it('traps Tab focus inside download prompt', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await openDownloadPromptWithLongPress(matchedPhotoButton);
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const downloadButton = screen.getByRole('button', { name: 'Download' });
+    expect(cancelButton).toHaveFocus();
+
+    fireEvent.keyDown(cancelButton, { key: 'Tab', shiftKey: true });
+    expect(downloadButton).toHaveFocus();
+
+    fireEvent.keyDown(downloadButton, { key: 'Tab' });
+    expect(cancelButton).toHaveFocus();
   });
 
   it('auto-plays a newly recognized match when no music is currently playing', async () => {

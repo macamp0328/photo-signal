@@ -703,7 +703,7 @@ async function captureDemoFrames(options) {
     });
 
     const routeToVideoPath = new Map();
-    // Only load the two main demo targets; don't load the reverse video
+    // Load all prepared demo camera targets
     const targetVideoInputs = preparedCameraTargets;
     const targetVideoUrls = targetVideoInputs.map((target, index) => {
       const routePath = `${DEMO_VIDEO_ROUTE_PREFIX}${index}-${path.basename(target.sourceVideoPath)}`;

@@ -346,6 +346,7 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
+  const demoNoAudioFade = isDemoNoAudioFadeEnabled();
   const {
     play,
     pause,
@@ -358,8 +359,8 @@ function AppContent() {
     clearPlaybackError,
   } = useAudioPlayback({
     volume: 1.0,
-    fadeTime: isDemoNoAudioFadeEnabled() ? 0 : 1000,
-    crossfadeDuration: isDemoNoAudioFadeEnabled() ? 0 : 1000,
+    fadeTime: demoNoAudioFade ? 0 : 1000,
+    crossfadeDuration: demoNoAudioFade ? 0 : 1000,
     onSongEnd: () => {
       if (userPausedRef.current) return;
       const currentPlaylist = playlistRef.current;

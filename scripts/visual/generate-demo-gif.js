@@ -10,9 +10,9 @@ import { loadImageData, computePHash } from '../lib/photoHashUtils.js';
 const ROOT = process.cwd();
 const BASE_URL = 'http://127.0.0.1:4173';
 const FRAME_DIR = path.resolve(ROOT, 'scripts/visual/output/demo-frames');
-const OUTPUT_GIF = path.resolve(ROOT, 'docs/media/demo.gif');
-const OUTPUT_MP4 = path.resolve(ROOT, 'docs/media/demo.mp4');
-const OUTPUT_DIR = path.dirname(OUTPUT_GIF);
+const OUTPUT_DIR = path.resolve(ROOT, 'docs/media');
+const DEFAULT_OUTPUT_GIF = path.resolve(OUTPUT_DIR, 'demo.gif');
+const DEFAULT_OUTPUT_MP4 = path.resolve(OUTPUT_DIR, 'demo.mp4');
 const VIDEO_OUTPUT_DIR = path.resolve(ROOT, 'scripts/visual/output/video');
 const TEMP_AUDIO_WEBM = path.resolve(VIDEO_OUTPUT_DIR, 'demo-audio.webm');
 const VIDEO_SAMPLE_DIR = path.resolve(ROOT, 'assets/test-videos/phone-samples');
@@ -24,23 +24,29 @@ const DEFAULT_LANDING_FRAMES = 30; // 30 × 80ms = 2.4s on landing (was 20 = 1.6
 const DEFAULT_CAPTURE_FRAMES = 800; // safety cap only; scenes drive actual GIF length
 const DEFAULT_FRAME_DELAY_MS = 80;
 const DEFAULT_FPS = 12;
-const DEFAULT_PRE_MATCH_MS = 6000; // 6s scan before first match (was 3500ms)
+const DEFAULT_PRE_MATCH_MS = 3000; // 3s scan before first match
 const DEFAULT_VIEWPORT_WIDTH = 412;
 const DEFAULT_VIEWPORT_HEIGHT = 915;
 const DEFAULT_OUTPUT_WIDTH = 480;
+const TEST_MIN_MAX_VOLUME_DB = -80;
+const TEST_LANDING_FRAMES = 6;
+const TEST_CAPTURE_FRAMES = 80;
+const TEST_PRE_MATCH_MS = 2000;
 
 const STORY_PACING_MS = {
   postFirstMatchHold: 6000, // was 4000; extra time to read Overcoats concert info
   controlTapGap: 3000, // was 2500; slightly more breathing room between taps
-  secondTargetWarmup: 3000, // was 1400; 3s base scan for second clip
-  secondTargetWarmupPadding: 1000, // was 700; total second search = 4s
+  secondTargetWarmup: 2000, // 2s base scan for second clip
+  secondTargetWarmupPadding: 1000, // total second search = 3s
   postSecondMatchHold: 6500, // was 4500; extra time to read Barna concert info
-  thirdTargetWarmup: 3000,
+  thirdTargetWarmup: 2000,
   thirdTargetWarmupPadding: 1000,
   postThirdMatchHold: 6500, // was 4500; extra time to read Croy concert info
   postSwitchArtistHold: 6000, // was 4000; more time after Switch Artist
   fadeToBlack: 2000, // was 1500; slightly longer closing fade
 };
+
+const MIN_STORY_CAPTURE_FRAMES = 900;
 
 // ── Demo GIF Timeline Spec ────────────────────────────────────────────────────
 //
@@ -63,7 +69,7 @@ const STORY_PACING_MS = {
 //
 // Scene 6  Second haze-clearing search on test_5_barna.mp4 at 3× half-speed
 //          palindrome with scan overlay and rectangle-detection visible.
-//          Duration: secondTargetWarmup + secondTargetWarmupPadding = 4s.
+//          Duration: secondTargetWarmup + secondTargetWarmupPadding = 3s.
 //
 // Scene 7  Second match (Sean Barna) shown with concert info — 6.5s
 //          (STORY_PACING_MS.postSecondMatchHold)
@@ -72,7 +78,7 @@ const STORY_PACING_MS = {
 //
 // Scene 9  Third haze-clearing search on test_2_croy.mp4 at 3× half-speed
 //          palindrome with scan overlay and rectangle-detection visible.
-//          Duration: thirdTargetWarmup + thirdTargetWarmupPadding = 4s.
+//          Duration: thirdTargetWarmup + thirdTargetWarmupPadding = 3s.
 //
 // Scene 10 Third match (Croy and the Boys) shown with concert info — 6.5s
 //          (STORY_PACING_MS.postThirdMatchHold)
@@ -90,6 +96,7 @@ const STORY_PACING_MS = {
 function parseArgs(argv) {
   const parsed = {
     skipBuild: false,
+    testMode: false,
     keepFrames: false,
     fps: DEFAULT_FPS,
     landingFrames: DEFAULT_LANDING_FRAMES,
@@ -103,6 +110,7 @@ function parseArgs(argv) {
 
   for (const arg of argv) {
     if (arg === '--skip-build') parsed.skipBuild = true;
+    if (arg === '--test') parsed.testMode = true;
     if (arg === '--keep-frames') parsed.keepFrames = true;
     if (arg.startsWith('--fps=')) parsed.fps = Number(arg.split('=')[1] ?? DEFAULT_FPS);
     if (arg.startsWith('--landing-frames=')) {
@@ -128,7 +136,43 @@ function parseArgs(argv) {
     }
   }
 
+  if (parsed.testMode) {
+    parsed.skipBuild = true;
+    parsed.landingFrames = TEST_LANDING_FRAMES;
+    parsed.captureFrames = TEST_CAPTURE_FRAMES;
+    parsed.preMatchMs = TEST_PRE_MATCH_MS;
+  }
+
   return parsed;
+}
+
+function getOutputPaths(testMode) {
+  if (!testMode) {
+    return {
+      gifPath: DEFAULT_OUTPUT_GIF,
+      mp4Path: DEFAULT_OUTPUT_MP4,
+    };
+  }
+
+  const now = new Date();
+  const pad2 = (value) => String(value).padStart(2, '0');
+  const pad3 = (value) => String(value).padStart(3, '0');
+  const stamp = [
+    now.getUTCFullYear(),
+    pad2(now.getUTCMonth() + 1),
+    pad2(now.getUTCDate()),
+    '-',
+    pad2(now.getUTCHours()),
+    pad2(now.getUTCMinutes()),
+    pad2(now.getUTCSeconds()),
+    '-',
+    pad3(now.getUTCMilliseconds()),
+  ].join('');
+
+  return {
+    gifPath: path.resolve(OUTPUT_DIR, `demo-test-${stamp}.gif`),
+    mp4Path: path.resolve(OUTPUT_DIR, `demo-test-${stamp}.mp4`),
+  };
 }
 
 function run(command, args, options = {}) {
@@ -609,10 +653,20 @@ async function ensureEmptyVideoDir() {
 }
 
 async function captureDemoFrames(options) {
-  const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
-    options;
+  const {
+    landingFrames,
+    captureFrames,
+    frameDelayMs,
+    fps,
+    preMatchMs,
+    viewportWidth,
+    viewportHeight,
+    testMode,
+  } = options;
+  const pacing = STORY_PACING_MS;
   let rawVideoPath = null;
   let audioPath = null;
+  let activeAudioUrl = null;
   let frameCount = 0;
 
   const { firstTarget, secondTarget, thirdTarget, sourceMode } = resolveDemoTargets();
@@ -703,7 +757,7 @@ async function captureDemoFrames(options) {
     });
 
     const routeToVideoPath = new Map();
-    // Only load the two main demo targets; don't load the reverse video
+    // Load only selected demo targets from the manifest for deterministic playback.
     const targetVideoInputs = preparedCameraTargets;
     const targetVideoUrls = targetVideoInputs.map((target, index) => {
       const routePath = `${DEMO_VIDEO_ROUTE_PREFIX}${index}-${path.basename(target.sourceVideoPath)}`;
@@ -1160,7 +1214,14 @@ async function captureDemoFrames(options) {
     await page.getByRole('heading', { name: /photo signal/i }).waitFor({ timeout: 10000 });
 
     let frameIndex = 0;
-    const maxFrames = Math.max(landingFrames + captureFrames, 1);
+    const requestedMaxFrames = Math.max(landingFrames + captureFrames, 1);
+    const maxFrames = testMode
+      ? requestedMaxFrames
+      : Math.max(requestedMaxFrames, MIN_STORY_CAPTURE_FRAMES);
+
+    console.log(
+      `🧮 Capture budget: landingFrames=${landingFrames}, captureFrames=${captureFrames}, frameDelayMs=${frameDelayMs}, maxFrames=${maxFrames}`
+    );
 
     const saveFrame = async () => {
       if (page.isClosed()) {
@@ -1178,8 +1239,8 @@ async function captureDemoFrames(options) {
     };
 
     const captureFor = async (durationMs) => {
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < durationMs) {
+      const targetFrames = Math.max(1, Math.round((durationMs / 1000) * fps));
+      for (let i = 0; i < targetFrames; i += 1) {
         const saved = await saveFrame();
         if (!saved) {
           return false;
@@ -1301,16 +1362,149 @@ async function captureDemoFrames(options) {
       return hasDetails || hasPlaying;
     };
 
+    const clipTimingByIndex = new Map();
+
+    const markClipActivated = (targetIndex) => {
+      const label = preparedCameraTargets[targetIndex]?.artistName ?? `target-${targetIndex}`;
+      clipTimingByIndex.set(targetIndex, {
+        label,
+        activatedAt: Date.now(),
+        searchStartedAt: null,
+        matchedAt: null,
+      });
+    };
+
+    const markSearchStart = (targetIndex, clearDurationSec) => {
+      const existing = clipTimingByIndex.get(targetIndex);
+      if (!existing) {
+        return;
+      }
+      existing.searchStartedAt = Date.now();
+      const sinceActivatedMs = existing.searchStartedAt - existing.activatedAt;
+      console.log(
+        `🕒 [timing] ${existing.label}: search started ${sinceActivatedMs}ms after clip activation (clear=${clearDurationSec}s)`
+      );
+    };
+
+    const markMatchSeen = (targetIndex) => {
+      const existing = clipTimingByIndex.get(targetIndex);
+      if (!existing) {
+        return;
+      }
+      existing.matchedAt = Date.now();
+      const activeBeforeMatchMs = existing.matchedAt - existing.activatedAt;
+      const searchToMatchMs = existing.searchStartedAt
+        ? existing.matchedAt - existing.searchStartedAt
+        : null;
+      console.log(
+        `🕒 [timing] ${existing.label}: match seen after ${activeBeforeMatchMs}ms active${
+          searchToMatchMs !== null ? ` (${searchToMatchMs}ms since search start)` : ''
+        }`
+      );
+    };
+
+    const logClipSummary = (targetIndex, stageLabel) => {
+      const existing = clipTimingByIndex.get(targetIndex);
+      if (!existing) {
+        return;
+      }
+      const now = Date.now();
+      console.log(
+        `🕒 [timing] ${existing.label}: ${stageLabel} at ${now - existing.activatedAt}ms active`
+      );
+    };
+
     const ensurePlaybackActive = async () => {
+      const playbackState = await page.evaluate(() => {
+        const howler = globalThis.__photoSignalHowler ?? globalThis.Howler;
+
+        try {
+          if (typeof howler?.mute === 'function') {
+            howler.mute(false);
+          }
+          if (typeof howler?.volume === 'function') {
+            howler.volume(1);
+          }
+        } catch {
+          // ignore global howler volume/mute failures
+        }
+
+        const howls = Array.isArray(howler?._howls) ? howler._howls : [];
+        let playingCount = 0;
+
+        for (const howl of howls) {
+          if (!howl) {
+            continue;
+          }
+
+          try {
+            if (typeof howl.mute === 'function') {
+              howl.mute(false);
+            }
+            if (typeof howl.volume === 'function') {
+              howl.volume(1);
+            }
+            if (typeof howl.playing === 'function' && howl.playing()) {
+              playingCount += 1;
+            }
+          } catch {
+            // ignore per-howl volume/mute/read failures
+          }
+        }
+
+        if (playingCount === 0 && howls.length > 0) {
+          for (const howl of howls) {
+            try {
+              if (typeof howl.play === 'function') {
+                howl.play();
+              }
+            } catch {
+              // ignore play trigger failures
+            }
+          }
+
+          for (const howl of howls) {
+            try {
+              if (typeof howl.playing === 'function' && howl.playing()) {
+                playingCount += 1;
+              }
+            } catch {
+              // ignore play state read failures
+            }
+          }
+        }
+
+        return {
+          totalHowls: howls.length,
+          playingCount,
+        };
+      });
+
+      if (playbackState.totalHowls > 0) {
+        console.log(
+          `🔊 Howler state: ${playbackState.playingCount}/${playbackState.totalHowls} track(s) playing`
+        );
+      }
+
       const playButton = page.getByRole('button', { name: /^play$/i });
       const playVisible = await playButton.isVisible().catch(() => false);
       if (playVisible) {
         const disabled = await playButton.isDisabled().catch(() => false);
         if (!disabled) {
+          console.log('🔊 Play button visible; forcing playback start');
           await clickWithIndicator(playButton);
-          await captureFor(900);
+          await captureFor(1200);
+          return;
         }
       }
+
+      if (playbackState.playingCount > 0) {
+        console.log('🔊 Play button not available; playback already active via Howler');
+        await captureFor(800);
+        return;
+      }
+
+      console.log('🔊 Play button not available; no active playback confirmed');
     };
 
     const waitForEnabledButton = async (name, timeoutMs = 7000) => {
@@ -1336,6 +1530,74 @@ async function captureDemoFrames(options) {
         .isVisible()
         .catch(() => false);
 
+    const showBlackFade = async (transitionMs, captureMs = transitionMs) => {
+      await page.evaluate((durationMs) => {
+        const existing = globalThis.document.querySelector('[data-demo-fade="true"]');
+        if (existing) {
+          existing.remove();
+        }
+
+        const fade = globalThis.document.createElement('div');
+        fade.setAttribute('data-demo-fade', 'true');
+        fade.style.position = 'fixed';
+        fade.style.left = '0';
+        fade.style.top = '0';
+        fade.style.width = '100vw';
+        fade.style.height = '100vh';
+        fade.style.background = '#000';
+        fade.style.opacity = '0';
+        fade.style.pointerEvents = 'none';
+        fade.style.zIndex = '999999';
+        fade.style.transition = `opacity ${durationMs}ms linear`;
+        globalThis.document.body.appendChild(fade);
+
+        globalThis.requestAnimationFrame(() => {
+          fade.style.opacity = '1';
+        });
+      }, transitionMs);
+
+      await captureFor(captureMs);
+    };
+
+    const showClipResetFlash = async () => {
+      await page.evaluate(() => {
+        const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
+        if (existing) existing.remove();
+
+        const dimOverlay = globalThis.document.createElement('div');
+        dimOverlay.setAttribute('data-demo-clip-reset', 'true');
+
+        Object.assign(dimOverlay.style, {
+          position: 'fixed',
+          left: '0',
+          top: '0',
+          width: '100vw',
+          height: '100vh',
+          background: '#000',
+          opacity: '0',
+          pointerEvents: 'none',
+          zIndex: '99998',
+          transition: 'opacity 220ms linear',
+        });
+
+        globalThis.document.body.appendChild(dimOverlay);
+
+        globalThis.requestAnimationFrame(() => {
+          dimOverlay.style.opacity = '0.72';
+        });
+
+        globalThis.setTimeout(() => {
+          dimOverlay.style.transition = 'opacity 280ms linear';
+          dimOverlay.style.opacity = '0';
+          globalThis.setTimeout(() => {
+            if (dimOverlay.parentNode) dimOverlay.remove();
+          }, 350);
+        }, 500);
+      });
+
+      await captureFor(800);
+    };
+
     const setCameraTargetIndex = async (targetIndex) => {
       await page.evaluate((nextTargetIndex) => {
         if (typeof globalThis.__photoSignalDemoSetTargetIndex === 'function') {
@@ -1343,6 +1605,7 @@ async function captureDemoFrames(options) {
         }
       }, targetIndex);
 
+      markClipActivated(targetIndex);
       console.log(`🎯 Camera clip target index -> ${targetIndex}`);
     };
 
@@ -1351,12 +1614,15 @@ async function captureDemoFrames(options) {
      * The canvas begins blurry/dark and clears over clearDurationSec seconds.
      * Recognition fires naturally once the image is sharp enough for pHash to match.
      */
-    const startSearch = async (clearDurationSec) => {
+    const startSearch = async (clearDurationSec, targetIndex) => {
       await page.evaluate((sec) => {
         if (typeof globalThis.__photoSignalDemoStartSearch === 'function') {
           globalThis.__photoSignalDemoStartSearch(sec);
         }
       }, clearDurationSec);
+      if (typeof targetIndex === 'number') {
+        markSearchStart(targetIndex, clearDurationSec);
+      }
       console.log(`🔍 Haze-clearing search started (${clearDurationSec}s to clear)`);
     };
 
@@ -1399,8 +1665,138 @@ async function captureDemoFrames(options) {
         const startDeadline = globalThis.performance.now() + 120000;
 
         const tryStartRecorder = async () => {
-          const destination = globalThis.__demoAudioTapDestination;
-          const audioContext = globalThis.__demoAudioTapContext;
+          const howler = globalThis.__photoSignalHowler ?? globalThis.Howler;
+          const masterGain = howler?.masterGain ?? howler?._masterGain;
+          const howlerContext = howler?._audioContext ?? howler?.ctx;
+
+          const ensureFallbackTapContext = () => {
+            if (globalThis.__demoAudioTapDestination && globalThis.__demoAudioTapContext) {
+              return {
+                destination: globalThis.__demoAudioTapDestination,
+                audioContext: globalThis.__demoAudioTapContext,
+              };
+            }
+
+            const AudioContextCtor = globalThis.AudioContext ?? globalThis.webkitAudioContext;
+            if (typeof AudioContextCtor !== 'function') {
+              return { destination: null, audioContext: null };
+            }
+
+            try {
+              const context = new AudioContextCtor();
+              const destination = context.createMediaStreamDestination();
+              globalThis.__demoAudioTapContext = context;
+              globalThis.__demoAudioTapDestination = destination;
+              globalThis.console?.log?.('[demo] audio tap mode: fallback-audio-context');
+              return { destination, audioContext: context };
+            } catch {
+              return { destination: null, audioContext: null };
+            }
+          };
+
+          const attachHtmlAudioElementTaps = (audioContext, destination) => {
+            if (!audioContext || !destination) {
+              return 0;
+            }
+
+            if (!Array.isArray(globalThis.__demoAudioTapSources)) {
+              globalThis.__demoAudioTapSources = [];
+            }
+            if (!globalThis.__demoAudioTappedElements) {
+              globalThis.__demoAudioTappedElements = new WeakSet();
+            }
+
+            const tappedElements = globalThis.__demoAudioTappedElements;
+            const mediaSources = globalThis.__demoAudioTapSources;
+            const audioNodes = Array.from(globalThis.document.querySelectorAll('audio'));
+            let attachedCount = 0;
+
+            for (const audioElement of audioNodes) {
+              if (!audioElement || tappedElements.has(audioElement)) {
+                continue;
+              }
+
+              const captureStream =
+                typeof audioElement.captureStream === 'function'
+                  ? audioElement.captureStream.bind(audioElement)
+                  : typeof audioElement.mozCaptureStream === 'function'
+                    ? audioElement.mozCaptureStream.bind(audioElement)
+                    : null;
+
+              if (!captureStream) {
+                continue;
+              }
+
+              try {
+                const stream = captureStream();
+                const tracks = stream?.getAudioTracks?.() ?? [];
+                if (!stream || tracks.length === 0) {
+                  continue;
+                }
+
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(destination);
+                mediaSources.push(source);
+                tappedElements.add(audioElement);
+                attachedCount += 1;
+                globalThis.console?.log?.('[demo] audio tap attached via captureStream');
+              } catch {
+                // ignore per-element capture errors
+              }
+            }
+
+            return attachedCount;
+          };
+
+          const tryConnectHowlerMasterGain = () => {
+            if (!howlerContext || !masterGain || !destination) {
+              return false;
+            }
+
+            if (globalThis.__demoHowlerMasterGainTapped) {
+              return true;
+            }
+
+            try {
+              masterGain.connect(destination);
+              globalThis.__demoHowlerMasterGainTapped = true;
+              globalThis.console?.log?.('[demo] audio tap mode: howler-master-gain');
+              return true;
+            } catch {
+              return false;
+            }
+          };
+
+          let destination = null;
+          let audioContext = null;
+
+          if (howlerContext && masterGain) {
+            try {
+              const directDestination = howlerContext.createMediaStreamDestination();
+              masterGain.connect(directDestination);
+              destination = directDestination;
+              audioContext = howlerContext;
+              globalThis.__demoHowlerMasterGainTapped = true;
+              globalThis.console?.log?.('[demo] audio tap mode: howler-master-gain');
+            } catch {
+              // fall through to patched-audio-node tap
+            }
+          }
+
+          if (!destination || !audioContext) {
+            destination = globalThis.__demoAudioTapDestination ?? null;
+            audioContext = globalThis.__demoAudioTapContext ?? null;
+            if (destination && audioContext && !globalThis.__demoPatchedTapLogged) {
+              globalThis.console?.log?.('[demo] audio tap mode: patched-audio-node');
+              globalThis.__demoPatchedTapLogged = true;
+            }
+          }
+
+          if (!destination || !audioContext) {
+            const fallbackTap = ensureFallbackTapContext();
+            destination = fallbackTap.destination;
+            audioContext = fallbackTap.audioContext;
+          }
 
           if (!destination?.stream || !audioContext) {
             if (globalThis.performance.now() < startDeadline) {
@@ -1417,6 +1813,23 @@ async function captureDemoFrames(options) {
             } catch {
               // ignore resume failures
             }
+          }
+
+          const htmlTapCount = attachHtmlAudioElementTaps(audioContext, destination);
+          const hasHowlerTap = tryConnectHowlerMasterGain();
+          const hasAnyAudioSource =
+            hasHowlerTap ||
+            htmlTapCount > 0 ||
+            (Array.isArray(globalThis.__demoAudioTapSources) &&
+              globalThis.__demoAudioTapSources.length > 0);
+
+          if (!hasAnyAudioSource) {
+            if (globalThis.performance.now() < startDeadline) {
+              globalThis.setTimeout(() => {
+                void tryStartRecorder();
+              }, 120);
+            }
+            return;
           }
 
           if (globalThis.__demoAudioRecorder) {
@@ -1440,12 +1853,25 @@ async function captureDemoFrames(options) {
           recorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
               chunks.push(event.data);
+              const previous = Number(globalThis.__demoAudioBytes ?? 0);
+              globalThis.__demoAudioBytes = previous + event.data.size;
             }
           };
           recorder.start(100);
+          globalThis.console?.log?.('[demo] audio recorder started');
+
+          const retapInterval = globalThis.setInterval(() => {
+            try {
+              attachHtmlAudioElementTaps(audioContext, destination);
+            } catch {
+              // ignore retap failures
+            }
+          }, 500);
+          globalThis.__demoAudioTapInterval = retapInterval;
 
           globalThis.__demoAudioRecorder = recorder;
           globalThis.__demoAudioChunks = chunks;
+          globalThis.__demoAudioBytes = 0;
         };
 
         void tryStartRecorder();
@@ -1458,260 +1884,228 @@ async function captureDemoFrames(options) {
 
     // Scene 1: start haze-clearing search — recognition fires naturally as canvas sharpens
     const firstClearSec = preMatchMs / 1000; // preMatchMs repurposed as clear duration
-    await startSearch(firstClearSec);
     await setCameraTargetIndex(0);
+    await startSearch(firstClearSec, 0);
 
-    const firstMatchSeen = await captureUntil(
-      async () => await hasArtistMatchState(firstTarget.artistName),
-      Math.max(preMatchMs + 8000, firstTarget.sourceDurationMs * 2)
-    );
+    const firstClearWaitMs = testMode
+      ? Math.round(firstClearSec * 1000)
+      : Math.ceil(firstClearSec * 1000) + 100;
+    console.log(`📹 Capturing frames during first haze clear for ${firstClearWaitMs}ms...`);
+    await captureFor(firstClearWaitMs);
+    if (!testMode) {
+      await captureFor(500);
+    }
+
+    const firstMatchSeen = testMode
+      ? await hasArtistMatchState(firstTarget.artistName)
+      : await captureUntil(
+          async () => await hasArtistMatchState(firstTarget.artistName),
+          Math.max(preMatchMs + 8000, firstTarget.sourceDurationMs * 2)
+        );
 
     if (!firstMatchSeen) {
       throw new Error(`First target did not match for artist ${firstTarget.artistName}.`);
     }
-
-    await captureFor(STORY_PACING_MS.postFirstMatchHold);
-
-    const stopButton = await waitForEnabledButton(/^pause$|^stop$/i);
-    await clickWithIndicator(stopButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const playButton = await waitForEnabledButton(/^play$/i);
-    await clickWithIndicator(playButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const previousButton = await waitForEnabledButton(/play previous track|previous track/i);
-    await clickWithIndicator(previousButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const nextButton = await waitForEnabledButton(/play next track|next track/i);
-    await clickWithIndicator(nextButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const closeButton = page.getByRole('button', {
-      name: /next pic, please|close concert details/i,
-    });
-    const closeButtonVisible = await closeButton.isVisible().catch(() => false);
-    if (closeButtonVisible) {
-      await clickWithIndicator(closeButton);
-      await page
-        .getByLabel(/concert details/i)
-        .waitFor({ state: 'hidden', timeout: 3000 })
-        .catch(() => null);
-    }
-
-    // Switch video first so the new clip is already playing when the dim flash
-    // fades out. This prevents a frame of the previous video appearing uncovered.
-    await setCameraTargetIndex(1);
-
-    // Brief dim-flash signals "new photo being searched" before the second scan begins.
-    await page.evaluate(() => {
-      const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
-      if (existing) existing.remove();
-
-      const dimOverlay = globalThis.document.createElement('div');
-      dimOverlay.setAttribute('data-demo-clip-reset', 'true');
-
-      Object.assign(dimOverlay.style, {
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '100vw',
-        height: '100vh',
-        background: '#000',
-        opacity: '0',
-        pointerEvents: 'none',
-        zIndex: '99998', // below ripple (999999), above app content
-        transition: 'opacity 220ms linear',
-      });
-
-      globalThis.document.body.appendChild(dimOverlay);
-
-      globalThis.requestAnimationFrame(() => {
-        dimOverlay.style.opacity = '0.72';
-      });
-
-      // Fade back out after 500ms so the search scan is visible shortly after
-      globalThis.setTimeout(() => {
-        dimOverlay.style.transition = 'opacity 280ms linear';
-        dimOverlay.style.opacity = '0';
-        globalThis.setTimeout(() => {
-          if (dimOverlay.parentNode) dimOverlay.remove();
-        }, 350);
-      }, 500);
-    });
-
-    await captureFor(800); // ~10 frames showing full dim flash, including fade-out
-
-    // Scene 5: second haze-clearing search (video already switched above)
-    const secondClearSec =
-      (STORY_PACING_MS.secondTargetWarmup + STORY_PACING_MS.secondTargetWarmupPadding) / 1000;
-    console.log(
-      `📹 Scene 5: Starting second search for "${secondTarget.artistName}" with ${secondClearSec}s haze clear`
-    );
-    await startSearch(secondClearSec);
-
-    // Capture during haze clearing so Scene 5 scan progression is visible in the GIF
-    const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
-    console.log(`📹 Capturing frames during second haze clear for ${clearWaitMs}ms...`);
-    await captureFor(clearWaitMs);
-    // The auto-switch timer (scheduled by startSearch) fires at clearWaitMs,
-    // so the phase is already 'target' by this point — no explicit call needed.
-    await captureFor(500);
-
-    // Now run the match check
-    const secondTimeout = Math.max(secondClearSec * 1000 + 8000, secondTarget.sourceDurationMs * 2);
-    console.log(
-      `⏱️ Checking for match (clearSec=${secondClearSec}, sourceDurationMs=${secondTarget.sourceDurationMs})`
-    );
-    const secondMatchSeen = await captureUntil(
-      async () => await hasArtistMatchState(secondTarget.artistName),
-      secondTimeout
-    );
-
-    if (!secondMatchSeen) {
-      throw new Error(
-        `Second target did not match for artist ${secondTarget.artistName}. Timeout was ${secondTimeout}ms.`
-      );
-    }
-    console.log(`✅ Second match found for "${secondTarget.artistName}"`);
-
-    await captureFor(STORY_PACING_MS.postSecondMatchHold);
-
-    // Close Barna concert details before transitioning to third artist.
-    const closeBarnaButton = page.getByRole('button', {
-      name: /next pic, please|close concert details/i,
-    });
-    if (await closeBarnaButton.isVisible().catch(() => false)) {
-      await clickWithIndicator(closeBarnaButton);
-      await page
-        .getByLabel(/concert details/i)
-        .waitFor({ state: 'hidden', timeout: 3000 })
-        .catch(() => null);
-    }
-
-    // Switch video first so the new clip is already playing when the dim flash
-    // fades out. This prevents a frame of the previous video appearing uncovered.
-    await setCameraTargetIndex(2);
-
-    // Brief dim-flash signals "new photo being searched" before the third scan begins.
-    await page.evaluate(() => {
-      const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
-      if (existing) existing.remove();
-
-      const dimOverlay = globalThis.document.createElement('div');
-      dimOverlay.setAttribute('data-demo-clip-reset', 'true');
-
-      Object.assign(dimOverlay.style, {
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '100vw',
-        height: '100vh',
-        background: '#000',
-        opacity: '0',
-        pointerEvents: 'none',
-        zIndex: '99998', // below ripple (999999), above app content
-        transition: 'opacity 220ms linear',
-      });
-
-      globalThis.document.body.appendChild(dimOverlay);
-
-      globalThis.requestAnimationFrame(() => {
-        dimOverlay.style.opacity = '0.72';
-      });
-
-      // Fade back out after 500ms so the search scan is visible shortly after
-      globalThis.setTimeout(() => {
-        dimOverlay.style.transition = 'opacity 280ms linear';
-        dimOverlay.style.opacity = '0';
-        globalThis.setTimeout(() => {
-          if (dimOverlay.parentNode) dimOverlay.remove();
-        }, 350);
-      }, 500);
-    });
-
-    await captureFor(800); // ~10 frames showing full dim flash, including fade-out
-
-    // Scene: third haze-clearing search — video already switched above
-    const thirdClearSec =
-      (STORY_PACING_MS.thirdTargetWarmup + STORY_PACING_MS.thirdTargetWarmupPadding) / 1000;
-    console.log(
-      `📹 Scene: Starting third search for "${thirdTarget.artistName}" with ${thirdClearSec}s haze clear`
-    );
-    await startSearch(thirdClearSec);
-
-    const thirdClearWaitMs = Math.ceil(thirdClearSec * 1000) + 100;
-    console.log(`📹 Capturing frames during third haze clear for ${thirdClearWaitMs}ms...`);
-    await captureFor(thirdClearWaitMs);
-    // The auto-switch timer (scheduled by startSearch) fires at thirdClearWaitMs,
-    // so the phase is already 'target' by this point — no explicit call needed.
-    await captureFor(500);
-
-    const thirdTimeout = Math.max(thirdClearSec * 1000 + 8000, thirdTarget.sourceDurationMs * 2);
-    console.log(
-      `⏱️ Checking for third match (clearSec=${thirdClearSec}, sourceDurationMs=${thirdTarget.sourceDurationMs})`
-    );
-    const thirdMatchSeen = await captureUntil(
-      async () => await hasArtistMatchState(thirdTarget.artistName),
-      thirdTimeout
-    );
-
-    if (!thirdMatchSeen) {
-      throw new Error(
-        `Third target did not match for artist ${thirdTarget.artistName}. Timeout was ${thirdTimeout}ms.`
-      );
-    }
-    console.log(`✅ Third match found for "${thirdTarget.artistName}"`);
-
-    await captureFor(STORY_PACING_MS.postThirdMatchHold);
-
+    markMatchSeen(0);
     await ensurePlaybackActive();
 
-    const hasSwitchArtist = await captureUntil(async () => await isSwitchArtistVisible(), 6000);
+    logClipSummary(0, 'post-match info hold start');
+    await captureFor(testMode ? 1000 : pacing.postFirstMatchHold);
+    logClipSummary(0, 'post-match info hold end');
 
-    if (!hasSwitchArtist) {
-      console.warn('⚠️ Switch Artist button not visible; skipping press and proceeding.');
+    if (testMode) {
+      logClipSummary(0, 'demo-test complete');
+      await showBlackFade(1000, 1000);
     } else {
-      const switchArtistButton = await waitForEnabledButton(/switch artist|drop the needle/i, 4000);
-      await clickWithIndicator(switchArtistButton);
-      await captureFor(STORY_PACING_MS.postSwitchArtistHold);
-    }
+      const stopButton = await waitForEnabledButton(/^pause$|^stop$/i);
+      await clickWithIndicator(stopButton);
+      await captureFor(pacing.controlTapGap);
 
-    await page.evaluate(() => {
-      const existing = globalThis.document.querySelector('[data-demo-fade="true"]');
-      if (existing) {
-        existing.remove();
+      const playButton = await waitForEnabledButton(/^play$/i);
+      await clickWithIndicator(playButton);
+      await captureFor(pacing.controlTapGap);
+
+      const previousButton = await waitForEnabledButton(/play previous track|previous track/i);
+      await clickWithIndicator(previousButton);
+      await captureFor(pacing.controlTapGap);
+
+      const nextButton = await waitForEnabledButton(/play next track|next track/i);
+      await clickWithIndicator(nextButton);
+      await captureFor(pacing.controlTapGap);
+
+      const closeButton = page.getByRole('button', {
+        name: /next pic, please|close concert details/i,
+      });
+      const closeButtonVisible = await closeButton.isVisible().catch(() => false);
+      if (closeButtonVisible) {
+        await clickWithIndicator(closeButton);
+        await page
+          .getByLabel(/concert details/i)
+          .waitFor({ state: 'hidden', timeout: 3000 })
+          .catch(() => null);
       }
 
-      const fade = globalThis.document.createElement('div');
-      fade.setAttribute('data-demo-fade', 'true');
-      fade.style.position = 'fixed';
-      fade.style.left = '0';
-      fade.style.top = '0';
-      fade.style.width = '100vw';
-      fade.style.height = '100vh';
-      fade.style.background = '#000';
-      fade.style.opacity = '0';
-      fade.style.pointerEvents = 'none';
-      fade.style.zIndex = '999999';
-      fade.style.transition = 'opacity 1100ms linear';
-      globalThis.document.body.appendChild(fade);
-
-      globalThis.requestAnimationFrame(() => {
-        fade.style.opacity = '1';
+      // Switch video first so the new clip is already playing when the dim flash
+      // fades out. This prevents a frame of the previous video appearing uncovered.
+      logClipSummary(0, 'clip switch out');
+      await setCameraTargetIndex(1);
+      await page.evaluate(() => {
+        if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
+          globalThis.__photoSignalDemoSetPhase('search');
+        }
       });
-    });
-    await captureFor(STORY_PACING_MS.fadeToBlack);
+
+      await showClipResetFlash();
+
+      // Scene 5: second haze-clearing search (video already switched above)
+      const secondClearSec = (pacing.secondTargetWarmup + pacing.secondTargetWarmupPadding) / 1000;
+      console.log(
+        `📹 Scene 5: Starting second search for "${secondTarget.artistName}" with ${secondClearSec}s haze clear`
+      );
+      await startSearch(secondClearSec, 1);
+
+      // Capture during haze clearing so Scene 5 scan progression is visible in the GIF
+      const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
+      console.log(`📹 Capturing frames during second haze clear for ${clearWaitMs}ms...`);
+      await captureFor(clearWaitMs);
+      // The auto-switch timer (scheduled by startSearch) fires at clearWaitMs,
+      // so the phase is already 'target' by this point — no explicit call needed.
+      await captureFor(500);
+
+      // Now run the match check
+      const secondTimeout = Math.max(
+        secondClearSec * 1000 + 8000,
+        secondTarget.sourceDurationMs * 2
+      );
+      console.log(
+        `⏱️ Checking for match (clearSec=${secondClearSec}, sourceDurationMs=${secondTarget.sourceDurationMs})`
+      );
+      const secondMatchSeen = await captureUntil(
+        async () => await hasArtistMatchState(secondTarget.artistName),
+        secondTimeout
+      );
+
+      if (!secondMatchSeen) {
+        throw new Error(
+          `Second target did not match for artist ${secondTarget.artistName}. Timeout was ${secondTimeout}ms.`
+        );
+      }
+      markMatchSeen(1);
+      console.log(`✅ Second match found for "${secondTarget.artistName}"`);
+      await ensurePlaybackActive();
+
+      await captureFor(pacing.postSecondMatchHold);
+
+      // Close Barna concert details before transitioning to third artist.
+      const closeBarnaButton = page.getByRole('button', {
+        name: /next pic, please|close concert details/i,
+      });
+      if (await closeBarnaButton.isVisible().catch(() => false)) {
+        await clickWithIndicator(closeBarnaButton);
+        await page
+          .getByLabel(/concert details/i)
+          .waitFor({ state: 'hidden', timeout: 3000 })
+          .catch(() => null);
+      }
+
+      // Switch video first so the new clip is already playing when the dim flash
+      // fades out. This prevents a frame of the previous video appearing uncovered.
+      logClipSummary(1, 'clip switch out');
+      await setCameraTargetIndex(2);
+      await page.evaluate(() => {
+        if (typeof globalThis.__photoSignalDemoSetPhase === 'function') {
+          globalThis.__photoSignalDemoSetPhase('search');
+        }
+      });
+
+      await showClipResetFlash();
+
+      // Scene: third haze-clearing search — video already switched above
+      const thirdClearSec = (pacing.thirdTargetWarmup + pacing.thirdTargetWarmupPadding) / 1000;
+      console.log(
+        `📹 Scene: Starting third search for "${thirdTarget.artistName}" with ${thirdClearSec}s haze clear`
+      );
+      await startSearch(thirdClearSec, 2);
+
+      const thirdClearWaitMs = Math.ceil(thirdClearSec * 1000) + 100;
+      console.log(`📹 Capturing frames during third haze clear for ${thirdClearWaitMs}ms...`);
+      await captureFor(thirdClearWaitMs);
+      // The auto-switch timer (scheduled by startSearch) fires at thirdClearWaitMs,
+      // so the phase is already 'target' by this point — no explicit call needed.
+      await captureFor(500);
+
+      const thirdTimeout = Math.max(thirdClearSec * 1000 + 8000, thirdTarget.sourceDurationMs * 2);
+      console.log(
+        `⏱️ Checking for third match (clearSec=${thirdClearSec}, sourceDurationMs=${thirdTarget.sourceDurationMs})`
+      );
+      const thirdMatchSeen = await captureUntil(
+        async () => await hasArtistMatchState(thirdTarget.artistName),
+        thirdTimeout
+      );
+
+      if (!thirdMatchSeen) {
+        throw new Error(
+          `Third target did not match for artist ${thirdTarget.artistName}. Timeout was ${thirdTimeout}ms.`
+        );
+      }
+      markMatchSeen(2);
+      console.log(`✅ Third match found for "${thirdTarget.artistName}"`);
+      await ensurePlaybackActive();
+
+      await captureFor(pacing.postThirdMatchHold);
+
+      const hasSwitchArtist = await captureUntil(async () => await isSwitchArtistVisible(), 6000);
+
+      if (!hasSwitchArtist) {
+        console.warn('⚠️ Switch Artist button not visible; skipping press and proceeding.');
+      } else {
+        const switchArtistButton = await waitForEnabledButton(
+          /switch artist|drop the needle/i,
+          4000
+        );
+        await clickWithIndicator(switchArtistButton);
+        await captureFor(pacing.postSwitchArtistHold);
+      }
+
+      logClipSummary(2, 'final clip window complete');
+
+      await showBlackFade(1100, pacing.fadeToBlack);
+    }
+
+    activeAudioUrl = await page
+      .evaluate(() => {
+        const howler = globalThis.__photoSignalHowler ?? globalThis.Howler;
+        const howls = Array.isArray(howler?._howls) ? howler._howls : [];
+
+        for (const howl of howls) {
+          const source = howl?._src ?? howl?._parent?._src;
+          if (typeof source === 'string' && source.length > 0) {
+            return source;
+          }
+        }
+
+        return null;
+      })
+      .catch(() => null);
+
+    if (activeAudioUrl) {
+      console.log(`🔊 Active app audio source detected: ${activeAudioUrl}`);
+    }
 
     const audioBase64 = await page.evaluate(async () => {
       const recorder = globalThis.__demoAudioRecorder;
       if (!recorder) {
+        globalThis.console?.warn?.('[demo] audio recorder not available at stop time');
         return null;
       }
 
       return await new Promise((resolve) => {
         recorder.onstop = async () => {
+          if (globalThis.__demoAudioTapInterval) {
+            globalThis.clearInterval(globalThis.__demoAudioTapInterval);
+            globalThis.__demoAudioTapInterval = null;
+          }
+
           try {
             const chunks = Array.isArray(globalThis.__demoAudioChunks)
               ? globalThis.__demoAudioChunks
@@ -1740,6 +2134,10 @@ async function captureDemoFrames(options) {
             };
             reader.onerror = () => resolve(null);
             reader.readAsDataURL(blob);
+
+            globalThis.console?.log?.(
+              `[demo] audio recorder stopped: chunks=${chunks.length}, bytes=${globalThis.__demoAudioBytes ?? 0}`
+            );
           } catch {
             resolve(null);
           }
@@ -1756,6 +2154,10 @@ async function captureDemoFrames(options) {
     if (audioBase64) {
       audioPath = TEMP_AUDIO_WEBM;
       fs.writeFileSync(audioPath, Buffer.from(audioBase64, 'base64'));
+      const audioBytes = fs.statSync(audioPath).size;
+      console.log(`🔊 Captured demo audio bytes: ${audioBytes}`);
+    } else {
+      console.warn('⚠️  Demo audio capture returned empty data');
     }
   } finally {
     if (page) {
@@ -1780,10 +2182,10 @@ async function captureDemoFrames(options) {
     .readdirSync(FRAME_DIR)
     .filter((file) => file.startsWith('frame-') && file.endsWith('.png')).length;
 
-  return { rawVideoPath, audioPath, frameCount };
+  return { rawVideoPath, audioPath, activeAudioUrl, frameCount };
 }
 
-function buildGif(fps, outputWidth) {
+function buildGif(fps, outputWidth, outputGifPath) {
   const palettePath = path.resolve(FRAME_DIR, 'palette.png');
   const framePattern = path.join(FRAME_DIR, 'frame-%04d.png');
 
@@ -1814,7 +2216,7 @@ function buildGif(fps, outputWidth) {
     palettePath,
     '-lavfi',
     `fps=${fps},scale=${outputWidth}:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=sierra2_4a`,
-    OUTPUT_GIF,
+    outputGifPath,
   ]);
 }
 
@@ -1844,6 +2246,32 @@ function readMediaDurationSeconds(mediaPath) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function readMaxVolumeDb(mediaPath) {
+  const nullSink = process.platform === 'win32' ? 'NUL' : '/dev/null';
+  const result = spawnSync(
+    'ffmpeg',
+    ['-hide_banner', '-nostats', '-i', mediaPath, '-af', 'volumedetect', '-f', 'null', nullSink],
+    {
+      cwd: ROOT,
+      encoding: 'utf8',
+    }
+  );
+
+  const combinedOutput = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
+  const infinityMatch = /max_volume:\s*(-inf)\s*dB/i.exec(combinedOutput);
+  if (infinityMatch) {
+    return Number.NEGATIVE_INFINITY;
+  }
+
+  const numericMatch = /max_volume:\s*(-?\d+(?:\.\d+)?)\s*dB/i.exec(combinedOutput);
+  if (!numericMatch) {
+    return null;
+  }
+
+  const parsed = Number.parseFloat(numericMatch[1]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function buildAtempoChain(speedMultiplier) {
   const clamped = Number.isFinite(speedMultiplier) && speedMultiplier > 0 ? speedMultiplier : 1;
   const filters = [];
@@ -1863,7 +2291,47 @@ function buildAtempoChain(speedMultiplier) {
   return filters.join(',');
 }
 
-function buildMp4(rawVideoPath, audioPath, outputPath, targetDurationSeconds = null) {
+async function downloadDemoAudioSource(audioUrl) {
+  if (!audioUrl) {
+    return null;
+  }
+
+  try {
+    const resolvedUrl = new URL(audioUrl, BASE_URL);
+    const response = await fetch(resolvedUrl);
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length === 0) {
+      throw new Error('Downloaded audio payload was empty');
+    }
+
+    const rawExt = path.extname(resolvedUrl.pathname).toLowerCase();
+    const safeExt = /^\.[a-z0-9]{1,8}$/i.test(rawExt) ? rawExt : '.bin';
+    const outputPath = path.resolve(VIDEO_OUTPUT_DIR, `demo-audio-source${safeExt}`);
+
+    fs.writeFileSync(outputPath, bytes);
+    console.log(
+      `🔊 Downloaded fallback app audio: ${path.basename(outputPath)} (${bytes.length} bytes)`
+    );
+
+    return outputPath;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`⚠️  Failed to download fallback app audio: ${message}`);
+    return null;
+  }
+}
+
+function buildMp4(
+  rawVideoPath,
+  audioPath,
+  outputPath,
+  targetDurationSeconds = null,
+  { retimeAudio = true } = {}
+) {
   const hasAudio = Boolean(audioPath && fs.existsSync(audioPath));
   const args = ['-loglevel', 'error', '-y', '-i', rawVideoPath];
   const rawDurationSeconds = readMediaDurationSeconds(rawVideoPath);
@@ -1879,13 +2347,17 @@ function buildMp4(rawVideoPath, audioPath, outputPath, targetDurationSeconds = n
     args.push('-i', audioPath);
   }
 
+  if (hasTargetDuration) {
+    args.push('-t', targetDurationSeconds.toFixed(3));
+  }
+
   const shouldRetime =
     Number.isFinite(speedFactor) && speedFactor > 0 && Math.abs(1 - speedFactor) > 0.02;
 
   // yuv420p (required by libx264) needs even dimensions; force them via scale.
   const evenScale = 'scale=trunc(iw/2)*2:trunc(ih/2)*2';
 
-  if (hasAudio && shouldRetime) {
+  if (hasAudio && shouldRetime && retimeAudio) {
     const audioTempo = 1 / speedFactor;
     const audioFilter = buildAtempoChain(audioTempo);
     args.push(
@@ -1895,6 +2367,15 @@ function buildMp4(rawVideoPath, audioPath, outputPath, targetDurationSeconds = n
       '[v]',
       '-map',
       '[a]'
+    );
+  } else if (hasAudio && shouldRetime && !retimeAudio) {
+    args.push(
+      '-vf',
+      `setpts=${speedFactor.toFixed(6)}*PTS,${evenScale}`,
+      '-map',
+      '0:v:0',
+      '-map',
+      '1:a:0'
     );
   } else if (shouldRetime) {
     args.push('-vf', `setpts=${speedFactor.toFixed(6)}*PTS,${evenScale}`);
@@ -1960,6 +2441,10 @@ async function stopPreviewServer(preview) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  const outputPaths = getOutputPaths(options.testMode);
+
+  console.log(`🖼️  GIF output: ${outputPaths.gifPath}`);
+  console.log(`🎬 MP4 output: ${outputPaths.mp4Path}`);
 
   if (!options.skipBuild) {
     run('npm', ['run', 'build']);
@@ -1967,6 +2452,7 @@ async function main() {
 
   await ensureEmptyFrameDir();
   await ensureEmptyVideoDir();
+  fs.rmSync(outputPaths.mp4Path, { force: true });
 
   const preview = startPreviewServer();
   const previewStderrBuffer = [];
@@ -1978,7 +2464,12 @@ async function main() {
   });
 
   let captureError = null;
-  let captureArtifacts = { rawVideoPath: null, audioPath: null, frameCount: 0 };
+  let captureArtifacts = {
+    rawVideoPath: null,
+    audioPath: null,
+    activeAudioUrl: null,
+    frameCount: 0,
+  };
   try {
     await waitForServer(BASE_URL, preview, previewStderrBuffer);
     captureArtifacts = await captureDemoFrames(options);
@@ -1989,7 +2480,7 @@ async function main() {
 
   try {
     try {
-      buildGif(options.fps, options.outputWidth);
+      buildGif(options.fps, options.outputWidth, outputPaths.gifPath);
     } catch (buildError) {
       if (captureError) {
         throw new AggregateError(
@@ -2005,14 +2496,36 @@ async function main() {
         const targetDurationSeconds =
           captureArtifacts.frameCount > 0 ? captureArtifacts.frameCount / options.fps : null;
 
+        let mp4AudioPath = captureArtifacts.audioPath;
+        let usingFallbackAudioSource = false;
+        if (options.testMode && captureArtifacts.activeAudioUrl) {
+          const downloadedAudioPath = await downloadDemoAudioSource(
+            captureArtifacts.activeAudioUrl
+          );
+          if (downloadedAudioPath) {
+            mp4AudioPath = downloadedAudioPath;
+            usingFallbackAudioSource = true;
+          }
+        }
+
         buildMp4(
           captureArtifacts.rawVideoPath,
-          captureArtifacts.audioPath,
-          OUTPUT_MP4,
-          targetDurationSeconds
+          mp4AudioPath,
+          outputPaths.mp4Path,
+          targetDurationSeconds,
+          {
+            retimeAudio: !usingFallbackAudioSource,
+          }
         );
+        const gifDuration = readMediaDurationSeconds(outputPaths.gifPath);
+        const mp4Duration = readMediaDurationSeconds(outputPaths.mp4Path);
+        if (gifDuration && mp4Duration) {
+          console.log(
+            `🧮 Output durations: GIF=${gifDuration.toFixed(2)}s, MP4=${mp4Duration.toFixed(2)}s`
+          );
+        }
         cleanupVideoDir();
-        console.log(`✅ Demo MP4 generated: ${OUTPUT_MP4}`);
+        console.log(`✅ Demo MP4 generated: ${outputPaths.mp4Path}`);
       } else {
         console.warn('⚠️  No video file found — MP4 skipped');
       }
@@ -2021,12 +2534,25 @@ async function main() {
       console.warn(`⚠️  Demo MP4 generation failed: ${message}`);
     }
 
+    if (options.testMode && fs.existsSync(outputPaths.mp4Path)) {
+      const maxVolumeDb = readMaxVolumeDb(outputPaths.mp4Path);
+      if (maxVolumeDb === null || maxVolumeDb <= TEST_MIN_MAX_VOLUME_DB) {
+        const observed = maxVolumeDb === null ? 'unavailable' : `${maxVolumeDb.toFixed(2)} dB`;
+        throw new Error(
+          `Demo test MP4 audio too quiet (max_volume=${observed}, required > ${TEST_MIN_MAX_VOLUME_DB} dB).`
+        );
+      }
+      console.log(
+        `🔊 Demo test MP4 loudness check passed (max_volume=${maxVolumeDb.toFixed(2)} dB)`
+      );
+    }
+
     if (captureError) {
-      console.log(`\n⚠️  Partial Demo GIF generated: ${OUTPUT_GIF}`);
+      console.log(`\n⚠️  Partial Demo GIF generated: ${outputPaths.gifPath}`);
       throw captureError;
     }
 
-    console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
+    console.log(`\n✅ Demo GIF generated: ${outputPaths.gifPath}`);
   } finally {
     await stopPreviewServer(preview);
     cleanup(options.keepFrames);

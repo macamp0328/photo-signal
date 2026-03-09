@@ -358,8 +358,8 @@ function AppContent() {
     clearPlaybackError,
   } = useAudioPlayback({
     volume: 1.0,
-    fadeTime: isDemoNoAudioFadeEnabled() ? 0 : 1000,
-    crossfadeDuration: isDemoNoAudioFadeEnabled() ? 0 : 1000,
+    fadeTime: isDemoNoAudioFadeEnabled() ? 150 : 1000,
+    crossfadeDuration: isDemoNoAudioFadeEnabled() ? 150 : 1000,
     onSongEnd: () => {
       if (userPausedRef.current) return;
       const currentPlaylist = playlistRef.current;

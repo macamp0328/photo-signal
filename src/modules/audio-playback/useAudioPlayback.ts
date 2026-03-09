@@ -16,6 +16,40 @@ function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> }
   }
 }
 
+function getHowlerGlobalObject():
+  | {
+      ctx?: { state?: string; resume?: () => Promise<unknown> };
+      _audioContext?: { state?: string; resume?: () => Promise<unknown> };
+      masterGain?: AudioNode;
+      _masterGain?: AudioNode;
+    }
+  | undefined {
+  try {
+    return Reflect.get(howlerModule as object, 'Howler') as
+      | {
+          ctx?: { state?: string; resume?: () => Promise<unknown> };
+          _audioContext?: { state?: string; resume?: () => Promise<unknown> };
+          masterGain?: AudioNode;
+          _masterGain?: AudioNode;
+        }
+      | undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isDemoNoAudioFadeEnabled(): boolean {
+  if (typeof window === 'undefined' || !('localStorage' in window)) {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem('photo-signal-demo-no-audio-fade') === 'true';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Custom hook for audio playback
  *
@@ -91,6 +125,21 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     const cache = preloadCacheRef.current;
     const diagCache = diagnosticCacheRef.current;
 
+    let demoHowlerExposed = false;
+    if (typeof window !== 'undefined') {
+      try {
+        if (window.localStorage.getItem('photo-signal-demo-no-audio-fade') === 'true') {
+          const howlerGlobal = getHowlerGlobalObject();
+          if (howlerGlobal) {
+            Reflect.set(window as object, '__photoSignalHowler', howlerGlobal);
+            demoHowlerExposed = true;
+          }
+        }
+      } catch {
+        // Ignore demo helper setup failures
+      }
+    }
+
     const handleUserGesture = () => {
       void unlockAudioContext();
     };
@@ -101,6 +150,14 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
     return () => {
       isMountedRef.current = false;
+
+      if (demoHowlerExposed && typeof window !== 'undefined') {
+        try {
+          Reflect.deleteProperty(window as object, '__photoSignalHowler');
+        } catch {
+          // Ignore demo helper cleanup failures
+        }
+      }
 
       window.removeEventListener('pointerdown', handleUserGesture);
       window.removeEventListener('touchstart', handleUserGesture);
@@ -297,9 +354,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const createSound = useCallback(
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
+      const useHtml5Audio = !isDemoNoAudioFadeEnabled();
       const sound = new Howl({
         src: [url],
-        html5: true,
+        html5: useHtml5Audio,
         preload: true,
         volume: initialVolume ?? volumeRef.current,
       });

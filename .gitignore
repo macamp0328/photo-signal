@@ -70,3 +70,7 @@ output/
 
 # Local Claude permissions/settings (machine-specific)
 .claude/settings.local.json
+
+# Timestamped demo captures (keep docs/media/demo.gif and docs/media/demo.mp4 tracked)
+docs/media/demo-test-*.gif
+docs/media/demo-test-*.mp4

@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import * as howlerModule from 'howler';
 import type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
 import { diagnoseAudioUrl } from './diagnoseAudioUrl';
+import { isDemoNoAudioFadeEnabled } from '../../utils/demoMode';
 
 const { Howl } = howlerModule;
 
@@ -35,18 +36,6 @@ function getHowlerGlobalObject():
       | undefined;
   } catch {
     return undefined;
-  }
-}
-
-function isDemoNoAudioFadeEnabled(): boolean {
-  if (typeof window === 'undefined' || !('localStorage' in window)) {
-    return false;
-  }
-
-  try {
-    return window.localStorage.getItem('photo-signal-demo-no-audio-fade') === 'true';
-  } catch {
-    return false;
   }
 }
 

@@ -22,6 +22,7 @@ import type { PhotoRecognitionOptions } from './modules/photo-recognition/types'
 import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
 import { preloadRecognitionIndex } from './services/recognition-index-service';
+import { isDemoNoAudioFadeEnabled } from './utils/demoMode';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -110,18 +111,6 @@ const hasValidAccessSession = (): boolean => {
     return accessUntil > Date.now();
   } catch (error) {
     console.error('Error reading access session from localStorage:', error);
-    return false;
-  }
-};
-
-const isDemoNoAudioFadeEnabled = (): boolean => {
-  if (typeof window === 'undefined' || !('localStorage' in window)) {
-    return false;
-  }
-
-  try {
-    return window.localStorage.getItem('photo-signal-demo-no-audio-fade') === 'true';
-  } catch {
     return false;
   }
 };

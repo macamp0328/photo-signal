@@ -1,31 +1,28 @@
-import { describe, expect, it, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-
-const tripleTapCenter = () => {
-  const clickEvent = new MouseEvent('click', {
-    bubbles: true,
-    clientX: window.innerWidth / 2,
-    clientY: window.innerHeight / 2,
-  });
-
-  window.dispatchEvent(clickEvent);
-  window.dispatchEvent(clickEvent);
-  window.dispatchEvent(clickEvent);
-};
+import { setupBrowserMocks, createMockMediaStream } from './__tests__/integration/setup';
 
 describe('Secret Settings access', () => {
   beforeEach(() => {
-    Object.defineProperty(window, 'innerWidth', { value: 900, writable: true });
-    Object.defineProperty(window, 'innerHeight', { value: 600, writable: true });
+    setupBrowserMocks();
   });
 
   it('reopens after toggling a feature flag and closing menu', async () => {
+    const { mockStream } = createMockMediaStream();
+    navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(mockStream);
+
     render(<App />);
 
-    // Open via triple tap
-    tripleTapCenter();
+    // Activate camera to get to the active view where the Settings button lives
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+    );
+    await waitFor(() => expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled());
+
+    // Open via Settings button
+    await userEvent.click(screen.getByRole('button', { name: /open settings/i }));
 
     const menu = await screen.findByRole('document', { name: /secret settings menu/i });
     expect(menu).toBeInTheDocument();
@@ -42,8 +39,8 @@ describe('Secret Settings access', () => {
       screen.queryByRole('document', { name: /secret settings menu/i })
     ).not.toBeInTheDocument();
 
-    // Reopen via triple tap after settings change
-    tripleTapCenter();
+    // Reopen via Settings button after settings change
+    await userEvent.click(screen.getByRole('button', { name: /open settings/i }));
 
     expect(
       await screen.findByRole('document', { name: /secret settings menu/i })

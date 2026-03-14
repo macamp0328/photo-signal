@@ -2,7 +2,7 @@
  * Secret Settings Module - Settings Page Component
  *
  * A modal/page that displays feature flags for advanced users and developers.
- * Opened by triple-tapping the center of the screen.
+ * Opened via the Settings button.
  */
 
 import type { SecretSettingsProps } from './types';
@@ -192,7 +192,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           {/* Introduction */}
           <div className={styles.section}>
             <p id={DIALOG_DESCRIPTION_ID} className={styles.intro}>
-              This hidden menu opens with a triple tap in the center of the screen.
+              Tap the Settings button to open this menu at any time.
             </p>
           </div>
 

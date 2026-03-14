@@ -1,13 +1,12 @@
 /**
  * Secret Settings Module
  *
- * Provides a hidden menu activated by triple-tap/click gestures.
+ * Provides a hidden menu accessible via the Settings button.
  * Designed to hold feature flags for advanced users.
  *
  * @module secret-settings
  */
 
 export { SecretSettings } from './SecretSettings';
-export { useTripleTap } from './useTripleTap';
 export { useFeatureFlags } from './useFeatureFlags';
-export type { UseTripleTapOptions, SecretSettingsProps, FeatureFlag } from './types';
+export type { SecretSettingsProps, FeatureFlag } from './types';

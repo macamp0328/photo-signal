@@ -158,13 +158,18 @@
 }
 
 .cameraWrap {
-  width: min(100%, var(--layout-content-max-width));
+  /* Square camera bounded by container width AND available height.
+     Using width: min(...) so aspect-ratio: 1/1 makes height = width,
+     ensuring the camera never pushes info/audio off-screen. */
+  width: min(min(100%, var(--layout-content-max-width)), calc(100svh - 22rem));
+  aspect-ratio: 1 / 1;
   flex-shrink: 0;
+  margin: 0 auto;
 }
 
 .cameraSection {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   border: 2px solid var(--color-accent);
   border-radius: 0;
   padding: clamp(0.25rem, 1vw, 0.5rem);
@@ -209,10 +214,6 @@
     gap: 0.5rem;
   }
 
-  .cameraWrap {
-    width: 100%;
-  }
-
   .infoSection {
     width: 100%;
   }
@@ -235,10 +236,6 @@
 
   .contentWithAudio {
     padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
-  }
-
-  .cameraWrap {
-    width: min(92vw, var(--layout-content-max-width));
   }
 }
 

@@ -13,6 +13,5 @@ export type {
   DetectedRectangle,
   RectangleDetectionResult,
   RectangleDetectionOptions,
-  RectangleRoiHint,
   DetectionState,
 } from './types';

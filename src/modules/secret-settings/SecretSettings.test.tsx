@@ -91,7 +91,7 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(
-        screen.getByText(/opens with a triple tap in the center of the screen/i)
+        screen.getByText(/tap the settings button to open this menu at any time/i)
       ).toHaveAttribute('id', 'secret-settings-intro-description');
     });
 
@@ -182,7 +182,7 @@ describe('SecretSettings', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
       expect(
-        screen.getByText(/opens with a triple tap in the center of the screen/i)
+        screen.getByText(/tap the settings button to open this menu at any time/i)
       ).toBeInTheDocument();
     });
 

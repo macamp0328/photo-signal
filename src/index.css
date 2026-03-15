@@ -17,31 +17,31 @@ body {
 
 /* CSS Variables for Custom Colors */
 :root {
-  /* Stage Light (default): cinematic venue darkness + vivid live-show accents. */
-  --color-main-text: #79f1e3;
-  --color-sub-text: #59b9c6;
-  --color-bonus-text: #3d8ca2;
-  --color-sub-background: #111b37;
-  --color-background: #070c1f;
-  --color-text: #79f1e3;
-  --color-accent: #ff6e63;
-  --color-accent-light: #ffd47b;
-  --color-accent-hover: #ff8d85;
-  --color-text-muted: #71a3ba;
+  /* Backstage Pass: credential-inspired dark palette with concert warmth. */
+  --color-main-text: #ffd166;
+  --color-sub-text: #ff9f50;
+  --color-bonus-text: #d06c3c;
+  --color-sub-background: #2a1312;
+  --color-background: #170907;
+  --color-text: #ffd166;
+  --color-accent: #2dd4bf;
+  --color-accent-light: #6ee7d8;
+  --color-accent-hover: #5de4d2;
+  --color-text-muted: #c58a66;
 
-  --bg-gradient-top: rgba(255, 110, 99, 0.15);
-  --bg-gradient-bottom: rgba(78, 198, 255, 0.12);
+  --bg-gradient-top: rgba(255, 107, 44, 0.2);
+  --bg-gradient-bottom: rgba(45, 212, 191, 0.15);
   --texture-image: url('/backgrounds/gravel.svg');
-  --signal-glow: rgba(121, 241, 227, 0.38);
-  --signal-glow-soft: rgba(255, 110, 99, 0.2);
+  --signal-glow: rgba(255, 209, 102, 0.34);
+  --signal-glow-soft: rgba(45, 212, 191, 0.2);
 
   /* Interactive element colors */
-  --color-button-bg: #79f1e3;
-  --color-button-text: #070c1f;
+  --color-button-bg: #ffd166;
+  --color-button-text: #170907;
   --color-button-hover-bg: #ffffff;
-  --color-button-hover-text: #070c1f;
-  --color-button-disabled-bg: #131b2b;
-  --color-button-disabled-text: #415873;
+  --color-button-hover-text: #170907;
+  --color-button-disabled-bg: #2d1a15;
+  --color-button-disabled-text: #7a4d3e;
 
   /* Semantic colors (kept functional) */
   --color-error: #ef4444;
@@ -53,20 +53,20 @@ body {
   --color-gray-400: #9ca3af;
 
   /* Focus indicators - WCAG compliant */
-  --color-focus: #79f1e3;
-  --focus-ring-color: #79f1e3;
+  --color-focus: #ffd166;
+  --focus-ring-color: #ffd166;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-style: solid;
 
   /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(3, 6, 16, 0.92);
-  --modal-bg: #0f1630;
-  --modal-border: rgba(121, 241, 227, 0.22);
+  --overlay-bg: rgba(17, 4, 4, 0.9);
+  --modal-bg: #24100f;
+  --modal-border: rgba(255, 209, 102, 0.2);
 
   /* Texture settings */
-  --texture-opacity: 0.12;
-  --texture-blend-mode: screen;
+  --texture-opacity: 0.1;
+  --texture-blend-mode: overlay;
 
   /* Fluid spacing - scales with viewport width */
   --spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -84,60 +84,12 @@ body {
 
   /* CRT effect controls */
   --crt-opacity: 1;
-  --crt-glow-color: rgba(121, 241, 227, 0.28);
+  --crt-glow-color: rgba(255, 209, 102, 0.28);
 
   /* Era poster palette vars — overridden by JS when a concert is matched */
   --poster-bg: #0a0800;
   --poster-primary: #d4892a;
   --poster-accent: #b87020;
-}
-
-html[data-theme='contact-sheet'] {
-  --color-main-text: #ece6da;
-  --color-sub-text: #b9b0a1;
-  --color-bonus-text: #938b80;
-  --color-sub-background: #1c1b19;
-  --color-background: #11100f;
-  --color-text: #ece6da;
-  --color-accent: #f2d36a;
-  --color-accent-light: #ffe7a0;
-  --color-accent-hover: #f8e5a8;
-  --color-text-muted: #978f84;
-
-  --bg-gradient-top: rgba(255, 255, 255, 0.03);
-  --bg-gradient-bottom: rgba(0, 0, 0, 0.24);
-  --texture-opacity: 0.2;
-  --texture-blend-mode: multiply;
-  --signal-glow: rgba(242, 211, 106, 0.28);
-  --signal-glow-soft: rgba(255, 255, 255, 0.08);
-
-  --overlay-bg: rgba(10, 9, 8, 0.92);
-  --modal-bg: #181715;
-  --modal-border: rgba(236, 230, 218, 0.18);
-}
-
-html[data-theme='backstage-pass'] {
-  --color-main-text: #ffd166;
-  --color-sub-text: #ff9f50;
-  --color-bonus-text: #d06c3c;
-  --color-sub-background: #2a1312;
-  --color-background: #170907;
-  --color-text: #ffd166;
-  --color-accent: #2dd4bf;
-  --color-accent-light: #6ee7d8;
-  --color-accent-hover: #5de4d2;
-  --color-text-muted: #c58a66;
-
-  --bg-gradient-top: rgba(255, 107, 44, 0.2);
-  --bg-gradient-bottom: rgba(45, 212, 191, 0.15);
-  --texture-opacity: 0.1;
-  --texture-blend-mode: overlay;
-  --signal-glow: rgba(255, 209, 102, 0.34);
-  --signal-glow-soft: rgba(45, 212, 191, 0.2);
-
-  --overlay-bg: rgba(17, 4, 4, 0.9);
-  --modal-bg: #24100f;
-  --modal-border: rgba(255, 209, 102, 0.2);
 }
 
 /* Matched / Gig Poster state — activated by JS setting data-state="matched" on <html> */

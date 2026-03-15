@@ -1,9 +1,9 @@
 import type { VisualTheme } from './types';
 
 export const VISUAL_THEME_STORAGE_KEY = 'photo-signal-visual-theme';
-export const DEFAULT_VISUAL_THEME: VisualTheme = 'stage-light';
+export const DEFAULT_VISUAL_THEME: VisualTheme = 'backstage-pass';
 
-const VALID_THEMES: VisualTheme[] = ['stage-light', 'contact-sheet', 'backstage-pass'];
+const VALID_THEMES: VisualTheme[] = ['backstage-pass'];
 
 export function isVisualTheme(value: string | null): value is VisualTheme {
   return value !== null && VALID_THEMES.includes(value as VisualTheme);

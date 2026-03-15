@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
+import { VISUAL_THEME_STORAGE_KEY } from '../../modules/secret-settings/visual-theme';
 
 const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
 
@@ -81,6 +82,14 @@ describe('App Lifecycle Integration', () => {
     consoleSpy.mockRestore();
   });
 
+  it('should initialize with persisted visual theme when available', () => {
+    localStorage.setItem(VISUAL_THEME_STORAGE_KEY, 'contact-sheet');
+
+    render(<App />);
+
+    expect(document.documentElement.getAttribute('data-theme')).toBe('contact-sheet');
+  });
+
   it('should clean up camera stream on unmount', () => {
     const { mockStream } = createMockMediaStream();
     navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(mockStream);
@@ -117,7 +126,7 @@ describe('App Lifecycle Integration', () => {
 
     // App should load with feature flags from persisted state
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('stage-light');
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
 
     // Verify persisted feature flags remain readable

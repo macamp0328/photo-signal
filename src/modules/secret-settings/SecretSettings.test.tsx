@@ -6,14 +6,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { SecretSettings } from './SecretSettings';
 import userEvent from '@testing-library/user-event';
+import { VISUAL_THEME_STORAGE_KEY } from './visual-theme';
 
 describe('SecretSettings', () => {
   beforeEach(() => {
     localStorage.clear();
+    document.documentElement.removeAttribute('data-theme');
   });
 
   afterEach(() => {
     localStorage.clear();
+    document.documentElement.removeAttribute('data-theme');
   });
 
   describe('Rendering', () => {
@@ -201,6 +204,27 @@ describe('SecretSettings', () => {
 
       const checkboxes = screen.getAllByRole('checkbox');
       expect(checkboxes.length).toBeGreaterThan(0);
+    });
+
+    it('should display visual direction options', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(screen.getByRole('heading', { name: /visual direction/i })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /stage light/i })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /contact sheet/i })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /backstage pass/i })).toBeInTheDocument();
+    });
+
+    it('should persist and apply selected visual direction', async () => {
+      const user = userEvent.setup();
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      const contactSheetOption = screen.getByRole('radio', { name: /contact sheet/i });
+      await user.click(contactSheetOption);
+
+      expect(contactSheetOption).toBeChecked();
+      expect(localStorage.getItem(VISUAL_THEME_STORAGE_KEY)).toBe('contact-sheet');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('contact-sheet');
     });
   });
 

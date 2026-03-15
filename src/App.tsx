@@ -19,6 +19,7 @@ import { GalleryLayout } from './modules/gallery-layout';
 import type { Concert } from './types';
 import type { PhotoRecognitionOptions } from './modules/photo-recognition/types';
 import { useFeatureFlags } from './modules/secret-settings';
+import { applyVisualTheme, getStoredVisualTheme } from './modules/secret-settings/visual-theme';
 import { dataService } from './services/data-service';
 import { preloadRecognitionIndex } from './services/recognition-index-service';
 import {
@@ -213,9 +214,9 @@ function AppContent() {
   // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
 
-  // Enforce a single curated visual system for all users
+  // Apply the persisted visual theme (or default) at app startup.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'dark');
+    applyVisualTheme(getStoredVisualTheme());
   }, []);
 
   // Load the first available audio URL for the debug overlay's Test Song button

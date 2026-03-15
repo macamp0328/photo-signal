@@ -137,10 +137,10 @@ describe('Feature Flags → Module Behavior Integration', () => {
     });
   });
 
-  it('should enforce curated dark theme mode', () => {
+  it('should apply default Stage Light theme mode', () => {
     render(<App />);
 
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('stage-light');
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });

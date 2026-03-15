@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useSecretSettingsController } from './useSecretSettingsController';
 import styles from './SecretSettings.module.css';
-import type { FeatureFlag } from './types';
+import type { FeatureFlag, VisualTheme } from './types';
 
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -121,6 +121,62 @@ interface SaveAndReloadSectionProps {
   onSaveAndReload: () => void;
 }
 
+interface ThemeSectionProps {
+  visualTheme: VisualTheme;
+  onVisualThemeChange: (theme: VisualTheme) => void;
+}
+
+function ThemeSection({ visualTheme, onVisualThemeChange }: ThemeSectionProps) {
+  const options: Array<{ id: VisualTheme; name: string; description: string }> = [
+    {
+      id: 'stage-light',
+      name: 'Stage Light',
+      description: 'Bold show-light gradients and saturated accents for high energy.',
+    },
+    {
+      id: 'contact-sheet',
+      name: 'Contact Sheet',
+      description: 'Editorial darkroom tones with restrained monochrome contrast.',
+    },
+    {
+      id: 'backstage-pass',
+      name: 'Backstage Pass',
+      description: 'Credential-inspired palette with punchy backstage color blocking.',
+    },
+  ];
+
+  return (
+    <section className={styles.section} aria-describedby="visual-theme-description">
+      <h2 className={styles.sectionTitle}>Visual Direction</h2>
+      <p id="visual-theme-description" className={styles.sectionDescription}>
+        Preview redesign themes tuned for live concert photography.
+      </p>
+
+      <div className={styles.themeList} role="radiogroup" aria-label="Visual theme choices">
+        {options.map((option) => {
+          const checked = visualTheme === option.id;
+          return (
+            <label key={option.id} className={styles.themeItem}>
+              <input
+                type="radio"
+                name="visual-theme"
+                value={option.id}
+                checked={checked}
+                onChange={() => onVisualThemeChange(option.id)}
+                className={styles.themeRadio}
+              />
+              <span className={styles.themeInfo}>
+                <span className={styles.themeName}>{option.name}</span>
+                <span className={styles.themeDescription}>{option.description}</span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
   return (
     <section className={styles.section}>
@@ -157,7 +213,8 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
  * ```
  */
 export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
-  const { flags, toggleFlag, handleSendIt } = useSecretSettingsController(onClose);
+  const { flags, toggleFlag, handleSendIt, visualTheme, setVisualTheme } =
+    useSecretSettingsController(onClose);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -261,6 +318,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           </div>
 
           <FeatureFlagsSection flags={flags} onToggleFlag={toggleFlag} />
+          <ThemeSection visualTheme={visualTheme} onVisualThemeChange={setVisualTheme} />
           <SaveAndReloadSection onSaveAndReload={handleSendIt} />
         </div>
       </div>

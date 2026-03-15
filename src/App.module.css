@@ -3,6 +3,7 @@
 .signalStrip {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
   height: 2.75rem;
   padding: 0 0.85rem;
   padding-bottom: env(safe-area-inset-bottom, 0);

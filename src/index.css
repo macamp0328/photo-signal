@@ -109,6 +109,11 @@ html[data-state='matched'] {
   --modal-bg: var(--poster-bg);
   --modal-border: color-mix(in srgb, var(--poster-accent), transparent 55%);
   --overlay-bg: color-mix(in srgb, var(--poster-bg), #000 15%);
+  --bg-gradient-top: transparent;
+  --bg-gradient-bottom: transparent;
+  --texture-image: none;
+  --texture-opacity: 0;
+  --texture-blend-mode: normal;
   --color-button-bg: var(--poster-primary);
   --color-button-text: var(--poster-bg);
   --color-button-hover-bg: color-mix(in srgb, var(--poster-primary), #fff 20%);

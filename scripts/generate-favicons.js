@@ -30,12 +30,13 @@ async function main() {
 
   const browser = await chromium.launch();
 
-  for (const { size, out } of SIZES) {
-    const page = await browser.newPage();
-    await page.setViewportSize({ width: size, height: size });
+  try {
+    for (const { size, out } of SIZES) {
+      const page = await browser.newPage();
+      await page.setViewportSize({ width: size, height: size });
 
-    // Render the SVG filling the whole viewport
-    await page.setContent(`<!DOCTYPE html>
+      // Render the SVG filling the whole viewport
+      await page.setContent(`<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8"/>
@@ -48,14 +49,26 @@ async function main() {
   <body><img src="${dataUrl}"/></body>
 </html>`);
 
-    const png = await page.screenshot({ type: 'png' });
-    const outPath = path.join(ROOT, 'public', out);
-    await writeFile(outPath, png);
-    console.log(`✓ ${out} (${size}×${size})`);
-    await page.close();
+      const imgHandle = await page.waitForSelector('img');
+      await imgHandle.evaluate(async (img) => {
+        if (typeof img.decode === 'function') {
+          await img.decode();
+        }
+      });
+      await page.waitForFunction((img) => {
+        return Boolean(img?.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
+      }, imgHandle);
+
+      const png = await page.screenshot({ type: 'png' });
+      const outPath = path.join(ROOT, 'public', out);
+      await writeFile(outPath, png);
+      console.log(`✓ ${out} (${size}×${size})`);
+      await page.close();
+    }
+  } finally {
+    await browser.close();
   }
 
-  await browser.close();
   console.log('\nDone. All PNG icons updated in public/.');
 }
 

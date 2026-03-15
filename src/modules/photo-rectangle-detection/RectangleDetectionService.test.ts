@@ -1,7 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { RectangleDetectionService } from './RectangleDetectionService';
 
+/**
+ * Create a minimal ImageData-like object for unit tests.
+ * Fills a width×height RGBA buffer with a uniform mid-grey value so the
+ * detection pipeline runs without finding any rectangle (blank frame).
+ */
+function makeImageData(width: number, height: number): ImageData {
+  const data = new Uint8ClampedArray(width * height * 4).fill(128);
+  return { data, width, height, colorSpace: 'srgb' } as ImageData;
+}
+
 describe('RectangleDetectionService', () => {
+  it('returns a no-detection result for a blank frame', () => {
+    const service = new RectangleDetectionService();
+    const result = service.detectRectangle(makeImageData(64, 64));
+
+    expect(result.detected).toBe(false);
+    expect(result.rectangle).toBeNull();
+    expect(result.confidence).toBe(0);
+    expect(typeof result.timestamp).toBe('number');
+  });
+
   it('preserves quadrilateral corners when building rectangle geometry', () => {
     const service = new RectangleDetectionService();
     const internal = service as unknown as {

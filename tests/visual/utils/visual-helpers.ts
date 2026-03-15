@@ -38,22 +38,19 @@ export async function gotoLanding(page: Page): Promise<void> {
 }
 
 export async function openSecretSettings(page: Page): Promise<void> {
-  const settingsButton = page.getByRole('button', { name: /open settings/i });
-
-  const openedViaButton = await settingsButton
-    .click({ timeout: 5000 })
-    .then(() => true)
-    .catch(() => false);
-
-  if (!openedViaButton) {
-    const viewport = page.viewportSize();
-    const centerX = Math.floor((viewport?.width ?? 390) / 2);
-    const centerY = Math.floor((viewport?.height ?? 844) / 2);
-
-    for (let index = 0; index < 3; index += 1) {
-      await page.mouse.click(centerX, centerY);
-    }
+  // The Settings button only appears after the camera experience is activated.
+  // If we are still on the landing screen, activate first so the gallery (and
+  // the Settings button inside it) become visible.
+  const activateButton = page.getByRole('button', {
+    name: /activate camera and begin experience/i,
+  });
+  if (await activateButton.isVisible({ timeout: 1500 }).catch(() => false)) {
+    await activateButton.click();
+    await waitForCameraState(page);
   }
+
+  const settingsButton = page.getByRole('button', { name: /open settings/i });
+  await settingsButton.click({ timeout: 5000 });
 
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
 }

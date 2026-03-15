@@ -1,25 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4a5568;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2d3748;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Camera body -->
-  <rect x="20" y="35" width="60" height="45" rx="4" fill="url(#grad)"/>
-  
-  <!-- Camera lens -->
-  <circle cx="50" cy="57.5" r="15" fill="#1a202c"/>
-  <circle cx="50" cy="57.5" r="12" fill="#2d3748"/>
-  <circle cx="50" cy="57.5" r="8" fill="#4a5568"/>
-  
-  <!-- Viewfinder -->
-  <rect x="30" y="25" width="40" height="8" rx="2" fill="url(#grad)"/>
-  
-  <!-- Flash/shutter button -->
-  <circle cx="68" cy="42" r="3" fill="#ed8936"/>
-  
-  <!-- Lens highlight -->
-  <circle cx="46" cy="53" r="3" fill="#cbd5e0" opacity="0.6"/>
+  <!-- Background -->
+  <rect width="100" height="100" rx="12" fill="#0a0800"/>
+
+  <!-- Photo frame (landscape, centered) — outer arcs align exactly with its top/bottom corners -->
+  <rect x="30" y="36" width="40" height="28" rx="2" fill="#130c00" stroke="#d4892a" stroke-width="5"/>
+
+  <!-- Left broadcast arcs -->
+  <path d="M 30 44 A 6 6 0 1 1 30 56"   fill="none" stroke="#d4892a" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M 30 40 A 10 10 0 1 1 30 60" fill="none" stroke="#d4892a" stroke-width="4"   stroke-linecap="round" opacity="0.65"/>
+  <path d="M 30 36 A 14 14 0 1 1 30 64" fill="none" stroke="#d4892a" stroke-width="3"   stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Right broadcast arcs -->
+  <path d="M 70 44 A 6 6 0 1 1 70 56"   fill="none" stroke="#d4892a" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M 70 40 A 10 10 0 1 1 70 60" fill="none" stroke="#d4892a" stroke-width="4"   stroke-linecap="round" opacity="0.65"/>
+  <path d="M 70 36 A 14 14 0 1 1 70 64" fill="none" stroke="#d4892a" stroke-width="3"   stroke-linecap="round" opacity="0.35"/>
 </svg>

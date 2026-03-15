@@ -29,6 +29,7 @@ import {
   syncPlaylistForConcert,
   withRetryHint,
 } from './App.playback-helpers';
+import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -329,6 +330,17 @@ function AppContent() {
     if (activeRecognitionConcert) {
       setIsConcertInfoVisible(true);
     }
+  }, [activeRecognitionConcert]);
+
+  // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise.
+  // Cleanup on unmount ensures data-state and --poster-* vars don't leak into future mounts.
+  useEffect(() => {
+    if (activeRecognitionConcert) {
+      applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
+    } else {
+      resetToDeadSignal();
+    }
+    return resetToDeadSignal;
   }, [activeRecognitionConcert]);
 
   useEffect(() => {

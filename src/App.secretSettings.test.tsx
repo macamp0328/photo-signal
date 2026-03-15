@@ -10,37 +10,36 @@ describe('Secret Settings access', () => {
   });
 
   it('reopens after toggling a feature flag and closing menu', async () => {
+    const user = userEvent.setup();
     const { mockStream } = createMockMediaStream();
     navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(mockStream);
 
     render(<App />);
 
     // Activate camera to get to the active view where the Settings button lives
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Activate camera and begin experience' })
-    );
+    await user.click(screen.getByRole('button', { name: 'Activate camera and begin experience' }));
     await waitFor(() => expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled());
 
     // Open via Settings button
-    await userEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    await user.click(screen.getByRole('button', { name: /open settings/i }));
 
     const menu = await screen.findByRole('document', { name: /secret settings menu/i });
     expect(menu).toBeInTheDocument();
 
     // Toggle a feature flag inside the menu to mirror real usage
     const debugOverlayCheckbox = screen.getByRole('checkbox', { name: /debug overlay/i });
-    await userEvent.click(debugOverlayCheckbox);
+    await user.click(debugOverlayCheckbox);
 
     // Close the menu via close button
     const closeButton = screen.getByLabelText(/close settings menu/i);
-    await userEvent.click(closeButton);
+    await user.click(closeButton);
 
     expect(
       screen.queryByRole('document', { name: /secret settings menu/i })
     ).not.toBeInTheDocument();
 
     // Reopen via Settings button after settings change
-    await userEvent.click(screen.getByRole('button', { name: /open settings/i }));
+    await user.click(screen.getByRole('button', { name: /open settings/i }));
 
     expect(
       await screen.findByRole('document', { name: /secret settings menu/i })

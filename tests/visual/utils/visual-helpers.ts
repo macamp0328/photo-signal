@@ -39,12 +39,12 @@ export async function gotoLanding(page: Page): Promise<void> {
 
 export async function openSecretSettings(page: Page): Promise<void> {
   // The Settings button only appears after the camera experience is activated.
-  // If we are still on the landing screen, activate first so the gallery (and
-  // the Settings button inside it) become visible.
+  // Wait up to 5 s for the Activate button — enough for slow CI environments.
+  // If it's genuinely absent (already in the active view), skip activation.
   const activateButton = page.getByRole('button', {
     name: /activate camera and begin experience/i,
   });
-  if (await activateButton.isVisible({ timeout: 1500 }).catch(() => false)) {
+  if (await activateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
     await activateButton.click();
     await waitForCameraState(page);
   }

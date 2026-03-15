@@ -90,9 +90,10 @@ describe('SecretSettings', () => {
     it('should expose intro text with a stable ID for assistive tech', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(
-        screen.getByText(/tap the settings button to open this menu at any time/i)
-      ).toHaveAttribute('id', 'secret-settings-intro-description');
+      expect(screen.getByText(/tap the settings button in the header/i)).toHaveAttribute(
+        'id',
+        'secret-settings-intro-description'
+      );
     });
 
     it('should have accessible close button', () => {
@@ -181,9 +182,7 @@ describe('SecretSettings', () => {
     it('should display introduction text', () => {
       render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
 
-      expect(
-        screen.getByText(/tap the settings button to open this menu at any time/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/tap the settings button in the header/i)).toBeInTheDocument();
     });
 
     it('should associate feature flags section description for screen readers', () => {

@@ -192,7 +192,8 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           {/* Introduction */}
           <div className={styles.section}>
             <p id={DIALOG_DESCRIPTION_ID} className={styles.intro}>
-              Tap the Settings button to open this menu at any time.
+              Tap the Settings button in the header — available after activating the camera — to
+              return here at any time.
             </p>
           </div>
 

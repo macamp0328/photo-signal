@@ -159,12 +159,15 @@
 
 .cameraWrap {
   /* Square camera bounded by container width AND available height.
-     Using width: min(...) so aspect-ratio: 1/1 makes height = width,
-     ensuring the camera never pushes info/audio off-screen. */
-  /* Fallback for browsers without svh support; clamp to avoid negative widths on short viewports. */
-  width: min(min(100%, var(--layout-content-max-width)), max(0px, calc(100vh - 22rem)));
-  /* Preferred sizing using small viewport height unit when supported. */
-  width: min(min(100%, var(--layout-content-max-width)), max(0px, calc(100svh - 22rem)));
+     width drives the size; aspect-ratio: 1/1 makes height = width.
+     A minimum of 6rem prevents the camera collapsing to nothing on
+     ultra-short viewports (split-screen / landscape phones).
+     --layout-reserved-chrome (22rem) accounts for header + gaps + info card + audio bar. */
+
+  /* Fallback for browsers without svh; clamp prevents negative or zero width. */
+  width: clamp(6rem, min(100%, var(--layout-content-max-width)), max(6rem, calc(100vh - 22rem)));
+  /* Preferred: use small viewport height so browser chrome is excluded. */
+  width: clamp(6rem, min(100%, var(--layout-content-max-width)), max(6rem, calc(100svh - 22rem)));
   aspect-ratio: 1 / 1;
   flex-shrink: 0;
   margin: 0 auto;

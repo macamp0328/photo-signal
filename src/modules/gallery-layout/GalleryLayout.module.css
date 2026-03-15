@@ -174,16 +174,20 @@
 }
 
 .cameraWrap {
-  /* Square camera bounded by container width AND available height.
-     width drives the size; aspect-ratio: 1/1 makes height = width.
-     A minimum of 6rem prevents the camera collapsing to nothing on
-     ultra-short viewports (split-screen / landscape phones).
-     --layout-reserved-chrome (22rem) accounts for header + gaps + info card + audio bar. */
+  /* Square camera: size = min(viewport_width, viewport_height, max-width).
+     Both width and height share the same formula using viewport units (vw/svh)
+     so they always compute to the same pixel value, guaranteeing a square.
+     Using 100% in height would resolve to parent height (not width), giving
+     the wrong result. 100vw - 1rem approximates container width at mobile
+     (0.5rem padding per side); the max-width cap takes over at tablet+.
+     max(6rem, ...) prevents the camera collapsing to nothing in landscape. */
 
-  /* Fallback for browsers without svh; clamp prevents negative or zero width. */
-  width: clamp(6rem, min(100%, var(--layout-content-max-width)), max(6rem, calc(100vh - 22rem)));
-  /* Preferred: use small viewport height so browser chrome is excluded. */
-  width: clamp(6rem, min(100%, var(--layout-content-max-width)), max(6rem, calc(100svh - 22rem)));
+  /* Fallback for browsers without svh. */
+  width: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100vh - 22rem)));
+  height: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100vh - 22rem)));
+  /* Preferred: svh excludes browser chrome. */
+  width: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100svh - 22rem)));
+  height: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100svh - 22rem)));
   aspect-ratio: 1 / 1;
   flex-shrink: 0;
   margin: 0 auto;

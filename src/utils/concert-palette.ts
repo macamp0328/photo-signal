@@ -20,6 +20,19 @@ export interface ConcertPalette {
 const DAY_HUE_BASE = [0, 51, 103, 154, 205, 257, 308] as const; // Sun–Sat
 
 /**
+ * Extracts the day of week from an ISO 8601 string using the *source* timezone,
+ * not the viewer's local timezone. Concert dates are stored with an explicit
+ * offset (e.g. "2025-03-15T17:20:15-05:00"); parsing via new Date().getDay()
+ * would return the day in the viewer's locale, which diverges around midnight.
+ * Reading YYYY-MM-DD from the string directly and interpreting it as UTC gives
+ * the calendar day as intended by the original timezone.
+ */
+function dayOfWeekFromIso(isoDate: string): number {
+  const datePart = isoDate.slice(0, 10); // 'YYYY-MM-DD'
+  return new Date(`${datePart}T00:00:00Z`).getUTCDay();
+}
+
+/**
  * FNV-1a 32-bit hash — fast, well-distributed, no dependencies.
  * Normalises band name to lowercase + trimmed before hashing.
  */
@@ -44,7 +57,7 @@ function hashBandName(name: string): number {
  */
 export function getConcertPalette(band: string, date: string): ConcertPalette {
   const hash = hashBandName(band);
-  const day = new Date(date).getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  const day = dayOfWeekFromIso(date) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
   const primaryHue = (DAY_HUE_BASE[day] + (hash % 51)) % 360;
   const accentHue = (primaryHue + 137) % 360;

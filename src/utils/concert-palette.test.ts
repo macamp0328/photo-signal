@@ -46,14 +46,20 @@ describe('getConcertPalette', () => {
   });
 
   it('primary hue falls within the correct day arc (Saturday = base 308°)', () => {
-    // Saturday base = 308°; band hash adds 0–50°; wrap at 360°
-    const palette = getConcertPalette('Jonny Fritz', '2025-03-22T12:00:00-05:00'); // a Saturday
+    // 2025-03-22 is a Saturday — base 308°, band hash adds 0–50°
+    const palette = getConcertPalette('Jonny Fritz', '2025-03-22T12:00:00-05:00');
     const { h } = parseHsl(palette.primary);
-    const sat = new Date('2025-03-22T12:00:00-05:00').getDay(); // should be 6
-    expect(sat).toBe(6);
-    // Primary hue is in [308, 358] (Saturday arc, no wrap in this range)
     expect(h).toBeGreaterThanOrEqual(308);
     expect(h).toBeLessThanOrEqual(358);
+  });
+
+  it('uses the source-timezone calendar date, not the viewer locale (timezone invariance)', () => {
+    // 2022-03-19 is a Saturday regardless of viewer timezone.
+    // A naive new Date().getDay() in UTC+14 would advance to Sunday for late-night timestamps.
+    // The ISO date part is extracted directly so the palette is always Saturday.
+    const lateNight = getConcertPalette('Buffalo Rose', '2022-03-19T23:30:00-05:00');
+    const earlyAfternoon = getConcertPalette('Buffalo Rose', '2022-03-19T12:00:00-05:00');
+    expect(lateNight.primary).toBe(earlyAfternoon.primary);
   });
 
   it('primary hue falls within the correct day arc (Wednesday = base 154°)', () => {

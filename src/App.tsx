@@ -332,13 +332,15 @@ function AppContent() {
     }
   }, [activeRecognitionConcert]);
 
-  // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise
+  // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise.
+  // Cleanup on unmount ensures data-state and --poster-* vars don't leak into future mounts.
   useEffect(() => {
     if (activeRecognitionConcert) {
       applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
     } else {
       resetToDeadSignal();
     }
+    return resetToDeadSignal;
   }, [activeRecognitionConcert]);
 
   useEffect(() => {

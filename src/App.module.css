@@ -11,6 +11,15 @@
   transition: background-color 1.2s ease;
 }
 
+.signalArt {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  box-shadow: 0 0 4px rgba(176, 109, 24, 0.4);
+}
+
 .signalToggle {
   display: flex;
   align-items: center;
@@ -36,6 +45,9 @@
   flex-shrink: 0;
   font-family: var(--font-family);
   line-height: 1;
+  text-shadow:
+    0 0 6px rgba(176, 109, 24, 0.7),
+    0 0 16px rgba(176, 109, 24, 0.3);
   transition: color 1.2s ease;
 }
 
@@ -50,6 +62,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow:
+    0 0 8px rgba(176, 109, 24, 0.45),
+    0 0 18px rgba(176, 109, 24, 0.18);
   transition: color 1.2s ease;
 }
 

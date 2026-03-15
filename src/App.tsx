@@ -795,6 +795,14 @@ function AppContent() {
   // Signal strip — minimal single-line audio bar
   const audioControls = shouldShowBottomPlayer ? (
     <section className={styles.signalStrip} aria-label="Now playing controls">
+      {activeConcert?.albumCoverUrl ? (
+        <img
+          src={activeConcert.albumCoverUrl}
+          alt={activeConcert.band}
+          className={styles.signalArt}
+          aria-hidden="true"
+        />
+      ) : null}
       <button
         type="button"
         className={styles.signalToggle}

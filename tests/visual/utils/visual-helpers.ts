@@ -33,7 +33,7 @@ export async function bootstrapVisualState(
 export async function gotoLanding(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: /photo signal/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /still broadcasting/i })).toBeVisible();
   await dismissDebugOverlay(page);
 }
 
@@ -80,9 +80,9 @@ export async function waitForCameraState(page: Page): Promise<void> {
       .then(() => 'loading' as const)
       .catch(() => null),
     page
-      .getByText(/point at a photo|point your camera at a photo/i)
+      .getByRole('button', { name: /open settings/i })
       .waitFor({ state: 'visible', timeout: 12000 })
-      .then(() => 'instruction' as const)
+      .then(() => 'active' as const)
       .catch(() => null),
   ]);
 

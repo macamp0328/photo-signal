@@ -79,16 +79,11 @@ export async function waitForCameraState(page: Page): Promise<void> {
       .waitFor({ state: 'visible', timeout: 12000 })
       .then(() => 'loading' as const)
       .catch(() => null),
-    page
-      .getByRole('button', { name: /open settings/i })
-      .waitFor({ state: 'visible', timeout: 12000 })
-      .then(() => 'active' as const)
-      .catch(() => null),
   ]);
 
   if (!result) {
     throw new Error(
-      'Camera state never stabilized: no video, permission prompt, or settings button appeared within timeout'
+      'Camera state never stabilized: no video element, "Camera blocked", or "Summoning camera" appeared within timeout'
     );
   }
 }

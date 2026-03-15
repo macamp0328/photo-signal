@@ -88,7 +88,7 @@ export async function waitForCameraState(page: Page): Promise<void> {
 
   if (!result) {
     throw new Error(
-      'Camera state never stabilized: no video, permission prompt, or instruction text appeared within timeout'
+      'Camera state never stabilized: no video, permission prompt, or settings button appeared within timeout'
     );
   }
 }

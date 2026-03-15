@@ -24,7 +24,7 @@ describe('GalleryLayout', () => {
     expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
     expect(screen.getByText(/some photographs never stopped/i)).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeTruthy();
 
     // Camera should not be visible on landing
@@ -43,7 +43,7 @@ describe('GalleryLayout', () => {
     );
 
     const beginButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
     await user.click(beginButton);
 
@@ -68,7 +68,7 @@ describe('GalleryLayout', () => {
 
     // No old "Begin" button in active view
     expect(
-      screen.queryByRole('button', { name: 'Activate camera and begin experience' })
+      screen.queryByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeNull();
   });
 

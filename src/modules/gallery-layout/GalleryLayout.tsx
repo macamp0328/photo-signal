@@ -27,7 +27,7 @@ export function GalleryLayout({
           <p className={styles.landingTagline}>some photographs never stopped.</p>
           <button
             onClick={onActivate}
-            aria-label="Activate camera and begin experience"
+            aria-label="Tune in — activate camera and begin experience"
             className={styles.beginButton}
           >
             Tune in

@@ -86,8 +86,8 @@
 /* Ambient watermark — top-left corner */
 .watermark {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: calc(env(safe-area-inset-top) + 1rem);
+  left: calc(env(safe-area-inset-left) + 1rem);
   font-size: 0.65rem;
   font-family: var(--font-family);
   color: var(--color-bonus-text);
@@ -102,8 +102,8 @@
 /* Settings icon — top-right corner */
 .settingsIcon {
   position: fixed;
-  top: 0.65rem;
-  right: 0.65rem;
+  top: calc(env(safe-area-inset-top) + 0.65rem);
+  right: calc(env(safe-area-inset-right) + 0.65rem);
   background: transparent;
   border: none;
   color: var(--color-bonus-text);

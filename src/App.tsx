@@ -798,7 +798,7 @@ function AppContent() {
       {activeConcert?.albumCoverUrl ? (
         <img
           src={activeConcert.albumCoverUrl}
-          alt={activeConcert.band}
+          alt=""
           className={styles.signalArt}
           aria-hidden="true"
         />
@@ -807,7 +807,9 @@ function AppContent() {
         type="button"
         className={styles.signalToggle}
         onClick={handleTogglePlayback}
-        aria-label={isPlaying ? 'Pause' : 'Play'}
+        aria-label={
+          isPlaying ? `Pause ${activeConcert?.band ?? ''}` : `Play ${activeConcert?.band ?? ''}`
+        }
       >
         <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
           {isPlaying ? '◉' : '○'}
@@ -820,7 +822,7 @@ function AppContent() {
             type="button"
             className={styles.signalNavBtn}
             onClick={handlePreviousTrack}
-            aria-label="Play previous track"
+            aria-label="Previous track"
           >
             ←
           </button>
@@ -828,7 +830,7 @@ function AppContent() {
             type="button"
             className={styles.signalNavBtn}
             onClick={handleNextTrack}
-            aria-label="Play next track"
+            aria-label="Next track"
           >
             →
           </button>

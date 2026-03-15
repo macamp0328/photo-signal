@@ -224,7 +224,9 @@ async function activateAndPlayArtistA() {
   render(<App />);
   const user = userEvent.setup();
 
-  await user.click(screen.getByRole('button', { name: 'Activate camera and begin experience' }));
+  await user.click(
+    screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+  );
 
   // Recognition locks onto Artist A → auto-play fires → isPlaying becomes true
   await act(async () => {

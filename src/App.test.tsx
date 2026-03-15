@@ -34,7 +34,9 @@ describe('App', () => {
 
     renderApp();
 
-    await user.click(screen.getByRole('button', { name: 'Activate camera and begin experience' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+    );
 
     expect(lock).toHaveBeenCalledWith('portrait-primary');
   });
@@ -51,7 +53,9 @@ describe('App', () => {
     renderApp();
 
     await expect(
-      user.click(screen.getByRole('button', { name: 'Activate camera and begin experience' }))
+      user.click(
+        screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+      )
     ).resolves.toBeUndefined();
     expect(lock).toHaveBeenCalledWith('portrait-primary');
   });
@@ -69,7 +73,7 @@ describe('App', () => {
     expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
     expect(screen.getByText(/some photographs never stopped/i)).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeTruthy();
   });
 });

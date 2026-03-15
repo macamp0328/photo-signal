@@ -24,7 +24,7 @@ describe('App Lifecycle Integration', () => {
     // Verify app renders successfully with landing page
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeInTheDocument();
   });
 

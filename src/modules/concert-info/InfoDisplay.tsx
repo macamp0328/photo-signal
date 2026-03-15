@@ -11,7 +11,7 @@ import { formatConcertTimestamp } from '../../utils/dateUtils';
 export function InfoDisplay({ concert, isVisible, onClose }: InfoDisplayProps) {
   if (!concert || !isVisible) return null;
 
-  const formattedDate = formatConcertTimestamp(concert.date).replace(/\s+[A-Z]{2,5}$/, '');
+  const formattedDate = formatConcertTimestamp(concert.date, { includeTimeZone: false });
   const metaLine = [concert.venue, formattedDate].filter(Boolean).join(' · ');
 
   return (

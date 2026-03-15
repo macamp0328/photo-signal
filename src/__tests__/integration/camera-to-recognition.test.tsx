@@ -24,7 +24,7 @@ describe('Camera Access → Photo Recognition Integration', () => {
     render(<App />);
 
     const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
 
     const user = userEvent.setup();
@@ -46,7 +46,7 @@ describe('Camera Access → Photo Recognition Integration', () => {
     render(<App />);
 
     const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
 
     const user = userEvent.setup();
@@ -74,7 +74,7 @@ describe('Camera Access → Photo Recognition Integration', () => {
     render(<App />);
 
     const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
 
     const user = userEvent.setup();

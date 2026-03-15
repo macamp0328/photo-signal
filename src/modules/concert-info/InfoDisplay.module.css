@@ -1,286 +1,93 @@
-/* Info Display Card */
-.card {
-  background-color: transparent;
-  border: none;
-  border-top: 3px solid var(--color-accent);
-  border-radius: 0;
-  box-shadow: none;
-  padding: clamp(0.7rem, 2vw, 1rem) 0;
+/* Photo overlay — sits on top of the matched photograph */
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4rem 0.9rem 0.8rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0) 100%);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 0.5rem;
-  animation: posterReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: border-color 1.2s ease;
+  pointer-events: none;
+  animation: overlayFadeIn 0.5s ease forwards;
 }
 
-.metaRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 0.75rem;
-}
-
-.badge {
-  background-color: var(--color-accent);
-  color: var(--color-background);
-  padding: 0.25rem 0.6rem;
-  border-radius: 0;
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-weight: 700;
-  font-family: var(--font-family);
-  transition:
-    background-color 1.2s ease,
-    color 1.2s ease;
-}
-
-.headlineBlock {
-  padding: 0.2rem 0 0.45rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-accent), transparent 60%);
-  background: transparent;
-}
-
-.kicker {
-  margin: 0 0 0.25rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-bonus-text);
-  font-family: var(--font-family);
-  transition: color 1.2s ease;
-}
-
-.headlineRow {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.info {
+  min-width: 0;
+  flex: 1;
 }
 
 .bandName {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 11vw, 6rem);
+  font-size: clamp(2.5rem, 10vw, 5rem);
   font-weight: 400; /* Bebas Neue is inherently bold */
-  color: var(--color-main-text);
+  color: white;
   line-height: 0.9;
   margin: 0;
-  min-width: 0;
+  text-transform: uppercase;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
   transition: color 1.2s ease;
 }
 
-.detailGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
-  gap: 0.45rem;
+html[data-state='matched'] .bandName {
+  color: var(--poster-primary, white);
 }
 
-.detailItem {
-  border-left: 3px solid var(--color-accent);
+.meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-family);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nextButton {
+  flex-shrink: 0;
+  padding: 0.5rem;
   background: transparent;
-  border-radius: 0;
-  padding: 0.35rem 0.45rem;
-  transition: border-color 1.2s ease;
-}
-
-.detailLabel {
-  font-size: 0.56rem;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--color-bonus-text);
-  margin: 0 0 0.2rem;
-  font-family: var(--font-family);
-  transition: color 1.2s ease;
-}
-
-.detailValue {
-  font-size: clamp(0.78rem, 2vw, 0.95rem);
-  color: var(--color-main-text);
-  margin: 0;
-  line-height: 1.3;
-  font-family: var(--font-family);
-  transition: color 1.2s ease;
-}
-
-.detailItem:nth-child(1) .detailValue {
-  font-size: clamp(0.98rem, 2.5vw, 1.18rem);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.detailItem:nth-child(2) .detailValue {
-  font-size: clamp(0.82rem, 2vw, 0.96rem);
-  font-weight: 650;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.metaCompact {
-  margin: 0;
-  font-size: 0.66rem;
-  line-height: 1.2;
-  color: var(--color-bonus-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.switchButton {
-  margin-top: 0.25rem;
-  padding: 0.6rem 1rem;
-  background-color: var(--color-accent);
-  color: var(--color-background);
   border: none;
-  border-radius: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.65rem;
   font-family: var(--font-family);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.05em;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    color 1.2s ease;
-  width: 100%;
-}
-
-.switchButton:hover,
-.switchButton:focus-visible {
-  background-color: var(--color-main-text);
-  color: var(--color-background);
-}
-
-.promptRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  column-gap: 0.6rem;
-  row-gap: 0.4rem;
-  padding: 0.35rem 0;
-  border-top: 1px dashed color-mix(in srgb, var(--color-accent), transparent 40%);
-  transition: border-color 1.2s ease;
-}
-
-.prompt {
-  font-size: 0.7rem;
-  line-height: 1.35;
-  color: var(--color-sub-text);
-  margin: 0;
-  min-width: 0;
-  letter-spacing: 0.03em;
-  font-family: var(--font-family);
-  transition: color 1.2s ease;
-}
-
-.returnButton {
-  justify-self: end;
-  padding: 0.52rem 0.72rem;
+  pointer-events: all;
   min-height: 2.75rem;
-  border: 1px solid var(--color-accent);
-  border-radius: 0;
-  background: transparent;
-  color: var(--color-main-text);
-  font-size: 0.64rem;
-  font-weight: 700;
-  font-family: var(--font-family);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 1.2s ease,
-    color 1.2s ease;
+  min-width: 2.75rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.returnButton:hover,
-.returnButton:focus-visible {
-  background: var(--color-accent);
-  color: var(--color-background);
+.nextButton:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nextButton:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 480px) {
-  .card {
-    padding: 0.6rem;
-    gap: 0.45rem;
-  }
-
-  .metaRow {
-    align-items: center;
-    text-align: center;
-  }
-
-  .headlineBlock {
-    padding: 0.3rem 0;
-  }
-
-  .kicker {
-    font-size: 0.58rem;
+  .overlay {
+    padding: 3rem 0.75rem 0.65rem;
   }
 
   .bandName {
-    font-size: clamp(2.2rem, 10vw, 4rem);
-  }
-
-  .detailGrid {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
-    gap: 0.35rem;
-  }
-
-  .detailItem {
-    padding: 0.3rem 0.4rem;
-  }
-
-  .detailLabel {
-    font-size: 0.55rem;
-  }
-
-  .detailValue {
-    font-size: 0.7rem;
-  }
-
-  .detailItem:nth-child(1) .detailValue {
-    font-size: 0.86rem;
-  }
-
-  .detailItem:nth-child(2) .detailValue {
-    font-size: 0.74rem;
-  }
-
-  .metaCompact {
-    font-size: 0.6rem;
-  }
-
-  .switchButton {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.75rem;
-  }
-
-  .promptRow {
-    grid-template-columns: 1fr;
-    row-gap: 0.45rem;
-  }
-
-  .prompt {
-    font-size: 0.68rem;
-  }
-
-  .returnButton {
-    justify-self: end;
-    padding: 0.5rem 0.65rem;
-    min-height: 2.75rem;
-    font-size: 0.62rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .detailGrid {
-    gap: 0.6rem;
-  }
-
-  .prompt {
-    font-size: 0.74rem;
+    font-size: clamp(2rem, 9vw, 4rem);
   }
 }

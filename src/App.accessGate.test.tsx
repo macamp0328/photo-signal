@@ -36,7 +36,7 @@ describe('App access gate', () => {
     render(<App />);
 
     // Should skip gate and show the app directly
-    expect(screen.getByText('Photo Signal')).toBeTruthy();
+    expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Private Gallery' })).toBeNull();
   });
 
@@ -47,7 +47,7 @@ describe('App access gate', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: 'Private Gallery' })).toBeTruthy();
-    expect(screen.queryByText('Photo Signal')).toBeNull();
+    expect(screen.queryByText(/Broadcasting/i)).toBeNull();
   });
 
   it('rejects invalid passcode', async () => {
@@ -78,7 +78,7 @@ describe('App access gate', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enter' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Photo Signal')).toBeTruthy();
+      expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
     });
 
     const accessUntil = Number(window.localStorage.getItem('photo-signal-access-until'));

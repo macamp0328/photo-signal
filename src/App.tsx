@@ -22,12 +22,10 @@ import { useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
 import { preloadRecognitionIndex } from './services/recognition-index-service';
 import {
-  getExperienceStatus,
   getNextTrackAfterForwardAdvanceState,
   getPlaylistStartForConcert,
   shufflePlaylist,
   syncPlaylistForConcert,
-  withRetryHint,
 } from './App.playback-helpers';
 import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import styles from './App.module.css';
@@ -36,28 +34,6 @@ const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
   return { default: module.SecretSettings };
 });
-
-const UX_COPY = {
-  status: {
-    error: 'Playback Trouble',
-    'switch-available': 'New Artist',
-    playing: 'Now Playing',
-    ready: 'Match Found',
-    paused: 'Paused',
-    idle: 'Scan a Photo',
-  },
-  prompt: {
-    retrySuffix: 'Check the connection, then tap Play again.',
-    'switch-available': (band: string) => `${band} is queued up. Tap Switch Artist to swap over.`,
-    ready: 'Found a match. Tap Play to hear it.',
-    playing: "Music's rolling. Pause it or keep scanning.",
-    paused: 'Holding your spot. Tap Play to jump back in.',
-    idle: 'Point at a photo to get things rolling.',
-  },
-  actions: {
-    switchArtist: 'Switch Artist',
-  },
-} as const;
 
 const DebugOverlay = lazy(async () => {
   const module = await import('./modules/debug-overlay');
@@ -350,19 +326,18 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const { play, pause, stop, preload, crossfade, isPlaying, progress, playbackError } =
-    useAudioPlayback({
-      volume: 1.0,
-      fadeTime: 1000,
-      onSongEnd: () => {
-        if (userPausedRef.current) return;
-        const nextSong = getNextTrackAfterForwardAdvance();
-        if (nextSong?.audioFile && playRef.current) {
-          playRef.current(nextSong.audioFile);
-          setActiveConcert(nextSong);
-        }
-      },
-    });
+  const { play, pause, stop, preload, crossfade, isPlaying } = useAudioPlayback({
+    volume: 1.0,
+    fadeTime: 1000,
+    onSongEnd: () => {
+      if (userPausedRef.current) return;
+      const nextSong = getNextTrackAfterForwardAdvance();
+      if (nextSong?.audioFile && playRef.current) {
+        playRef.current(nextSong.audioFile);
+        setActiveConcert(nextSong);
+      }
+    },
+  });
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {
@@ -814,140 +789,47 @@ function AppContent() {
     }
   }, [getPhotoDownloadFilename, handleCloseDownloadPrompt, scannedPhotoUrl]);
 
-  const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const dropNeedleConcert =
-    isPlaying &&
-    infoConcert &&
-    activeConcert &&
-    infoConcert.band !== activeConcert.band &&
-    infoConcert.audioFile
-      ? infoConcert
-      : null;
-
-  const experienceStatus = getExperienceStatus({
-    hasPlaybackError: Boolean(playbackError),
-    hasSwitchCandidate: Boolean(dropNeedleConcert),
-    isPlaying,
-    hasReadyMatch: Boolean(activeRecognitionConcert && (!isInfoActive || !userPausedRef.current)),
-    hasPausedTrack: Boolean(isInfoActive && activeConcert && !isPlaying && userPausedRef.current),
-  });
-
-  const statusLabel = UX_COPY.status[experienceStatus];
-
-  const promptText = playbackError
-    ? withRetryHint(playbackError, UX_COPY.prompt.retrySuffix)
-    : experienceStatus === 'switch-available' && dropNeedleConcert
-      ? UX_COPY.prompt['switch-available'](dropNeedleConcert.band)
-      : experienceStatus === 'ready'
-        ? UX_COPY.prompt.ready
-        : experienceStatus === 'playing'
-          ? UX_COPY.prompt.playing
-          : experienceStatus === 'paused'
-            ? UX_COPY.prompt.paused
-            : UX_COPY.prompt.idle;
-
-  const handleDropNeedle = useCallback(() => {
-    if (!dropNeedleConcert) {
-      return;
-    }
-
-    const firstSong = startPlaylistForConcert(dropNeedleConcert);
-    if (!firstSong) {
-      return;
-    }
-
-    if (activeConcert && isPlaying) {
-      crossfade(firstSong.audioFile);
-    } else {
-      play(firstSong.audioFile);
-    }
-
-    userPausedRef.current = false;
-    setActiveConcert(firstSong);
-    resetRecognition();
-  }, [
-    activeConcert,
-    crossfade,
-    dropNeedleConcert,
-    isPlaying,
-    play,
-    resetRecognition,
-    startPlaylistForConcert,
-  ]);
-
-  const clampedProgress = Math.min(Math.max(progress, 0), 1);
-  const progressPercentage = Math.round(clampedProgress * 100);
-  const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
-  const nowPlayingLine = activeConcert
-    ? activeConcert.songTitle
-      ? `${activeConcert.band} — ${activeConcert.songTitle}`
-      : activeConcert.band
-    : null;
-  const playbackButtonLabel = isPlaying ? 'Pause' : 'Play';
-
   const canNavigatePlaylist = playlistRef.current.length > 1;
   const shouldShowBottomPlayer = Boolean(activeConcert);
 
+  // Signal strip — minimal single-line audio bar
   const audioControls = shouldShowBottomPlayer ? (
-    <section className={styles.playerBar} aria-label="Now playing controls">
-      <div className={styles.playerHeader}>
-        <div className={styles.playerTitleBlock}>
-          <p className={styles.playerEyebrow}>Now Playing</p>
-          <div className={styles.playerNowPlayingRow}>
-            {activeConcert?.albumCoverUrl ? (
-              <img
-                src={activeConcert.albumCoverUrl}
-                alt={`${activeConcert.band} album cover`}
-                className={styles.playerAlbumCover}
-                loading="lazy"
-              />
-            ) : null}
-            <p className={styles.playerTitle}>{nowPlayingLine}</p>
-          </div>
+    <section className={styles.signalStrip} aria-label="Now playing controls">
+      <button
+        type="button"
+        className={styles.signalToggle}
+        onClick={handleTogglePlayback}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+      >
+        <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
+          {isPlaying ? '◉' : '○'}
+        </span>
+        <span className={styles.signalBand}>{activeConcert?.band ?? ''}</span>
+      </button>
+      {canNavigatePlaylist ? (
+        <div className={styles.signalNav}>
+          <button
+            type="button"
+            className={styles.signalNavBtn}
+            onClick={handlePreviousTrack}
+            aria-label="Play previous track"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            className={styles.signalNavBtn}
+            onClick={handleNextTrack}
+            aria-label="Play next track"
+          >
+            →
+          </button>
         </div>
-        <p className={styles.playerProgress}>{progressPercentage}%</p>
-      </div>
-
-      <div className={styles.playerTimeline} aria-label="Song progress tracker">
-        <div className={styles.playerTimelineRail}>
-          <div
-            className={styles.playerTimelineFill}
-            style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
-          />
-        </div>
-      </div>
-
-      <div className={styles.playerTransport}>
-        <button
-          type="button"
-          className={styles.playerButtonSecondary}
-          onClick={handlePreviousTrack}
-          disabled={!canNavigatePlaylist}
-          aria-label="Play previous track"
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          className={styles.playerButtonPrimary}
-          onClick={handleTogglePlayback}
-          aria-label={playbackButtonLabel}
-        >
-          {playbackButtonLabel}
-        </button>
-        <button
-          type="button"
-          className={styles.playerButtonSecondary}
-          onClick={handleNextTrack}
-          disabled={!canNavigatePlaylist}
-          aria-label="Play next track"
-        >
-          Next
-        </button>
-      </div>
+      ) : null}
     </section>
   ) : null;
 
+  // Camera view — live feed or matched photo with concert overlay
   const cameraView = shouldShowScannedPhoto ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
       <button
@@ -974,6 +856,11 @@ function AppContent() {
           onError={() => setHasScannedPhotoLoadFailed(true)}
         />
       </button>
+      <InfoDisplay
+        concert={infoConcert}
+        isVisible={!!infoConcert}
+        onClose={() => handleCloseConcertInfo(infoConcert)}
+      />
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">
@@ -988,19 +875,6 @@ function AppContent() {
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       showRectangleOverlay={isEnabled('rectangle-detection')}
-    />
-  );
-
-  // Render info display that lives below the camera view in the stacked layout
-  const infoDisplay = (
-    <InfoDisplay
-      concert={infoConcert}
-      isVisible={!!infoConcert}
-      statusLabel={statusLabel}
-      promptText={promptText}
-      onClose={() => handleCloseConcertInfo(infoConcert)}
-      onSwitch={dropNeedleConcert ? handleDropNeedle : undefined}
-      switchLabel={UX_COPY.actions.switchArtist}
     />
   );
 
@@ -1023,7 +897,6 @@ function AppContent() {
       <GalleryLayout
         isActive={isActive}
         cameraView={cameraView}
-        infoDisplay={infoDisplay}
         onActivate={handleActivate}
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}

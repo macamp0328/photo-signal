@@ -5,79 +5,31 @@ import { formatConcertTimestamp } from '../../utils/dateUtils';
 /**
  * Concert Info Display Component
  *
- * Pure UI component for displaying concert metadata.
- * Styled as a distinct content block with zine-like aesthetic.
+ * Renders as a gradient overlay directly on the matched photo.
+ * Band name floats large at the bottom; venue · date in small mono below.
  */
-export function InfoDisplay({
-  concert,
-  isVisible,
-  className = '',
-  statusLabel = 'Match Found',
-  promptText = 'Found a match. Tap Play to hear it.',
-  onClose,
-  onSwitch,
-  switchLabel = 'Switch Artist',
-}: InfoDisplayProps) {
-  // Return null when not visible or no concert for better performance
+export function InfoDisplay({ concert, isVisible, onClose }: InfoDisplayProps) {
   if (!concert || !isVisible) return null;
 
   const formattedDate = formatConcertTimestamp(concert.date).replace(/\s+[A-Z]{2,5}$/, '');
-  const primaryDetailItems = [
-    { label: 'Venue', value: concert.venue },
-    { label: 'Date', value: formattedDate },
-  ].filter((item) => Boolean(item.value));
-  const secondaryMeta = [
-    concert.camera ? `Camera: ${concert.camera}` : null,
-    concert.focalLength,
-    concert.aperture,
-    concert.shutterSpeed,
-    concert.iso ? `ISO ${concert.iso}` : null,
-  ]
-    .filter((item): item is string => Boolean(item))
-    .join(' · ');
+  const metaLine = [concert.venue, formattedDate].filter(Boolean).join(' · ');
+
   return (
-    <section className={`${styles.card} ${className}`} aria-label="Concert details">
-      <div className={styles.metaRow}>
-        <span className={styles.badge}>{statusLabel}</span>
+    <section className={styles.overlay} aria-label="Concert details">
+      <div className={styles.info}>
+        <h2 className={styles.bandName}>{concert.band}</h2>
+        {metaLine ? <p className={styles.meta}>{metaLine}</p> : null}
       </div>
-
-      <div className={styles.headlineBlock}>
-        <p className={styles.kicker}>Live Capture</p>
-        <div className={styles.headlineRow}>
-          <h2 className={styles.bandName}>{concert.band}</h2>
-        </div>
-      </div>
-
-      <div className={styles.detailGrid}>
-        {primaryDetailItems.map((item) => (
-          <div key={item.label} className={styles.detailItem}>
-            <p className={styles.detailLabel}>{item.label}</p>
-            <p className={styles.detailValue}>{item.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {secondaryMeta ? <p className={styles.metaCompact}>{secondaryMeta}</p> : null}
-
-      {onSwitch ? (
+      {onClose ? (
         <button
           type="button"
-          className={styles.switchButton}
-          onClick={onSwitch}
-          aria-label={switchLabel}
+          className={styles.nextButton}
+          onClick={onClose}
+          aria-label="Go to next photo"
         >
-          {switchLabel}
+          → next
         </button>
       ) : null}
-
-      <div className={styles.promptRow}>
-        <p className={styles.prompt}>{promptText}</p>
-        {onClose ? (
-          <button type="button" className={styles.returnButton} onClick={onClose}>
-            Next pic, please
-          </button>
-        ) : null}
-      </div>
     </section>
   );
 }

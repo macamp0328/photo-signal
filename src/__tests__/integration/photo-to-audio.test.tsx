@@ -30,7 +30,7 @@ describe('Photo Recognition → Audio Playback Integration', () => {
 
   it('should show landing page before activation', () => {
     render(<App />);
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Activate camera and begin experience' })
     ).toBeInTheDocument();

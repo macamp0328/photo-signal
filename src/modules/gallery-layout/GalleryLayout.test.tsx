@@ -7,7 +7,6 @@ describe('GalleryLayout', () => {
   const mockOnActivate = vi.fn();
   const mockOnSettingsClick = vi.fn();
   const mockCameraView = <div data-testid="camera-view">Camera View</div>;
-  const mockInfoDisplay = <div data-testid="info-display">Info Display</div>;
   const mockAudioControls = <div data-testid="audio-controls">Audio Controls</div>;
 
   it('renders landing view when not active', () => {
@@ -15,31 +14,29 @@ describe('GalleryLayout', () => {
       <GalleryLayout
         isActive={false}
         cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
         onSettingsClick={mockOnSettingsClick}
       />
     );
 
-    // Check for landing page elements
-    expect(screen.getByText('Photo Signal')).toBeTruthy();
-    expect(screen.getByText(/Point your camera at a photo\. Let it talk back\./i)).toBeTruthy();
+    // Check for new landing copy
+    expect(screen.getByText(/Still/i)).toBeTruthy();
+    expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
+    expect(screen.getByText(/some photographs never stopped/i)).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Activate camera and begin experience' })
     ).toBeTruthy();
 
-    // Camera and info should not be visible
+    // Camera should not be visible on landing
     expect(screen.queryByTestId('camera-view')).toBeNull();
-    expect(screen.queryByTestId('info-display')).toBeNull();
   });
 
-  it('calls onActivate when Begin button is clicked', async () => {
+  it('calls onActivate when Tune in button is clicked', async () => {
     const user = userEvent.setup();
     render(
       <GalleryLayout
         isActive={false}
         cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
         onSettingsClick={mockOnSettingsClick}
       />
@@ -58,33 +55,29 @@ describe('GalleryLayout', () => {
       <GalleryLayout
         isActive={true}
         cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
         onSettingsClick={mockOnSettingsClick}
       />
     );
 
-    // Check for active view elements
+    // Watermark label is present
     expect(screen.getByText('Photo Signal')).toBeTruthy();
-    expect(screen.getByText(/Point at a photo\. Stir up trouble\./i)).toBeTruthy();
 
     // Camera should be visible
     expect(screen.getByTestId('camera-view')).toBeTruthy();
 
-    // Info display should be visible by default in stacked layout
-    expect(screen.getByTestId('info-display')).toBeTruthy();
-
-    // Begin button should not be visible
-    expect(screen.queryByRole('button', { name: 'Begin' })).toBeNull();
+    // No old "Begin" button in active view
+    expect(
+      screen.queryByRole('button', { name: 'Activate camera and begin experience' })
+    ).toBeNull();
   });
 
-  it('renders settings button in header when active', async () => {
+  it('renders settings icon when active', async () => {
     const user = userEvent.setup();
     render(
       <GalleryLayout
         isActive={true}
         cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
         onSettingsClick={mockOnSettingsClick}
       />
@@ -101,7 +94,6 @@ describe('GalleryLayout', () => {
       <GalleryLayout
         isActive={true}
         cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
         onSettingsClick={mockOnSettingsClick}
         audioControls={mockAudioControls}
@@ -116,29 +108,11 @@ describe('GalleryLayout', () => {
       <GalleryLayout
         isActive={true}
         cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
         onActivate={mockOnActivate}
         onSettingsClick={mockOnSettingsClick}
       />
     );
 
     expect(screen.queryByTestId('audio-controls')).toBeNull();
-  });
-
-  it('hides info section when showInfoSection is false', () => {
-    render(
-      <GalleryLayout
-        isActive={true}
-        cameraView={mockCameraView}
-        infoDisplay={mockInfoDisplay}
-        onActivate={mockOnActivate}
-        onSettingsClick={mockOnSettingsClick}
-        showInfoSection={false}
-      />
-    );
-
-    // Camera should be visible, but info should not
-    expect(screen.getByTestId('camera-view')).toBeTruthy();
-    expect(screen.queryByTestId('info-display')).toBeNull();
   });
 });

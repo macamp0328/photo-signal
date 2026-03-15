@@ -66,8 +66,8 @@ describe('App', () => {
   it('shows landing page initially', () => {
     renderApp();
     // Check for landing page elements
-    expect(screen.getByText('Photo Signal')).toBeTruthy();
-    expect(screen.getByText(/Point your camera at a photo/i)).toBeTruthy();
+    expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
+    expect(screen.getByText(/some photographs never stopped/i)).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Activate camera and begin experience' })
     ).toBeTruthy();

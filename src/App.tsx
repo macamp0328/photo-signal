@@ -792,12 +792,18 @@ function AppContent() {
   const canNavigatePlaylist = playlistRef.current.length > 1;
   const shouldShowBottomPlayer = Boolean(activeConcert);
 
+  // Mirror handleTogglePlayback's target selection so the strip always names the concert
+  // that a tap will actually play (activeRecognitionConcert when paused with a new match,
+  // otherwise activeConcert).
+  const stripConcert =
+    !isPlaying && activeRecognitionConcert ? activeRecognitionConcert : activeConcert;
+
   // Signal strip — minimal single-line audio bar
   const audioControls = shouldShowBottomPlayer ? (
     <section className={styles.signalStrip} aria-label="Now playing controls">
-      {activeConcert?.albumCoverUrl ? (
+      {stripConcert?.albumCoverUrl ? (
         <img
-          src={activeConcert.albumCoverUrl}
+          src={stripConcert.albumCoverUrl}
           alt=""
           className={styles.signalArt}
           aria-hidden="true"
@@ -808,13 +814,13 @@ function AppContent() {
         className={styles.signalToggle}
         onClick={handleTogglePlayback}
         aria-label={
-          isPlaying ? `Pause ${activeConcert?.band ?? ''}` : `Play ${activeConcert?.band ?? ''}`
+          isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
         }
       >
         <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
           {isPlaying ? '◉' : '○'}
         </span>
-        <span className={styles.signalBand}>{activeConcert?.band ?? ''}</span>
+        <span className={styles.signalBand}>{stripConcert?.band ?? ''}</span>
       </button>
       {canNavigatePlaylist ? (
         <div className={styles.signalNav}>

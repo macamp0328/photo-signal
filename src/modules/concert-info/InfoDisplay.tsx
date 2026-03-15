@@ -6,7 +6,7 @@ import { formatConcertTimestamp } from '../../utils/dateUtils';
  * Concert Info Display Component
  *
  * Renders as a gradient overlay directly on the matched photo.
- * Band name floats large at the bottom; venue · date in small mono below.
+ * Band name floats large at the bottom; venue · date in small body text below.
  */
 export function InfoDisplay({ concert, isVisible, onClose }: InfoDisplayProps) {
   if (!concert || !isVisible) return null;

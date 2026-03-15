@@ -27,6 +27,10 @@
 
 Module API contracts live in the TypeScript source — see `types.ts` in each module directory.
 
+## Source Utilities
+
+- **[src/utils/era-palette.ts](./src/utils/era-palette.ts)** — Maps concert year to gig-poster color palette; applies/resets CSS custom properties on `<html>` for the dead signal → matched state transition
+
 ## Scripts & Workflows
 
 - **[scripts/audio-workflow/README.md](./scripts/audio-workflow/README.md)** — Audio download/encode/upload pipeline

@@ -33,7 +33,7 @@ export async function bootstrapVisualState(
 export async function gotoLanding(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
-  await expect(page.getByRole('heading', { name: /photo signal/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /still broadcasting/i })).toBeVisible();
   await dismissDebugOverlay(page);
 }
 
@@ -79,16 +79,11 @@ export async function waitForCameraState(page: Page): Promise<void> {
       .waitFor({ state: 'visible', timeout: 12000 })
       .then(() => 'loading' as const)
       .catch(() => null),
-    page
-      .getByText(/point at a photo|point your camera at a photo/i)
-      .waitFor({ state: 'visible', timeout: 12000 })
-      .then(() => 'instruction' as const)
-      .catch(() => null),
   ]);
 
   if (!result) {
     throw new Error(
-      'Camera state never stabilized: no video, permission prompt, or instruction text appeared within timeout'
+      'Camera state never stabilized: no video element, "Camera blocked", or "Summoning camera" appeared within timeout'
     );
   }
 }

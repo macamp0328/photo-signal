@@ -4,69 +4,58 @@ import styles from './GalleryLayout.module.css';
 /**
  * Gallery Layout Component
  *
- * Provides a zine-like, curated UI experience with:
- * - Landing view with title and instructions
- * - Integrated camera view (not full-screen)
- * - Asymmetrical, thoughtful layout
- * - Textured background aesthetic
+ * Landing: two-line typographic statement, flush left.
+ * Active: camera fills the center, watermark label + settings icon float in corners.
  */
 export function GalleryLayout({
   isActive,
   cameraView,
-  infoDisplay,
   onActivate,
   onSettingsClick,
   audioControls,
-  showInfoSection = true,
+  isMatchedPhoto = false,
 }: GalleryLayoutProps) {
   const hasAudioControls = Boolean(audioControls);
 
   if (!isActive) {
-    // Landing/Initial View
     return (
       <div className={styles.landing}>
         <div className={styles.landingContent}>
-          <h1 className={styles.landingTitle}>Photo Signal</h1>
-          <p className={styles.landingSubtitle}>Point your camera at a photo. Let it talk back.</p>
-          <p className={styles.landingDescription}>
-            Every photo has a soundtrack. Tap Begin to wake it up.
-          </p>
+          <h1 className={styles.landingHeadline} aria-label="Still Broadcasting.">
+            <span className={styles.landingLine}>Still</span>
+            <span className={styles.landingLine}>Broadcasting.</span>
+          </h1>
+          <p className={styles.landingTagline}>some photographs never stopped.</p>
           <button
             onClick={onActivate}
-            aria-label="Activate camera and begin experience"
+            aria-label="Tune in — activate camera and begin experience"
             className={styles.beginButton}
           >
-            Begin
+            Tune in
           </button>
         </div>
       </div>
     );
   }
 
-  // Active Gallery View with Camera
   return (
     <div className={styles.active}>
-      <div className={styles.header}>
-        <div className={styles.headerText}>
-          <h1 className={styles.headerTitle}>Photo Signal</h1>
-          <p className={styles.headerSubtitle}>Point at a photo. Stir up trouble.</p>
-        </div>
-        <button
-          type="button"
-          className={styles.headerSettings}
-          onClick={onSettingsClick}
-          aria-label="Open settings"
-        >
-          Settings
-        </button>
-      </div>
+      <span className={styles.watermark}>Photo Signal</span>
+      <button
+        type="button"
+        className={styles.settingsIcon}
+        onClick={onSettingsClick}
+        aria-label="Open settings"
+      >
+        ⚙
+      </button>
 
       <div className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''}`}>
-        <div className={styles.cameraWrap}>
-          <div className={styles.cameraSection}>{cameraView}</div>
+        <div className={isMatchedPhoto ? styles.cameraWrapPhoto : styles.cameraWrap}>
+          <div className={isMatchedPhoto ? styles.cameraSectionPhoto : styles.cameraSection}>
+            {cameraView}
+          </div>
         </div>
-
-        {showInfoSection && infoDisplay && <div className={styles.infoSection}>{infoDisplay}</div>}
       </div>
 
       {audioControls && <div className={styles.audioSection}>{audioControls}</div>}

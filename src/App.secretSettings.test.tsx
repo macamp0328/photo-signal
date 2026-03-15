@@ -17,7 +17,9 @@ describe('Secret Settings access', () => {
     render(<App />);
 
     // Activate camera to get to the active view where the Settings button lives
-    await user.click(screen.getByRole('button', { name: 'Activate camera and begin experience' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+    );
     await waitFor(() => expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled());
 
     // Open via Settings button

@@ -20,7 +20,7 @@ describe('Photo Recognition → Concert Info Integration', () => {
     render(<App />);
 
     // App should render landing page successfully
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should not display concert info before activation', () => {

@@ -37,7 +37,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     render(<App />);
 
     // App should render with supported feature flags enabled
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should initialize when rectangle-detection flag is disabled', () => {
@@ -54,7 +54,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     render(<App />);
 
     // App should render with supported feature flags disabled
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should initialize with default feature flags when no flag is set', () => {
@@ -62,7 +62,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     render(<App />);
 
     // App should render with default feature-flag state
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should persist feature flags to localStorage', () => {
@@ -98,7 +98,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     render(<App />);
 
     // App should still render without crashing
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should render debug overlay when debug overlay flag is enabled', async () => {
@@ -114,7 +114,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
     render(<App />);
 
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     expect(await screen.findByText(/Debug/i)).toBeInTheDocument();
   });
 
@@ -131,7 +131,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
     render(<App />);
 
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.queryByText(/Debug/i)).not.toBeInTheDocument();
     });
@@ -142,7 +142,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
 
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should handle multiple feature flags simultaneously', () => {
@@ -163,6 +163,6 @@ describe('Feature Flags → Module Behavior Integration', () => {
     render(<App />);
 
     // All flags should be processed without conflicts
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 });

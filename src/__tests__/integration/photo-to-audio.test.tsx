@@ -30,9 +30,9 @@ describe('Photo Recognition → Audio Playback Integration', () => {
 
   it('should show landing page before activation', () => {
     render(<App />);
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeInTheDocument();
   });
 
@@ -40,7 +40,7 @@ describe('Photo Recognition → Audio Playback Integration', () => {
     render(<App />);
 
     const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
 
     const user = userEvent.setup();
@@ -64,7 +64,7 @@ describe('Photo Recognition → Audio Playback Integration', () => {
     render(<App />);
 
     const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
 
     const user = userEvent.setup();
@@ -89,7 +89,7 @@ describe('Photo Recognition → Audio Playback Integration', () => {
     render(<App />);
 
     const activateButton = screen.getByRole('button', {
-      name: 'Activate camera and begin experience',
+      name: 'Tune in — activate camera and begin experience',
     });
 
     const user = userEvent.setup();

@@ -68,10 +68,16 @@ describe('InfoDisplay', () => {
       expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
     });
 
-    it('should display "Playing" label', () => {
+    it('should display the default ready label', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.getByText(/^Playing$/i)).toBeInTheDocument();
+      expect(screen.getByText(/^Match Found$/i)).toBeInTheDocument();
+    });
+
+    it('should display the default ready prompt', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
+
+      expect(screen.getByText('Found a match. Tap Play to hear it.')).toBeInTheDocument();
     });
 
     it('should not display archive tag copy', () => {

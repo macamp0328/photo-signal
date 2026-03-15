@@ -367,7 +367,7 @@ function AppContent() {
       return;
     }
 
-    // New artist: build a shuffled playlist starting from the recognized song
+    // New artist: build a shuffled playlist and start from its random first track
     const songs = dataService.getConcertsByBand(autoplayConcert.band);
     const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [autoplayConcert]);
     const firstSong = newPlaylist[0];

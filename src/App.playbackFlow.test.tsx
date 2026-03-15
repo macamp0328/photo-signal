@@ -55,6 +55,7 @@ const mockStop = vi.fn();
 const mockSetVolume = vi.fn();
 const mockClearPlaybackError = vi.fn();
 let capturedOnSongEnd: (() => void) | undefined;
+let randomSpy: ReturnType<typeof vi.spyOn>;
 
 const audioState = {
   isPlaying: false,
@@ -198,7 +199,7 @@ describe('App playback flow', () => {
     audioState.progress = 0;
     audioState.playbackError = null;
     capturedOnSongEnd = undefined;
-    vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
 
     vi.spyOn(dataService, 'getConcerts').mockResolvedValue([
       concertOne,
@@ -284,7 +285,7 @@ describe('App playback flow', () => {
   });
 
   it('starts a multi-song artist on a shuffled first track', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0);
+    randomSpy.mockReturnValue(0);
     recognitionState.recognizedConcert = concertOne;
 
     const user = userEvent.setup();
@@ -317,7 +318,7 @@ describe('App playback flow', () => {
     capturedOnSongEnd?.();
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
 
-    vi.spyOn(Math, 'random').mockReturnValueOnce(0);
+    randomSpy.mockReturnValueOnce(0);
     capturedOnSongEnd?.();
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
   });

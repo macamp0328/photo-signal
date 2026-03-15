@@ -29,7 +29,7 @@ import {
   syncPlaylistForConcert,
   withRetryHint,
 } from './App.playback-helpers';
-import { applyEraPalette, resetToDeadSignal } from './utils/era-palette';
+import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -332,10 +332,10 @@ function AppContent() {
     }
   }, [activeRecognitionConcert]);
 
-  // Apply era-derived gig poster palette when a concert is matched; revert to dead signal otherwise
+  // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise
   useEffect(() => {
     if (activeRecognitionConcert) {
-      applyEraPalette(activeRecognitionConcert.date);
+      applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
     } else {
       resetToDeadSignal();
     }

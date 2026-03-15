@@ -182,6 +182,30 @@
   width: 100%;
 }
 
+/* Photo mode — natural aspect ratio, no fixed square height */
+.cameraWrapPhoto {
+  width: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width)));
+  max-height: calc(100svh - 8rem);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.cameraSectionPhoto {
+  width: 100%;
+  height: auto;
+  border: 1px solid rgba(176, 109, 24, 0.35);
+  box-shadow:
+    0 0 6px rgba(176, 109, 24, 0.2),
+    inset 0 0 6px rgba(176, 109, 24, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.cameraSectionPhoto > * {
+  height: auto;
+  width: 100%;
+}
+
 /* Audio strip — full-width fixed bottom bar */
 .audioSection {
   position: fixed;

@@ -22,4 +22,7 @@ export interface GalleryLayoutProps {
 
   /** Audio controls rendered in a fixed bottom strip */
   audioControls?: ReactNode;
+
+  /** When true, the camera square is replaced with a natural-aspect-ratio photo container */
+  isMatchedPhoto?: boolean;
 }

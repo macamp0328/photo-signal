@@ -910,6 +910,7 @@ function AppContent() {
         onActivate={handleActivate}
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
+        isMatchedPhoto={shouldShowScannedPhoto}
       />
       {isZoomedPhotoVisible && shouldShowScannedPhoto && scannedPhotoUrl ? (
         <div

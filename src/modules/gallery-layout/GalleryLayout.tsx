@@ -13,6 +13,7 @@ export function GalleryLayout({
   onActivate,
   onSettingsClick,
   audioControls,
+  isMatchedPhoto = false,
 }: GalleryLayoutProps) {
   const hasAudioControls = Boolean(audioControls);
 
@@ -50,8 +51,10 @@ export function GalleryLayout({
       </button>
 
       <div className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''}`}>
-        <div className={styles.cameraWrap}>
-          <div className={styles.cameraSection}>{cameraView}</div>
+        <div className={isMatchedPhoto ? styles.cameraWrapPhoto : styles.cameraWrap}>
+          <div className={isMatchedPhoto ? styles.cameraSectionPhoto : styles.cameraSection}>
+            {cameraView}
+          </div>
         </div>
       </div>
 

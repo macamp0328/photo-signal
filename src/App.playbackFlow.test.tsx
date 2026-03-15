@@ -281,7 +281,8 @@ describe('App playback flow', () => {
 
     expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
-    expect(screen.getByText('Seen enough? Tap Next pic, please.')).toBeInTheDocument();
+    expect(screen.getByText('Found a match. Tap Play to hear it.')).toBeInTheDocument();
+    expect(screen.getByText(/^Match Found$/i)).toBeInTheDocument();
   });
 
   it('starts a multi-song artist on a shuffled first track', async () => {
@@ -450,6 +451,9 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
+    expect(
+      screen.getByText('Band Two is queued up. Tap Switch Artist to swap over.')
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
   });
 
@@ -693,6 +697,26 @@ describe('App playback flow', () => {
     expect(matchedPhotoButton).toHaveFocus();
   });
 
+  it('traps Tab focus inside the zoom dialog', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await user.click(matchedPhotoButton);
+
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(closeButton, { key: 'Tab' });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(closeButton, { key: 'Tab', shiftKey: true });
+    expect(closeButton).toHaveFocus();
+  });
+
   it('closes zoom dialog on backdrop click', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
@@ -771,7 +795,9 @@ describe('App playback flow', () => {
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     const downloadButton = screen.getByRole('button', { name: 'Download' });
-    expect(cancelButton).toHaveFocus();
+    await waitFor(() => {
+      expect(cancelButton).toHaveFocus();
+    });
 
     fireEvent.keyDown(cancelButton, { key: 'Tab', shiftKey: true });
     expect(downloadButton).toHaveFocus();
@@ -833,6 +859,61 @@ describe('App playback flow', () => {
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
   });
 
+  it('shows paused status only after the user explicitly pauses playback', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^Pause$/ }));
+
+    audioState.isPlaying = false;
+    view.rerender(<App />);
+
+    expect(screen.getByText(/^Paused$/i)).toBeInTheDocument();
+    expect(screen.getByText('Holding your spot. Tap Play to jump back in.')).toBeInTheDocument();
+  });
+
+  it('resumes the selected same-artist track instead of jumping back to the playlist start', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+
+    recognitionState.recognizedConcert = sameBandTrackTwo;
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^Pause$/ }));
+
+    audioState.isPlaying = false;
+    view.rerender(<App />);
+
+    const playCallCount = mockPlay.mock.calls.length;
+    await user.click(screen.getByRole('button', { name: /^Play$/ }));
+
+    expect(mockPlay.mock.calls.length).toBe(playCallCount + 1);
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+  });
+
   it('shows playback error guidance with retry hint', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.playbackError = 'Audio failed to start. Tap Play to retry.';
@@ -848,7 +929,7 @@ describe('App playback flow', () => {
 
     // Should show error message without duplication (already has "Tap Play to retry")
     expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
-    expect(screen.getByText(/^Playback Tantrum$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Playback Trouble$/i)).toBeInTheDocument();
   });
 
   it('shows playback error with additional guidance when retry hint not included', async () => {
@@ -867,10 +948,10 @@ describe('App playback flow', () => {
     // Should append retry guidance when error doesn't already include it
     expect(
       screen.getByText(
-        'Audio failed to load. Check your connection and try again. Check stream access, then tap Play again.'
+        'Audio failed to load. Check your connection and try again. Check the connection, then tap Play again.'
       )
     ).toBeInTheDocument();
-    expect(screen.getByText(/^Playback Tantrum$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Playback Trouble$/i)).toBeInTheDocument();
   });
 
   it('shows Switch Artist in matched-details mode for a different playing artist', async () => {

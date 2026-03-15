@@ -1,17 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Background -->
-  <rect width="100" height="100" rx="12" fill="#0a0800"/>
+  <defs>
+    <linearGradient id="bg" x1="12" y1="8" x2="88" y2="94" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0a1022" />
+      <stop offset="1" stop-color="#151b35" />
+    </linearGradient>
+    <linearGradient id="frame" x1="24" y1="28" x2="76" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6ef3df" />
+      <stop offset="1" stop-color="#35b8f1" />
+    </linearGradient>
+  </defs>
 
-  <!-- Photo frame (landscape, centered) — outer arcs align exactly with its top/bottom corners -->
-  <rect x="30" y="36" width="40" height="28" rx="2" fill="#130c00" stroke="#d4892a" stroke-width="5"/>
+  <rect width="100" height="100" rx="18" fill="url(#bg)" />
 
-  <!-- Left broadcast arcs -->
-  <path d="M 30 44 A 6 6 0 1 1 30 56"   fill="none" stroke="#d4892a" stroke-width="5.5" stroke-linecap="round"/>
-  <path d="M 30 40 A 10 10 0 1 1 30 60" fill="none" stroke="#d4892a" stroke-width="4"   stroke-linecap="round" opacity="0.65"/>
-  <path d="M 30 36 A 14 14 0 1 1 30 64" fill="none" stroke="#d4892a" stroke-width="3"   stroke-linecap="round" opacity="0.35"/>
+  <rect x="24" y="30" width="52" height="40" rx="8" fill="#0f1730" stroke="url(#frame)" stroke-width="5" />
+  <circle cx="64" cy="42" r="5" fill="#ffe07a" />
+  <path d="M31 62 44.5 49l9 8 7-5 8.5 10H31Z" fill="#ff6f5c" />
+  <path d="M31 62 41.5 52.5 47 58l6.5-4.5L61 62H31Z" fill="#ff9c7c" />
 
-  <!-- Right broadcast arcs -->
-  <path d="M 70 44 A 6 6 0 1 1 70 56"   fill="none" stroke="#d4892a" stroke-width="5.5" stroke-linecap="round"/>
-  <path d="M 70 40 A 10 10 0 1 1 70 60" fill="none" stroke="#d4892a" stroke-width="4"   stroke-linecap="round" opacity="0.65"/>
-  <path d="M 70 36 A 14 14 0 1 1 70 64" fill="none" stroke="#d4892a" stroke-width="3"   stroke-linecap="round" opacity="0.35"/>
+  <rect x="47.5" y="21" width="5" height="8" rx="2" fill="#ffd4a2" />
+  <circle cx="50" cy="18" r="3.5" fill="#ff6f5c" />
+
+  <path d="M50 9.5a8.5 8.5 0 0 1 8.5 8.5" fill="none" stroke="#ff6f5c" stroke-width="3" stroke-linecap="round" opacity="0.95" />
+  <path d="M50 6a12 12 0 0 1 12 12" fill="none" stroke="#ff8f79" stroke-width="2.4" stroke-linecap="round" opacity="0.75" />
+  <path d="M50 2.5a15.5 15.5 0 0 1 15.5 15.5" fill="none" stroke="#ffb29f" stroke-width="2" stroke-linecap="round" opacity="0.5" />
 </svg>

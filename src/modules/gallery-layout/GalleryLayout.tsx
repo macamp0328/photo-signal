@@ -53,16 +53,21 @@ export function GalleryLayout({
           height="18"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="1.9"
           strokeLinecap="round"
+          strokeLinejoin="round"
           aria-hidden="true"
         >
-          <line x1="4" y1="6" x2="20" y2="6" />
-          <circle cx="9" cy="6" r="2.5" fill="currentColor" stroke="none" />
-          <line x1="4" y1="12" x2="20" y2="12" />
-          <circle cx="15" cy="12" r="2.5" fill="currentColor" stroke="none" />
-          <line x1="4" y1="18" x2="20" y2="18" />
-          <circle cx="7" cy="18" r="2.5" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="6.25" />
+          <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+          <path d="M12 2.5v2.3" />
+          <path d="M12 19.2v2.3" />
+          <path d="M2.5 12h2.3" />
+          <path d="M19.2 12h2.3" />
+          <path d="m5.3 5.3 1.7 1.7" />
+          <path d="m17 17 1.7 1.7" />
+          <path d="m18.7 5.3-1.7 1.7" />
+          <path d="m7 17-1.7 1.7" />
         </svg>
       </button>
 

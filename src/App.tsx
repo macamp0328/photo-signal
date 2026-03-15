@@ -31,26 +31,71 @@ const SecretSettings = lazy(async () => {
 // Constants for retry guidance text
 const RETRY_HINT_TEXT = 'tap play to retry.';
 
+type ExperienceStatus = 'idle' | 'ready' | 'playing' | 'paused' | 'switch-available' | 'error';
+
 const UX_COPY = {
   status: {
-    playbackProblem: 'Playback Tantrum',
-    newMatch: 'New Artist Spotted',
-    playingNow: 'Now Vibing',
-    matchReady: 'Photo Matched',
+    error: 'Playback Trouble',
+    'switch-available': 'New Artist',
+    playing: 'Now Playing',
+    ready: 'Match Found',
     paused: 'Paused',
-    viewing: 'Gallery Mode',
+    idle: 'Scan a Photo',
   },
   prompt: {
-    retrySuffix: 'Check stream access, then tap Play again.',
-    newMatch: (band: string) => `New match: ${band}. Tap Switch Artist to jump ship.`,
-    nextPhoto: 'Seen enough? Tap Next pic, please.',
-    stillPlaying: 'Track still rolling. Pause it, or chase the next photo.',
-    pointToStart: 'Point at a photo to kick things off.',
+    retrySuffix: 'Check the connection, then tap Play again.',
+    'switch-available': (band: string) => `${band} is queued up. Tap Switch Artist to swap over.`,
+    ready: 'Found a match. Tap Play to hear it.',
+    playing: "Music's rolling. Pause it or keep scanning.",
+    paused: 'Holding your spot. Tap Play to jump back in.',
+    idle: 'Point at a photo to get things rolling.',
   },
   actions: {
     switchArtist: 'Switch Artist',
   },
 } as const;
+
+function getExperienceStatus({
+  hasPlaybackError,
+  hasSwitchCandidate,
+  isPlaying,
+  hasReadyMatch,
+  hasPausedTrack,
+}: {
+  hasPlaybackError: boolean;
+  hasSwitchCandidate: boolean;
+  isPlaying: boolean;
+  hasReadyMatch: boolean;
+  hasPausedTrack: boolean;
+}): ExperienceStatus {
+  if (hasPlaybackError) {
+    return 'error';
+  }
+
+  if (hasSwitchCandidate) {
+    return 'switch-available';
+  }
+
+  if (isPlaying) {
+    return 'playing';
+  }
+
+  if (hasReadyMatch) {
+    return 'ready';
+  }
+
+  if (hasPausedTrack) {
+    return 'paused';
+  }
+
+  return 'idle';
+}
+
+function withRetryHint(playbackError: string): string {
+  return playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
+    ? playbackError
+    : `${playbackError} ${UX_COPY.prompt.retrySuffix}`;
+}
 
 const DebugOverlay = lazy(async () => {
   const module = await import('./modules/debug-overlay');
@@ -165,9 +210,91 @@ function AppContent() {
   const userPausedRef = useRef(false);
   // Ref to play fn so onSongEnd can call it without circular dep on useAudioPlayback return
   const playRef = useRef<((url: string) => void) | null>(null);
+  const activeConcertRef = useRef<Concert | null>(null);
+  const activePlaylistBandRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeConcertRef.current = activeConcert;
+  }, [activeConcert]);
+
+  useEffect(() => {
+    activePlaylistBandRef.current = activePlaylistBand;
+  }, [activePlaylistBand]);
+
+  const buildPlaylistForConcert = useCallback((concert: Concert) => {
+    const songs = dataService.getConcertsByBand(concert.band);
+    return buildPlaylist(songs.length > 0 ? songs : [concert]);
+  }, []);
+
+  const startPlaylistForConcert = useCallback(
+    (concert: Concert) => {
+      const newPlaylist = buildPlaylistForConcert(concert);
+      const firstSong = newPlaylist[0] ?? concert;
+
+      if (!firstSong.audioFile) {
+        return null;
+      }
+
+      playlistRef.current = newPlaylist.length > 0 ? newPlaylist : [concert];
+      playlistIndexRef.current = 0;
+      setActivePlaylistBand(concert.band);
+
+      return firstSong;
+    },
+    [buildPlaylistForConcert]
+  );
+
+  const syncPlaylistToConcert = useCallback(
+    (concert: Concert) => {
+      let nextPlaylist = playlistRef.current;
+      const needsRebuild =
+        nextPlaylist.length === 0 ||
+        activePlaylistBandRef.current !== concert.band ||
+        !nextPlaylist.some((song) => song.id === concert.id);
+
+      if (needsRebuild) {
+        nextPlaylist = buildPlaylistForConcert(concert);
+      }
+
+      let nextIndex = nextPlaylist.findIndex((song) => song.id === concert.id);
+
+      if (nextIndex === -1) {
+        nextPlaylist = [concert];
+        nextIndex = 0;
+      }
+
+      playlistRef.current = nextPlaylist;
+      playlistIndexRef.current = nextIndex;
+      setActivePlaylistBand(concert.band);
+
+      return nextPlaylist[nextIndex] ?? concert;
+    },
+    [buildPlaylistForConcert]
+  );
 
   const getNextTrackAfterForwardAdvance = useCallback(() => {
-    const currentPlaylist = playlistRef.current;
+    const currentConcert = activeConcertRef.current;
+    if (!currentConcert) {
+      return null;
+    }
+
+    let currentPlaylist = playlistRef.current;
+    const playlistHasCurrentConcert = currentPlaylist.some((song) => song.id === currentConcert.id);
+
+    if (
+      currentPlaylist.length === 0 ||
+      activePlaylistBandRef.current !== currentConcert.band ||
+      !playlistHasCurrentConcert
+    ) {
+      currentPlaylist = buildPlaylistForConcert(currentConcert);
+      const rebuiltIndex = currentPlaylist.findIndex((song) => song.id === currentConcert.id);
+
+      playlistRef.current = currentPlaylist.length > 0 ? currentPlaylist : [currentConcert];
+      playlistIndexRef.current = rebuiltIndex >= 0 ? rebuiltIndex : 0;
+      setActivePlaylistBand(currentConcert.band);
+      currentPlaylist = playlistRef.current;
+    }
+
     if (currentPlaylist.length <= 1) {
       return null;
     }
@@ -183,7 +310,7 @@ function AppContent() {
     const nextIndex = playlistIndexRef.current + 1;
     playlistIndexRef.current = nextIndex;
     return currentPlaylist[nextIndex] ?? null;
-  }, []);
+  }, [buildPlaylistForConcert]);
 
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
@@ -295,28 +422,19 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const {
-    play,
-    pause,
-    stop,
-    preload,
-    crossfade,
-    isPlaying,
-    progress,
-    playbackError,
-    clearPlaybackError,
-  } = useAudioPlayback({
-    volume: 1.0,
-    fadeTime: 1000,
-    onSongEnd: () => {
-      if (userPausedRef.current) return;
-      const nextSong = getNextTrackAfterForwardAdvance();
-      if (nextSong?.audioFile && playRef.current) {
-        playRef.current(nextSong.audioFile);
-        setActiveConcert(nextSong);
-      }
-    },
-  });
+  const { play, pause, stop, preload, crossfade, isPlaying, progress, playbackError } =
+    useAudioPlayback({
+      volume: 1.0,
+      fadeTime: 1000,
+      onSongEnd: () => {
+        if (userPausedRef.current) return;
+        const nextSong = getNextTrackAfterForwardAdvance();
+        if (nextSong?.audioFile && playRef.current) {
+          playRef.current(nextSong.audioFile);
+          setActiveConcert(nextSong);
+        }
+      },
+    });
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {
@@ -368,20 +486,22 @@ function AppContent() {
     }
 
     // New artist: build a shuffled playlist and start from its random first track
-    const songs = dataService.getConcertsByBand(autoplayConcert.band);
-    const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [autoplayConcert]);
-    const firstSong = newPlaylist[0];
-    if (!firstSong?.audioFile) {
+    const firstSong = startPlaylistForConcert(autoplayConcert);
+    if (!firstSong) {
       return;
     }
 
     userPausedRef.current = false;
-    playlistRef.current = newPlaylist;
-    playlistIndexRef.current = 0;
-    setActivePlaylistBand(autoplayConcert.band);
     play(firstSong.audioFile);
     setActiveConcert(firstSong);
-  }, [isActive, activeRecognitionConcert, isPlaying, play, activePlaylistBand]);
+  }, [
+    isActive,
+    activeRecognitionConcert,
+    isPlaying,
+    play,
+    activePlaylistBand,
+    startPlaylistForConcert,
+  ]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =
@@ -403,31 +523,22 @@ function AppContent() {
     }
 
     userPausedRef.current = false;
-    clearPlaybackError();
 
     if (playbackTargetConcert.band !== activePlaylistBand) {
-      // Different artist: rebuild the playlist so onSongEnd auto-advances within
-      // the correct band rather than continuing a stale playlist from a previous artist.
-      const songs = dataService.getConcertsByBand(playbackTargetConcert.band);
-      const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [playbackTargetConcert]);
-      const firstSong = newPlaylist[0];
-      if (!firstSong?.audioFile) {
+      const firstSong = startPlaylistForConcert(playbackTargetConcert);
+      if (!firstSong) {
         return;
       }
-      playlistRef.current = newPlaylist;
-      playlistIndexRef.current = 0;
-      setActivePlaylistBand(playbackTargetConcert.band);
       play(firstSong.audioFile);
       setActiveConcert(firstSong);
     } else {
-      // Same artist: sync the playlist index to the specific song being resumed
-      // so onSongEnd advances from the right position.
-      const idx = playlistRef.current.findIndex((s) => s.id === playbackTargetConcert.id);
-      if (idx !== -1) {
-        playlistIndexRef.current = idx;
+      const resumeConcert = syncPlaylistToConcert(playbackTargetConcert);
+      if (!resumeConcert.audioFile) {
+        return;
       }
-      play(selectedAudioUrl);
-      setActiveConcert(playbackTargetConcert);
+
+      play(resumeConcert.audioFile);
+      setActiveConcert(resumeConcert);
     }
   };
 
@@ -448,6 +559,10 @@ function AppContent() {
 
   const playPlaylistTrack = useCallback(
     (indexDelta: number) => {
+      if (activeConcert) {
+        syncPlaylistToConcert(activeConcert);
+      }
+
       const currentPlaylist = playlistRef.current;
       if (currentPlaylist.length <= 1) {
         return;
@@ -473,7 +588,6 @@ function AppContent() {
       if (activeConcert && isPlaying) {
         crossfade(targetTrack.audioFile);
       } else {
-        clearPlaybackError();
         play(targetTrack.audioFile);
       }
 
@@ -482,7 +596,7 @@ function AppContent() {
       setActivePlaylistBand(targetTrack.band);
       setActiveConcert(targetTrack);
     },
-    [activeConcert, clearPlaybackError, crossfade, isPlaying, play]
+    [activeConcert, crossfade, isPlaying, play, syncPlaylistToConcert]
   );
 
   const handlePreviousTrack = useCallback(() => {
@@ -782,43 +896,38 @@ function AppContent() {
       ? infoConcert
       : null;
 
-  const statusLabel = playbackError
-    ? UX_COPY.status.playbackProblem
-    : dropNeedleConcert
-      ? UX_COPY.status.newMatch
-      : isInfoActive && isPlaying
-        ? UX_COPY.status.playingNow
-        : activeRecognitionConcert && !isInfoActive
-          ? UX_COPY.status.matchReady
-          : isInfoActive
-            ? UX_COPY.status.paused
-            : UX_COPY.status.viewing;
+  const experienceStatus = getExperienceStatus({
+    hasPlaybackError: Boolean(playbackError),
+    hasSwitchCandidate: Boolean(dropNeedleConcert),
+    isPlaying,
+    hasReadyMatch: Boolean(activeRecognitionConcert && (!isInfoActive || !userPausedRef.current)),
+    hasPausedTrack: Boolean(isInfoActive && activeConcert && !isPlaying && userPausedRef.current),
+  });
+
+  const statusLabel = UX_COPY.status[experienceStatus];
 
   const promptText = playbackError
-    ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
-      ? playbackError
-      : `${playbackError} ${UX_COPY.prompt.retrySuffix}`
-    : dropNeedleConcert
-      ? UX_COPY.prompt.newMatch(dropNeedleConcert.band)
-      : activeRecognitionConcert
-        ? UX_COPY.prompt.nextPhoto
-        : activeConcert
-          ? UX_COPY.prompt.stillPlaying
-          : UX_COPY.prompt.pointToStart;
+    ? withRetryHint(playbackError)
+    : experienceStatus === 'switch-available' && dropNeedleConcert
+      ? UX_COPY.prompt['switch-available'](dropNeedleConcert.band)
+      : experienceStatus === 'ready'
+        ? UX_COPY.prompt.ready
+        : experienceStatus === 'playing'
+          ? UX_COPY.prompt.playing
+          : experienceStatus === 'paused'
+            ? UX_COPY.prompt.paused
+            : UX_COPY.prompt.idle;
 
   const handleDropNeedle = useCallback(() => {
     if (!dropNeedleConcert) {
       return;
     }
 
-    const songs = dataService.getConcertsByBand(dropNeedleConcert.band);
-    const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [dropNeedleConcert]);
-    const firstSong = newPlaylist[0];
-    if (!firstSong?.audioFile) {
+    const firstSong = startPlaylistForConcert(dropNeedleConcert);
+    if (!firstSong) {
       return;
     }
 
-    clearPlaybackError();
     if (activeConcert && isPlaying) {
       crossfade(firstSong.audioFile);
     } else {
@@ -826,19 +935,16 @@ function AppContent() {
     }
 
     userPausedRef.current = false;
-    playlistRef.current = newPlaylist;
-    playlistIndexRef.current = 0;
-    setActivePlaylistBand(dropNeedleConcert.band);
     setActiveConcert(firstSong);
     resetRecognition();
   }, [
     activeConcert,
-    clearPlaybackError,
     crossfade,
     dropNeedleConcert,
     isPlaying,
     play,
     resetRecognition,
+    startPlaylistForConcert,
   ]);
 
   const clampedProgress = Math.min(Math.max(progress, 0), 1);

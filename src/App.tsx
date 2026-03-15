@@ -114,18 +114,15 @@ const hasValidAccessSession = (): boolean => {
 };
 
 /**
- * Build a shuffled playlist for an artist, optionally placing a preferred song first.
- * The remaining songs are shuffled randomly behind it.
+ * Build a shuffled playlist for an artist.
  */
-function buildPlaylist(songs: Concert[], preferredId?: number): Concert[] {
-  if (songs.length <= 1) return [...songs];
-  const preferred = songs.find((s) => s.id === preferredId);
-  const rest = songs.filter((s) => s.id !== preferredId);
-  for (let i = rest.length - 1; i > 0; i--) {
+function buildPlaylist(songs: Concert[]): Concert[] {
+  const shuffledSongs = [...songs];
+  for (let i = shuffledSongs.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [rest[i], rest[j]] = [rest[j], rest[i]];
+    [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
   }
-  return preferred ? [preferred, ...rest] : rest;
+  return shuffledSongs;
 }
 
 function AppContent() {
@@ -168,6 +165,25 @@ function AppContent() {
   const userPausedRef = useRef(false);
   // Ref to play fn so onSongEnd can call it without circular dep on useAudioPlayback return
   const playRef = useRef<((url: string) => void) | null>(null);
+
+  const getNextTrackAfterForwardAdvance = useCallback(() => {
+    const currentPlaylist = playlistRef.current;
+    if (currentPlaylist.length <= 1) {
+      return null;
+    }
+
+    const isWrap = playlistIndexRef.current >= currentPlaylist.length - 1;
+    if (isWrap) {
+      const reshuffledPlaylist = buildPlaylist(currentPlaylist);
+      playlistRef.current = reshuffledPlaylist;
+      playlistIndexRef.current = 0;
+      return reshuffledPlaylist[0] ?? null;
+    }
+
+    const nextIndex = playlistIndexRef.current + 1;
+    playlistIndexRef.current = nextIndex;
+    return currentPlaylist[nextIndex] ?? null;
+  }, []);
 
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
@@ -294,12 +310,8 @@ function AppContent() {
     fadeTime: 1000,
     onSongEnd: () => {
       if (userPausedRef.current) return;
-      const currentPlaylist = playlistRef.current;
-      if (currentPlaylist.length <= 1) return;
-      const nextIndex = (playlistIndexRef.current + 1) % currentPlaylist.length;
-      const nextSong = currentPlaylist[nextIndex];
+      const nextSong = getNextTrackAfterForwardAdvance();
       if (nextSong?.audioFile && playRef.current) {
-        playlistIndexRef.current = nextIndex;
         playRef.current(nextSong.audioFile);
         setActiveConcert(nextSong);
       }
@@ -355,12 +367,9 @@ function AppContent() {
       return;
     }
 
-    // New artist: build a shuffled playlist starting from the recognized song
+    // New artist: build a shuffled playlist and start from its random first track
     const songs = dataService.getConcertsByBand(autoplayConcert.band);
-    const newPlaylist = buildPlaylist(
-      songs.length > 0 ? songs : [autoplayConcert],
-      autoplayConcert.id
-    );
+    const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [autoplayConcert]);
     const firstSong = newPlaylist[0];
     if (!firstSong?.audioFile) {
       return;
@@ -400,10 +409,7 @@ function AppContent() {
       // Different artist: rebuild the playlist so onSongEnd auto-advances within
       // the correct band rather than continuing a stale playlist from a previous artist.
       const songs = dataService.getConcertsByBand(playbackTargetConcert.band);
-      const newPlaylist = buildPlaylist(
-        songs.length > 0 ? songs : [playbackTargetConcert],
-        playbackTargetConcert.id
-      );
+      const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [playbackTargetConcert]);
       const firstSong = newPlaylist[0];
       if (!firstSong?.audioFile) {
         return;
@@ -447,9 +453,18 @@ function AppContent() {
         return;
       }
 
-      const nextIndex =
+      const forwardWrap = indexDelta > 0 && playlistIndexRef.current >= currentPlaylist.length - 1;
+      let workingPlaylist = currentPlaylist;
+      let nextIndex =
         (playlistIndexRef.current + indexDelta + currentPlaylist.length) % currentPlaylist.length;
-      const targetTrack = currentPlaylist[nextIndex];
+
+      if (forwardWrap) {
+        workingPlaylist = buildPlaylist(currentPlaylist);
+        playlistRef.current = workingPlaylist;
+        nextIndex = 0;
+      }
+
+      const targetTrack = workingPlaylist[nextIndex];
 
       if (!targetTrack?.audioFile) {
         return;
@@ -797,10 +812,7 @@ function AppContent() {
     }
 
     const songs = dataService.getConcertsByBand(dropNeedleConcert.band);
-    const newPlaylist = buildPlaylist(
-      songs.length > 0 ? songs : [dropNeedleConcert],
-      dropNeedleConcert.id
-    );
+    const newPlaylist = buildPlaylist(songs.length > 0 ? songs : [dropNeedleConcert]);
     const firstSong = newPlaylist[0];
     if (!firstSong?.audioFile) {
       return;

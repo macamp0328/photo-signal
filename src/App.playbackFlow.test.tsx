@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
@@ -54,6 +54,8 @@ const mockCrossfade = vi.fn();
 const mockStop = vi.fn();
 const mockSetVolume = vi.fn();
 const mockClearPlaybackError = vi.fn();
+let capturedOnSongEnd: (() => void) | undefined;
+let randomSpy: ReturnType<typeof vi.spyOn>;
 
 const audioState = {
   isPlaying: false,
@@ -152,20 +154,23 @@ vi.mock('./modules/photo-recognition', () => ({
 }));
 
 vi.mock('./modules/audio-playback', () => ({
-  useAudioPlayback: () => ({
-    play: mockPlay,
-    pause: mockPause,
-    preload: mockPreload,
-    fadeOut: mockFadeOut,
-    crossfade: mockCrossfade,
-    isPlaying: audioState.isPlaying,
-    progress: audioState.progress,
-    playbackError: audioState.playbackError,
-    clearPlaybackError: mockClearPlaybackError,
-    stop: mockStop,
-    volume: 0.8,
-    setVolume: mockSetVolume,
-  }),
+  useAudioPlayback: ({ onSongEnd }: { onSongEnd?: () => void } = {}) => {
+    capturedOnSongEnd = onSongEnd;
+    return {
+      play: mockPlay,
+      pause: mockPause,
+      preload: mockPreload,
+      fadeOut: mockFadeOut,
+      crossfade: mockCrossfade,
+      isPlaying: audioState.isPlaying,
+      progress: audioState.progress,
+      playbackError: audioState.playbackError,
+      clearPlaybackError: mockClearPlaybackError,
+      stop: mockStop,
+      volume: 0.8,
+      setVolume: mockSetVolume,
+    };
+  },
 }));
 
 describe('App playback flow', () => {
@@ -193,6 +198,8 @@ describe('App playback flow', () => {
     audioState.isPlaying = false;
     audioState.progress = 0;
     audioState.playbackError = null;
+    capturedOnSongEnd = undefined;
+    randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
 
     vi.spyOn(dataService, 'getConcerts').mockResolvedValue([
       concertOne,
@@ -214,6 +221,10 @@ describe('App playback flow', () => {
     });
 
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   const activateExperience = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -271,6 +282,91 @@ describe('App playback flow', () => {
     expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
     expect(screen.getByText('Seen enough? Tap Next pic, please.')).toBeInTheDocument();
+  });
+
+  it('starts a multi-song artist on a shuffled first track', async () => {
+    randomSpy.mockReturnValue(0);
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one-b.opus');
+  });
+
+  it('auto-advances songs on end and reshuffles on cycle wrap', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    expect(capturedOnSongEnd).toBeDefined();
+    mockPlay.mockClear();
+
+    capturedOnSongEnd?.();
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+
+    randomSpy.mockReturnValueOnce(0);
+    capturedOnSongEnd?.();
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+  });
+
+  it('does not auto-advance on song end when user paused playback', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^Pause$/ }));
+
+    mockPlay.mockClear();
+    capturedOnSongEnd?.();
+
+    expect(mockPlay).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-advance on song end for single-track artists', async () => {
+    recognitionState.recognizedConcert = concertTwo;
+    vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
+      if (band === concertTwo.band) {
+        return [concertTwo];
+      }
+      return [];
+    });
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Activate camera and begin experience',
+      })
+    );
+
+    mockPlay.mockClear();
+    capturedOnSongEnd?.();
+    expect(mockPlay).not.toHaveBeenCalled();
   });
 
   it('stops playback and exits active mode when app is hidden', async () => {

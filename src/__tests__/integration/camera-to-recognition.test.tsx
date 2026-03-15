@@ -6,12 +6,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
-
-const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
 
 describe('Camera Access → Photo Recognition Integration', () => {
   beforeEach(() => {
@@ -108,117 +106,5 @@ describe('Camera Access → Photo Recognition Integration', () => {
 
     // Before activation, camera should not be requested
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
-  });
-
-  it('applies tap focus constraints when track supports focus controls', async () => {
-    const { mockStream } = createMockMediaStream();
-    const videoTrack = mockStream.getVideoTracks()[0] as MediaStreamTrack & {
-      getCapabilities?: () => MediaTrackCapabilities;
-      applyConstraints?: (constraints?: MediaTrackConstraints) => Promise<void>;
-    };
-    const applyConstraints = vi.fn().mockResolvedValue(undefined);
-
-    videoTrack.getCapabilities = vi.fn(
-      () =>
-        ({ focusMode: ['continuous'], pointsOfInterest: true }) as unknown as MediaTrackCapabilities
-    );
-    videoTrack.applyConstraints = applyConstraints;
-
-    navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(mockStream);
-
-    render(<App />);
-
-    const user = userEvent.setup();
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    await waitFor(() => {
-      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
-    });
-
-    const video = document.querySelector('video') as HTMLVideoElement;
-    expect(video).toBeInTheDocument();
-
-    vi.spyOn(video, 'getBoundingClientRect').mockReturnValue({
-      x: 0,
-      y: 0,
-      width: 200,
-      height: 200,
-      top: 0,
-      left: 0,
-      right: 200,
-      bottom: 200,
-      toJSON: () => ({}),
-    } as DOMRect);
-
-    fireEvent.pointerDown(video, { clientX: 100, clientY: 100, pointerType: 'touch' });
-
-    await waitFor(() => {
-      expect(applyConstraints).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('does not apply tap focus when tap-to-focus flag is disabled', async () => {
-    localStorage.setItem(
-      FEATURE_FLAGS_STORAGE_KEY,
-      JSON.stringify([
-        {
-          id: 'tap-to-focus',
-          enabled: false,
-        },
-      ])
-    );
-
-    const { mockStream } = createMockMediaStream();
-    const videoTrack = mockStream.getVideoTracks()[0] as MediaStreamTrack & {
-      getCapabilities?: () => MediaTrackCapabilities;
-      applyConstraints?: (constraints?: MediaTrackConstraints) => Promise<void>;
-    };
-    const applyConstraints = vi.fn().mockResolvedValue(undefined);
-
-    videoTrack.getCapabilities = vi.fn(
-      () =>
-        ({ focusMode: ['continuous'], pointsOfInterest: true }) as unknown as MediaTrackCapabilities
-    );
-    videoTrack.applyConstraints = applyConstraints;
-
-    navigator.mediaDevices.getUserMedia = vi.fn().mockResolvedValue(mockStream);
-
-    render(<App />);
-
-    const user = userEvent.setup();
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    await waitFor(() => {
-      expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalled();
-    });
-
-    const video = document.querySelector('video') as HTMLVideoElement;
-    expect(video).toBeInTheDocument();
-
-    vi.spyOn(video, 'getBoundingClientRect').mockReturnValue({
-      x: 0,
-      y: 0,
-      width: 200,
-      height: 200,
-      top: 0,
-      left: 0,
-      right: 200,
-      bottom: 200,
-      toJSON: () => ({}),
-    } as DOMRect);
-
-    fireEvent.pointerDown(video, { clientX: 100, clientY: 100, pointerType: 'touch' });
-
-    await waitFor(() => {
-      expect(applyConstraints).not.toHaveBeenCalled();
-    });
   });
 });

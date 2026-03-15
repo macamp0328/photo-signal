@@ -1,7 +1,7 @@
 /**
  * Secret Settings Configuration
  *
- * Defines feature flags for the secret settings menu (triple-tap to open).
+ * Defines feature flags for the secret settings menu.
  * All recognition parameters are hardcoded with sensible defaults and
  * self-tune at runtime — no user adjustment needed.
  */
@@ -14,22 +14,6 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     name: 'Dynamic Rectangle Detection',
     description:
       'Use computer vision to automatically detect the rectangular boundaries of printed photos in the camera feed. When enabled, the system will dynamically crop to the detected photo edges instead of using fixed aspect ratio guides. Shows visual feedback when a rectangle is detected.',
-    enabled: true,
-    category: 'experimental',
-  },
-  {
-    id: 'tap-to-focus',
-    name: 'Tap to Focus',
-    description:
-      'Attempt camera focus/exposure metering near user tap when the device supports focus controls.',
-    enabled: true,
-    category: 'camera',
-  },
-  {
-    id: 'tap-guided-rectangle',
-    name: 'Tap-Guided Rectangle Detection',
-    description:
-      'Prioritize rectangle detection around the tapped preview region for faster and steadier photo alignment.',
     enabled: true,
     category: 'experimental',
   },

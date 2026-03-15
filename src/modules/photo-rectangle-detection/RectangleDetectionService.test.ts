@@ -1,76 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { RectangleDetectionService } from './RectangleDetectionService';
-import type { DetectedRectangle, RectangleRoiHint } from './types';
 
-describe('RectangleDetectionService ROI weighting', () => {
-  const invokeRoiWeight = (rect: DetectedRectangle, roiHint: RectangleRoiHint): number => {
+/**
+ * Create a minimal ImageData-like object for unit tests.
+ * Fills a width×height RGBA buffer with a uniform mid-grey value so the
+ * detection pipeline runs without finding any rectangle (blank frame).
+ */
+function makeImageData(width: number, height: number): ImageData {
+  const data = new Uint8ClampedArray(width * height * 4).fill(128);
+  return { data, width, height, colorSpace: 'srgb' } as ImageData;
+}
+
+describe('RectangleDetectionService', () => {
+  it('returns a no-detection result for a blank frame', () => {
     const service = new RectangleDetectionService();
-    const internal = service as unknown as {
-      calculateRoiWeight: (
-        rectangle: DetectedRectangle,
-        width: number,
-        height: number,
-        hint: RectangleRoiHint
-      ) => number;
-    };
+    const result = service.detectRectangle(makeImageData(64, 64));
 
-    return internal.calculateRoiWeight(rect, 100, 100, roiHint);
-  };
-
-  it('scores rectangles near tap higher than far rectangles', () => {
-    const roiHint: RectangleRoiHint = {
-      center: { x: 0.3, y: 0.3 },
-      radius: 0.25,
-      ageMs: 120,
-      lockStrength: 1,
-    };
-
-    const nearRect: DetectedRectangle = {
-      topLeft: { x: 15, y: 15 },
-      topRight: { x: 45, y: 15 },
-      bottomRight: { x: 45, y: 45 },
-      bottomLeft: { x: 15, y: 45 },
-      width: 30,
-      height: 30,
-      aspectRatio: 1,
-    };
-
-    const farRect: DetectedRectangle = {
-      topLeft: { x: 70, y: 70 },
-      topRight: { x: 95, y: 70 },
-      bottomRight: { x: 95, y: 95 },
-      bottomLeft: { x: 70, y: 95 },
-      width: 25,
-      height: 25,
-      aspectRatio: 1,
-    };
-
-    const nearScore = invokeRoiWeight(nearRect, roiHint);
-    const farScore = invokeRoiWeight(farRect, roiHint);
-
-    expect(nearScore).toBeGreaterThan(farScore);
-  });
-
-  it('does not bias when lockStrength is zero', () => {
-    const roiHint: RectangleRoiHint = {
-      center: { x: 0.1, y: 0.1 },
-      radius: 0.2,
-      ageMs: 0,
-      lockStrength: 0,
-    };
-
-    const rect: DetectedRectangle = {
-      topLeft: { x: 60, y: 60 },
-      topRight: { x: 90, y: 60 },
-      bottomRight: { x: 90, y: 90 },
-      bottomLeft: { x: 60, y: 90 },
-      width: 30,
-      height: 30,
-      aspectRatio: 1,
-    };
-
-    const score = invokeRoiWeight(rect, roiHint);
-    expect(score).toBe(1);
+    expect(result.detected).toBe(false);
+    expect(result.rectangle).toBeNull();
+    expect(result.confidence).toBe(0);
+    expect(typeof result.timestamp).toBe('number');
   });
 
   it('preserves quadrilateral corners when building rectangle geometry', () => {
@@ -132,28 +81,6 @@ describe('RectangleDetectionService ROI weighting', () => {
     ];
 
     expect(internal.orderCorners(duplicateCornerPoints)).toBeNull();
-  });
-
-  it('uses quad bounds (not topLeft+width) for ROI center/containment weighting', () => {
-    const roiHint: RectangleRoiHint = {
-      center: { x: 0.8, y: 0.8 },
-      radius: 0.25,
-      ageMs: 100,
-      lockStrength: 1,
-    };
-
-    const rotatedQuadWithOffBoundsTopLeft: DetectedRectangle = {
-      topLeft: { x: 5, y: 5 },
-      topRight: { x: 95, y: 15 },
-      bottomRight: { x: 90, y: 90 },
-      bottomLeft: { x: 15, y: 95 },
-      width: 20,
-      height: 20,
-      aspectRatio: 1,
-    };
-
-    const score = invokeRoiWeight(rotatedQuadWithOffBoundsTopLeft, roiHint);
-    expect(score).toBeGreaterThan(0.6);
   });
 
   it('returns aspectRatio 0 for degenerate zero-height quadrilateral', () => {

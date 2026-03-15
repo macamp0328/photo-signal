@@ -3,7 +3,6 @@
  */
 
 import type { AspectRatio as AspectRatioType } from '../../types';
-import type { TapIntent } from '../../types';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
 
 export type AspectRatio = AspectRatioType;
@@ -27,6 +26,4 @@ export interface CameraViewProps {
   rectangleDetectionConfidenceThreshold?: number;
   /** Show rectangle detection overlay */
   showRectangleOverlay?: boolean;
-  /** Callback when user taps/clicks preview area */
-  onTap?: (tap: TapIntent) => void;
 }

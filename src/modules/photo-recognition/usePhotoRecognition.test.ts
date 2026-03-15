@@ -209,22 +209,6 @@ describe('usePhotoRecognition', () => {
     expect(result.current).toBeDefined();
   });
 
-  it('accepts tap intent options', () => {
-    const { result } = renderHook(() =>
-      usePhotoRecognition(mockStream, {
-        tapIntent: {
-          point: { x: 0.5, y: 0.5 },
-          timestamp: Date.now(),
-          pointerType: 'touch',
-        },
-        tapRoiLockMs: 400,
-        tapRoiDecayMs: 900,
-      })
-    );
-
-    expect(result.current).toBeDefined();
-  });
-
   it('uses recognition index hashes when available', async () => {
     const originalCreateElement = document.createElement.bind(document);
 

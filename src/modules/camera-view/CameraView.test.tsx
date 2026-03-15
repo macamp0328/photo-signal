@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CameraView } from './CameraView';
 
@@ -169,44 +169,6 @@ describe('CameraView', () => {
       rerender(<CameraView stream={newMockStream} error={null} hasPermission={true} />);
 
       expect(video.srcObject).toBe(newMockStream);
-    });
-
-    it('should emit normalized tap payload on pointer down', () => {
-      const onTap = vi.fn();
-
-      const { container } = render(
-        <CameraView stream={mockStream} error={null} hasPermission={true} onTap={onTap} />
-      );
-
-      const video = container.querySelector('video') as HTMLVideoElement;
-      vi.spyOn(video, 'getBoundingClientRect').mockReturnValue({
-        x: 0,
-        y: 0,
-        width: 200,
-        height: 100,
-        top: 10,
-        left: 20,
-        right: 220,
-        bottom: 110,
-        toJSON: () => ({}),
-      } as DOMRect);
-
-      fireEvent.pointerDown(video, {
-        clientX: 120,
-        clientY: 60,
-        pointerType: 'mouse',
-      });
-
-      expect(onTap).toHaveBeenCalledTimes(1);
-      expect(onTap).toHaveBeenCalledWith(
-        expect.objectContaining({
-          pointerType: 'mouse',
-          point: {
-            x: 0.5,
-            y: 0.5,
-          },
-        })
-      );
     });
   });
 

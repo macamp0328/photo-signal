@@ -21,17 +21,20 @@ import type { PhotoRecognitionOptions } from './modules/photo-recognition/types'
 import { useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
 import { preloadRecognitionIndex } from './services/recognition-index-service';
+import {
+  getExperienceStatus,
+  getNextTrackAfterForwardAdvanceState,
+  getPlaylistStartForConcert,
+  shufflePlaylist,
+  syncPlaylistForConcert,
+  withRetryHint,
+} from './App.playback-helpers';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
   return { default: module.SecretSettings };
 });
-
-// Constants for retry guidance text
-const RETRY_HINT_TEXT = 'tap play to retry.';
-
-type ExperienceStatus = 'idle' | 'ready' | 'playing' | 'paused' | 'switch-available' | 'error';
 
 const UX_COPY = {
   status: {
@@ -54,48 +57,6 @@ const UX_COPY = {
     switchArtist: 'Switch Artist',
   },
 } as const;
-
-function getExperienceStatus({
-  hasPlaybackError,
-  hasSwitchCandidate,
-  isPlaying,
-  hasReadyMatch,
-  hasPausedTrack,
-}: {
-  hasPlaybackError: boolean;
-  hasSwitchCandidate: boolean;
-  isPlaying: boolean;
-  hasReadyMatch: boolean;
-  hasPausedTrack: boolean;
-}): ExperienceStatus {
-  if (hasPlaybackError) {
-    return 'error';
-  }
-
-  if (hasSwitchCandidate) {
-    return 'switch-available';
-  }
-
-  if (isPlaying) {
-    return 'playing';
-  }
-
-  if (hasReadyMatch) {
-    return 'ready';
-  }
-
-  if (hasPausedTrack) {
-    return 'paused';
-  }
-
-  return 'idle';
-}
-
-function withRetryHint(playbackError: string): string {
-  return playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
-    ? playbackError
-    : `${playbackError} ${UX_COPY.prompt.retrySuffix}`;
-}
 
 const DebugOverlay = lazy(async () => {
   const module = await import('./modules/debug-overlay');
@@ -158,18 +119,6 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
-/**
- * Build a shuffled playlist for an artist.
- */
-function buildPlaylist(songs: Concert[]): Concert[] {
-  const shuffledSongs = [...songs];
-  for (let i = shuffledSongs.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
-  }
-  return shuffledSongs;
-}
-
 function AppContent() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -223,19 +172,18 @@ function AppContent() {
 
   const buildPlaylistForConcert = useCallback((concert: Concert) => {
     const songs = dataService.getConcertsByBand(concert.band);
-    return buildPlaylist(songs.length > 0 ? songs : [concert]);
+    return getPlaylistStartForConcert(concert, songs);
   }, []);
 
   const startPlaylistForConcert = useCallback(
     (concert: Concert) => {
-      const newPlaylist = buildPlaylistForConcert(concert);
-      const firstSong = newPlaylist[0] ?? concert;
+      const { playlist, firstSong } = buildPlaylistForConcert(concert);
 
-      if (!firstSong.audioFile) {
+      if (!firstSong) {
         return null;
       }
 
-      playlistRef.current = newPlaylist.length > 0 ? newPlaylist : [concert];
+      playlistRef.current = playlist;
       playlistIndexRef.current = 0;
       setActivePlaylistBand(concert.band);
 
@@ -244,73 +192,41 @@ function AppContent() {
     [buildPlaylistForConcert]
   );
 
-  const syncPlaylistToConcert = useCallback(
-    (concert: Concert) => {
-      let nextPlaylist = playlistRef.current;
-      const needsRebuild =
-        nextPlaylist.length === 0 ||
-        activePlaylistBandRef.current !== concert.band ||
-        !nextPlaylist.some((song) => song.id === concert.id);
+  const syncPlaylistToConcert = useCallback((concert: Concert) => {
+    const result = syncPlaylistForConcert({
+      concert,
+      currentPlaylist: playlistRef.current,
+      activePlaylistBand: activePlaylistBandRef.current,
+      songsByBand: dataService.getConcertsByBand(concert.band),
+    });
 
-      if (needsRebuild) {
-        nextPlaylist = buildPlaylistForConcert(concert);
-      }
+    playlistRef.current = result.playlist;
+    playlistIndexRef.current = result.playlistIndex;
+    setActivePlaylistBand(result.activePlaylistBand);
 
-      let nextIndex = nextPlaylist.findIndex((song) => song.id === concert.id);
-
-      if (nextIndex === -1) {
-        nextPlaylist = [concert];
-        nextIndex = 0;
-      }
-
-      playlistRef.current = nextPlaylist;
-      playlistIndexRef.current = nextIndex;
-      setActivePlaylistBand(concert.band);
-
-      return nextPlaylist[nextIndex] ?? concert;
-    },
-    [buildPlaylistForConcert]
-  );
+    return result.concert;
+  }, []);
 
   const getNextTrackAfterForwardAdvance = useCallback(() => {
-    const currentConcert = activeConcertRef.current;
-    if (!currentConcert) {
+    const result = getNextTrackAfterForwardAdvanceState({
+      currentConcert: activeConcertRef.current,
+      currentPlaylist: playlistRef.current,
+      playlistIndex: playlistIndexRef.current,
+      activePlaylistBand: activePlaylistBandRef.current,
+      songsByBand: activeConcertRef.current
+        ? dataService.getConcertsByBand(activeConcertRef.current.band)
+        : [],
+    });
+
+    if (!result) {
       return null;
     }
 
-    let currentPlaylist = playlistRef.current;
-    const playlistHasCurrentConcert = currentPlaylist.some((song) => song.id === currentConcert.id);
-
-    if (
-      currentPlaylist.length === 0 ||
-      activePlaylistBandRef.current !== currentConcert.band ||
-      !playlistHasCurrentConcert
-    ) {
-      currentPlaylist = buildPlaylistForConcert(currentConcert);
-      const rebuiltIndex = currentPlaylist.findIndex((song) => song.id === currentConcert.id);
-
-      playlistRef.current = currentPlaylist.length > 0 ? currentPlaylist : [currentConcert];
-      playlistIndexRef.current = rebuiltIndex >= 0 ? rebuiltIndex : 0;
-      setActivePlaylistBand(currentConcert.band);
-      currentPlaylist = playlistRef.current;
-    }
-
-    if (currentPlaylist.length <= 1) {
-      return null;
-    }
-
-    const isWrap = playlistIndexRef.current >= currentPlaylist.length - 1;
-    if (isWrap) {
-      const reshuffledPlaylist = buildPlaylist(currentPlaylist);
-      playlistRef.current = reshuffledPlaylist;
-      playlistIndexRef.current = 0;
-      return reshuffledPlaylist[0] ?? null;
-    }
-
-    const nextIndex = playlistIndexRef.current + 1;
-    playlistIndexRef.current = nextIndex;
-    return currentPlaylist[nextIndex] ?? null;
-  }, [buildPlaylistForConcert]);
+    playlistRef.current = result.playlist;
+    playlistIndexRef.current = result.playlistIndex;
+    setActivePlaylistBand(result.activePlaylistBand);
+    return result.nextSong;
+  }, []);
 
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
@@ -574,7 +490,7 @@ function AppContent() {
         (playlistIndexRef.current + indexDelta + currentPlaylist.length) % currentPlaylist.length;
 
       if (forwardWrap) {
-        workingPlaylist = buildPlaylist(currentPlaylist);
+        workingPlaylist = shufflePlaylist(currentPlaylist);
         playlistRef.current = workingPlaylist;
         nextIndex = 0;
       }
@@ -907,7 +823,7 @@ function AppContent() {
   const statusLabel = UX_COPY.status[experienceStatus];
 
   const promptText = playbackError
-    ? withRetryHint(playbackError)
+    ? withRetryHint(playbackError, UX_COPY.prompt.retrySuffix)
     : experienceStatus === 'switch-available' && dropNeedleConcert
       ? UX_COPY.prompt['switch-available'](dropNeedleConcert.band)
       : experienceStatus === 'ready'

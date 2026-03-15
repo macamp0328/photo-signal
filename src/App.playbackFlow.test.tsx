@@ -697,6 +697,26 @@ describe('App playback flow', () => {
     expect(matchedPhotoButton).toHaveFocus();
   });
 
+  it('traps Tab focus inside the zoom dialog', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await user.click(matchedPhotoButton);
+
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(closeButton, { key: 'Tab' });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(closeButton, { key: 'Tab', shiftKey: true });
+    expect(closeButton).toHaveFocus();
+  });
+
   it('closes zoom dialog on backdrop click', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;

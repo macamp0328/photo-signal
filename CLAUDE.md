@@ -333,9 +333,10 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
   understand the data model instead.
 - Browser APIs (camera, canvas, audio) are not available in tests — always use mocks from
   `src/test/mocks.ts`.
-- The `scripts/` directory contains Node.js scripts (CommonJS-style `.js` files), not TypeScript —
-  different lint rules apply.
+- The `scripts/` directory contains Node.js ESM `.js` files (the repo uses `"type": "module"`), not
+  TypeScript — different lint rules apply and `require()` is not available.
 - CSS Modules generate scoped class names at build time — reference styles via
   `import styles from './Foo.module.css'`.
-- The Vite build copies test assets from `assets/` to `public/assets/` via a custom plugin in
-  `vite.config.ts`.
+- The `assets/` directory contains test data (images, audio samples). Vite serves `public/`
+  statically; `assets/` is not automatically copied by the build — reference test assets by their
+  source path in tests.

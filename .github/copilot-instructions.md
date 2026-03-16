@@ -205,6 +205,8 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
 
 - `data.app.v2.json` is large — don't read it directly; use `src/services/data-service.ts`.
 - Browser APIs (camera, canvas, audio) are not available in tests — use mocks from `src/test/mocks.ts`.
-- `scripts/` are CommonJS `.js` files, not TypeScript — different lint rules apply.
+- `scripts/` are ESM `.js` files (repo uses `"type": "module"`), not TypeScript — different lint rules
+  apply and `require()` is not available.
 - CSS Modules generate scoped class names at build time — use `import styles from './Foo.module.css'`.
-- The Vite build copies `assets/` → `public/assets/` via a custom plugin in `vite.config.ts`.
+- The `assets/` directory contains test data. Vite serves `public/` statically; `assets/` is not
+  automatically copied by the build — reference test assets by their source path in tests.

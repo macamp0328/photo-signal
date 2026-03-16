@@ -60,6 +60,7 @@
     "audio:phase:build-data": "node scripts/audio-workflow/run-clean-slate.js --from=build-data --to=build-data",
     "audio:phase:apply-cdn": "node scripts/audio-workflow/run-clean-slate.js --from=build-data --to=build-data",
     "audio:phase:validate": "node scripts/audio-workflow/run-clean-slate.js --from=validate --to=validate",
+    "generate-favicons": "node scripts/generate-favicons.js",
     "pre-commit:steps": "npm run lint:fix && npm run format && npm run type-check && npm run test:run && npm run build && ./scripts/check-bundle-size.sh",
     "pre-commit": "cross-env CI=1 TERM=dumb npm_config_yes=true npm run pre-commit:steps",
     "prepare": "husky"

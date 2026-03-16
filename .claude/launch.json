@@ -5,7 +5,14 @@
       "name": "photo-signal",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview"],
-      "port": 4173
+      "port": 4173,
+      "autoPort": true
+    },
+    {
+      "name": "dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "5180"],
+      "port": 5180
     }
   ]
 }

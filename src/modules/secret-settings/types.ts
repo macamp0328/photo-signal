@@ -18,6 +18,11 @@ export interface SecretSettingsProps {
    * Callback to close the settings page
    */
   onClose: () => void;
+
+  /**
+   * Optional handler for forcing a photo match — simulates recognition for testing
+   */
+  onForceMatch?: () => void;
 }
 
 /**

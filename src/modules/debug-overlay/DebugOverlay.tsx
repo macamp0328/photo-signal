@@ -18,7 +18,6 @@ export function DebugOverlay({
   debugInfo,
   onReset,
   testAudioUrl,
-  onForceMatch,
 }: DebugOverlayProps) {
   const [status, setStatus] = useState<RecognitionStatus>('IDLE');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -241,21 +240,6 @@ export function DebugOverlay({
                   </button>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Force Match */}
-          {onForceMatch && (
-            <div className={styles.section}>
-              <div className={styles.label}>Force Match</div>
-              <button
-                type="button"
-                className={styles.testButton}
-                onClick={onForceMatch}
-                aria-label="Force photo match"
-              >
-                Force Match
-              </button>
             </div>
           )}
         </>

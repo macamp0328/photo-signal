@@ -432,4 +432,35 @@ describe('SecretSettings', () => {
       }
     });
   });
+
+  describe('Force Match Button', () => {
+    it('should not render Force Match button when onForceMatch is not provided', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} />);
+
+      expect(
+        screen.queryByRole('button', { name: /force a photo match for testing/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it('should render Force Match button when onForceMatch is provided', () => {
+      render(<SecretSettings isVisible={true} onClose={vi.fn()} onForceMatch={vi.fn()} />);
+
+      expect(
+        screen.getByRole('button', { name: /force a photo match for testing/i })
+      ).toBeInTheDocument();
+    });
+
+    it('should call onForceMatch and onClose when Force Match button is clicked', async () => {
+      const user = userEvent.setup();
+      const onForceMatch = vi.fn();
+      const onClose = vi.fn();
+
+      render(<SecretSettings isVisible={true} onClose={onClose} onForceMatch={onForceMatch} />);
+
+      await user.click(screen.getByRole('button', { name: /force a photo match for testing/i }));
+
+      expect(onForceMatch).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
 });

@@ -156,7 +156,7 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
  * />
  * ```
  */
-export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
+export function SecretSettings({ isVisible, onClose, onForceMatch }: SecretSettingsProps) {
   const { flags, toggleFlag, handleSendIt } = useSecretSettingsController(onClose);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -261,6 +261,23 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
           </div>
 
           <FeatureFlagsSection flags={flags} onToggleFlag={toggleFlag} />
+
+          {onForceMatch && (
+            <section className={styles.section}>
+              <button
+                type="button"
+                className={styles.sendItButton}
+                aria-label="Force a photo match for testing"
+                onClick={() => {
+                  onForceMatch();
+                  onClose();
+                }}
+              >
+                Force Match 🎯
+              </button>
+            </section>
+          )}
+
           <SaveAndReloadSection onSaveAndReload={handleSendIt} />
         </div>
       </div>

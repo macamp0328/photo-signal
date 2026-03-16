@@ -31,6 +31,4 @@ export interface DebugOverlayProps {
   onReset?: () => void;
   /** Audio URL to use for the Test Song diagnostic button */
   testAudioUrl?: string | null;
-  /** Handler for the Force Match button — simulates a photo match */
-  onForceMatch?: () => void;
 }

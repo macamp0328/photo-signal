@@ -270,30 +270,6 @@ describe('DebugOverlay', () => {
     });
   });
 
-  describe('Force Match Button', () => {
-    it('should show Force Match button when onForceMatch is provided', () => {
-      const onForceMatch = vi.fn();
-      render(<DebugOverlay {...defaultProps} onForceMatch={onForceMatch} />);
-
-      expect(screen.getByLabelText('Force photo match')).toBeInTheDocument();
-    });
-
-    it('should not show Force Match button when onForceMatch is not provided', () => {
-      render(<DebugOverlay {...defaultProps} />);
-
-      expect(screen.queryByText('Force Match')).not.toBeInTheDocument();
-    });
-
-    it('should call onForceMatch when Force Match button is clicked', () => {
-      const onForceMatch = vi.fn();
-      render(<DebugOverlay {...defaultProps} onForceMatch={onForceMatch} />);
-
-      fireEvent.click(screen.getByLabelText('Force photo match'));
-
-      expect(onForceMatch).toHaveBeenCalledOnce();
-    });
-  });
-
   describe('Edge Cases', () => {
     it('should handle all null/undefined fields gracefully', () => {
       const minimalDebugInfo: RecognitionDebugInfo = {

@@ -9,7 +9,7 @@
     to top,
     color-mix(in srgb, var(--color-background), #000 28%) 0%,
     color-mix(in srgb, var(--color-accent), transparent 92%) 55%,
-    rgba(0, 0, 0, 0) 100%
+    color-mix(in srgb, var(--color-accent), transparent 100%) 100%
   );
   display: flex;
   flex-direction: row;

@@ -17,31 +17,32 @@ body {
 
 /* CSS Variables for Custom Colors */
 :root {
-  /* Backstage Pass: credential-inspired dark palette with concert warmth. */
-  --color-main-text: #ffd166;
-  --color-sub-text: #ff9f50;
-  --color-bonus-text: #d06c3c;
-  --color-sub-background: #2a1312;
-  --color-background: #170907;
-  --color-text: #ffd166;
-  --color-accent: #2dd4bf;
-  --color-accent-light: #6ee7d8;
-  --color-accent-hover: #5de4d2;
-  --color-text-muted: #c58a66;
+  /* Amber broadcast palette — warm amber on near-black. */
+  --color-main-text: #d4892a;
+  --color-sub-text: #b87020;
+  --color-bonus-text: #7a4a14;
+  --color-sub-background: #130900;
+  --color-background: #0a0800;
+  --color-text: #d4892a;
+  --color-accent: #d4892a;
+  --color-accent-light: #e8a040;
+  --color-accent-hover: #e09030;
+  --color-text-muted: #6a3e10;
 
-  --bg-gradient-top: rgba(255, 107, 44, 0.2);
-  --bg-gradient-bottom: rgba(45, 212, 191, 0.15);
+  --bg-gradient-top: rgba(212, 137, 42, 0.16);
+  --bg-gradient-top-clear: rgba(212, 137, 42, 0);
+  --bg-gradient-bottom: transparent;
   --texture-image: url('/backgrounds/gravel.svg');
-  --signal-glow: rgba(255, 209, 102, 0.34);
-  --signal-glow-soft: rgba(45, 212, 191, 0.2);
+  --signal-glow: rgba(212, 137, 42, 0.34);
+  --signal-glow-soft: rgba(212, 137, 42, 0.14);
 
   /* Interactive element colors */
-  --color-button-bg: #ffd166;
-  --color-button-text: #170907;
-  --color-button-hover-bg: #ffffff;
-  --color-button-hover-text: #170907;
-  --color-button-disabled-bg: #2d1a15;
-  --color-button-disabled-text: #7a4d3e;
+  --color-button-bg: #d4892a;
+  --color-button-text: #0a0800;
+  --color-button-hover-bg: #e8a040;
+  --color-button-hover-text: #0a0800;
+  --color-button-disabled-bg: #1c0f00;
+  --color-button-disabled-text: #4a2e08;
 
   /* Semantic colors (kept functional) */
   --color-error: #ef4444;
@@ -53,16 +54,16 @@ body {
   --color-gray-400: #9ca3af;
 
   /* Focus indicators - WCAG compliant */
-  --color-focus: #ffd166;
-  --focus-ring-color: #ffd166;
+  --color-focus: #d4892a;
+  --focus-ring-color: #d4892a;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-style: solid;
 
   /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(17, 4, 4, 0.9);
-  --modal-bg: #24100f;
-  --modal-border: rgba(255, 209, 102, 0.2);
+  --overlay-bg: rgba(10, 8, 0, 0.9);
+  --modal-bg: #130900;
+  --modal-border: rgba(212, 137, 42, 0.2);
 
   /* Texture settings */
   --texture-opacity: 0.1;
@@ -84,7 +85,7 @@ body {
 
   /* CRT effect controls */
   --crt-opacity: 1;
-  --crt-glow-color: rgba(255, 209, 102, 0.28);
+  --crt-glow-color: rgba(212, 137, 42, 0.28);
 
   /* Era poster palette vars — overridden by JS when a concert is matched */
   --poster-bg: #0a0800;
@@ -110,6 +111,7 @@ html[data-state='matched'] {
   --modal-border: color-mix(in srgb, var(--poster-accent), transparent 55%);
   --overlay-bg: color-mix(in srgb, var(--poster-bg), #000 15%);
   --bg-gradient-top: transparent;
+  --bg-gradient-top-clear: transparent;
   --bg-gradient-bottom: transparent;
   --texture-image: none;
   --texture-opacity: 0;
@@ -118,6 +120,8 @@ html[data-state='matched'] {
   --color-button-text: var(--poster-bg);
   --color-button-hover-bg: color-mix(in srgb, var(--poster-primary), #fff 20%);
   --color-button-hover-text: var(--poster-bg);
+  --signal-glow: color-mix(in srgb, var(--poster-primary), transparent 66%);
+  --signal-glow-soft: color-mix(in srgb, var(--poster-primary), transparent 86%);
   --crt-opacity: 0;
   --crt-glow-color: transparent;
   --font-family:
@@ -132,7 +136,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   background:
-    radial-gradient(120% 60% at 15% 0%, var(--bg-gradient-top), transparent 58%),
+    radial-gradient(120% 75% at 15% 0%, var(--bg-gradient-top), var(--bg-gradient-top-clear) 65%),
     radial-gradient(90% 60% at 85% 100%, var(--bg-gradient-bottom), transparent 60%),
     var(--color-background);
   color: var(--color-text);

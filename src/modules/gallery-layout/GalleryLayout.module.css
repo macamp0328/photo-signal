@@ -13,18 +13,17 @@
 .landing::before {
   content: '';
   position: absolute;
-  inset: -12% -8% auto -8%;
-  height: 42%;
+  inset: -12% -8% 0 -8%;
   background:
     radial-gradient(
-      circle at 18% 50%,
+      circle at 18% 28%,
       color-mix(in srgb, var(--color-accent), transparent 72%),
-      transparent 60%
+      color-mix(in srgb, var(--color-accent), transparent 100%) 55%
     ),
     radial-gradient(
-      circle at 82% 45%,
+      circle at 82% 22%,
       color-mix(in srgb, var(--color-main-text), transparent 78%),
-      transparent 58%
+      color-mix(in srgb, var(--color-main-text), transparent 100%) 50%
     );
   pointer-events: none;
   z-index: 0;

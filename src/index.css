@@ -30,6 +30,7 @@ body {
   --color-text-muted: #6a3e10;
 
   --bg-gradient-top: rgba(212, 137, 42, 0.16);
+  --bg-gradient-top-clear: rgba(212, 137, 42, 0);
   --bg-gradient-bottom: transparent;
   --texture-image: url('/backgrounds/gravel.svg');
   --signal-glow: rgba(212, 137, 42, 0.34);
@@ -110,6 +111,7 @@ html[data-state='matched'] {
   --modal-border: color-mix(in srgb, var(--poster-accent), transparent 55%);
   --overlay-bg: color-mix(in srgb, var(--poster-bg), #000 15%);
   --bg-gradient-top: transparent;
+  --bg-gradient-top-clear: transparent;
   --bg-gradient-bottom: transparent;
   --texture-image: none;
   --texture-opacity: 0;
@@ -132,7 +134,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   background:
-    radial-gradient(120% 60% at 15% 0%, var(--bg-gradient-top), transparent 58%),
+    radial-gradient(120% 75% at 15% 0%, var(--bg-gradient-top), var(--bg-gradient-top-clear) 65%),
     radial-gradient(90% 60% at 85% 100%, var(--bg-gradient-bottom), transparent 60%),
     var(--color-background);
   color: var(--color-text);

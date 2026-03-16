@@ -988,6 +988,7 @@ function AppContent() {
             onClose={() => {
               setShowSecretSettings(false);
             }}
+            onForceMatch={handleForceMatch}
           />
         </Suspense>
       )}
@@ -1001,7 +1002,6 @@ function AppContent() {
             onReset={resetRecognition}
             onVisibilityChange={setIsDebugOverlayVisible}
             testAudioUrl={testAudioUrl}
-            onForceMatch={handleForceMatch}
           />
         </Suspense>
       )}

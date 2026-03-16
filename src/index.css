@@ -120,6 +120,8 @@ html[data-state='matched'] {
   --color-button-text: var(--poster-bg);
   --color-button-hover-bg: color-mix(in srgb, var(--poster-primary), #fff 20%);
   --color-button-hover-text: var(--poster-bg);
+  --signal-glow: color-mix(in srgb, var(--poster-primary), transparent 66%);
+  --signal-glow-soft: color-mix(in srgb, var(--poster-primary), transparent 86%);
   --crt-opacity: 0;
   --crt-glow-color: transparent;
   --font-family:

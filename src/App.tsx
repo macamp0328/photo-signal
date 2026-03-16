@@ -22,7 +22,7 @@ import type { PhotoRecognitionOptions } from './modules/photo-recognition/types'
 import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
 import { preloadRecognitionIndex } from './services/recognition-index-service';
-import { isDemoNoAudioFadeEnabled } from './utils/demoMode';
+import { isDemoCaptureEnabled } from './utils/demoMode';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -335,7 +335,7 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const demoNoAudioFade = isDemoNoAudioFadeEnabled();
+  const demoNoAudioFade = isDemoCaptureEnabled();
   const {
     play,
     pause,
@@ -349,7 +349,7 @@ function AppContent() {
   } = useAudioPlayback({
     volume: 1.0,
     fadeTime: demoNoAudioFade ? 150 : 1000,
-    crossfadeDuration: demoNoAudioFade ? 150 : 1000,
+    crossfadeDuration: demoNoAudioFade ? 150 : undefined,
     onSongEnd: () => {
       if (userPausedRef.current) return;
       const currentPlaylist = playlistRef.current;

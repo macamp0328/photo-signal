@@ -38,8 +38,8 @@ const TEST_LANDING_DURATION_MS = 500;
 const TEST_MATCH_HOLD_MS = 1000;
 
 // ── Internal Limits ──────────────────────────────────────────────────────────
-const MIN_STORY_FRAMES = 900; // safety cap: full demo at ~700 frames expected
-const MIN_TEST_FRAMES = 150; // safety cap: fast test at ~110 frames expected
+const MAX_STORY_FRAMES = 900; // capture cap: full demo at ~700 frames expected
+const MAX_TEST_FRAMES = 150; // capture cap: fast test at ~110 frames expected
 const MIN_MAX_VOLUME_DB = -80; // test mode MP4 audio loudness gate (dB)
 
 // ── Path Constants ───────────────────────────────────────────────────────────
@@ -750,8 +750,10 @@ async function captureUntil(controls, condition, timeoutMs) {
 }
 
 /**
- * Injects a static tap indicator dot at the element's center, captures ~500ms
- * with the dot fully visible, removes it, then performs the click.
+ * Performs the click immediately, then injects a static tap indicator dot at
+ * the element's center and captures ~500ms with it visible, then removes it.
+ * Click-first order ensures Howler responds without delay — visible tap appears
+ * over the audio response.
  *
  * No CSS transitions — Playwright headless captures snapshots between rAF ticks
  * so transition-based animation is invisible. Falls back to plain .click() if
@@ -1946,7 +1948,7 @@ async function captureDemoFrames(options) {
     await page.getByRole('heading', { name: /photo signal/i }).waitFor({ timeout: 10000 });
 
     // 9. Build controls object for story helpers
-    const maxFrames = testMode ? MIN_TEST_FRAMES : MIN_STORY_FRAMES;
+    const maxFrames = testMode ? MAX_TEST_FRAMES : MAX_STORY_FRAMES;
     const controls = {
       page,
       frameRef: { current: 0 },
@@ -2010,6 +2012,10 @@ async function captureDemoFrames(options) {
       console.warn('⚠️  No audio captured — MP4 will be silent');
     }
 
+    // Capture the video object reference before closing — Playwright finalises the
+    // file when the context closes, and page.video() returns null after page.close().
+    const pageVideo = page.video();
+
     // Close browser — Playwright writes the .webm video file on context.close()
     await page.close().catch(() => null);
     page = null;
@@ -2017,14 +2023,11 @@ async function captureDemoFrames(options) {
     context = null;
     await browser.close();
 
-    // Read video path after context is closed (Playwright finishes writing then)
-    if (fs.existsSync(VIDEO_OUTPUT_DIR)) {
-      const videoFiles = fs
-        .readdirSync(VIDEO_OUTPUT_DIR)
-        .filter((file) => file.endsWith('.webm') && !file.startsWith('demo-audio-capture'));
-      if (videoFiles.length > 0) {
-        rawVideoPath = path.join(VIDEO_OUTPUT_DIR, videoFiles[0]);
-      }
+    // Resolve the exact recording path now that the context is closed and the
+    // file is finalised. page.video().path() is more reliable than scanning the
+    // directory, which depends on filesystem ordering and naming assumptions.
+    if (pageVideo) {
+      rawVideoPath = await pageVideo.path().catch(() => null);
     }
 
     // Compute the audio offset: time from recording start to when audio capture began.

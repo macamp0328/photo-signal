@@ -45,6 +45,7 @@ vi.mock('howler', () => {
     private durationMs: number;
 
     public static instances: MockHowl[] = [];
+    public html5: boolean;
 
     public play: ReturnType<typeof vi.fn>;
     public pause: ReturnType<typeof vi.fn>;
@@ -64,6 +65,7 @@ vi.mock('howler', () => {
       } & HowlCallbacks
     ) {
       this._volume = options.volume ?? 1.0;
+      this.html5 = options.html5 ?? true;
       this._callbacks = options;
       MockHowl.instances.push(this);
       this.seekPosition = 0;
@@ -163,6 +165,7 @@ interface MockHowlInstance {
   __triggerStop: () => void;
   __triggerLoadError: (error?: unknown) => void;
   __triggerPlayError: (error?: unknown) => void;
+  html5: boolean;
 }
 
 type MockedHowlClass = typeof Howl & { instances: MockHowlInstance[] };
@@ -1154,6 +1157,37 @@ describe('useAudioPlayback', () => {
 
       // Volume should remain at initial level
       expect(result.current.volume).toBe(0.6);
+    });
+  });
+
+  describe('Demo Capture Mode', () => {
+    afterEach(() => {
+      window.localStorage.removeItem('photo-signal-demo-no-audio-fade');
+    });
+
+    it('should use html5: false (WebAudio) when demo capture flag is set', () => {
+      window.localStorage.setItem('photo-signal-demo-no-audio-fade', 'true');
+      const { result } = renderHook(() => useAudioPlayback({ volume: 1.0 }));
+
+      act(() => {
+        result.current.play('/audio/demo.opus');
+      });
+
+      const instances = getMockedHowlClass().instances;
+      expect(instances.length).toBeGreaterThan(0);
+      expect(instances[0].html5).toBe(false);
+    });
+
+    it('should use html5: true (HTML5 Audio) when demo capture flag is not set', () => {
+      const { result } = renderHook(() => useAudioPlayback({ volume: 1.0 }));
+
+      act(() => {
+        result.current.play('/audio/normal.opus');
+      });
+
+      const instances = getMockedHowlClass().instances;
+      expect(instances.length).toBeGreaterThan(0);
+      expect(instances[0].html5).toBe(true);
     });
   });
 });

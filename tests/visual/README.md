@@ -58,8 +58,8 @@ npm run test:visual:report
 # Regenerate README demo GIF from scripted camera + match flow
 npm run demo:gif
 
-# Faster local iteration (reuses existing build)
-npm run demo:gif:quick
+# Fast test story (single target, skips unchanged build if server is running)
+npm run demo:gif:test
 ```
 
 Prerequisites for GIF generation:

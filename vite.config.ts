@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       host: true,
-      port: parseInt(process.env.PORT ?? '5173'),
+      port: parseInt(process.env.PORT ?? '', 10) || 5173,
     },
   };
 });

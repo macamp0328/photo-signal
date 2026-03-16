@@ -1,5 +1,5 @@
 /**
- * Returns true when the demo-mode localStorage flag is set.
+ * Returns true when the demo-capture localStorage flag is set.
  *
  * The flag is written by the Playwright demo-capture script
  * (`scripts/visual/generate-demo-gif.js`) via `addInitScript` so it is
@@ -12,7 +12,7 @@
  * Safe to call in any environment: returns false if `window` or
  * `localStorage` are unavailable (SSR, tests without mocks, etc.).
  */
-export function isDemoNoAudioFadeEnabled(): boolean {
+export function isDemoCaptureEnabled(): boolean {
   if (typeof window === 'undefined' || !('localStorage' in window)) {
     return false;
   }

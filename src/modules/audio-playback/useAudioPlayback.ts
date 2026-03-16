@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import * as howlerModule from 'howler';
 import type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
 import { diagnoseAudioUrl } from './diagnoseAudioUrl';
-import { isDemoNoAudioFadeEnabled } from '../../utils/demoMode';
+import { isDemoCaptureEnabled } from '../../utils/demoMode';
 
 const { Howl } = howlerModule;
 
@@ -115,14 +115,12 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     const diagCache = diagnosticCacheRef.current;
 
     let demoHowlerExposed = false;
-    if (typeof window !== 'undefined') {
+    if (isDemoCaptureEnabled()) {
       try {
-        if (window.localStorage.getItem('photo-signal-demo-no-audio-fade') === 'true') {
-          const howlerGlobal = getHowlerGlobalObject();
-          if (howlerGlobal) {
-            Reflect.set(window as object, '__photoSignalHowler', howlerGlobal);
-            demoHowlerExposed = true;
-          }
+        const howlerGlobal = getHowlerGlobalObject();
+        if (howlerGlobal) {
+          Reflect.set(window as object, '__photoSignalHowler', howlerGlobal);
+          demoHowlerExposed = true;
         }
       } catch {
         // Ignore demo helper setup failures
@@ -343,7 +341,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const createSound = useCallback(
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
-      const useHtml5Audio = !isDemoNoAudioFadeEnabled();
+      const useHtml5Audio = !isDemoCaptureEnabled();
       const sound = new Howl({
         src: [url],
         html5: useHtml5Audio,

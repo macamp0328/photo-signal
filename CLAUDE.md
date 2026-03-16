@@ -13,7 +13,7 @@
 npm run pre-commit
 ```
 
-This runs lint, format, type-check, tests, and build. If ANY step fails, fix it before committing.
+This runs lint, format, type-check, tests, build, and a final bundle size check. If ANY step fails, fix it before committing.
 Do NOT use `--no-verify` to skip hooks. This is the single most important rule in this file.
 
 A husky pre-commit hook enforces this automatically, but run it manually too — the hook is your safety

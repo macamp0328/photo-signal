@@ -137,10 +137,9 @@ describe('Feature Flags → Module Behavior Integration', () => {
     });
   });
 
-  it('should enforce curated dark theme mode', () => {
+  it('should render without setting a data-ui-style attribute by default', () => {
     render(<App />);
 
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });

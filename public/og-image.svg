@@ -1,45 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a202c;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2d3748;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
   <!-- Background -->
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  
-  <!-- Camera Icon (centered) -->
-  <g transform="translate(500, 215)">
-    <!-- Camera body -->
-    <rect x="0" y="35" width="120" height="90" rx="8" fill="#4a5568"/>
-    
-    <!-- Camera lens -->
-    <circle cx="60" cy="80" r="30" fill="#1a202c"/>
-    <circle cx="60" cy="80" r="24" fill="#2d3748"/>
-    <circle cx="60" cy="80" r="16" fill="#4a5568"/>
-    
-    <!-- Viewfinder -->
-    <rect x="20" y="15" width="80" height="16" rx="4" fill="#4a5568"/>
-    
-    <!-- Flash -->
-    <circle cx="100" cy="50" r="6" fill="#ed8936"/>
-    
-    <!-- Lens highlight -->
-    <circle cx="52" cy="72" r="6" fill="#cbd5e0" opacity="0.6"/>
+  <rect width="1200" height="630" fill="#0a0800"/>
+
+  <!-- Subtle scan-line texture -->
+  <defs>
+    <pattern id="scanlines" x="0" y="0" width="1200" height="4" patternUnits="userSpaceOnUse">
+      <rect width="1200" height="1" y="0" fill="#d4892a" opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#scanlines)"/>
+
+  <!-- Signal icon (left side) — photo as signal source -->
+  <g transform="translate(192, 160)">
+    <!-- Outer arc -->
+    <path d="M -134 240 A 134 134 0 0 0 134 240" fill="none" stroke="#d4892a" stroke-width="14" stroke-linecap="round" opacity="0.35"/>
+    <!-- Middle arc -->
+    <path d="M -96 240 A 96 96 0 0 0 96 240" fill="none" stroke="#d4892a" stroke-width="18" stroke-linecap="round" opacity="0.65"/>
+    <!-- Inner arc — endpoints align with photo top corners -->
+    <path d="M -57 240 A 57 57 0 0 0 57 240" fill="none" stroke="#d4892a" stroke-width="22" stroke-linecap="round"/>
+    <!-- Photo frame -->
+    <rect x="-57" y="240" width="114" height="84" rx="5" fill="#130c00" stroke="#d4892a" stroke-width="8"/>
+    <!-- Photo interior: horizon line -->
+    <line x1="-46" y1="295" x2="46" y2="295" stroke="#d4892a" stroke-width="3" opacity="0.4"/>
+    <!-- Photo interior: sun/subject circle -->
+    <circle cx="0" cy="273" r="14" fill="none" stroke="#d4892a" stroke-width="3" opacity="0.4"/>
   </g>
-  
-  <!-- Text -->
-  <text x="600" y="450" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700" fill="#ffffff" text-anchor="middle">
+
+  <!-- Divider -->
+  <line x1="430" y1="160" x2="430" y2="470" stroke="#d4892a" stroke-width="1" opacity="0.2"/>
+
+  <!-- Main title -->
+  <text x="490" y="320" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="96" font-weight="900" fill="#d4892a" letter-spacing="-2">
     Photo Signal
   </text>
-  <text x="600" y="500" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#cbd5e0" text-anchor="middle">
-    Camera-Based Music Gallery
+
+  <!-- Tagline -->
+  <text x="490" y="385" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="32" font-weight="400" fill="#d4892a" opacity="0.55" letter-spacing="2">
+    Still Broadcasting.
   </text>
-  
-  <!-- Decorative elements -->
-  <circle cx="200" cy="150" r="4" fill="#ed8936" opacity="0.6"/>
-  <circle cx="1000" cy="480" r="4" fill="#ed8936" opacity="0.6"/>
-  <circle cx="150" cy="500" r="3" fill="#4299e1" opacity="0.5"/>
-  <circle cx="1050" cy="180" r="3" fill="#4299e1" opacity="0.5"/>
+
+  <!-- Bottom metadata -->
+  <text x="490" y="460" font-family="ui-monospace, 'SF Mono', 'Menlo', monospace" font-size="18" fill="#d4892a" opacity="0.3" letter-spacing="3">
+    CAMERA-BASED MUSIC GALLERY
+  </text>
 </svg>

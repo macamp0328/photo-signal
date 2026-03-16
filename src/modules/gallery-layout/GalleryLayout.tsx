@@ -47,7 +47,28 @@ export function GalleryLayout({
         onClick={onSettingsClick}
         aria-label="Open settings"
       >
-        ⚙
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="6.25" />
+          <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+          <path d="M12 2.5v2.3" />
+          <path d="M12 19.2v2.3" />
+          <path d="M2.5 12h2.3" />
+          <path d="M19.2 12h2.3" />
+          <path d="m5.3 5.3 1.7 1.7" />
+          <path d="m17 17 1.7 1.7" />
+          <path d="m18.7 5.3-1.7 1.7" />
+          <path d="m7 17-1.7 1.7" />
+        </svg>
       </button>
 
       <div className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''}`}>

@@ -17,25 +17,31 @@ body {
 
 /* CSS Variables for Custom Colors */
 :root {
-  /* Dead Signal palette — amber phosphor on near-black (WCAG AA: ~7.5:1) */
-  --color-main-text: #d4892a;
-  --color-sub-text: #a06228;
-  --color-bonus-text: #785018;
-  --color-sub-background: #130c00;
-  --color-background: #0a0800;
-  --color-text: #d4892a;
-  --color-accent: #b87020;
-  --color-accent-light: #d4892a;
-  --color-accent-hover: #e09830;
-  --color-text-muted: #9a6030;
+  /* Backstage Pass: credential-inspired dark palette with concert warmth. */
+  --color-main-text: #ffd166;
+  --color-sub-text: #ff9f50;
+  --color-bonus-text: #d06c3c;
+  --color-sub-background: #2a1312;
+  --color-background: #170907;
+  --color-text: #ffd166;
+  --color-accent: #2dd4bf;
+  --color-accent-light: #6ee7d8;
+  --color-accent-hover: #5de4d2;
+  --color-text-muted: #c58a66;
+
+  --bg-gradient-top: rgba(255, 107, 44, 0.2);
+  --bg-gradient-bottom: rgba(45, 212, 191, 0.15);
+  --texture-image: url('/backgrounds/gravel.svg');
+  --signal-glow: rgba(255, 209, 102, 0.34);
+  --signal-glow-soft: rgba(45, 212, 191, 0.2);
 
   /* Interactive element colors */
-  --color-button-bg: #f0ead8;
-  --color-button-text: #0a0800;
+  --color-button-bg: #ffd166;
+  --color-button-text: #170907;
   --color-button-hover-bg: #ffffff;
-  --color-button-hover-text: #0a0800;
-  --color-button-disabled-bg: #1a1200;
-  --color-button-disabled-text: #4a2e08;
+  --color-button-hover-text: #170907;
+  --color-button-disabled-bg: #2d1a15;
+  --color-button-disabled-text: #7a4d3e;
 
   /* Semantic colors (kept functional) */
   --color-error: #ef4444;
@@ -47,20 +53,20 @@ body {
   --color-gray-400: #9ca3af;
 
   /* Focus indicators - WCAG compliant */
-  --color-focus: #d4892a;
-  --focus-ring-color: #d4892a;
+  --color-focus: #ffd166;
+  --focus-ring-color: #ffd166;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-style: solid;
 
   /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(5, 3, 0, 0.92);
-  --modal-bg: #130c00;
-  --modal-border: rgba(212, 137, 42, 0.2);
+  --overlay-bg: rgba(17, 4, 4, 0.9);
+  --modal-bg: #24100f;
+  --modal-border: rgba(255, 209, 102, 0.2);
 
   /* Texture settings */
-  --texture-opacity: 0.15;
-  --texture-blend-mode: multiply;
+  --texture-opacity: 0.1;
+  --texture-blend-mode: overlay;
 
   /* Fluid spacing - scales with viewport width */
   --spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -71,16 +77,14 @@ body {
   --spacing-2xl: clamp(2rem, 4vw, 3rem);
 
   /* Typography */
-  --font-family:
-    ui-monospace, 'SF Mono', 'Menlo', 'Monaco', 'Cascadia Code', 'Consolas', 'Courier New',
-    monospace;
+  --font-family: 'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
   --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
   --border-radius: 8px;
   --shadow-size: 10px;
 
   /* CRT effect controls */
   --crt-opacity: 1;
-  --crt-glow-color: rgba(212, 137, 42, 0.35);
+  --crt-glow-color: rgba(255, 209, 102, 0.28);
 
   /* Era poster palette vars — overridden by JS when a concert is matched */
   --poster-bg: #0a0800;
@@ -105,6 +109,11 @@ html[data-state='matched'] {
   --modal-bg: var(--poster-bg);
   --modal-border: color-mix(in srgb, var(--poster-accent), transparent 55%);
   --overlay-bg: color-mix(in srgb, var(--poster-bg), #000 15%);
+  --bg-gradient-top: transparent;
+  --bg-gradient-bottom: transparent;
+  --texture-image: none;
+  --texture-opacity: 0;
+  --texture-blend-mode: normal;
   --color-button-bg: var(--poster-primary);
   --color-button-text: var(--poster-bg);
   --color-button-hover-bg: color-mix(in srgb, var(--poster-primary), #fff 20%);
@@ -122,7 +131,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-  background: var(--color-background);
+  background:
+    radial-gradient(120% 60% at 15% 0%, var(--bg-gradient-top), transparent 58%),
+    radial-gradient(90% 60% at 85% 100%, var(--bg-gradient-bottom), transparent 60%),
+    var(--color-background);
   color: var(--color-text);
   position: relative;
   transition:
@@ -141,7 +153,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/backgrounds/gravel.svg');
+  background-image: var(--texture-image);
   background-repeat: repeat;
   opacity: var(--texture-opacity, 0.15);
   mix-blend-mode: var(--texture-blend-mode, multiply);

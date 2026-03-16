@@ -21,10 +21,67 @@ interface FeatureFlagsSectionProps {
   onToggleFlag: (id: string) => void;
 }
 
+function WrenchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path
+        d="M20.5 7.4a5.2 5.2 0 0 1-6.3 6.3L8.1 19.8a2.1 2.1 0 0 1-3-3l6.1-6.1a5.2 5.2 0 0 1 6.3-6.3l-3 3v2.2h2.2l3-3Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function BoltIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M13.9 2.5 6.5 13.2h4.5l-1 8.3 7.9-10.9H13l.9-8.1Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function RocketIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M14.9 3.2c2.8.3 5 2.5 5.3 5.3l-4.1 4.1-5.3-5.3 4.1-4.1Z" fill="currentColor" />
+      <path d="m10.8 7.3-4.6 1.5-.9 4.2 3.9-1.2 1.6-4.5Z" fill="currentColor" opacity="0.85" />
+      <path d="m16.7 13.2-4.5 1.6-1.2 3.9 4.2-.9 1.5-4.6Z" fill="currentColor" opacity="0.85" />
+      <circle cx="15.6" cy="8.4" r="1.2" fill="currentColor" opacity="0.35" />
+      <path
+        d="M7.2 16.8c1.6.2 2.8 1.4 3 3-.9.8-2 .9-3 .9s-2.1-.1-3-.9c.2-1.6 1.4-2.8 3-3Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <path d="M6 6 18 18" />
+      <path d="M18 6 6 18" />
+    </svg>
+  );
+}
+
 function FeatureFlagsSection({ flags, onToggleFlag }: FeatureFlagsSectionProps) {
   return (
     <section className={styles.section} aria-describedby="feature-flags-description">
-      <h2 className={styles.sectionTitle}>⚡ Feature Flags</h2>
+      <h2 className={styles.sectionTitle}>
+        <span className={styles.inlineIcon}>
+          <BoltIcon />
+        </span>
+        Feature Flags
+      </h2>
       <p id="feature-flags-description" className={styles.sectionDescription}>
         Toggle feature flags used for experiments and troubleshooting.
       </p>
@@ -73,7 +130,10 @@ function SaveAndReloadSection({ onSaveAndReload }: SaveAndReloadSectionProps) {
         aria-label="Save & Reload - Apply changes and reload page"
         type="button"
       >
-        Save & Reload 🚀
+        <span className={styles.inlineIcon}>
+          <RocketIcon />
+        </span>
+        Save & Reload
       </button>
       <p className={styles.sendItDescription}>
         Settings save instantly. Reload applies runtime-only changes.
@@ -174,7 +234,10 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
         {/* Header */}
         <div className={styles.header}>
           <h1 id="secret-settings-title" className={styles.title}>
-            🔧 Secret Settings
+            <span className={styles.inlineIcon}>
+              <WrenchIcon />
+            </span>
+            Secret Settings
           </h1>
           <button
             ref={closeButtonRef}
@@ -183,7 +246,7 @@ export function SecretSettings({ isVisible, onClose }: SecretSettingsProps) {
             aria-label="Close settings menu"
             type="button"
           >
-            ✕
+            <CloseIcon />
           </button>
         </div>
 

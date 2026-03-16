@@ -185,8 +185,9 @@ jobs:
 
     steps:
       - name: Validate branch input
+        env:
+          BRANCH: ${{ inputs.branch }}
         run: |
-          BRANCH="${{ inputs.branch }}"
           if [ -z "$BRANCH" ]; then
             echo "Error: 'branch' input is required when update_snapshots is true."
             exit 1
@@ -196,7 +197,6 @@ jobs:
             exit 1
           fi
           echo "Target branch: $BRANCH"
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:

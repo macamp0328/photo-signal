@@ -1,4 +1,18 @@
-/* Rectangle Overlay Styles */
+/* Rectangle Overlay — Mystical Redesign
+ *
+ * detecting: deep violet/indigo with a single spark of light traveling clockwise
+ * detected:  luminous teal bloom then settle — portal-open quality
+ *
+ * Three SVG path layers:
+ *   pathHalo    — thick ambient bloom, breathes gently
+ *   pathOutline — thin constant base stroke
+ *   pathTravel  — traveling mote (stroke-dashoffset on pathLength="1")
+ *
+ * Corners are L-bracket viewfinder marks, not circles.
+ * filter: drop-shadow follows the L shape; box-shadow would not.
+ */
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
 
 .overlay {
   position: absolute;
@@ -10,98 +24,285 @@
   z-index: 10;
 }
 
-.polygonSvg {
+.overlaySvg {
   width: 100%;
   height: 100%;
 }
 
-.polygon {
+/* ─── Path base defaults ──────────────────────────────────────────────────── */
+
+.pathHalo,
+.pathOutline,
+.pathTravel {
   fill: none;
   stroke: transparent;
-  stroke-width: 0.65;
+}
+
+/* ─── Halo layer (ambient bloom) ─────────────────────────────────────────── */
+
+.pathHalo {
+  stroke-width: 3.5;
+  opacity: 0;
   transition:
-    stroke 0.3s ease,
-    filter 0.3s ease,
-    opacity 0.3s ease;
+    stroke 0.5s ease,
+    opacity 0.5s ease;
 }
 
-/* Detection states */
-.polygon.detecting,
-.corner.detecting {
-  stroke: var(--color-warning, #fbbf24);
-  animation: pulse 2s ease-in-out infinite;
+.pathHalo.detecting {
+  stroke: #4f46e5;
+  opacity: 0.18;
+  filter: blur(1.5px);
+  animation: halo-breathe 3s ease-in-out infinite;
 }
 
-.polygon.detecting {
-  filter: drop-shadow(
-    0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent)
-  );
+.pathHalo.detected {
+  stroke: #2dd4bf;
+  stroke-width: 4;
+  opacity: 0.22;
+  filter: blur(2px);
+  animation: halo-settle 0.8s ease-out forwards;
 }
 
-.corner.detecting {
-  background-color: var(--color-warning, #fbbf24);
-  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent);
+.pathHalo.error {
+  stroke: #ef4444;
+  stroke-width: 3;
+  opacity: 0.2;
+  filter: blur(1px);
 }
 
-.polygon.detected,
-.corner.detected {
-  stroke: var(--color-success, #10b981);
+/* ─── Outline layer (base stroke) ────────────────────────────────────────── */
+
+.pathOutline {
+  stroke-width: 0.5;
+  opacity: 0;
+  transition:
+    stroke 0.4s ease,
+    opacity 0.4s ease;
 }
 
-.polygon.detected {
-  filter: drop-shadow(
-    0 0 0.95rem color-mix(in srgb, var(--color-success, #10b981) 65%, transparent)
-  );
+.pathOutline.detecting {
+  stroke: #6366f1;
+  opacity: 0.65;
 }
 
-.corner.detected {
-  background-color: var(--color-success, #10b981);
-  box-shadow: 0 0 0.95rem color-mix(in srgb, var(--color-success, #10b981) 65%, transparent);
+.pathOutline.detected {
+  stroke: #2dd4bf;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 0.5rem #2dd4bf);
 }
 
-.polygon.error,
-.corner.error {
-  stroke: var(--color-error, #ef4444);
+.pathOutline.error {
+  stroke: #ef4444;
+  opacity: 0.75;
 }
 
-.polygon.error {
-  filter: drop-shadow(0 0 0.7rem color-mix(in srgb, var(--color-error, #ef4444) 55%, transparent));
+/* ─── Travel layer (moving mote) ─────────────────────────────────────────── */
+
+.pathTravel {
+  stroke-width: 1;
+  stroke-linecap: round;
+  /* pathLength="1" on the element means these values are fractions of perimeter */
+  stroke-dasharray: 0.07 0.93;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  transition:
+    stroke 0.4s ease,
+    opacity 0.5s ease;
 }
 
-.corner.error {
-  background-color: var(--color-error, #ef4444);
-  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-error, #ef4444) 55%, transparent);
+.pathTravel.detecting {
+  stroke: #c4b5fd;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 0.4rem #a78bfa);
+  animation: dash-travel 2.5s linear infinite;
 }
 
-/* Corner markers */
-.corner {
+.pathTravel.detected {
+  stroke: #99f6e4;
+  opacity: 0;
+  /* mote fades out when match is confirmed */
+}
+
+.pathTravel.error {
+  opacity: 0;
+}
+
+/* ─── Corner markers (L-bracket viewfinder style) ────────────────────────── */
+
+.cornerTL,
+.cornerTR,
+.cornerBR,
+.cornerBL {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  width: 12px;
+  height: 12px;
   transform: translate(-50%, -50%);
-  background-color: transparent;
+  border: 2px solid transparent;
   transition:
-    background-color 0.3s ease,
-    box-shadow 0.3s ease,
-    opacity 0.3s ease;
+    border-color 0.4s ease,
+    filter 0.4s ease,
+    opacity 0.4s ease;
 }
 
-/* Pulse animation for detecting state */
-@keyframes pulse {
+/* Only two sides visible per corner — the L-bracket shape */
+.cornerTL {
+  border-right: none;
+  border-bottom: none;
+}
+.cornerTR {
+  border-left: none;
+  border-bottom: none;
+}
+.cornerBR {
+  border-left: none;
+  border-top: none;
+}
+.cornerBL {
+  border-right: none;
+  border-top: none;
+}
+
+/* detecting */
+.cornerTL.detecting {
+  border-top-color: #6366f1;
+  border-left-color: #6366f1;
+  filter: drop-shadow(0 0 3px #4f46e5);
+  animation: corner-breathe 3s ease-in-out infinite;
+}
+.cornerTR.detecting {
+  border-top-color: #6366f1;
+  border-right-color: #6366f1;
+  filter: drop-shadow(0 0 3px #4f46e5);
+  animation: corner-breathe 3s ease-in-out infinite;
+}
+.cornerBR.detecting {
+  border-bottom-color: #6366f1;
+  border-right-color: #6366f1;
+  filter: drop-shadow(0 0 3px #4f46e5);
+  animation: corner-breathe 3s ease-in-out infinite;
+}
+.cornerBL.detecting {
+  border-bottom-color: #6366f1;
+  border-left-color: #6366f1;
+  filter: drop-shadow(0 0 3px #4f46e5);
+  animation: corner-breathe 3s ease-in-out infinite;
+}
+
+/* detected */
+.cornerTL.detected {
+  border-top-color: #2dd4bf;
+  border-left-color: #2dd4bf;
+  filter: drop-shadow(0 0 4px #2dd4bf);
+  animation: corner-appear 0.5s ease-out forwards;
+}
+.cornerTR.detected {
+  border-top-color: #2dd4bf;
+  border-right-color: #2dd4bf;
+  filter: drop-shadow(0 0 4px #2dd4bf);
+  animation: corner-appear 0.5s ease-out forwards;
+}
+.cornerBR.detected {
+  border-bottom-color: #2dd4bf;
+  border-right-color: #2dd4bf;
+  filter: drop-shadow(0 0 4px #2dd4bf);
+  animation: corner-appear 0.5s ease-out forwards;
+}
+.cornerBL.detected {
+  border-bottom-color: #2dd4bf;
+  border-left-color: #2dd4bf;
+  filter: drop-shadow(0 0 4px #2dd4bf);
+  animation: corner-appear 0.5s ease-out forwards;
+}
+
+/* error */
+.cornerTL.error {
+  border-top-color: #ef4444;
+  border-left-color: #ef4444;
+}
+.cornerTR.error {
+  border-top-color: #ef4444;
+  border-right-color: #ef4444;
+}
+.cornerBR.error {
+  border-bottom-color: #ef4444;
+  border-right-color: #ef4444;
+}
+.cornerBL.error {
+  border-bottom-color: #ef4444;
+  border-left-color: #ef4444;
+}
+
+/* ─── Keyframes ───────────────────────────────────────────────────────────── */
+
+/* Mote travels clockwise around the path (pathLength="1" normalizes the offset) */
+@keyframes dash-travel {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Halo breathes while searching */
+@keyframes halo-breathe {
   0%,
   100% {
-    opacity: 1;
+    opacity: 0.1;
   }
   50% {
-    opacity: 0.6;
+    opacity: 0.28;
   }
 }
 
-/* Responsive adjustments */
+/* Halo blooms briefly on match then settles */
+@keyframes halo-settle {
+  0% {
+    opacity: 0.12;
+  }
+  35% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0.22;
+  }
+}
+
+/* Corners breathe in sync with halo */
+@keyframes corner-breathe {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Corners snap into place on detected — scale includes translate to preserve centering */
+@keyframes corner-appear {
+  0% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
 @media (max-width: 768px) {
-  .corner {
-    width: 8px;
-    height: 8px;
+  .cornerTL,
+  .cornerTR,
+  .cornerBR,
+  .cornerBL {
+    width: 10px;
+    height: 10px;
   }
 }

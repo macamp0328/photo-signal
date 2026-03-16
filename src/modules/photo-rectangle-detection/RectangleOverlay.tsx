@@ -12,15 +12,19 @@ export interface RectangleOverlayProps {
  * Rectangle Overlay Component
  *
  * Displays visual feedback for rectangle detection on top of camera view.
- * Shows detected rectangle boundaries with color-coded state indication.
+ * Three layered SVG paths create a mystical bioluminescent effect:
+ * - pathHalo: thick ambient bloom (breathes gently)
+ * - pathOutline: thin constant base stroke
+ * - pathTravel: a single mote of light traveling around the perimeter
+ *
+ * detecting state: violet/indigo traveling spark, corners as L-brackets
+ * detected state: teal bloom flash then settle, spark fades out
  */
 export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
-  // Don't render anything if no rectangle or idle state
   if (!rectangle || state === 'idle') {
     return null;
   }
 
-  // Determine CSS class based on state
   const stateClass = {
     idle: '',
     detecting: styles.detecting,
@@ -28,42 +32,32 @@ export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
     error: styles.error,
   }[state];
 
-  const points = [
-    rectangle.topLeft,
-    rectangle.topRight,
-    rectangle.bottomRight,
-    rectangle.bottomLeft,
-  ]
-    .map((point) => `${point.x * 100},${point.y * 100}`)
-    .join(' ');
+  const { topLeft: tl, topRight: tr, bottomRight: br, bottomLeft: bl } = rectangle;
+  const d = `M ${tl.x * 100},${tl.y * 100} L ${tr.x * 100},${tr.y * 100} L ${br.x * 100},${br.y * 100} L ${bl.x * 100},${bl.y * 100} Z`;
 
   return (
     <div className={styles.overlay}>
-      <svg className={styles.polygonSvg} viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polygon className={`${styles.polygon} ${stateClass}`} points={points} />
+      <svg className={styles.overlaySvg} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path className={`${styles.pathHalo} ${stateClass}`} d={d} pathLength="1" />
+        <path className={`${styles.pathOutline} ${stateClass}`} d={d} pathLength="1" />
+        <path className={`${styles.pathTravel} ${stateClass}`} d={d} pathLength="1" />
       </svg>
 
       <div
-        className={`${styles.corner} ${stateClass}`}
-        style={{ left: `${rectangle.topLeft.x * 100}%`, top: `${rectangle.topLeft.y * 100}%` }}
+        className={`${styles.cornerTL} ${stateClass}`}
+        style={{ left: `${tl.x * 100}%`, top: `${tl.y * 100}%` }}
       />
       <div
-        className={`${styles.corner} ${stateClass}`}
-        style={{ left: `${rectangle.topRight.x * 100}%`, top: `${rectangle.topRight.y * 100}%` }}
+        className={`${styles.cornerTR} ${stateClass}`}
+        style={{ left: `${tr.x * 100}%`, top: `${tr.y * 100}%` }}
       />
       <div
-        className={`${styles.corner} ${stateClass}`}
-        style={{
-          left: `${rectangle.bottomRight.x * 100}%`,
-          top: `${rectangle.bottomRight.y * 100}%`,
-        }}
+        className={`${styles.cornerBR} ${stateClass}`}
+        style={{ left: `${br.x * 100}%`, top: `${br.y * 100}%` }}
       />
       <div
-        className={`${styles.corner} ${stateClass}`}
-        style={{
-          left: `${rectangle.bottomLeft.x * 100}%`,
-          top: `${rectangle.bottomLeft.y * 100}%`,
-        }}
+        className={`${styles.cornerBL} ${stateClass}`}
+        style={{ left: `${bl.x * 100}%`, top: `${bl.y * 100}%` }}
       />
     </div>
   );

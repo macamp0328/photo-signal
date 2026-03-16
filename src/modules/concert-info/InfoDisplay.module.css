@@ -4,13 +4,20 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 4rem 0.9rem 0.8rem;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0) 100%);
+  max-height: 65%;
+  padding: 5rem 0.9rem 0.8rem;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--color-background), #000 28%) 0%,
+    color-mix(in srgb, var(--color-accent), transparent 92%) 55%,
+    color-mix(in srgb, var(--color-accent), transparent 100%) 100%
+  );
   display: flex;
   flex-direction: row;
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.5rem;
+  overflow: hidden;
   pointer-events: none;
   animation: overlayFadeIn 0.5s ease forwards;
 }
@@ -18,6 +25,7 @@
 .info {
   min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
 .bandName {
@@ -29,6 +37,9 @@
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  text-shadow:
+    0 0 10px color-mix(in srgb, var(--color-main-text), transparent 65%),
+    0 0 24px color-mix(in srgb, var(--color-accent), transparent 82%);
   transition: color 1.2s ease;
 }
 
@@ -38,9 +49,27 @@ html[data-state='matched'] .bandName {
 
 .meta {
   margin: 0.35rem 0 0;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.76rem;
+  color: color-mix(in srgb, var(--color-main-text), #fff 18%);
   font-family: var(--font-family);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 1.2s ease;
+}
+
+html[data-state='matched'] .meta {
+  color: var(--poster-accent, rgba(255, 255, 255, 0.88));
+}
+
+.exif {
+  margin: 0.3rem 0 0;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: var(--font-family);
+  letter-spacing: 0.06em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -51,7 +80,7 @@ html[data-state='matched'] .bandName {
   padding: 0.5rem;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.55);
+  color: color-mix(in srgb, var(--color-main-text), transparent 45%);
   font-size: 0.65rem;
   font-family: var(--font-family);
   letter-spacing: 0.05em;
@@ -62,14 +91,21 @@ html[data-state='matched'] .bandName {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  transition: color 1.2s ease;
+}
+
+html[data-state='matched'] .nextButton {
+  color: var(--poster-accent, rgba(255, 255, 255, 0.55));
+  opacity: 0.7;
 }
 
 .nextButton:hover {
-  color: rgba(255, 255, 255, 0.9);
+  color: color-mix(in srgb, var(--color-main-text), #fff 20%);
+  opacity: 1;
 }
 
 .nextButton:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.5);
+  outline: 1px solid color-mix(in srgb, var(--color-main-text), #fff 25%);
   outline-offset: 2px;
 }
 
@@ -84,10 +120,20 @@ html[data-state='matched'] .bandName {
 
 @media (max-width: 480px) {
   .overlay {
-    padding: 3rem 0.75rem 0.65rem;
+    padding: 3.5rem 0.75rem 0.65rem;
   }
 
   .bandName {
     font-size: clamp(2rem, 9vw, 4rem);
+  }
+
+  .meta {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .exif {
+    display: none;
   }
 }

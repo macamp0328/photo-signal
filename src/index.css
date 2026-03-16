@@ -17,24 +17,31 @@ body {
 
 /* CSS Variables for Custom Colors */
 :root {
-  /* Dead Signal palette — amber phosphor on near-black (WCAG AA: ~7.5:1) */
+  /* Amber broadcast palette — warm amber on near-black. */
   --color-main-text: #d4892a;
-  --color-sub-text: #a06228;
-  --color-bonus-text: #785018;
-  --color-sub-background: #130c00;
+  --color-sub-text: #b87020;
+  --color-bonus-text: #7a4a14;
+  --color-sub-background: #130900;
   --color-background: #0a0800;
   --color-text: #d4892a;
-  --color-accent: #b87020;
-  --color-accent-light: #d4892a;
-  --color-accent-hover: #e09830;
-  --color-text-muted: #9a6030;
+  --color-accent: #d4892a;
+  --color-accent-light: #e8a040;
+  --color-accent-hover: #e09030;
+  --color-text-muted: #6a3e10;
+
+  --bg-gradient-top: rgba(212, 137, 42, 0.16);
+  --bg-gradient-top-clear: rgba(212, 137, 42, 0);
+  --bg-gradient-bottom: transparent;
+  --texture-image: url('/backgrounds/gravel.svg');
+  --signal-glow: rgba(212, 137, 42, 0.34);
+  --signal-glow-soft: rgba(212, 137, 42, 0.14);
 
   /* Interactive element colors */
-  --color-button-bg: #f0ead8;
+  --color-button-bg: #d4892a;
   --color-button-text: #0a0800;
-  --color-button-hover-bg: #ffffff;
+  --color-button-hover-bg: #e8a040;
   --color-button-hover-text: #0a0800;
-  --color-button-disabled-bg: #1a1200;
+  --color-button-disabled-bg: #1c0f00;
   --color-button-disabled-text: #4a2e08;
 
   /* Semantic colors (kept functional) */
@@ -54,13 +61,13 @@ body {
   --focus-ring-style: solid;
 
   /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(5, 3, 0, 0.92);
-  --modal-bg: #130c00;
+  --overlay-bg: rgba(10, 8, 0, 0.9);
+  --modal-bg: #130900;
   --modal-border: rgba(212, 137, 42, 0.2);
 
   /* Texture settings */
-  --texture-opacity: 0.15;
-  --texture-blend-mode: multiply;
+  --texture-opacity: 0.1;
+  --texture-blend-mode: overlay;
 
   /* Fluid spacing - scales with viewport width */
   --spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -71,16 +78,14 @@ body {
   --spacing-2xl: clamp(2rem, 4vw, 3rem);
 
   /* Typography */
-  --font-family:
-    ui-monospace, 'SF Mono', 'Menlo', 'Monaco', 'Cascadia Code', 'Consolas', 'Courier New',
-    monospace;
+  --font-family: 'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
   --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
   --border-radius: 8px;
   --shadow-size: 10px;
 
   /* CRT effect controls */
   --crt-opacity: 1;
-  --crt-glow-color: rgba(212, 137, 42, 0.35);
+  --crt-glow-color: rgba(212, 137, 42, 0.28);
 
   /* Era poster palette vars — overridden by JS when a concert is matched */
   --poster-bg: #0a0800;
@@ -105,10 +110,18 @@ html[data-state='matched'] {
   --modal-bg: var(--poster-bg);
   --modal-border: color-mix(in srgb, var(--poster-accent), transparent 55%);
   --overlay-bg: color-mix(in srgb, var(--poster-bg), #000 15%);
+  --bg-gradient-top: transparent;
+  --bg-gradient-top-clear: transparent;
+  --bg-gradient-bottom: transparent;
+  --texture-image: none;
+  --texture-opacity: 0;
+  --texture-blend-mode: normal;
   --color-button-bg: var(--poster-primary);
   --color-button-text: var(--poster-bg);
   --color-button-hover-bg: color-mix(in srgb, var(--poster-primary), #fff 20%);
   --color-button-hover-text: var(--poster-bg);
+  --signal-glow: color-mix(in srgb, var(--poster-primary), transparent 66%);
+  --signal-glow-soft: color-mix(in srgb, var(--poster-primary), transparent 86%);
   --crt-opacity: 0;
   --crt-glow-color: transparent;
   --font-family:
@@ -122,7 +135,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-  background: var(--color-background);
+  background:
+    radial-gradient(120% 75% at 15% 0%, var(--bg-gradient-top), var(--bg-gradient-top-clear) 65%),
+    radial-gradient(90% 60% at 85% 100%, var(--bg-gradient-bottom), transparent 60%),
+    var(--color-background);
   color: var(--color-text);
   position: relative;
   transition:
@@ -141,7 +157,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/backgrounds/gravel.svg');
+  background-image: var(--texture-image);
   background-repeat: repeat;
   opacity: var(--texture-opacity, 0.15);
   mix-blend-mode: var(--texture-blend-mode, multiply);

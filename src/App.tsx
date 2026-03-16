@@ -213,11 +213,6 @@ function AppContent() {
   // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
 
-  // Enforce a single curated visual system for all users
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }, []);
-
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
     try {

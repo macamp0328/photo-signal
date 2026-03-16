@@ -1,7 +1,9 @@
 # GitHub Copilot Instructions — Photo Signal
 
-> This document mirrors `CLAUDE.md` (repo root). Keep both files in sync when making structural
-> changes. `CLAUDE.md` is the canonical source.
+> This document is derived from `CLAUDE.md` (repo root) and kept consistent for overlapping
+> sections. It is not identical — some CLAUDE.md sections are omitted here and Copilot-specific
+> structure is added. `CLAUDE.md` is the canonical source. Update both files when making structural
+> changes.
 
 ## CRITICAL: Pre-Commit Rule (Read This First)
 
@@ -24,6 +26,7 @@ Pre-commit steps (run in order):
 3. `npm run type-check` — Validate TypeScript
 4. `npm run test:run` — Run all unit tests
 5. `npm run build` — Production build succeeds
+6. `./scripts/check-bundle-size.sh` — Bundle size within limits
 
 ## Project Identity
 

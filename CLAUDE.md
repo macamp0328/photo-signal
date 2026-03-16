@@ -1,7 +1,9 @@
 # CLAUDE.md — Photo Signal
 
 > **Sync note**: This is the canonical AI agent instruction source. `.github/copilot-instructions.md`
-> mirrors this content — update both files when making structural changes.
+> is derived from this document and kept consistent for overlapping sections — it is not identical
+> (Copilot's file omits some sections and adds Copilot-specific structure). Update both files when
+> making structural changes.
 
 ## CRITICAL: Pre-Commit Rule (Read This First)
 
@@ -25,6 +27,7 @@ Pre-commit steps (run in order):
 3. `npm run type-check` — Validate TypeScript
 4. `npm run test:run` — Run all unit tests
 5. `npm run build` — Production build succeeds
+6. `./scripts/check-bundle-size.sh` — Bundle size within limits
 
 ## Project Identity
 

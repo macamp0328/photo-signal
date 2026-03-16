@@ -13,7 +13,7 @@
 npm run pre-commit
 ```
 
-This runs lint, format, type-check, tests, and build. If ANY step fails, fix it before committing.
+This runs lint, format, type-check, tests, build, and a bundle-size check. If ANY step fails, fix it before committing.
 Do NOT use `--no-verify` to skip hooks.
 
 **Common failure: formatting.** Always run `npm run format` after making changes. Prettier mismatches

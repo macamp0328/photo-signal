@@ -10,12 +10,10 @@ import userEvent from '@testing-library/user-event';
 describe('SecretSettings', () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
   });
 
   afterEach(() => {
     localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
   });
 
   describe('Rendering', () => {

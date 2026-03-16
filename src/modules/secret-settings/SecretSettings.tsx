@@ -46,7 +46,7 @@ function RocketIcon() {
       <path d="M14.9 3.2c2.8.3 5 2.5 5.3 5.3l-4.1 4.1-5.3-5.3 4.1-4.1Z" fill="currentColor" />
       <path d="m10.8 7.3-4.6 1.5-.9 4.2 3.9-1.2 1.6-4.5Z" fill="currentColor" opacity="0.85" />
       <path d="m16.7 13.2-4.5 1.6-1.2 3.9 4.2-.9 1.5-4.6Z" fill="currentColor" opacity="0.85" />
-      <circle cx="15.6" cy="8.4" r="1.2" fill="#0a0800" />
+      <circle cx="15.6" cy="8.4" r="1.2" fill="currentColor" opacity="0.35" />
       <path
         d="M7.2 16.8c1.6.2 2.8 1.4 3 3-.9.8-2 .9-3 .9s-2.1-.1-3-.9c.2-1.6 1.4-2.8 3-3Z"
         fill="currentColor"

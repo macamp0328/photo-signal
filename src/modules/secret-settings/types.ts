@@ -52,5 +52,3 @@ export interface FeatureFlag {
    */
   category?: 'experimental' | 'debugging' | 'ui' | 'audio' | 'camera' | 'development';
 }
-
-export type VisualTheme = 'backstage-pass';

@@ -176,6 +176,35 @@ describe('InfoDisplay', () => {
     });
   });
 
+  describe('EXIF Metadata', () => {
+    it('renders exif line when any EXIF field is present', () => {
+      const concert: Concert = {
+        ...mockConcert,
+        aperture: 'f/1.8',
+        shutterSpeed: '1/500',
+        iso: '800',
+        focalLength: '35mm',
+      };
+
+      render(<InfoDisplay concert={concert} isVisible={true} />);
+
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('f/1.8');
+      expect(details).toHaveTextContent('1/500');
+      expect(details).toHaveTextContent('ISO 800');
+      expect(details).toHaveTextContent('35mm');
+    });
+
+    it('does not render exif line when no EXIF fields are present', () => {
+      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
+
+      // mockConcert has no EXIF fields — verify none appear
+      const details = screen.getByLabelText('Concert details');
+      expect(details).not.toHaveTextContent('ISO');
+      expect(details).not.toHaveTextContent('f/');
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle concert with empty string values', () => {
       const concert: Concert = {

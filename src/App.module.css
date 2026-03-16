@@ -7,8 +7,9 @@
   min-height: 2.75rem;
   padding: 0 0.85rem;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  background: var(--color-background);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-background), #000 10%);
+  border-top: 1px solid color-mix(in srgb, var(--color-accent), transparent 75%);
+  backdrop-filter: blur(8px);
   transition: background-color 1.2s ease;
 }
 
@@ -18,7 +19,10 @@
   object-fit: cover;
   flex-shrink: 0;
   display: block;
-  box-shadow: 0 0 4px rgba(176, 109, 24, 0.4);
+  border-radius: 0.2rem;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-accent), transparent 65%),
+    0 0 8px color-mix(in srgb, var(--color-main-text), transparent 75%);
 }
 
 .signalToggle {
@@ -47,8 +51,8 @@
   font-family: var(--font-family);
   line-height: 1;
   text-shadow:
-    0 0 6px rgba(176, 109, 24, 0.7),
-    0 0 16px rgba(176, 109, 24, 0.3);
+    0 0 6px var(--signal-glow),
+    0 0 16px var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 
@@ -64,8 +68,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow:
-    0 0 8px rgba(176, 109, 24, 0.45),
-    0 0 18px rgba(176, 109, 24, 0.18);
+    0 0 8px color-mix(in srgb, var(--color-main-text), transparent 70%),
+    0 0 18px color-mix(in srgb, var(--color-accent), transparent 84%);
   transition: color 1.2s ease;
 }
 

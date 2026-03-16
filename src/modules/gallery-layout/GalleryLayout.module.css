@@ -6,10 +6,33 @@
   justify-content: center;
   height: 100%;
   padding: 8vw;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing::before {
+  content: '';
+  position: absolute;
+  inset: -12% -8% 0 -8%;
+  background:
+    radial-gradient(
+      circle at 18% 28%,
+      color-mix(in srgb, var(--color-accent), transparent 72%),
+      color-mix(in srgb, var(--color-accent), transparent 100%) 55%
+    ),
+    radial-gradient(
+      circle at 82% 22%,
+      color-mix(in srgb, var(--color-main-text), transparent 78%),
+      color-mix(in srgb, var(--color-main-text), transparent 100%) 50%
+    );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .landingContent {
   max-width: 44rem;
+  position: relative;
+  z-index: 1;
 }
 
 .landingHeadline {
@@ -29,8 +52,8 @@
   text-transform: uppercase;
   letter-spacing: 0.01em;
   text-shadow:
-    0 0 8px rgba(176, 109, 24, 0.55),
-    0 0 20px rgba(176, 109, 24, 0.22);
+    0 0 14px var(--signal-glow),
+    0 0 28px var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 
@@ -52,17 +75,20 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   border: 1px solid var(--color-accent);
-  border-radius: 0;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent), transparent 70%);
   cursor: pointer;
   min-height: 2.75rem;
   transition:
     background-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .beginButton:hover {
   background-color: var(--color-accent);
   color: var(--color-background);
+  transform: translateY(-1px);
 }
 
 .beginButton:focus-visible {
@@ -93,7 +119,8 @@
   color: var(--color-bonus-text);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  opacity: 0.5;
+  opacity: 0.65;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--color-main-text), transparent 70%);
   z-index: 10;
   pointer-events: none;
   user-select: none;
@@ -115,12 +142,15 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
-  opacity: 0.5;
-  transition: opacity 0.2s ease;
+  opacity: 0.68;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .settingsIcon:hover {
   opacity: 1;
+  transform: rotate(12deg) scale(1.03);
 }
 
 .settingsIcon:focus-visible {
@@ -169,10 +199,11 @@
 .cameraSection {
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(176, 109, 24, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-accent), transparent 60%);
   box-shadow:
-    0 0 6px rgba(176, 109, 24, 0.2),
-    inset 0 0 6px rgba(176, 109, 24, 0.08);
+    0 0 10px color-mix(in srgb, var(--color-accent), transparent 72%),
+    0 0 24px color-mix(in srgb, var(--color-main-text), transparent 88%),
+    inset 0 0 10px color-mix(in srgb, var(--color-main-text), transparent 90%);
   overflow: hidden;
   position: relative;
 }
@@ -193,10 +224,11 @@
 .cameraSectionPhoto {
   width: 100%;
   height: auto;
-  border: 1px solid rgba(176, 109, 24, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-accent), transparent 60%);
   box-shadow:
-    0 0 6px rgba(176, 109, 24, 0.2),
-    inset 0 0 6px rgba(176, 109, 24, 0.08);
+    0 0 10px color-mix(in srgb, var(--color-accent), transparent 72%),
+    0 0 24px color-mix(in srgb, var(--color-main-text), transparent 88%),
+    inset 0 0 10px color-mix(in srgb, var(--color-main-text), transparent 90%);
   overflow: hidden;
   position: relative;
 }

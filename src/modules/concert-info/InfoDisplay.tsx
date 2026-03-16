@@ -14,11 +14,20 @@ export function InfoDisplay({ concert, isVisible, onClose }: InfoDisplayProps) {
   const formattedDate = formatConcertTimestamp(concert.date, { includeTimeZone: false });
   const metaLine = [concert.venue, formattedDate].filter(Boolean).join(' · ');
 
+  const exifParts = [
+    concert.aperture,
+    concert.shutterSpeed,
+    concert.iso ? `ISO ${concert.iso}` : null,
+    concert.focalLength,
+  ].filter(Boolean);
+  const exifLine = exifParts.length > 0 ? exifParts.join('  ') : null;
+
   return (
     <section className={styles.overlay} aria-label="Concert details">
       <div className={styles.info}>
         <h2 className={styles.bandName}>{concert.band}</h2>
         {metaLine ? <p className={styles.meta}>{metaLine}</p> : null}
+        {exifLine ? <p className={styles.exif}>{exifLine}</p> : null}
       </div>
       {onClose ? (
         <button

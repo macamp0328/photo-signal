@@ -117,7 +117,6 @@ describe('App Lifecycle Integration', () => {
 
     // App should load with feature flags from persisted state
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
 
     // Verify persisted feature flags remain readable

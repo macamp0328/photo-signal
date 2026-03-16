@@ -137,7 +137,7 @@ describe('Feature Flags → Module Behavior Integration', () => {
     });
   });
 
-  it('should apply default Backstage Pass theme mode', () => {
+  it('should render without setting a data-ui-style attribute by default', () => {
     render(<App />);
 
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);

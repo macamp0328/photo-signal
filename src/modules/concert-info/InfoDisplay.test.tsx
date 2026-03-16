@@ -17,14 +17,12 @@ describe('InfoDisplay', () => {
     it('should return null when isVisible is false', () => {
       const { container } = render(<InfoDisplay concert={mockConcert} isVisible={false} />);
 
-      // Component should return null for better performance
       expect(container.firstChild).toBeNull();
     });
 
     it('should be shown when isVisible is true', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      // Verify component is rendered by checking for band name
       expect(screen.getByText('The Beatles')).toBeInTheDocument();
     });
 
@@ -44,73 +42,32 @@ describe('InfoDisplay', () => {
       expect(bandName.tagName).toBe('H2');
     });
 
-    it('should display venue name', () => {
+    it('should display venue name in meta line', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      const venue = screen.getByText('Abbey Road Studios');
-      expect(venue).toBeInTheDocument();
-      expect(venue.tagName).toBe('P');
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('Abbey Road Studios');
     });
 
-    it('should display formatted date', () => {
+    it('should display formatted date in meta line', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      // Date should be formatted with time when timestamp includes it
-      const formattedDate = screen.getByText('August 15, 2023 at 8:00 PM');
-      expect(formattedDate).toBeInTheDocument();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('August 15, 2023 at 8:00 PM');
     });
 
     it('should display all concert information together', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       expect(screen.getByText('The Beatles')).toBeInTheDocument();
-      expect(screen.getByText('Abbey Road Studios')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
-    });
-
-    it('should display "Playing" label', () => {
-      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
-
-      expect(screen.getByText(/^Playing$/i)).toBeInTheDocument();
-    });
-
-    it('should not display archive tag copy', () => {
-      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
-
-      expect(screen.queryByText(/Archive\s*#01/i)).not.toBeInTheDocument();
-    });
-
-    it('should allow a custom status label', () => {
-      render(<InfoDisplay concert={mockConcert} isVisible={true} statusLabel="Now Viewing" />);
-
-      expect(screen.getByText(/^Now Viewing$/i)).toBeInTheDocument();
-    });
-
-    it('should display EXIF metadata when available', () => {
-      const exifConcert: Concert = {
-        ...mockConcert,
-        songTitle: 'Here Comes the Sun',
-        camera: 'RICOH GR II',
-        focalLength: '18.3mm',
-        aperture: 'f/2.8',
-        shutterSpeed: '1/125',
-        iso: '1600',
-      };
-
-      render(<InfoDisplay concert={exifConcert} isVisible={true} />);
-
-      expect(screen.queryByText('Here Comes the Sun')).not.toBeInTheDocument();
-      const detailsCard = screen.getByLabelText('Concert details');
-      expect(detailsCard).toHaveTextContent('Camera: RICOH GR II');
-      expect(detailsCard).toHaveTextContent('18.3mm');
-      expect(detailsCard).toHaveTextContent('f/2.8');
-      expect(detailsCard).toHaveTextContent('1/125');
-      expect(detailsCard).toHaveTextContent('ISO 1600');
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('Abbey Road Studios');
+      expect(details).toHaveTextContent('August 15, 2023 at 8:00 PM');
     });
   });
 
   describe('Date Formatting', () => {
-    it('should format date "2023-08-15T20:00:00-05:00" with time and timezone', () => {
+    it('should format date "2023-08-15T20:00:00-05:00" with time', () => {
       const concert: Concert = {
         ...mockConcert,
         date: '2023-08-15T20:00:00-05:00',
@@ -118,7 +75,8 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('August 15, 2023 at 8:00 PM');
     });
 
     it('should format date "2024-01-01" as "January 1, 2024"', () => {
@@ -129,7 +87,8 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('January 1, 2024 at 12:00 AM')).toBeInTheDocument();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('January 1, 2024');
     });
 
     it('should format date "2024-12-31" as "December 31, 2024"', () => {
@@ -140,10 +99,11 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('December 31, 2024 at 6:30 PM')).toBeInTheDocument();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('December 31, 2024');
     });
 
-    it('should include time and timezone when timestamp includes time data', () => {
+    it('should include time when timestamp includes time data', () => {
       const concert: Concert = {
         ...mockConcert,
         date: '2023-08-15T21:30:00-05:00',
@@ -151,7 +111,8 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.getByText('August 15, 2023 at 9:30 PM')).toBeInTheDocument();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('August 15, 2023 at 9:30 PM');
     });
   });
 
@@ -159,7 +120,6 @@ describe('InfoDisplay', () => {
     it('should handle null concert gracefully', () => {
       const { container } = render(<InfoDisplay concert={null} isVisible={true} />);
 
-      // Component returns null when concert is null
       expect(container.firstChild).toBeNull();
     });
 
@@ -176,84 +136,72 @@ describe('InfoDisplay', () => {
     });
   });
 
-  describe('CSS Classes and Transitions', () => {
-    it('should apply card-style classes', () => {
+  describe('CSS Classes', () => {
+    it('should apply overlay class', () => {
       const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      const displaySection = container.querySelector('section');
-      expect(displaySection?.className).toContain('card');
+      const section = container.querySelector('section');
+      expect(section?.className).toContain('overlay');
     });
 
-    it('should apply custom className prop', () => {
-      const { container } = render(
-        <InfoDisplay concert={mockConcert} isVisible={true} className="custom-class" />
-      );
-
-      const displaySection = container.querySelector('section');
-      expect(displaySection).toHaveClass('custom-class');
-    });
-
-    it('should apply padding classes', () => {
-      const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
-
-      const displaySection = container.querySelector('section');
-      expect(displaySection?.className).toContain('card');
-    });
-
-    it('should apply proper text sizing classes', () => {
+    it('should apply bandName class to band heading', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const bandName = screen.getByText('The Beatles');
       expect(bandName.className).toContain('bandName');
-
-      const venue = screen.getByText('Abbey Road Studios');
-      expect(venue.className).toContain('detailValue');
-
-      const date = screen.getByText('August 15, 2023 at 8:00 PM');
-      expect(date.className).toContain('detailValue');
     });
   });
 
-  describe('Return Button', () => {
-    it('renders return button when onClose is provided', () => {
+  describe('Next Button', () => {
+    it('renders next button when onClose is provided', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={vi.fn()} />);
 
-      expect(screen.getByRole('button', { name: 'Next pic, please' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Go to next photo' })).toBeInTheDocument();
     });
 
-    it('calls onClose when return button is clicked', async () => {
+    it('calls onClose when next button is clicked', async () => {
       const onClose = vi.fn();
       const user = userEvent.setup();
       render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={onClose} />);
 
-      await user.click(screen.getByRole('button', { name: 'Next pic, please' }));
+      await user.click(screen.getByRole('button', { name: 'Go to next photo' }));
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('does not render return button when onClose is not provided', () => {
+    it('does not render next button when onClose is not provided', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.queryByRole('button', { name: 'Next pic, please' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Go to next photo' })).not.toBeInTheDocument();
     });
   });
 
-  describe('Album Cover', () => {
-    it('does not render album cover image when albumCoverUrl is set', () => {
+  describe('EXIF Metadata', () => {
+    it('renders exif line when any EXIF field is present', () => {
       const concert: Concert = {
         ...mockConcert,
-        albumCoverUrl: 'https://cdn.example.com/cover.webp',
+        aperture: 'f/1.8',
+        shutterSpeed: '1/500',
+        iso: '800',
+        focalLength: '35mm',
       };
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent('f/1.8');
+      expect(details).toHaveTextContent('1/500');
+      expect(details).toHaveTextContent('ISO 800');
+      expect(details).toHaveTextContent('35mm');
     });
 
-    it('does not render album cover image when albumCoverUrl is absent', () => {
+    it('does not render exif line when no EXIF fields are present', () => {
       render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
-      expect(screen.queryByRole('img', { name: /album cover/i })).toBeNull();
+      // mockConcert has no EXIF fields — verify none appear
+      const details = screen.getByLabelText('Concert details');
+      expect(details).not.toHaveTextContent('ISO');
+      expect(details).not.toHaveTextContent('f/');
     });
   });
 
@@ -270,7 +218,6 @@ describe('InfoDisplay', () => {
       const { container } = render(<InfoDisplay concert={concert} isVisible={true} />);
 
       expect(container.querySelector('section')).toBeInTheDocument();
-      expect(screen.getByText('August 15, 2023 at 8:00 PM')).toBeInTheDocument();
     });
 
     it('should handle very long band names', () => {
@@ -294,9 +241,10 @@ describe('InfoDisplay', () => {
 
       render(<InfoDisplay concert={concert} isVisible={true} />);
 
-      expect(
-        screen.getByText('A Very Long Venue Name That Might Overflow The Container Width')
-      ).toBeInTheDocument();
+      const details = screen.getByLabelText('Concert details');
+      expect(details).toHaveTextContent(
+        'A Very Long Venue Name That Might Overflow The Container Width'
+      );
     });
 
     it('should handle both isVisible false and null concert', () => {

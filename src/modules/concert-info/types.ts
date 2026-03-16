@@ -9,16 +9,6 @@ export interface InfoDisplayProps {
   concert: Concert | null;
   /** Control visibility independently of concert data */
   isVisible: boolean;
-  /** Additional CSS classes */
-  className?: string;
-  /** Label describing the state of this concert (e.g., Playing, Paused) */
-  statusLabel?: string;
-  /** Optional prompt or helper text shown below details */
-  promptText?: string;
-  /** Optional callback for closing the visible concert details card */
+  /** Optional callback when user moves to the next photo */
   onClose?: () => void;
-  /** Optional callback for switching to this concert's audio */
-  onSwitch?: () => void;
-  /** Optional label for the switch button (defaults to "Switch Artist") */
-  switchLabel?: string;
 }

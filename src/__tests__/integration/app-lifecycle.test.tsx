@@ -22,9 +22,9 @@ describe('App Lifecycle Integration', () => {
     render(<App />);
 
     // Verify app renders successfully with landing page
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Activate camera and begin experience' })
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeInTheDocument();
   });
 
@@ -67,7 +67,7 @@ describe('App Lifecycle Integration', () => {
     render(<App />);
 
     // Verify app renders successfully with custom data
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
   it('should handle network errors gracefully', () => {
@@ -76,7 +76,7 @@ describe('App Lifecycle Integration', () => {
 
     // App should still render even if data loading will fail later
     render(<App />);
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });
@@ -116,8 +116,7 @@ describe('App Lifecycle Integration', () => {
     render(<App />);
 
     // App should load with feature flags from persisted state
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     expect(document.documentElement.hasAttribute('data-ui-style')).toBe(false);
 
     // Verify persisted feature flags remain readable
@@ -131,6 +130,6 @@ describe('App Lifecycle Integration', () => {
     render(<App />);
 
     // App should load with defaults when localStorage is empty
-    expect(screen.getByText('Photo Signal')).toBeInTheDocument();
+    expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 });

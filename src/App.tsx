@@ -17,11 +17,17 @@ import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
 import type { Concert } from './types';
-import type { TapIntent } from './types';
 import type { PhotoRecognitionOptions } from './modules/photo-recognition/types';
-import { useTripleTap, useFeatureFlags } from './modules/secret-settings';
+import { useFeatureFlags } from './modules/secret-settings';
 import { dataService } from './services/data-service';
 import { preloadRecognitionIndex } from './services/recognition-index-service';
+import {
+  getNextTrackAfterForwardAdvanceState,
+  getPlaylistStartForConcert,
+  shufflePlaylist,
+  syncPlaylistForConcert,
+} from './App.playback-helpers';
+import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import { isDemoCaptureEnabled } from './utils/demoMode';
 import styles from './App.module.css';
 
@@ -29,30 +35,6 @@ const SecretSettings = lazy(async () => {
   const module = await import('./modules/secret-settings/SecretSettings');
   return { default: module.SecretSettings };
 });
-
-// Constants for retry guidance text
-const RETRY_HINT_TEXT = 'tap play to retry.';
-
-const UX_COPY = {
-  status: {
-    playbackProblem: 'Playback Tantrum',
-    newMatch: 'New Artist Spotted',
-    playingNow: 'Now Vibing',
-    matchReady: 'Photo Matched',
-    paused: 'Paused',
-    viewing: 'Gallery Mode',
-  },
-  prompt: {
-    retrySuffix: 'Check stream access, then tap Play again.',
-    newMatch: (band: string) => `New match: ${band}. Tap Switch Artist to jump ship.`,
-    nextPhoto: 'Seen enough? Tap Next pic, please.',
-    stillPlaying: 'Track still rolling. Pause it, or chase the next photo.',
-    pointToStart: 'Point at a photo to kick things off.',
-  },
-  actions: {
-    switchArtist: 'Switch Artist',
-  },
-} as const;
 
 const DebugOverlay = lazy(async () => {
   const module = await import('./modules/debug-overlay');
@@ -115,21 +97,6 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
-/**
- * Build a shuffled playlist for an artist, optionally placing a preferred song first.
- * The remaining songs are shuffled randomly behind it.
- */
-function buildPlaylist(songs: Concert[], preferredId?: number): Concert[] {
-  if (songs.length <= 1) return [...songs];
-  const preferred = songs.find((s) => s.id === preferredId);
-  const rest = songs.filter((s) => s.id !== preferredId);
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rest[i], rest[j]] = [rest[j], rest[i]];
-  }
-  return preferred ? [preferred, ...rest] : rest;
-}
-
 function AppContent() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -170,35 +137,82 @@ function AppContent() {
   const userPausedRef = useRef(false);
   // Ref to play fn so onSongEnd can call it without circular dep on useAudioPlayback return
   const playRef = useRef<((url: string) => void) | null>(null);
+  const activeConcertRef = useRef<Concert | null>(null);
+  const activePlaylistBandRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeConcertRef.current = activeConcert;
+  }, [activeConcert]);
+
+  useEffect(() => {
+    activePlaylistBandRef.current = activePlaylistBand;
+  }, [activePlaylistBand]);
+
+  const buildPlaylistForConcert = useCallback((concert: Concert) => {
+    const songs = dataService.getConcertsByBand(concert.band);
+    return getPlaylistStartForConcert(concert, songs);
+  }, []);
+
+  const startPlaylistForConcert = useCallback(
+    (concert: Concert) => {
+      const { playlist, firstSong } = buildPlaylistForConcert(concert);
+
+      if (!firstSong) {
+        return null;
+      }
+
+      playlistRef.current = playlist;
+      playlistIndexRef.current = 0;
+      setActivePlaylistBand(concert.band);
+
+      return firstSong;
+    },
+    [buildPlaylistForConcert]
+  );
+
+  const syncPlaylistToConcert = useCallback((concert: Concert) => {
+    const result = syncPlaylistForConcert({
+      concert,
+      currentPlaylist: playlistRef.current,
+      activePlaylistBand: activePlaylistBandRef.current,
+      songsByBand: dataService.getConcertsByBand(concert.band),
+    });
+
+    playlistRef.current = result.playlist;
+    playlistIndexRef.current = result.playlistIndex;
+    setActivePlaylistBand(result.activePlaylistBand);
+
+    return result.concert;
+  }, []);
+
+  const getNextTrackAfterForwardAdvance = useCallback(() => {
+    const result = getNextTrackAfterForwardAdvanceState({
+      currentConcert: activeConcertRef.current,
+      currentPlaylist: playlistRef.current,
+      playlistIndex: playlistIndexRef.current,
+      activePlaylistBand: activePlaylistBandRef.current,
+      songsByBand: activeConcertRef.current
+        ? dataService.getConcertsByBand(activeConcertRef.current.band)
+        : [],
+    });
+
+    if (!result) {
+      return null;
+    }
+
+    playlistRef.current = result.playlist;
+    playlistIndexRef.current = result.playlistIndex;
+    setActivePlaylistBand(result.activePlaylistBand);
+    return result.nextSong;
+  }, []);
 
   // Audio test URL for the debug overlay's Test Song button
   const [testAudioUrl, setTestAudioUrl] = useState<string | null>(null);
-  const [tapIntent, setTapIntent] = useState<TapIntent | null>(null);
-  const tapFocusStatsRef = useRef({
-    attempts: 0,
-    applied: 0,
-    unsupported: 0,
-    failed: 0,
-    noTrack: 0,
-    notActive: 0,
-  });
 
   const previousAutoplayIdRef = useRef<number | null>(null);
 
   // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
-
-  // Module: Secret Settings - Triple-tap detection
-  useTripleTap({
-    onTripleTap: () => {
-      setShowSecretSettings(true);
-    },
-  });
-
-  // Enforce a single curated visual system for all users
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }, []);
 
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
@@ -218,7 +232,7 @@ function AppContent() {
   }, [loadTestAudioUrl]);
 
   // Module: Camera Access (only initialize when active)
-  const { stream, error, hasPermission, retry, requestTapFocus } = useCameraAccess({
+  const { stream, error, hasPermission, retry } = useCameraAccess({
     autoStart: isActive,
   });
 
@@ -228,9 +242,6 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible,
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
-      tapIntent: isEnabled('tap-guided-rectangle') ? tapIntent : null,
-      tapRoiLockMs: 500,
-      tapRoiDecayMs: 1200,
       similarityThreshold: 18,
       matchMarginThreshold: 5,
       sharpnessThreshold: 85,
@@ -238,42 +249,7 @@ function AppContent() {
       continuousRecognition: true,
       enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
-    [isDebugOverlayVisible, isEnabled, tapIntent, isConcertInfoVisible, showSecretSettings]
-  );
-
-  const handleCameraTap = useCallback(
-    (tap: TapIntent) => {
-      setTapIntent(tap);
-
-      if (!isEnabled('tap-to-focus')) {
-        return;
-      }
-
-      tapFocusStatsRef.current.attempts += 1;
-
-      void requestTapFocus(tap).then((result) => {
-        switch (result.status) {
-          case 'applied':
-            tapFocusStatsRef.current.applied += 1;
-            break;
-          case 'unsupported':
-            tapFocusStatsRef.current.unsupported += 1;
-            break;
-          case 'failed':
-            tapFocusStatsRef.current.failed += 1;
-            break;
-          case 'no-track':
-            tapFocusStatsRef.current.noTrack += 1;
-            break;
-          case 'not-active':
-            tapFocusStatsRef.current.notActive += 1;
-            break;
-          default:
-            break;
-        }
-      });
-    },
-    [isEnabled, requestTapFocus]
+    [isDebugOverlayVisible, isEnabled, isConcertInfoVisible, showSecretSettings]
   );
 
   const {
@@ -328,6 +304,17 @@ function AppContent() {
     }
   }, [activeRecognitionConcert]);
 
+  // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise.
+  // Cleanup on unmount ensures data-state and --poster-* vars don't leak into future mounts.
+  useEffect(() => {
+    if (activeRecognitionConcert) {
+      applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
+    } else {
+      resetToDeadSignal();
+    }
+    return resetToDeadSignal;
+  }, [activeRecognitionConcert]);
+
   useEffect(() => {
     if (showSecretSettings) {
       setIsDebugOverlayVisible(false);
@@ -336,28 +323,14 @@ function AppContent() {
 
   // Module: Audio Playback
   const demoNoAudioFade = isDemoCaptureEnabled();
-  const {
-    play,
-    pause,
-    stop,
-    preload,
-    crossfade,
-    isPlaying,
-    progress,
-    playbackError,
-    clearPlaybackError,
-  } = useAudioPlayback({
+  const { play, pause, stop, preload, crossfade, isPlaying } = useAudioPlayback({
     volume: 1.0,
     fadeTime: demoNoAudioFade ? 150 : 1000,
     crossfadeDuration: demoNoAudioFade ? 150 : undefined,
     onSongEnd: () => {
       if (userPausedRef.current) return;
-      const currentPlaylist = playlistRef.current;
-      if (currentPlaylist.length <= 1) return;
-      const nextIndex = (playlistIndexRef.current + 1) % currentPlaylist.length;
-      const nextSong = currentPlaylist[nextIndex];
+      const nextSong = getNextTrackAfterForwardAdvance();
       if (nextSong?.audioFile && playRef.current) {
-        playlistIndexRef.current = nextIndex;
         playRef.current(nextSong.audioFile);
         setActiveConcert(nextSong);
       }
@@ -413,24 +386,23 @@ function AppContent() {
       return;
     }
 
-    // New artist: build a shuffled playlist starting from the recognized song
-    const songs = dataService.getConcertsByBand(autoplayConcert.band);
-    const newPlaylist = buildPlaylist(
-      songs.length > 0 ? songs : [autoplayConcert],
-      autoplayConcert.id
-    );
-    const firstSong = newPlaylist[0];
-    if (!firstSong?.audioFile) {
+    // New artist: build a shuffled playlist and start from its random first track
+    const firstSong = startPlaylistForConcert(autoplayConcert);
+    if (!firstSong) {
       return;
     }
 
     userPausedRef.current = false;
-    playlistRef.current = newPlaylist;
-    playlistIndexRef.current = 0;
-    setActivePlaylistBand(autoplayConcert.band);
     play(firstSong.audioFile);
     setActiveConcert(firstSong);
-  }, [isActive, activeRecognitionConcert, isPlaying, play, activePlaylistBand]);
+  }, [
+    isActive,
+    activeRecognitionConcert,
+    isPlaying,
+    play,
+    activePlaylistBand,
+    startPlaylistForConcert,
+  ]);
 
   const handleTogglePlayback = () => {
     const playbackTargetConcert =
@@ -452,34 +424,22 @@ function AppContent() {
     }
 
     userPausedRef.current = false;
-    clearPlaybackError();
 
     if (playbackTargetConcert.band !== activePlaylistBand) {
-      // Different artist: rebuild the playlist so onSongEnd auto-advances within
-      // the correct band rather than continuing a stale playlist from a previous artist.
-      const songs = dataService.getConcertsByBand(playbackTargetConcert.band);
-      const newPlaylist = buildPlaylist(
-        songs.length > 0 ? songs : [playbackTargetConcert],
-        playbackTargetConcert.id
-      );
-      const firstSong = newPlaylist[0];
-      if (!firstSong?.audioFile) {
+      const firstSong = startPlaylistForConcert(playbackTargetConcert);
+      if (!firstSong) {
         return;
       }
-      playlistRef.current = newPlaylist;
-      playlistIndexRef.current = 0;
-      setActivePlaylistBand(playbackTargetConcert.band);
       play(firstSong.audioFile);
       setActiveConcert(firstSong);
     } else {
-      // Same artist: sync the playlist index to the specific song being resumed
-      // so onSongEnd advances from the right position.
-      const idx = playlistRef.current.findIndex((s) => s.id === playbackTargetConcert.id);
-      if (idx !== -1) {
-        playlistIndexRef.current = idx;
+      const resumeConcert = syncPlaylistToConcert(playbackTargetConcert);
+      if (!resumeConcert.audioFile) {
+        return;
       }
-      play(selectedAudioUrl);
-      setActiveConcert(playbackTargetConcert);
+
+      play(resumeConcert.audioFile);
+      setActiveConcert(resumeConcert);
     }
   };
 
@@ -500,14 +460,27 @@ function AppContent() {
 
   const playPlaylistTrack = useCallback(
     (indexDelta: number) => {
+      if (activeConcert) {
+        syncPlaylistToConcert(activeConcert);
+      }
+
       const currentPlaylist = playlistRef.current;
       if (currentPlaylist.length <= 1) {
         return;
       }
 
-      const nextIndex =
+      const forwardWrap = indexDelta > 0 && playlistIndexRef.current >= currentPlaylist.length - 1;
+      let workingPlaylist = currentPlaylist;
+      let nextIndex =
         (playlistIndexRef.current + indexDelta + currentPlaylist.length) % currentPlaylist.length;
-      const targetTrack = currentPlaylist[nextIndex];
+
+      if (forwardWrap) {
+        workingPlaylist = shufflePlaylist(currentPlaylist);
+        playlistRef.current = workingPlaylist;
+        nextIndex = 0;
+      }
+
+      const targetTrack = workingPlaylist[nextIndex];
 
       if (!targetTrack?.audioFile) {
         return;
@@ -516,7 +489,6 @@ function AppContent() {
       if (activeConcert && isPlaying) {
         crossfade(targetTrack.audioFile);
       } else {
-        clearPlaybackError();
         play(targetTrack.audioFile);
       }
 
@@ -525,7 +497,7 @@ function AppContent() {
       setActivePlaylistBand(targetTrack.band);
       setActiveConcert(targetTrack);
     },
-    [activeConcert, clearPlaybackError, crossfade, isPlaying, play]
+    [activeConcert, crossfade, isPlaying, play, syncPlaylistToConcert]
   );
 
   const handlePreviousTrack = useCallback(() => {
@@ -815,151 +787,63 @@ function AppContent() {
     }
   }, [getPhotoDownloadFilename, handleCloseDownloadPrompt, scannedPhotoUrl]);
 
-  const isInfoActive = !!(infoConcert && activeConcert && activeConcert.id === infoConcert.id);
-  const dropNeedleConcert =
-    isPlaying &&
-    infoConcert &&
-    activeConcert &&
-    infoConcert.band !== activeConcert.band &&
-    infoConcert.audioFile
-      ? infoConcert
-      : null;
-
-  const statusLabel = playbackError
-    ? UX_COPY.status.playbackProblem
-    : dropNeedleConcert
-      ? UX_COPY.status.newMatch
-      : isInfoActive && isPlaying
-        ? UX_COPY.status.playingNow
-        : activeRecognitionConcert && !isInfoActive
-          ? UX_COPY.status.matchReady
-          : isInfoActive
-            ? UX_COPY.status.paused
-            : UX_COPY.status.viewing;
-
-  const promptText = playbackError
-    ? playbackError.toLowerCase().includes(RETRY_HINT_TEXT)
-      ? playbackError
-      : `${playbackError} ${UX_COPY.prompt.retrySuffix}`
-    : dropNeedleConcert
-      ? UX_COPY.prompt.newMatch(dropNeedleConcert.band)
-      : activeRecognitionConcert
-        ? UX_COPY.prompt.nextPhoto
-        : activeConcert
-          ? UX_COPY.prompt.stillPlaying
-          : UX_COPY.prompt.pointToStart;
-
-  const handleDropNeedle = useCallback(() => {
-    if (!dropNeedleConcert) {
-      return;
-    }
-
-    const songs = dataService.getConcertsByBand(dropNeedleConcert.band);
-    const newPlaylist = buildPlaylist(
-      songs.length > 0 ? songs : [dropNeedleConcert],
-      dropNeedleConcert.id
-    );
-    const firstSong = newPlaylist[0];
-    if (!firstSong?.audioFile) {
-      return;
-    }
-
-    clearPlaybackError();
-    if (activeConcert && isPlaying) {
-      crossfade(firstSong.audioFile);
-    } else {
-      play(firstSong.audioFile);
-    }
-
-    userPausedRef.current = false;
-    playlistRef.current = newPlaylist;
-    playlistIndexRef.current = 0;
-    setActivePlaylistBand(dropNeedleConcert.band);
-    setActiveConcert(firstSong);
-    resetRecognition();
-  }, [
-    activeConcert,
-    clearPlaybackError,
-    crossfade,
-    dropNeedleConcert,
-    isPlaying,
-    play,
-    resetRecognition,
-  ]);
-
-  const clampedProgress = Math.min(Math.max(progress, 0), 1);
-  const progressPercentage = Math.round(clampedProgress * 100);
-  const progressColor = `hsl(${Math.round(210 + clampedProgress * 150)}, 80%, 70%)`;
-  const nowPlayingLine = activeConcert
-    ? activeConcert.songTitle
-      ? `${activeConcert.band} — ${activeConcert.songTitle}`
-      : activeConcert.band
-    : null;
-  const playbackButtonLabel = isPlaying ? 'Pause' : 'Play';
-
   const canNavigatePlaylist = playlistRef.current.length > 1;
   const shouldShowBottomPlayer = Boolean(activeConcert);
 
+  // Mirror handleTogglePlayback's target selection so the strip always names the concert
+  // that a tap will actually play (activeRecognitionConcert when paused with a new match,
+  // otherwise activeConcert).
+  const stripConcert =
+    !isPlaying && activeRecognitionConcert ? activeRecognitionConcert : activeConcert;
+
+  // Signal strip — minimal single-line audio bar
   const audioControls = shouldShowBottomPlayer ? (
-    <section className={styles.playerBar} aria-label="Now playing controls">
-      <div className={styles.playerHeader}>
-        <div className={styles.playerTitleBlock}>
-          <p className={styles.playerEyebrow}>Now Playing</p>
-          <div className={styles.playerNowPlayingRow}>
-            {activeConcert?.albumCoverUrl ? (
-              <img
-                src={activeConcert.albumCoverUrl}
-                alt={`${activeConcert.band} album cover`}
-                className={styles.playerAlbumCover}
-                loading="lazy"
-              />
-            ) : null}
-            <p className={styles.playerTitle}>{nowPlayingLine}</p>
-          </div>
+    <section className={styles.signalStrip} aria-label="Now playing controls">
+      {stripConcert?.albumCoverUrl ? (
+        <img
+          src={stripConcert.albumCoverUrl}
+          alt=""
+          className={styles.signalArt}
+          aria-hidden="true"
+        />
+      ) : null}
+      <button
+        type="button"
+        className={styles.signalToggle}
+        onClick={handleTogglePlayback}
+        aria-label={
+          isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
+        }
+      >
+        <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
+          {isPlaying ? '◉' : '○'}
+        </span>
+        <span className={styles.signalBand}>{stripConcert?.band ?? ''}</span>
+      </button>
+      {canNavigatePlaylist ? (
+        <div className={styles.signalNav}>
+          <button
+            type="button"
+            className={styles.signalNavBtn}
+            onClick={handlePreviousTrack}
+            aria-label="Previous track"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            className={styles.signalNavBtn}
+            onClick={handleNextTrack}
+            aria-label="Next track"
+          >
+            →
+          </button>
         </div>
-        <p className={styles.playerProgress}>{progressPercentage}%</p>
-      </div>
-
-      <div className={styles.playerTimeline} aria-label="Song progress tracker">
-        <div className={styles.playerTimelineRail}>
-          <div
-            className={styles.playerTimelineFill}
-            style={{ width: `${progressPercentage}%`, backgroundColor: progressColor }}
-          />
-        </div>
-      </div>
-
-      <div className={styles.playerTransport}>
-        <button
-          type="button"
-          className={styles.playerButtonSecondary}
-          onClick={handlePreviousTrack}
-          disabled={!canNavigatePlaylist}
-          aria-label="Play previous track"
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          className={styles.playerButtonPrimary}
-          onClick={handleTogglePlayback}
-          aria-label={playbackButtonLabel}
-        >
-          {playbackButtonLabel}
-        </button>
-        <button
-          type="button"
-          className={styles.playerButtonSecondary}
-          onClick={handleNextTrack}
-          disabled={!canNavigatePlaylist}
-          aria-label="Play next track"
-        >
-          Next
-        </button>
-      </div>
+      ) : null}
     </section>
   ) : null;
 
+  // Camera view — live feed or matched photo with concert overlay
   const cameraView = shouldShowScannedPhoto ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
       <button
@@ -986,6 +870,11 @@ function AppContent() {
           onError={() => setHasScannedPhotoLoadFailed(true)}
         />
       </button>
+      <InfoDisplay
+        concert={infoConcert}
+        isVisible={!!infoConcert}
+        onClose={() => handleCloseConcertInfo(infoConcert)}
+      />
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">
@@ -997,23 +886,9 @@ function AppContent() {
       error={error}
       hasPermission={hasPermission}
       onRetry={retry}
-      onTap={handleCameraTap}
       detectedRectangle={detectedRectangle}
       rectangleConfidence={rectangleConfidence}
       showRectangleOverlay={isEnabled('rectangle-detection')}
-    />
-  );
-
-  // Render info display that lives below the camera view in the stacked layout
-  const infoDisplay = (
-    <InfoDisplay
-      concert={infoConcert}
-      isVisible={!!infoConcert}
-      statusLabel={statusLabel}
-      promptText={promptText}
-      onClose={() => handleCloseConcertInfo(infoConcert)}
-      onSwitch={dropNeedleConcert ? handleDropNeedle : undefined}
-      switchLabel={UX_COPY.actions.switchArtist}
     />
   );
 
@@ -1036,10 +911,10 @@ function AppContent() {
       <GalleryLayout
         isActive={isActive}
         cameraView={cameraView}
-        infoDisplay={infoDisplay}
         onActivate={handleActivate}
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
+        isMatchedPhoto={shouldShowScannedPhoto}
       />
       {isZoomedPhotoVisible && shouldShowScannedPhoto && scannedPhotoUrl ? (
         <div
@@ -1116,6 +991,7 @@ function AppContent() {
             onClose={() => {
               setShowSecretSettings(false);
             }}
+            onForceMatch={handleForceMatch}
           />
         </Suspense>
       )}
@@ -1129,7 +1005,6 @@ function AppContent() {
             onReset={resetRecognition}
             onVisibilityChange={setIsDebugOverlayVisible}
             testAudioUrl={testAudioUrl}
-            onForceMatch={handleForceMatch}
           />
         </Suspense>
       )}

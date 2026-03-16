@@ -17,27 +17,34 @@ body {
 
 /* CSS Variables for Custom Colors */
 :root {
-  /* Curated dark palette - WCAG AA Compliant */
-  --color-main-text: #f5f5f5; /* 18.16:1 contrast */
-  --color-sub-text: #cbd5e1; /* 13.33:1 contrast */
-  --color-bonus-text: #a1a1aa; /* 7.72:1 contrast */
-  --color-sub-background: #1a1a1a;
-  --color-background: #0a0a0a;
-  --color-text: #f5f5f5;
-  --color-accent: #4a90e2; /* 6.01:1 contrast */
-  --color-accent-light: #6ba3e8;
-  --color-accent-hover: #5ca3e6; /* 7.22:1 contrast */
-  --color-text-muted: #a8a8a8; /* 8.33:1 contrast */
+  /* Amber broadcast palette — warm amber on near-black. */
+  --color-main-text: #d4892a;
+  --color-sub-text: #b87020;
+  --color-bonus-text: #7a4a14;
+  --color-sub-background: #130900;
+  --color-background: #0a0800;
+  --color-text: #d4892a;
+  --color-accent: #d4892a;
+  --color-accent-light: #e8a040;
+  --color-accent-hover: #e09030;
+  --color-text-muted: #6a3e10;
+
+  --bg-gradient-top: rgba(212, 137, 42, 0.16);
+  --bg-gradient-top-clear: rgba(212, 137, 42, 0);
+  --bg-gradient-bottom: transparent;
+  --texture-image: url('/backgrounds/gravel.svg');
+  --signal-glow: rgba(212, 137, 42, 0.34);
+  --signal-glow-soft: rgba(212, 137, 42, 0.14);
 
   /* Interactive element colors */
-  --color-button-bg: #f5f5f5;
-  --color-button-text: #0a0a0a;
-  --color-button-hover-bg: #e5e7eb;
-  --color-button-hover-text: #0a0a0a;
-  --color-button-disabled-bg: #3a3a3a;
-  --color-button-disabled-text: #6b6b6b;
+  --color-button-bg: #d4892a;
+  --color-button-text: #0a0800;
+  --color-button-hover-bg: #e8a040;
+  --color-button-hover-text: #0a0800;
+  --color-button-disabled-bg: #1c0f00;
+  --color-button-disabled-text: #4a2e08;
 
-  /* Semantic colors */
+  /* Semantic colors (kept functional) */
   --color-error: #ef4444;
   --color-success: #22c55e;
   --color-warning: #fbbf24;
@@ -47,20 +54,20 @@ body {
   --color-gray-400: #9ca3af;
 
   /* Focus indicators - WCAG compliant */
-  --color-focus: #6ba3e8;
-  --focus-ring-color: #6ba3e8;
+  --color-focus: #d4892a;
+  --focus-ring-color: #d4892a;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --focus-ring-style: solid;
 
   /* Overlay and modal backgrounds */
-  --overlay-bg: rgba(0, 0, 0, 0.85);
-  --modal-bg: #1a1a1a;
-  --modal-border: rgba(255, 255, 255, 0.1);
+  --overlay-bg: rgba(10, 8, 0, 0.9);
+  --modal-bg: #130900;
+  --modal-border: rgba(212, 137, 42, 0.2);
 
   /* Texture settings */
-  --texture-opacity: 0.3;
-  --texture-blend-mode: multiply;
+  --texture-opacity: 0.1;
+  --texture-blend-mode: overlay;
 
   /* Fluid spacing - scales with viewport width */
   --spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
@@ -69,40 +76,74 @@ body {
   --spacing-lg: clamp(1rem, 2vw, 1.5rem);
   --spacing-xl: clamp(1.5rem, 3vw, 2rem);
   --spacing-2xl: clamp(2rem, 4vw, 3rem);
-  /* Curated typography and surface shape */
-  --font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
+  /* Typography */
+  --font-family: 'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
   --border-radius: 8px;
   --shadow-size: 10px;
+
+  /* CRT effect controls */
+  --crt-opacity: 1;
+  --crt-glow-color: rgba(212, 137, 42, 0.28);
+
+  /* Era poster palette vars — overridden by JS when a concert is matched */
+  --poster-bg: #0a0800;
+  --poster-primary: #d4892a;
+  --poster-accent: #b87020;
+}
+
+/* Matched / Gig Poster state — activated by JS setting data-state="matched" on <html> */
+html[data-state='matched'] {
+  --color-background: var(--poster-bg);
+  --color-sub-background: color-mix(in srgb, var(--poster-bg), #000 25%);
+  --color-main-text: var(--poster-primary);
+  --color-sub-text: color-mix(in srgb, var(--poster-primary), #888 50%);
+  --color-bonus-text: color-mix(in srgb, var(--poster-primary), #444 60%);
+  --color-text: var(--poster-primary);
+  --color-accent: var(--poster-accent);
+  --color-accent-light: var(--poster-primary);
+  --color-accent-hover: var(--poster-primary);
+  --color-text-muted: color-mix(in srgb, var(--poster-primary), #333 65%);
+  --color-focus: var(--poster-accent);
+  --focus-ring-color: var(--poster-accent);
+  --modal-bg: var(--poster-bg);
+  --modal-border: color-mix(in srgb, var(--poster-accent), transparent 55%);
+  --overlay-bg: color-mix(in srgb, var(--poster-bg), #000 15%);
+  --bg-gradient-top: transparent;
+  --bg-gradient-top-clear: transparent;
+  --bg-gradient-bottom: transparent;
+  --texture-image: none;
+  --texture-opacity: 0;
+  --texture-blend-mode: normal;
+  --color-button-bg: var(--poster-primary);
+  --color-button-text: var(--poster-bg);
+  --color-button-hover-bg: color-mix(in srgb, var(--poster-primary), #fff 20%);
+  --color-button-hover-text: var(--poster-bg);
+  --signal-glow: color-mix(in srgb, var(--poster-primary), transparent 66%);
+  --signal-glow-soft: color-mix(in srgb, var(--poster-primary), transparent 86%);
+  --crt-opacity: 0;
+  --crt-glow-color: transparent;
+  --font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: var(
-    --font-family,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    'Roboto',
-    'Oxygen',
-    'Ubuntu',
-    'Cantarell',
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif
-  );
+  font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-  background: var(--color-background, #f5f5f4);
-  color: var(--color-text, #0f172a);
+  background:
+    radial-gradient(120% 75% at 15% 0%, var(--bg-gradient-top), var(--bg-gradient-top-clear) 65%),
+    radial-gradient(90% 60% at 85% 100%, var(--bg-gradient-bottom), transparent 60%),
+    var(--color-background);
+  color: var(--color-text);
   position: relative;
   transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+    background-color 1.2s ease,
+    color 1.2s ease;
   /* Safe area insets for mobile devices with notches */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
@@ -116,12 +157,30 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/backgrounds/gravel.svg');
+  background-image: var(--texture-image);
   background-repeat: repeat;
-  opacity: var(--texture-opacity, 0.3);
+  opacity: var(--texture-opacity, 0.15);
   mix-blend-mode: var(--texture-blend-mode, multiply);
   pointer-events: none;
   z-index: 0;
+}
+
+/* CRT scan line overlay — fades out when matched */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18) 0px,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity: var(--crt-opacity, 1);
+  pointer-events: none;
+  z-index: 9998;
+  transition: opacity 1.2s ease;
 }
 
 #root {
@@ -257,5 +316,34 @@ body::before {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes chromaticShift {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 60px rgba(0, 0, 0, 0.7),
+      0 0 0 2px rgba(212, 137, 42, 0.6),
+      -2px 0 0 1px rgba(255, 60, 0, 0.2),
+      2px 0 0 1px rgba(0, 100, 255, 0.15);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 60px rgba(0, 0, 0, 0.7),
+      0 0 0 2px rgba(212, 137, 42, 0.8),
+      -3px 0 0 1px rgba(255, 60, 0, 0.28),
+      3px 0 0 1px rgba(0, 100, 255, 0.22);
+  }
+}
+
+@keyframes posterReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -4,9 +4,9 @@ import {
   getRecognitionIndexEntries,
   type RecognitionIndexEntryV2,
 } from '../../services/recognition-index-service';
-import type { Concert, TapIntent } from '../../types';
+import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
-import type { DetectedRectangle, RectangleRoiHint } from '../photo-rectangle-detection';
+import type { DetectedRectangle } from '../photo-rectangle-detection';
 import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import {
@@ -199,10 +199,6 @@ const buildStartupTelemetry = (milestones: StartupMilestones): StartupTelemetry 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
 const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
-const DEFAULT_TAP_ROI_LOCK_MS = 500;
-const DEFAULT_TAP_ROI_DECAY_MS = 1200;
-const DEFAULT_TAP_ROI_RADIUS = 0.28;
-const ROI_FALLBACK_FRAME_INTERVAL = 3;
 
 /**
  * Scans concertHashList and returns the best and second-best pHash matches for
@@ -344,9 +340,6 @@ export function usePhotoRecognition(
     enableRectangleDetection = false,
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
-    tapIntent = null,
-    tapRoiLockMs = DEFAULT_TAP_ROI_LOCK_MS,
-    tapRoiDecayMs = DEFAULT_TAP_ROI_DECAY_MS,
   } = options;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
@@ -376,8 +369,6 @@ export function usePhotoRecognition(
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rectangleDetectorRef = useRef<RectangleDetectionService | null>(null);
-  const lastTapIntentRef = useRef<TapIntent | null>(null);
-  const lastTapTimestampRef = useRef<number | null>(null);
   const startupMilestonesRef = useRef<StartupMilestones>(createEmptyStartupMilestones());
 
   const syncStartupTelemetry = useCallback(() => {
@@ -432,8 +423,6 @@ export function usePhotoRecognition(
     consecutiveBlurFramesRef.current = 0;
     rectangleHoldFramesRef.current = 0;
     lastConfidentRectangleRef.current = null;
-    lastTapIntentRef.current = null;
-    lastTapTimestampRef.current = null;
     telemetryRef.current = createEmptyTelemetry();
     resetStartupMilestones();
 
@@ -454,21 +443,6 @@ export function usePhotoRecognition(
 
     resetStartupMilestones();
   }, [enabled, markStartupMilestone, resetStartupMilestones]);
-
-  useEffect(() => {
-    if (!tapIntent) {
-      return;
-    }
-
-    lastTapIntentRef.current = tapIntent;
-
-    if (lastTapTimestampRef.current !== tapIntent.timestamp) {
-      lastTapTimestampRef.current = tapIntent.timestamp;
-      if (telemetryRef.current.tapAssist) {
-        telemetryRef.current.tapAssist.tapEvents += 1;
-      }
-    }
-  }, [tapIntent]);
 
   useEffect(() => {
     dataService
@@ -815,13 +789,6 @@ export function usePhotoRecognition(
           }
 
           telemetryRef.current.blurRejections += 1;
-          const tapAge =
-            lastTapIntentRef.current !== null
-              ? Date.now() - lastTapIntentRef.current.timestamp
-              : Number.POSITIVE_INFINITY;
-          if (tapAge <= tapRoiLockMs + tapRoiDecayMs && telemetryRef.current.tapAssist) {
-            telemetryRef.current.tapAssist.postTapBlurRejections += 1;
-          }
           recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
           telemetryRef.current.frameQualityStats.blur.sharpnessSum += sharpness;
           telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
@@ -948,16 +915,6 @@ export function usePhotoRecognition(
           calculateFramedRegion(visibleViewport.width, visibleViewport.height, chosenAspectRatio)
         );
         let workerPerspective: WorkerPerspectiveFrameData | undefined;
-        const activeTap = lastTapIntentRef.current;
-        const tapAgeMs = activeTap ? Date.now() - activeTap.timestamp : Number.POSITIVE_INFINITY;
-        const tapWindowMs = tapRoiLockMs + tapRoiDecayMs;
-        const isTapGuidanceActive =
-          Boolean(activeTap) && tapAgeMs >= 0 && tapAgeMs <= tapWindowMs && tapWindowMs > 0;
-        const tapLockStrength = isTapGuidanceActive
-          ? tapAgeMs <= tapRoiLockMs
-            ? 1
-            : Math.max(0, 1 - (tapAgeMs - tapRoiLockMs) / Math.max(1, tapRoiDecayMs))
-          : 0;
 
         if (rectangleDetectorRef.current) {
           canvas.width = visibleViewport.width;
@@ -1030,43 +987,7 @@ export function usePhotoRecognition(
               };
             }
           };
-          const roiHint: RectangleRoiHint | null =
-            isTapGuidanceActive && activeTap
-              ? {
-                  center: activeTap.point,
-                  radius: DEFAULT_TAP_ROI_RADIUS,
-                  ageMs: tapAgeMs,
-                  lockStrength: tapLockStrength,
-                }
-              : null;
-
-          if (roiHint && telemetryRef.current.tapAssist) {
-            telemetryRef.current.tapAssist.roiGuidedFrames += 1;
-          }
-
-          const roiResult = rectangleDetectorRef.current.detectRectangle(
-            viewportImageData,
-            roiHint
-          );
-          const shouldRunFallbackPass =
-            Boolean(roiHint) &&
-            (!roiResult.detected || roiResult.confidence < rectangleConfidenceThreshold) &&
-            frameCountRef.current % ROI_FALLBACK_FRAME_INTERVAL === 0;
-          const fallbackResult = shouldRunFallbackPass
-            ? rectangleDetectorRef.current.detectRectangle(viewportImageData)
-            : null;
-          const detectionResult =
-            fallbackResult && fallbackResult.confidence > roiResult.confidence
-              ? fallbackResult
-              : roiResult;
-
-          if (
-            fallbackResult &&
-            detectionResult === fallbackResult &&
-            telemetryRef.current.tapAssist
-          ) {
-            telemetryRef.current.tapAssist.roiFallbackDetections += 1;
-          }
+          const detectionResult = rectangleDetectorRef.current.detectRectangle(viewportImageData);
 
           setRectangleConfidence(detectionResult.confidence);
 
@@ -1077,9 +998,6 @@ export function usePhotoRecognition(
               lastConfidentRectangleRef.current = detectionResult.rectangle;
               rectangleHoldFramesRef.current = 0;
               applyRectangleCrop(detectionResult.rectangle);
-              if (roiHint && detectionResult === roiResult && telemetryRef.current.tapAssist) {
-                telemetryRef.current.tapAssist.roiAcceptedDetections += 1;
-              }
             } else if (
               lastConfidentRectangleRef.current &&
               rectangleHoldFramesRef.current < RECTANGLE_CONFIDENCE_HOLD_FRAMES
@@ -1609,14 +1527,6 @@ export function usePhotoRecognition(
               return;
             }
             telemetryRef.current.blurRejections += 1;
-            // Mirror inline path: postTapBlurRejections telemetry
-            const tapAge =
-              lastTapIntentRef.current !== null
-                ? Date.now() - lastTapIntentRef.current.timestamp
-                : Number.POSITIVE_INFINITY;
-            if (tapAge <= tapRoiLockMs + tapRoiDecayMs && telemetryRef.current.tapAssist) {
-              telemetryRef.current.tapAssist.postTapBlurRejections += 1;
-            }
             recordFailure(telemetryRef.current, 'motion-blur', 'Sharpness below threshold', 'N/A');
             telemetryRef.current.frameQualityStats.blur.sharpnessSum += quality.sharpness;
             telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
@@ -1908,8 +1818,6 @@ export function usePhotoRecognition(
     enableRectangleDetection,
     rectangleConfidenceThreshold,
     displayAspectRatio,
-    tapRoiLockMs,
-    tapRoiDecayMs,
     markStartupMilestone,
     restartKey,
     // isWorkerSupported, isWorkerReady, workerProcessFrame are intentionally

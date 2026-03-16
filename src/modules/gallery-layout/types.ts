@@ -11,21 +11,18 @@ export interface GalleryLayoutProps {
   /** Whether the camera is active */
   isActive: boolean;
 
-  /** Camera view component to render */
+  /** Camera view component to render (may include photo overlay when matched) */
   cameraView: ReactNode;
-
-  /** Info display component to render */
-  infoDisplay: ReactNode;
 
   /** Callback when user wants to activate camera */
   onActivate: () => void;
 
-  /** Callback when user taps the settings button in the header */
+  /** Callback when user taps the settings icon */
   onSettingsClick: () => void;
 
-  /** Audio controls rendered in a dedicated bottom player region */
+  /** Audio controls rendered in a fixed bottom strip */
   audioControls?: ReactNode;
 
-  /** Whether to show the info section (defaults to true for stacked layout, set false for overlay mode) */
-  showInfoSection?: boolean;
+  /** When true, the camera square is replaced with a natural-aspect-ratio photo container */
+  isMatchedPhoto?: boolean;
 }

@@ -62,6 +62,30 @@ Quick start:
 2. Wait for setup to complete
 3. Run `npm run dev`
 
+## Visual Regression Tests in the Devcontainer
+
+The devcontainer has Chromium and WebKit (Safari) installed via `post-create.sh`.
+Use the `*:agent` variants — they set `CI=1` (correct `-linux` snapshot names) and
+suppress the HTML reporter (avoids the port-9323 conflict in forwarded ports):
+
+```bash
+# Update all baselines after intentional UI changes
+npm run test:visual:update:agent
+
+# Smoke check only (Chrome + Safari)
+npm run test:visual:smoke:agent
+
+# Full run
+npm run test:visual:full:agent
+```
+
+> **Do not use `npm run test:visual:update`** (no `:agent` suffix) in the devcontainer.
+> That variant tries to open the HTML report in a browser on port 9323, which
+> conflicts with the forwarded port and throws `EADDRINUSE`.
+
+If WebKit fails with "Host system is missing dependencies", the container needs to be
+rebuilt (or run `npx playwright install --with-deps chromium webkit` once inside it).
+
 ## Notes
 
 - Docker workflows are optional; local npm workflows are first-class.

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
@@ -54,6 +54,8 @@ const mockCrossfade = vi.fn();
 const mockStop = vi.fn();
 const mockSetVolume = vi.fn();
 const mockClearPlaybackError = vi.fn();
+let capturedOnSongEnd: (() => void) | undefined;
+let randomSpy: ReturnType<typeof vi.spyOn>;
 
 const audioState = {
   isPlaying: false,
@@ -152,20 +154,23 @@ vi.mock('./modules/photo-recognition', () => ({
 }));
 
 vi.mock('./modules/audio-playback', () => ({
-  useAudioPlayback: () => ({
-    play: mockPlay,
-    pause: mockPause,
-    preload: mockPreload,
-    fadeOut: mockFadeOut,
-    crossfade: mockCrossfade,
-    isPlaying: audioState.isPlaying,
-    progress: audioState.progress,
-    playbackError: audioState.playbackError,
-    clearPlaybackError: mockClearPlaybackError,
-    stop: mockStop,
-    volume: 0.8,
-    setVolume: mockSetVolume,
-  }),
+  useAudioPlayback: ({ onSongEnd }: { onSongEnd?: () => void } = {}) => {
+    capturedOnSongEnd = onSongEnd;
+    return {
+      play: mockPlay,
+      pause: mockPause,
+      preload: mockPreload,
+      fadeOut: mockFadeOut,
+      crossfade: mockCrossfade,
+      isPlaying: audioState.isPlaying,
+      progress: audioState.progress,
+      playbackError: audioState.playbackError,
+      clearPlaybackError: mockClearPlaybackError,
+      stop: mockStop,
+      volume: 0.8,
+      setVolume: mockSetVolume,
+    };
+  },
 }));
 
 describe('App playback flow', () => {
@@ -193,6 +198,8 @@ describe('App playback flow', () => {
     audioState.isPlaying = false;
     audioState.progress = 0;
     audioState.playbackError = null;
+    capturedOnSongEnd = undefined;
+    randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
 
     vi.spyOn(dataService, 'getConcerts').mockResolvedValue([
       concertOne,
@@ -216,10 +223,14 @@ describe('App playback flow', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   const activateExperience = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -264,13 +275,97 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
     expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
-    expect(screen.getByText('Seen enough? Tap Next pic, please.')).toBeInTheDocument();
+  });
+
+  it('starts a multi-song artist on a shuffled first track', async () => {
+    randomSpy.mockReturnValue(0);
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one-b.opus');
+  });
+
+  it('auto-advances songs on end and reshuffles on cycle wrap', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    expect(capturedOnSongEnd).toBeDefined();
+    mockPlay.mockClear();
+
+    capturedOnSongEnd?.();
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+
+    randomSpy.mockReturnValueOnce(0);
+    capturedOnSongEnd?.();
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+  });
+
+  it('does not auto-advance on song end when user paused playback', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^Pause / }));
+
+    mockPlay.mockClear();
+    capturedOnSongEnd?.();
+
+    expect(mockPlay).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-advance on song end for single-track artists', async () => {
+    recognitionState.recognizedConcert = concertTwo;
+    vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
+      if (band === concertTwo.band) {
+        return [concertTwo];
+      }
+      return [];
+    });
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    mockPlay.mockClear();
+    capturedOnSongEnd?.();
+    expect(mockPlay).not.toHaveBeenCalled();
   });
 
   it('stops playback and exits active mode when app is hidden', async () => {
@@ -281,7 +376,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -296,7 +391,7 @@ describe('App playback flow', () => {
     expect(mockStop).toHaveBeenCalledTimes(1);
     expect(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     ).toBeInTheDocument();
     expect(screen.queryByLabelText('Now playing controls')).not.toBeInTheDocument();
@@ -307,7 +402,7 @@ describe('App playback flow', () => {
     });
   });
 
-  it('shows matched details and renders Switch Artist when a different artist is recognized', async () => {
+  it('shows matched photo and details when a different artist is recognized', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -316,7 +411,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -327,15 +422,14 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Next pic, please' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Go to next photo' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
 
     expect(mockCrossfade).not.toHaveBeenCalled();
   });
 
-  it('renders Switch Artist when recognizedConcert changes while song is playing', async () => {
+  it('shows matched photo for newly recognized concert while another song is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -344,7 +438,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -354,10 +448,9 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     expect(screen.getByText('Band Two')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
   });
 
-  it('switches artists via Switch Artist using crossfade while playback is active', async () => {
+  it('does not crossfade when a different artist is recognized while playback is active', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -366,7 +459,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -374,10 +467,7 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Switch Artist' }));
-
-    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
-    expect(mockResetRecognition).toHaveBeenCalled();
+    expect(mockCrossfade).not.toHaveBeenCalled();
   });
 
   it('closes details and resets recognition when user taps close', async () => {
@@ -389,13 +479,13 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
     expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Next pic, please' }));
+    await user.click(screen.getByRole('button', { name: 'Go to next photo' }));
 
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
     expect(mockResetRecognition).toHaveBeenCalled();
@@ -410,11 +500,11 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
-    await user.click(screen.getByRole('button', { name: 'Next pic, please' }));
+    await user.click(screen.getByRole('button', { name: 'Go to next photo' }));
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
 
     recognitionState.recognizedConcert = concertOne;
@@ -431,11 +521,11 @@ describe('App playback flow', () => {
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Next pic, please' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Go to next photo' }));
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
 
     recognitionState.recognizedConcert = concertOne;
@@ -460,7 +550,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -479,7 +569,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -597,6 +687,26 @@ describe('App playback flow', () => {
     expect(matchedPhotoButton).toHaveFocus();
   });
 
+  it('traps Tab focus inside the zoom dialog', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    const matchedPhotoButton = await activateExperience(user);
+    await user.click(matchedPhotoButton);
+
+    const closeButton = screen.getByRole('button', { name: 'Close' });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(closeButton, { key: 'Tab' });
+    expect(closeButton).toHaveFocus();
+
+    fireEvent.keyDown(closeButton, { key: 'Tab', shiftKey: true });
+    expect(closeButton).toHaveFocus();
+  });
+
   it('closes zoom dialog on backdrop click', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
@@ -675,7 +785,9 @@ describe('App playback flow', () => {
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     const downloadButton = screen.getByRole('button', { name: 'Download' });
-    expect(cancelButton).toHaveFocus();
+    await waitFor(() => {
+      expect(cancelButton).toHaveFocus();
+    });
 
     fireEvent.keyDown(cancelButton, { key: 'Tab', shiftKey: true });
     expect(downloadButton).toHaveFocus();
@@ -692,7 +804,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -717,7 +829,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -730,54 +842,87 @@ describe('App playback flow', () => {
     // Record call count before clicking Play button
     const callCountBefore = mockPlay.mock.calls.length;
 
-    await user.click(screen.getByRole('button', { name: /^Play$/ }));
+    await user.click(screen.getByRole('button', { name: /^Play / }));
 
     // Verify Play button click triggered a new play call
     expect(mockPlay.mock.calls.length).toBe(callCountBefore + 1);
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/two.opus');
   });
 
-  it('shows playback error guidance with retry hint', async () => {
+  it('shows paused status only after the user explicitly pauses playback', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^Pause / }));
+
+    audioState.isPlaying = false;
+    view.rerender(<App />);
+
+    expect(screen.getByRole('button', { name: /^Play / })).toBeInTheDocument();
+  });
+
+  it('resumes the selected same-artist track instead of jumping back to the playlist start', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Next track' }));
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+
+    recognitionState.recognizedConcert = sameBandTrackTwo;
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    await user.click(screen.getByRole('button', { name: /^Pause / }));
+
+    audioState.isPlaying = false;
+    view.rerender(<App />);
+
+    const playCallCount = mockPlay.mock.calls.length;
+    await user.click(screen.getByRole('button', { name: /^Play / }));
+
+    expect(mockPlay.mock.calls.length).toBe(playCallCount + 1);
+    expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
+  });
+
+  it('does not crash when a playback error occurs', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.playbackError = 'Audio failed to start. Tap Play to retry.';
 
     const user = userEvent.setup();
-    render(<App />);
+    const { container } = render(<App />);
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
-    // Should show error message without duplication (already has "Tap Play to retry")
-    expect(screen.getByText('Audio failed to start. Tap Play to retry.')).toBeInTheDocument();
-    expect(screen.getByText(/^Playback Tantrum$/i)).toBeInTheDocument();
-  });
-
-  it('shows playback error with additional guidance when retry hint not included', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.playbackError = 'Audio failed to load. Check your connection and try again.';
-
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
-      })
-    );
-
-    // Should append retry guidance when error doesn't already include it
+    // App should still render normally; error UI was removed in the signal strip redesign
     expect(
-      screen.getByText(
-        'Audio failed to load. Check your connection and try again. Check stream access, then tap Play again.'
-      )
+      container.querySelector('section[aria-label="Now playing controls"]')
     ).toBeInTheDocument();
-    expect(screen.getByText(/^Playback Tantrum$/i)).toBeInTheDocument();
   });
 
-  it('shows Switch Artist in matched-details mode for a different playing artist', async () => {
+  it('shows matched photo for a different recognized artist while another is playing', async () => {
     recognitionState.recognizedConcert = concertOne;
     recognitionState.debugInfo = createDebugInfo(concertOne);
     audioState.isPlaying = false;
@@ -787,7 +932,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -797,7 +942,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Switch Artist' })).toBeInTheDocument();
+    expect(screen.getByText('Band Two')).toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries without resetting recognition state', async () => {
@@ -809,14 +954,14 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
-    await user.click(screen.getByRole('button', { name: 'Play previous track' }));
+    await user.click(screen.getByRole('button', { name: 'Previous track' }));
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
 
-    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+    await user.click(screen.getByRole('button', { name: 'Next track' }));
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/one.opus');
 
     expect(mockResetRecognition).not.toHaveBeenCalled();
@@ -844,7 +989,7 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
@@ -853,7 +998,7 @@ describe('App playback flow', () => {
       concertOne.photoUrl
     );
 
-    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+    await user.click(screen.getByRole('button', { name: 'Next track' }));
 
     expect(screen.getByRole('img', { name: 'Band One scanned photograph' })).toHaveAttribute(
       'src',
@@ -879,12 +1024,12 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
-    expect(screen.getByRole('button', { name: 'Play previous track' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Play next track' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Previous track' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next track' })).not.toBeInTheDocument();
   });
 
   it('uses crossfade for manual next-track navigation while currently playing', async () => {
@@ -896,14 +1041,14 @@ describe('App playback flow', () => {
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Activate camera and begin experience',
+        name: 'Tune in — activate camera and begin experience',
       })
     );
 
     audioState.isPlaying = true;
     view.rerender(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Play next track' }));
+    await user.click(screen.getByRole('button', { name: 'Next track' }));
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/one-b.opus');
     expect(mockPlay).not.toHaveBeenLastCalledWith('/audio/one-b.opus');
   });

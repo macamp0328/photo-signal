@@ -5,9 +5,4 @@
  */
 
 export { useCameraAccess } from './useCameraAccess';
-export type {
-  CameraAccessHook,
-  CameraAccessOptions,
-  TapFocusResult,
-  TapFocusStatus,
-} from './types';
+export type { CameraAccessHook, CameraAccessOptions } from './types';

@@ -2,24 +2,8 @@
  * Secret Settings Module - Type Definitions
  *
  * This module provides types for the hidden secret menu
- * activated by triple-tap/click gestures.
+ * accessible via the Settings button.
  */
-
-/**
- * Hook for detecting triple-tap/click gestures
- */
-export interface UseTripleTapOptions {
-  /**
-   * Timeout between taps/clicks in milliseconds
-   * @default 500
-   */
-  tapTimeout?: number;
-
-  /**
-   * Callback when triple-tap is detected
-   */
-  onTripleTap: () => void;
-}
 
 /**
  * Secret Settings Page Props
@@ -34,6 +18,11 @@ export interface SecretSettingsProps {
    * Callback to close the settings page
    */
   onClose: () => void;
+
+  /**
+   * Optional handler for forcing a photo match — simulates recognition for testing
+   */
+  onForceMatch?: () => void;
 }
 
 /**

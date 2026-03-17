@@ -160,24 +160,6 @@ describe('applyExifVisualCharacter', () => {
     expect(opacity).toBe(0.02);
   });
 
-  it('sets --exif-blur-depth for a known aperture', () => {
-    applyExifVisualCharacter(makeConcert({ aperture: 'f/2.8' }));
-    const blur = document.documentElement.style.getPropertyValue('--exif-blur-depth');
-    expect(blur).toMatch(/^\d+(\.\d+)?px$/);
-  });
-
-  it('sets wider blur for wide aperture (f/1.8)', () => {
-    applyExifVisualCharacter(makeConcert({ aperture: 'f/1.8' }));
-    const blur = document.documentElement.style.getPropertyValue('--exif-blur-depth');
-    expect(parseFloat(blur)).toBe(14);
-  });
-
-  it('sets narrower blur for narrow aperture (f/8)', () => {
-    applyExifVisualCharacter(makeConcert({ aperture: 'f/8' }));
-    const blur = document.documentElement.style.getPropertyValue('--exif-blur-depth');
-    expect(parseFloat(blur)).toBeLessThanOrEqual(2);
-  });
-
   it('sets --exif-transition-scale for a known shutter speed', () => {
     applyExifVisualCharacter(makeConcert({ shutterSpeed: '1/60' }));
     const scale = Number(
@@ -211,7 +193,6 @@ describe('applyExifVisualCharacter', () => {
   it('leaves CSS vars unset when no EXIF fields present', () => {
     applyExifVisualCharacter(makeConcert({}));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 
@@ -220,43 +201,39 @@ describe('applyExifVisualCharacter', () => {
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
   });
 
-  it('sets all three vars when all EXIF fields are present', () => {
+  it('sets grain and transition vars when EXIF fields are present', () => {
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).not.toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).not.toBe('');
   });
 
   it('clears stale vars when next concert has no EXIF fields', () => {
-    // First match sets all three vars
+    // First match sets grain + transition vars
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
     // Second match has no EXIF — stale values must not persist
     applyExifVisualCharacter(makeConcert({}));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 
   it('clears only unparseable vars when next concert has partial EXIF', () => {
-    // First match sets all three
+    // First match sets grain + transition vars
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
-    // Second match has only ISO — aperture and shutter should revert to :root defaults
+    // Second match has only ISO — shutter should revert to :root defaults
     applyExifVisualCharacter(makeConcert({ iso: '3200' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 });
 
 describe('resetExifVisualCharacter', () => {
-  it('removes all three EXIF CSS vars', () => {
+  it('removes EXIF CSS vars', () => {
     // Set them first
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
 
     resetExifVisualCharacter();
 
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 

@@ -258,4 +258,26 @@ describe('useAudioReactiveGlow', () => {
 
     expect(mockCtx!.createAnalyser).toHaveBeenCalledOnce();
   });
+
+  it('cancels rAF and removes CSS var when isEnabled is toggled off mid-session', () => {
+    const { rerender } = renderHook(
+      ({ active, enabled }: { active: boolean; enabled: boolean }) =>
+        useAudioReactiveGlow(active, enabled),
+      { initialProps: { active: true, enabled: true } }
+    );
+
+    // Run a tick so the CSS var gets set
+    act(() => flushRaf());
+
+    const varAfterActive = document.documentElement.style.getPropertyValue('--glow-reactive-scale');
+    expect(varAfterActive).not.toBe('');
+
+    // Disable the feature flag while the hook remains active
+    act(() => {
+      rerender({ active: true, enabled: false });
+    });
+
+    expect(rafCallbacks.size).toBe(0);
+    expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale')).toBe('');
+  });
 });

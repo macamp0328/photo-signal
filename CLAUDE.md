@@ -216,6 +216,52 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
 - When making UI changes, preserve the existing visual character. If a change would significantly alter
   the look or feel, stop and describe the approach before implementing — don't redesign silently.
 
+## Environmental Effects Design Philosophy
+
+Photo Signal actively uses **environmental variables and controlled randomness** to make the experience
+feel alive, non-repeating, and deeply connected to its physical/temporal context. When implementing
+new UI features, agents should consider whether any of these signals could enrich the behavior:
+
+**Available environmental variables (no new permissions needed):**
+- **Time of day** — current hour in user's local timezone
+- **Date** — particularly relevant: all concerts are SXSW mid-March; exact date anniversaries are meaningful
+- **Concert timestamp** — each Concert has a full ISO 8601 timestamp including time-of-day (when the
+  photo was taken). Compare against current time for "temporal echo" effects.
+- **Concert year** — 2022–2025 range; older concerts can look slightly more worn ("age patina")
+- **EXIF metadata** — `iso`, `aperture`, `shutterSpeed`, `camera` are stored per-concert; use them to
+  vary the visual character of each match (grain, blur depth, transition speed)
+- **Session state** — first match of session, time since last match, match count; track in refs
+- **Audio state** — `progress` (0–1) and `isPlaying` from `useAudioPlayback`; song arc can affect visuals
+- **Audio frequency data** — Howler exposes its Web Audio context via `Howler.ctx`; tap an
+  `AnalyserNode` for bass-reactive glow (only when matched, zero recognition impact)
+- **Device orientation** — `DeviceOrientationEvent` (no permission on most browsers); subtle tilt effects
+- **Motion detection** — existing `useMotionDetection` hook; camera shake can drive signal shake effects
+
+**Randomness guardrails (mandatory):**
+- All randomness must have explicit **min/max clamps**
+- Prefer **per-session seeding** (one random value on app open, constant for the session) over
+  per-frame chaos
+- Stochastic events (e.g., rare CRT glitches) use Poisson-style timers (~once per several minutes),
+  never continuous noise
+- Random values must never make the UI feel broken or unstable — always "organic," never "buggy"
+
+**Transition rules:**
+- Environmental state changes use **CSS transitions** for smoothing — update custom properties in JS,
+  let CSS handle the blend
+- Dramatic state changes (match, unmatch, app open, phone unlock) are the preferred moments for
+  environmental effects to activate/shift
+- Never fight the `dead signal → matched` narrative; the matched state's palette always wins specificity
+
+**Every environmental effect needs a feature flag** in `src/modules/secret-settings/config.ts`.
+Use the appropriate category: `ui`, `audio`, `experimental`. Default to `true` for subtle effects,
+`false` for experimental/sensor-based ones. See the settings chunking table in the project brainstorm
+notes for the planned flag IDs.
+
+**Performance constraint:** The recognition pipeline runs in a Web Worker at 120ms intervals.
+Do NOT add computation to the main thread recognition path. Environmental effects should be
+event-driven (on match/unmatch) or very low-frequency (interval > 30s) or read-only from existing
+rAF loops already running.
+
 ## CI/CD
 
 - **CI Pipeline** (`.github/workflows/ci.yml`): lint, format check, type-check, test with coverage,

@@ -51,8 +51,8 @@
   font-family: var(--font-family);
   line-height: 1;
   text-shadow:
-    0 0 6px var(--signal-glow),
-    0 0 16px var(--signal-glow-soft);
+    0 0 calc(6px * var(--glow-reactive-scale)) var(--signal-glow),
+    0 0 calc(16px * var(--glow-reactive-scale)) var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 
@@ -68,8 +68,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow:
-    0 0 8px color-mix(in srgb, var(--color-main-text), transparent 70%),
-    0 0 18px color-mix(in srgb, var(--color-accent), transparent 84%);
+    0 0 calc(8px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 70%),
+    0 0 calc(18px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 84%);
   transition: color 1.2s ease;
 }
 

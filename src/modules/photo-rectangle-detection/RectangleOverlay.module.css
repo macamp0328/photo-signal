@@ -1,4 +1,29 @@
-/* Rectangle Overlay Styles */
+/* Rectangle Overlay — CRT Signal Lock
+ *
+ * detecting: amber broadcast signal trying to lock.
+ *   Border is broken dashes that stutter (steps() timing, not smooth).
+ *   A horizontal scan line sweeps through the interior, clipped to the
+ *   rectangle polygon so it doesn't bleed outside perspective-distorted rects.
+ *   Corner L-brackets jitter with digital noise.
+ *
+ * detected: signal snaps.
+ *   Dashes snap to solid (the lock moment). A phosphor bloom flares to
+ *   near-white-amber then decays with a non-linear organic curve — the
+ *   persistence of a CRT phosphor after the beam passes. Corner marks
+ *   stamp into place with a spring-overshoot punch.
+ *
+ * All colors inherit from the project's existing broadcast palette vars:
+ *   --color-accent (#d4892a amber), --signal-glow, --signal-glow-soft
+ *
+ * Two SVG path layers:
+ *   pathGlow   — thick ambient phosphor behind the border
+ *   pathBorder — the main outline (dashed + flicker / solid + bloom)
+ *
+ * Plus a scanLine div clipped to the quadrilateral, and L-bracket corners.
+ * filter: drop-shadow() used (not blur) — follows the path shape on mobile.
+ */
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
 
 .overlay {
   position: absolute;
@@ -8,100 +33,394 @@
   height: 100%;
   pointer-events: none;
   z-index: 10;
+
+  /* ── Overlay palette — override here to retheme ──────────────────────────
+   * All rules below reference these vars; no hard-coded hex anywhere else.
+   * The signal vars delegate to the project's broadcast amber tokens.
+   */
+  --rect-signal: var(--color-accent, #d4892a);
+  --rect-signal-glow: var(--signal-glow, rgba(212, 137, 42, 0.34));
+  --rect-signal-soft: var(--signal-glow-soft, rgba(212, 137, 42, 0.14));
+  --rect-bloom-peak: #fff3c0; /* near-white phosphor at the moment of lock */
+  --rect-error: var(--color-error, #ef4444);
 }
 
-.polygonSvg {
+.overlaySvg {
   width: 100%;
   height: 100%;
 }
 
-.polygon {
+/* ─── Path base defaults ──────────────────────────────────────────────────── */
+
+.pathGlow,
+.pathBorder {
   fill: none;
   stroke: transparent;
-  stroke-width: 0.65;
-  transition:
-    stroke 0.3s ease,
-    filter 0.3s ease,
-    opacity 0.3s ease;
 }
 
-/* Detection states */
-.polygon.detecting,
-.corner.detecting {
-  stroke: var(--color-warning, #fbbf24);
-  animation: pulse 2s ease-in-out infinite;
+/* ─── Glow layer (phosphor ambient behind the border) ────────────────────── */
+
+.pathGlow {
+  stroke-width: 5;
+  opacity: 0;
 }
 
-.polygon.detecting {
-  filter: drop-shadow(
-    0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent)
-  );
+.pathGlow.detecting {
+  stroke: var(--rect-signal);
+  opacity: 0.1;
+  filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+  animation: glow-breathe 2.8s ease-in-out infinite;
 }
 
-.corner.detecting {
-  background-color: var(--color-warning, #fbbf24);
-  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-warning, #fbbf24) 55%, transparent);
+.pathGlow.detected {
+  stroke: var(--rect-signal);
+  opacity: 0;
+  /* Bloom animation drives everything — starts thick and bright, decays */
+  animation: phosphor-bloom-glow 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.polygon.detected,
-.corner.detected {
-  stroke: var(--color-success, #10b981);
+.pathGlow.error {
+  stroke: var(--rect-error);
+  opacity: 0.12;
 }
 
-.polygon.detected {
-  filter: drop-shadow(
-    0 0 0.95rem color-mix(in srgb, var(--color-success, #10b981) 65%, transparent)
-  );
+/* ─── Border layer (the signal outline) ──────────────────────────────────── */
+
+.pathBorder {
+  stroke-width: 0.55;
+  opacity: 0;
+  /* Note: stroke-dasharray intentionally NOT in transition — the snap from
+     dashed → solid on lock is instant and deliberate, not animated. */
+  transition: opacity 0.2s ease;
 }
 
-.corner.detected {
-  background-color: var(--color-success, #10b981);
-  box-shadow: 0 0 0.95rem color-mix(in srgb, var(--color-success, #10b981) 65%, transparent);
+.pathBorder.detecting {
+  stroke: var(--rect-signal);
+  /* pathLength="1" on the element normalizes these to fractions of perimeter:
+     ~8% dashes with ~3% gaps → roughly 9 segments, uneven feel */
+  stroke-dasharray: 0.08 0.03;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 1px var(--rect-signal-glow));
+  animation: signal-flicker 3.2s steps(1) infinite;
 }
 
-.polygon.error,
-.corner.error {
-  stroke: var(--color-error, #ef4444);
+.pathBorder.detected {
+  stroke: var(--rect-signal);
+  /* stroke-dasharray clears (back to default solid) the moment detecting class
+     is removed — combined with the bloom animation this IS the lock snap */
+  opacity: 0;
+  animation: phosphor-bloom-border 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.polygon.error {
-  filter: drop-shadow(0 0 0.7rem color-mix(in srgb, var(--color-error, #ef4444) 55%, transparent));
+.pathBorder.error {
+  stroke: var(--rect-error);
+  opacity: 0.8;
+  filter: drop-shadow(0 0 1px var(--rect-error));
 }
 
-.corner.error {
-  background-color: var(--color-error, #ef4444);
-  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--color-error, #ef4444) 55%, transparent);
-}
+/* ─── Scan line (sweeps interior during detecting only) ──────────────────── */
+/* Positioned via --scan-top / --scan-bottom CSS vars set as inline style.    */
+/* clip-path set inline to the rectangle polygon (handles perspective skew).  */
 
-/* Corner markers */
-.corner {
+.scanLine {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background-color: transparent;
-  transition:
-    background-color 0.3s ease,
-    box-shadow 0.3s ease,
-    opacity 0.3s ease;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--rect-signal-soft) 20%,
+    var(--rect-signal) 50%,
+    var(--rect-signal-soft) 80%,
+    transparent 100%
+  );
+  top: var(--scan-top, 0%);
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* Pulse animation for detecting state */
-@keyframes pulse {
+.scanLine.detecting {
+  animation: scan-sweep 2.2s linear infinite;
+}
+
+/* ─── Corner markers (L-bracket, screen-print style) ─────────────────────── */
+
+.cornerTL,
+.cornerTR,
+.cornerBR,
+.cornerBL {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid transparent;
+  opacity: 0;
+}
+
+/* L-bracket: only two sides visible per corner */
+.cornerTL {
+  border-right: none;
+  border-bottom: none;
+}
+.cornerTR {
+  border-left: none;
+  border-bottom: none;
+}
+.cornerBR {
+  border-left: none;
+  border-top: none;
+}
+.cornerBL {
+  border-right: none;
+  border-top: none;
+}
+
+/* detecting — amber, digital jitter */
+.cornerTL.detecting,
+.cornerTR.detecting,
+.cornerBR.detecting,
+.cornerBL.detecting {
+  opacity: 0.7;
+  animation: corner-jitter 1.4s steps(3) infinite;
+}
+
+.cornerTL.detecting {
+  border-top-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+}
+.cornerTR.detecting {
+  border-top-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+}
+.cornerBR.detecting {
+  border-bottom-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+}
+.cornerBL.detecting {
+  border-bottom-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+}
+
+/* detected — stamp into place, spring overshoot */
+.cornerTL.detected,
+.cornerTR.detected,
+.cornerBR.detected,
+.cornerBL.detected {
+  animation: corner-stamp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.cornerTL.detected {
+  border-top-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+  filter: drop-shadow(-1px -1px 3px var(--rect-signal-glow));
+}
+.cornerTR.detected {
+  border-top-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+  filter: drop-shadow(1px -1px 3px var(--rect-signal-glow));
+}
+.cornerBR.detected {
+  border-bottom-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+  filter: drop-shadow(1px 1px 3px var(--rect-signal-glow));
+}
+.cornerBL.detected {
+  border-bottom-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+  filter: drop-shadow(-1px 1px 3px var(--rect-signal-glow));
+}
+
+/* error */
+.cornerTL.error {
+  border-top-color: var(--rect-error);
+  border-left-color: var(--rect-error);
+  opacity: 0.8;
+}
+.cornerTR.error {
+  border-top-color: var(--rect-error);
+  border-right-color: var(--rect-error);
+  opacity: 0.8;
+}
+.cornerBR.error {
+  border-bottom-color: var(--rect-error);
+  border-right-color: var(--rect-error);
+  opacity: 0.8;
+}
+.cornerBL.error {
+  border-bottom-color: var(--rect-error);
+  border-left-color: var(--rect-error);
+  opacity: 0.8;
+}
+
+/* ─── Keyframes ───────────────────────────────────────────────────────────── */
+
+/* Border flickers like a weak broadcast signal.
+ * steps(1) timing + near-adjacent keyframes = digital stutter, not smooth. */
+@keyframes signal-flicker {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.85;
+  }
+  8% {
+    stroke-dashoffset: 0;
+    opacity: 0.45;
+  }
+  10% {
+    stroke-dashoffset: 0.05;
+    opacity: 0.9;
+  }
+  28% {
+    stroke-dashoffset: 0.05;
+    opacity: 0.8;
+  }
+  29% {
+    stroke-dashoffset: 0.13;
+    opacity: 0.55;
+  }
+  52% {
+    stroke-dashoffset: 0.13;
+    opacity: 0.85;
+  }
+  53% {
+    stroke-dashoffset: 0.04;
+    opacity: 0.95;
+  }
+  77% {
+    stroke-dashoffset: 0.04;
+    opacity: 0.68;
+  }
+  78% {
+    stroke-dashoffset: 0.19;
+    opacity: 0.82;
+  }
+  100% {
+    stroke-dashoffset: 0.19;
+    opacity: 0.82;
+  }
+}
+
+/* Scan line sweeps top-to-bottom through the rectangle.
+ * --scan-top / --scan-bottom are set per-element via inline style. */
+@keyframes scan-sweep {
+  0% {
+    top: var(--scan-top, 0%);
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.85;
+  }
+  88% {
+    top: var(--scan-bottom, 100%);
+    opacity: 0.85;
+  }
+  100% {
+    top: var(--scan-bottom, 100%);
+    opacity: 0;
+  }
+}
+
+/* Glow breathes slowly while searching */
+@keyframes glow-breathe {
   0%,
   100% {
-    opacity: 1;
+    opacity: 0.06;
   }
   50% {
-    opacity: 0.6;
+    opacity: 0.18;
   }
 }
 
-/* Responsive adjustments */
+/* Phosphor glow bloom — thick burst then organic non-linear decay */
+@keyframes phosphor-bloom-glow {
+  0% {
+    stroke-width: 5;
+    opacity: 0.1;
+  }
+  10% {
+    stroke-width: 12;
+    opacity: 0.65;
+    filter: drop-shadow(0 0 10px var(--rect-bloom-peak));
+  }
+  30% {
+    stroke-width: 6;
+    opacity: 0.3;
+    filter: drop-shadow(0 0 5px var(--rect-signal-glow));
+  }
+  100% {
+    stroke-width: 3.5;
+    opacity: 0.2;
+    filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+  }
+}
+
+/* Border bloom — solid line flares to near-white then settles to steady amber */
+@keyframes phosphor-bloom-border {
+  0% {
+    opacity: 0.8;
+    stroke: var(--rect-signal);
+    filter: drop-shadow(0 0 1px var(--rect-signal-glow));
+  }
+  10% {
+    opacity: 1;
+    stroke: var(--rect-bloom-peak);
+    filter: drop-shadow(0 0 5px var(--rect-bloom-peak)) drop-shadow(0 0 10px var(--rect-signal));
+  }
+  32% {
+    opacity: 0.95;
+    stroke: var(--rect-signal);
+    filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+  }
+  100% {
+    opacity: 0.9;
+    stroke: var(--rect-signal);
+    filter: drop-shadow(0 0 2px var(--rect-signal-glow));
+  }
+}
+
+/* Corner jitter during detection — steps(3) = digital noise, not smooth */
+@keyframes corner-jitter {
+  0% {
+    transform: translate(-50%, -50%);
+  }
+  33% {
+    transform: translate(calc(-50% + 1px), calc(-50% - 1px));
+  }
+  66% {
+    transform: translate(calc(-50% - 0.5px), calc(-50% + 0.5px));
+  }
+  100% {
+    transform: translate(calc(-50% + 0.5px), -50%);
+  }
+}
+
+/* Corner stamp on match — spring overshoot then settle (cubic-bezier above handles spring) */
+@keyframes corner-stamp {
+  0% {
+    transform: translate(-50%, -50%) scale(1.65);
+    opacity: 0;
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(0.86);
+    opacity: 1;
+  }
+  65% {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
 @media (max-width: 768px) {
-  .corner {
-    width: 8px;
-    height: 8px;
+  .cornerTL,
+  .cornerTR,
+  .cornerBR,
+  .cornerBL {
+    width: 11px;
+    height: 11px;
   }
 }

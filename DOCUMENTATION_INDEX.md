@@ -22,6 +22,7 @@
 - **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** — Photo recognition algorithm, thresholds, troubleshooting, and quick reference
 - **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** — Cloudflare Worker audio proxy and R2 setup
 - **[docs/PHOTO_SONG_ADDITION_WORKFLOW.md](./docs/PHOTO_SONG_ADDITION_WORKFLOW.md)** — Quick runbook for adding/removing a temporary single photo+song experience
+- **[docs/ENVIRONMENTAL_EFFECTS_IDEAS.md](./docs/ENVIRONMENTAL_EFFECTS_IDEAS.md)** — Backlog of UI ideas driven by environmental variables (EXIF, time, audio, randomness) and their planned feature flag IDs
 
 ## Module API Contracts
 

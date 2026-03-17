@@ -36,6 +36,7 @@ body {
   --signal-glow: rgba(212, 137, 42, 0.34);
   --signal-glow-soft: rgba(212, 137, 42, 0.14);
   --glow-reactive-scale: 1;
+  --glow-reactive-scale-ring: 1;
 
   /* Interactive element colors */
   --color-button-bg: #d4892a;
@@ -95,7 +96,6 @@ body {
 
   /* EXIF visual character — overridden by JS at match time based on shooting conditions */
   --exif-grain-opacity: 0.04; /* neutral default; range 0.02–0.12 driven by ISO */
-  --exif-blur-depth: 0px; /* default off; set by JS to 2–14px when exif-visual-character is active */
   --exif-transition-scale: 1; /* neutral default; range 0.6–1.4 driven by shutter speed */
 }
 

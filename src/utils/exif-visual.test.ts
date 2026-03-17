@@ -215,6 +215,26 @@ describe('applyExifVisualCharacter', () => {
     expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).not.toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).not.toBe('');
   });
+
+  it('clears stale vars when next concert has no EXIF fields', () => {
+    // First match sets all three vars
+    applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
+    // Second match has no EXIF — stale values must not persist
+    applyExifVisualCharacter(makeConcert({}));
+    expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
+  });
+
+  it('clears only unparseable vars when next concert has partial EXIF', () => {
+    // First match sets all three
+    applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
+    // Second match has only ISO — aperture and shutter should revert to :root defaults
+    applyExifVisualCharacter(makeConcert({ iso: '3200' }));
+    expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
+    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
+  });
 });
 
 describe('resetExifVisualCharacter', () => {

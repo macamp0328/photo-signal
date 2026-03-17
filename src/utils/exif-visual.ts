@@ -84,11 +84,17 @@ function shutterSpeedToTransitionScale(seconds: number): number {
 
 /**
  * Reads EXIF fields from a Concert and sets CSS custom properties on <html>
- * to drive EXIF-based visual character. Fields with unknown/absent values
- * are skipped, leaving the CSS defaults in place.
+ * to drive EXIF-based visual character. Any vars not derivable from this
+ * concert's EXIF are removed so they fall back to :root defaults — preventing
+ * a previous match's values from bleeding into the next concert.
  */
 export function applyExifVisualCharacter(concert: Concert): void {
   const root = document.documentElement;
+
+  // Always clear first so stale inline values from the previous match don't persist.
+  root.style.removeProperty('--exif-grain-opacity');
+  root.style.removeProperty('--exif-blur-depth');
+  root.style.removeProperty('--exif-transition-scale');
 
   const iso = parseIso(concert.iso);
   if (iso !== null) {

@@ -312,6 +312,8 @@ function AppContent() {
       applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
       if (isEnabled('exif-visual-character')) {
         applyExifVisualCharacter(activeRecognitionConcert);
+      } else {
+        resetExifVisualCharacter();
       }
     } else {
       resetToDeadSignal();

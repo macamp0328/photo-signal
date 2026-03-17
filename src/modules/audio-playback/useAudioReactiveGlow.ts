@@ -119,8 +119,14 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
 
     // AudioContext is suspended (browser requires a user gesture to unlock it).
     // Wait for statechange so the glow activates as soon as audio is unblocked.
+    //
+    // `mounted` guards against a race where the component unmounts while a
+    // statechange event is already queued: if the event fires after cleanup,
+    // handleStateChange would call activate() and leak an AnalyserNode + rAF loop.
+    let mounted = true;
+
     const handleStateChange = () => {
-      if (ctx.state === 'running') {
+      if (ctx.state === 'running' && mounted) {
         ctx.removeEventListener('statechange', handleStateChange);
         activate();
       }
@@ -129,6 +135,7 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
     ctx.addEventListener('statechange', handleStateChange);
 
     return () => {
+      mounted = false;
       ctx.removeEventListener('statechange', handleStateChange);
       teardown();
     };

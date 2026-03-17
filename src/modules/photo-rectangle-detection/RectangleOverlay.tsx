@@ -1,6 +1,30 @@
 import type { DetectedRectangle, DetectionState } from './types';
 import styles from './RectangleOverlay.module.css';
 
+/**
+ * Returns true only if the quadrilateral has finite coordinates and positive
+ * signed area (shoelace formula). Guards against NaN/Infinity inputs, zero-area
+ * degenerate rectangles, and winding-reversed (inverted) corner orders.
+ */
+function isValidQuadrilateral(rect: DetectedRectangle): boolean {
+  const { topLeft: tl, topRight: tr, bottomRight: br, bottomLeft: bl } = rect;
+  const coords = [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y];
+  if (coords.some((v) => !isFinite(v))) return false;
+
+  // Shoelace formula for signed area of quadrilateral (vertices in order)
+  const twice =
+    tl.x * tr.y -
+    tr.x * tl.y +
+    tr.x * br.y -
+    br.x * tr.y +
+    br.x * bl.y -
+    bl.x * br.y +
+    bl.x * tl.y -
+    tl.x * bl.y;
+
+  return twice > 0.0001;
+}
+
 export interface RectangleOverlayProps {
   /** Detected rectangle (normalized coordinates 0-1) */
   rectangle: DetectedRectangle | null;
@@ -27,6 +51,10 @@ export interface RectangleOverlayProps {
  */
 export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
   if (!rectangle || state === 'idle') {
+    return null;
+  }
+
+  if (!isValidQuadrilateral(rectangle)) {
     return null;
   }
 

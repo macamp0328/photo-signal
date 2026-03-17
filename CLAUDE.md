@@ -222,21 +222,25 @@ Photo Signal actively uses **environmental variables and controlled randomness**
 feel alive, non-repeating, and deeply connected to its physical/temporal context. When implementing
 new UI features, agents should consider whether any of these signals could enrich the behavior:
 
-**Available environmental variables (no new permissions needed):**
+**Environmental variables available with no additional permissions:**
 
 - **Time of day** — current hour in user's local timezone
 - **Date** — particularly relevant: all concerts are SXSW mid-March; exact date anniversaries are meaningful
 - **Concert timestamp** — each Concert has a full ISO 8601 timestamp including time-of-day (when the
   photo was taken). Compare against current time for "temporal echo" effects.
-- **Concert year** — 2022–2025 range; older concerts can look slightly more worn ("age patina")
+- **Concert year** — SXSW data spans multiple years; older concerts can look slightly more worn ("age patina")
 - **EXIF metadata** — `iso`, `aperture`, `shutterSpeed`, `camera` are stored per-concert; use them to
   vary the visual character of each match (grain, blur depth, transition speed)
 - **Session state** — first match of session, time since last match, match count; track in refs
 - **Audio state** — `progress` (0–1) and `isPlaying` from `useAudioPlayback`; song arc can affect visuals
 - **Audio frequency data** — Howler exposes its Web Audio context via `Howler.ctx`; tap an
   `AnalyserNode` for bass-reactive glow (only when matched, zero recognition impact)
-- **Device orientation** — `DeviceOrientationEvent` (no permission on most browsers); subtle tilt effects
 - **Motion detection** — existing `useMotionDetection` hook; camera shake can drive signal shake effects
+
+**Environmental variables that may require a permission prompt:**
+
+- **Device orientation** — `DeviceOrientationEvent`; no permission on Android/desktop Chrome, but iOS 13+
+  requires an explicit `DeviceOrientationEvent.requestPermission()` call
 
 **Randomness guardrails (mandatory):**
 
@@ -257,13 +261,13 @@ new UI features, agents should consider whether any of these signals could enric
 
 **Every environmental effect needs a feature flag** in `src/modules/secret-settings/config.ts`.
 Use the appropriate category: `ui`, `audio`, `experimental`. Default to `true` for subtle effects,
-`false` for experimental/sensor-based ones. See the settings chunking table in the project brainstorm
-notes for the planned flag IDs.
+`false` for experimental/sensor-based ones. See the planned flag IDs in
+`docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`.
 
-**Performance constraint:** The recognition pipeline runs in a Web Worker at 120ms intervals.
-Do NOT add computation to the main thread recognition path. Environmental effects should be
-event-driven (on match/unmatch) or very low-frequency (interval > 30s) or read-only from existing
-rAF loops already running.
+**Performance constraint:** The recognition pipeline runs in a Web Worker with an adaptive check
+interval (~80ms while tracking a candidate, ~120ms idle). Do NOT add computation to the main thread
+recognition path. Environmental effects should be event-driven (on match/unmatch) or very
+low-frequency (interval > 30s) or read-only from existing rAF loops already running.
 
 ## CI/CD
 

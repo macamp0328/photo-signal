@@ -1,8 +1,8 @@
 # Environmental Effects & Controlled Randomness — Ideas
 
 > **Status**: Brainstorm / backlog. These are candidate features, not implementation specs.
-> Implementation plans for the first two features (EXIF-driven visual character and audio-reactive
-> phosphor glow) live in the project plan files.
+> Detailed implementation plans for individual features are written up in separate conversations
+> when work begins.
 
 The goal of this document is to capture creative ways the UI experience can be shaped by environmental
 variables and controlled randomness. Every idea here should feel like it was always supposed to be
@@ -25,7 +25,7 @@ part of the experience — not a novelty, but a quiet deepening.
 
 - Current time and date (user's local timezone)
 - Concert `date` field: full ISO 8601 timestamp including time-of-day (when the photo was taken),
-  always America/Chicago. All 152 concerts are SXSW, mid-March, 2022–2025.
+  always America/Chicago. All concerts are SXSW, mid-March, spanning multiple years.
 - Concert EXIF: `iso`, `aperture`, `shutterSpeed`, `camera` per concert
 - Concert `band`, `venue`, `date` (year, day-of-week already drives palette hue)
 - Session state: time since app open, time since last match, match count (track in refs)
@@ -200,7 +200,8 @@ how the poster feels.
 ## Planned Feature Flags
 
 These IDs and categories are intended for `src/modules/secret-settings/config.ts` as effects are
-implemented. All effects should default to enabled unless experimental or sensor-dependent.
+implemented. Use `experimental` only for effects that are sensor-dependent or unproven — those
+default to `false`. Subtle always-on effects use `ui` or `audio` and default to `true`.
 
 | Category       | Flag ID                   | Default |
 | -------------- | ------------------------- | ------- |
@@ -211,11 +212,11 @@ implemented. All effects should default to enabled unless experimental or sensor
 | `ui`           | `temporal-echo`           | `true`  |
 | `ui`           | `session-warmup`          | `true`  |
 | `ui`           | `idle-restlessness`       | `true`  |
+| `ui`           | `stochastic-glitch`       | `true`  |
+| `ui`           | `per-session-phosphor`    | `true`  |
 | `audio`        | `audio-reactive-glow`     | `true`  |
 | `audio`        | `song-progress-scanlines` | `true`  |
 | `experimental` | `device-tilt-perspective` | `false` |
-| `experimental` | `stochastic-glitch`       | `true`  |
-| `experimental` | `per-session-phosphor`    | `true`  |
 
 The secret-settings UI should eventually group flags visually by category with section headers.
 The `FeatureFlag.category` type in `src/modules/secret-settings/types.ts` already supports this.

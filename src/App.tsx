@@ -13,6 +13,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
 import { useAudioPlayback } from './modules/audio-playback';
+import { useAudioReactiveGlow } from './modules/audio-playback/useAudioReactiveGlow';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
@@ -333,6 +334,9 @@ function AppContent() {
       }
     },
   });
+
+  // Module: Audio-Reactive Phosphor Glow
+  useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {

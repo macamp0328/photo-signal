@@ -427,7 +427,7 @@ describe('CameraView', () => {
         />
       );
 
-      expect(container.querySelector('svg polygon')).toBeInTheDocument();
+      expect(container.querySelector('svg path')).toBeInTheDocument();
     });
   });
 });

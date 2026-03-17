@@ -120,8 +120,8 @@ describe('RectangleDetectionService', () => {
     const uniform = new Uint8ClampedArray(16).fill(100);
     const result = internal.enhanceContrast(uniform);
 
-    // When max === min the function returns the original reference unchanged
-    expect(result).toBe(uniform);
+    // All output values must be unchanged — the contract is value stability, not identity
+    expect(Array.from(result)).toEqual(Array.from(uniform));
   });
 
   it('stretches pixel values to 0–255 when min < max', () => {
@@ -284,12 +284,16 @@ describe('RectangleDetectionService', () => {
       throw new Error('forced error');
     };
 
-    const result = service.detectRectangle(makeImageData(32, 32));
-    serviceAny.toGrayscale = originalToGrayscale;
+    let result: ReturnType<typeof service.detectRectangle>;
+    try {
+      result = service.detectRectangle(makeImageData(32, 32));
+    } finally {
+      serviceAny.toGrayscale = originalToGrayscale;
+    }
 
-    expect(result.detected).toBe(false);
-    expect(result.rectangle).toBeNull();
-    expect(result.confidence).toBe(0);
+    expect(result!.detected).toBe(false);
+    expect(result!.rectangle).toBeNull();
+    expect(result!.confidence).toBe(0);
   });
 
   // ── calculateConfidence ────────────────────────────────────────────────────

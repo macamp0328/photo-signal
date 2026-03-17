@@ -127,7 +127,7 @@
 
 /* EXIF-scaled reveal animation — only active when the exif-visual-character flag is on */
 :global(html[data-exif-visual]) .scannedPhotoFrame {
-  animation: posterReveal calc(0.8s * var(--exif-transition-scale, 1)) cubic-bezier(0.16, 1, 0.3, 1)
+  animation: posterReveal calc(0.8s * var(--exif-transition-scale)) cubic-bezier(0.16, 1, 0.3, 1)
     forwards;
 }
 

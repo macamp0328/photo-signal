@@ -19,13 +19,10 @@
   gap: 0.5rem;
   overflow: hidden;
   pointer-events: none;
+  /* --exif-blur-depth defaults to 0px; JS sets it to 2–14px when exif-visual-character is active */
+  backdrop-filter: blur(var(--exif-blur-depth));
+  -webkit-backdrop-filter: blur(var(--exif-blur-depth));
   animation: overlayFadeIn 0.5s ease forwards;
-}
-
-/* EXIF-driven backdrop blur — only active when the exif-visual-character flag is on */
-:global(html[data-exif-visual]) .overlay {
-  backdrop-filter: blur(var(--exif-blur-depth, 6px));
-  -webkit-backdrop-filter: blur(var(--exif-blur-depth, 6px));
 }
 
 .info {

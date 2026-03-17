@@ -11,14 +11,19 @@ export interface RectangleOverlayProps {
 /**
  * Rectangle Overlay Component
  *
- * Displays visual feedback for rectangle detection on top of camera view.
- * Three layered SVG paths create a mystical bioluminescent effect:
- * - pathHalo: thick ambient bloom (breathes gently)
- * - pathOutline: thin constant base stroke
- * - pathTravel: a single mote of light traveling around the perimeter
+ * Displays visual feedback for rectangle detection on top of the camera view.
  *
- * detecting state: violet/indigo traveling spark, corners as L-brackets
- * detected state: teal bloom flash then settle, spark fades out
+ * Two SVG path layers:
+ * - pathGlow:   thick ambient phosphor bloom behind the border
+ * - pathBorder: the main outline — broken dashes + stutter while detecting,
+ *               snaps solid on lock with a phosphor bloom/decay
+ *
+ * A scanLine div sweeps the interior (clip-path keeps it inside the
+ * quadrilateral even for perspective-distorted rectangles).
+ *
+ * detecting: amber broken signal, digital corner jitter, scan line sweeping
+ * detected:  signal snaps — phosphor bloom flares near-white then decays;
+ *            corner L-brackets stamp into place (spring-overshoot)
  */
 export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
   if (!rectangle || state === 'idle') {
@@ -35,13 +40,32 @@ export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
   const { topLeft: tl, topRight: tr, bottomRight: br, bottomLeft: bl } = rectangle;
   const d = `M ${tl.x * 100},${tl.y * 100} L ${tr.x * 100},${tr.y * 100} L ${br.x * 100},${br.y * 100} L ${bl.x * 100},${bl.y * 100} Z`;
 
+  // Scan line: sweeps from the top edge to the bottom edge of the rectangle.
+  // clip-path constrains it to the quadrilateral for perspective-distorted rects.
+  const scanTop = `${Math.min(tl.y, tr.y) * 100}%`;
+  const scanBottom = `${Math.max(bl.y, br.y) * 100}%`;
+  const clipPolygon = `polygon(${tl.x * 100}% ${tl.y * 100}%, ${tr.x * 100}% ${tr.y * 100}%, ${br.x * 100}% ${br.y * 100}%, ${bl.x * 100}% ${bl.y * 100}%)`;
+
   return (
     <div className={styles.overlay}>
       <svg className={styles.overlaySvg} viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path className={`${styles.pathHalo} ${stateClass}`} d={d} pathLength="1" />
-        <path className={`${styles.pathOutline} ${stateClass}`} d={d} pathLength="1" />
-        <path className={`${styles.pathTravel} ${stateClass}`} d={d} pathLength="1" />
+        <path className={`${styles.pathGlow} ${stateClass}`} d={d} pathLength="1" />
+        <path className={`${styles.pathBorder} ${stateClass}`} d={d} pathLength="1" />
       </svg>
+
+      {state === 'detecting' && (
+        <div
+          data-testid="scan-line"
+          className={`${styles.scanLine} ${styles.detecting}`}
+          style={
+            {
+              '--scan-top': scanTop,
+              '--scan-bottom': scanBottom,
+              clipPath: clipPolygon,
+            } as React.CSSProperties
+          }
+        />
+      )}
 
       <div
         className={`${styles.cornerTL} ${stateClass}`}

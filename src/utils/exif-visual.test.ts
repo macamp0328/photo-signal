@@ -197,6 +197,11 @@ describe('applyExifVisualCharacter', () => {
     expect(scale).toBe(1.4);
   });
 
+  it('sets data-exif-visual attribute on <html> regardless of EXIF field presence', () => {
+    applyExifVisualCharacter(makeConcert({}));
+    expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+  });
+
   it('leaves CSS vars unset when no EXIF fields present', () => {
     applyExifVisualCharacter(makeConcert({}));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
@@ -247,6 +252,15 @@ describe('resetExifVisualCharacter', () => {
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
+  });
+
+  it('removes the data-exif-visual attribute from <html>', () => {
+    applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
+    expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+
+    resetExifVisualCharacter();
+
+    expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
   });
 
   it('is safe to call when no vars are set', () => {

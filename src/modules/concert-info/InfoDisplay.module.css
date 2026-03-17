@@ -19,9 +19,13 @@
   gap: 0.5rem;
   overflow: hidden;
   pointer-events: none;
+  animation: overlayFadeIn 0.5s ease forwards;
+}
+
+/* EXIF-driven backdrop blur — only active when the exif-visual-character flag is on */
+:global(html[data-exif-visual]) .container {
   backdrop-filter: blur(var(--exif-blur-depth, 6px));
   -webkit-backdrop-filter: blur(var(--exif-blur-depth, 6px));
-  animation: overlayFadeIn 0.5s ease forwards;
 }
 
 .info {

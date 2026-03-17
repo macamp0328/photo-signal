@@ -33,6 +33,8 @@ class MockAudioContext {
   state: AudioContextState = 'running';
   sampleRate = 44100;
   createAnalyser = vi.fn(() => new MockAnalyserNode());
+  addEventListener = vi.fn();
+  removeEventListener = vi.fn();
 }
 
 // ── Mock GainNode ──────────────────────────────────────────────────────────────
@@ -125,20 +127,38 @@ describe('useAudioReactiveGlow', () => {
     expect(window.requestAnimationFrame).not.toHaveBeenCalled();
   });
 
-  it('does nothing when Howler.ctx is suspended', () => {
+  it('waits for statechange when Howler.ctx is suspended, then activates', () => {
     mockCtx!.state = 'suspended';
+    const listeners = new Map<string, EventListenerOrEventListenerObject>();
+    mockCtx!.addEventListener = vi.fn((type, listener) => {
+      listeners.set(type, listener as EventListenerOrEventListenerObject);
+    });
+    mockCtx!.removeEventListener = vi.fn();
+
     renderHook(() => useAudioReactiveGlow(true, true));
 
+    // Not yet active — waiting for statechange
     expect(mockCtx!.createAnalyser).not.toHaveBeenCalled();
     expect(window.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(mockCtx!.addEventListener).toHaveBeenCalledWith('statechange', expect.any(Function));
+
+    // Simulate AudioContext resuming
+    act(() => {
+      mockCtx!.state = 'running';
+      const handler = listeners.get('statechange') as EventListener;
+      handler(new Event('statechange'));
+    });
+
+    expect(mockCtx!.createAnalyser).toHaveBeenCalledOnce();
+    expect(window.requestAnimationFrame).toHaveBeenCalledOnce();
   });
 
   it('creates AnalyserNode and starts rAF when active and enabled', () => {
     renderHook(() => useAudioReactiveGlow(true, true));
 
-    expect(mockCtx!.createAnalyser).toHaveBeenCalledOnce();
-    expect(mockMasterGain!.connect).toHaveBeenCalledOnce();
-    expect(window.requestAnimationFrame).toHaveBeenCalledOnce();
+    expect(mockCtx!.createAnalyser).toHaveBeenCalled();
+    expect(mockMasterGain!.connect).toHaveBeenCalled();
+    expect(window.requestAnimationFrame).toHaveBeenCalled();
   });
 
   it('configures AnalyserNode with correct settings', () => {

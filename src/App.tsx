@@ -12,8 +12,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
-import { useAudioPlayback } from './modules/audio-playback';
-import { useAudioReactiveGlow } from './modules/audio-playback/useAudioReactiveGlow';
+import { useAudioPlayback, useAudioReactiveGlow } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';

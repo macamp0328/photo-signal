@@ -84,14 +84,19 @@ function shutterSpeedToTransitionScale(seconds: number): number {
 
 /**
  * Reads EXIF fields from a Concert and sets CSS custom properties on <html>
- * to drive EXIF-based visual character. Any vars not derivable from this
+ * to drive EXIF-based visual character. Also sets `data-exif-visual` on <html>
+ * so CSS rules can be gated on that attribute — ensuring EXIF-driven styles are
+ * fully inert when the feature is disabled. Any vars not derivable from this
  * concert's EXIF are removed so they fall back to :root defaults — preventing
  * a previous match's values from bleeding into the next concert.
  */
 export function applyExifVisualCharacter(concert: Concert): void {
   const root = document.documentElement;
 
-  // Always clear first so stale inline values from the previous match don't persist.
+  // Enable the CSS gate so EXIF-driven rules (grain, blur, animation) activate.
+  root.setAttribute('data-exif-visual', '');
+
+  // Always clear inline vars first so stale values from the previous match don't persist.
   root.style.removeProperty('--exif-grain-opacity');
   root.style.removeProperty('--exif-blur-depth');
   root.style.removeProperty('--exif-transition-scale');
@@ -115,9 +120,13 @@ export function applyExifVisualCharacter(concert: Concert): void {
   }
 }
 
-/** Removes all EXIF visual character CSS vars, restoring CSS defaults. */
+/**
+ * Removes all EXIF visual character CSS vars and the `data-exif-visual` gate
+ * attribute, fully restoring pre-EXIF visual defaults.
+ */
 export function resetExifVisualCharacter(): void {
   const root = document.documentElement;
+  root.removeAttribute('data-exif-visual');
   root.style.removeProperty('--exif-grain-opacity');
   root.style.removeProperty('--exif-blur-depth');
   root.style.removeProperty('--exif-transition-scale');

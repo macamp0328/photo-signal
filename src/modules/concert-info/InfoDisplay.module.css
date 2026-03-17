@@ -19,6 +19,8 @@
   gap: 0.5rem;
   overflow: hidden;
   pointer-events: none;
+  backdrop-filter: blur(var(--exif-blur-depth, 6px));
+  -webkit-backdrop-filter: blur(var(--exif-blur-depth, 6px));
   animation: overlayFadeIn 0.5s ease forwards;
 }
 

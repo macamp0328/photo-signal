@@ -414,7 +414,7 @@ describe('CameraView', () => {
       expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
     });
 
-    it('renders perspective polygon overlay when rectangle is present', () => {
+    it('renders two layered SVG paths when rectangle is present', () => {
       const { container } = render(
         <CameraView
           stream={mockStream}
@@ -427,7 +427,40 @@ describe('CameraView', () => {
         />
       );
 
-      expect(container.querySelector('svg polygon')).toBeInTheDocument();
+      // pathGlow + pathBorder — both must be present
+      expect(container.querySelectorAll('svg path')).toHaveLength(2);
+    });
+
+    it('renders scan line in detecting state (confidence below threshold)', () => {
+      const { getByTestId } = render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={true}
+          detectedRectangle={mockRectangle}
+          rectangleConfidence={0.3}
+          rectangleDetectionConfidenceThreshold={0.6}
+        />
+      );
+
+      expect(getByTestId('scan-line')).toBeInTheDocument();
+    });
+
+    it('does not render scan line in detected state (confidence meets threshold)', () => {
+      const { queryByTestId } = render(
+        <CameraView
+          stream={mockStream}
+          error={null}
+          hasPermission={true}
+          showRectangleOverlay={true}
+          detectedRectangle={mockRectangle}
+          rectangleConfidence={0.85}
+          rectangleDetectionConfidenceThreshold={0.6}
+        />
+      );
+
+      expect(queryByTestId('scan-line')).not.toBeInTheDocument();
     });
   });
 });

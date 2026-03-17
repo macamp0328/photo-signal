@@ -128,6 +128,12 @@ describe('parseShutterSpeed', () => {
   it('returns null for non-numeric string', () => {
     expect(parseShutterSpeed('bulb')).toBeNull();
   });
+
+  it('parses inverted fraction 30/1 (30-second long exposure)', () => {
+    // Some cameras write long exposures as "30/1" rather than "30s".
+    // The fraction parser handles numerator > denominator correctly.
+    expect(parseShutterSpeed('30/1')).toBeCloseTo(30);
+  });
 });
 
 describe('applyExifVisualCharacter', () => {

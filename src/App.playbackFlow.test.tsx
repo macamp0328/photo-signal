@@ -1053,4 +1053,48 @@ describe('App playback flow', () => {
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/one-b.opus');
     expect(mockPlay).not.toHaveBeenLastCalledWith('/audio/one-b.opus');
   });
+
+  it('sets data-exif-visual attribute when a concert with EXIF is matched and flag is enabled', async () => {
+    const concertWithExif: typeof concertOne = {
+      ...concertOne,
+      iso: '1600',
+      aperture: 'f/2.8',
+      shutterSpeed: '1/60',
+    };
+
+    recognitionState.recognizedConcert = concertWithExif;
+    enabledFlags.add('exif-visual-character');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+    });
+  });
+
+  it('removes data-exif-visual attribute when recognition is cleared', async () => {
+    const concertWithExif: typeof concertOne = {
+      ...concertOne,
+      iso: '800',
+      aperture: 'f/1.8',
+      shutterSpeed: '1/125',
+    };
+
+    recognitionState.recognizedConcert = concertWithExif;
+    enabledFlags.add('exif-visual-character');
+
+    const { rerender } = render(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+    });
+
+    // Clear the recognition (simulate losing the photo match)
+    recognitionState.recognizedConcert = null;
+    rerender(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
+    });
+  });
 });

@@ -414,7 +414,7 @@ describe('CameraView', () => {
       expect(screen.queryByText('Detecting photo...')).not.toBeInTheDocument();
     });
 
-    it('renders perspective polygon overlay when rectangle is present', () => {
+    it('renders layered path overlay when rectangle is present', () => {
       const { container } = render(
         <CameraView
           stream={mockStream}

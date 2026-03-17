@@ -22,6 +22,19 @@
   height: 100%;
   pointer-events: none;
   z-index: 10;
+
+  /* ── Overlay palette — override these to retheme the entire overlay ──────
+   * detecting: violet/indigo spark traveling clockwise
+   * detected:  bioluminescent teal portal-open bloom
+   * error:     reuses the global --color-error token
+   */
+  --rect-detecting-core: #6366f1;
+  --rect-detecting-bloom: #4f46e5;
+  --rect-detecting-mote: #c4b5fd;
+  --rect-detecting-mote-glow: #a78bfa;
+  --rect-detected-core: #2dd4bf;
+  --rect-detected-trail: #99f6e4;
+  --rect-error-core: var(--color-error, #ef4444);
 }
 
 .overlaySvg {
@@ -49,14 +62,14 @@
 }
 
 .pathHalo.detecting {
-  stroke: #4f46e5;
+  stroke: var(--rect-detecting-bloom);
   opacity: 0.18;
   filter: blur(1.5px);
   animation: halo-breathe 3s ease-in-out infinite;
 }
 
 .pathHalo.detected {
-  stroke: #2dd4bf;
+  stroke: var(--rect-detected-core);
   stroke-width: 4;
   opacity: 0.22;
   filter: blur(2px);
@@ -64,7 +77,7 @@
 }
 
 .pathHalo.error {
-  stroke: #ef4444;
+  stroke: var(--rect-error-core);
   stroke-width: 3;
   opacity: 0.2;
   filter: blur(1px);
@@ -81,18 +94,18 @@
 }
 
 .pathOutline.detecting {
-  stroke: #6366f1;
+  stroke: var(--rect-detecting-core);
   opacity: 0.65;
 }
 
 .pathOutline.detected {
-  stroke: #2dd4bf;
+  stroke: var(--rect-detected-core);
   opacity: 0.9;
-  filter: drop-shadow(0 0 0.5rem #2dd4bf);
+  filter: drop-shadow(0 0 0.5rem var(--rect-detected-core));
 }
 
 .pathOutline.error {
-  stroke: #ef4444;
+  stroke: var(--rect-error-core);
   opacity: 0.75;
 }
 
@@ -111,14 +124,14 @@
 }
 
 .pathTravel.detecting {
-  stroke: #c4b5fd;
+  stroke: var(--rect-detecting-mote);
   opacity: 0.95;
-  filter: drop-shadow(0 0 0.4rem #a78bfa);
+  filter: drop-shadow(0 0 0.4rem var(--rect-detecting-mote-glow));
   animation: dash-travel 2.5s linear infinite;
 }
 
 .pathTravel.detected {
-  stroke: #99f6e4;
+  stroke: var(--rect-detected-trail);
   opacity: 0;
   /* mote fades out when match is confirmed */
 }
@@ -164,72 +177,72 @@
 
 /* detecting */
 .cornerTL.detecting {
-  border-top-color: #6366f1;
-  border-left-color: #6366f1;
-  filter: drop-shadow(0 0 3px #4f46e5);
+  border-top-color: var(--rect-detecting-core);
+  border-left-color: var(--rect-detecting-core);
+  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
   animation: corner-breathe 3s ease-in-out infinite;
 }
 .cornerTR.detecting {
-  border-top-color: #6366f1;
-  border-right-color: #6366f1;
-  filter: drop-shadow(0 0 3px #4f46e5);
+  border-top-color: var(--rect-detecting-core);
+  border-right-color: var(--rect-detecting-core);
+  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
   animation: corner-breathe 3s ease-in-out infinite;
 }
 .cornerBR.detecting {
-  border-bottom-color: #6366f1;
-  border-right-color: #6366f1;
-  filter: drop-shadow(0 0 3px #4f46e5);
+  border-bottom-color: var(--rect-detecting-core);
+  border-right-color: var(--rect-detecting-core);
+  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
   animation: corner-breathe 3s ease-in-out infinite;
 }
 .cornerBL.detecting {
-  border-bottom-color: #6366f1;
-  border-left-color: #6366f1;
-  filter: drop-shadow(0 0 3px #4f46e5);
+  border-bottom-color: var(--rect-detecting-core);
+  border-left-color: var(--rect-detecting-core);
+  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
   animation: corner-breathe 3s ease-in-out infinite;
 }
 
 /* detected */
 .cornerTL.detected {
-  border-top-color: #2dd4bf;
-  border-left-color: #2dd4bf;
-  filter: drop-shadow(0 0 4px #2dd4bf);
+  border-top-color: var(--rect-detected-core);
+  border-left-color: var(--rect-detected-core);
+  filter: drop-shadow(0 0 4px var(--rect-detected-core));
   animation: corner-appear 0.5s ease-out forwards;
 }
 .cornerTR.detected {
-  border-top-color: #2dd4bf;
-  border-right-color: #2dd4bf;
-  filter: drop-shadow(0 0 4px #2dd4bf);
+  border-top-color: var(--rect-detected-core);
+  border-right-color: var(--rect-detected-core);
+  filter: drop-shadow(0 0 4px var(--rect-detected-core));
   animation: corner-appear 0.5s ease-out forwards;
 }
 .cornerBR.detected {
-  border-bottom-color: #2dd4bf;
-  border-right-color: #2dd4bf;
-  filter: drop-shadow(0 0 4px #2dd4bf);
+  border-bottom-color: var(--rect-detected-core);
+  border-right-color: var(--rect-detected-core);
+  filter: drop-shadow(0 0 4px var(--rect-detected-core));
   animation: corner-appear 0.5s ease-out forwards;
 }
 .cornerBL.detected {
-  border-bottom-color: #2dd4bf;
-  border-left-color: #2dd4bf;
-  filter: drop-shadow(0 0 4px #2dd4bf);
+  border-bottom-color: var(--rect-detected-core);
+  border-left-color: var(--rect-detected-core);
+  filter: drop-shadow(0 0 4px var(--rect-detected-core));
   animation: corner-appear 0.5s ease-out forwards;
 }
 
 /* error */
 .cornerTL.error {
-  border-top-color: #ef4444;
-  border-left-color: #ef4444;
+  border-top-color: var(--rect-error-core);
+  border-left-color: var(--rect-error-core);
 }
 .cornerTR.error {
-  border-top-color: #ef4444;
-  border-right-color: #ef4444;
+  border-top-color: var(--rect-error-core);
+  border-right-color: var(--rect-error-core);
 }
 .cornerBR.error {
-  border-bottom-color: #ef4444;
-  border-right-color: #ef4444;
+  border-bottom-color: var(--rect-error-core);
+  border-right-color: var(--rect-error-core);
 }
 .cornerBL.error {
-  border-bottom-color: #ef4444;
-  border-left-color: #ef4444;
+  border-bottom-color: var(--rect-error-core);
+  border-left-color: var(--rect-error-core);
 }
 
 /* ─── Keyframes ───────────────────────────────────────────────────────────── */

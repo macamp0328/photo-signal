@@ -10,6 +10,14 @@ import type { FeatureFlag } from './types';
 
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
+    id: 'exif-visual-character',
+    name: 'EXIF Visual Character',
+    description:
+      'Vary the visual character of each photo match based on its EXIF shooting conditions. ISO drives film grain intensity. Aperture drives the concert info backdrop blur. Shutter speed drives the match reveal animation speed.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
     id: 'rectangle-detection',
     name: 'Dynamic Rectangle Detection',
     description:

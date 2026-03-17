@@ -28,6 +28,7 @@ import {
   syncPlaylistForConcert,
 } from './App.playback-helpers';
 import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
+import { applyExifVisualCharacter, resetExifVisualCharacter } from './utils/exif-visual';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -304,15 +305,23 @@ function AppContent() {
   }, [activeRecognitionConcert]);
 
   // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise.
-  // Cleanup on unmount ensures data-state and --poster-* vars don't leak into future mounts.
+  // EXIF visual character vars are applied alongside the palette so each photo match feels unique.
+  // Cleanup on unmount ensures data-state, --poster-*, and --exif-* vars don't leak into future mounts.
   useEffect(() => {
     if (activeRecognitionConcert) {
       applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
+      if (isEnabled('exif-visual-character')) {
+        applyExifVisualCharacter(activeRecognitionConcert);
+      }
     } else {
       resetToDeadSignal();
+      resetExifVisualCharacter();
     }
-    return resetToDeadSignal;
-  }, [activeRecognitionConcert]);
+    return () => {
+      resetToDeadSignal();
+      resetExifVisualCharacter();
+    };
+  }, [activeRecognitionConcert, isEnabled]);
 
   useEffect(() => {
     if (showSecretSettings) {

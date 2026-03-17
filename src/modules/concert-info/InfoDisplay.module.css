@@ -23,7 +23,7 @@
 }
 
 /* EXIF-driven backdrop blur — only active when the exif-visual-character flag is on */
-:global(html[data-exif-visual]) .container {
+:global(html[data-exif-visual]) .overlay {
   backdrop-filter: blur(var(--exif-blur-depth, 6px));
   -webkit-backdrop-filter: blur(var(--exif-blur-depth, 6px));
 }

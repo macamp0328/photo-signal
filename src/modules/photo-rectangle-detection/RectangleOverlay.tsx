@@ -55,6 +55,7 @@ export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
 
       {state === 'detecting' && (
         <div
+          data-testid="scan-line"
           className={`${styles.scanLine} ${styles.detecting}`}
           style={
             {

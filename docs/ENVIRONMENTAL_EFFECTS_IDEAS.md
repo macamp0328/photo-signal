@@ -2,7 +2,9 @@
 
 > **Status**: Brainstorm / backlog. These are candidate features, not implementation specs.
 > Detailed implementation plans for individual features are written up in separate conversations
-> when work begins.
+> when work begins. Features annotated **← batch 1** or **← batch 2** are earmarked for the
+> first two implementation passes — these are ordering labels only, not references to in-repo
+> plan files.
 
 The goal of this document is to capture creative ways the UI experience can be shaped by environmental
 variables and controlled randomness. Every idea here should feel like it was always supposed to be
@@ -104,7 +106,7 @@ stamped. Resets on page close.
 
 ### Audio & Song State
 
-**Audio-reactive phosphor glow** ← _Plan 2 (first implementation)_
+**Audio-reactive phosphor glow** ← _batch 2_
 Tap `Howler.ctx` for an `AnalyserNode`. Extract bass band energy (~60–200Hz). Modulate
 `--glow-reactive-scale` CSS variable, which all `text-shadow` glow px values multiply via `calc()`.
 Range: 0.85–1.20. `smoothingTimeConstant = 0.85` (lazy, not twitchy). Only active during matched
@@ -124,16 +126,16 @@ during matched + playing state.
 
 ### Photo Metadata (EXIF) Driven
 
-**ISO → grain intensity** ← _Part of Plan 1 (first implementation)_
+**ISO → grain intensity** ← _batch 1_
 `concert.iso` maps to grain texture overlay opacity. ISO 100 → 0.02 opacity, ISO 3200+ → 0.12.
 The photo's shooting conditions bleed into its display.
 
-**Aperture → background blur depth** ← _Part of Plan 1 (first implementation)_
+**Aperture → background blur depth** ← _batch 1_
 `concert.aperture` (f-number) maps to `backdrop-filter: blur()` on the concert info overlay
 background. f/1.8 → 14px blur (shallow depth of field). f/8 → 2px blur. The optics of the original
 shot echo in the UI.
 
-**Shutter speed → match transition timing** ← _Part of Plan 1 (first implementation)_
+**Shutter speed → match transition timing** ← _batch 1_
 `concert.shutterSpeed` informs the `posterReveal` animation duration. 1/30s slow shutter → slower
 luxurious reveal (1.3×). 1/500s fast → snappy (0.7×). Clamped to 0.6–1.4×.
 

@@ -35,6 +35,7 @@ body {
   --texture-image: url('/backgrounds/gravel.svg');
   --signal-glow: rgba(212, 137, 42, 0.34);
   --signal-glow-soft: rgba(212, 137, 42, 0.14);
+  --glow-reactive-scale: 1;
 
   /* Interactive element colors */
   --color-button-bg: #d4892a;

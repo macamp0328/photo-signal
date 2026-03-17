@@ -40,8 +40,10 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   text-shadow:
-    0 0 10px color-mix(in srgb, var(--color-main-text), transparent 65%),
-    0 0 24px color-mix(in srgb, var(--color-accent), transparent 82%);
+    0 0 calc(10px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 65%),
+    0 0 calc(24px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 82%);
   transition: color 1.2s ease;
 }
 

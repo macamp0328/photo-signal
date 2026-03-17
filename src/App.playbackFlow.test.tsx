@@ -154,6 +154,7 @@ vi.mock('./modules/photo-recognition', () => ({
 }));
 
 vi.mock('./modules/audio-playback', () => ({
+  useAudioReactiveGlow: vi.fn(),
   useAudioPlayback: ({ onSongEnd }: { onSongEnd?: () => void } = {}) => {
     capturedOnSongEnd = onSongEnd;
     return {

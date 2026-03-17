@@ -1,15 +1,26 @@
-/* Rectangle Overlay — Mystical Redesign
+/* Rectangle Overlay — CRT Signal Lock
  *
- * detecting: deep violet/indigo with a single spark of light traveling clockwise
- * detected:  luminous teal bloom then settle — portal-open quality
+ * detecting: amber broadcast signal trying to lock.
+ *   Border is broken dashes that stutter (steps() timing, not smooth).
+ *   A horizontal scan line sweeps through the interior, clipped to the
+ *   rectangle polygon so it doesn't bleed outside perspective-distorted rects.
+ *   Corner L-brackets jitter with digital noise.
  *
- * Three SVG path layers:
- *   pathHalo    — thick ambient bloom, breathes gently
- *   pathOutline — thin constant base stroke
- *   pathTravel  — traveling mote (stroke-dashoffset on pathLength="1")
+ * detected: signal snaps.
+ *   Dashes snap to solid (the lock moment). A phosphor bloom flares to
+ *   near-white-amber then decays with a non-linear organic curve — the
+ *   persistence of a CRT phosphor after the beam passes. Corner marks
+ *   stamp into place with a spring-overshoot punch.
  *
- * Corners are L-bracket viewfinder marks, not circles.
- * filter: drop-shadow follows the L shape; box-shadow would not.
+ * All colors inherit from the project's existing broadcast palette vars:
+ *   --color-accent (#d4892a amber), --signal-glow, --signal-glow-soft
+ *
+ * Two SVG path layers:
+ *   pathGlow   — thick ambient phosphor behind the border
+ *   pathBorder — the main outline (dashed + flicker / solid + bloom)
+ *
+ * Plus a scanLine div clipped to the quadrilateral, and L-bracket corners.
+ * filter: drop-shadow() used (not blur) — follows the path shape on mobile.
  */
 
 /* ─── Layout ──────────────────────────────────────────────────────────────── */
@@ -23,18 +34,15 @@
   pointer-events: none;
   z-index: 10;
 
-  /* ── Overlay palette — override these to retheme the entire overlay ──────
-   * detecting: violet/indigo spark traveling clockwise
-   * detected:  bioluminescent teal portal-open bloom
-   * error:     reuses the global --color-error token
+  /* ── Overlay palette — override here to retheme ──────────────────────────
+   * All rules below reference these vars; no hard-coded hex anywhere else.
+   * The signal vars delegate to the project's broadcast amber tokens.
    */
-  --rect-detecting-core: #6366f1;
-  --rect-detecting-bloom: #4f46e5;
-  --rect-detecting-mote: #c4b5fd;
-  --rect-detecting-mote-glow: #a78bfa;
-  --rect-detected-core: #2dd4bf;
-  --rect-detected-trail: #99f6e4;
-  --rect-error-core: var(--color-error, #ef4444);
+  --rect-signal: var(--color-accent, #d4892a);
+  --rect-signal-glow: var(--signal-glow, rgba(212, 137, 42, 0.34));
+  --rect-signal-soft: var(--signal-glow-soft, rgba(212, 137, 42, 0.14));
+  --rect-bloom-peak: #fff3c0; /* near-white phosphor at the moment of lock */
+  --rect-error: var(--color-error, #ef4444);
 }
 
 .overlaySvg {
@@ -44,120 +52,113 @@
 
 /* ─── Path base defaults ──────────────────────────────────────────────────── */
 
-.pathHalo,
-.pathOutline,
-.pathTravel {
+.pathGlow,
+.pathBorder {
   fill: none;
   stroke: transparent;
 }
 
-/* ─── Halo layer (ambient bloom) ─────────────────────────────────────────── */
+/* ─── Glow layer (phosphor ambient behind the border) ────────────────────── */
 
-.pathHalo {
-  stroke-width: 3.5;
-  opacity: 0;
-  transition:
-    stroke 0.5s ease,
-    opacity 0.5s ease;
-}
-
-.pathHalo.detecting {
-  stroke: var(--rect-detecting-bloom);
-  opacity: 0.18;
-  filter: blur(1.5px);
-  animation: halo-breathe 3s ease-in-out infinite;
-}
-
-.pathHalo.detected {
-  stroke: var(--rect-detected-core);
-  stroke-width: 4;
-  opacity: 0.22;
-  filter: blur(2px);
-  animation: halo-settle 0.8s ease-out forwards;
-}
-
-.pathHalo.error {
-  stroke: var(--rect-error-core);
-  stroke-width: 3;
-  opacity: 0.2;
-  filter: blur(1px);
-}
-
-/* ─── Outline layer (base stroke) ────────────────────────────────────────── */
-
-.pathOutline {
-  stroke-width: 0.5;
-  opacity: 0;
-  transition:
-    stroke 0.4s ease,
-    opacity 0.4s ease;
-}
-
-.pathOutline.detecting {
-  stroke: var(--rect-detecting-core);
-  opacity: 0.65;
-}
-
-.pathOutline.detected {
-  stroke: var(--rect-detected-core);
-  opacity: 0.9;
-  filter: drop-shadow(0 0 0.5rem var(--rect-detected-core));
-}
-
-.pathOutline.error {
-  stroke: var(--rect-error-core);
-  opacity: 0.75;
-}
-
-/* ─── Travel layer (moving mote) ─────────────────────────────────────────── */
-
-.pathTravel {
-  stroke-width: 1;
-  stroke-linecap: round;
-  /* pathLength="1" on the element means these values are fractions of perimeter */
-  stroke-dasharray: 0.07 0.93;
-  stroke-dashoffset: 0;
-  opacity: 0;
-  transition:
-    stroke 0.4s ease,
-    opacity 0.5s ease;
-}
-
-.pathTravel.detecting {
-  stroke: var(--rect-detecting-mote);
-  opacity: 0.95;
-  filter: drop-shadow(0 0 0.4rem var(--rect-detecting-mote-glow));
-  animation: dash-travel 2.5s linear infinite;
-}
-
-.pathTravel.detected {
-  stroke: var(--rect-detected-trail);
-  opacity: 0;
-  /* mote fades out when match is confirmed */
-}
-
-.pathTravel.error {
+.pathGlow {
+  stroke-width: 5;
   opacity: 0;
 }
 
-/* ─── Corner markers (L-bracket viewfinder style) ────────────────────────── */
+.pathGlow.detecting {
+  stroke: var(--rect-signal);
+  opacity: 0.1;
+  filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+  animation: glow-breathe 2.8s ease-in-out infinite;
+}
+
+.pathGlow.detected {
+  stroke: var(--rect-signal);
+  opacity: 0;
+  /* Bloom animation drives everything — starts thick and bright, decays */
+  animation: phosphor-bloom-glow 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pathGlow.error {
+  stroke: var(--rect-error);
+  opacity: 0.12;
+}
+
+/* ─── Border layer (the signal outline) ──────────────────────────────────── */
+
+.pathBorder {
+  stroke-width: 0.55;
+  opacity: 0;
+  /* Note: stroke-dasharray intentionally NOT in transition — the snap from
+     dashed → solid on lock is instant and deliberate, not animated. */
+  transition: opacity 0.2s ease;
+}
+
+.pathBorder.detecting {
+  stroke: var(--rect-signal);
+  /* pathLength="1" on the element normalizes these to fractions of perimeter:
+     ~8% dashes with ~3% gaps → roughly 9 segments, uneven feel */
+  stroke-dasharray: 0.08 0.03;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 1px var(--rect-signal-glow));
+  animation: signal-flicker 3.2s steps(1) infinite;
+}
+
+.pathBorder.detected {
+  stroke: var(--rect-signal);
+  /* stroke-dasharray clears (back to default solid) the moment detecting class
+     is removed — combined with the bloom animation this IS the lock snap */
+  opacity: 0;
+  animation: phosphor-bloom-border 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pathBorder.error {
+  stroke: var(--rect-error);
+  opacity: 0.8;
+  filter: drop-shadow(0 0 1px var(--rect-error));
+}
+
+/* ─── Scan line (sweeps interior during detecting only) ──────────────────── */
+/* Positioned via --scan-top / --scan-bottom CSS vars set as inline style.    */
+/* clip-path set inline to the rectangle polygon (handles perspective skew).  */
+
+.scanLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--rect-signal-soft) 20%,
+    var(--rect-signal) 50%,
+    var(--rect-signal-soft) 80%,
+    transparent 100%
+  );
+  top: var(--scan-top, 0%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scanLine.detecting {
+  animation: scan-sweep 2.2s linear infinite;
+}
+
+/* ─── Corner markers (L-bracket, screen-print style) ─────────────────────── */
 
 .cornerTL,
 .cornerTR,
 .cornerBR,
 .cornerBL {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   transform: translate(-50%, -50%);
-  border: 2px solid transparent;
-  transition:
-    border-color 0.4s ease,
-    filter 0.4s ease,
-    opacity 0.4s ease;
+  border: 1.5px solid transparent;
+  opacity: 0;
 }
 
-/* Only two sides visible per corner — the L-bracket shape */
+/* L-bracket: only two sides visible per corner */
 .cornerTL {
   border-right: none;
   border-bottom: none;
@@ -175,136 +176,240 @@
   border-top: none;
 }
 
-/* detecting */
-.cornerTL.detecting {
-  border-top-color: var(--rect-detecting-core);
-  border-left-color: var(--rect-detecting-core);
-  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
-  animation: corner-breathe 3s ease-in-out infinite;
-}
-.cornerTR.detecting {
-  border-top-color: var(--rect-detecting-core);
-  border-right-color: var(--rect-detecting-core);
-  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
-  animation: corner-breathe 3s ease-in-out infinite;
-}
-.cornerBR.detecting {
-  border-bottom-color: var(--rect-detecting-core);
-  border-right-color: var(--rect-detecting-core);
-  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
-  animation: corner-breathe 3s ease-in-out infinite;
-}
+/* detecting — amber, digital jitter */
+.cornerTL.detecting,
+.cornerTR.detecting,
+.cornerBR.detecting,
 .cornerBL.detecting {
-  border-bottom-color: var(--rect-detecting-core);
-  border-left-color: var(--rect-detecting-core);
-  filter: drop-shadow(0 0 3px var(--rect-detecting-bloom));
-  animation: corner-breathe 3s ease-in-out infinite;
+  opacity: 0.7;
+  animation: corner-jitter 1.4s steps(3) infinite;
 }
 
-/* detected */
+.cornerTL.detecting {
+  border-top-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+}
+.cornerTR.detecting {
+  border-top-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+}
+.cornerBR.detecting {
+  border-bottom-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+}
+.cornerBL.detecting {
+  border-bottom-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+}
+
+/* detected — stamp into place, spring overshoot */
+.cornerTL.detected,
+.cornerTR.detected,
+.cornerBR.detected,
+.cornerBL.detected {
+  animation: corner-stamp 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 .cornerTL.detected {
-  border-top-color: var(--rect-detected-core);
-  border-left-color: var(--rect-detected-core);
-  filter: drop-shadow(0 0 4px var(--rect-detected-core));
-  animation: corner-appear 0.5s ease-out forwards;
+  border-top-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+  filter: drop-shadow(-1px -1px 3px var(--rect-signal-glow));
 }
 .cornerTR.detected {
-  border-top-color: var(--rect-detected-core);
-  border-right-color: var(--rect-detected-core);
-  filter: drop-shadow(0 0 4px var(--rect-detected-core));
-  animation: corner-appear 0.5s ease-out forwards;
+  border-top-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+  filter: drop-shadow(1px -1px 3px var(--rect-signal-glow));
 }
 .cornerBR.detected {
-  border-bottom-color: var(--rect-detected-core);
-  border-right-color: var(--rect-detected-core);
-  filter: drop-shadow(0 0 4px var(--rect-detected-core));
-  animation: corner-appear 0.5s ease-out forwards;
+  border-bottom-color: var(--rect-signal);
+  border-right-color: var(--rect-signal);
+  filter: drop-shadow(1px 1px 3px var(--rect-signal-glow));
 }
 .cornerBL.detected {
-  border-bottom-color: var(--rect-detected-core);
-  border-left-color: var(--rect-detected-core);
-  filter: drop-shadow(0 0 4px var(--rect-detected-core));
-  animation: corner-appear 0.5s ease-out forwards;
+  border-bottom-color: var(--rect-signal);
+  border-left-color: var(--rect-signal);
+  filter: drop-shadow(-1px 1px 3px var(--rect-signal-glow));
 }
 
 /* error */
 .cornerTL.error {
-  border-top-color: var(--rect-error-core);
-  border-left-color: var(--rect-error-core);
+  border-top-color: var(--rect-error);
+  border-left-color: var(--rect-error);
+  opacity: 0.8;
 }
 .cornerTR.error {
-  border-top-color: var(--rect-error-core);
-  border-right-color: var(--rect-error-core);
+  border-top-color: var(--rect-error);
+  border-right-color: var(--rect-error);
+  opacity: 0.8;
 }
 .cornerBR.error {
-  border-bottom-color: var(--rect-error-core);
-  border-right-color: var(--rect-error-core);
+  border-bottom-color: var(--rect-error);
+  border-right-color: var(--rect-error);
+  opacity: 0.8;
 }
 .cornerBL.error {
-  border-bottom-color: var(--rect-error-core);
-  border-left-color: var(--rect-error-core);
+  border-bottom-color: var(--rect-error);
+  border-left-color: var(--rect-error);
+  opacity: 0.8;
 }
 
 /* ─── Keyframes ───────────────────────────────────────────────────────────── */
 
-/* Mote travels clockwise around the path (pathLength="1" normalizes the offset) */
-@keyframes dash-travel {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* Halo breathes while searching */
-@keyframes halo-breathe {
-  0%,
-  100% {
-    opacity: 0.1;
-  }
-  50% {
-    opacity: 0.28;
-  }
-}
-
-/* Halo blooms briefly on match then settles */
-@keyframes halo-settle {
+/* Border flickers like a weak broadcast signal.
+ * steps(1) timing + near-adjacent keyframes = digital stutter, not smooth. */
+@keyframes signal-flicker {
   0% {
-    opacity: 0.12;
+    stroke-dashoffset: 0;
+    opacity: 0.85;
   }
-  35% {
+  8% {
+    stroke-dashoffset: 0;
     opacity: 0.45;
   }
+  10% {
+    stroke-dashoffset: 0.05;
+    opacity: 0.9;
+  }
+  28% {
+    stroke-dashoffset: 0.05;
+    opacity: 0.8;
+  }
+  29% {
+    stroke-dashoffset: 0.13;
+    opacity: 0.55;
+  }
+  52% {
+    stroke-dashoffset: 0.13;
+    opacity: 0.85;
+  }
+  53% {
+    stroke-dashoffset: 0.04;
+    opacity: 0.95;
+  }
+  77% {
+    stroke-dashoffset: 0.04;
+    opacity: 0.68;
+  }
+  78% {
+    stroke-dashoffset: 0.19;
+    opacity: 0.82;
+  }
   100% {
-    opacity: 0.22;
+    stroke-dashoffset: 0.19;
+    opacity: 0.82;
   }
 }
 
-/* Corners breathe in sync with halo */
-@keyframes corner-breathe {
+/* Scan line sweeps top-to-bottom through the rectangle.
+ * --scan-top / --scan-bottom are set per-element via inline style. */
+@keyframes scan-sweep {
+  0% {
+    top: var(--scan-top, 0%);
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.85;
+  }
+  88% {
+    top: var(--scan-bottom, 100%);
+    opacity: 0.85;
+  }
+  100% {
+    top: var(--scan-bottom, 100%);
+    opacity: 0;
+  }
+}
+
+/* Glow breathes slowly while searching */
+@keyframes glow-breathe {
   0%,
   100% {
-    opacity: 0.65;
+    opacity: 0.06;
   }
   50% {
-    opacity: 1;
+    opacity: 0.18;
   }
 }
 
-/* Corners snap into place on detected — scale includes translate to preserve centering */
-@keyframes corner-appear {
+/* Phosphor glow bloom — thick burst then organic non-linear decay */
+@keyframes phosphor-bloom-glow {
   0% {
-    opacity: 0.4;
-    transform: translate(-50%, -50%) scale(1.4);
+    stroke-width: 5;
+    opacity: 0.1;
   }
-  60% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(0.95);
+  10% {
+    stroke-width: 12;
+    opacity: 0.65;
+    filter: drop-shadow(0 0 10px var(--rect-bloom-peak));
+  }
+  30% {
+    stroke-width: 6;
+    opacity: 0.3;
+    filter: drop-shadow(0 0 5px var(--rect-signal-glow));
   }
   100% {
+    stroke-width: 3.5;
+    opacity: 0.2;
+    filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+  }
+}
+
+/* Border bloom — solid line flares to near-white then settles to steady amber */
+@keyframes phosphor-bloom-border {
+  0% {
+    opacity: 0.8;
+    stroke: var(--rect-signal);
+    filter: drop-shadow(0 0 1px var(--rect-signal-glow));
+  }
+  10% {
     opacity: 1;
+    stroke: var(--rect-bloom-peak);
+    filter: drop-shadow(0 0 5px var(--rect-bloom-peak)) drop-shadow(0 0 10px var(--rect-signal));
+  }
+  32% {
+    opacity: 0.95;
+    stroke: var(--rect-signal);
+    filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+  }
+  100% {
+    opacity: 0.9;
+    stroke: var(--rect-signal);
+    filter: drop-shadow(0 0 2px var(--rect-signal-glow));
+  }
+}
+
+/* Corner jitter during detection — steps(3) = digital noise, not smooth */
+@keyframes corner-jitter {
+  0% {
+    transform: translate(-50%, -50%);
+  }
+  33% {
+    transform: translate(calc(-50% + 1px), calc(-50% - 1px));
+  }
+  66% {
+    transform: translate(calc(-50% - 0.5px), calc(-50% + 0.5px));
+  }
+  100% {
+    transform: translate(calc(-50% + 0.5px), -50%);
+  }
+}
+
+/* Corner stamp on match — spring overshoot then settle (cubic-bezier above handles spring) */
+@keyframes corner-stamp {
+  0% {
+    transform: translate(-50%, -50%) scale(1.65);
+    opacity: 0;
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(0.86);
+    opacity: 1;
+  }
+  65% {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  100% {
     transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
   }
 }
 
@@ -315,7 +420,7 @@
   .cornerTR,
   .cornerBR,
   .cornerBL {
-    width: 10px;
-    height: 10px;
+    width: 11px;
+    height: 11px;
   }
 }

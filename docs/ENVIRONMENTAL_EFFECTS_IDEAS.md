@@ -9,6 +9,7 @@ variables and controlled randomness. Every idea here should feel like it was alw
 part of the experience — not a novelty, but a quiet deepening.
 
 **Design constraints that apply to all ideas:**
+
 - All transitions must be smooth and intentional — CSS handles color/opacity blending; state changes
   happen at event boundaries (match, unmatch, app open, phone unlock), not continuously
 - All randomness requires guardrails: min/max clamps, per-session seeding, never per-frame chaos
@@ -21,6 +22,7 @@ part of the experience — not a novelty, but a quiet deepening.
 ## Available Environmental Data
 
 ### Always available (no permissions)
+
 - Current time and date (user's local timezone)
 - Concert `date` field: full ISO 8601 timestamp including time-of-day (when the photo was taken),
   always America/Chicago. All 152 concerts are SXSW, mid-March, 2022–2025.
@@ -32,6 +34,7 @@ part of the experience — not a novelty, but a quiet deepening.
 - Motion state: existing `useMotionDetection` hook
 
 ### Requires browser permission
+
 - Device orientation: `DeviceOrientationEvent` (no permission on most browsers; iOS 13+ needs one tap)
 - Geolocation: explicit permission, high user friction
 - Battery: `navigator.getBattery()` (deprecated in some browsers)
@@ -101,7 +104,7 @@ stamped. Resets on page close.
 
 ### Audio & Song State
 
-**Audio-reactive phosphor glow** ← *Plan 2 (first implementation)*
+**Audio-reactive phosphor glow** ← _Plan 2 (first implementation)_
 Tap `Howler.ctx` for an `AnalyserNode`. Extract bass band energy (~60–200Hz). Modulate
 `--glow-reactive-scale` CSS variable, which all `text-shadow` glow px values multiply via `calc()`.
 Range: 0.85–1.20. `smoothingTimeConstant = 0.85` (lazy, not twitchy). Only active during matched
@@ -121,16 +124,16 @@ during matched + playing state.
 
 ### Photo Metadata (EXIF) Driven
 
-**ISO → grain intensity** ← *Part of Plan 1 (first implementation)*
+**ISO → grain intensity** ← _Part of Plan 1 (first implementation)_
 `concert.iso` maps to grain texture overlay opacity. ISO 100 → 0.02 opacity, ISO 3200+ → 0.12.
 The photo's shooting conditions bleed into its display.
 
-**Aperture → background blur depth** ← *Part of Plan 1 (first implementation)*
+**Aperture → background blur depth** ← _Part of Plan 1 (first implementation)_
 `concert.aperture` (f-number) maps to `backdrop-filter: blur()` on the concert info overlay
 background. f/1.8 → 14px blur (shallow depth of field). f/8 → 2px blur. The optics of the original
 shot echo in the UI.
 
-**Shutter speed → match transition timing** ← *Part of Plan 1 (first implementation)*
+**Shutter speed → match transition timing** ← _Part of Plan 1 (first implementation)_
 `concert.shutterSpeed` informs the `posterReveal` animation duration. 1/30s slow shutter → slower
 luxurious reveal (1.3×). 1/500s fast → snappy (0.7×). Clamped to 0.6–1.4×.
 
@@ -199,20 +202,20 @@ how the poster feels.
 These IDs and categories are intended for `src/modules/secret-settings/config.ts` as effects are
 implemented. All effects should default to enabled unless experimental or sensor-dependent.
 
-| Category | Flag ID | Default |
-|----------|---------|---------|
-| `ui` | `exif-visual-character` | `true` |
-| `ui` | `concert-age-patina` | `true` |
-| `ui` | `sxsw-ghost-season` | `true` |
-| `ui` | `anniversary-resonance` | `true` |
-| `ui` | `temporal-echo` | `true` |
-| `ui` | `session-warmup` | `true` |
-| `ui` | `idle-restlessness` | `true` |
-| `audio` | `audio-reactive-glow` | `true` |
-| `audio` | `song-progress-scanlines` | `true` |
+| Category       | Flag ID                   | Default |
+| -------------- | ------------------------- | ------- |
+| `ui`           | `exif-visual-character`   | `true`  |
+| `ui`           | `concert-age-patina`      | `true`  |
+| `ui`           | `sxsw-ghost-season`       | `true`  |
+| `ui`           | `anniversary-resonance`   | `true`  |
+| `ui`           | `temporal-echo`           | `true`  |
+| `ui`           | `session-warmup`          | `true`  |
+| `ui`           | `idle-restlessness`       | `true`  |
+| `audio`        | `audio-reactive-glow`     | `true`  |
+| `audio`        | `song-progress-scanlines` | `true`  |
 | `experimental` | `device-tilt-perspective` | `false` |
-| `experimental` | `stochastic-glitch` | `true` |
-| `experimental` | `per-session-phosphor` | `true` |
+| `experimental` | `stochastic-glitch`       | `true`  |
+| `experimental` | `per-session-phosphor`    | `true`  |
 
 The secret-settings UI should eventually group flags visually by category with section headers.
 The `FeatureFlag.category` type in `src/modules/secret-settings/types.ts` already supports this.

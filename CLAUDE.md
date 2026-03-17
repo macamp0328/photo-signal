@@ -223,6 +223,7 @@ feel alive, non-repeating, and deeply connected to its physical/temporal context
 new UI features, agents should consider whether any of these signals could enrich the behavior:
 
 **Available environmental variables (no new permissions needed):**
+
 - **Time of day** — current hour in user's local timezone
 - **Date** — particularly relevant: all concerts are SXSW mid-March; exact date anniversaries are meaningful
 - **Concert timestamp** — each Concert has a full ISO 8601 timestamp including time-of-day (when the
@@ -238,6 +239,7 @@ new UI features, agents should consider whether any of these signals could enric
 - **Motion detection** — existing `useMotionDetection` hook; camera shake can drive signal shake effects
 
 **Randomness guardrails (mandatory):**
+
 - All randomness must have explicit **min/max clamps**
 - Prefer **per-session seeding** (one random value on app open, constant for the session) over
   per-frame chaos
@@ -246,6 +248,7 @@ new UI features, agents should consider whether any of these signals could enric
 - Random values must never make the UI feel broken or unstable — always "organic," never "buggy"
 
 **Transition rules:**
+
 - Environmental state changes use **CSS transitions** for smoothing — update custom properties in JS,
   let CSS handle the blend
 - Dramatic state changes (match, unmatch, app open, phone unlock) are the preferred moments for

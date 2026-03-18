@@ -276,6 +276,33 @@ describe('useAudioReactiveGlow', () => {
     expect(mockCtx!.createAnalyser).toHaveBeenCalledOnce();
   });
 
+  it('does not activate when statechange fires after unmount (race guard)', () => {
+    mockCtx!.state = 'suspended';
+    let capturedHandler: EventListener | null = null;
+    mockCtx!.addEventListener = vi.fn((type, listener) => {
+      if (type === 'statechange') capturedHandler = listener as EventListener;
+    });
+    mockCtx!.removeEventListener = vi.fn();
+
+    const { unmount } = renderHook(() => useAudioReactiveGlow(true, true));
+
+    // Confirm listener registered, nothing activated yet
+    expect(capturedHandler).not.toBeNull();
+    expect(mockCtx!.createAnalyser).not.toHaveBeenCalled();
+
+    // Unmount — cleanup sets mounted=false and removes listener
+    unmount();
+
+    // Simulate late statechange arriving after cleanup (e.g., already queued)
+    act(() => {
+      mockCtx!.state = 'running';
+      capturedHandler!(new Event('statechange'));
+    });
+
+    // The guard must prevent activate() from running — no analyser created
+    expect(mockCtx!.createAnalyser).not.toHaveBeenCalled();
+  });
+
   it('cancels rAF and removes CSS var when isEnabled is toggled off mid-session', () => {
     const { rerender } = renderHook(
       ({ active, enabled }: { active: boolean; enabled: boolean }) =>

@@ -7,8 +7,11 @@
  *
  * Mappings:
  *   ISO          → --exif-grain-opacity    (0.02 at ISO 100  → 0.12 at ISO 3200+)
- *   Aperture     → --exif-blur-depth       (14px at f/1.8    → 2px at f/8+)
  *   Shutter speed → --exif-transition-scale (0.6× at 1/1000s → 1.4× at 1/15s)
+ *
+ * Aperture (f-number) is parsed and displayed in the EXIF info line but does not
+ * currently drive any CSS variable — the prior aperture → blur-depth mapping was
+ * removed because backdrop-filter blurred the matched photo display.
  *
  * All parsers return null for unknown formats; null means "leave CSS default in place".
  */
@@ -70,11 +73,6 @@ function isoToGrainOpacity(iso: number): number {
   return clamp(0.02 + ((iso - 100) / (3200 - 100)) * 0.1, 0.02, 0.12);
 }
 
-function apertureToBlurDepth(aperture: number): number {
-  // f/1.8 → 14px, f/8+ → 2px (larger f-number = narrower aperture = less blur)
-  return clamp(14 - ((aperture - 1.8) / (8 - 1.8)) * 12, 2, 14);
-}
-
 function shutterSpeedToTransitionScale(seconds: number): number {
   // 1/1000s (0.001s) → 0.6×, 1/15s (~0.0667s) → 1.4×
   const fastEnd = 1 / 1000;
@@ -98,17 +96,11 @@ export function applyExifVisualCharacter(concert: Concert): void {
 
   // Always clear inline vars first so stale values from the previous match don't persist.
   root.style.removeProperty('--exif-grain-opacity');
-  root.style.removeProperty('--exif-blur-depth');
   root.style.removeProperty('--exif-transition-scale');
 
   const iso = parseIso(concert.iso);
   if (iso !== null) {
     root.style.setProperty('--exif-grain-opacity', isoToGrainOpacity(iso).toFixed(4));
-  }
-
-  const aperture = parseAperture(concert.aperture);
-  if (aperture !== null) {
-    root.style.setProperty('--exif-blur-depth', `${apertureToBlurDepth(aperture).toFixed(1)}px`);
   }
 
   const shutterSpeed = parseShutterSpeed(concert.shutterSpeed);
@@ -128,6 +120,5 @@ export function resetExifVisualCharacter(): void {
   const root = document.documentElement;
   root.removeAttribute('data-exif-visual');
   root.style.removeProperty('--exif-grain-opacity');
-  root.style.removeProperty('--exif-blur-depth');
   root.style.removeProperty('--exif-transition-scale');
 }

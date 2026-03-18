@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
+import { useAudioReactiveGlow } from './modules/audio-playback';
 import type { Concert } from './types';
 import { dataService } from './services/data-service';
 import type { RecognitionDebugInfo, RecognitionTelemetry } from './modules/photo-recognition/types';
@@ -1092,6 +1093,36 @@ describe('App playback flow', () => {
     // Clear the recognition (simulate losing the photo match)
     recognitionState.recognizedConcert = null;
     rerender(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
+    });
+  });
+
+  it('passes isEnabled=false to useAudioReactiveGlow when audio-reactive-glow flag is disabled', () => {
+    // Flag not added to enabledFlags — isEnabled('audio-reactive-glow') returns false
+    render(<App />);
+    expect(vi.mocked(useAudioReactiveGlow)).toHaveBeenCalledWith(expect.anything(), false);
+  });
+
+  it('passes isEnabled=true to useAudioReactiveGlow when audio-reactive-glow flag is enabled', () => {
+    enabledFlags.add('audio-reactive-glow');
+    render(<App />);
+    expect(vi.mocked(useAudioReactiveGlow)).toHaveBeenCalledWith(expect.anything(), true);
+  });
+
+  it('does not set data-exif-visual when exif-visual-character flag is disabled and EXIF concert is matched', async () => {
+    const concertWithExif: typeof concertOne = {
+      ...concertOne,
+      iso: '1600',
+      aperture: 'f/2.8',
+      shutterSpeed: '1/60',
+    };
+
+    recognitionState.recognizedConcert = concertWithExif;
+    // Intentionally NOT adding 'exif-visual-character' to enabledFlags
+
+    render(<App />);
 
     await waitFor(() => {
       expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);

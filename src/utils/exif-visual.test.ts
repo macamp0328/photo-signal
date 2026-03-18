@@ -160,24 +160,6 @@ describe('applyExifVisualCharacter', () => {
     expect(opacity).toBe(0.02);
   });
 
-  it('sets --exif-blur-depth for a known aperture', () => {
-    applyExifVisualCharacter(makeConcert({ aperture: 'f/2.8' }));
-    const blur = document.documentElement.style.getPropertyValue('--exif-blur-depth');
-    expect(blur).toMatch(/^\d+(\.\d+)?px$/);
-  });
-
-  it('sets wider blur for wide aperture (f/1.8)', () => {
-    applyExifVisualCharacter(makeConcert({ aperture: 'f/1.8' }));
-    const blur = document.documentElement.style.getPropertyValue('--exif-blur-depth');
-    expect(parseFloat(blur)).toBe(14);
-  });
-
-  it('sets narrower blur for narrow aperture (f/8)', () => {
-    applyExifVisualCharacter(makeConcert({ aperture: 'f/8' }));
-    const blur = document.documentElement.style.getPropertyValue('--exif-blur-depth');
-    expect(parseFloat(blur)).toBeLessThanOrEqual(2);
-  });
-
   it('sets --exif-transition-scale for a known shutter speed', () => {
     applyExifVisualCharacter(makeConcert({ shutterSpeed: '1/60' }));
     const scale = Number(
@@ -211,7 +193,6 @@ describe('applyExifVisualCharacter', () => {
   it('leaves CSS vars unset when no EXIF fields present', () => {
     applyExifVisualCharacter(makeConcert({}));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 
@@ -220,10 +201,9 @@ describe('applyExifVisualCharacter', () => {
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
   });
 
-  it('sets all three vars when all EXIF fields are present', () => {
+  it('sets grain-opacity and transition-scale when iso and shutterSpeed are present', () => {
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).not.toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).not.toBe('');
   });
 
@@ -233,7 +213,6 @@ describe('applyExifVisualCharacter', () => {
     // Second match has no EXIF — stale values must not persist
     applyExifVisualCharacter(makeConcert({}));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 
@@ -243,7 +222,6 @@ describe('applyExifVisualCharacter', () => {
     // Second match has only ISO — aperture and shutter should revert to :root defaults
     applyExifVisualCharacter(makeConcert({ iso: '3200' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 });
@@ -256,7 +234,6 @@ describe('resetExifVisualCharacter', () => {
     resetExifVisualCharacter();
 
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
-    expect(document.documentElement.style.getPropertyValue('--exif-blur-depth')).toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
   });
 

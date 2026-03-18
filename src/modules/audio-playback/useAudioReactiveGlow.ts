@@ -81,7 +81,7 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
       if (analyserRef.current === null) {
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.65;
+        analyser.smoothingTimeConstant = 0.7;
         masterGain.connect(analyser);
         analyserRef.current = analyser;
         masterGainRef.current = masterGain;

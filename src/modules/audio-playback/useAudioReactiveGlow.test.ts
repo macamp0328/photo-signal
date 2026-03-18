@@ -168,7 +168,7 @@ describe('useAudioReactiveGlow', () => {
     // Access the analyser that was created
     const analyser = mockCtx!.createAnalyser.mock.results[0]?.value as MockAnalyserNode;
     expect(analyser.fftSize).toBe(256);
-    expect(analyser.smoothingTimeConstant).toBe(0.65);
+    expect(analyser.smoothingTimeConstant).toBe(0.7);
 
     // Satisfy linter — result is void hook
     expect(result.current).toBeUndefined();

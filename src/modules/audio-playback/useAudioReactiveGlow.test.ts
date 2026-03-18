@@ -87,8 +87,9 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
-  // Clear any leftover CSS var
+  // Clear any leftover CSS vars
   document.documentElement.style.removeProperty('--glow-reactive-scale');
+  document.documentElement.style.removeProperty('--glow-reactive-scale-ring');
 });
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -167,13 +168,13 @@ describe('useAudioReactiveGlow', () => {
     // Access the analyser that was created
     const analyser = mockCtx!.createAnalyser.mock.results[0]?.value as MockAnalyserNode;
     expect(analyser.fftSize).toBe(256);
-    expect(analyser.smoothingTimeConstant).toBe(0.85);
+    expect(analyser.smoothingTimeConstant).toBe(0.65);
 
     // Satisfy linter — result is void hook
     expect(result.current).toBeUndefined();
   });
 
-  it('sets --glow-reactive-scale on each rAF tick', () => {
+  it('sets --glow-reactive-scale on each rAF tick within the expanded range', () => {
     renderHook(() => useAudioReactiveGlow(true, true));
 
     act(() => {
@@ -183,8 +184,22 @@ describe('useAudioReactiveGlow', () => {
     const val = document.documentElement.style.getPropertyValue('--glow-reactive-scale');
     expect(val).not.toBe('');
     const parsed = parseFloat(val);
-    expect(parsed).toBeGreaterThanOrEqual(0.85);
-    expect(parsed).toBeLessThanOrEqual(1.2);
+    expect(parsed).toBeGreaterThanOrEqual(0.6);
+    expect(parsed).toBeLessThanOrEqual(1.8);
+  });
+
+  it('sets --glow-reactive-scale-ring on each rAF tick within the ring range', () => {
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    act(() => {
+      flushRaf(); // first tick
+    });
+
+    const val = document.documentElement.style.getPropertyValue('--glow-reactive-scale-ring');
+    expect(val).not.toBe('');
+    const parsed = parseFloat(val);
+    expect(parsed).toBeGreaterThanOrEqual(0.4);
+    expect(parsed).toBeLessThanOrEqual(2.0);
   });
 
   it('re-schedules rAF on each tick to create a loop', () => {
@@ -218,6 +233,7 @@ describe('useAudioReactiveGlow', () => {
 
     expect(rafCallbacks.size).toBe(0);
     expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale-ring')).toBe('');
   });
 
   it('disconnects AnalyserNode when deactivated', () => {
@@ -245,6 +261,7 @@ describe('useAudioReactiveGlow', () => {
 
     expect(rafCallbacks.size).toBe(0);
     expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale-ring')).toBe('');
   });
 
   it('does not create multiple AnalyserNodes on re-render with same props', () => {
@@ -306,5 +323,6 @@ describe('useAudioReactiveGlow', () => {
 
     expect(rafCallbacks.size).toBe(0);
     expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--glow-reactive-scale-ring')).toBe('');
   });
 });

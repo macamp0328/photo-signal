@@ -213,22 +213,22 @@
 .cornerTL.detected {
   border-top-color: var(--rect-signal);
   border-left-color: var(--rect-signal);
-  filter: drop-shadow(-1px -1px 3px var(--rect-signal-glow));
+  filter: drop-shadow(-1px -1px calc(3px * var(--glow-reactive-scale)) var(--rect-signal-glow));
 }
 .cornerTR.detected {
   border-top-color: var(--rect-signal);
   border-right-color: var(--rect-signal);
-  filter: drop-shadow(1px -1px 3px var(--rect-signal-glow));
+  filter: drop-shadow(1px -1px calc(3px * var(--glow-reactive-scale)) var(--rect-signal-glow));
 }
 .cornerBR.detected {
   border-bottom-color: var(--rect-signal);
   border-right-color: var(--rect-signal);
-  filter: drop-shadow(1px 1px 3px var(--rect-signal-glow));
+  filter: drop-shadow(1px 1px calc(3px * var(--glow-reactive-scale)) var(--rect-signal-glow));
 }
 .cornerBL.detected {
   border-bottom-color: var(--rect-signal);
   border-left-color: var(--rect-signal);
-  filter: drop-shadow(-1px 1px 3px var(--rect-signal-glow));
+  filter: drop-shadow(-1px 1px calc(3px * var(--glow-reactive-scale)) var(--rect-signal-glow));
 }
 
 /* error */
@@ -350,7 +350,7 @@
   100% {
     stroke-width: 3.5;
     opacity: 0.2;
-    filter: drop-shadow(0 0 3px var(--rect-signal-glow));
+    filter: drop-shadow(0 0 calc(3px * var(--glow-reactive-scale)) var(--rect-signal-glow));
   }
 }
 

@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
-import type { Concert } from './types';
 import { useAudioReactiveGlow } from './modules/audio-playback';
+import type { Concert } from './types';
 import { dataService } from './services/data-service';
 import type { RecognitionDebugInfo, RecognitionTelemetry } from './modules/photo-recognition/types';
 import { createEmptyTelemetry } from './modules/photo-recognition/helpers';
@@ -1108,6 +1108,9 @@ describe('App playback flow', () => {
     };
     recognitionState.recognizedConcert = concertWithExif;
     // 'exif-visual-character' intentionally NOT added to enabledFlags
+
+    // Pre-set the attribute so the assertion fails if resetExifVisualCharacter() never runs
+    document.documentElement.setAttribute('data-exif-visual', '');
 
     render(<App />);
 

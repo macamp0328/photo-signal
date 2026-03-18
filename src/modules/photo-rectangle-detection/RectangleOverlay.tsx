@@ -1,6 +1,41 @@
 import type { DetectedRectangle, DetectionState } from './types';
 import styles from './RectangleOverlay.module.css';
 
+/**
+ * Minimum value of twice the signed area (shoelace result) for a quadrilateral
+ * to be considered non-degenerate. Coordinates are normalized to [0, 1], so the
+ * maximum possible twice-area for a unit square is 2.0. This epsilon (5×10⁻⁵ of
+ * that maximum) filters out genuinely collapsed/zero-area quads while accepting
+ * any visually meaningful rectangle at display resolution.
+ */
+const MIN_SIGNED_AREA_TWICE = 0.0001;
+
+/**
+ * Returns true only if the quadrilateral has finite coordinates and positive
+ * signed area (shoelace formula). Guards against NaN/Infinity inputs, zero-area
+ * degenerate rectangles, and winding-reversed (inverted) corner orders.
+ */
+function isValidQuadrilateral(rect: DetectedRectangle): boolean {
+  const { topLeft: tl, topRight: tr, bottomRight: br, bottomLeft: bl } = rect;
+  const coords = [tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y];
+  if (coords.some((v) => !isFinite(v))) return false;
+
+  // Shoelace formula for signed area of quadrilateral (vertices in order).
+  // Positive result means corners are ordered topLeft → topRight → bottomRight → bottomLeft
+  // (clockwise visually when SVG y-axis points downward).
+  const twice =
+    tl.x * tr.y -
+    tr.x * tl.y +
+    tr.x * br.y -
+    br.x * tr.y +
+    br.x * bl.y -
+    bl.x * br.y +
+    bl.x * tl.y -
+    tl.x * bl.y;
+
+  return twice > MIN_SIGNED_AREA_TWICE;
+}
+
 export interface RectangleOverlayProps {
   /** Detected rectangle (normalized coordinates 0-1) */
   rectangle: DetectedRectangle | null;
@@ -27,6 +62,10 @@ export interface RectangleOverlayProps {
  */
 export function RectangleOverlay({ rectangle, state }: RectangleOverlayProps) {
   if (!rectangle || state === 'idle') {
+    return null;
+  }
+
+  if (!isValidQuadrilateral(rectangle)) {
     return null;
   }
 

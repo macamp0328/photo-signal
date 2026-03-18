@@ -87,6 +87,10 @@ function shutterSpeedToTransitionScale(seconds: number): number {
  * fully inert when the feature is disabled. Any vars not derivable from this
  * concert's EXIF are removed so they fall back to :root defaults — preventing
  * a previous match's values from bleeding into the next concert.
+ *
+ * Note: aperture is stored per-concert and displayed in the UI, but does not
+ * currently drive a CSS variable (backdrop-filter blur was removed to avoid
+ * obscuring the matched photo display).
  */
 export function applyExifVisualCharacter(concert: Concert): void {
   const root = document.documentElement;

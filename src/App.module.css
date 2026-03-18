@@ -51,8 +51,8 @@
   font-family: var(--font-family);
   line-height: 1;
   text-shadow:
-    0 0 calc(6px * var(--glow-reactive-scale)) var(--signal-glow),
-    0 0 calc(16px * var(--glow-reactive-scale)) var(--signal-glow-soft);
+    0 0 calc(6px * var(--glow-reactive-scale-ring)) var(--signal-glow),
+    0 0 calc(16px * var(--glow-reactive-scale-ring)) var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 

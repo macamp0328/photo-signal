@@ -16,6 +16,7 @@ import { useEffect, useRef } from 'react';
 import * as howlerModule from 'howler';
 
 const GLOW_SCALE_VAR = '--glow-reactive-scale';
+const GLOW_RING_SCALE_VAR = '--glow-reactive-scale-ring';
 
 // Bass frequency range for energy extraction
 const BASS_LOW_HZ = 60;
@@ -51,6 +52,7 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
     const teardown = () => {
       stopRaf();
       document.documentElement.style.removeProperty(GLOW_SCALE_VAR);
+      document.documentElement.style.removeProperty(GLOW_RING_SCALE_VAR);
       if (analyserRef.current !== null && masterGainRef.current !== null) {
         try {
           masterGainRef.current.disconnect(analyserRef.current);
@@ -79,7 +81,7 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
       if (analyserRef.current === null) {
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.85;
+        analyser.smoothingTimeConstant = 0.65;
         masterGain.connect(analyser);
         analyserRef.current = analyser;
         masterGainRef.current = masterGain;
@@ -103,8 +105,12 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
         }
 
         const avg = sum / binCount;
-        const scale = 0.85 + (avg / 255) * 0.35;
+        // Text glow: 0.6–1.8 (wider range for perceptible breathing on band name / meta)
+        const scale = 0.6 + (avg / 255) * 1.2;
+        // Ring glow: 0.4–2.0 (more dramatic for the phosphor signal indicator)
+        const ringScale = 0.4 + (avg / 255) * 1.6;
         document.documentElement.style.setProperty(GLOW_SCALE_VAR, scale.toFixed(3));
+        document.documentElement.style.setProperty(GLOW_RING_SCALE_VAR, ringScale.toFixed(3));
 
         rafRef.current = requestAnimationFrame(tick);
       };
@@ -119,8 +125,14 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
 
     // AudioContext is suspended (browser requires a user gesture to unlock it).
     // Wait for statechange so the glow activates as soon as audio is unblocked.
+    //
+    // `mounted` guards against a race where the component unmounts while a
+    // statechange event is already queued: if the event fires after cleanup,
+    // handleStateChange would call activate() and leak an AnalyserNode + rAF loop.
+    let mounted = true;
+
     const handleStateChange = () => {
-      if (ctx.state === 'running') {
+      if (ctx.state === 'running' && mounted) {
         ctx.removeEventListener('statechange', handleStateChange);
         activate();
       }
@@ -129,6 +141,7 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
     ctx.addEventListener('statechange', handleStateChange);
 
     return () => {
+      mounted = false;
       ctx.removeEventListener('statechange', handleStateChange);
       teardown();
     };
@@ -141,6 +154,7 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
         cancelAnimationFrame(rafRef.current);
       }
       document.documentElement.style.removeProperty(GLOW_SCALE_VAR);
+      document.documentElement.style.removeProperty(GLOW_RING_SCALE_VAR);
       if (analyserRef.current !== null && masterGainRef.current !== null) {
         try {
           masterGainRef.current.disconnect(analyserRef.current);

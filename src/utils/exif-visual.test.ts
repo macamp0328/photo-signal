@@ -201,14 +201,14 @@ describe('applyExifVisualCharacter', () => {
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).toBe('');
   });
 
-  it('sets grain-opacity and transition-scale when iso and shutterSpeed are present', () => {
-    applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
+  it('sets grain and transition vars when EXIF fields are present', () => {
+    applyExifVisualCharacter(makeConcert({ iso: '800', shutterSpeed: '1/60' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).not.toBe('');
   });
 
   it('clears stale vars when next concert has no EXIF fields', () => {
-    // First match sets all three vars
+    // First match sets grain + transition vars
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
     // Second match has no EXIF — stale values must not persist
     applyExifVisualCharacter(makeConcert({}));
@@ -217,9 +217,9 @@ describe('applyExifVisualCharacter', () => {
   });
 
   it('clears only unparseable vars when next concert has partial EXIF', () => {
-    // First match sets all three
+    // First match sets grain + transition vars
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
-    // Second match has only ISO — aperture and shutter should revert to :root defaults
+    // Second match has only ISO — shutter should revert to :root defaults
     applyExifVisualCharacter(makeConcert({ iso: '3200' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).toBe('');
@@ -227,7 +227,7 @@ describe('applyExifVisualCharacter', () => {
 });
 
 describe('resetExifVisualCharacter', () => {
-  it('removes all three EXIF CSS vars', () => {
+  it('removes EXIF CSS vars', () => {
     // Set them first
     applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { useAudioReactiveGlow } from './modules/audio-playback';
@@ -1099,33 +1099,50 @@ describe('App playback flow', () => {
     });
   });
 
-  it('passes isEnabled=false to useAudioReactiveGlow when audio-reactive-glow flag is disabled', () => {
-    // Flag not added to enabledFlags — isEnabled('audio-reactive-glow') returns false
-    render(<App />);
-    expect(vi.mocked(useAudioReactiveGlow)).toHaveBeenCalledWith(expect.anything(), false);
-  });
-
-  it('passes isEnabled=true to useAudioReactiveGlow when audio-reactive-glow flag is enabled', () => {
-    enabledFlags.add('audio-reactive-glow');
-    render(<App />);
-    expect(vi.mocked(useAudioReactiveGlow)).toHaveBeenCalledWith(expect.anything(), true);
-  });
-
-  it('does not set data-exif-visual when exif-visual-character flag is disabled and EXIF concert is matched', async () => {
+  it('does not set data-exif-visual when exif-visual-character flag is disabled', async () => {
     const concertWithExif: typeof concertOne = {
       ...concertOne,
       iso: '1600',
       aperture: 'f/2.8',
       shutterSpeed: '1/60',
     };
-
     recognitionState.recognizedConcert = concertWithExif;
-    // Intentionally NOT adding 'exif-visual-character' to enabledFlags
+    // 'exif-visual-character' intentionally NOT added to enabledFlags
+
+    // Pre-set the attribute so the assertion fails if resetExifVisualCharacter() never runs
+    document.documentElement.setAttribute('data-exif-visual', '');
 
     render(<App />);
 
-    await waitFor(() => {
-      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
-    });
+    await act(async () => {});
+    expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
+  });
+
+  it('calls useAudioReactiveGlow with isEnabled=false when audio-reactive-glow flag is disabled', () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = true;
+    // 'audio-reactive-glow' intentionally NOT in enabledFlags
+
+    render(<App />);
+
+    const mockGlow = vi.mocked(useAudioReactiveGlow);
+    expect(mockGlow).toHaveBeenCalled();
+    // Every call should have isEnabled=false when the flag is absent
+    const allCalls = mockGlow.mock.calls;
+    expect(allCalls.every(([, isEnabled]) => isEnabled === false)).toBe(true);
+  });
+
+  it('calls useAudioReactiveGlow with isEnabled=true when audio-reactive-glow flag is enabled', () => {
+    enabledFlags.add('audio-reactive-glow');
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = true;
+
+    render(<App />);
+
+    const mockGlow = vi.mocked(useAudioReactiveGlow);
+    expect(mockGlow).toHaveBeenCalled();
+    // At least one call should have isEnabled=true
+    const allCalls = mockGlow.mock.calls;
+    expect(allCalls.some(([, isEnabled]) => isEnabled === true)).toBe(true);
   });
 });

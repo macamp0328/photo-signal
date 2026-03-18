@@ -43,9 +43,13 @@ test.describe('Responsive Design', () => {
       for (const sheet of Array.from(document.styleSheets)) {
         try {
           for (const rule of Array.from(sheet.cssRules)) {
-            if (rule instanceof CSSMediaRule && rule.conditionText.includes('360px')) {
+            if (rule instanceof CSSMediaRule && rule.conditionText === '(max-width: 360px)') {
               for (const inner of Array.from(rule.cssRules)) {
-                if (inner instanceof CSSStyleRule && inner.style.display === 'none') {
+                if (
+                  inner instanceof CSSStyleRule &&
+                  inner.style.display === 'none' &&
+                  /exif/i.test(inner.selectorText)
+                ) {
                   return inner.selectorText.replace(/^\./, '');
                 }
               }

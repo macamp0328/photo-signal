@@ -14,7 +14,8 @@ import { render } from '@testing-library/react';
 import { RectangleOverlay } from './RectangleOverlay';
 import type { DetectedRectangle } from './types';
 
-// A standard valid rectangle (counter-clockwise in SVG coords = positive shoelace)
+// A standard valid rectangle: corners ordered topLeft → topRight → bottomRight → bottomLeft,
+// which produces a positive shoelace (signed-area) result in SVG's downward y-axis coordinate system.
 const validRect: DetectedRectangle = {
   topLeft: { x: 0.1, y: 0.1 },
   topRight: { x: 0.9, y: 0.1 },

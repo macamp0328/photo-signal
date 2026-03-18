@@ -202,7 +202,7 @@ describe('applyExifVisualCharacter', () => {
   });
 
   it('sets grain and transition vars when EXIF fields are present', () => {
-    applyExifVisualCharacter(makeConcert({ iso: '800', aperture: 'f/2.8', shutterSpeed: '1/60' }));
+    applyExifVisualCharacter(makeConcert({ iso: '800', shutterSpeed: '1/60' }));
     expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
     expect(document.documentElement.style.getPropertyValue('--exif-transition-scale')).not.toBe('');
   });

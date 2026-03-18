@@ -6,8 +6,12 @@
  * how the matched state is displayed.
  *
  * Mappings:
- *   ISO           → --exif-grain-opacity    (0.02 at ISO 100  → 0.12 at ISO 3200+)
+ *   ISO          → --exif-grain-opacity    (0.02 at ISO 100  → 0.12 at ISO 3200+)
  *   Shutter speed → --exif-transition-scale (0.6× at 1/1000s → 1.4× at 1/15s)
+ *
+ * Aperture (f-number) is parsed and displayed in the EXIF info line but does not
+ * currently drive any CSS variable — the prior aperture → blur-depth mapping was
+ * removed because backdrop-filter blurred the matched photo display.
  *
  * All parsers return null for unknown formats; null means "leave CSS default in place".
  */

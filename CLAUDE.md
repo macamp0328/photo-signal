@@ -296,6 +296,46 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 - `docs/AUDIO_R2_WORKER.md` — Audio CDN setup
 - `DOCUMENTATION_INDEX.md` — Full index of all docs
 
+## Multi-Agent Development
+
+Multiple Claude Code agents can work on this repo simultaneously without colliding. Each agent
+should run in its own git worktree and gets an isolated dev server port so `preview_*` tools
+never conflict.
+
+### Creating a new worktree
+
+```bash
+./scripts/create-worktree.sh claude/my-feature
+# or
+./scripts/create-worktree.sh copilot/my-feature
+```
+
+The script:
+1. Derives a slug from the branch name (strips prefix, slugifies)
+2. Creates a git worktree under `.claude/worktrees/<slug>/` on a new branch
+3. Writes `.claude/launch.json` with a unique port (next above the highest in use)
+4. Copies `.claude/settings.json` (SessionStart hook) into the worktree
+
+### Port scheme
+
+Worktrees use ports in the **5200+ range** (dev) and **4200+ range** (preview), assigned
+sequentially by alphabetical worktree name. The root repo uses 5173/5180 (dev) and 4173
+(preview) — no overlap.
+
+| Config name | Port range | Notes |
+|-------------|------------|-------|
+| `dev-worktree` | 5200–5299 | Use this one in worktrees |
+| `photo-signal` | 4200–4299 | Production preview build |
+| Root `dev` | 5173, 5180 | Root repo only |
+
+### Using the preview tools in a worktree
+
+Always use the **`dev-worktree`** launch configuration inside a worktree session — it starts
+Vite on the worktree's unique port. Do not use the `dev` or `photo-signal` configs from within
+a worktree as those share ports with the root session.
+
+---
+
 ## Agent Decision Guidelines
 
 ### When to Plan Before Implementing

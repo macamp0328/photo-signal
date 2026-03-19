@@ -4,21 +4,23 @@
     {
       "name": "photo-signal",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "preview"],
-      "port": 4173,
+      "runtimeArgs": ["run", "preview", "--", "--port", "4211"],
+      "port": 4211,
       "autoPort": true
     },
     {
       "name": "dev",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--port", "5180"],
-      "port": 5180
+      "runtimeArgs": ["vite", "--port", "5211"],
+      "port": 5211,
+      "autoPort": true
     },
     {
       "name": "dev-worktree",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5175"],
-      "port": 5175
+      "runtimeArgs": ["run", "dev", "--", "--port", "5211"],
+      "port": 5211,
+      "autoPort": true
     }
   ]
 }

@@ -105,10 +105,23 @@ function serveTestVideo(
       'Content-Type': contentType,
       'Cache-Control': 'no-store',
     });
-    // readFileSync+slice guarantees the exact byte range without the partial-read
-    // risk of a single fs.readSync() call.
-    const buf = fs.readFileSync(filePath).slice(start, end + 1);
-    res.end(buf);
+    // Loop until the full range is read — readSync can return fewer bytes than
+    // requested and must be retried (mirrors readFileRange in fake-camera.ts).
+    const buf = Buffer.alloc(chunkSize);
+    const fd = fs.openSync(filePath, 'r');
+    let offset = 0;
+    let position = start;
+    try {
+      while (offset < chunkSize) {
+        const bytesRead = fs.readSync(fd, buf, offset, chunkSize - offset, position);
+        if (bytesRead === 0) break;
+        offset += bytesRead;
+        position += bytesRead;
+      }
+    } finally {
+      fs.closeSync(fd);
+    }
+    res.end(offset < chunkSize ? buf.subarray(0, offset) : buf);
     return;
   }
 

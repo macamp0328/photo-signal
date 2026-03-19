@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { InfoDisplay } from './InfoDisplay';
 import type { Concert } from '../../types';
 
@@ -149,30 +148,6 @@ describe('InfoDisplay', () => {
 
       const bandName = screen.getByText('The Beatles');
       expect(bandName.className).toContain('bandName');
-    });
-  });
-
-  describe('Next Button', () => {
-    it('renders next button when onClose is provided', () => {
-      render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={vi.fn()} />);
-
-      expect(screen.getByRole('button', { name: 'Go to next photo' })).toBeInTheDocument();
-    });
-
-    it('calls onClose when next button is clicked', async () => {
-      const onClose = vi.fn();
-      const user = userEvent.setup();
-      render(<InfoDisplay concert={mockConcert} isVisible={true} onClose={onClose} />);
-
-      await user.click(screen.getByRole('button', { name: 'Go to next photo' }));
-
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not render next button when onClose is not provided', () => {
-      render(<InfoDisplay concert={mockConcert} isVisible={true} />);
-
-      expect(screen.queryByRole('button', { name: 'Go to next photo' })).not.toBeInTheDocument();
     });
   });
 

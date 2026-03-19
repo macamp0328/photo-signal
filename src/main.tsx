@@ -11,29 +11,56 @@ import './index.css';
 // installed here — before React mounts — so it is in place when the app
 // calls navigator.mediaDevices.getUserMedia after "Activate Camera" is clicked.
 //
-// Set:   localStorage.setItem('__dev_fakeCamera', JSON.stringify({ videoUrl, concertId, hash }))
-//        then window.location.reload()
-// Clear: localStorage.removeItem('__dev_fakeCamera')  then reload
+// Single clip:
+//   localStorage.setItem('__dev_fakeCamera', JSON.stringify({
+//     videoUrl: '/test-assets/camera/test_1_overcoats.3x-palindrome.webm',
+//     concertId: 16, hash: 'a793504d19e5e1d4'
+//   })); window.location.reload();
 //
-// hash seeding (recognition-index-service.ts reads the same key on load to
-// prepend the seeded hash to the matching concert's phash array).
+// Rotating clips (switches video every rotateEveryMs, default 10 000):
+//   localStorage.setItem('__dev_fakeCamera', JSON.stringify({
+//     clips: [
+//       { videoUrl: '/test-assets/camera/test_1_overcoats.3x-palindrome.webm', concertId: 16, hash: 'a793504d19e5e1d4' },
+//       { videoUrl: '/test-assets/camera/test_2_croy.3x-palindrome.webm',      concertId: 14, hash: 'd4dd0b2a73312693' },
+//       { videoUrl: '/test-assets/camera/test_5_barna.3x-palindrome.webm',     concertId: 35, hash: 'fd81027f1ac0f5e0' },
+//     ],
+//     rotateEveryMs: 10000
+//   })); window.location.reload();
+//
+// Clear: localStorage.removeItem('__dev_fakeCamera'); window.location.reload();
+//
+// Hash seeding: recognition-index-service.ts reads the same key and prepends
+// all seeded hashes before the recognition index is passed to the worker.
 // ---------------------------------------------------------------------------
 if (import.meta.env.DEV) {
   (() => {
     try {
       const raw = localStorage.getItem('__dev_fakeCamera');
       if (!raw) return;
-      const cfg = JSON.parse(raw) as {
+
+      interface ClipConfig {
         videoUrl: string;
+        concertId?: number;
+        hash?: string;
+      }
+      interface FakeCameraConfig extends ClipConfig {
+        clips?: ClipConfig[];
+        rotateEveryMs?: number;
         fps?: number;
         canvasWidth?: number;
         canvasHeight?: number;
-      };
-      if (!cfg.videoUrl) return;
+      }
+
+      const cfg = JSON.parse(raw) as FakeCameraConfig;
+
+      // Normalise: single clip → clips array of length 1
+      const clips: ClipConfig[] = Array.isArray(cfg.clips) ? cfg.clips : [cfg];
+      if (clips.length === 0 || !clips[0]?.videoUrl) return;
 
       const fps = cfg.fps ?? 24;
       const canvasWidth = cfg.canvasWidth ?? 960;
       const canvasHeight = cfg.canvasHeight ?? 640;
+      const rotateEveryMs = cfg.rotateEveryMs ?? 10_000;
 
       const canvas = document.createElement('canvas');
       canvas.width = canvasWidth;
@@ -42,7 +69,6 @@ if (import.meta.env.DEV) {
       if (!ctx) return;
 
       const video = document.createElement('video');
-      video.src = cfg.videoUrl;
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
@@ -74,6 +100,27 @@ if (import.meta.env.DEV) {
         ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvasWidth, canvasHeight);
       };
 
+      let clipIndex = 0;
+
+      const loadClip = (index: number) => {
+        const clip = clips[index % clips.length];
+        if (!clip?.videoUrl) return;
+        video.src = clip.videoUrl;
+        video.load();
+        void video.play();
+        console.info(
+          `[dev] fake camera → clip ${index % clips.length}: concertId=${clip.concertId ?? '?'}`
+        );
+      };
+
+      // Rotate through clips on a timer (only meaningful when clips.length > 1)
+      if (clips.length > 1) {
+        setInterval(() => {
+          clipIndex = (clipIndex + 1) % clips.length;
+          loadClip(clipIndex);
+        }, rotateEveryMs);
+      }
+
       const streamPromise = new Promise<MediaStream>((resolve, reject) => {
         const onLoaded = () => {
           video.removeEventListener('loadeddata', onLoaded);
@@ -89,8 +136,10 @@ if (import.meta.env.DEV) {
         const onError = () => {
           video.removeEventListener('loadeddata', onLoaded);
           video.removeEventListener('error', onError);
-          reject(new Error(`[fake-camera] load failed: ${cfg.videoUrl}`));
+          reject(new Error(`[fake-camera] load failed: ${clips[0]?.videoUrl ?? ''}`));
         };
+        // Load the first clip
+        loadClip(0);
         if (video.readyState >= 2) onLoaded();
         else {
           video.addEventListener('loadeddata', onLoaded, { once: true });
@@ -102,7 +151,9 @@ if (import.meta.env.DEV) {
         navigator.mediaDevices.getUserMedia = () => streamPromise;
       }
 
-      console.info('[dev] fake camera injected from localStorage.__dev_fakeCamera');
+      console.info(
+        `[dev] fake camera injected: ${clips.length} clip(s)${clips.length > 1 ? `, rotating every ${rotateEveryMs}ms` : ''}`
+      );
     } catch {
       // Never break app startup
     }

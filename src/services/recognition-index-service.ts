@@ -56,14 +56,22 @@ export async function getRecognitionIndexEntries(): Promise<RecognitionIndexEntr
           try {
             const raw = localStorage.getItem('__dev_fakeCamera');
             if (raw) {
-              const cfg = JSON.parse(raw) as { concertId?: number; hash?: string };
-              if (cfg.hash && cfg.concertId != null) {
-                const entry = payload.entries.find((e) => e.concertId === cfg.concertId);
-                if (entry) {
-                  entry.phash = [cfg.hash, ...entry.phash.filter((h) => h !== cfg.hash)];
-                  console.info(
-                    `[dev] recognition hash seeded for concertId=${cfg.concertId} from localStorage.__dev_fakeCamera`
-                  );
+              interface ClipSeed {
+                concertId?: number;
+                hash?: string;
+              }
+              const cfg = JSON.parse(raw) as ClipSeed & { clips?: ClipSeed[] };
+              // Support both single-clip { concertId, hash } and multi-clip { clips: [...] }
+              const seeds: ClipSeed[] = Array.isArray(cfg.clips) ? cfg.clips : [cfg];
+              for (const seed of seeds) {
+                if (seed.hash && seed.concertId != null) {
+                  const entry = payload.entries.find((e) => e.concertId === seed.concertId);
+                  if (entry) {
+                    entry.phash = [seed.hash, ...entry.phash.filter((h) => h !== seed.hash)];
+                    console.info(
+                      `[dev] recognition hash seeded for concertId=${seed.concertId} from localStorage.__dev_fakeCamera`
+                    );
+                  }
                 }
               }
             }

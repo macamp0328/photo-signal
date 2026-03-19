@@ -13,8 +13,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // so the fake camera injection in tests/visual/utils/fake-camera.ts can
 // reference video files by URL without needing Playwright route interception.
 //
+// Serves both root files (*.mp4) and subdirectory files (half-speed/*.webm) under
+// the same flat URL namespace — /test-assets/camera/[filename].
+//
 // Usage (AI agent preview tools):
-//   preview_eval(buildFakeCameraScript('/test-assets/camera/test_1_overcoats.mp4', 16, hash))
+//   preview_eval(buildFakeCameraScript('/test-assets/camera/test_1_overcoats.3x-palindrome.webm', 16, hash))
 // ---------------------------------------------------------------------------
 
 function parseTestVideoByteRange(
@@ -57,10 +60,19 @@ function serveTestVideo(
     return;
   }
 
-  const filePath = path.join(videoDir, filename);
+  // Search root first, then immediate subdirectories (e.g. half-speed/ for VP9 WebMs).
+  let filePath = path.join(videoDir, filename);
   if (!fs.existsSync(filePath)) {
-    next();
-    return;
+    const subDirs = fs
+      .readdirSync(videoDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => path.join(videoDir, d.name, filename));
+    const found = subDirs.find((p) => fs.existsSync(p));
+    if (!found) {
+      next();
+      return;
+    }
+    filePath = found;
   }
 
   const ext = path.extname(filePath).toLowerCase();

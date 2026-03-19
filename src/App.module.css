@@ -123,17 +123,12 @@
   }
 }
 
-/* ─── Matched Photo Wrapper + Scan Another Bar ───────────────────────────── */
-
-.matchedPhotoWrapper {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
+/* ─── Scan Another Bar (renders above the photo frame, outside the camera container) ── */
 
 .scanAnotherBar {
   display: flex;
   justify-content: flex-end;
+  align-self: stretch;
   padding: 0 0.15rem 0.4rem;
 }
 

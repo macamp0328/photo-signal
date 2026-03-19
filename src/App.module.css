@@ -84,22 +84,28 @@
 
 .signalNavBtn {
   background: transparent;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--color-main-text), transparent 45%);
+  border-radius: 3px;
   color: var(--color-main-text);
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-family: var(--font-family);
   cursor: pointer;
-  min-height: 2.75rem;
-  min-width: 2.75rem;
-  padding: 0;
+  min-height: 2rem;
+  min-width: 2rem;
+  padding: 0 0.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .signalNavBtn:hover {
   color: #fff;
+  border-color: color-mix(in srgb, var(--color-main-text), transparent 15%);
+  background-color: color-mix(in srgb, var(--color-main-text), transparent 85%);
 }
 
 .signalNavBtn:focus-visible {
@@ -117,43 +123,46 @@
   }
 }
 
-/* ─── Close / Scan Another Button ────────────────────────────────────────── */
+/* ─── Matched Photo Wrapper + Scan Another Bar ───────────────────────────── */
 
-.closePhotoButton {
-  position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  z-index: 10;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.65rem;
-  font-family: var(--font-family);
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  pointer-events: all;
-  min-height: 2.75rem;
-  min-width: 2.75rem;
+.matchedPhotoWrapper {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 0;
-  transition:
-    color 0.2s ease,
-    opacity 0.2s ease;
+  flex-direction: column;
+  width: 100%;
 }
 
-html[data-state='matched'] .closePhotoButton {
-  color: var(--poster-accent, rgba(255, 255, 255, 0.6));
+.scanAnotherBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0.15rem 0.4rem;
+}
+
+.closePhotoButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(224, 200, 130, 0.92);
+  border: none;
+  color: #1a1209;
+  font-size: 0.65rem;
+  font-family: var(--font-family);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 0.3rem 0.65rem;
+  min-height: 2rem;
+  transform: rotate(-0.8deg);
+  box-shadow:
+    1px 2px 4px rgba(0, 0, 0, 0.45),
+    -1px -1px 2px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.15s ease;
 }
 
 .closePhotoButton:hover {
-  color: #fff;
-  opacity: 1;
+  opacity: 0.85;
 }
 
 .closePhotoButton:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.4);
+  outline: 2px solid rgba(26, 18, 9, 0.6);
   outline-offset: 2px;
 }
 

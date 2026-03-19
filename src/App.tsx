@@ -856,42 +856,46 @@ function AppContent() {
 
   // Camera view — live feed or matched photo with concert overlay
   const cameraView = shouldShowScannedPhoto ? (
-    <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
-      <button
-        ref={matchedPhotoButtonRef}
-        type="button"
-        className={styles.scannedPhotoButton}
-        aria-label="Open matched photo zoom"
-        onClick={handleMatchedPhotoClick}
-        onTouchStart={startLongPress}
-        onTouchEnd={clearLongPressTimer}
-        onTouchCancel={clearLongPressTimer}
-        onTouchMove={clearLongPressTimer}
-        onMouseDown={handleMatchedPhotoMouseDown}
-        onMouseUp={clearLongPressTimer}
-        onMouseLeave={clearLongPressTimer}
-        onMouseMove={clearLongPressTimer}
-        onContextMenu={(event) => event.preventDefault()}
-      >
-        <img
-          src={scannedPhotoUrl}
-          alt={`${infoConcert?.band ?? 'Matched concert'} scanned photograph`}
-          className={styles.scannedPhotoImage}
-          loading="eager"
-          onError={() => setHasScannedPhotoLoadFailed(true)}
-        />
-      </button>
-      <InfoDisplay concert={infoConcert} isVisible={!!infoConcert} />
+    <div className={styles.matchedPhotoWrapper}>
       {infoConcert ? (
-        <button
-          type="button"
-          className={styles.closePhotoButton}
-          onClick={() => handleCloseConcertInfo(infoConcert)}
-          aria-label="Close concert view and scan a new photo"
-        >
-          ↩ scan another
-        </button>
+        <div className={styles.scanAnotherBar}>
+          <button
+            type="button"
+            className={styles.closePhotoButton}
+            onClick={() => handleCloseConcertInfo(infoConcert)}
+            aria-label="Close concert view and scan a new photo"
+          >
+            ↩ scan another
+          </button>
+        </div>
       ) : null}
+      <div className={styles.scannedPhotoFrame} aria-label="Matched photo preview">
+        <button
+          ref={matchedPhotoButtonRef}
+          type="button"
+          className={styles.scannedPhotoButton}
+          aria-label="Open matched photo zoom"
+          onClick={handleMatchedPhotoClick}
+          onTouchStart={startLongPress}
+          onTouchEnd={clearLongPressTimer}
+          onTouchCancel={clearLongPressTimer}
+          onTouchMove={clearLongPressTimer}
+          onMouseDown={handleMatchedPhotoMouseDown}
+          onMouseUp={clearLongPressTimer}
+          onMouseLeave={clearLongPressTimer}
+          onMouseMove={clearLongPressTimer}
+          onContextMenu={(event) => event.preventDefault()}
+        >
+          <img
+            src={scannedPhotoUrl}
+            alt={`${infoConcert?.band ?? 'Matched concert'} scanned photograph`}
+            className={styles.scannedPhotoImage}
+            loading="eager"
+            onError={() => setHasScannedPhotoLoadFailed(true)}
+          />
+        </button>
+        <InfoDisplay concert={infoConcert} isVisible={!!infoConcert} />
+      </div>
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">

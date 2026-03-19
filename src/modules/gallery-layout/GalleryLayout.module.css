@@ -185,14 +185,18 @@
   /* Square camera: size = min(viewport_width, viewport_height, max-width).
      Both width and height share the same formula using viewport units (vw/svh)
      so they always compute to the same pixel value, guaranteeing a square.
-     max(6rem, ...) prevents the camera collapsing to nothing in landscape. */
+     max(6rem, ...) prevents the camera collapsing to nothing in landscape.
+     0.5rem offset matches the 0.25rem left+right content padding on mobile. */
 
   /* Fallback for browsers without svh. */
-  width: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100vh - 8rem)));
-  height: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100vh - 8rem)));
+  width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width), calc(100vh - 8rem)));
+  height: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width), calc(100vh - 8rem)));
   /* Preferred: svh excludes browser chrome. */
-  width: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100svh - 8rem)));
-  height: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width), calc(100svh - 8rem)));
+  width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width), calc(100svh - 8rem)));
+  height: max(
+    6rem,
+    min(calc(100vw - 0.5rem), var(--layout-content-max-width), calc(100svh - 8rem))
+  );
   aspect-ratio: 1 / 1;
   flex-shrink: 0;
 }
@@ -216,7 +220,7 @@
 
 /* Photo mode — natural aspect ratio, no fixed square height */
 .cameraWrapPhoto {
-  width: max(6rem, min(calc(100vw - 1rem), var(--layout-content-max-width)));
+  width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width)));
   max-height: calc(100svh - 8rem);
   flex-shrink: 0;
   overflow: hidden;
@@ -256,7 +260,7 @@
   }
 
   .content {
-    padding: 0.5rem;
+    padding: 0.5rem 0.25rem;
     padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
   }
 

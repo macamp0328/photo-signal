@@ -881,11 +881,7 @@ function AppContent() {
           onError={() => setHasScannedPhotoLoadFailed(true)}
         />
       </button>
-      <InfoDisplay
-        concert={infoConcert}
-        isVisible={!!infoConcert}
-        onClose={() => handleCloseConcertInfo(infoConcert)}
-      />
+      <InfoDisplay concert={infoConcert} isVisible={!!infoConcert} />
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">
@@ -926,6 +922,20 @@ function AppContent() {
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
         isMatchedPhoto={shouldShowScannedPhoto}
+        aboveCameraSlot={
+          shouldShowScannedPhoto && infoConcert ? (
+            <div className={styles.scanAnotherBar}>
+              <button
+                type="button"
+                className={styles.closePhotoButton}
+                onClick={() => handleCloseConcertInfo(infoConcert)}
+                aria-label="Close concert view and scan a new photo"
+              >
+                ↩ scan another
+              </button>
+            </div>
+          ) : null
+        }
       />
       {isZoomedPhotoVisible && shouldShowScannedPhoto && scannedPhotoUrl ? (
         <div

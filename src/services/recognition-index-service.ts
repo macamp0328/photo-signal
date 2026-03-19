@@ -50,6 +50,35 @@ export async function getRecognitionIndexEntries(): Promise<RecognitionIndexEntr
       }
 
       if (loadGeneration === cacheGeneration) {
+        // DEV-only: prepend a seeded hash from localStorage.__dev_fakeCamera so
+        // preview_eval fake camera injection produces a reliable recognition match.
+        if (import.meta.env.DEV) {
+          try {
+            const raw = localStorage.getItem('__dev_fakeCamera');
+            if (raw) {
+              interface ClipSeed {
+                concertId?: number;
+                hash?: string;
+              }
+              const cfg = JSON.parse(raw) as ClipSeed & { clips?: ClipSeed[] };
+              // Support both single-clip { concertId, hash } and multi-clip { clips: [...] }
+              const seeds: ClipSeed[] = Array.isArray(cfg.clips) ? cfg.clips : [cfg];
+              for (const seed of seeds) {
+                if (seed.hash && seed.concertId != null) {
+                  const entry = payload.entries.find((e) => e.concertId === seed.concertId);
+                  if (entry) {
+                    entry.phash = [seed.hash, ...entry.phash.filter((h) => h !== seed.hash)];
+                    console.info(
+                      `[dev] recognition hash seeded for concertId=${seed.concertId} from localStorage.__dev_fakeCamera`
+                    );
+                  }
+                }
+              }
+            }
+          } catch {
+            // Never break recognition if DEV test code fails
+          }
+        }
         cachedEntries = payload.entries;
       }
 

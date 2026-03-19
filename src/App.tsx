@@ -97,6 +97,42 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
+// DEV-only badge: visible when __dev_fakeCamera is active in localStorage so
+// agents and humans can instantly confirm they're on the dev server (not
+// the production preview build, which strips all DEV code paths).
+function DevFakeCameraBadge() {
+  if (!import.meta.env.DEV) return null;
+  try {
+    const raw = localStorage.getItem('__dev_fakeCamera');
+    if (!raw) return null;
+    const cfg = JSON.parse(raw) as { clips?: unknown[] };
+    const count = Array.isArray(cfg.clips) ? cfg.clips.length : 1;
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          top: 48,
+          left: 8,
+          background: 'rgba(255, 200, 0, 0.92)',
+          color: '#000',
+          fontSize: '11px',
+          fontFamily: 'monospace',
+          padding: '3px 7px',
+          borderRadius: '3px',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          letterSpacing: '0.03em',
+        }}
+        aria-hidden="true"
+      >
+        DEV · fake camera · {count} clip{count !== 1 ? 's' : ''}
+      </div>
+    );
+  } catch {
+    return null;
+  }
+}
+
 function AppContent() {
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
@@ -1029,6 +1065,7 @@ function AppContent() {
           />
         </Suspense>
       )}
+      {import.meta.env.DEV && <DevFakeCameraBadge />}
     </>
   );
 }

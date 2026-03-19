@@ -55,7 +55,8 @@ function serveTestVideo(
   next: () => void
 ): void {
   const filename = (req.url ?? '').replace(/^\//, '').split('?')[0];
-  if (!filename) {
+  // Reject empty names and any path traversal sequences — served names must be flat file names.
+  if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
     next();
     return;
   }
@@ -80,6 +81,10 @@ function serveTestVideo(
     ext === '.mp4' ? 'video/mp4' : ext === '.webm' ? 'video/webm' : 'application/octet-stream';
 
   const stats = fs.statSync(filePath);
+  if (!stats.isFile()) {
+    next();
+    return;
+  }
   const totalSize = stats.size;
   const rangeHeader = typeof req.headers['range'] === 'string' ? req.headers['range'] : undefined;
   const byteRange = parseTestVideoByteRange(rangeHeader, totalSize);
@@ -100,13 +105,9 @@ function serveTestVideo(
       'Content-Type': contentType,
       'Cache-Control': 'no-store',
     });
-    const buf = Buffer.alloc(chunkSize);
-    const fd = fs.openSync(filePath, 'r');
-    try {
-      fs.readSync(fd, buf, 0, chunkSize, start);
-    } finally {
-      fs.closeSync(fd);
-    }
+    // readFileSync+slice guarantees the exact byte range without the partial-read
+    // risk of a single fs.readSync() call.
+    const buf = fs.readFileSync(filePath).slice(start, end + 1);
     res.end(buf);
     return;
   }

@@ -1,7 +1,13 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 import { safeGrantCameraPermissions } from './utils/camera';
 import { bootstrapVisualState, gotoLanding } from './utils/visual-helpers';
 import { getSampleByConcertId, setupFakeCamera } from './utils/fake-camera';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ASSET_VIDEO_DIR = path.join(__dirname, '../../../assets/test-videos/phone-samples');
 
 /**
  * End-to-End Photo Recognition Tests — Fake Camera
@@ -25,6 +31,13 @@ test.describe('Photo Recognition — fake camera', () => {
   // Recognition pipeline needs more time than screenshot tests:
   // page load + camera activation + frame rendering + match confirmation.
   test.setTimeout(45_000);
+
+  // Video assets live in assets/ which is excluded from the CI sparse-checkout to
+  // keep checkout times short. Skip gracefully when not available.
+  test.skip(
+    !fs.existsSync(ASSET_VIDEO_DIR),
+    'Video assets (assets/test-videos/phone-samples) not checked out — skipping.'
+  );
 
   test.skip(
     ({ browserName }) => browserName !== 'chromium',

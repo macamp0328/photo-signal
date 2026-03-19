@@ -48,7 +48,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Page } from '@playwright/test';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -512,7 +512,7 @@ export async function computeVideoFrameHash(videoPath: string): Promise<string> 
 
     // Dynamic import keeps the top-level module clean and avoids pulling node-canvas
     // into non-hash-computing call paths.
-    const utilsPath = path.join(REPO_ROOT, 'scripts/lib/photoHashUtils.js');
+    const utilsPath = pathToFileURL(path.join(REPO_ROOT, 'scripts/lib/photoHashUtils.js')).href;
     const { loadImageData, computePHash } = (await import(utilsPath)) as {
       loadImageData: (
         p: string

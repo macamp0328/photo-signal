@@ -107,7 +107,7 @@ if (import.meta.env.DEV) {
         if (!clip?.videoUrl) return;
         video.src = clip.videoUrl;
         video.load();
-        void video.play();
+        video.play().catch(() => {}); // autoplay may be blocked; resolved later in onLoaded
         console.info(
           `[dev] fake camera → clip ${index % clips.length}: concertId=${clip.concertId ?? '?'}`
         );
@@ -125,7 +125,7 @@ if (import.meta.env.DEV) {
         const onLoaded = () => {
           video.removeEventListener('loadeddata', onLoaded);
           video.removeEventListener('error', onError);
-          void video.play();
+          video.play().catch(() => {});
           const rAF = () => {
             drawFrame();
             requestAnimationFrame(rAF);

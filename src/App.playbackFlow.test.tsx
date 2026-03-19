@@ -424,7 +424,9 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(screen.getByRole('button', { name: 'Go to next photo' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     expect(screen.getByText('Band Two')).toBeInTheDocument();
 
@@ -487,7 +489,9 @@ describe('App playback flow', () => {
 
     expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Go to next photo' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
 
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
     expect(mockResetRecognition).toHaveBeenCalled();
@@ -506,7 +510,9 @@ describe('App playback flow', () => {
       })
     );
 
-    await user.click(screen.getByRole('button', { name: 'Go to next photo' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
 
     recognitionState.recognizedConcert = concertOne;
@@ -527,7 +533,9 @@ describe('App playback flow', () => {
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Go to next photo' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
 
     recognitionState.recognizedConcert = concertOne;

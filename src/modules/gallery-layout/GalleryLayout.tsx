@@ -14,6 +14,7 @@ export function GalleryLayout({
   onSettingsClick,
   audioControls,
   isMatchedPhoto = false,
+  aboveCameraSlot,
 }: GalleryLayoutProps) {
   const hasAudioControls = Boolean(audioControls);
 
@@ -72,6 +73,7 @@ export function GalleryLayout({
       </button>
 
       <div className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''}`}>
+        {aboveCameraSlot}
         <div className={isMatchedPhoto ? styles.cameraWrapPhoto : styles.cameraWrap}>
           <div className={isMatchedPhoto ? styles.cameraSectionPhoto : styles.cameraSection}>
             {cameraView}

@@ -9,6 +9,4 @@ export interface InfoDisplayProps {
   concert: Concert | null;
   /** Control visibility independently of concert data */
   isVisible: boolean;
-  /** Optional callback when user moves to the next photo */
-  onClose?: () => void;
 }

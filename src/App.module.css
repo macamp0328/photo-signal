@@ -50,6 +50,8 @@
   flex-shrink: 0;
   font-family: var(--font-family);
   line-height: 1;
+  min-width: 1ch;
+  text-align: center;
   text-shadow:
     0 0 calc(6px * var(--glow-reactive-scale-ring)) var(--signal-glow),
     0 0 calc(16px * var(--glow-reactive-scale-ring)) var(--signal-glow-soft);
@@ -83,8 +85,8 @@
 .signalNavBtn {
   background: transparent;
   border: none;
-  color: var(--color-bonus-text);
-  font-size: 0.9rem;
+  color: var(--color-main-text);
+  font-size: 1.3rem;
   font-family: var(--font-family);
   cursor: pointer;
   min-height: 2.75rem;
@@ -97,7 +99,7 @@
 }
 
 .signalNavBtn:hover {
-  color: var(--color-main-text);
+  color: #fff;
 }
 
 .signalNavBtn:focus-visible {
@@ -113,6 +115,46 @@
   50% {
     opacity: 0.3;
   }
+}
+
+/* ─── Close / Scan Another Button ────────────────────────────────────────── */
+
+.closePhotoButton {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 10;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.65rem;
+  font-family: var(--font-family);
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  pointer-events: all;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 0;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+html[data-state='matched'] .closePhotoButton {
+  color: var(--poster-accent, rgba(255, 255, 255, 0.6));
+}
+
+.closePhotoButton:hover {
+  color: #fff;
+  opacity: 1;
+}
+
+.closePhotoButton:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
 }
 
 /* ─── Scanned Photo Frame ─────────────────────────────────────────────────── */

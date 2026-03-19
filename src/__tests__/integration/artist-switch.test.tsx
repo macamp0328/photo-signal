@@ -272,7 +272,9 @@ describe('Artist Audio Switch', () => {
     expect(screen.getByLabelText('Concert details')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Artist A scanned photograph' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /go to next photo/i }));
+    await user.click(
+      screen.getByRole('button', { name: /close concert view and scan a new photo/i })
+    );
 
     expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
     expect(mockReset).toHaveBeenCalled();
@@ -282,7 +284,9 @@ describe('Artist Audio Switch', () => {
     await activateAndPlayArtistA();
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: /go to next photo/i }));
+    await user.click(
+      screen.getByRole('button', { name: /close concert view and scan a new photo/i })
+    );
 
     // Recognition detects Artist B concert #1
     await act(async () => {
@@ -293,7 +297,9 @@ describe('Artist Audio Switch', () => {
     });
 
     // Close Artist B details to start per-concert cooldown
-    await user.click(screen.getByRole('button', { name: /go to next photo/i }));
+    await user.click(
+      screen.getByRole('button', { name: /close concert view and scan a new photo/i })
+    );
 
     // Immediate re-detection of the same closed concert is suppressed during cooldown
     await act(async () => {

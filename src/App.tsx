@@ -881,11 +881,17 @@ function AppContent() {
           onError={() => setHasScannedPhotoLoadFailed(true)}
         />
       </button>
-      <InfoDisplay
-        concert={infoConcert}
-        isVisible={!!infoConcert}
-        onClose={() => handleCloseConcertInfo(infoConcert)}
-      />
+      <InfoDisplay concert={infoConcert} isVisible={!!infoConcert} />
+      {infoConcert ? (
+        <button
+          type="button"
+          className={styles.closePhotoButton}
+          onClick={() => handleCloseConcertInfo(infoConcert)}
+          aria-label="Close concert view and scan a new photo"
+        >
+          ↩ scan another
+        </button>
+      ) : null}
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">

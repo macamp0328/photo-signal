@@ -8,7 +8,7 @@ import { formatConcertTimestamp } from '../../utils/dateUtils';
  * Renders as a gradient overlay directly on the matched photo.
  * Band name floats large at the bottom; venue · date in small body text below.
  */
-export function InfoDisplay({ concert, isVisible, onClose }: InfoDisplayProps) {
+export function InfoDisplay({ concert, isVisible }: InfoDisplayProps) {
   if (!concert || !isVisible) return null;
 
   const formattedDate = formatConcertTimestamp(concert.date, { includeTimeZone: false });
@@ -29,16 +29,6 @@ export function InfoDisplay({ concert, isVisible, onClose }: InfoDisplayProps) {
         {metaLine ? <p className={styles.meta}>{metaLine}</p> : null}
         {exifLine ? <p className={styles.exif}>{exifLine}</p> : null}
       </div>
-      {onClose ? (
-        <button
-          type="button"
-          className={styles.nextButton}
-          onClick={onClose}
-          aria-label="Go to next photo"
-        >
-          → next
-        </button>
-      ) : null}
     </section>
   );
 }

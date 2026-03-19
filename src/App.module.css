@@ -91,8 +91,8 @@
   font-size: 1.6rem;
   font-family: var(--font-family);
   cursor: pointer;
-  min-height: 2.5rem;
-  min-width: 2.5rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
   padding: 0 0.3rem;
   display: flex;
   align-items: center;
@@ -129,7 +129,8 @@
 .scanAnotherBar {
   display: flex;
   justify-content: flex-end;
-  align-self: stretch;
+  /* Match cameraWrapPhoto width so the button stays anchored to the photo frame's right edge */
+  width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width)));
   padding: 0 0.15rem 0.4rem;
 }
 

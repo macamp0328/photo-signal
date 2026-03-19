@@ -319,21 +319,23 @@ The script:
 
 ### Port scheme
 
-Worktrees use ports in the **5200+ range** (dev) and **4200+ range** (preview), assigned
-sequentially by alphabetical worktree name. The root repo uses 5173/5180 (dev) and 4173
-(preview) — no overlap.
+Worktrees use ports in the **5200+ range** (dev) and **4200+ range** (preview). The script
+assigns the next port above the highest already in use across all existing worktree configs and
+the root `.claude/launch.json`. The root repo's own configs use 5173/5180 (dev) and 4173
+(preview) — below the 5200 threshold, so they never collide.
 
-| Config name    | Port range | Notes                     |
-| -------------- | ---------- | ------------------------- |
-| `dev-worktree` | 5200–5299  | Use this one in worktrees |
-| `photo-signal` | 4200–4299  | Production preview build  |
-| Root `dev`     | 5173, 5180 | Root repo only            |
+| Config name    | Port range | Notes                    |
+| -------------- | ---------- | ------------------------ |
+| `dev-worktree` | 5200–5299  | Dev server (npm run dev) |
+| `photo-signal` | 4200–4299  | Production preview build |
+| Root `dev`     | 5173, 5180 | Root repo only           |
 
 ### Using the preview tools in a worktree
 
-Always use the **`dev-worktree`** launch configuration inside a worktree session — it starts
-Vite on the worktree's unique port. Do not use the `dev` or `photo-signal` configs from within
-a worktree as those share ports with the root session.
+All three configs in a worktree's `launch.json` use that worktree's unique port pair, so none
+of them collide with other sessions. Use **`dev-worktree`** for the Vite dev server (it runs
+`npm run dev` via the package.json script) and **`photo-signal`** when you need a production
+preview build.
 
 ---
 

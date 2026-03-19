@@ -45,17 +45,33 @@ fi
 
 HIGHEST_DEV_PORT=5199  # one below the base so the first worktree gets 5200
 
-if [ -d "$WORKTREES_DIR" ]; then
-  while IFS= read -r launch_file; do
-    port=$(python3 -c "
+# Scan all worktree launch.json files (and the root .claude/launch.json) for the highest
+# port already in use so we never collide with an existing worktree or the root config.
+scan_launch_json() {
+  local file="$1"
+  python3 -c "
 import json, sys
 try:
-    data = json.load(open('$launch_file' if '$launch_file' else sys.stdin))
+    data = json.load(open(sys.argv[1]))
     ports = [c.get('port', 0) for c in data.get('configurations', []) if c.get('port', 0) >= 5200]
     print(max(ports) if ports else 0)
 except Exception:
     print(0)
-" 2>/dev/null || echo 0)
+" "$file" 2>/dev/null || echo 0
+}
+
+# Include root .claude/launch.json
+if [ -f "$REPO_ROOT/.claude/launch.json" ]; then
+  port=$(scan_launch_json "$REPO_ROOT/.claude/launch.json")
+  if [ "$port" -gt "$HIGHEST_DEV_PORT" ] 2>/dev/null; then
+    HIGHEST_DEV_PORT=$port
+  fi
+fi
+
+# Include all worktree launch.json files
+if [ -d "$WORKTREES_DIR" ]; then
+  while IFS= read -r launch_file; do
+    port=$(scan_launch_json "$launch_file")
     if [ "$port" -gt "$HIGHEST_DEV_PORT" ] 2>/dev/null; then
       HIGHEST_DEV_PORT=$port
     fi

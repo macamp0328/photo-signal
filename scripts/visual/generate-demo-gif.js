@@ -1,4 +1,28 @@
 #!/usr/bin/env node
+/**
+ * Demo GIF + MP4 Generator
+ *
+ * Produces docs/media/demo.gif and docs/media/demo.mp4 by:
+ *  1. Starting the production preview server (port 4173)
+ *  2. Injecting a fake camera feed from pre-recorded phone videos
+ *  3. Recording the full story with Playwright recordVideo — smooth, continuous WebM
+ *     (no screenshot accumulation, no frame-rate jitter)
+ *  4. Intercepting and caching audio (*.opus) requests for MP4 muxing
+ *  5. Assembling GIF from the WebM via ffmpeg two-pass palette
+ *  6. Muxing intercepted audio into MP4 with correct timestamps
+ *
+ * The fake camera uses a 3× slow-speed palindrome video (forward + reverse) so the
+ * recognition pipeline has a natural "scanning → found" period without custom haze
+ * overlays. The real app CRT/dead-signal visual state is shown during scanning.
+ *
+ * Prerequisites: ffmpeg and ffprobe must be on PATH.
+ * Video samples must be placed in assets/test-videos/phone-samples/ (not committed).
+ *
+ * Usage:
+ *   npm run demo:gif               # full demo (builds first)
+ *   npm run demo:gif:quick         # full demo, skip build
+ *   npm run demo:gif:test          # fast smoke test (skip build, first target only)
+ */
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,179 +31,90 @@ import { spawn, spawnSync } from 'node:child_process';
 import { chromium, devices } from '@playwright/test';
 import { loadImageData, computePHash } from '../lib/photoHashUtils.js';
 
+// ── Paths ─────────────────────────────────────────────────────────────────────
 const ROOT = process.cwd();
 const BASE_URL = 'http://127.0.0.1:4173';
-const FRAME_DIR = path.resolve(ROOT, 'scripts/visual/output/demo-frames');
-const OUTPUT_GIF = path.resolve(ROOT, 'docs/media/demo.gif');
-const OUTPUT_DIR = path.dirname(OUTPUT_GIF);
 const VIDEO_SAMPLE_DIR = path.resolve(ROOT, 'assets/test-videos/phone-samples');
 const VIDEO_SAMPLE_MANIFEST_PATH = path.resolve(VIDEO_SAMPLE_DIR, 'samples.manifest.json');
 const HALF_SPEED_VIDEO_DIR = path.resolve(VIDEO_SAMPLE_DIR, 'half-speed');
-const DEMO_VIDEO_ROUTE_PREFIX = '/__demo-video/';
+const OUTPUT_DIR = path.resolve(ROOT, 'docs/media');
+const AUDIO_CACHE_DIR = path.resolve(ROOT, 'scripts/visual/output/audio');
+const VIDEO_RECORDING_DIR = path.resolve(ROOT, 'scripts/visual/output/recording');
 
-const DEFAULT_LANDING_FRAMES = 30; // 30 × 80ms = 2.4s on landing (was 20 = 1.6s)
-const DEFAULT_CAPTURE_FRAMES = 800; // safety cap only; scenes drive actual GIF length
-const DEFAULT_FRAME_DELAY_MS = 80;
-const DEFAULT_FPS = 12;
-const DEFAULT_PRE_MATCH_MS = 6000; // 6s scan before first match (was 3500ms)
-const DEFAULT_VIEWPORT_WIDTH = 412;
-const DEFAULT_VIEWPORT_HEIGHT = 915;
-const DEFAULT_OUTPUT_WIDTH = 480;
-
-const STORY_PACING_MS = {
-  postFirstMatchHold: 6000, // was 4000; extra time to read Overcoats concert info
-  controlTapGap: 3000, // was 2500; slightly more breathing room between taps
-  secondTargetWarmup: 3000, // was 1400; 3s base scan for second clip
-  secondTargetWarmupPadding: 1000, // was 700; total second search = 4s
-  postSecondMatchHold: 6500, // was 4500; extra time to read Barna concert info
-  thirdTargetWarmup: 3000,
-  thirdTargetWarmupPadding: 1000,
-  postThirdMatchHold: 6500, // was 4500; extra time to read Croy concert info
-  postSwitchArtistHold: 6000, // was 4000; more time after Switch Artist
-  fadeToBlack: 2000, // was 1500; slightly longer closing fade
+// ── Full story timing ─────────────────────────────────────────────────────────
+const TIMING_FULL = {
+  landingHoldMs: 2000,
+  hazeHoldMs: 3000, // scanning state before clearing haze
+  hazeClearMs: 1500, // duration of haze fade
+  matchTimeoutMs: 15000,
+  firstMatchHoldMs: 6000,
+  controlTapGapMs: 2500,
+  matchHoldMs: 5000, // for 2nd and 3rd targets
+  fadeToBlackMs: 1500,
 };
 
-// ── Demo GIF Timeline Spec ────────────────────────────────────────────────────
-//
-// Scene 0  Landing hold — ~2.4s (DEFAULT_LANDING_FRAMES × DEFAULT_FRAME_DELAY_MS)
-//
-// Scene 1  Activate camera + haze-clearing search on test_1_overcoats.mp4 at
-//          3× half-speed palindrome with scan overlay and rectangle-detection
-//          visible. Duration: event-driven, bounded by preMatchMs + 8s or
-//          sourceDurationMs × 2.
-//
-// Scene 2  First match (Overcoats) shown with concert info — 6s
-//          (STORY_PACING_MS.postFirstMatchHold)
-//
-// Scene 3  Audio controls choreography — tap Stop/Pause, Play, Previous, Next
-//          with 3s between each tap (STORY_PACING_MS.controlTapGap)
-//
-// Scene 4  Close details ("Next pic, please") and wait until panel is hidden.
-//
-// Scene 5  Dim flash transition (~800ms) signals new photo being searched.
-//
-// Scene 6  Second haze-clearing search on test_5_barna.mp4 at 3× half-speed
-//          palindrome with scan overlay and rectangle-detection visible.
-//          Duration: secondTargetWarmup + secondTargetWarmupPadding = 4s.
-//
-// Scene 7  Second match (Sean Barna) shown with concert info — 6.5s
-//          (STORY_PACING_MS.postSecondMatchHold)
-//
-// Scene 8  Close Barna details, dim flash transition (~800ms).
-//
-// Scene 9  Third haze-clearing search on test_2_croy.mp4 at 3× half-speed
-//          palindrome with scan overlay and rectangle-detection visible.
-//          Duration: thirdTargetWarmup + thirdTargetWarmupPadding = 4s.
-//
-// Scene 10 Third match (Croy and the Boys) shown with concert info — 6.5s
-//          (STORY_PACING_MS.postThirdMatchHold)
-//
-// Scene 11 Tap "Switch Artist" and hold 6s while new track starts
-//          (STORY_PACING_MS.postSwitchArtistHold)
-//
-// Scene 12 Fade to black — 2s (STORY_PACING_MS.fadeToBlack)
-//
-// If this spec changes, update this comment first, then mirror changes in the
-// constants and flow below. The README.md in phone-samples/ points here as the
-// canonical spec and does not need a separate copy of the timeline.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Test story timing (fast smoke) ────────────────────────────────────────────
+const TIMING_TEST = {
+  landingHoldMs: 500,
+  hazeHoldMs: 1500,
+  hazeClearMs: 1000,
+  matchTimeoutMs: 15000,
+  firstMatchHoldMs: 1500,
+  controlTapGapMs: 800,
+  matchHoldMs: 1000,
+  fadeToBlackMs: 500,
+};
 
-function parseArgs(argv) {
-  const parsed = {
-    skipBuild: false,
-    keepFrames: false,
-    fps: DEFAULT_FPS,
-    landingFrames: DEFAULT_LANDING_FRAMES,
-    captureFrames: DEFAULT_CAPTURE_FRAMES,
-    frameDelayMs: DEFAULT_FRAME_DELAY_MS,
-    preMatchMs: DEFAULT_PRE_MATCH_MS,
-    viewportWidth: DEFAULT_VIEWPORT_WIDTH,
-    viewportHeight: DEFAULT_VIEWPORT_HEIGHT,
-    outputWidth: DEFAULT_OUTPUT_WIDTH,
-  };
+// ── Output file paths (test mode uses timestamps to avoid clobbering full demo) ──
+const OUTPUT_GIF = path.resolve(OUTPUT_DIR, 'demo.gif');
+const OUTPUT_MP4 = path.resolve(OUTPUT_DIR, 'demo.mp4');
 
-  for (const arg of argv) {
-    if (arg === '--skip-build') parsed.skipBuild = true;
-    if (arg === '--keep-frames') parsed.keepFrames = true;
-    if (arg.startsWith('--fps=')) parsed.fps = Number(arg.split('=')[1] ?? DEFAULT_FPS);
-    if (arg.startsWith('--landing-frames=')) {
-      parsed.landingFrames = Number(arg.split('=')[1] ?? DEFAULT_LANDING_FRAMES);
-    }
-    if (arg.startsWith('--capture-frames=')) {
-      parsed.captureFrames = Number(arg.split('=')[1] ?? DEFAULT_CAPTURE_FRAMES);
-    }
-    if (arg.startsWith('--frame-delay-ms=')) {
-      parsed.frameDelayMs = Number(arg.split('=')[1] ?? DEFAULT_FRAME_DELAY_MS);
-    }
-    if (arg.startsWith('--pre-match-ms=')) {
-      parsed.preMatchMs = Number(arg.split('=')[1] ?? DEFAULT_PRE_MATCH_MS);
-    }
-    if (arg.startsWith('--viewport-width=')) {
-      parsed.viewportWidth = Number(arg.split('=')[1] ?? DEFAULT_VIEWPORT_WIDTH);
-    }
-    if (arg.startsWith('--viewport-height=')) {
-      parsed.viewportHeight = Number(arg.split('=')[1] ?? DEFAULT_VIEWPORT_HEIGHT);
-    }
-    if (arg.startsWith('--output-width=')) {
-      parsed.outputWidth = Number(arg.split('=')[1] ?? DEFAULT_OUTPUT_WIDTH);
-    }
-  }
+// ── Viewport / output parameters ─────────────────────────────────────────────
+const VIEWPORT_WIDTH = 412;
+const VIEWPORT_HEIGHT = 915;
+const GIF_FPS = 12;
+const GIF_WIDTH = 480;
+const MP4_CRF = 18;
 
-  return parsed;
-}
+// ── CLI flags ─────────────────────────────────────────────────────────────────
+const args = process.argv.slice(2);
+const SKIP_BUILD = args.includes('--skip-build');
+const TEST_MODE = args.includes('--test');
+
+const TIMING = TEST_MODE ? TIMING_TEST : TIMING_FULL;
+const TARGET_GIF = TEST_MODE ? path.resolve(OUTPUT_DIR, `demo-test-${Date.now()}.gif`) : OUTPUT_GIF;
+const TARGET_MP4 = TEST_MODE ? path.resolve(OUTPUT_DIR, `demo-test-${Date.now()}.mp4`) : OUTPUT_MP4;
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
 
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    cwd: ROOT,
-    stdio: 'inherit',
-    ...options,
-  });
-
+  const result = spawnSync(command, args, { cwd: ROOT, stdio: 'inherit', ...options });
   if (result.error) {
     const code = result.error.code ? ` (${result.error.code})` : '';
-    throw new Error(
-      `Failed to run command${code}: ${command} ${args.join(' ')} — ${result.error.message}`
-    );
+    throw new Error(`Failed to run${code}: ${command} ${args.join(' ')} — ${result.error.message}`);
   }
-
   if (result.status !== 0) {
-    throw new Error(
-      `Command failed with exit code ${result.status ?? 'unknown'}: ${command} ${args.join(' ')}`
-    );
+    throw new Error(`Exit ${result.status ?? 'unknown'}: ${command} ${args.join(' ')}`);
   }
-}
-
-function getStderrTail(buffer) {
-  const text = buffer.join('').trim();
-  if (!text) {
-    return 'No stderr output from preview process.';
-  }
-  return text.split('\n').slice(-8).join('\n');
 }
 
 async function waitForServer(url, preview, stderrBuffer, timeoutMs = 45000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     if (preview.exitCode !== null) {
-      throw new Error(
-        `Preview server exited early with code ${preview.exitCode}.\n${getStderrTail(stderrBuffer)}`
-      );
+      const tail = stderrBuffer.join('').trim().split('\n').slice(-8).join('\n');
+      throw new Error(`Preview server exited early (code ${preview.exitCode}).\n${tail}`);
     }
-
     try {
-      const response = await fetch(url);
-      if (response.ok) {
-        return;
-      }
+      const res = await fetch(url);
+      if (res.ok) return;
     } catch {
-      // retry
+      /* retry */
     }
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((r) => setTimeout(r, 400));
   }
-
-  throw new Error(
-    `Preview server did not become ready at ${url} within ${timeoutMs}ms.\n${getStderrTail(stderrBuffer)}`
-  );
+  const tail = stderrBuffer.join('').trim().split('\n').slice(-8).join('\n');
+  throw new Error(`Preview server not ready at ${url} after ${timeoutMs}ms.\n${tail}`);
 }
 
 function startPreviewServer() {
@@ -194,103 +129,8 @@ function startPreviewServer() {
   );
 }
 
-function isPathInside(parentPath, candidatePath) {
-  const relative = path.relative(parentPath, candidatePath);
-  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
-}
+// ── Video utilities ───────────────────────────────────────────────────────────
 
-function getMimeTypeForVideo(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  if (ext === '.mp4') return 'video/mp4';
-  if (ext === '.webm') return 'video/webm';
-  if (ext === '.mov') return 'video/quicktime';
-  return 'application/octet-stream';
-}
-
-function parseByteRange(rangeHeader, totalSize) {
-  if (!rangeHeader) {
-    return null;
-  }
-
-  const match = /^bytes=(\d*)-(\d*)$/i.exec(rangeHeader.trim());
-  if (!match) {
-    return null;
-  }
-
-  const [, startRaw, endRaw] = match;
-  if (startRaw === '' && endRaw === '') {
-    return null;
-  }
-
-  let start;
-  let end;
-
-  if (startRaw === '') {
-    const suffixLength = Number(endRaw);
-    if (!Number.isFinite(suffixLength) || suffixLength <= 0) {
-      return null;
-    }
-    start = Math.max(totalSize - suffixLength, 0);
-    end = totalSize - 1;
-  } else {
-    start = Number(startRaw);
-    end = endRaw === '' ? totalSize - 1 : Number(endRaw);
-  }
-
-  if (!Number.isFinite(start) || !Number.isFinite(end)) {
-    return null;
-  }
-
-  if (start < 0 || end < start || start >= totalSize) {
-    return null;
-  }
-
-  end = Math.min(end, totalSize - 1);
-  return { start, end };
-}
-
-function resolvePhotoPath(imageFile) {
-  const relative = String(imageFile ?? '').replace(/^\//, '');
-  const absolute = path.resolve(ROOT, relative);
-
-  if (!fs.existsSync(absolute)) {
-    throw new Error(`Demo photo not found on disk: ${absolute}`);
-  }
-
-  return absolute;
-}
-
-function readFileRange(filePath, start, end) {
-  const length = end - start + 1;
-  const body = Buffer.alloc(length);
-  const fd = fs.openSync(filePath, 'r');
-  let offset = 0;
-  let position = start;
-  try {
-    while (offset < length) {
-      const bytesRead = fs.readSync(fd, body, offset, length - offset, position);
-      if (bytesRead === 0) {
-        break;
-      }
-      offset += bytesRead;
-      position += bytesRead;
-    }
-  } finally {
-    fs.closeSync(fd);
-  }
-  if (offset < length) {
-    return body.subarray(0, offset);
-  }
-  return body;
-}
-
-/**
- * Reads the rotation angle (degrees) recorded in the video stream's displaymatrix
- * side-data. Returns 0 when no rotation is found.
- *
- * This is needed because `-filter_complex` in FFmpeg 5.x does NOT honour the
- * `autorotate` option — rotation must be applied explicitly in the filter chain.
- */
 function getVideoRotation(videoPath) {
   const result = spawnSync(
     'ffprobe',
@@ -307,36 +147,19 @@ function getVideoRotation(videoPath) {
     ],
     { cwd: ROOT, encoding: 'utf8' }
   );
-  const rotStr = String(result.stdout ?? '').trim();
-  const rot = Number.parseInt(rotStr, 10);
+  const rot = Number.parseInt(String(result.stdout ?? '').trim(), 10);
   return Number.isFinite(rot) ? rot : 0;
 }
 
 function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
-  // Produces a palindrome (forward + reverse at 3× slow-speed) so the video loops
-  // smoothly without a jarring jump-cut, and the printed photo is visible for
-  // longer per loop — giving rectangle detection more stable frames.
-  // split=2 creates two copies so [fwd1] feeds concat while [fwd2] feeds reverse.
-  //
-  // Rotation must be corrected explicitly: -filter_complex does not honour
-  // autorotate in FFmpeg 5.x, so videos recorded with displaymatrix metadata
-  // (e.g. upside-down phone clips) would otherwise play inverted in the browser.
   const rotationDeg = getVideoRotation(sourceVideoPath);
   let rotationFilter = '';
-  if (rotationDeg === 180 || rotationDeg === -180) {
-    rotationFilter = 'hflip,vflip,'; // 180° correction
-  } else if (rotationDeg === 90 || rotationDeg === -270) {
-    rotationFilter = 'transpose=1,'; // 90° clockwise
-  } else if (rotationDeg === -90 || rotationDeg === 270) {
-    rotationFilter = 'transpose=2,'; // 90° counter-clockwise
-  }
-
+  if (rotationDeg === 180 || rotationDeg === -180) rotationFilter = 'hflip,vflip,';
+  else if (rotationDeg === 90 || rotationDeg === -270) rotationFilter = 'transpose=1,';
+  else if (rotationDeg === -90 || rotationDeg === 270) rotationFilter = 'transpose=2,';
   if (rotationDeg !== 0) {
-    console.log(
-      `   ↻ Applying ${rotationDeg}° rotation correction to ${path.basename(sourceVideoPath)}`
-    );
+    console.log(`   ↻ Applying ${rotationDeg}° rotation to ${path.basename(sourceVideoPath)}`);
   }
-
   run('ffmpeg', [
     '-loglevel',
     'error',
@@ -357,23 +180,15 @@ function prepareHalfSpeedVideo(sourceVideoPath, outputPath) {
   ]);
 }
 
-function getHalfSpeedVideoPath(sourceVideoPath) {
-  const baseName = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
-  return path.join(HALF_SPEED_VIDEO_DIR, `${baseName}.3x-palindrome.webm`);
-}
-
 function ensureHalfSpeedVideo(sourceVideoPath) {
   fs.mkdirSync(HALF_SPEED_VIDEO_DIR, { recursive: true });
-  const outputPath = getHalfSpeedVideoPath(sourceVideoPath);
-
+  const base = path.basename(sourceVideoPath, path.extname(sourceVideoPath));
+  const outputPath = path.join(HALF_SPEED_VIDEO_DIR, `${base}.3x-palindrome.webm`);
   if (fs.existsSync(outputPath)) {
-    const sourceStat = fs.statSync(sourceVideoPath);
-    const outputStat = fs.statSync(outputPath);
-    if (outputStat.mtimeMs >= sourceStat.mtimeMs && outputStat.size > 0) {
-      return outputPath;
-    }
+    const srcStat = fs.statSync(sourceVideoPath);
+    const outStat = fs.statSync(outputPath);
+    if (outStat.mtimeMs >= srcStat.mtimeMs && outStat.size > 0) return outputPath;
   }
-
   prepareHalfSpeedVideo(sourceVideoPath, outputPath);
   return outputPath;
 }
@@ -384,25 +199,16 @@ function getVideoDurationMs(videoPath) {
     ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', videoPath],
     { cwd: ROOT, encoding: 'utf8' }
   );
-
-  if (result.status !== 0) {
-    throw new Error(`Failed to read video duration via ffprobe: ${videoPath}`);
-  }
-
-  const seconds = Number.parseFloat(String(result.stdout ?? '').trim());
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    throw new Error(`Invalid video duration from ffprobe: ${videoPath}`);
-  }
-
-  return Math.floor(seconds * 1000);
+  if (result.status !== 0) throw new Error(`ffprobe failed for ${videoPath}`);
+  const secs = Number.parseFloat(String(result.stdout ?? '').trim());
+  if (!Number.isFinite(secs) || secs <= 0)
+    throw new Error(`Invalid duration from ffprobe: ${videoPath}`);
+  return Math.floor(secs * 1000);
 }
 
 async function computeHashFromVideoFrame(videoPath) {
-  const durationSec = getVideoDurationMs(videoPath) / 1000;
-  // Seek to 30% of the file duration. For palindrome files this lands in the
-  // middle of the clean forward pass (past the haze-clearing period), so the
-  // extracted frame represents what the browser recognition will actually see.
-  const seekSec = durationSec * 0.3;
+  const durationMs = getVideoDurationMs(videoPath);
+  const seekSec = (durationMs / 1000) * 0.3;
   const tmpFile = path.join(os.tmpdir(), `demo-frame-${Date.now()}.png`);
   try {
     run('ffmpeg', [
@@ -429,1269 +235,621 @@ async function computeHashFromVideoFrame(videoPath) {
   }
 }
 
-function pickDemoTargets(samples, usableByConcertId, count = 3) {
-  const singleCaptureTargets = [];
-
-  samples.forEach((sample, sampleIndex) => {
-    const captures = Array.isArray(sample?.captures) ? sample.captures : [];
-    if (captures.length !== 1) {
-      return;
-    }
-
-    const capture = captures[0];
-    const sampleLabel = `samples[${sampleIndex}]`;
-    const concertId = capture?.concertId;
-    const photoId = capture?.photoId;
-
-    if (!Number.isFinite(Number(concertId))) {
-      throw new Error(`Manifest ${sampleLabel}.captures[0] is missing a numeric concertId.`);
-    }
-
-    if (!photoId) {
-      throw new Error(`Manifest ${sampleLabel}.captures[0] is missing photoId.`);
-    }
-
-    const mappedEntry = usableByConcertId.get(String(concertId));
-    if (!mappedEntry) {
-      throw new Error(
-        `Manifest ${sampleLabel}.captures[0] references unknown or non-usable concertId: ${concertId}.`
-      );
-    }
-
-    if (String(photoId) !== String(mappedEntry.photoId)) {
-      throw new Error(
-        `Manifest ${sampleLabel}.captures[0] photoId mismatch. Expected ${mappedEntry.photoId}, received ${photoId}.`
-      );
-    }
-
-    const filename = String(sample?.filename ?? '').trim();
-    if (!filename) {
-      throw new Error(`Missing filename in ${sampleLabel} in ${VIDEO_SAMPLE_MANIFEST_PATH}.`);
-    }
-
-    const sourceVideoPath = path.resolve(VIDEO_SAMPLE_DIR, filename);
-    if (!isPathInside(VIDEO_SAMPLE_DIR, sourceVideoPath)) {
-      throw new Error(`Invalid filename path traversal in ${sampleLabel}: ${filename}`);
-    }
-
-    if (!fs.existsSync(sourceVideoPath)) {
-      throw new Error(
-        `Video sample file not found: ${sourceVideoPath}. Place the sample videos under ${VIDEO_SAMPLE_DIR}.`
-      );
-    }
-
-    singleCaptureTargets.push({
-      ...mappedEntry,
-      sampleId: String(sample?.sampleId ?? `sample-${String(sampleIndex + 1).padStart(2, '0')}`),
-      sourceVideoPath,
-      photoPath: resolvePhotoPath(mappedEntry.imageFile),
-      sourceDurationMs: getVideoDurationMs(sourceVideoPath),
-    });
-  });
-
-  if (singleCaptureTargets.length < count) {
-    throw new Error(
-      `Need at least ${count} single-capture samples in ${VIDEO_SAMPLE_MANIFEST_PATH} for demo GIF generation.`
-    );
-  }
-
-  // Pick `count` targets, preferring distinct artists.
-  const chosen = [];
-  for (const candidate of singleCaptureTargets) {
-    if (chosen.length >= count) break;
-    if (chosen.every((c) => c.artistId !== candidate.artistId)) {
-      chosen.push(candidate);
-    }
-  }
-  // Fill remaining slots with next available targets if not enough distinct artists.
-  let fillIdx = 0;
-  while (chosen.length < count && fillIdx < singleCaptureTargets.length) {
-    if (!chosen.includes(singleCaptureTargets[fillIdx])) {
-      chosen.push(singleCaptureTargets[fillIdx]);
-    }
-    fillIdx++;
-  }
-
-  if (chosen.length < count) {
-    throw new Error(`Could not choose ${count} targets from manifest.`);
-  }
-
-  return chosen;
-}
+// ── Target resolution ─────────────────────────────────────────────────────────
 
 function resolveDemoTargets() {
   if (!fs.existsSync(VIDEO_SAMPLE_MANIFEST_PATH)) {
-    throw new Error(
-      `Video sample manifest missing at ${VIDEO_SAMPLE_MANIFEST_PATH}. This demo flow now requires manifest video clips.`
-    );
+    throw new Error(`Video sample manifest missing: ${VIDEO_SAMPLE_MANIFEST_PATH}`);
   }
-
-  let manifest;
-  try {
-    manifest = JSON.parse(fs.readFileSync(VIDEO_SAMPLE_MANIFEST_PATH, 'utf8'));
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `Could not parse video sample manifest at ${VIDEO_SAMPLE_MANIFEST_PATH}: ${message}`
-    );
-  }
-
-  const appDataPath = path.resolve(ROOT, 'public/data.app.v2.json');
-  const recognitionPath = path.resolve(ROOT, 'public/data.recognition.v2.json');
-  const appData = JSON.parse(fs.readFileSync(appDataPath, 'utf8'));
-  const recognitionData = JSON.parse(fs.readFileSync(recognitionPath, 'utf8'));
-
-  const appEntries = Array.isArray(appData.entries) ? appData.entries : [];
-  const tracks = Array.isArray(appData.tracks) ? appData.tracks : [];
-  const photos = Array.isArray(appData.photos) ? appData.photos : [];
-  const artists = Array.isArray(appData.artists) ? appData.artists : [];
-  const recognitionEntries = Array.isArray(recognitionData.entries) ? recognitionData.entries : [];
-
-  const tracksById = new Map(tracks.map((track) => [track.id, track]));
-  const photosById = new Map(photos.map((photo) => [photo.id, photo]));
-  const artistNameById = new Map(artists.map((artist) => [artist.id, artist.name ?? artist.id]));
-  const recognitionByConcertId = new Map(
-    recognitionEntries.map((entry, index) => [entry.concertId, { entry, index }])
+  const manifest = JSON.parse(fs.readFileSync(VIDEO_SAMPLE_MANIFEST_PATH, 'utf8'));
+  const appData = JSON.parse(
+    fs.readFileSync(path.resolve(ROOT, 'public/data.app.v2.json'), 'utf8')
+  );
+  const recognitionData = JSON.parse(
+    fs.readFileSync(path.resolve(ROOT, 'public/data.recognition.v2.json'), 'utf8')
   );
 
-  const usableEntries = appEntries
-    .map((entry) => {
-      const track = tracksById.get(entry.trackId);
-      const photo = photosById.get(entry.photoId);
-      const recognition = recognitionByConcertId.get(entry.id);
-      const recognitionEnabled = entry.recognitionEnabled !== false;
+  const tracksById = new Map((appData.tracks ?? []).map((t) => [t.id, t]));
+  const photosById = new Map((appData.photos ?? []).map((p) => [p.id, p]));
+  const artistNameById = new Map((appData.artists ?? []).map((a) => [a.id, a.name ?? a.id]));
+  const recognitionByConcertId = new Map(
+    (recognitionData.entries ?? []).map((e, i) => [e.concertId, { entry: e, index: i }])
+  );
 
-      if (!recognitionEnabled || !track?.audioFile || !photo?.imageFile || !recognition) {
-        return null;
-      }
+  const usableByConcertId = new Map(
+    (appData.entries ?? [])
+      .map((entry) => {
+        const track = tracksById.get(entry.trackId);
+        const photo = photosById.get(entry.photoId);
+        const recognition = recognitionByConcertId.get(entry.id);
+        if (
+          entry.recognitionEnabled === false ||
+          !track?.audioFile ||
+          !photo?.imageFile ||
+          !recognition
+        )
+          return null;
+        return {
+          concertId: entry.id,
+          artistId: entry.artistId,
+          artistName: artistNameById.get(entry.artistId) ?? entry.artistId,
+          photoId: entry.photoId,
+          imageFile: photo.imageFile,
+          audioFile: track.audioFile,
+        };
+      })
+      .filter(Boolean)
+      .map((e) => [String(e.concertId), e])
+  );
 
+  const samples = (manifest.samples ?? []).filter((s) => s.captures?.length === 1);
+  const candidateTargets = samples
+    .map((sample, i) => {
+      const capture = sample.captures[0];
+      const entry = usableByConcertId.get(String(capture.concertId));
+      if (!entry) return null;
+      if (String(capture.photoId) !== String(entry.photoId)) return null;
+      const sourceVideoPath = path.resolve(VIDEO_SAMPLE_DIR, String(sample.filename ?? ''));
+      if (!fs.existsSync(sourceVideoPath)) return null;
       return {
-        concertId: entry.id,
-        artistId: entry.artistId,
-        artistName: artistNameById.get(entry.artistId) ?? entry.artistId,
-        photoId: entry.photoId,
-        imageFile: photo.imageFile,
+        ...entry,
+        sampleId: String(sample.sampleId ?? `sample-${String(i + 1).padStart(2, '0')}`),
+        sourceVideoPath,
       };
     })
     .filter(Boolean);
 
-  const usableByConcertId = new Map(usableEntries.map((entry) => [String(entry.concertId), entry]));
-  const samples = Array.isArray(manifest?.samples) ? manifest.samples : [];
-
-  if (samples.length < 3) {
+  const count = TEST_MODE ? 1 : 3;
+  if (candidateTargets.length < count) {
     throw new Error(
-      `Expected at least 3 samples in ${VIDEO_SAMPLE_MANIFEST_PATH}, found ${samples.length}.`
+      `Need at least ${count} single-capture samples in manifest, found ${candidateTargets.length}.`
     );
   }
 
-  const [firstTarget, secondTarget, thirdTarget] = pickDemoTargets(samples, usableByConcertId);
+  const chosen = [];
+  for (const candidate of candidateTargets) {
+    if (chosen.length >= count) break;
+    if (chosen.every((c) => c.artistId !== candidate.artistId)) chosen.push(candidate);
+  }
+  let fillIdx = 0;
+  while (chosen.length < count && fillIdx < candidateTargets.length) {
+    if (!chosen.includes(candidateTargets[fillIdx])) chosen.push(candidateTargets[fillIdx]);
+    fillIdx++;
+  }
+  if (chosen.length < count) throw new Error(`Could not choose ${count} targets from manifest.`);
 
-  return {
-    firstTarget,
-    secondTarget,
-    thirdTarget,
-    sourceMode: 'video-clips-camera-feed',
+  return chosen;
+}
+
+// ── Browser camera script ─────────────────────────────────────────────────────
+//
+// Builds an ES5-compatible IIFE that:
+//  1. Overrides navigator.mediaDevices.getUserMedia to return canvas.captureStream()
+//  2. Draws video frames to the canvas with a controllable haze (blur + brightness)
+//  3. Seeds all target hashes into /data.recognition.v2.json on the first fetch
+//  4. Exposes window.__clearHaze(durationMs) and window.__setCameraTarget(index)
+//  5. Sets the demo-no-audio-fade flag so Howler starts quickly in the recording
+//
+// Haze is a real filter applied to canvas draws — blurry frames produce pHash values
+// that don't match the seeded (clear-frame) hash, so recognition only fires once the
+// haze is gone. Calling __clearHaze() fades the filter over durationMs and recognition
+// will fire shortly after.
+
+function buildDemoCameraScript(targets) {
+  const targetsJson = JSON.stringify(
+    targets.map((t) => ({ videoUrl: t.videoUrl, concertId: t.concertId, seededHash: t.seededHash }))
+  );
+  return `(function () {
+  var targets = ${targetsJson};
+  var currentIndex = 0;
+  var hazeLevel = 1.0;
+
+  var canvas = document.createElement('canvas');
+  canvas.width = 960;
+  canvas.height = 640;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) { return; }
+
+  var video = document.createElement('video');
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.preload = 'auto';
+  video.setAttribute('aria-hidden', 'true');
+  video.style.cssText = 'position:fixed;top:-200%;left:-200%;width:1px;height:1px;pointer-events:none;';
+
+  function loadTarget(index) {
+    video.src = targets[index].videoUrl;
+    video.load();
+    video.play().catch(function () {});
+  }
+
+  function drawCoverFrame() {
+    if (video.readyState < 2) { return; }
+    var vw = video.videoWidth, vh = video.videoHeight;
+    var sx = 0, sy = 0, sw = vw, sh = vh;
+    var aspect = 960 / 640;
+    if (vw / vh > aspect) { sw = sh * aspect; sx = (vw - sw) / 2; }
+    else { sh = sw / aspect; sy = (vh - sh) / 2; }
+    if (hazeLevel > 0) {
+      ctx.filter = 'blur(' + (hazeLevel * 8).toFixed(1) + 'px) brightness(' + (0.55 + (1 - hazeLevel) * 0.45).toFixed(2) + ')';
+    } else {
+      ctx.filter = 'none';
+    }
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, 960, 640);
+  }
+
+  var renderTimer = null;
+  function startRender() {
+    if (renderTimer !== null) { return; }
+    (function tick() { drawCoverFrame(); renderTimer = setTimeout(tick, 33); }());
+  }
+
+  var doAppend = function () {
+    document.body.appendChild(video);
+    loadTarget(0);
+    startRender();
   };
-}
+  if (document.body) { doAppend(); }
+  else { document.addEventListener('DOMContentLoaded', doAppend); }
 
-async function ensureEmptyFrameDir() {
-  fs.rmSync(FRAME_DIR, { recursive: true, force: true });
-  fs.mkdirSync(FRAME_DIR, { recursive: true });
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-}
+  var stream = canvas.captureStream(24);
+  if (navigator.mediaDevices) {
+    navigator.mediaDevices.getUserMedia = function () { return Promise.resolve(stream); };
+  }
 
-async function captureDemoFrames(options) {
-  const { landingFrames, captureFrames, frameDelayMs, preMatchMs, viewportWidth, viewportHeight } =
-    options;
-
-  const { firstTarget, secondTarget, thirdTarget, sourceMode } = resolveDemoTargets();
-  const cameraTargets = [firstTarget, secondTarget, thirdTarget];
-
-  // Generate palindrome videos FIRST so hashes can be extracted from them.
-  // Hash extraction from the palindrome ensures pixel values are identical
-  // to what the browser recognition pipeline sees (same encoding, same
-  // rotation correction applied) rather than the raw HDR source file.
-  console.log('🎞️  Preparing palindrome videos...');
-  const halfSpeedMap = new Map(
-    cameraTargets.map((target) => [
-      target.sourceVideoPath,
-      ensureHalfSpeedVideo(target.sourceVideoPath),
-    ])
-  );
-
-  // Extract seeded hashes from the palindrome files at 30% duration — the
-  // middle of the clean forward pass after the haze-clearing overlay ends.
-  // This guarantees the seeded hash matches what recognition sees in the browser.
-  console.log('🔍 Computing video-frame hashes for seeding...');
-  const targetSeededHashes = await Promise.all(
-    cameraTargets.map((target) =>
-      computeHashFromVideoFrame(halfSpeedMap.get(target.sourceVideoPath))
-    )
-  );
-
-  // Log seeding details for debugging
-  cameraTargets.forEach((target, idx) => {
-    console.log(
-      `📸 Seeding target ${idx}: ${target.artistName} (concertId=${target.concertId}, photoId=${target.photoId})`
-    );
-    console.log(`   ├─ Palindrome: ${path.basename(halfSpeedMap.get(target.sourceVideoPath))}`);
-    console.log(`   ├─ Source duration: ${target.sourceDurationMs}ms`);
-    console.log(`   └─ Computed video hash: ${targetSeededHashes[idx]}`);
-  });
-
-  const preparedCameraTargets = cameraTargets.map((target) => {
-    const preparedPath = halfSpeedMap.get(target.sourceVideoPath);
-    if (!preparedPath) {
-      throw new Error(`Missing half-speed video for ${target.sourceVideoPath}`);
-    }
-    return {
-      ...target,
-      sourceVideoPath: preparedPath,
-    };
-  });
-
-  console.log(
-    `🎬 Demo targets (${sourceMode}): ${firstTarget.artistName} -> ${secondTarget.artistName} -> ${thirdTarget.artistName}`
-  );
-
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      '--use-fake-device-for-media-stream',
-      '--use-fake-ui-for-media-stream',
-      '--disable-dev-shm-usage',
-      '--no-sandbox',
-    ],
-  });
-
-  const context = await browser.newContext({
-    ...devices['Pixel 7'],
-    viewport: { width: viewportWidth, height: viewportHeight },
-  });
-
-  const page = await context.newPage();
-
-  page.on('console', (message) => {
-    const type = message.type();
-    const text = message.text();
-    if (type === 'error' || type === 'warning') {
-      console.log(`[browser:${type}] ${text}`);
-    } else if (text.includes('[demo]')) {
-      // Print all demo-related logs
-      console.log(`[browser:log] ${text}`);
-    }
-  });
-
-  const routeToVideoPath = new Map();
-  // Only load the two main demo targets; don't load the reverse video
-  const targetVideoInputs = preparedCameraTargets;
-  const targetVideoUrls = targetVideoInputs.map((target, index) => {
-    const routePath = `${DEMO_VIDEO_ROUTE_PREFIX}${index}-${path.basename(target.sourceVideoPath)}`;
-    routeToVideoPath.set(routePath, target.sourceVideoPath);
-    return routePath;
-  });
-
-  await page.route(`**${DEMO_VIDEO_ROUTE_PREFIX}*`, async (route) => {
-    const requestUrl = route.request().url();
-    const pathname = new URL(requestUrl).pathname;
-    const sourceVideoPath = routeToVideoPath.get(pathname);
-
-    if (!sourceVideoPath) {
-      await route.abort();
-      return;
-    }
-
-    const stats = fs.statSync(sourceVideoPath);
-    const totalSize = stats.size;
-    const rangeHeader = route.request().headers()['range'];
-    const byteRange = parseByteRange(rangeHeader, totalSize);
-
-    if (rangeHeader && !byteRange) {
-      await route.fulfill({
-        status: 416,
-        headers: {
-          'Content-Range': `bytes */${totalSize}`,
-          'Accept-Ranges': 'bytes',
-          'Cache-Control': 'no-store',
-        },
-      });
-      return;
-    }
-
-    if (byteRange) {
-      const { start, end } = byteRange;
-      const body = readFileRange(sourceVideoPath, start, end);
-      await route.fulfill({
-        status: 206,
-        body,
-        contentType: getMimeTypeForVideo(sourceVideoPath),
-        headers: {
-          'Content-Range': `bytes ${start}-${end}/${totalSize}`,
-          'Content-Length': String(body.length),
-          'Accept-Ranges': 'bytes',
-          'Cache-Control': 'no-store',
-        },
-      });
-      return;
-    }
-
-    const body = fs.readFileSync(sourceVideoPath);
-    await route.fulfill({
-      status: 200,
-      body,
-      contentType: getMimeTypeForVideo(sourceVideoPath),
-      headers: {
-        'Content-Length': String(totalSize),
-        'Accept-Ranges': 'bytes',
-        'Cache-Control': 'no-store',
-      },
-    });
-  });
-
-  await page.addInitScript(
-    ({ videoUrls, seededTargets }) => {
-      try {
-        const existingFlagsRaw = globalThis.localStorage.getItem('photo-signal-feature-flags');
-        const existingFlags = existingFlagsRaw ? JSON.parse(existingFlagsRaw) : [];
-        const byId = new Map(existingFlags.map((flag) => [flag.id, flag]));
-
-        byId.set('rectangle-detection', {
-          ...(byId.get('rectangle-detection') ?? { id: 'rectangle-detection' }),
-          enabled: true,
+  // Seed all target hashes on first fetch of recognition data
+  var originalFetch = globalThis.fetch.bind(globalThis);
+  globalThis.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
+    if (!url.includes('/data.recognition.v2.json')) { return originalFetch(input, init); }
+    return originalFetch(input, init).then(function (response) {
+      return response.clone().json().catch(function () { return null; }).then(function (payload) {
+        if (!payload || !Array.isArray(payload.entries)) { return response; }
+        targets.forEach(function (target) {
+          if (!target.seededHash) { return; }
+          var entry = payload.entries.find(function (e) { return e && e.concertId === target.concertId; });
+          if (entry) {
+            var existing = Array.isArray(entry.phash) ? entry.phash : [];
+            entry.phash = [target.seededHash].concat(existing.filter(function (h) { return h !== target.seededHash; }));
+          }
         });
-        byId.set('show-debug-overlay', {
-          ...(byId.get('show-debug-overlay') ?? { id: 'show-debug-overlay' }),
-          enabled: false,
-        });
-
-        globalThis.localStorage.setItem(
-          'photo-signal-feature-flags',
-          JSON.stringify(Array.from(byId.values()))
-        );
-      } catch {
-        // ignore localStorage bootstrap failures
-      }
-
-      const demoState = {
-        targetIndex: 0,
-        phase: 'search',
-        searchStartTime: null, // set by __photoSignalDemoStartSearch
-        clearDurationSec: 4.0, // how long haze takes to fully clear
-      };
-
-      globalThis.__photoSignalDemoSetTargetIndex = (nextIndex) => {
-        if (typeof nextIndex === 'number' && Number.isFinite(nextIndex)) {
-          const normalized = Math.max(0, Math.min(Math.floor(nextIndex), videoUrls.length - 1));
-          demoState.targetIndex = normalized;
-        }
-      };
-
-      globalThis.__photoSignalDemoSetPhase = (nextPhase) => {
-        if (nextPhase === 'search' || nextPhase === 'target') {
-          demoState.phase = nextPhase;
-        }
-      };
-
-      /**
-       * Start a new search phase with progressive haze clearing.
-       * The canvas starts heavily blurred/darkened and gradually clears over
-       * clearDurationSec seconds, so recognition fires naturally when the
-       * image becomes sharp enough for pHash to match.
-       */
-      globalThis.__photoSignalDemoStartSearch = (clearDurationSec) => {
-        demoState.phase = 'search';
-        demoState.searchStartTime = globalThis.performance.now();
-        demoState.clearDurationSec =
-          typeof clearDurationSec === 'number' && clearDurationSec > 0 ? clearDurationSec : 4.0;
-        // Auto-switch to 'target' phase after haze clears so canvas applies
-        // zero filters — blur(0px) still differs subtly from no filter, which
-        // can prevent pHash from reaching match threshold.
-        const timeoutMs = demoState.clearDurationSec * 1000;
-        globalThis.console.log(
-          `[demo] scheduling phase switch to 'target' in ${timeoutMs}ms (clearDurationSec=${demoState.clearDurationSec})`
-        );
-        globalThis.setTimeout(() => {
-          if (demoState.phase === 'search') {
-            globalThis.console.log(`[demo] phase auto-switched to 'target' after ${timeoutMs}ms`);
-            demoState.phase = 'target';
-          } else {
-            globalThis.console.log(`[demo] phase already ${demoState.phase}, skipping auto-switch`);
-          }
-        }, timeoutMs);
-      };
-
-      const waitForVideoLoaded = (video) =>
-        new Promise((resolve, reject) => {
-          const onLoaded = () => {
-            cleanup();
-            resolve();
-          };
-          const onError = () => {
-            cleanup();
-            reject(new Error('Failed to load demo video stream source'));
-          };
-          const cleanup = () => {
-            video.removeEventListener('loadeddata', onLoaded);
-            video.removeEventListener('error', onError);
-          };
-
-          if (video.readyState >= 2) {
-            resolve();
-            return;
-          }
-
-          video.addEventListener('loadeddata', onLoaded, { once: true });
-          video.addEventListener('error', onError, { once: true });
-        });
-
-      const createVideoCameraStream = async () => {
-        const canvas = globalThis.document.createElement('canvas');
-        canvas.width = 960;
-        canvas.height = 640;
-        const context = canvas.getContext('2d');
-
-        if (!context) {
-          throw new Error('Failed to create camera canvas context');
-        }
-
-        const videos = [];
-        for (let i = 0; i < videoUrls.length; i++) {
-          const videoUrl = videoUrls[i];
-          globalThis.console.log(`[demo] loading video[${i}]: ${videoUrl}`);
-          const video = globalThis.document.createElement('video');
-          video.src = videoUrl;
-          video.muted = true;
-          video.loop = true;
-          video.playsInline = true;
-          video.preload = 'auto';
-
-          // Log errors if video fails to load
-          video.addEventListener('error', () => {
-            globalThis.console.error(
-              `[demo] ❌ video[${i}] failed to load: ${videoUrl} (readyState=${video.readyState}, error=${video.error?.message})`
-            );
-          });
-
-          await waitForVideoLoaded(video);
-          globalThis.console.log(
-            `[demo] video[${i}] loaded (${video.videoWidth}x${video.videoHeight}, duration=${video.duration}s)`
-          );
-          videos.push(video);
-        }
-
-        let activeIndex = -1;
-
-        const setActiveVideo = async (nextIndex) => {
-          if (nextIndex === activeIndex) {
-            return;
-          }
-
-          globalThis.console.log(`[demo] switching active video: ${activeIndex} → ${nextIndex}`);
-
-          if (activeIndex >= 0) {
-            videos[activeIndex].pause();
-          }
-
-          activeIndex = nextIndex;
-          const activeVideo = videos[activeIndex];
-          activeVideo.currentTime = 0;
-          activeVideo.playbackRate = 1;
-          try {
-            await activeVideo.play();
-            globalThis.console.log(
-              `[demo] video[${activeIndex}] playing (currentTime=0, playbackRate=1)`
-            );
-          } catch {
-            // ignore autoplay restrictions in headless mode
-          }
-        };
-
-        await setActiveVideo(0);
-
-        const drawCoverFrame = (video) => {
-          const targetAspect = canvas.width / canvas.height;
-          const videoAspect = video.videoWidth / video.videoHeight;
-
-          let sourceWidth = video.videoWidth;
-          let sourceHeight = video.videoHeight;
-          let sourceX = 0;
-          let sourceY = 0;
-
-          if (videoAspect > targetAspect) {
-            sourceHeight = video.videoHeight;
-            sourceWidth = sourceHeight * targetAspect;
-            sourceX = (video.videoWidth - sourceWidth) / 2;
-          } else {
-            sourceWidth = video.videoWidth;
-            sourceHeight = sourceWidth / targetAspect;
-            sourceY = (video.videoHeight - sourceHeight) / 2;
-          }
-
-          context.drawImage(
-            video,
-            sourceX,
-            sourceY,
-            sourceWidth,
-            sourceHeight,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-        };
-
-        const render = () => {
-          const desiredIndex = Math.max(0, Math.min(demoState.targetIndex, videos.length - 1));
-          if (desiredIndex !== activeIndex) {
-            void setActiveVideo(desiredIndex);
-          }
-
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          const isSearchPhase = demoState.phase === 'search';
-
-          // Compute haze-clearing progress: 0 = full haze, 1 = clear
-          let clearT = 1.0;
-          if (isSearchPhase && demoState.searchStartTime !== null) {
-            const elapsedSec = (globalThis.performance.now() - demoState.searchStartTime) / 1000;
-            clearT = Math.min(elapsedSec / demoState.clearDurationSec, 1.0);
-          } else if (!isSearchPhase) {
-            clearT = 1.0;
-          } else {
-            clearT = 0.0; // search phase not yet started, full haze
-          }
-
-          const activeVideo = videos[Math.max(activeIndex, 0)];
-          if (activeVideo && activeVideo.readyState >= 2) {
-            context.save();
-            if (isSearchPhase) {
-              // Blur fades from 3px → 0 as image clears; recognition fires
-              // naturally once blur drops low enough to match the seeded hash
-              const blur = (3.0 * (1 - clearT)).toFixed(2);
-              const brightness = (0.62 + 0.38 * clearT).toFixed(2);
-              const contrast = (1.1 - 0.1 * clearT).toFixed(2);
-              const saturate = (0.88 + 0.12 * clearT).toFixed(2);
-              context.filter = `blur(${blur}px) brightness(${brightness}) contrast(${contrast}) saturate(${saturate})`;
-            }
-            drawCoverFrame(activeVideo);
-            context.restore();
-          }
-
-          if (isSearchPhase) {
-            // Dark overlay and scan line fade out as image clears
-            const overlayAlpha = 0.18 * (1 - clearT * 0.8);
-            const time = globalThis.performance.now() / 1000;
-            const gradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, `rgba(18, 20, 28, ${overlayAlpha.toFixed(3)})`);
-            gradient.addColorStop(1, `rgba(34, 36, 46, ${(overlayAlpha * 0.78).toFixed(3)})`);
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            const scanAlpha = 0.16 * (1 - clearT * 0.85);
-            if (scanAlpha > 0.005) {
-              const scanHeight = Math.round(canvas.height * 0.18);
-              const scanY = Math.round(((time * 95) % (canvas.height + scanHeight)) - scanHeight);
-              const scanGradient = context.createLinearGradient(0, scanY, 0, scanY + scanHeight);
-              scanGradient.addColorStop(0, 'rgba(95, 211, 179, 0.0)');
-              scanGradient.addColorStop(0.5, `rgba(95, 211, 179, ${scanAlpha.toFixed(3)})`);
-              scanGradient.addColorStop(1, 'rgba(95, 211, 179, 0.0)');
-              context.fillStyle = scanGradient;
-              context.fillRect(0, scanY, canvas.width, scanHeight);
-            }
-          }
-
-          globalThis.requestAnimationFrame(render);
-        };
-
-        globalThis.requestAnimationFrame(render);
-        return canvas.captureStream(24);
-      };
-
-      if (navigator.mediaDevices?.getUserMedia) {
-        const streamPromise = createVideoCameraStream();
-
-        navigator.mediaDevices.getUserMedia = async () => {
-          return await streamPromise;
-        };
-      }
-
-      const originalFetch = globalThis.fetch.bind(globalThis);
-      globalThis.fetch = async (input, init) => {
-        const requestUrl =
-          typeof input === 'string' ? input : input instanceof Request ? input.url : '';
-        const isRecognitionIndexRequest = requestUrl.includes('/data.recognition.v2.json');
-
-        if (!isRecognitionIndexRequest) {
-          return originalFetch(input, init);
-        }
-
-        const response = await originalFetch(input, init);
-        const payload = await response
-          .clone()
-          .json()
-          .catch(() => null);
-
-        if (!payload || !Array.isArray(payload.entries) || payload.entries.length === 0) {
-          return response;
-        }
-
-        for (const seededTarget of seededTargets) {
-          const entry = payload.entries.find(
-            (candidate) => candidate?.concertId === seededTarget.concertId
-          );
-          if (!entry) {
-            globalThis.console.log(
-              `[demo] ⚠️ concertId=${seededTarget.concertId} NOT FOUND in recognition data`
-            );
-            continue;
-          }
-
-          const existing = Array.isArray(entry.phash) ? entry.phash : [];
-          entry.phash = [
-            seededTarget.seededHash,
-            ...existing.filter((hash) => hash !== seededTarget.seededHash),
-          ];
-          globalThis.console.log(
-            `[demo] ✅ seeded concertId=${seededTarget.concertId} with hash=${seededTarget.seededHash}`
-          );
-        }
-
         return new Response(JSON.stringify(payload), {
           status: response.status,
           statusText: response.statusText,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
         });
-      };
-    },
-    {
-      videoUrls: targetVideoUrls,
-      seededTargets: preparedCameraTargets.map((target, index) => ({
-        concertId: target.concertId,
-        seededHash: targetSeededHashes[index],
-      })),
-    }
-  );
+      });
+    });
+  };
 
-  try {
-    await page.goto(BASE_URL, { waitUntil: 'networkidle' });
-    await page.getByRole('heading', { name: /photo signal/i }).waitFor({ timeout: 10000 });
+  // Demo mode: fast audio fade so playback starts quickly in the recording
+  try { localStorage.setItem('photo-signal-demo-no-audio-fade', 'true'); } catch (e) {}
 
-    let frameIndex = 0;
-    const maxFrames = Math.max(landingFrames + captureFrames, 1);
+  // Controls exposed for the demo script to call via page.evaluate()
+  window.__clearHaze = function (durationMs) {
+    hazeLevel = 1.0;
+    var start = Date.now();
+    var dur = durationMs || 1500;
+    (function tick() {
+      var elapsed = Date.now() - start;
+      hazeLevel = Math.max(0, 1 - elapsed / dur);
+      if (hazeLevel > 0) { setTimeout(tick, 33); }
+    }());
+  };
 
-    const saveFrame = async () => {
-      if (page.isClosed()) {
-        throw new Error(`Browser page closed unexpectedly before frame ${frameIndex}`);
-      }
+  window.__setCameraTarget = function (index) {
+    currentIndex = index;
+    hazeLevel = 1.0;
+    loadTarget(index);
+  };
+}());
+`;
+}
 
-      if (frameIndex >= maxFrames) {
-        return false;
-      }
+// ── Audio interception ────────────────────────────────────────────────────────
 
-      const framePath = path.join(FRAME_DIR, `frame-${String(frameIndex).padStart(4, '0')}.png`);
-      await page.screenshot({ path: framePath, fullPage: false });
-      frameIndex += 1;
-      return true;
-    };
+async function setupAudioInterception(page, audioEvents, captureStartRef) {
+  fs.mkdirSync(AUDIO_CACHE_DIR, { recursive: true });
+  await page.route(/\.opus($|\?)/, async (route) => {
+    const url = route.request().url();
+    const filename = url.split('/').pop().split('?')[0];
+    const cachePath = path.join(AUDIO_CACHE_DIR, filename);
 
-    const captureFor = async (durationMs) => {
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < durationMs) {
-        const saved = await saveFrame();
-        if (!saved) {
-          return false;
-        }
-        await page.waitForTimeout(frameDelayMs);
-      }
-      return true;
-    };
-
-    const captureUntil = async (condition, timeoutMs) => {
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < timeoutMs) {
-        const saved = await saveFrame();
-        if (!saved) {
-          return false;
-        }
-
-        if (await condition()) {
-          return true;
-        }
-
-        await page.waitForTimeout(frameDelayMs);
-      }
-      return false;
-    };
-
-    /**
-     * Injects a static visible tap indicator at the element's center, captures
-     * ~500ms of frames with the indicator fully visible, removes it, then clicks.
-     *
-     * No CSS transitions: Playwright headless captures snapshots between rAF ticks,
-     * so transition-based animation is invisible. The dot stays fully opaque during
-     * the capture window and is removed synchronously before the click fires.
-     *
-     * Falls back to a plain .click() if the bounding box is unavailable.
-     */
-    const clickWithIndicator = async (locator) => {
-      let box = null;
+    if (!fs.existsSync(cachePath)) {
       try {
-        box = await locator.boundingBox();
-      } catch {
-        // element not in layout — fall back silently
-      }
-
-      if (box) {
-        const cx = Math.round(box.x + box.width / 2);
-        const cy = Math.round(box.y + box.height / 2);
-
-        // Inject fully-visible static dot — no transitions
-        await page.evaluate(
-          ({ x, y }) => {
-            const stale = globalThis.document.querySelector('[data-demo-tap="true"]');
-            if (stale) stale.remove();
-
-            const dot = globalThis.document.createElement('div');
-            dot.setAttribute('data-demo-tap', 'true');
-
-            Object.assign(dot.style, {
-              position: 'fixed',
-              left: `${x}px`,
-              top: `${y}px`,
-              width: '72px',
-              height: '72px',
-              borderRadius: '50%',
-              background: 'rgba(95, 211, 179, 0.45)',
-              border: '3px solid rgba(255, 255, 255, 0.92)',
-              transform: 'translate(-50%, -50%)',
-              pointerEvents: 'none',
-              zIndex: '999999',
-            });
-
-            globalThis.document.body.appendChild(dot);
-          },
-          { x: cx, y: cy }
-        );
-
-        await captureFor(500); // ~6 frames with dot fully visible
-
-        // Remove dot synchronously before clicking so it doesn't linger
-        await page.evaluate(() => {
-          globalThis.document.querySelector('[data-demo-tap="true"]')?.remove();
-        });
-      }
-
-      await locator.click();
-    };
-
-    const hasConcertDetails = async () =>
-      page
-        .getByLabel(/concert details/i)
-        .isVisible()
-        .catch(() => false);
-
-    const hasNowPlaying = async () =>
-      page
-        .getByLabel(/now playing controls/i)
-        .isVisible()
-        .catch(() => false);
-
-    const hasArtistText = async (artistName) => {
-      const bodyText = await page
-        .locator('body')
-        .innerText()
-        .then((text) => text.replace(/\s+/g, ' '))
-        .catch(() => '');
-      return new RegExp(String(artistName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(
-        bodyText
-      );
-    };
-
-    const hasArtistMatchState = async (artistName) => {
-      const artistVisible = await hasArtistText(artistName);
-      if (!artistVisible) {
-        return false;
-      }
-
-      const hasDetails = await hasConcertDetails();
-      const hasPlaying = await hasNowPlaying();
-      return hasDetails || hasPlaying;
-    };
-
-    const ensurePlaybackActive = async () => {
-      const playButton = page.getByRole('button', { name: /^play$/i });
-      const playVisible = await playButton.isVisible().catch(() => false);
-      if (playVisible) {
-        const disabled = await playButton.isDisabled().catch(() => false);
-        if (!disabled) {
-          await clickWithIndicator(playButton);
-          await captureFor(900);
+        const res = await fetch(url);
+        if (res.ok) {
+          fs.writeFileSync(cachePath, Buffer.from(await res.arrayBuffer()));
         }
+      } catch (err) {
+        console.warn(`[audio] Download failed for ${filename}: ${err.message}`);
       }
-    };
+    }
 
-    const waitForEnabledButton = async (name, timeoutMs = 7000) => {
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < timeoutMs) {
-        const button = page.getByRole('button', { name });
-        const isVisible = await button.isVisible().catch(() => false);
-        if (isVisible) {
-          const disabled = await button.isDisabled().catch(() => false);
-          if (!disabled) {
-            return button;
-          }
-        }
-        await page.waitForTimeout(120);
+    if (fs.existsSync(cachePath)) {
+      // Track first request per file (subsequent requests are seeks/retries)
+      if (!audioEvents.some((e) => e.cachePath === cachePath)) {
+        const startMs = captureStartRef.value !== null ? Date.now() - captureStartRef.value : 0;
+        audioEvents.push({ url, cachePath, startMs });
+        console.log(`   ♪ Audio intercepted: ${filename} at +${(startMs / 1000).toFixed(1)}s`);
       }
-
-      throw new Error(`Button did not become enabled: ${name}`);
-    };
-
-    const isSwitchArtistVisible = async () =>
-      page
-        .getByRole('button', { name: /switch artist|drop the needle/i })
-        .isVisible()
-        .catch(() => false);
-
-    const setCameraTargetIndex = async (targetIndex) => {
-      await page.evaluate((nextTargetIndex) => {
-        if (typeof globalThis.__photoSignalDemoSetTargetIndex === 'function') {
-          globalThis.__photoSignalDemoSetTargetIndex(nextTargetIndex);
-        }
-      }, targetIndex);
-
-      console.log(`🎯 Camera clip target index -> ${targetIndex}`);
-    };
-
-    /**
-     * Start a progressive haze-clearing search on the current video clip.
-     * The canvas begins blurry/dark and clears over clearDurationSec seconds.
-     * Recognition fires naturally once the image is sharp enough for pHash to match.
-     */
-    const startSearch = async (clearDurationSec) => {
-      await page.evaluate((sec) => {
-        if (typeof globalThis.__photoSignalDemoStartSearch === 'function') {
-          globalThis.__photoSignalDemoStartSearch(sec);
-        }
-      }, clearDurationSec);
-      console.log(`🔍 Haze-clearing search started (${clearDurationSec}s to clear)`);
-    };
-
-    const activateButton = page.getByRole('button', {
-      name: /activate camera and begin experience/i,
-    });
-
-    for (let i = 0; i < landingFrames; i += 1) {
-      const saved = await saveFrame();
-      if (!saved) {
-        break;
-      }
-      await page.waitForTimeout(frameDelayMs);
-    }
-
-    await clickWithIndicator(activateButton);
-
-    const hasVideo = await page
-      .locator('video')
-      .first()
-      .waitFor({ state: 'visible', timeout: 10000 })
-      .then(() => true)
-      .catch(() => false);
-
-    if (!hasVideo) {
-      throw new Error('Camera video element did not become visible after activation.');
-    }
-
-    // Scene 1: start haze-clearing search — recognition fires naturally as canvas sharpens
-    const firstClearSec = preMatchMs / 1000; // preMatchMs repurposed as clear duration
-    await startSearch(firstClearSec);
-    await setCameraTargetIndex(0);
-
-    const firstMatchSeen = await captureUntil(
-      async () => await hasArtistMatchState(firstTarget.artistName),
-      Math.max(preMatchMs + 8000, firstTarget.sourceDurationMs * 2)
-    );
-
-    if (!firstMatchSeen) {
-      throw new Error(`First target did not match for artist ${firstTarget.artistName}.`);
-    }
-
-    await captureFor(STORY_PACING_MS.postFirstMatchHold);
-
-    const stopButton = await waitForEnabledButton(/^pause$|^stop$/i);
-    await clickWithIndicator(stopButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const playButton = await waitForEnabledButton(/^play$/i);
-    await clickWithIndicator(playButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const previousButton = await waitForEnabledButton(/play previous track|previous track/i);
-    await clickWithIndicator(previousButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const nextButton = await waitForEnabledButton(/play next track|next track/i);
-    await clickWithIndicator(nextButton);
-    await captureFor(STORY_PACING_MS.controlTapGap);
-
-    const closeButton = page.getByRole('button', {
-      name: /next pic, please|close concert details/i,
-    });
-    const closeButtonVisible = await closeButton.isVisible().catch(() => false);
-    if (closeButtonVisible) {
-      await clickWithIndicator(closeButton);
-      await page
-        .getByLabel(/concert details/i)
-        .waitFor({ state: 'hidden', timeout: 3000 })
-        .catch(() => null);
-    }
-
-    // Switch video first so the new clip is already playing when the dim flash
-    // fades out. This prevents a frame of the previous video appearing uncovered.
-    await setCameraTargetIndex(1);
-
-    // Brief dim-flash signals "new photo being searched" before the second scan begins.
-    await page.evaluate(() => {
-      const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
-      if (existing) existing.remove();
-
-      const dimOverlay = globalThis.document.createElement('div');
-      dimOverlay.setAttribute('data-demo-clip-reset', 'true');
-
-      Object.assign(dimOverlay.style, {
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '100vw',
-        height: '100vh',
-        background: '#000',
-        opacity: '0',
-        pointerEvents: 'none',
-        zIndex: '99998', // below ripple (999999), above app content
-        transition: 'opacity 220ms linear',
+      await route.fulfill({
+        body: fs.readFileSync(cachePath),
+        contentType: 'audio/ogg; codecs=opus',
+        headers: {
+          'Content-Length': String(fs.statSync(cachePath).size),
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'no-store',
+        },
       });
-
-      globalThis.document.body.appendChild(dimOverlay);
-
-      globalThis.requestAnimationFrame(() => {
-        dimOverlay.style.opacity = '0.72';
-      });
-
-      // Fade back out after 500ms so the search scan is visible shortly after
-      globalThis.setTimeout(() => {
-        dimOverlay.style.transition = 'opacity 280ms linear';
-        dimOverlay.style.opacity = '0';
-        globalThis.setTimeout(() => {
-          if (dimOverlay.parentNode) dimOverlay.remove();
-        }, 350);
-      }, 500);
-    });
-
-    await captureFor(800); // ~10 frames showing full dim flash, including fade-out
-
-    // Scene 5: second haze-clearing search (video already switched above)
-    const secondClearSec =
-      (STORY_PACING_MS.secondTargetWarmup + STORY_PACING_MS.secondTargetWarmupPadding) / 1000;
-    console.log(
-      `📹 Scene 5: Starting second search for "${secondTarget.artistName}" with ${secondClearSec}s haze clear`
-    );
-    await startSearch(secondClearSec);
-
-    // Capture during haze clearing so Scene 5 scan progression is visible in the GIF
-    const clearWaitMs = Math.ceil(secondClearSec * 1000) + 100;
-    console.log(`📹 Capturing frames during second haze clear for ${clearWaitMs}ms...`);
-    await captureFor(clearWaitMs);
-    // The auto-switch timer (scheduled by startSearch) fires at clearWaitMs,
-    // so the phase is already 'target' by this point — no explicit call needed.
-    await captureFor(500);
-
-    // Now run the match check
-    const secondTimeout = Math.max(secondClearSec * 1000 + 8000, secondTarget.sourceDurationMs * 2);
-    console.log(
-      `⏱️ Checking for match (clearSec=${secondClearSec}, sourceDurationMs=${secondTarget.sourceDurationMs})`
-    );
-    const secondMatchSeen = await captureUntil(
-      async () => await hasArtistMatchState(secondTarget.artistName),
-      secondTimeout
-    );
-
-    if (!secondMatchSeen) {
-      throw new Error(
-        `Second target did not match for artist ${secondTarget.artistName}. Timeout was ${secondTimeout}ms.`
-      );
-    }
-    console.log(`✅ Second match found for "${secondTarget.artistName}"`);
-
-    await captureFor(STORY_PACING_MS.postSecondMatchHold);
-
-    // Close Barna concert details before transitioning to third artist.
-    const closeBarnaButton = page.getByRole('button', {
-      name: /next pic, please|close concert details/i,
-    });
-    if (await closeBarnaButton.isVisible().catch(() => false)) {
-      await clickWithIndicator(closeBarnaButton);
-      await page
-        .getByLabel(/concert details/i)
-        .waitFor({ state: 'hidden', timeout: 3000 })
-        .catch(() => null);
-    }
-
-    // Switch video first so the new clip is already playing when the dim flash
-    // fades out. This prevents a frame of the previous video appearing uncovered.
-    await setCameraTargetIndex(2);
-
-    // Brief dim-flash signals "new photo being searched" before the third scan begins.
-    await page.evaluate(() => {
-      const existing = globalThis.document.querySelector('[data-demo-clip-reset="true"]');
-      if (existing) existing.remove();
-
-      const dimOverlay = globalThis.document.createElement('div');
-      dimOverlay.setAttribute('data-demo-clip-reset', 'true');
-
-      Object.assign(dimOverlay.style, {
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '100vw',
-        height: '100vh',
-        background: '#000',
-        opacity: '0',
-        pointerEvents: 'none',
-        zIndex: '99998', // below ripple (999999), above app content
-        transition: 'opacity 220ms linear',
-      });
-
-      globalThis.document.body.appendChild(dimOverlay);
-
-      globalThis.requestAnimationFrame(() => {
-        dimOverlay.style.opacity = '0.72';
-      });
-
-      // Fade back out after 500ms so the search scan is visible shortly after
-      globalThis.setTimeout(() => {
-        dimOverlay.style.transition = 'opacity 280ms linear';
-        dimOverlay.style.opacity = '0';
-        globalThis.setTimeout(() => {
-          if (dimOverlay.parentNode) dimOverlay.remove();
-        }, 350);
-      }, 500);
-    });
-
-    await captureFor(800); // ~10 frames showing full dim flash, including fade-out
-
-    // Scene: third haze-clearing search — video already switched above
-    const thirdClearSec =
-      (STORY_PACING_MS.thirdTargetWarmup + STORY_PACING_MS.thirdTargetWarmupPadding) / 1000;
-    console.log(
-      `📹 Scene: Starting third search for "${thirdTarget.artistName}" with ${thirdClearSec}s haze clear`
-    );
-    await startSearch(thirdClearSec);
-
-    const thirdClearWaitMs = Math.ceil(thirdClearSec * 1000) + 100;
-    console.log(`📹 Capturing frames during third haze clear for ${thirdClearWaitMs}ms...`);
-    await captureFor(thirdClearWaitMs);
-    // The auto-switch timer (scheduled by startSearch) fires at thirdClearWaitMs,
-    // so the phase is already 'target' by this point — no explicit call needed.
-    await captureFor(500);
-
-    const thirdTimeout = Math.max(thirdClearSec * 1000 + 8000, thirdTarget.sourceDurationMs * 2);
-    console.log(
-      `⏱️ Checking for third match (clearSec=${thirdClearSec}, sourceDurationMs=${thirdTarget.sourceDurationMs})`
-    );
-    const thirdMatchSeen = await captureUntil(
-      async () => await hasArtistMatchState(thirdTarget.artistName),
-      thirdTimeout
-    );
-
-    if (!thirdMatchSeen) {
-      throw new Error(
-        `Third target did not match for artist ${thirdTarget.artistName}. Timeout was ${thirdTimeout}ms.`
-      );
-    }
-    console.log(`✅ Third match found for "${thirdTarget.artistName}"`);
-
-    await captureFor(STORY_PACING_MS.postThirdMatchHold);
-
-    await ensurePlaybackActive();
-
-    const hasSwitchArtist = await captureUntil(async () => await isSwitchArtistVisible(), 6000);
-
-    if (!hasSwitchArtist) {
-      console.warn('⚠️ Switch Artist button not visible; skipping press and proceeding.');
     } else {
-      const switchArtistButton = await waitForEnabledButton(/switch artist|drop the needle/i, 4000);
-      await clickWithIndicator(switchArtistButton);
-      await captureFor(STORY_PACING_MS.postSwitchArtistHold);
+      await route.continue();
     }
-
-    await page.evaluate(() => {
-      const existing = globalThis.document.querySelector('[data-demo-fade="true"]');
-      if (existing) {
-        existing.remove();
-      }
-
-      const fade = globalThis.document.createElement('div');
-      fade.setAttribute('data-demo-fade', 'true');
-      fade.style.position = 'fixed';
-      fade.style.left = '0';
-      fade.style.top = '0';
-      fade.style.width = '100vw';
-      fade.style.height = '100vh';
-      fade.style.background = '#000';
-      fade.style.opacity = '0';
-      fade.style.pointerEvents = 'none';
-      fade.style.zIndex = '999999';
-      fade.style.transition = 'opacity 1100ms linear';
-      globalThis.document.body.appendChild(fade);
-
-      globalThis.requestAnimationFrame(() => {
-        fade.style.opacity = '1';
-      });
-    });
-    await captureFor(STORY_PACING_MS.fadeToBlack);
-  } finally {
-    await browser.close();
-  }
-}
-
-function buildGif(fps, outputWidth) {
-  const palettePath = path.resolve(FRAME_DIR, 'palette.png');
-  const framePattern = path.join(FRAME_DIR, 'frame-%04d.png');
-
-  run('ffmpeg', [
-    '-loglevel',
-    'error',
-    '-y',
-    '-framerate',
-    String(fps),
-    '-i',
-    framePattern,
-    '-vf',
-    'palettegen=stats_mode=full',
-    palettePath,
-  ]);
-
-  run('ffmpeg', [
-    '-loglevel',
-    'error',
-    '-y',
-    '-thread_queue_size',
-    '512',
-    '-framerate',
-    String(fps),
-    '-i',
-    framePattern,
-    '-i',
-    palettePath,
-    '-lavfi',
-    `fps=${fps},scale=${outputWidth}:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=sierra2_4a`,
-    OUTPUT_GIF,
-  ]);
-}
-
-function cleanup(keepFrames) {
-  if (!keepFrames) {
-    fs.rmSync(FRAME_DIR, { recursive: true, force: true });
-  }
-}
-
-async function waitForExit(processHandle, timeoutMs) {
-  if (processHandle.exitCode !== null) {
-    return true;
-  }
-
-  return await new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(false), timeoutMs);
-    processHandle.once('exit', () => {
-      clearTimeout(timer);
-      resolve(true);
-    });
   });
 }
 
-async function stopPreviewServer(preview) {
-  const killGroup = (signal) => {
-    const pid = preview.pid;
-    if (!pid) {
-      return;
-    }
+// ── Click helper ──────────────────────────────────────────────────────────────
 
+async function clickWithIndicator(page, locator) {
+  const box = await locator.boundingBox();
+  if (box) {
+    const cx = Math.round(box.x + box.width / 2);
+    const cy = Math.round(box.y + box.height / 2);
+    // String-based evaluate so ESLint doesn't flag browser globals (document, setTimeout)
+    await page.evaluate(`(function(){
+      var dot = document.createElement('div');
+      dot.style.cssText = 'position:fixed;left:${cx}px;top:${cy}px;width:68px;height:68px;border-radius:50%;border:3px solid rgba(255,255,255,0.9);background:rgba(255,255,255,0.25);transform:translate(-50%,-50%);z-index:99999;pointer-events:none;transition:opacity 0.25s ease;';
+      document.body.appendChild(dot);
+      setTimeout(function(){dot.style.opacity='0';setTimeout(function(){dot.remove();},300);},500);
+    })()`);
+  }
+  await locator.click({ force: true });
+}
+
+// ── Story functions ───────────────────────────────────────────────────────────
+// Two separate functions with zero if (testMode) branches inside.
+// runFastTestStory: landing → first search → match → fade (validates the core pipeline)
+// runFullDemoStory: complete 3-target narrative
+
+async function runFastTestStory(page, timing) {
+  const {
+    landingHoldMs,
+    hazeHoldMs,
+    hazeClearMs,
+    matchTimeoutMs,
+    firstMatchHoldMs,
+    fadeToBlackMs,
+  } = timing;
+  const beginBtn = page.getByRole('button', { name: /activate camera and begin experience/i });
+  const closeBtn = page.getByRole('button', { name: /close concert view/i });
+
+  // Scene 0: Landing
+  await page.waitForTimeout(landingHoldMs);
+
+  // Scene 1: Begin → fake camera starts with haze
+  await clickWithIndicator(page, beginBtn);
+  await page.waitForTimeout(500);
+  await page.waitForTimeout(hazeHoldMs);
+  // String-based evaluate so ESLint doesn't flag browser globals (window, document, rAF)
+  await page.evaluate(`window.__clearHaze(${hazeClearMs})`);
+
+  // Scene 2: Wait for match
+  await page.waitForSelector('html[data-state="matched"]', { timeout: matchTimeoutMs });
+  await page.waitForTimeout(firstMatchHoldMs);
+
+  // Scene 3: Close + fade to black
+  const closeVisible = await closeBtn.isVisible().catch(() => false);
+  if (closeVisible) await clickWithIndicator(page, closeBtn);
+
+  await page.evaluate(
+    `(function(){var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:#000;opacity:0;z-index:99999;pointer-events:none;transition:opacity 1s ease;';document.body.appendChild(o);requestAnimationFrame(function(){o.style.opacity='1';});})()`
+  );
+  await page.waitForTimeout(fadeToBlackMs);
+}
+
+async function runFullDemoStory(page, timing) {
+  const {
+    landingHoldMs,
+    hazeHoldMs,
+    hazeClearMs,
+    matchTimeoutMs,
+    firstMatchHoldMs,
+    controlTapGapMs,
+    matchHoldMs,
+    fadeToBlackMs,
+  } = timing;
+
+  const beginBtn = page.getByRole('button', { name: /activate camera and begin experience/i });
+  const closeBtn = page.getByRole('button', { name: /close concert view/i });
+  const nextTrackBtn = page.getByRole('button', { name: 'Next track' });
+  const prevTrackBtn = page.getByRole('button', { name: 'Previous track' });
+
+  // Scene 0: Landing hold
+  await page.waitForTimeout(landingHoldMs);
+
+  // Scene 1: Begin camera + wait in scanning state, then clear haze
+  await clickWithIndicator(page, beginBtn);
+  await page.waitForTimeout(500);
+  await page.waitForTimeout(hazeHoldMs);
+  // String-based evaluate so ESLint doesn't flag browser globals (window, document, rAF)
+  await page.evaluate(`window.__clearHaze(${hazeClearMs})`);
+
+  // Scene 2: First match (target 0) — hold on concert info
+  await page.waitForSelector('html[data-state="matched"]', { timeout: matchTimeoutMs });
+  await page.waitForTimeout(firstMatchHoldMs);
+
+  // Scene 3: Audio controls
+  const playPauseBtn = page
+    .locator('button[aria-label^="Play"], button[aria-label^="Pause"]')
+    .first();
+  await clickWithIndicator(page, playPauseBtn);
+  await page.waitForTimeout(controlTapGapMs);
+
+  const nextVisible = await nextTrackBtn.isVisible().catch(() => false);
+  if (nextVisible) {
+    await clickWithIndicator(page, nextTrackBtn);
+    await page.waitForTimeout(controlTapGapMs);
+    await clickWithIndicator(page, prevTrackBtn);
+    await page.waitForTimeout(controlTapGapMs);
+  }
+
+  // Scene 4: Close panel, switch to second target
+  await clickWithIndicator(page, closeBtn);
+  await page.waitForSelector('html:not([data-state="matched"])', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(800);
+
+  // Scene 5: Second target (Barna)
+  await page.evaluate('window.__setCameraTarget(1)');
+  await page.waitForTimeout(hazeHoldMs);
+  await page.evaluate(`window.__clearHaze(${hazeClearMs})`);
+  await page.waitForSelector('html[data-state="matched"]', { timeout: matchTimeoutMs });
+  await page.waitForTimeout(matchHoldMs);
+
+  // Scene 6: Close, switch to third target
+  await clickWithIndicator(page, closeBtn);
+  await page.waitForSelector('html:not([data-state="matched"])', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(800);
+
+  // Scene 7: Third target (Croy)
+  await page.evaluate('window.__setCameraTarget(2)');
+  await page.waitForTimeout(hazeHoldMs);
+  await page.evaluate(`window.__clearHaze(${hazeClearMs})`);
+  await page.waitForSelector('html[data-state="matched"]', { timeout: matchTimeoutMs });
+  await page.waitForTimeout(matchHoldMs);
+
+  // Scene 8: Fade to black
+  await page.evaluate(
+    `(function(){var o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:#000;opacity:0;z-index:99999;pointer-events:none;transition:opacity 1.5s ease;';document.body.appendChild(o);requestAnimationFrame(function(){o.style.opacity='1';});})()`
+  );
+  await page.waitForTimeout(fadeToBlackMs);
+}
+
+// ── Output builders ───────────────────────────────────────────────────────────
+
+function buildGif(webmPath, gifPath) {
+  const tmpPalette = path.join(os.tmpdir(), `demo-palette-${Date.now()}.png`);
+  try {
+    run('ffmpeg', [
+      '-loglevel',
+      'error',
+      '-y',
+      '-i',
+      webmPath,
+      '-vf',
+      `fps=${GIF_FPS},scale=${GIF_WIDTH}:-1:flags=lanczos,palettegen=stats_mode=diff`,
+      tmpPalette,
+    ]);
+    run('ffmpeg', [
+      '-loglevel',
+      'error',
+      '-y',
+      '-i',
+      webmPath,
+      '-i',
+      tmpPalette,
+      '-filter_complex',
+      `[0:v]fps=${GIF_FPS},scale=${GIF_WIDTH}:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=sierra2_4a`,
+      '-loop',
+      '0',
+      gifPath,
+    ]);
+  } finally {
     try {
-      process.kill(-pid, signal);
+      fs.unlinkSync(tmpPalette);
     } catch {
-      // Process group may already be gone
+      /* ignore */
     }
-  };
-
-  killGroup('SIGTERM');
-  const stoppedAfterTerm = await waitForExit(preview, 2000);
-  if (!stoppedAfterTerm) {
-    killGroup('SIGKILL');
-    await waitForExit(preview, 1500);
   }
 }
 
-async function main() {
-  const options = parseArgs(process.argv.slice(2));
+function buildMp4(webmPath, audioEvents, mp4Path) {
+  // Convert any opus files to WAV first (better ffmpeg compatibility)
+  const wavEvents = audioEvents.map((ev) => {
+    const wavPath = ev.cachePath.replace(/\.opus$/, '.wav');
+    if (!fs.existsSync(wavPath)) {
+      run('ffmpeg', ['-loglevel', 'error', '-y', '-i', ev.cachePath, wavPath]);
+    }
+    return { wavPath, startMs: ev.startMs };
+  });
 
-  if (!options.skipBuild) {
+  const ffArgs = ['-loglevel', 'error', '-y'];
+
+  // Input 0: video
+  ffArgs.push('-i', webmPath);
+
+  // Subsequent inputs: audio tracks with itsoffset
+  for (const { wavPath, startMs } of wavEvents) {
+    ffArgs.push('-itsoffset', String(startMs / 1000));
+    ffArgs.push('-i', wavPath);
+  }
+
+  // Video filter: normalize frame rate + even pixel dimensions
+  ffArgs.push('-vf', 'fps=fps=30,scale=trunc(iw/2)*2:trunc(ih/2)*2');
+  ffArgs.push(
+    '-c:v',
+    'libx264',
+    '-crf',
+    String(MP4_CRF),
+    '-preset',
+    'medium',
+    '-pix_fmt',
+    'yuv420p'
+  );
+
+  if (wavEvents.length === 0) {
+    ffArgs.push('-an');
+  } else if (wavEvents.length === 1) {
+    ffArgs.push('-map', '0:v', '-map', '1:a');
+    ffArgs.push('-c:a', 'aac', '-b:a', '128k');
+  } else {
+    const audioLabels = wavEvents.map((_, i) => `[${i + 1}:a]`).join('');
+    ffArgs.push(
+      '-filter_complex',
+      `${audioLabels}amix=inputs=${wavEvents.length}:duration=longest:normalize=0[aout]`
+    );
+    ffArgs.push('-map', '0:v', '-map', '[aout]');
+    ffArgs.push('-c:a', 'aac', '-b:a', '128k');
+  }
+
+  ffArgs.push(mp4Path);
+  run('ffmpeg', ffArgs);
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+async function main() {
+  console.log(`\n🎬 Photo Signal demo generator — ${TEST_MODE ? 'TEST MODE' : 'FULL DEMO'}\n`);
+
+  // Build production bundle (skip in test/quick modes)
+  if (!SKIP_BUILD) {
+    console.log('📦 Building production bundle...');
     run('npm', ['run', 'build']);
   }
 
-  await ensureEmptyFrameDir();
+  // Ensure output dirs
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  fs.mkdirSync(VIDEO_RECORDING_DIR, { recursive: true });
+  // Clean old recording files so page.video().path() gives us the fresh one
+  fs.readdirSync(VIDEO_RECORDING_DIR)
+    .filter((f) => f.endsWith('.webm'))
+    .forEach((f) => fs.unlinkSync(path.join(VIDEO_RECORDING_DIR, f)));
 
-  const preview = startPreviewServer();
-  const previewStderrBuffer = [];
-  preview.stdout.on('data', (chunk) => process.stdout.write(chunk.toString()));
-  preview.stderr.on('data', (chunk) => {
-    const text = chunk.toString();
-    previewStderrBuffer.push(text);
-    process.stderr.write(text);
-  });
+  // Resolve demo targets (validates manifest + app data)
+  console.log('📋 Resolving demo targets...');
+  const targets = resolveDemoTargets();
+  console.log(
+    targets.map((t, i) => `   ${i + 1}. ${t.artistName} (concertId=${t.concertId})`).join('\n')
+  );
 
-  let captureError = null;
-  try {
-    await waitForServer(BASE_URL, preview, previewStderrBuffer);
-    await captureDemoFrames(options);
-  } catch (error) {
-    captureError = error;
-    console.log('\n⚠️  Frame capture failed, but building partial GIF from captured frames...');
+  // Generate palindrome videos
+  console.log('\n🎞️  Preparing palindrome videos...');
+  for (const target of targets) {
+    process.stdout.write(`   ${path.basename(target.sourceVideoPath)}...`);
+    target.halfSpeedPath = ensureHalfSpeedVideo(target.sourceVideoPath);
+    console.log(' ✓');
   }
 
+  // Compute seeded hashes from palindrome files
+  console.log('\n🔍 Computing video-frame hashes...');
+  for (const target of targets) {
+    process.stdout.write(`   ${path.basename(target.halfSpeedPath)}...`);
+    target.seededHash = await computeHashFromVideoFrame(target.halfSpeedPath);
+    target.videoUrl = `/test-assets/camera/${path.basename(target.halfSpeedPath)}`;
+    console.log(` ✓ ${target.seededHash.slice(0, 12)}...`);
+  }
+
+  // Start preview server
+  console.log('\n🚀 Starting preview server...');
+  const stderrBuffer = [];
+  const preview = startPreviewServer();
+  preview.stderr.on('data', (d) => stderrBuffer.push(d.toString()));
+  preview.stdout.on('data', () => {}); // drain
+  await waitForServer(BASE_URL, preview, stderrBuffer);
+  console.log(`   ✓ Preview server ready at ${BASE_URL}`);
+
+  let browser = null;
+  const audioEvents = [];
+  const captureStartRef = { value: null };
+  let webmPath = null;
+
   try {
-    try {
-      buildGif(options.fps, options.outputWidth);
-    } catch (buildError) {
-      if (captureError) {
-        throw new AggregateError(
-          [captureError, buildError],
-          'Frame capture failed and partial GIF build also failed.'
-        );
-      }
-      throw buildError;
+    browser = await chromium.launch({
+      headless: true,
+      args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
+    });
+
+    const context = await browser.newContext({
+      ...devices['Pixel 7'],
+      deviceScaleFactor: 1,
+      recordVideo: {
+        dir: VIDEO_RECORDING_DIR,
+        size: { width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT },
+      },
+    });
+
+    const page = await context.newPage();
+
+    // Grant camera permissions
+    await context.grantPermissions(['camera']);
+
+    // Set up audio interception (before page load)
+    await setupAudioInterception(page, audioEvents, captureStartRef);
+
+    // Build and inject camera script (before page load)
+    const cameraScript = buildDemoCameraScript(targets);
+    await page.addInitScript(cameraScript);
+
+    console.log('\n🎥 Recording demo story...');
+    await page.goto(BASE_URL);
+    captureStartRef.value = Date.now();
+
+    if (TEST_MODE) {
+      await runFastTestStory(page, TIMING);
+    } else {
+      await runFullDemoStory(page, TIMING);
     }
 
-    if (captureError) {
-      console.log(`\n⚠️  Partial Demo GIF generated: ${OUTPUT_GIF}`);
-      throw captureError;
-    }
+    console.log('   ✓ Story complete, flushing recording...');
+    webmPath = await page.video().path();
+    await context.close(); // flushes WebM
+    // The path may change after close; re-read
+    webmPath = await page.video().path();
 
-    console.log(`\n✅ Demo GIF generated: ${OUTPUT_GIF}`);
+    console.log(
+      `   ✓ WebM saved: ${path.basename(webmPath)} (${(fs.statSync(webmPath).size / 1024 / 1024).toFixed(1)} MB)`
+    );
+
+    // Assemble GIF
+    console.log('\n🖼️  Building GIF...');
+    buildGif(webmPath, TARGET_GIF);
+    const gifSize = (fs.statSync(TARGET_GIF).size / 1024 / 1024).toFixed(1);
+    console.log(`   ✓ GIF: ${TARGET_GIF} (${gifSize} MB)`);
+
+    // Assemble MP4
+    console.log('\n🎬 Building MP4...');
+    if (audioEvents.length === 0) {
+      console.log('   ⚠ No audio events captured — producing video-only MP4');
+    } else {
+      console.log(`   ♪ Muxing ${audioEvents.length} audio track(s)...`);
+    }
+    buildMp4(webmPath, audioEvents, TARGET_MP4);
+    const mp4Size = (fs.statSync(TARGET_MP4).size / 1024 / 1024).toFixed(1);
+    console.log(`   ✓ MP4: ${TARGET_MP4} (${mp4Size} MB)`);
+
+    console.log('\n✅ Done!\n');
   } finally {
-    await stopPreviewServer(preview);
-    cleanup(options.keepFrames);
+    if (browser) await browser.close().catch(() => {});
+    preview.kill('SIGTERM');
+    try {
+      process.kill(-preview.pid, 'SIGTERM');
+    } catch {
+      /* ignore */
+    }
   }
 }
 
-main().catch((error) => {
-  if (error instanceof Error) {
-    console.error(`\n❌ Demo GIF generation failed: ${error.message}`);
-    if (error.stack) {
-      console.error(error.stack);
-    }
-  } else {
-    console.error(`\n❌ Demo GIF generation failed: ${String(error)}`);
-  }
+main().catch((err) => {
+  console.error('\n❌ Demo generation failed:', err.message ?? err);
   process.exit(1);
 });

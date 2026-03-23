@@ -27,10 +27,12 @@ describe('isDemoNoAudioFadeEnabled', () => {
   });
 
   it('returns false when localStorage throws', () => {
-    const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('storage unavailable');
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('storage unavailable');
+      },
     });
     expect(isDemoNoAudioFadeEnabled()).toBe(false);
-    spy.mockRestore();
+    vi.unstubAllGlobals();
   });
 });

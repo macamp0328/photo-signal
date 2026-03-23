@@ -774,8 +774,6 @@ async function main() {
   const preview = startPreviewServer();
   preview.stderr.on('data', (d) => stderrBuffer.push(d.toString()));
   preview.stdout.on('data', () => {}); // drain
-  await waitForServer(BASE_URL, preview, stderrBuffer);
-  console.log(`   ✓ Preview server ready at ${BASE_URL}`);
 
   let browser = null;
   const audioEvents = [];
@@ -783,6 +781,9 @@ async function main() {
   let webmPath = null;
 
   try {
+    // waitForServer is inside try so the preview process is always killed on failure
+    await waitForServer(BASE_URL, preview, stderrBuffer);
+    console.log(`   ✓ Preview server ready at ${BASE_URL}`);
     browser = await chromium.launch({
       headless: true,
       args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'],
@@ -810,8 +811,10 @@ async function main() {
     await page.addInitScript(cameraScript);
 
     console.log('\n🎥 Recording demo story...');
-    await page.goto(BASE_URL);
+    // Set capture start before navigation so audio startMs offsets share
+    // the same time origin as the recorded WebM (avoids A/V sync drift).
     captureStartRef.value = Date.now();
+    await page.goto(BASE_URL);
 
     if (TEST_MODE) {
       await runFastTestStory(page, TIMING);

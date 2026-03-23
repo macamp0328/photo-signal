@@ -324,18 +324,27 @@ assigns the next port above the highest already in use across all existing workt
 the root `.claude/launch.json`. The root repo's own configs use 5173/5180 (dev) and 4173
 (preview) — below the 5200 threshold, so they never collide.
 
-| Config name    | Port range | Notes                    |
-| -------------- | ---------- | ------------------------ |
-| `dev-worktree` | 5200–5299  | Dev server (npm run dev) |
-| `photo-signal` | 4200–4299  | Production preview build |
-| Root `dev`     | 5173, 5180 | Root repo only           |
+| Config name    | Port range | Notes                                          |
+| -------------- | ---------- | ---------------------------------------------- |
+| `dev-worktree` | 5200–5299  | Dev server (npm run dev)                       |
+| `fake-camera`  | 5200–5299  | Dev server alias — use for fake camera testing |
+| `photo-signal` | 4200–4299  | Production preview build                       |
+| Root `dev`     | 5173, 5180 | Root repo only                                 |
 
 ### Using the preview tools in a worktree
 
-All three configs in a worktree's `launch.json` use that worktree's unique port pair, so none
-of them collide with other sessions. Use **`dev-worktree`** for the Vite dev server (it runs
-`npm run dev` via the package.json script) and **`photo-signal`** when you need a production
-preview build.
+All four configs in a worktree's `launch.json` use that worktree's unique port pair, so none
+of them collide with other sessions. Use **`dev-worktree`** or **`fake-camera`** for the Vite
+dev server (runs `npm run dev`) and **`photo-signal`** when you need a production preview build.
+
+**IMPORTANT — fake camera only works on the dev server.** The `__dev_fakeCamera` localStorage
+injection and `getUserMedia` override live behind `import.meta.env.DEV` guards and are
+completely stripped from the production build. If you start `photo-signal` (production preview,
+port 4200+) and try to use the fake camera, nothing will happen — the DEV code paths don't
+exist in that build. Always use **`fake-camera`** (or `dev-worktree`) for any fake camera
+testing. A yellow **`DEV · fake camera · N clips`** badge appears in the top-left corner of the
+app when both conditions are true: the dev server is running and `__dev_fakeCamera` is set in
+localStorage.
 
 ---
 

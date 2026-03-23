@@ -34,12 +34,12 @@ The top-level mode the application is in. Only one can be active at a time.
 
 Camera permission and stream state within `ACTIVE`.
 
-| State        | Description                                                           |
-| ------------ | --------------------------------------------------------------------- |
+| State        | Description                                                            |
+| ------------ | ---------------------------------------------------------------------- |
 | `REQUESTING` | Browser permission prompt is in flight. UI shows "Summoning camera..." |
-| `GRANTED`    | Stream acquired; video tracks running. Recognition may begin.         |
-| `DENIED`     | User or OS blocked camera. UI shows error + "Let me in" retry button. |
-| `STOPPED`    | Tracks halted (follows `SHUTDOWN`). No stream exists.                 |
+| `GRANTED`    | Stream acquired; video tracks running. Recognition may begin.          |
+| `DENIED`     | User or OS blocked camera. UI shows error + "Let me in" retry button.  |
+| `STOPPED`    | Tracks halted (follows `SHUTDOWN`). No stream exists.                  |
 
 ---
 
@@ -73,12 +73,12 @@ persistent states — they apply to individual frames only and are internal to t
 
 When a frame passes quality gates, its best match is assessed by Hamming distance.
 
-| Level         | Distance / Margin                          | Behaviour                                                                      |
-| ------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
-| No match      | > similarityThreshold (app: 18 bits)       | Logged as near-miss if close. Scanning continues.                              |
-| Candidate     | ≤ similarityThreshold                      | Starts / resets `CANDIDATE` tracking timer.                                    |
-| Instant match | ≤ 10 bits                                  | Recognition delay skipped; confirms in a single frame (if margin also passes). |
-| Margin fail   | Gap < matchMarginThreshold (app: 5 bits)   | Ambiguous result; rejected even if distance passes.                            |
+| Level         | Distance / Margin                        | Behaviour                                                                      |
+| ------------- | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| No match      | > similarityThreshold (app: 18 bits)     | Logged as near-miss if close. Scanning continues.                              |
+| Candidate     | ≤ similarityThreshold                    | Starts / resets `CANDIDATE` tracking timer.                                    |
+| Instant match | ≤ 10 bits                                | Recognition delay skipped; confirms in a single frame (if margin also passes). |
+| Margin fail   | Gap < matchMarginThreshold (app: 5 bits) | Ambiguous result; rejected even if distance passes.                            |
 
 ---
 
@@ -96,10 +96,10 @@ When a frame passes quality gates, its best match is assessed by Hamming distanc
 
 ### Audio Error Sub-types
 
-| Sub-type                  | Message Shown                                                                                        |
-| ------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Autoplay / play() blocked | "Playback blocked by browser autoplay rules. Touch screen and tap Play again."                       |
-| Play() failure (other)    | "Audio failed to start. Tap Play to retry."                                                          |
+| Sub-type                  | Message Shown                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------- |
+| Autoplay / play() blocked | "Playback blocked by browser autoplay rules. Touch screen and tap Play again."                      |
+| Play() failure (other)    | "Audio failed to start. Tap Play to retry."                                                         |
 | Load / decode failed      | "Audio failed to load. Check your connection and try again." (may append diagnostics on retry path) |
 
 ---
@@ -184,12 +184,12 @@ Fields rendered in `ConcertInfoOverlay` and `SignalStrip` when a match is confir
 
 Controlled via `SecretSettings` menu. Persisted in localStorage as `photo-signal-feature-flags`.
 
-| ID                      | Label                        | Category     | Default | Effect                                                                                                   |
-| ----------------------- | ---------------------------- | ------------ | ------- | -------------------------------------------------------------------------------------------------------- |
+| ID                      | Label                        | Category     | Default | Effect                                                                                                                                  |
+| ----------------------- | ---------------------------- | ------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `exif-visual-character` | EXIF Visual Character        | ui           | `true`  | ISO drives grain intensity; shutter speed drives reveal animation speed (aperture is displayed in UI but does not drive a CSS variable) |
-| `rectangle-detection`   | Dynamic Rectangle Detection  | experimental | `true`  | Detects photo boundary in frame; crops to detected edges; shows framing overlay                          |
-| `show-debug-overlay`    | Debug Overlay                | development  | `false` | Shows `DebugOverlay` panel with live recognition telemetry                                               |
-| `audio-reactive-glow`   | Audio-Reactive Phosphor Glow | audio        | `true`  | Band name text shadow pulses with bass frequency via Web Audio `AnalyserNode` when `MATCHED` + `PLAYING` |
+| `rectangle-detection`   | Dynamic Rectangle Detection  | experimental | `true`  | Detects photo boundary in frame; crops to detected edges; shows framing overlay                                                         |
+| `show-debug-overlay`    | Debug Overlay                | development  | `false` | Shows `DebugOverlay` panel with live recognition telemetry                                                                              |
+| `audio-reactive-glow`   | Audio-Reactive Phosphor Glow | audio        | `true`  | Band name text shadow pulses with bass frequency via Web Audio `AnalyserNode` when `MATCHED` + `PLAYING`                                |
 
 ---
 

@@ -43,14 +43,14 @@ const VIDEO_RECORDING_DIR = path.resolve(ROOT, 'scripts/visual/output/recording'
 
 // ── Full story timing ─────────────────────────────────────────────────────────
 const TIMING_FULL = {
-  landingHoldMs: 2000,
-  hazeHoldMs: 3000, // scanning state before clearing haze
+  landingHoldMs: 1500,
+  hazeHoldMs: 2000, // scanning state before clearing haze
   hazeClearMs: 1500, // duration of haze fade
   matchTimeoutMs: 15000,
-  firstMatchHoldMs: 6000,
-  controlTapGapMs: 2500,
-  matchHoldMs: 5000, // for 2nd and 3rd targets
-  fadeToBlackMs: 1500,
+  firstMatchHoldMs: 3000,
+  controlTapGapMs: 1500,
+  matchHoldMs: 2500, // for 2nd and 3rd targets
+  fadeToBlackMs: 1000,
 };
 
 // ── Test story timing (fast smoke) ────────────────────────────────────────────
@@ -241,13 +241,21 @@ function resolveDemoTargets() {
   if (!fs.existsSync(VIDEO_SAMPLE_MANIFEST_PATH)) {
     throw new Error(`Video sample manifest missing: ${VIDEO_SAMPLE_MANIFEST_PATH}`);
   }
-  const manifest = JSON.parse(fs.readFileSync(VIDEO_SAMPLE_MANIFEST_PATH, 'utf8'));
-  const appData = JSON.parse(
-    fs.readFileSync(path.resolve(ROOT, 'public/data.app.v2.json'), 'utf8')
-  );
-  const recognitionData = JSON.parse(
-    fs.readFileSync(path.resolve(ROOT, 'public/data.recognition.v2.json'), 'utf8')
-  );
+  let manifest, appData, recognitionData;
+  for (const [label, filePath] of [
+    ['manifest', VIDEO_SAMPLE_MANIFEST_PATH],
+    ['app data', path.resolve(ROOT, 'public/data.app.v2.json')],
+    ['recognition data', path.resolve(ROOT, 'public/data.recognition.v2.json')],
+  ]) {
+    try {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      if (label === 'manifest') manifest = JSON.parse(raw);
+      else if (label === 'app data') appData = JSON.parse(raw);
+      else recognitionData = JSON.parse(raw);
+    } catch (err) {
+      throw new Error(`Failed to parse ${label} (${filePath}): ${String(err)}`);
+    }
+  }
 
   const tracksById = new Map((appData.tracks ?? []).map((t) => [t.id, t]));
   const photosById = new Map((appData.photos ?? []).map((p) => [p.id, p]));
@@ -351,7 +359,6 @@ function buildDemoCameraScript(targets) {
   );
   return `(function () {
   var targets = ${targetsJson};
-  var currentIndex = 0;
   var hazeLevel = 1.0;
 
   var canvas = document.createElement('canvas');
@@ -473,7 +480,7 @@ async function setupAudioInterception(page, audioEvents, captureStartRef) {
           fs.writeFileSync(cachePath, Buffer.from(await res.arrayBuffer()));
         }
       } catch (err) {
-        console.warn(`[audio] Download failed for ${filename}: ${err.message}`);
+        console.warn(`[audio] Download failed for ${filename}: ${String(err)}`);
       }
     }
 
@@ -673,12 +680,11 @@ function buildGif(webmPath, gifPath) {
 }
 
 function buildMp4(webmPath, audioEvents, mp4Path) {
-  // Convert any opus files to WAV first (better ffmpeg compatibility)
-  const wavEvents = audioEvents.map((ev) => {
-    const wavPath = ev.cachePath.replace(/\.opus$/, '.wav');
-    if (!fs.existsSync(wavPath)) {
-      run('ffmpeg', ['-loglevel', 'error', '-y', '-i', ev.cachePath, wavPath]);
-    }
+  // Convert opus → WAV in a temp dir; delete after muxing to avoid accumulation
+  const tmpWavDir = fs.mkdtempSync(path.join(os.tmpdir(), 'demo-wav-'));
+  const wavEvents = audioEvents.map((ev, i) => {
+    const wavPath = path.join(tmpWavDir, `track-${i}.wav`);
+    run('ffmpeg', ['-loglevel', 'error', '-y', '-i', ev.cachePath, wavPath]);
     return { wavPath, startMs: ev.startMs };
   });
 
@@ -722,7 +728,11 @@ function buildMp4(webmPath, audioEvents, mp4Path) {
   }
 
   ffArgs.push(mp4Path);
-  run('ffmpeg', ffArgs);
+  try {
+    run('ffmpeg', ffArgs);
+  } finally {
+    fs.rmSync(tmpWavDir, { recursive: true, force: true });
+  }
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────

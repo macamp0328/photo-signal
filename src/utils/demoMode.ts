@@ -3,7 +3,7 @@
  *
  * The demo script (scripts/visual/generate-demo-gif.js) sets this localStorage key
  * before page load so the app can adjust behaviour for recording:
- *  - Audio fade-in is shortened so playback starts quickly in the recorded video
+ *  - Audio fade duration is shortened so playback starts quickly in the recorded video
  */
 export function isDemoNoAudioFadeEnabled(): boolean {
   try {

@@ -31,8 +31,12 @@ describe('isDemoNoAudioFadeEnabled', () => {
       getItem: () => {
         throw new Error('storage unavailable');
       },
+      clear: () => {},
     });
-    expect(isDemoNoAudioFadeEnabled()).toBe(false);
-    vi.unstubAllGlobals();
+    try {
+      expect(isDemoNoAudioFadeEnabled()).toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

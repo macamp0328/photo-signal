@@ -36,7 +36,7 @@ Camera permission and stream state within `ACTIVE`.
 
 | State        | Description                                                           |
 | ------------ | --------------------------------------------------------------------- |
-| `REQUESTING` | Browser permission prompt is in flight. UI shows "Summoning camera…"  |
+| `REQUESTING` | Browser permission prompt is in flight. UI shows "Summoning camera..." |
 | `GRANTED`    | Stream acquired; video tracks running. Recognition may begin.         |
 | `DENIED`     | User or OS blocked camera. UI shows error + "Let me in" retry button. |
 | `STOPPED`    | Tracks halted (follows `SHUTDOWN`). No stream exists.                 |
@@ -51,7 +51,7 @@ The photo-recognition pipeline state. Operates only while the app is `ACTIVE` an
 | ----------- | -------------- | ----------------------------------------------------------------------------------------- |
 | `IDLE`      | 120 ms         | No candidate in view. Scanning continuously.                                              |
 | `CHECKING`  | —              | Frame captured; pHash computed; quality gates evaluated; best match sought.               |
-| `CANDIDATE` | 80 ms          | A potential match found. Monitoring to confirm it holds for `recognitionDelay` (150 ms).  |
+| `CANDIDATE` | 80 ms          | A potential match found. Monitoring to confirm it holds for `recognitionDelay` (180 ms).  |
 | `MATCHED`   | —              | Concert confirmed. Recognition paused. Concert info and audio begin.                      |
 | `COOLDOWN`  | —              | Dismiss just happened. Same concert locked out for 2 000 ms. Other photos still eligible. |
 | `PAUSED`    | —              | Recognition explicitly suspended. Happens while `SecretSettings` is open.                 |
@@ -59,7 +59,7 @@ The photo-recognition pipeline state. Operates only while the app is `ACTIVE` an
 ### Frame Quality Sub-statuses
 
 These are per-frame evaluations that determine whether a frame is usable for matching. They are not
-persistent states — they apply to individual frames and are surfaced in the `DebugOverlay`.
+persistent states — they apply to individual frames only and are internal to the recognition pipeline.
 
 | Sub-status     | Condition                                                    |
 | -------------- | ------------------------------------------------------------ |
@@ -73,12 +73,12 @@ persistent states — they apply to individual frames and are surfaced in the `D
 
 When a frame passes quality gates, its best match is assessed by Hamming distance.
 
-| Level         | Distance  | Behaviour                                                                      |
-| ------------- | --------- | ------------------------------------------------------------------------------ |
-| No match      | > 14 bits | Logged as near-miss if close. Scanning continues.                              |
-| Candidate     | ≤ 14 bits | Starts / resets `CANDIDATE` tracking timer.                                    |
-| Instant match | ≤ 10 bits | Recognition delay skipped; confirms in a single frame (if margin also passes). |
-| Margin fail   | Any       | Best–second-best gap < 4 bits → ambiguous; rejected even if distance passes.   |
+| Level         | Distance / Margin                          | Behaviour                                                                      |
+| ------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| No match      | > similarityThreshold (app: 18 bits)       | Logged as near-miss if close. Scanning continues.                              |
+| Candidate     | ≤ similarityThreshold                      | Starts / resets `CANDIDATE` tracking timer.                                    |
+| Instant match | ≤ 10 bits                                  | Recognition delay skipped; confirms in a single frame (if margin also passes). |
+| Margin fail   | Gap < matchMarginThreshold (app: 5 bits)   | Ambiguous result; rejected even if distance passes.                            |
 
 ---
 
@@ -96,10 +96,11 @@ When a frame passes quality gates, its best match is assessed by Hamming distanc
 
 ### Audio Error Sub-types
 
-| Sub-type             | Message Shown                                                                  |
-| -------------------- | ------------------------------------------------------------------------------ |
-| Autoplay blocked     | "Playback blocked by browser autoplay rules. Touch screen and tap Play again." |
-| Load / decode failed | "Audio failed to start. Tap Play to retry."                                    |
+| Sub-type                  | Message Shown                                                                                        |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Autoplay / play() blocked | "Playback blocked by browser autoplay rules. Touch screen and tap Play again."                       |
+| Play() failure (other)    | "Audio failed to start. Tap Play to retry."                                                          |
+| Load / decode failed      | "Audio failed to load. Check your connection and try again." (may append diagnostics on retry path) |
 
 ---
 
@@ -150,7 +151,7 @@ All named events that drive state transitions. Use these names in tickets and de
 | `FRAME_CAPTURED`     | Recognition interval fires                       | Begins `CHECKING` cycle                                                        |
 | `QUALITY_REJECTED`   | Frame fails quality gate                         | Frame discarded; sub-status logged; recognition stays in `IDLE` or `CANDIDATE` |
 | `CANDIDATE_DETECTED` | Frame passes threshold; first match              | Recognition → `CANDIDATE`; 80 ms interval begins                               |
-| `MATCH_CONFIRMED`    | Candidate held for `recognitionDelay` (150 ms)   | Recognition → `MATCHED`; concert info and audio triggered                      |
+| `MATCH_CONFIRMED`    | Candidate held for `recognitionDelay` (180 ms)   | Recognition → `MATCHED`; concert info and audio triggered                      |
 | `INSTANT_MATCH`      | Distance ≤ 10 bits                               | Skips delay; immediately → `MATCHED`                                           |
 | `MATCH_LOST`         | Best match changes while in `CANDIDATE`          | Tracking timer reset; new candidate begins                                     |
 | `COOLDOWN_EXPIRED`   | 2 000 ms after `CLOSE_CONCERT_INFO`              | That concert becomes eligible again                                            |
@@ -185,7 +186,7 @@ Controlled via `SecretSettings` menu. Persisted in localStorage as `photo-signal
 
 | ID                      | Label                        | Category     | Default | Effect                                                                                                   |
 | ----------------------- | ---------------------------- | ------------ | ------- | -------------------------------------------------------------------------------------------------------- |
-| `exif-visual-character` | EXIF Visual Character        | ui           | `true`  | ISO drives grain intensity; aperture drives backdrop blur; shutter speed drives reveal animation speed   |
+| `exif-visual-character` | EXIF Visual Character        | ui           | `true`  | ISO drives grain intensity; shutter speed drives reveal animation speed (aperture is displayed in UI but does not drive a CSS variable) |
 | `rectangle-detection`   | Dynamic Rectangle Detection  | experimental | `true`  | Detects photo boundary in frame; crops to detected edges; shows framing overlay                          |
 | `show-debug-overlay`    | Debug Overlay                | development  | `false` | Shows `DebugOverlay` panel with live recognition telemetry                                               |
 | `audio-reactive-glow`   | Audio-Reactive Phosphor Glow | audio        | `true`  | Band name text shadow pulses with bass frequency via Web Audio `AnalyserNode` when `MATCHED` + `PLAYING` |
@@ -194,17 +195,19 @@ Controlled via `SecretSettings` menu. Persisted in localStorage as `photo-signal
 
 ## 9. Recognition Tuning Parameters
 
-Reference values for discussing recognition sensitivity and performance.
+Reference values for discussing recognition sensitivity and performance. "Module default" is the
+value baked into the recognition hook; "App configured" is what `App.tsx` currently passes —
+the app-configured value is what actually runs in production.
 
-| Parameter               | Default                 | What It Controls                                                            |
-| ----------------------- | ----------------------- | --------------------------------------------------------------------------- |
-| Similarity threshold    | 14 Hamming bits         | Maximum distance to count as a match (≤ 14 ≈ ≥ 78% similar)                 |
-| Recognition delay       | 150 ms                  | How long a candidate must remain the best match before confirming           |
-| Instant match threshold | 10 bits                 | Distance at or below which the delay is skipped (≈ 84% similar)             |
-| Match margin            | 4 bits                  | Minimum gap between best and second-best match; prevents ambiguous confirms |
-| Idle check interval     | 120 ms                  | Frame capture rate when no candidate is being tracked                       |
-| Tracking check interval | 80 ms                   | Frame capture rate while a candidate is being tracked                       |
-| Sharpness threshold     | 85 (Laplacian variance) | Minimum frame sharpness; below this → `BLURRED`                             |
-| Glare threshold         | 20% of frame            | Maximum proportion of glare pixels before → `GLARE` rejection               |
-| Exposure range          | 50–220 (0–255 scale)    | Valid brightness window; outside → `UNDEREXPOSED` or `OVEREXPOSED`          |
-| Cooldown duration       | 2 000 ms                | Lock-out period for a dismissed concert                                     |
+| Parameter               | Module default          | App configured | What It Controls                                                            |
+| ----------------------- | ----------------------- | -------------- | --------------------------------------------------------------------------- |
+| Similarity threshold    | 14 Hamming bits         | 18 bits        | Maximum distance to count as a match                                        |
+| Recognition delay       | 150 ms                  | 180 ms         | How long a candidate must remain the best match before confirming           |
+| Instant match threshold | 10 bits                 | —              | Distance at or below which the delay is skipped (≈ 84% similar)             |
+| Match margin            | 4 bits                  | 5 bits         | Minimum gap between best and second-best match; prevents ambiguous confirms |
+| Idle check interval     | 120 ms                  | —              | Frame capture rate when no candidate is being tracked                       |
+| Tracking check interval | 80 ms                   | —              | Frame capture rate while a candidate is being tracked                       |
+| Sharpness threshold     | 85 (Laplacian variance) | —              | Minimum frame sharpness; below this → `BLURRED`                             |
+| Glare threshold         | 20% of frame            | —              | Maximum proportion of glare pixels before → `GLARE` rejection               |
+| Exposure range          | 50–220 (0–255 scale)    | —              | Valid brightness window; outside → `UNDEREXPOSED` or `OVEREXPOSED`          |
+| Cooldown duration       | 2 000 ms                | —              | Lock-out period for a dismissed concert                                     |

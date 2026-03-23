@@ -72,8 +72,8 @@ const OUTPUT_MP4 = path.resolve(OUTPUT_DIR, 'demo.mp4');
 // ── Viewport / output parameters ─────────────────────────────────────────────
 const VIEWPORT_WIDTH = 412;
 const VIEWPORT_HEIGHT = 915;
-const GIF_FPS = 12;
-const GIF_WIDTH = 480;
+const GIF_FPS = 8;
+const GIF_WIDTH = 320;
 const MP4_CRF = 18;
 
 // ── CLI flags ─────────────────────────────────────────────────────────────────

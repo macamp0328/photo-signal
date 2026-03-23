@@ -289,8 +289,18 @@ function resolveDemoTargets() {
       const entry = usableByConcertId.get(String(capture.concertId));
       if (!entry) return null;
       if (String(capture.photoId) !== String(entry.photoId)) return null;
-      const sourceVideoPath = path.resolve(VIDEO_SAMPLE_DIR, String(sample.filename ?? ''));
-      if (!fs.existsSync(sourceVideoPath)) return null;
+      const rawFilename = String(sample.filename ?? '');
+      // Guard against empty filenames, absolute paths, and path traversal sequences
+      if (
+        !rawFilename ||
+        rawFilename.includes('..') ||
+        rawFilename.includes('/') ||
+        rawFilename.includes('\\') ||
+        path.isAbsolute(rawFilename)
+      )
+        return null;
+      const sourceVideoPath = path.resolve(VIDEO_SAMPLE_DIR, rawFilename);
+      if (!fs.existsSync(sourceVideoPath) || !fs.statSync(sourceVideoPath).isFile()) return null;
       return {
         ...entry,
         sampleId: String(sample.sampleId ?? `sample-${String(i + 1).padStart(2, '0')}`),
@@ -479,7 +489,6 @@ async function setupAudioInterception(page, audioEvents, captureStartRef) {
         contentType: 'audio/ogg; codecs=opus',
         headers: {
           'Content-Length': String(fs.statSync(cachePath).size),
-          'Accept-Ranges': 'bytes',
           'Cache-Control': 'no-store',
         },
       });
@@ -840,12 +849,28 @@ async function main() {
     console.log('\n✅ Done!\n');
   } finally {
     if (browser) await browser.close().catch(() => {});
+    // Graceful shutdown with SIGKILL escalation after 5s
     preview.kill('SIGTERM');
     try {
       process.kill(-preview.pid, 'SIGTERM');
     } catch {
       /* ignore */
     }
+    await new Promise((resolve) => {
+      const forceKill = setTimeout(() => {
+        try {
+          preview.kill('SIGKILL');
+          process.kill(-preview.pid, 'SIGKILL');
+        } catch {
+          /* ignore */
+        }
+        resolve();
+      }, 5000);
+      preview.once('exit', () => {
+        clearTimeout(forceKill);
+        resolve();
+      });
+    });
   }
 }
 

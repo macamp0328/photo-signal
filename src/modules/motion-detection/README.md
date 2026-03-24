@@ -30,7 +30,7 @@ useMotionDetection(
 
 ## Dependencies
 
-- Browser `OffscreenCanvas` / `Canvas` API (mocked in tests via `src/test/mocks.ts`)
+- Browser Canvas API (mocked in tests via `src/test/mocks.ts`)
 
 ## Key Files
 

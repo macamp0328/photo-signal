@@ -8,7 +8,8 @@
 #
 # A worktree is STALE if its branch is merged into main (safe to remove).
 # A worktree is PROTECTED if it has uncommitted changes, unpushed commits, or unmerged work.
-# The current worktree is always shown as ACTIVE.
+# When run from a linked worktree it is shown as ACTIVE (current); from the main (non-linked)
+# worktree it is shown as MAIN (current).
 
 set -euo pipefail
 

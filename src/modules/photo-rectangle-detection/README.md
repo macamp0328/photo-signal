@@ -7,15 +7,11 @@ Used to give `photo-recognition` a tighter crop region.
 
 ```ts
 new RectangleDetectionService(options?: RectangleDetectionOptions): RectangleDetectionService
-service.detect(imageData: ImageData): RectangleDetectionResult
+service.detectRectangle(imageData: ImageData): RectangleDetectionResult
 ```
 
 ```tsx
-<RectangleOverlay
-  detectedRectangle={DetectedRectangle | null}
-  confidence={number}
-  confidenceThreshold?={number}
-/>
+<RectangleOverlay rectangle={DetectedRectangle | null} state={DetectionState} />
 ```
 
 All coordinates in `DetectedRectangle` are normalized to [0, 1] relative to frame dimensions.

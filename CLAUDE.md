@@ -430,7 +430,7 @@ be removed even with `--prune`.
 ### Keeping Module READMEs in sync
 
 `scripts/check-module-readmes.js` runs as part of `npm run pre-commit` and CI. It fails if any
-non-type export in a module's `index.ts` is not mentioned in that module's `README.md ##  API`
+non-type export in a module's `index.ts` is not mentioned in that module's `README.md ## API`
 section. If you add or rename an export, update the README too.
 
 ### When Adding New Files

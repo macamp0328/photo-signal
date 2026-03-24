@@ -46,6 +46,9 @@ jobs:
       - name: Type-check with TypeScript
         run: npm run type-check
 
+      - name: Check module READMEs match exports
+        run: node scripts/check-module-readmes.js
+
       - name: Run tests with coverage
         run: npm run test:coverage
 

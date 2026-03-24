@@ -1,0 +1,57 @@
+# Photo Recognition
+
+Identifies printed photos from a live camera stream using pHash (perceptual hashing) and maps
+matches to concert entries. Recognition runs in a Web Worker with an adaptive check interval.
+
+See `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` for algorithm details, threshold tuning, and
+troubleshooting.
+
+## API
+
+```ts
+usePhotoRecognition(
+  stream: MediaStream | null,
+  options?: PhotoRecognitionOptions
+): PhotoRecognitionHook
+```
+
+`PhotoRecognitionHook` members: `recognizedConcert`, `isRecognizing`, `debugInfo`, `reset()`
+
+```ts
+calculateFramedRegion(videoWidth: number, videoHeight: number, aspectRatio: AspectRatio): DOMRect
+```
+
+Returns the cropped region used for hashing (matches the camera-view framing overlay).
+
+```ts
+computeActiveSettings(telemetry: RecognitionTelemetry): ActiveSettings
+computeAiRecommendations(telemetry: RecognitionTelemetry): AiRecommendation[]
+```
+
+Derive recommended threshold adjustments from aggregated telemetry (used in debug overlay).
+
+## Responsibilities
+
+- Running pHash on cropped video frames inside a Web Worker
+- Comparing hashes against `data.recognition.v2.json` at multiple exposure variants
+- Requiring sustained match stability before emitting `recognizedConcert`
+- Collecting telemetry (`RecognitionDebugInfo`) when debug mode is enabled
+
+## Does NOT Own
+
+- Displaying recognition results (`concert-info`, `debug-overlay`)
+- Camera acquisition (`camera-access`)
+- Motion gating (caller in `App.tsx` checks `isMoving` before passing the stream)
+
+## Dependencies
+
+- `public/data.recognition.v2.json` — pHash index loaded via `data-service.ts`
+- Web Worker (`src/modules/photo-recognition/worker/`) — off-main-thread hashing
+- `photo-rectangle-detection` — optional rectangle-guided crop region
+
+## Key Files
+
+- `usePhotoRecognition.ts` — hook, worker bridge, stability timer, result emission
+- `telemetryAnalysis.ts` — `computeActiveSettings`, `computeAiRecommendations`
+- `worker/` — Web Worker that performs the actual pHash computation and lookup
+- `types.ts` — all exported types including `PhotoRecognitionHook`, `RecognitionDebugInfo`, etc.

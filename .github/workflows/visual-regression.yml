@@ -14,6 +14,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'playwright.config.ts'
+      - 'scripts/lib/**'
       - 'tests/visual/**'
       - '.github/workflows/visual-regression.yml'
   push:
@@ -27,6 +28,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'playwright.config.ts'
+      - 'scripts/lib/**'
       - 'tests/visual/**'
       - '.github/workflows/visual-regression.yml'
   workflow_dispatch:

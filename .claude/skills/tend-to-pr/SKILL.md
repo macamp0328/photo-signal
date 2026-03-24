@@ -25,23 +25,33 @@ If a PR number is provided as an argument, use that. Otherwise default to the PR
 Establish what needs attention before taking any action.
 
 ```bash
-# Resolve PR number (use $ARGUMENTS if provided, else detect from branch)
-gh pr view --json number,title,headRefName,baseRefName,state
+# Resolve PR number from $ARGUMENTS if provided, else detect from current branch
+if [ -n "$ARGUMENTS" ]; then
+  pr_number="$ARGUMENTS"
+else
+  pr_number="$(gh pr view --json number --jq '.number')"
+fi
+
+# Show basic PR info for the resolved PR
+gh pr view "$pr_number" --json number,title,headRefName,baseRefName,state
 
 # Get all inline review comments (code review threads)
-gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
-  --jq '[.[] | {id, path, line, body, user: .user.login, in_reply_to_id}]'
+# Capture original_line, position, and diff_hunk for comments on outdated diffs (where line is null)
+gh api repos/{owner}/{repo}/pulls/"$pr_number"/comments \
+  --jq '[.[] | {id, path, line, original_line, position, original_position, diff_hunk, body, user: .user.login, in_reply_to_id}]'
+# When reading files for inline comments, use `line` when present.
+# If `line` is null (comment is on an outdated diff), fall back to `original_line` or parse `diff_hunk`.
 
 # Get general PR comments
-gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
+gh api repos/{owner}/{repo}/issues/"$pr_number"/comments \
   --jq '[.[] | {id, body, user: .user.login}]'
 
 # Get full review objects (approval/changes-requested state)
-gh pr view {pr_number} --json reviews \
+gh pr view "$pr_number" --json reviews \
   --jq '[.reviews[] | {author: .author.login, state, body, submittedAt}]'
 
 # Get CI check status
-gh pr checks {pr_number}
+gh pr checks "$pr_number"
 ```
 
 **Categorize what you find:**
@@ -80,7 +90,7 @@ Work through every unresolved review comment one at a time.
    - Examples: "intentional per CLAUDE.md extensibility design", "CSS Modules scoping is by design", "this complexity is load-bearing per the aesthetic identity"
 
    **If ambiguous** (unclear intent, requires product judgment, or it's a comment from a human reviewer — not a bot — that you want to decline):
-   - Stop and use `AskUserQuestion` before acting. Don't guess on human reviewer intent.
+   - Stop and ask the user in chat before acting. Don't guess on human reviewer intent.
 
 4. **Reply to the comment** via `gh api`:
 
@@ -100,13 +110,20 @@ Work through every unresolved review comment one at a time.
      --field body="Your reply here"
    ```
 
-5. **After fixing**, if you've addressed everything in a thread, mark it resolved:
+5. **After fixing**, if you've addressed everything in a thread and have appropriate permissions, you can resolve the review thread using the GraphQL API:
+
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id} \
-     --method PATCH \
-     --field position=null 2>/dev/null || true
+   gh api graphql --field threadId="THREAD_ID" -f query='
+   mutation ResolveThread($threadId: ID!) {
+     resolveReviewThread(input: { threadId: $threadId }) {
+       thread {
+         isResolved
+       }
+     }
+   }'
    ```
-   (Resolving is best-effort — some endpoints require review state; skip if it fails.)
+
+   Replace `THREAD_ID` with the thread ID from the GitHub API. This requires sufficient repository permissions; if it fails or permissions are insufficient, skip resolution and rely on the GitHub UI instead.
 
 ### Reply tone
 
@@ -125,7 +142,7 @@ Be concise and direct. Examples:
 ### Step 1: Check what's failing
 
 ```bash
-gh pr checks {pr_number}
+gh pr checks "$pr_number"
 ```
 
 If all checks are green, skip to Phase 4.
@@ -174,7 +191,7 @@ git push
 
 ```bash
 # Wait for CI to pick up the push, then check again
-gh pr checks {pr_number} --watch
+gh pr checks "$pr_number" --watch
 ```
 
 If new failures appear, loop back to Step 1 (increment the cycle counter).

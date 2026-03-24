@@ -28,11 +28,18 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
     steps:
-      - name: Checkout
+      # workflow_run defaults to the default-branch HEAD, which can differ from
+      # the commit CI validated. Pin to head_sha so we deploy the exact revision.
+      - name: Checkout (workflow_run)
+        if: github.event_name == 'workflow_run'
         uses: actions/checkout@v4
         with:
-          # Need at least 2 commits to diff HEAD~1 for change detection
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 2
+
+      - name: Checkout (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
 
       # Check if cloudflare-related files changed (skip deploy if not).
       # workflow_dispatch always deploys; workflow_run checks the diff.

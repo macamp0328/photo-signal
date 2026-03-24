@@ -1,13 +1,12 @@
 name: Deploy Cloudflare Audio Worker
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'cloudflare/**'
-      - 'wrangler.toml'
-      - '.github/workflows/deploy-cloudflare-worker.yml'
+  # Auto-deploy after CI passes on main when cloudflare files change
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+  # Manual deploy (skips waiting for CI)
   workflow_dispatch:
 
 concurrency:
@@ -21,35 +20,45 @@ jobs:
   deploy:
     name: Deploy worker
     runs-on: ubuntu-latest
+    # For workflow_run: only deploy if CI passed AND cloudflare files changed.
+    # For workflow_dispatch: always run.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Check if cloudflare-related files changed (skip deploy if not).
+      # workflow_dispatch always deploys; workflow_run checks the diff.
+      - name: Check for cloudflare file changes
+        if: github.event_name == 'workflow_run'
+        id: changed
+        run: |
+          # Compare the merge commit with its first parent to see what the push changed
+          DIFF=$(git diff --name-only HEAD~1 HEAD -- cloudflare/ wrangler.toml .github/workflows/deploy-cloudflare-worker.yml 2>/dev/null || echo "")
+          if [ -z "$DIFF" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No cloudflare file changes detected — skipping deploy."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare files changed:"
+            echo "$DIFF"
+          fi
+
       - name: Set up Node
+        if: steps.changed.outputs.skip != 'true'
         uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
 
       - name: Install dependencies
+        if: steps.changed.outputs.skip != 'true'
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Format check
-        run: npm run format:check
-
-      - name: Type check
-        run: npm run type-check
-
-      - name: Test
-        run: npm run test:run
-
-      - name: Build
-        run: npm run build
-
       - name: Deploy with Wrangler
+        if: steps.changed.outputs.skip != 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

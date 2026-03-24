@@ -5,8 +5,18 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/dependabot.yml'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/dependabot.yml'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -23,6 +33,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # assets/ holds ~118 MB of test videos not needed by CI.
+          # Sparse checkout cuts checkout time significantly on cold runners.
+          sparse-checkout: |
+            src
+            public
+            tests
+            scripts
+            cloudflare
+            .github
+            docs
+          sparse-checkout-cone-mode: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v5

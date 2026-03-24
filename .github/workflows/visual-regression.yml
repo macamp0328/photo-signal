@@ -5,8 +5,32 @@ name: Visual Regression Tests
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'vite.config.*'
+      - 'tsconfig*.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'playwright.config.ts'
+      - 'scripts/lib/**'
+      - 'tests/visual/**'
+      - '.github/workflows/visual-regression.yml'
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'vite.config.*'
+      - 'tsconfig*.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'playwright.config.ts'
+      - 'scripts/lib/**'
+      - 'tests/visual/**'
+      - '.github/workflows/visual-regression.yml'
   workflow_dispatch:
     inputs:
       update_snapshots:

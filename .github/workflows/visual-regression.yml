@@ -11,7 +11,9 @@ on:
       - 'index.html'
       - 'vite.config.*'
       - 'tsconfig*.json'
+      - 'package.json'
       - 'package-lock.json'
+      - 'playwright.config.ts'
       - 'tests/visual/**'
       - '.github/workflows/visual-regression.yml'
   push:
@@ -22,7 +24,9 @@ on:
       - 'index.html'
       - 'vite.config.*'
       - 'tsconfig*.json'
+      - 'package.json'
       - 'package-lock.json'
+      - 'playwright.config.ts'
       - 'tests/visual/**'
       - '.github/workflows/visual-regression.yml'
   workflow_dispatch:

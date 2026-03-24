@@ -1,3 +1,5 @@
+# NOTE: workflow_run always executes the workflow file from the default branch (main).
+# Changes to this file won't take effect until merged to main.
 name: Deploy Cloudflare Audio Worker
 
 on:
@@ -28,6 +30,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Need at least 2 commits to diff HEAD~1 for change detection
+          fetch-depth: 2
 
       # Check if cloudflare-related files changed (skip deploy if not).
       # workflow_dispatch always deploys; workflow_run checks the diff.

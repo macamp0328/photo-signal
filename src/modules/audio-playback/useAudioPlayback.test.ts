@@ -198,13 +198,6 @@ describe('useAudioPlayback', () => {
 
       expect(result.current.volume).toBe(0.5);
     });
-
-    it('should accept custom fadeTime', () => {
-      const { result } = renderHook(() => useAudioPlayback({ fadeTime: 2000 }));
-
-      // fadeTime is internal, just verify hook initializes without error
-      expect(result.current).toBeDefined();
-    });
   });
 
   describe('Play Functionality', () => {
@@ -462,69 +455,6 @@ describe('useAudioPlayback', () => {
     });
   });
 
-  describe('Fade Out Functionality', () => {
-    it('should fade out audio with default duration', () => {
-      const { result } = renderHook(() => useAudioPlayback({ fadeTime: 1000 }));
-
-      // Start playing
-      act(() => {
-        result.current.play('/audio/test.opus');
-      });
-
-      expect(result.current.isPlaying).toBe(true);
-
-      // Fade out
-      act(() => {
-        result.current.fadeOut();
-      });
-
-      // Fast-forward timers
-      act(() => {
-        vi.advanceTimersByTime(1000);
-      });
-
-      // Should stop after fade duration
-      expect(result.current.isPlaying).toBe(false);
-    });
-
-    it('should fade out audio with custom duration', () => {
-      const { result } = renderHook(() => useAudioPlayback());
-
-      // Start playing
-      act(() => {
-        result.current.play('/audio/test.opus');
-      });
-
-      expect(result.current.isPlaying).toBe(true);
-
-      // Fade out with custom duration
-      act(() => {
-        result.current.fadeOut(500);
-      });
-
-      // Fast-forward timers
-      act(() => {
-        vi.advanceTimersByTime(500);
-      });
-
-      // Should stop after custom fade duration
-      expect(result.current.isPlaying).toBe(false);
-    });
-
-    it('should handle fadeOut when not playing', () => {
-      const { result } = renderHook(() => useAudioPlayback());
-
-      // Should not throw error
-      expect(() => {
-        act(() => {
-          result.current.fadeOut();
-        });
-      }).not.toThrow();
-
-      expect(result.current.isPlaying).toBe(false);
-    });
-  });
-
   describe('Volume Controls', () => {
     it('should set volume correctly', () => {
       const { result } = renderHook(() => useAudioPlayback());
@@ -715,7 +645,6 @@ describe('useAudioPlayback', () => {
       expect(typeof result.current.preload).toBe('function');
       expect(typeof result.current.pause).toBe('function');
       expect(typeof result.current.stop).toBe('function');
-      expect(typeof result.current.fadeOut).toBe('function');
       expect(typeof result.current.crossfade).toBe('function');
       expect(typeof result.current.setVolume).toBe('function');
       expect(typeof result.current.clearPlaybackError).toBe('function');
@@ -730,12 +659,7 @@ describe('useAudioPlayback', () => {
     });
 
     it('should accept options parameter as per contract', () => {
-      const { result } = renderHook(() =>
-        useAudioPlayback({
-          volume: 0.7,
-          fadeTime: 1500,
-        })
-      );
+      const { result } = renderHook(() => useAudioPlayback({ volume: 0.7 }));
 
       expect(result.current.volume).toBe(0.7);
     });
@@ -847,58 +771,10 @@ describe('useAudioPlayback', () => {
 
       // Crossfade to second audio
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
-      });
-
-      // Should still be playing during crossfade
-      expect(result.current.isPlaying).toBe(true);
-    });
-
-    it('should use default crossfade duration from options', () => {
-      const { result } = renderHook(() => useAudioPlayback({ crossfadeDuration: 3000 }));
-
-      // Start playing
-      act(() => {
-        result.current.play('/audio/first.opus');
-      });
-
-      // Crossfade without specifying duration
-      act(() => {
         result.current.crossfade('/audio/second.opus');
       });
 
-      expect(result.current.isPlaying).toBe(true);
-
-      // Fast-forward past crossfade duration
-      act(() => {
-        vi.advanceTimersByTime(3000);
-      });
-
-      // Should still be playing the new track
-      expect(result.current.isPlaying).toBe(true);
-    });
-
-    it('should use custom duration when provided', () => {
-      const { result } = renderHook(() => useAudioPlayback());
-
-      // Start playing
-      act(() => {
-        result.current.play('/audio/first.opus');
-      });
-
-      // Crossfade with custom duration
-      act(() => {
-        result.current.crossfade('/audio/second.opus', 500);
-      });
-
-      expect(result.current.isPlaying).toBe(true);
-
-      // Fast-forward past crossfade duration
-      act(() => {
-        vi.advanceTimersByTime(500);
-      });
-
-      // Should still be playing the new track
+      // Should still be playing during crossfade
       expect(result.current.isPlaying).toBe(true);
     });
 
@@ -912,12 +788,12 @@ describe('useAudioPlayback', () => {
 
       // Crossfade
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       // Fast-forward past crossfade duration to trigger cleanup
       act(() => {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(300);
       });
 
       // No errors should occur, cleanup should be successful
@@ -932,7 +808,7 @@ describe('useAudioPlayback', () => {
       });
 
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       const howlInstances = getMockedHowlClass().instances;
@@ -944,7 +820,7 @@ describe('useAudioPlayback', () => {
       newSound.playing.mockReturnValue(false);
 
       act(() => {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(300);
       });
 
       expect(newSound.play).toHaveBeenCalledTimes(2);
@@ -958,7 +834,7 @@ describe('useAudioPlayback', () => {
       });
 
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       const howlInstances = getMockedHowlClass().instances;
@@ -969,7 +845,7 @@ describe('useAudioPlayback', () => {
       const callsBeforeCompletion = newSound.volume.mock.calls.length;
 
       act(() => {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(300);
       });
 
       const callsAfterCompletion = newSound.volume.mock.calls.length;
@@ -985,7 +861,7 @@ describe('useAudioPlayback', () => {
       });
 
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       const howlInstances = getMockedHowlClass().instances;
@@ -1001,7 +877,7 @@ describe('useAudioPlayback', () => {
       });
 
       act(() => {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(300);
       });
 
       const callsAfterCompletion = newSound.volume.mock.calls.slice(callsBeforeCompletion);
@@ -1019,7 +895,7 @@ describe('useAudioPlayback', () => {
       });
 
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       const howlInstances = getMockedHowlClass().instances;
@@ -1040,7 +916,7 @@ describe('useAudioPlayback', () => {
 
       // Crossfade when nothing is playing (should just play)
       act(() => {
-        result.current.crossfade('/audio/test.opus', 1000);
+        result.current.crossfade('/audio/test.opus');
       });
 
       // Should start playing the new track
@@ -1060,7 +936,7 @@ describe('useAudioPlayback', () => {
 
       // Crossfade to same URL (should restart)
       act(() => {
-        result.current.crossfade(sameUrl, 1000);
+        result.current.crossfade(sameUrl);
       });
 
       // Should still be playing
@@ -1077,46 +953,27 @@ describe('useAudioPlayback', () => {
 
       // Start first crossfade
       act(() => {
-        result.current.crossfade('/audio/second.opus', 2000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       // Advance time partially
       act(() => {
-        vi.advanceTimersByTime(500);
+        vi.advanceTimersByTime(150);
       });
 
       // Start second crossfade before first completes
       act(() => {
-        result.current.crossfade('/audio/third.opus', 1000);
+        result.current.crossfade('/audio/third.opus');
       });
 
       expect(result.current.isPlaying).toBe(true);
 
       // Complete second crossfade
       act(() => {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(300);
       });
 
       // Should still be playing
-      expect(result.current.isPlaying).toBe(true);
-    });
-
-    it('should respect crossfadeEnabled flag when false', () => {
-      const { result } = renderHook(() => useAudioPlayback({ crossfadeEnabled: false }));
-
-      // Start playing
-      act(() => {
-        result.current.play('/audio/first.opus');
-      });
-
-      expect(result.current.isPlaying).toBe(true);
-
-      // Crossfade when disabled (should just play normally)
-      act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
-      });
-
-      // Should be playing the new track (no crossfade, just immediate switch)
       expect(result.current.isPlaying).toBe(true);
     });
 
@@ -1130,7 +987,7 @@ describe('useAudioPlayback', () => {
 
       // Start crossfade
       act(() => {
-        result.current.crossfade('/audio/second.opus', 2000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       // Unmount before crossfade completes
@@ -1149,7 +1006,7 @@ describe('useAudioPlayback', () => {
 
       // Crossfade
       act(() => {
-        result.current.crossfade('/audio/second.opus', 1000);
+        result.current.crossfade('/audio/second.opus');
       });
 
       // Volume should remain at initial level

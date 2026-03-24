@@ -5,8 +5,18 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/dependabot.yml'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.github/dependabot.yml'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -45,6 +55,9 @@ jobs:
 
       - name: Type-check with TypeScript
         run: npm run type-check
+
+      - name: Check module READMEs match exports
+        run: node scripts/check-module-readmes.js
 
       - name: Run tests with coverage
         run: npm run test:coverage

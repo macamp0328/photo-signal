@@ -50,7 +50,6 @@ const concertThree: Concert = {
 const mockPlay = vi.fn();
 const mockPause = vi.fn();
 const mockPreload = vi.fn();
-const mockFadeOut = vi.fn();
 const mockCrossfade = vi.fn();
 const mockStop = vi.fn();
 const mockSetVolume = vi.fn();
@@ -162,7 +161,6 @@ vi.mock('./modules/audio-playback', () => ({
       play: mockPlay,
       pause: mockPause,
       preload: mockPreload,
-      fadeOut: mockFadeOut,
       crossfade: mockCrossfade,
       isPlaying: audioState.isPlaying,
       progress: audioState.progress,

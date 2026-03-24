@@ -25,9 +25,10 @@ Pre-commit steps (run in order):
 1. `npm run lint:fix` — Fix linting issues
 2. `npm run format` — Format code with Prettier
 3. `npm run type-check` — Validate TypeScript
-4. `npm run test:run` — Run all unit tests
-5. `npm run build` — Production build succeeds
-6. `./scripts/check-bundle-size.sh` — Bundle size within limits
+4. `node scripts/check-module-readmes.js` — Module READMEs match exports
+5. `npm run test:run` — Run all unit tests
+6. `npm run build` — Production build succeeds
+7. `./scripts/check-bundle-size.sh` — Bundle size within limits
 
 ## Project Identity
 
@@ -346,6 +347,19 @@ testing. A yellow **`DEV · fake camera · N clips`** badge appears in the top-l
 app when both conditions are true: the dev server is running and `__dev_fakeCamera` is set in
 localStorage.
 
+### Cleaning up worktrees
+
+After a PR is merged, its worktree becomes stale. Use the cleanup script to prune them:
+
+```bash
+./scripts/cleanup-worktrees.sh           # Dry run — shows status table
+./scripts/cleanup-worktrees.sh --prune   # Remove stale worktrees (confirms first)
+./scripts/cleanup-worktrees.sh --prune --yes  # Remove without confirmation
+```
+
+Worktrees with uncommitted changes or unpushed commits are automatically protected and will not
+be removed even with `--prune`.
+
 ---
 
 ## Agent Decision Guidelines
@@ -412,6 +426,12 @@ localStorage.
 2. Read the module's existing tests to understand expected behavior.
 3. Check `src/types/index.ts` for shared interfaces the module uses.
 4. Make changes within the module directory only — do not touch other modules unless required.
+
+### Keeping Module READMEs in sync
+
+`scripts/check-module-readmes.js` runs as part of `npm run pre-commit` and CI. It fails if any
+non-type export in a module's `index.ts` is not mentioned in that module's `README.md ## API`
+section. If you add or rename an export, update the README too.
 
 ### When Adding New Files
 

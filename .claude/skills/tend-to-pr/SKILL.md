@@ -16,7 +16,7 @@ If a PR number is provided as an argument, use that. Otherwise default to the PR
 ## Live Context
 
 - Current branch: !`git branch --show-current`
-- PR status: !`gh pr view --json number,title,state,statusCheckRollup 2>/dev/null || echo "No open PR found for this branch"`
+- PR status (current branch): !`gh pr view --json number,title,state,statusCheckRollup 2>/dev/null || echo "No open PR found for this branch"`
 
 ---
 
@@ -25,9 +25,9 @@ If a PR number is provided as an argument, use that. Otherwise default to the PR
 Establish what needs attention before taking any action.
 
 ```bash
-# Resolve PR number from $ARGUMENTS if provided, else detect from current branch
+# Resolve PR number — normalize any form ($ARGUMENTS may be a number, #number, or URL)
 if [ -n "$ARGUMENTS" ]; then
-  pr_number="$ARGUMENTS"
+  pr_number="$(gh pr view "$ARGUMENTS" --json number --jq '.number')"
 else
   pr_number="$(gh pr view --json number --jq '.number')"
 fi
@@ -35,16 +35,37 @@ fi
 # Show basic PR info for the resolved PR
 gh pr view "$pr_number" --json number,title,headRefName,baseRefName,state
 
-# Get all inline review comments (code review threads)
+# Get all inline review comments — --paginate fetches all pages, not just the first 30
 # Capture original_line, position, and diff_hunk for comments on outdated diffs (where line is null)
 gh api repos/{owner}/{repo}/pulls/"$pr_number"/comments \
+  --paginate \
   --jq '[.[] | {id, path, line, original_line, position, original_position, diff_hunk, body, user: .user.login, in_reply_to_id}]'
 # When reading files for inline comments, use `line` when present.
 # If `line` is null (comment is on an outdated diff), fall back to `original_line` or parse `diff_hunk`.
 
-# Get general PR comments
+# Get general PR comments — paginate to catch all of them
 gh api repos/{owner}/{repo}/issues/"$pr_number"/comments \
+  --paginate \
   --jq '[.[] | {id, body, user: .user.login}]'
+
+# Get review thread IDs for GraphQL resolution (maps REST comment id → GraphQL thread id)
+gh api graphql \
+  -F owner='{owner}' -F repo='{repo}' -F number="$pr_number" \
+  -f query='
+query($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 100) {
+        nodes {
+          id
+          isResolved
+          comments(first: 1) { nodes { databaseId } }
+        }
+      }
+    }
+  }
+}'
+# Match thread.comments[0].databaseId to the REST comment id to find the thread id.
 
 # Get full review objects (approval/changes-requested state)
 gh pr view "$pr_number" --json reviews \
@@ -94,10 +115,10 @@ Work through every unresolved review comment one at a time.
 
 4. **Reply to the comment** via `gh api`:
 
-   For inline review comment replies:
+   For inline review comment replies (`comment_id` is the `id` from the Phase 1 API response):
 
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
+   gh api repos/{owner}/{repo}/pulls/"$pr_number"/comments/"$comment_id"/replies \
      --method POST \
      --field body="Your reply here"
    ```
@@ -105,25 +126,23 @@ Work through every unresolved review comment one at a time.
    For general PR comments:
 
    ```bash
-   gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
+   gh api repos/{owner}/{repo}/issues/"$pr_number"/comments \
      --method POST \
      --field body="Your reply here"
    ```
 
-5. **After fixing**, if you've addressed everything in a thread and have appropriate permissions, you can resolve the review thread using the GraphQL API:
+5. **After fixing**, if you've addressed everything in a thread and have appropriate permissions, you can resolve the review thread using the GraphQL API. Use the thread `id` from the Phase 1 GraphQL query (matched via `databaseId` → REST `comment.id`):
 
    ```bash
-   gh api graphql --field threadId="THREAD_ID" -f query='
+   gh api graphql --field threadId="$thread_id" -f query='
    mutation ResolveThread($threadId: ID!) {
      resolveReviewThread(input: { threadId: $threadId }) {
-       thread {
-         isResolved
-       }
+       thread { isResolved }
      }
    }'
    ```
 
-   Replace `THREAD_ID` with the thread ID from the GitHub API. This requires sufficient repository permissions; if it fails or permissions are insufficient, skip resolution and rely on the GitHub UI instead.
+   This requires sufficient repository permissions; if it fails, skip resolution and rely on the GitHub UI instead.
 
 ### Reply tone
 
@@ -181,9 +200,8 @@ If `pre-commit` still fails, iterate on the fix until it passes **before** commi
 
 ```bash
 git add <specific files — never git add -A blindly>
-git commit -m "fix: <concise description of what was fixed>
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git commit -m "fix: <concise description of what was fixed>" \
+  -m "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 git push
 ```
 

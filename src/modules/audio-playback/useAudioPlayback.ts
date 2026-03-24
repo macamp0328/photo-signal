@@ -26,13 +26,7 @@ function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> }
  * @returns Audio playback controls and state
  */
 export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlaybackHook {
-  const {
-    volume: initialVolume = 0.8,
-    fadeTime = 1000,
-    crossfadeDuration = 2000,
-    crossfadeEnabled = true,
-    onSongEnd,
-  } = options;
+  const { volume: initialVolume = 0.8, onSongEnd } = options;
 
   const onSongEndRef = useRef(onSongEnd);
   useEffect(() => {
@@ -407,25 +401,6 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     }
   }, [stopProgressLoop]);
 
-  const fadeOut = useCallback(
-    (duration: number = fadeTime) => {
-      if (soundRef.current && isPlaying) {
-        const currentVolume = soundRef.current.volume();
-        soundRef.current.fade(currentVolume, 0, duration);
-
-        setTimeout(() => {
-          if (soundRef.current) {
-            soundRef.current.stop();
-            setIsPlaying(false);
-            stopProgressLoop();
-            setProgress(0);
-          }
-        }, duration);
-      }
-    },
-    [isPlaying, fadeTime, stopProgressLoop]
-  );
-
   const setVolume = useCallback((newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
     volumeRef.current = clampedVolume;
@@ -441,15 +416,10 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   }, []);
 
   const crossfade = useCallback(
-    (newUrl: string, duration: number = crossfadeDuration) => {
+    (newUrl: string) => {
+      const duration = 300;
       setPlaybackError(null);
       void unlockAudioContext();
-
-      // If crossfade is disabled, just play the new track
-      if (!crossfadeEnabled) {
-        play(newUrl);
-        return;
-      }
 
       // Cancel any pending crossfade cleanup
       if (crossfadeTimeoutRef.current) {
@@ -463,17 +433,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         return;
       }
 
-      // Get current sound reference for fade out
-      const currentSound = soundRef.current;
-      const currentVolume = currentSound.volume();
-
-      // Check if trying to crossfade to the same URL
-      // In this case, we'll restart the track with crossfade
-      const isSameUrl = currentUrlRef.current === newUrl;
-
-      if (isSameUrl) {
-        // Just restart the current track (no crossfade needed)
-        currentSound.seek(0);
+      // Same URL: restart the current track
+      if (currentUrlRef.current === newUrl) {
+        soundRef.current.seek(0);
         return;
       }
 
@@ -484,38 +446,28 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       }
 
       // Move current sound to fading out ref
+      const currentSound = soundRef.current;
       fadingOutSoundRef.current = currentSound;
       soundRef.current = null;
 
-      // Start fading out the old sound
-      fadingOutSoundRef.current.fade(currentVolume, 0, duration);
+      // Fade out old, fade in new
+      fadingOutSoundRef.current.fade(currentSound.volume(), 0, duration);
 
-      // Create and start new sound at 0 volume
       const newSound = getCachedOrCreateSound(newUrl, { initialVolume: 0 });
-
-      // Set new sound as current
       soundRef.current = newSound;
       currentUrlRef.current = newUrl;
-
-      // Start playing and fade in
       newSound.play();
       newSound.fade(0, volumeRef.current, duration);
 
-      // Clean up old sound after fade completes
+      // Clean up old sound and re-assert volume after fade completes
       crossfadeTimeoutRef.current = setTimeout(() => {
         if (fadingOutSoundRef.current) {
-          // Don't call stop() as it would trigger onstop callback
-          // Just unload since it's already faded to 0 volume
           fadingOutSoundRef.current.unload();
           fadingOutSoundRef.current = null;
         }
         const activeSound = soundRef.current;
         if (currentUrlRef.current === newUrl && activeSound) {
-          // Some browser/audio-stack combinations can fail to apply fade() reliably on
-          // HTML5-backed sounds. Re-assert the target volume after the crossfade window
-          // so the newly selected artist never remains silently at 0 volume.
           activeSound.volume(volumeRef.current);
-
           if (!activeSound.playing()) {
             activeSound.play();
           }
@@ -523,14 +475,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         crossfadeTimeoutRef.current = null;
       }, duration);
     },
-    [
-      crossfadeDuration,
-      crossfadeEnabled,
-      getCachedOrCreateSound,
-      isPlaying,
-      play,
-      unlockAudioContext,
-    ]
+    [getCachedOrCreateSound, isPlaying, play, unlockAudioContext]
   );
 
   return {
@@ -538,7 +483,6 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     preload,
     pause,
     stop,
-    fadeOut,
     crossfade,
     isPlaying,
     progress,

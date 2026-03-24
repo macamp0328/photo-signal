@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import * as howlerModule from 'howler';
 import type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
 import { diagnoseAudioUrl } from './diagnoseAudioUrl';
+import { isDemoNoAudioFadeEnabled } from '../../utils/demoMode';
 
 const { Howl } = howlerModule;
 
@@ -28,7 +29,7 @@ function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> }
 export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlaybackHook {
   const {
     volume: initialVolume = 0.8,
-    fadeTime = 1000,
+    fadeTime = isDemoNoAudioFadeEnabled() ? 150 : 1000,
     crossfadeDuration = 2000,
     crossfadeEnabled = true,
     onSongEnd,

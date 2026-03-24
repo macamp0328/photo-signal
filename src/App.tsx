@@ -370,7 +370,6 @@ function AppContent() {
   // Module: Audio Playback
   const { play, pause, stop, preload, crossfade, isPlaying } = useAudioPlayback({
     volume: 1.0,
-    fadeTime: 1000,
     onSongEnd: () => {
       if (userPausedRef.current) return;
       const nextSong = getNextTrackAfterForwardAdvance();

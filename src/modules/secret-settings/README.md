@@ -14,11 +14,14 @@ A hidden settings menu accessible via the settings icon. Houses all feature flag
 ```
 
 ```ts
-useFeatureFlags(): Record<string, boolean>
+useFeatureFlags(): { flags, toggleFlag, setFlagState, isEnabled, resetFlags }
 ```
 
-Returns a map of `{ [flagId]: enabled }` reflecting current localStorage state. Re-renders
-consumers when flags change.
+- `flags` — array of `FeatureFlag` objects with current enabled state
+- `isEnabled(id)` — returns `boolean` for a given flag id
+- `toggleFlag(id)` — flip a flag's state and persist to localStorage
+- `setFlagState(id, enabled)` — set a flag explicitly
+- `resetFlags()` — restore all flags to their config defaults
 
 Feature flags are defined in `config.ts` as a `FEATURE_FLAGS` array of `FeatureFlag` objects.
 Each flag has an `id`, `name`, `description`, `enabled` default, and optional `category`

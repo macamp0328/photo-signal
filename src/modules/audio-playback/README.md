@@ -13,11 +13,12 @@ useAudioPlayback(options?: AudioPlaybackOptions): AudioPlaybackHook
 `setVolume(volume)`, `clearPlaybackError()`
 
 ```ts
-useAudioReactiveGlow(isPlaying: boolean): void
+useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): void
 ```
 
 Taps Howler's Web Audio context with an `AnalyserNode` and writes bass energy to
-`--glow-reactive-scale` CSS custom property on `<html>`. Zero recognition impact.
+`--glow-reactive-scale` and `--glow-reactive-scale-ring` CSS custom properties on `<html>`.
+Zero recognition impact.
 
 ```ts
 diagnoseAudioUrl(url: string): Promise<AudioDiagnosticResult>

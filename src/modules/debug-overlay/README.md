@@ -1,7 +1,7 @@
 # Debug Overlay
 
 Real-time recognition diagnostics panel. Shows Hamming distances, frame quality stats, telemetry,
-and a "Test Song" audio diagnostic button. Hidden by default; enabled via the `debugOverlay`
+and a "Test Song" audio diagnostic button. Hidden by default; enabled via the `show-debug-overlay`
 feature flag in `secret-settings`.
 
 ## API

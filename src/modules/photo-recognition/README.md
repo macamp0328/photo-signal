@@ -18,14 +18,19 @@ usePhotoRecognition(
 `PhotoRecognitionHook` members: `recognizedConcert`, `isRecognizing`, `debugInfo`, `reset()`
 
 ```ts
-calculateFramedRegion(videoWidth: number, videoHeight: number, aspectRatio: AspectRatio): DOMRect
+calculateFramedRegion(
+  videoWidth: number,
+  videoHeight: number,
+  aspectRatio: AspectRatio,
+  scale?: number
+): { x: number; y: number; width: number; height: number }
 ```
 
 Returns the cropped region used for hashing (matches the camera-view framing overlay).
 
 ```ts
-computeActiveSettings(telemetry: RecognitionTelemetry): ActiveSettings
-computeAiRecommendations(telemetry: RecognitionTelemetry): AiRecommendation[]
+computeActiveSettings(options: PhotoRecognitionOptions): ActiveSettings
+computeAiRecommendations(telemetry: RecognitionTelemetry, settings: ActiveSettings): AiRecommendation[]
 ```
 
 Derive recommended threshold adjustments from aggregated telemetry (used in debug overlay).

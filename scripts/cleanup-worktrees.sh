@@ -84,14 +84,15 @@ for i in "${!WT_PATHS[@]}"; do
   display_path="${path#"$REPO_ROOT/"}"
   [[ "$display_path" == "$path" ]] && display_path="$(basename "$path")"
 
-  # Shorten branch for display
+  # Shorten branch for display (strip claude/ and copilot/ prefixes)
   display_branch="${branch#claude/}"
   display_branch="${display_branch#copilot/}"
-  [[ ${#branch} -le 38 ]] && display_branch="$branch"
 
   # Skip the main (non-linked) worktree — always the first entry in the list
   if [[ "$path" == "$MAIN_REPO_PATH" ]]; then
-    printf "%-40s %-40s %s\n" "${display_path:0:38}" "${branch:0:38}" "MAIN"
+    label="MAIN"
+    [[ "$path" == "$CURRENT_WT" ]] && label="MAIN (current)"
+    printf "%-40s %-40s %s\n" "${display_path:0:38}" "${display_branch:0:38}" "$label"
     continue
   fi
 
@@ -99,7 +100,7 @@ for i in "${!WT_PATHS[@]}"; do
 
   # Current worktree (the one running this script)
   if [[ "$path" == "$CURRENT_WT" ]]; then
-    printf "%-40s %-40s %s\n" "${display_path:0:38}" "${branch:0:38}" "ACTIVE (current)"
+    printf "%-40s %-40s %s\n" "${display_path:0:38}" "${display_branch:0:38}" "ACTIVE (current)"
     active_count=$((active_count + 1))
     continue
   fi
@@ -124,10 +125,13 @@ for i in "${!WT_PATHS[@]}"; do
   fi
 
   # ── Safety check: unpushed commits ─────────────────────────────────────
+  # Only check when we have a branch name and a matching remote ref.
 
   has_unpushed=false
-  if git -C "$path" log "origin/$branch..HEAD" --oneline 2>/dev/null | grep -q .; then
-    has_unpushed=true
+  if [[ -n "$branch" ]] && git -C "$REPO_ROOT" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    if git -C "$path" log "origin/$branch..HEAD" --oneline 2>/dev/null | grep -q .; then
+      has_unpushed=true
+    fi
   fi
 
   # ── Classify ────────────────────────────────────────────────────────────
@@ -148,7 +152,7 @@ for i in "${!WT_PATHS[@]}"; do
     active_count=$((active_count + 1))
   fi
 
-  printf "%-40s %-40s %s\n" "${display_path:0:38}" "${branch:0:38}" "$status"
+  printf "%-40s %-40s %s\n" "${display_path:0:38}" "${display_branch:0:38}" "$status"
 done
 
 echo ""

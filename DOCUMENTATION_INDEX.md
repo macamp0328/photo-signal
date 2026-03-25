@@ -19,6 +19,7 @@
 
 ## Technical Guides
 
+- **[docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md)** — Canonical reference for visual design tokens, color system, typography, animation vocabulary, visual effects, responsive breakpoints, and environmental effect variables
 - **[docs/STATES_AND_DESIGN_LANGUAGE.md](./docs/STATES_AND_DESIGN_LANGUAGE.md)** — Canonical vocabulary of app states, recognition states, audio states, UI panels, events/triggers, and screen fields; use as the shared language for design discussions
 - **[docs/PHOTO_RECOGNITION_DEEP_DIVE.md](./docs/PHOTO_RECOGNITION_DEEP_DIVE.md)** — Photo recognition algorithm, thresholds, troubleshooting, and quick reference
 - **[docs/AUDIO_R2_WORKER.md](./docs/AUDIO_R2_WORKER.md)** — Cloudflare Worker audio proxy and R2 setup

@@ -245,7 +245,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 
 - **Mechanism**: Multi-layer `text-shadow` on display text (band name, landing headline)
 - **Control**: `--glow-reactive-scale` multiplier on all shadow `px` values via `calc()`
-- **Range when audio-reactive**: `0.85–1.20`, driven by bass frequency via `AnalyserNode`
+- **Range when audio-reactive**: text `0.6–1.8`, ring outline `0.4–2.0`, both driven by bass frequency via `AnalyserNode`
 - **Default**: `1` (constant glow at baseline intensity)
 - **Colors**: `--signal-glow` and `--signal-glow-soft`
 

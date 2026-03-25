@@ -35,6 +35,35 @@ import './index.css';
 if (import.meta.env.DEV) {
   (() => {
     try {
+      // When running via `npm run dev:fake-camera` (VITE_FAKE_CAMERA=1), auto-inject
+      // a default rotating config so the fake camera works without any manual setup.
+      // A user-set localStorage value always takes precedence.
+      if (import.meta.env.VITE_FAKE_CAMERA && !localStorage.getItem('__dev_fakeCamera')) {
+        localStorage.setItem(
+          '__dev_fakeCamera',
+          JSON.stringify({
+            clips: [
+              {
+                videoUrl: '/test-assets/camera/test_1_overcoats.3x-palindrome.webm',
+                concertId: 16,
+                hash: 'a793504d19e5e1d4',
+              },
+              {
+                videoUrl: '/test-assets/camera/test_2_croy.3x-palindrome.webm',
+                concertId: 14,
+                hash: 'd4dd0b2a73312693',
+              },
+              {
+                videoUrl: '/test-assets/camera/test_5_barna.3x-palindrome.webm',
+                concertId: 35,
+                hash: 'fd81027f1ac0f5e0',
+              },
+            ],
+            rotateEveryMs: 10000,
+          })
+        );
+      }
+
       const raw = localStorage.getItem('__dev_fakeCamera');
       if (!raw) return;
 

@@ -216,6 +216,15 @@ body::after {
   user-select: none;
 }
 
+/* Restore selection for form controls suppressed by the #root rule above */
+#root input,
+#root textarea,
+#root select,
+#root [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* Global focus styles for accessibility */
 *:focus-visible {
   outline: var(--focus-ring-width) var(--focus-ring-style)

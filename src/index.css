@@ -87,7 +87,8 @@ body {
   --spacing-2xl: clamp(2rem, 4vw, 3rem);
 
   /* Typography */
-  --font-family: 'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', 'Segoe UI Mono', monospace;
   --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
   --border-radius: 8px;
   --shadow-size: 10px;

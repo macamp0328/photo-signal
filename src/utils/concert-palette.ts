@@ -71,6 +71,12 @@ export function getConcertPalette(band: string, date: string): ConcertPalette {
   };
 }
 
+/** Update the browser/status-bar theme color (Android Chrome, Safari 15+). */
+function updateThemeColor(color: string): void {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (meta) meta.content = color;
+}
+
 export function applyConcertPalette(band: string, date: string): void {
   const palette = getConcertPalette(band, date);
   const root = document.documentElement;
@@ -78,6 +84,7 @@ export function applyConcertPalette(band: string, date: string): void {
   root.style.setProperty('--poster-primary', palette.primary);
   root.style.setProperty('--poster-accent', palette.accent);
   root.setAttribute('data-state', 'matched');
+  updateThemeColor(palette.bg);
 }
 
 export function resetToDeadSignal(): void {
@@ -86,4 +93,5 @@ export function resetToDeadSignal(): void {
   root.style.removeProperty('--poster-primary');
   root.style.removeProperty('--poster-accent');
   root.removeAttribute('data-state');
+  updateThemeColor('#000000');
 }

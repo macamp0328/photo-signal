@@ -95,12 +95,25 @@ describe('getConcertPalette', () => {
 
 // applyConcertPalette ─────────────────────────────────────────────────────────
 
+/** Create / reset the theme-color meta tag used by tests. */
+function ensureThemeColorMeta(): HTMLMetaElement {
+  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+  }
+  meta.content = '#000000';
+  return meta;
+}
+
 describe('applyConcertPalette', () => {
   beforeEach(() => {
     document.documentElement.removeAttribute('data-state');
     document.documentElement.style.removeProperty('--poster-bg');
     document.documentElement.style.removeProperty('--poster-primary');
     document.documentElement.style.removeProperty('--poster-accent');
+    ensureThemeColorMeta();
   });
 
   it('sets --poster-* CSS vars on document root', () => {
@@ -116,6 +129,13 @@ describe('applyConcertPalette', () => {
     applyConcertPalette('Jo Alice', '2025-03-15T14:21:24-05:00');
     expect(document.documentElement.getAttribute('data-state')).toBe('matched');
   });
+
+  it('updates meta theme-color to the palette bg', () => {
+    applyConcertPalette('Twin Shadow', '2025-03-15T17:20:15-05:00');
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const expected = getConcertPalette('Twin Shadow', '2025-03-15T17:20:15-05:00');
+    expect(meta?.content).toBe(expected.bg);
+  });
 });
 
 // resetToDeadSignal ───────────────────────────────────────────────────────────
@@ -126,6 +146,8 @@ describe('resetToDeadSignal', () => {
     document.documentElement.style.setProperty('--poster-bg', 'hsl(50, 75%, 5%)');
     document.documentElement.style.setProperty('--poster-primary', 'hsl(50, 100%, 65%)');
     document.documentElement.style.setProperty('--poster-accent', 'hsl(187, 100%, 58%)');
+    const meta = ensureThemeColorMeta();
+    meta.content = 'hsl(50, 75%, 5%)';
   });
 
   it('removes --poster-* CSS vars from document root', () => {
@@ -139,6 +161,12 @@ describe('resetToDeadSignal', () => {
   it('removes data-state attribute from document root', () => {
     resetToDeadSignal();
     expect(document.documentElement.getAttribute('data-state')).toBeNull();
+  });
+
+  it('resets meta theme-color to #000000', () => {
+    resetToDeadSignal();
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    expect(meta?.content).toBe('#000000');
   });
 
   it('is safe to call when no state has been applied', () => {

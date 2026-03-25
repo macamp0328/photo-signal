@@ -216,6 +216,8 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
   styles.
 - When making UI changes, preserve the existing visual character. If a change would significantly alter
   the look or feel, stop and describe the approach before implementing — don't redesign silently.
+- For the full CSS custom property catalog, design tokens, typography scale, animation vocabulary, and
+  visual effect specs, see `docs/DESIGN_SYSTEM.md`.
 
 ## Environmental Effects Design Philosophy
 
@@ -263,7 +265,9 @@ new UI features, agents should consider whether any of these signals could enric
 **Every environmental effect needs a feature flag** in `src/modules/secret-settings/config.ts`.
 Use the appropriate category: `ui`, `audio`, `experimental`. Default to `true` for subtle effects,
 `false` for experimental/sensor-based ones. See the planned flag IDs in
-`docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`.
+`docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`. See `docs/DESIGN_SYSTEM.md` (§10 Environmental Effect
+Variables) for the CSS variable catalog, value ranges, and feature flag IDs of all currently
+implemented effects.
 
 **Performance constraint:** The recognition pipeline runs in a Web Worker with an adaptive check
 interval (~80ms while tracking a candidate, ~120ms idle). Do NOT add computation to the main thread
@@ -295,6 +299,10 @@ See `.env.example` for Cloudflare R2 audio upload configuration:
 - `TESTING.md` — Testing strategy
 - `docs/PHOTO_RECOGNITION_DEEP_DIVE.md` — Recognition algorithm details
 - `docs/AUDIO_R2_WORKER.md` — Audio CDN setup
+- `docs/DESIGN_SYSTEM.md` — CSS custom properties, color tokens, typography, animation vocabulary,
+  responsive breakpoints — canonical reference for all CSS/visual changes
+- `docs/STATES_AND_DESIGN_LANGUAGE.md` — Canonical state machine vocabulary (app lifecycle, camera,
+  recognition, audio states) and UI panel visibility — shared language for behavior discussions
 - `DOCUMENTATION_INDEX.md` — Full index of all docs
 
 ## Multi-Agent Development
@@ -384,6 +392,8 @@ be removed even with `--prune`.
 - The change alters the recognition pipeline or matching logic
 - The change modifies `data-service.ts` or the JSON schema of v2 artifacts
 - The UI change is visual and could affect the aesthetic identity
+- The change modifies CSS custom properties, design tokens, or visual effects documented in
+  `docs/DESIGN_SYSTEM.md`
 
 **Skip plan mode for:**
 

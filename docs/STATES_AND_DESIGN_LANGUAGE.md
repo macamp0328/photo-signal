@@ -4,6 +4,9 @@
 > events, and UI across all design conversations, tickets, and agent requests. Use the names here
 > when discussing or specifying changes.
 
+> **See also**: `docs/DESIGN_SYSTEM.md` — the canonical reference for visual design tokens, CSS
+> custom properties, typography, and animation vocabulary used to implement these states.
+
 ---
 
 ## Overview

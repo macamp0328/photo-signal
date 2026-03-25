@@ -105,6 +105,8 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
   styles.
 - When making UI changes, preserve the existing visual character. If a change would significantly alter
   the look or feel, stop and describe the approach before implementing — don't redesign silently.
+- For the full design token reference (CSS custom properties, typography, animation vocabulary), see
+  `docs/DESIGN_SYSTEM.md`. For canonical state vocabulary, see `docs/STATES_AND_DESIGN_LANGUAGE.md`.
 
 ## Code Conventions
 

@@ -103,14 +103,14 @@ The result is **deterministic** — same band on same day always produces identi
 
 ### Glow & Signal Variables
 
-| Token                        | Default Value              | Role                                         |
-| ---------------------------- | -------------------------- | -------------------------------------------- |
-| `--signal-glow`              | `rgba(212, 137, 42, 0.34)` | Primary glow (text-shadow, box-shadow)       |
-| `--signal-glow-soft`         | `rgba(212, 137, 42, 0.14)` | Ambient / soft glow                          |
-| `--glow-reactive-scale`      | `1`                        | Audio-reactive multiplier (0.85–1.20)        |
-| `--glow-reactive-scale-ring` | `1`                        | Ring-specific glow multiplier                |
-| `--crt-opacity`              | `1`                        | CRT scan line layer opacity (0 when matched) |
-| `--crt-glow-color`           | `rgba(212, 137, 42, 0.28)` | CRT phosphor glow color                      |
+| Token                        | Default Value              | Role                                          |
+| ---------------------------- | -------------------------- | --------------------------------------------- |
+| `--signal-glow`              | `rgba(212, 137, 42, 0.34)` | Primary glow (text-shadow, box-shadow)        |
+| `--signal-glow-soft`         | `rgba(212, 137, 42, 0.14)` | Ambient / soft glow                           |
+| `--glow-reactive-scale`      | `1`                        | Audio-reactive text glow multiplier (0.6–1.8) |
+| `--glow-reactive-scale-ring` | `1`                        | Audio-reactive ring glow multiplier (0.4–2.0) |
+| `--crt-opacity`              | `1`                        | CRT scan line layer opacity (0 when matched)  |
+| `--crt-glow-color`           | `rgba(212, 137, 42, 0.28)` | CRT phosphor glow color                       |
 
 ### Background & Texture Variables
 
@@ -205,21 +205,21 @@ Six fluid tokens that scale with viewport width via `clamp()`.
 All named keyframe animations in the system. Duration and easing are per-use-site defaults; individual
 components may override.
 
-| Animation               | Duration / Easing                                       | Defined In                    | Fires When                                                    |
-| ----------------------- | ------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------- |
-| `fadeIn`                | Varies (0.5s typical), `ease-out`                       | `src/index.css`               | Active view enters; general show transitions                  |
-| `slideUpFade`           | Varies, `ease`                                          | `src/index.css`               | Elements that slide up into view                              |
-| `scaleInFade`           | Varies, `ease`                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                       |
-| `chromaticShift`        | Continuous / event-driven, smooth                       | `src/index.css`               | CRT chromatic aberration effect; RGB fringing                 |
-| `posterReveal`          | `1.2s × --exif-transition-scale`, `ease`                | `src/index.css`               | Concert info reveals after `MATCH_CONFIRMED`                  |
-| `overlayFadeIn`         | `0.5s`, `ease`                                          | `InfoDisplay.module.css`      | Concert info overlay entrance                                 |
-| `signal-flicker`        | `3.2s`, `steps(1)` infinite                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`             |
-| `glow-breathe`          | `2.8s`, `ease-in-out` infinite                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`            |
-| `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                              |
-| `phosphor-bloom-border` | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`      | `RectangleOverlay.module.css` | Border flares amber → near-white → amber on lock              |
-| `scan-sweep`            | `2.2s`, `linear` infinite                               | `RectangleOverlay.module.css` | Horizontal scan line sweeps rectangle interior in `CANDIDATE` |
-| `corner-jitter`         | `1.4s`, `steps(3)` infinite                             | `RectangleOverlay.module.css` | Corner L-brackets jitter digitally in `CANDIDATE`             |
-| `corner-stamp`          | `0.45s`, `cubic-bezier(0.34, 1.56, 0.64, 1)` `forwards` | `RectangleOverlay.module.css` | Corners spring-stamp into place on `MATCH_CONFIRMED`          |
+| Animation               | Duration / Easing                                                       | Defined In                    | Fires When                                                                                                    |
+| ----------------------- | ----------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `fadeIn`                | Varies (0.5s typical), `ease-out`                                       | `src/index.css`               | Active view enters; general show transitions                                                                  |
+| `slideUpFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that slide up into view                                                                              |
+| `scaleInFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                                                                       |
+| `chromaticShift`        | Continuous / event-driven, smooth                                       | `src/index.css`               | Reserved — keyframe defined, not yet wired to a trigger; intended for CRT chromatic aberration (RGB fringing) |
+| `posterReveal`          | `calc(0.8s × --exif-transition-scale)`, `cubic-bezier(0.16, 1, 0.3, 1)` | `src/index.css`               | Scanned photo frame animates in after `MATCH_CONFIRMED`                                                       |
+| `overlayFadeIn`         | `0.5s`, `ease`                                                          | `InfoDisplay.module.css`      | Concert info overlay entrance                                                                                 |
+| `signal-flicker`        | `3.2s`, `steps(1)` infinite                                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`                                                             |
+| `glow-breathe`          | `2.8s`, `ease-in-out` infinite                                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`                                                            |
+| `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                                                                              |
+| `phosphor-bloom-border` | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Border flares amber → near-white → amber on lock                                                              |
+| `scan-sweep`            | `2.2s`, `linear` infinite                                               | `RectangleOverlay.module.css` | Horizontal scan line sweeps rectangle interior in `CANDIDATE`                                                 |
+| `corner-jitter`         | `1.4s`, `steps(3)` infinite                                             | `RectangleOverlay.module.css` | Corner L-brackets jitter digitally in `CANDIDATE`                                                             |
+| `corner-stamp`          | `0.45s`, `cubic-bezier(0.34, 1.56, 0.64, 1)` `forwards`                 | `RectangleOverlay.module.css` | Corners spring-stamp into place on `MATCH_CONFIRMED`                                                          |
 
 **Easing conventions**:
 
@@ -236,8 +236,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 
 ### CRT Scan Lines
 
-- **Mechanism**: `body::after` pseudo-element; `repeating-linear-gradient` of 1px dark lines with 4px
-  transparent gaps (5px total repeat period)
+- **Mechanism**: `body::after` pseudo-element; `repeating-linear-gradient` of 1px dark lines with 3px transparent gaps (4px total repeat period)
 - **Control**: `--crt-opacity` (default `1`, set to `0` in matched state)
 - **Transition**: `opacity 1.2s ease` on body::after
 - **z-index**: 9998 (above all content)
@@ -262,7 +261,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 
 - **Mechanism**: `chromaticShift` keyframe animation on a box-shadow with offset red/blue layers
 - **Colors**: red fringe `rgba(255, 60, 0, …)`, blue fringe `rgba(0, 100, 255, …)`
-- **Activation**: event-driven (stochastic glitch timer ~once per 5 min; anniversary resonance)
+- **Activation**: reserved — keyframe not yet wired to a trigger; planned for stochastic glitch timer (~once per 5 min) and anniversary resonance (see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`)
 - **Peak values**: red offset `−3px / +3px`, blue offset `+3px / −3px` at 50% keyframe
 
 ### Background Radial Gradients
@@ -297,23 +296,23 @@ Variables modified by JavaScript at the moment of match or unmatch. The HTML att
 `data-state="matched"` is set on `<html>` by `applyConcertPalette()` and triggers the
 `html[data-state='matched']` CSS block, which cascades new values down to all components.
 
-| Variable                  | Trigger                     | Dead Signal Value           | Matched State Value                                          |
-| ------------------------- | --------------------------- | --------------------------- | ------------------------------------------------------------ |
-| `--poster-bg`             | `MATCH_CONFIRMED`           | `#0a0800`                   | Generated by `getConcertPalette()` (HSL, 5% lightness)       |
-| `--poster-primary`        | `MATCH_CONFIRMED`           | `#d4892a`                   | Generated palette primary (100% sat, 62–72% L)               |
-| `--poster-accent`         | `MATCH_CONFIRMED`           | `#b87020`                   | Generated palette accent (100% sat, 58% L)                   |
-| `--color-background`      | CSS cascade                 | `#0a0800`                   | `var(--poster-bg)`                                           |
-| `--color-main-text`       | CSS cascade                 | `#d4892a`                   | `var(--poster-primary)`                                      |
-| `--color-accent`          | CSS cascade                 | `#d4892a`                   | `var(--poster-accent)`                                       |
-| `--crt-opacity`           | CSS cascade                 | `1`                         | `0`                                                          |
-| `--texture-opacity`       | CSS cascade                 | `0.1`                       | `0`                                                          |
-| `--bg-gradient-top`       | CSS cascade                 | `rgba(212, 137, 42, 0.16)`  | `transparent`                                                |
-| `--signal-glow`           | CSS cascade                 | `rgba(212, 137, 42, 0.34)`  | `color-mix(in srgb, var(--poster-primary), transparent 66%)` |
-| `--font-family`           | CSS cascade                 | `'Space Mono' …, monospace` | `-apple-system …, sans-serif`                                |
-| `--exif-grain-opacity`    | JS (`exif-visual.ts`)       | `0.04`                      | `0.02–0.12` (ISO-driven)                                     |
-| `--exif-transition-scale` | JS (`exif-visual.ts`)       | `1`                         | `0.6–1.4` (shutter speed driven)                             |
-| `--glow-reactive-scale`   | JS (`useAudioReactiveGlow`) | `1`                         | `0.85–1.20` (bass frequency driven, `PLAYING` only)          |
-| `theme-color` meta tag    | JS (`concert-palette.ts`)   | `#000000`                   | `palette.bg` (concert background color)                      |
+| Variable                  | Trigger                     | Dead Signal Value            | Matched State Value                                              |
+| ------------------------- | --------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| `--poster-bg`             | `MATCH_CONFIRMED`           | `#0a0800`                    | Generated by `getConcertPalette()` (HSL, 5% lightness)           |
+| `--poster-primary`        | `MATCH_CONFIRMED`           | `#d4892a`                    | Generated palette primary (100% sat, 62–72% L)                   |
+| `--poster-accent`         | `MATCH_CONFIRMED`           | `#b87020`                    | Generated palette accent (100% sat, 58% L)                       |
+| `--color-background`      | CSS cascade                 | `#0a0800`                    | `var(--poster-bg)`                                               |
+| `--color-main-text`       | CSS cascade                 | `#d4892a`                    | `var(--poster-primary)`                                          |
+| `--color-accent`          | CSS cascade                 | `#d4892a`                    | `var(--poster-accent)`                                           |
+| `--crt-opacity`           | CSS cascade                 | `1`                          | `0`                                                              |
+| `--texture-opacity`       | CSS cascade                 | `0.1`                        | `0`                                                              |
+| `--bg-gradient-top`       | CSS cascade                 | `rgba(212, 137, 42, 0.16)`   | `transparent`                                                    |
+| `--signal-glow`           | CSS cascade                 | `rgba(212, 137, 42, 0.34)`   | `color-mix(in srgb, var(--poster-primary), transparent 66%)`     |
+| `--font-family`           | CSS cascade                 | `ui-monospace, 'SF Mono', …` | `-apple-system …, sans-serif`                                    |
+| `--exif-grain-opacity`    | JS (`exif-visual.ts`)       | `0.04`                       | `0.02–0.12` (ISO-driven)                                         |
+| `--exif-transition-scale` | JS (`exif-visual.ts`)       | `1`                          | `0.6–1.4` (shutter speed driven)                                 |
+| `--glow-reactive-scale`   | JS (`useAudioReactiveGlow`) | `1`                          | `0.6–1.8` text glow / `0.4–2.0` ring (bass freq, `PLAYING` only) |
+| `theme-color` meta tag    | JS (`concert-palette.ts`)   | `#000000`                    | `palette.bg` (concert background color)                          |
 
 **Mechanism**: CSS `transition: background-color 1.2s ease, color 1.2s ease` on `body`, and
 `transition: opacity 1.2s ease` on `body::after`, ensure the dead-signal → matched transition
@@ -325,15 +324,15 @@ address bar chrome adapts to the matched concert palette (Android Chrome, Safari
 
 ## 9. Responsive Breakpoints
 
-Mobile-first. All breakpoints are `max-width` media queries unless noted.
+Mobile-first. Breakpoints use `max-width` media queries except where `min-width` is explicitly noted.
 
-| Breakpoint | Width    | Notable changes                                                                          |
-| ---------- | -------- | ---------------------------------------------------------------------------------------- |
-| `xs`       | `≤360px` | EXIF metadata row hidden in concert info overlay                                         |
-| `sm`       | `≤480px` | Concert info overlay padding reduced; band name `clamp(2rem, 9vw, 4rem)`; meta `0.75rem` |
-| `md`       | `≤640px` | Settings modal: border-radius enabled, padding increases                                 |
-| `lg`       | `≤767px` | Active layout padding reduced to zero; content padding tightens                          |
-| `xl`       | `≥768px` | `--layout-content-max-width` expands `34rem → 44rem`; rectangle corners shrink `13→11px` |
+| Breakpoint | Width          | Notable changes                                                                                      |
+| ---------- | -------------- | ---------------------------------------------------------------------------------------------------- |
+| `xs`       | `≤360px`       | EXIF metadata row hidden in concert info overlay                                                     |
+| `sm`       | `≤480px`       | Concert info overlay padding reduced; band name `clamp(2rem, 9vw, 4rem)`; meta `0.75rem`             |
+| `md`       | `≥640px` (min) | Settings modal: border-radius enabled, padding increases                                             |
+| `lg`       | `≤767px`       | Active layout padding reduced to zero; content padding tightens                                      |
+| `xl`       | `≥768px` (min) | `--layout-content-max-width` expands `34rem → 44rem`; rectangle corners shrink `13→11px` at `≤768px` |
 
 Camera square size formula: `max(6rem, min(100vw − 0.5rem, --layout-content-max-width, 100svh − 8rem))`.
 
@@ -344,11 +343,11 @@ Camera square size formula: `max(6rem, min(100vw − 0.5rem, --layout-content-ma
 Implemented effects that drive CSS custom properties from runtime data. For the full backlog and
 planned effects, see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`.
 
-| Effect                 | Data Source                     | CSS Variable              | Range / Values                              | Feature Flag            |
-| ---------------------- | ------------------------------- | ------------------------- | ------------------------------------------- | ----------------------- |
-| EXIF grain intensity   | `concert.iso`                   | `--exif-grain-opacity`    | `0.02` (ISO 100) – `0.12` (ISO 3200+)       | `exif-visual-character` |
-| EXIF transition timing | `concert.shutterSpeed`          | `--exif-transition-scale` | `0.6` (1/500s fast) – `1.4` (1/30s slow)    | `exif-visual-character` |
-| Audio-reactive glow    | Bass frequency (`AnalyserNode`) | `--glow-reactive-scale`   | `0.85–1.20`; `smoothingTimeConstant = 0.85` | `audio-reactive-glow`   |
+| Effect                 | Data Source                     | CSS Variable              | Range / Values                                                | Feature Flag            |
+| ---------------------- | ------------------------------- | ------------------------- | ------------------------------------------------------------- | ----------------------- |
+| EXIF grain intensity   | `concert.iso`                   | `--exif-grain-opacity`    | `0.02` (ISO 100) – `0.12` (ISO 3200+)                         | `exif-visual-character` |
+| EXIF transition timing | `concert.shutterSpeed`          | `--exif-transition-scale` | `0.6` (1/500s fast) – `1.4` (1/30s slow)                      | `exif-visual-character` |
+| Audio-reactive glow    | Bass frequency (`AnalyserNode`) | `--glow-reactive-scale`   | text `0.6–1.8`, ring `0.4–2.0`; `smoothingTimeConstant = 0.7` | `audio-reactive-glow`   |
 
 **Rules for all environmental effects**:
 

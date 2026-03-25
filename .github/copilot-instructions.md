@@ -147,7 +147,7 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
 ### Before Starting Any Work (MANDATORY)
 
 1. Check current branch: `git status` and `git log --oneline -5`.
-2. If on `main`, create a feature branch (prefix `copilot/` or `claude/`).
+2. If on `main`, create a feature branch (prefix `copilot/`).
 3. Sync with latest `main` before planning or implementing:
    ```bash
    git fetch origin main

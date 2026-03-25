@@ -3,6 +3,8 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 * {
@@ -10,9 +12,14 @@
   padding: 0;
 }
 
+html {
+  color-scheme: dark;
+}
+
 html,
 body {
   height: 100%;
+  overscroll-behavior: none;
 }
 
 /* CSS Variables for Custom Colors */
@@ -80,7 +87,8 @@ body {
   --spacing-2xl: clamp(2rem, 4vw, 3rem);
 
   /* Typography */
-  --font-family: 'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --font-family:
+    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', 'Segoe UI Mono', monospace;
   --font-display: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
   --border-radius: 8px;
   --shadow-size: 10px;
@@ -200,9 +208,21 @@ body::after {
 #root {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   position: relative;
   z-index: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Restore selection for form controls suppressed by the #root rule above */
+#root input,
+#root textarea,
+#root select,
+#root [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Global focus styles for accessibility */

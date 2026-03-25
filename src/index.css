@@ -4,11 +4,16 @@
 *::after {
   box-sizing: border-box;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 * {
   margin: 0;
   padding: 0;
+}
+
+html {
+  color-scheme: dark;
 }
 
 html,

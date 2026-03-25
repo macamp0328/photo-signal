@@ -2,6 +2,7 @@
   "name": "Photo Signal",
   "short_name": "Photo Signal",
   "description": "A quiet, camera-based gallery that plays music when you point at a printed photo",
+  "lang": "en",
   "id": "/",
   "start_url": "/",
   "scope": "/",

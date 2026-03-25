@@ -139,6 +139,10 @@ Detailed commands and conventions: [TESTING.md](./TESTING.md).
 ## Maintenance Notes
 
 When architecture-relevant behavior changes, update this file in the same PR as code changes.
+When state machine behavior changes (app lifecycle, camera, recognition, audio states), update
+`docs/STATES_AND_DESIGN_LANGUAGE.md` in the same PR.
+When visual design tokens or CSS custom properties change, update `docs/DESIGN_SYSTEM.md` in the
+same PR.
 
 High-signal files to cross-check during updates:
 

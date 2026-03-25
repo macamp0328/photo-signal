@@ -364,6 +364,17 @@ be removed even with `--prune`.
 
 ## Agent Decision Guidelines
 
+### Before Entering Plan Mode (MANDATORY)
+
+1. Check current branch and recent history: `git status` and `git log --oneline -5`.
+2. If on `main`, create a feature branch now (prefix `claude/` or `copilot/`).
+3. Fetch and merge the latest `main` before planning:
+   ```bash
+   git fetch origin main
+   git merge origin/main
+   ```
+4. Resolve any conflicts before entering plan mode — designing against a stale branch produces plans that won't apply cleanly.
+
 ### When to Plan Before Implementing
 
 **Use plan mode (or stop and describe your approach before coding) when:**

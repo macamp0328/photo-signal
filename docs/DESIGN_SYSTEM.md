@@ -5,6 +5,9 @@
 > names and values here when discussing or specifying visual changes — they are the shared language
 > for all design work.
 
+> **See also**: `docs/STATES_AND_DESIGN_LANGUAGE.md` — canonical vocabulary for app lifecycle,
+> recognition, audio, and camera states that drive the visual transitions defined here.
+
 ---
 
 ## 1. Design Philosophy

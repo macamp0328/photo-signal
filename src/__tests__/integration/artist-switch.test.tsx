@@ -293,7 +293,8 @@ describe('Artist Audio Switch', () => {
       setMockRecognizedConcert(concertB1);
     });
     await waitFor(() => {
-      expect(screen.getByText('Artist B')).toBeInTheDocument();
+      // Artist B appears in both the concert overlay and signal strip (audio switched)
+      expect(screen.getAllByText('Artist B')[0]).toBeInTheDocument();
     });
 
     // Close Artist B details to start per-concert cooldown

@@ -149,18 +149,19 @@ All named events that drive state transitions. Use these names in tickets and de
 
 ### System / Pipeline
 
-| Event                | Source                                           | Effect                                                                         |
-| -------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `FRAME_CAPTURED`     | Recognition interval fires                       | Begins `CHECKING` cycle                                                        |
-| `QUALITY_REJECTED`   | Frame fails quality gate                         | Frame discarded; sub-status logged; recognition stays in `IDLE` or `CANDIDATE` |
-| `CANDIDATE_DETECTED` | Frame passes threshold; first match              | Recognition → `CANDIDATE`; 80 ms interval begins                               |
-| `MATCH_CONFIRMED`    | Candidate held for `recognitionDelay` (180 ms)   | Recognition → `MATCHED`; concert info and audio triggered                      |
-| `INSTANT_MATCH`      | Distance ≤ 10 bits                               | Skips delay; immediately → `MATCHED`                                           |
-| `MATCH_LOST`         | Best match changes while in `CANDIDATE`          | Tracking timer reset; new candidate begins                                     |
-| `COOLDOWN_EXPIRED`   | 2 000 ms after `CLOSE_CONCERT_INFO`              | That concert becomes eligible again                                            |
-| `SONG_ENDED`         | Howler `end` event                               | If not user-paused: auto-advance to next track                                 |
-| `NEW_ARTIST_SCANNED` | `MATCHED` band ≠ active playlist band            | New shuffled playlist built for new artist; playback switches                  |
-| `PAGE_HIDDEN`        | `visibilitychange` / `pagehide` / `beforeunload` | → `SHUTDOWN`                                                                   |
+| Event                           | Source                                                          | Effect                                                                                                                                                  |
+| ------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FRAME_CAPTURED`                | Recognition interval fires                                      | Begins `CHECKING` cycle                                                                                                                                 |
+| `QUALITY_REJECTED`              | Frame fails quality gate                                        | Frame discarded; sub-status logged; recognition stays in `IDLE` or `CANDIDATE`                                                                          |
+| `CANDIDATE_DETECTED`            | Frame passes threshold; first match                             | Recognition → `CANDIDATE`; 80 ms interval begins                                                                                                        |
+| `MATCH_CONFIRMED`               | Candidate held for `recognitionDelay` (180 ms)                  | Recognition → `MATCHED`; concert info and audio triggered                                                                                               |
+| `INSTANT_MATCH`                 | Distance ≤ 10 bits                                              | Skips delay; immediately → `MATCHED`                                                                                                                    |
+| `MATCH_LOST`                    | Best match changes while in `CANDIDATE`                         | Tracking timer reset; new candidate begins                                                                                                              |
+| `COOLDOWN_EXPIRED`              | 2 000 ms after `CLOSE_CONCERT_INFO`                             | That concert becomes eligible again                                                                                                                     |
+| `SONG_ENDED`                    | Howler `end` event                                              | If not user-paused: auto-advance to next track                                                                                                          |
+| `NEW_ARTIST_SCANNED`            | `MATCHED` band ≠ active playlist band                           | New shuffled playlist built for new artist; crossfades into first track immediately (interrupts any current playback). Plain play if nothing is active. |
+| `SAME_ARTIST_NEW_PHOTO_SCANNED` | `MATCHED` band = active playlist band, but different concert id | Advances to a different track in the current artist playlist via crossfade (or play if idle). No-op if only one track exists for the artist.            |
+| `PAGE_HIDDEN`                   | `visibilitychange` / `pagehide` / `beforeunload`                | → `SHUTDOWN`                                                                                                                                            |
 
 ---
 

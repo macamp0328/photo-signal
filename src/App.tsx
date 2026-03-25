@@ -403,7 +403,7 @@ function AppContent() {
     preload(selectedAudioUrl);
   }, [preload, activeRecognitionConcert]);
 
-  // Auto-play newly recognized concerts whenever nothing is currently playing.
+  // Auto-play newly recognized concerts, interrupting any current playback for a new match.
   useEffect(() => {
     const autoplayConcert = activeRecognitionConcert;
 
@@ -419,35 +419,57 @@ function AppContent() {
     const isNewAutoplayConcert = previousAutoplayIdRef.current !== autoplayConcert.id;
     previousAutoplayIdRef.current = autoplayConcert.id;
 
-    if (!isNewAutoplayConcert || isPlaying) {
-      return;
+    if (!isNewAutoplayConcert) {
+      return; // Same image scanned again — don't restart
     }
 
     if (!autoplayConcert.audioFile) {
       return;
     }
 
-    // Same artist is already in the active playlist — don't interrupt
-    if (autoplayConcert.band === activePlaylistBand) {
+    // Same exact concert as currently active — don't restart (handles close+rescan scenario)
+    if (autoplayConcert.id === activeConcertRef.current?.id) {
       return;
     }
 
-    // New artist: build a shuffled playlist and start from its random first track
+    userPausedRef.current = false;
+
+    // Same artist: advance to a different track in the existing playlist
+    if (autoplayConcert.band === activePlaylistBand) {
+      const nextSong = getNextTrackAfterForwardAdvance();
+      if (!nextSong?.audioFile) {
+        return; // Only one track for this artist — keep playing
+      }
+      if (isPlaying) {
+        crossfade(nextSong.audioFile);
+      } else {
+        play(nextSong.audioFile);
+      }
+      setActiveConcert(nextSong);
+      return;
+    }
+
+    // New artist: build a shuffled playlist and crossfade/play the first track
     const firstSong = startPlaylistForConcert(autoplayConcert);
     if (!firstSong) {
       return;
     }
 
-    userPausedRef.current = false;
-    play(firstSong.audioFile);
+    if (isPlaying) {
+      crossfade(firstSong.audioFile);
+    } else {
+      play(firstSong.audioFile);
+    }
     setActiveConcert(firstSong);
   }, [
     isActive,
     activeRecognitionConcert,
     isPlaying,
     play,
+    crossfade,
     activePlaylistBand,
     startPlaylistForConcert,
+    getNextTrackAfterForwardAdvance,
   ]);
 
   const handleTogglePlayback = () => {

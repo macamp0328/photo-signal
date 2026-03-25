@@ -426,9 +426,10 @@ describe('App playback flow', () => {
       screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
     ).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
-    expect(screen.getByText('Band Two')).toBeInTheDocument();
+    // Band Two now appears in both the concert overlay and the signal strip (audio switched)
+    expect(screen.getAllByText('Band Two')[0]).toBeInTheDocument();
 
-    expect(mockCrossfade).not.toHaveBeenCalled();
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
   });
 
   it('shows matched photo for newly recognized concert while another song is playing', async () => {
@@ -449,10 +450,11 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(screen.getByText('Band Two')).toBeInTheDocument();
+    // Band Two now appears in both the concert overlay and the signal strip (audio switched)
+    expect(screen.getAllByText('Band Two')[0]).toBeInTheDocument();
   });
 
-  it('does not crossfade when a different artist is recognized while playback is active', async () => {
+  it('crossfades to new artist when recognized while playback is active', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -469,7 +471,7 @@ describe('App playback flow', () => {
     recognitionState.recognizedConcert = concertTwo;
     view.rerender(<App />);
 
-    expect(mockCrossfade).not.toHaveBeenCalled();
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
   });
 
   it('closes details and resets recognition when user taps close', async () => {
@@ -950,7 +952,8 @@ describe('App playback flow', () => {
     view.rerender(<App />);
     view.rerender(<App />);
 
-    expect(screen.getByText('Band Two')).toBeInTheDocument();
+    // Band Two now appears in both the concert overlay and the signal strip (audio switched)
+    expect(screen.getAllByText('Band Two')[0]).toBeInTheDocument();
   });
 
   it('wraps playlist navigation at boundaries without resetting recognition state', async () => {
@@ -1059,6 +1062,129 @@ describe('App playback flow', () => {
     await user.click(screen.getByRole('button', { name: 'Next track' }));
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/one-b.opus');
     expect(mockPlay).not.toHaveBeenLastCalledWith('/audio/one-b.opus');
+  });
+
+  it('auto-plays new artist via crossfade when scanned while another artist is playing', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
+    expect(mockPlay).not.toHaveBeenCalledWith('/audio/two.opus');
+  });
+
+  it('does not restart when the same exact concert is re-scanned after the info panel closes', async () => {
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    // Simulate closing the info panel (resets recognition, clears previousAutoplayIdRef)
+    await user.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
+    recognitionState.recognizedConcert = null;
+    view.rerender(<App />);
+
+    // Re-scan the same photo
+    mockPlay.mockClear();
+    mockCrossfade.mockClear();
+    recognitionState.recognizedConcert = concertOne;
+    view.rerender(<App />);
+
+    expect(mockPlay).not.toHaveBeenCalled();
+    expect(mockCrossfade).not.toHaveBeenCalled();
+  });
+
+  it('advances to a different track when same-artist different-photo is scanned while playing', async () => {
+    // Band One has two tracks: concertOne (/audio/one.opus) and sameBandTrackTwo (/audio/one-b.opus)
+    // Math.random = 0.99 → playlist order [concertOne, sameBandTrackTwo], starts on concertOne
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+
+    // Now playing concertOne; scan a different photo of the same artist
+    audioState.isPlaying = true;
+    recognitionState.recognizedConcert = sameBandTrackTwo;
+    view.rerender(<App />);
+
+    // Should advance to the next track via crossfade, not restart concertOne
+    expect(mockCrossfade).toHaveBeenCalledWith('/audio/one-b.opus');
+  });
+
+  it('keeps playing when same artist has only one track and a photo of that band is scanned again', async () => {
+    vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
+      if (band === concertTwo.band) {
+        return [concertTwo];
+      }
+      return [];
+    });
+
+    const concertTwoAlt: Concert = {
+      ...concertTwo,
+      id: 999,
+      photoHashes: { phash: ['aabbccddeeff0011'] },
+    };
+
+    recognitionState.recognizedConcert = concertTwo;
+    audioState.isPlaying = false;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/two.opus');
+
+    audioState.isPlaying = true;
+    mockPlay.mockClear();
+    mockCrossfade.mockClear();
+
+    // Scan a different photo that is also by the same single-track artist
+    recognitionState.recognizedConcert = concertTwoAlt;
+    view.rerender(<App />);
+
+    // Only one track — should not crossfade or play anything new
+    expect(mockCrossfade).not.toHaveBeenCalled();
+    expect(mockPlay).not.toHaveBeenCalled();
   });
 
   it('sets data-exif-visual attribute when a concert with EXIF is matched and flag is enabled', async () => {

@@ -93,122 +93,146 @@ export function useAudioTest(): UseAudioTestReturn {
 
     const startTime = Date.now();
 
-    diagnoseAudioUrl(url).then((diagnostic) => {
-      // Ignore stale results from previous runs
-      if (!isMountedRef.current || runIdRef.current !== currentRunId) return;
+    diagnoseAudioUrl(url)
+      .then((diagnostic) => {
+        // Ignore stale results from previous runs
+        if (!isMountedRef.current || runIdRef.current !== currentRunId) return;
 
-      // If the fetch itself failed, or we got an unrecoverable HTTP status, skip playback test.
-      // Note: Some CDNs legitimately return 403/405 for HEAD while still allowing GET/streaming,
-      // so we treat those as "probe unsupported" and still attempt playback.
-      if (
-        diagnostic.httpStatus === null ||
-        (diagnostic.httpStatus >= 400 &&
-          diagnostic.httpStatus !== 403 &&
-          diagnostic.httpStatus !== 405)
-      ) {
+        // If the fetch itself failed, or we got an unrecoverable HTTP status, skip playback test.
+        // Note: Some CDNs legitimately return 403/405 for HEAD while still allowing GET/streaming,
+        // so we treat those as "probe unsupported" and still attempt playback.
+        if (
+          diagnostic.httpStatus === null ||
+          (diagnostic.httpStatus >= 400 &&
+            diagnostic.httpStatus !== 403 &&
+            diagnostic.httpStatus !== 405)
+        ) {
+          setTestResult({
+            diagnostic,
+            playbackOutcome: 'skipped',
+            playbackDetail: `Skipped playback: fetch returned ${diagnostic.httpStatus ?? 'network error'}.`,
+            durationMs: Date.now() - startTime,
+          });
+          setIsTestRunning(false);
+          return;
+        }
+
+        // Phase 2: attempt actual Howler playback
+        let settled = false;
+
+        timeoutRef.current = window.setTimeout(() => {
+          if (settled || runIdRef.current !== currentRunId) return;
+          settled = true;
+          timeoutRef.current = null;
+          if (testSoundRef.current) {
+            testSoundRef.current.unload();
+            testSoundRef.current = null;
+          }
+          if (isMountedRef.current) {
+            setTestResult({
+              diagnostic,
+              playbackOutcome: 'load-error',
+              playbackDetail: 'Timed out waiting for audio to load/play.',
+              durationMs: Date.now() - startTime,
+            });
+            setIsTestRunning(false);
+          }
+        }, TEST_PLAYBACK_TIMEOUT_MS);
+
+        const sound = new Howl({
+          src: [url],
+          html5: true,
+          preload: true,
+          volume: TEST_VOLUME,
+        });
+        testSoundRef.current = sound;
+
+        sound.on('play', () => {
+          if (settled || runIdRef.current !== currentRunId) return;
+          settled = true;
+          if (timeoutRef.current !== null) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+
+          if (isMountedRef.current) {
+            setTestResult({
+              diagnostic,
+              playbackOutcome: 'success',
+              playbackDetail: 'Audio started successfully and is now playing.',
+              durationMs: Date.now() - startTime,
+            });
+            setIsTestRunning(false);
+          }
+        });
+
+        sound.on('loaderror', (_id: number, error: unknown) => {
+          if (settled || runIdRef.current !== currentRunId) return;
+          settled = true;
+          if (timeoutRef.current !== null) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          sound.unload();
+          testSoundRef.current = null;
+
+          if (isMountedRef.current) {
+            setTestResult({
+              diagnostic,
+              playbackOutcome: 'load-error',
+              playbackDetail: buildPlaybackErrorDetail('Howler load error', error, diagnostic),
+              durationMs: Date.now() - startTime,
+            });
+            setIsTestRunning(false);
+          }
+        });
+
+        sound.on('playerror', (_id: number, error: unknown) => {
+          if (settled || runIdRef.current !== currentRunId) return;
+          settled = true;
+          if (timeoutRef.current !== null) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          sound.unload();
+          testSoundRef.current = null;
+
+          if (isMountedRef.current) {
+            setTestResult({
+              diagnostic,
+              playbackOutcome: 'play-error',
+              playbackDetail: buildPlaybackErrorDetail('Howler play error', error, diagnostic),
+              durationMs: Date.now() - startTime,
+            });
+            setIsTestRunning(false);
+          }
+        });
+
+        sound.play();
+      })
+      .catch((error: unknown) => {
+        if (!isMountedRef.current || runIdRef.current !== currentRunId) return;
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+              ? error
+              : String(error);
         setTestResult({
-          diagnostic,
+          diagnostic: {
+            httpStatus: null,
+            corsOrigin: null,
+            contentType: null,
+            contentLength: null,
+            likelyCorsIssue: false,
+            message: `diagnoseAudioUrl rejected: ${errorMessage}`,
+          },
           playbackOutcome: 'skipped',
-          playbackDetail: `Skipped playback: fetch returned ${diagnostic.httpStatus ?? 'network error'}.`,
+          playbackDetail: `diagnoseAudioUrl rejected: ${errorMessage}`,
           durationMs: Date.now() - startTime,
         });
         setIsTestRunning(false);
-        return;
-      }
-
-      // Phase 2: attempt actual Howler playback
-      let settled = false;
-
-      timeoutRef.current = window.setTimeout(() => {
-        if (settled || runIdRef.current !== currentRunId) return;
-        settled = true;
-        timeoutRef.current = null;
-        if (testSoundRef.current) {
-          testSoundRef.current.unload();
-          testSoundRef.current = null;
-        }
-        if (isMountedRef.current) {
-          setTestResult({
-            diagnostic,
-            playbackOutcome: 'load-error',
-            playbackDetail: 'Timed out waiting for audio to load/play.',
-            durationMs: Date.now() - startTime,
-          });
-          setIsTestRunning(false);
-        }
-      }, TEST_PLAYBACK_TIMEOUT_MS);
-
-      const sound = new Howl({
-        src: [url],
-        html5: true,
-        preload: true,
-        volume: TEST_VOLUME,
       });
-      testSoundRef.current = sound;
-
-      sound.on('play', () => {
-        if (settled || runIdRef.current !== currentRunId) return;
-        settled = true;
-        if (timeoutRef.current !== null) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-
-        if (isMountedRef.current) {
-          setTestResult({
-            diagnostic,
-            playbackOutcome: 'success',
-            playbackDetail: 'Audio started successfully and is now playing.',
-            durationMs: Date.now() - startTime,
-          });
-          setIsTestRunning(false);
-        }
-      });
-
-      sound.on('loaderror', (_id: number, error: unknown) => {
-        if (settled || runIdRef.current !== currentRunId) return;
-        settled = true;
-        if (timeoutRef.current !== null) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        sound.unload();
-        testSoundRef.current = null;
-
-        if (isMountedRef.current) {
-          setTestResult({
-            diagnostic,
-            playbackOutcome: 'load-error',
-            playbackDetail: buildPlaybackErrorDetail('Howler load error', error, diagnostic),
-            durationMs: Date.now() - startTime,
-          });
-          setIsTestRunning(false);
-        }
-      });
-
-      sound.on('playerror', (_id: number, error: unknown) => {
-        if (settled || runIdRef.current !== currentRunId) return;
-        settled = true;
-        if (timeoutRef.current !== null) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        sound.unload();
-        testSoundRef.current = null;
-
-        if (isMountedRef.current) {
-          setTestResult({
-            diagnostic,
-            playbackOutcome: 'play-error',
-            playbackDetail: buildPlaybackErrorDetail('Howler play error', error, diagnostic),
-            durationMs: Date.now() - startTime,
-          });
-          setIsTestRunning(false);
-        }
-      });
-
-      sound.play();
-    });
   }, []);
 
   const resetTest = useCallback(() => {

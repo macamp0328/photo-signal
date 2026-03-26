@@ -391,4 +391,20 @@ describe('useAudioTest', () => {
 
     expect(result.current.isTestRunning).toBe(false);
   });
+
+  it('should reset running state when diagnoseAudioUrl rejects', async () => {
+    vi.mocked(diagnoseAudioUrl).mockRejectedValue(new Error('network'));
+
+    const { result } = renderHook(() => useAudioTest());
+
+    await act(async () => {
+      result.current.runTest(testUrl);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(result.current.isTestRunning).toBe(false);
+    expect(result.current.testResult).not.toBeNull();
+    expect(result.current.testResult!.playbackOutcome).toBe('skipped');
+    expect(result.current.testResult!.playbackDetail).toContain('network');
+  });
 });

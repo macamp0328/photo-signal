@@ -101,6 +101,27 @@ describe('recognition-index-service', () => {
     );
   });
 
+  it('rejects when fetch() throws a network error (#464)', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('network'));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await expect(getRecognitionIndexEntries()).rejects.toThrow('network');
+  });
+
+  it('issues a fresh fetch on retry after network rejection (#464)', async () => {
+    const payload = { version: 2 as const, entries: [{ concertId: 7, phash: ['abc'] }] };
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(makeResponse(payload));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await expect(getRecognitionIndexEntries()).rejects.toThrow('network');
+    const entries = await getRecognitionIndexEntries();
+    expect(entries).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('prepends seeded hash and logs info when DEV fake camera clips are configured', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
@@ -128,6 +149,20 @@ describe('recognition-index-service', () => {
     expect(infoSpy).toHaveBeenCalledWith(
       '[dev] recognition hash seeded for concertId=7 from localStorage.__dev_fakeCamera'
     );
+  });
+
+  it('prepends seeded hash for single-clip { concertId, hash } config (#465)', async () => {
+    localStorage.setItem('__dev_fakeCamera', JSON.stringify({ concertId: 7, hash: 'seeded' }));
+
+    const payload = {
+      version: 2 as const,
+      entries: [{ concertId: 7, phash: ['old-a', 'old-b'] }],
+    };
+    const fetchMock = vi.fn().mockResolvedValue(makeResponse(payload));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    const entries = await getRecognitionIndexEntries();
+    expect(entries[0].phash[0]).toBe('seeded');
   });
 
   it('ignores malformed DEV fake camera config without failing load', async () => {

@@ -41,6 +41,11 @@ const DebugOverlay = lazy(async () => {
   return { default: module.DebugOverlay };
 });
 
+const PowerOnIntro = lazy(async () => {
+  const module = await import('./modules/power-on-intro');
+  return { default: module.PowerOnIntro };
+});
+
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
 const DETAILS_RECOGNITION_COOLDOWN_MS = 2000;
@@ -134,6 +139,11 @@ function DevFakeCameraBadge() {
 }
 
 function AppContent() {
+  const [hasPoweredOn, setHasPoweredOn] = useState(() => import.meta.env.MODE === 'test');
+  const [hasCompletedPowerOnIntro, setHasCompletedPowerOnIntro] = useState(
+    () => import.meta.env.MODE === 'test'
+  );
+
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -262,6 +272,7 @@ function AppContent() {
 
   // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
+  const shouldShowPowerOnIntro = isEnabled('power-on-intro');
 
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
@@ -650,11 +661,22 @@ function AppContent() {
     setIsActive(true);
   };
 
+  const handlePowerOn = useCallback(() => {
+    setHasPoweredOn(true);
+    if (!shouldShowPowerOnIntro) {
+      setHasCompletedPowerOnIntro(true);
+    }
+  }, [shouldShowPowerOnIntro]);
+
+  const handlePowerOnIntroComplete = useCallback(() => {
+    setHasCompletedPowerOnIntro(true);
+  }, []);
+
   // Keep the screen on while the camera experience is active.
   // The OS automatically releases wake locks when the document is hidden, so
   // re-acquire on visibilitychange → visible if the user switches back.
   useEffect(() => {
-    if (!isActive || !('wakeLock' in navigator)) return;
+    if (!isActive || typeof navigator.wakeLock?.request !== 'function') return;
     let sentinel: WakeLockSentinel | null = null;
 
     const acquire = () => {
@@ -1066,9 +1088,37 @@ function AppContent() {
     }
   }, [forceMatch]);
 
+  const showPowerGate = !hasPoweredOn;
+  const showPowerOnIntro = hasPoweredOn && !hasCompletedPowerOnIntro && shouldShowPowerOnIntro;
+
+  if (showPowerGate) {
+    return (
+      <main className={styles.powerGate} aria-label="Power on screen">
+        <button
+          type="button"
+          className={styles.powerGateButton}
+          onClick={handlePowerOn}
+          aria-label="Turn On"
+        >
+          Turn On
+        </button>
+      </main>
+    );
+  }
+
+  if (showPowerOnIntro) {
+    return (
+      <Suspense
+        fallback={<main className={styles.powerGate} aria-label="Power-on intro loading" />}
+      >
+        <PowerOnIntro onComplete={handlePowerOnIntroComplete} />
+      </Suspense>
+    );
+  }
+
   return (
     <>
-      {hasDataError && !isActive && (
+      {hasDataError && !isActive && hasCompletedPowerOnIntro && (
         <div className={styles.dataErrorBanner} role="alert">
           Unable to load gallery data. Check your connection and refresh.
         </div>

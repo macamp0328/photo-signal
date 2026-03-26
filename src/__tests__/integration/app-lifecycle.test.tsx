@@ -6,26 +6,32 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from '../../App';
 import { setupBrowserMocks, createMockMediaStream } from './setup';
 
 const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
+const env = import.meta.env as Record<string, string | undefined>;
+const originalMode = env.MODE;
+
+const disablePowerOnIntro = () => {
+  localStorage.setItem(
+    FEATURE_FLAGS_STORAGE_KEY,
+    JSON.stringify([{ id: 'power-on-intro', enabled: false }])
+  );
+};
 
 describe('App Lifecycle Integration', () => {
   beforeEach(() => {
     setupBrowserMocks();
     vi.clearAllMocks();
+    env.MODE = originalMode;
   });
 
   it('should render app structure on mount', () => {
     render(<App />);
 
-    // Verify app renders successfully with landing page
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
-    ).toBeInTheDocument();
   });
 
   it('should accept concert data from mocked fetch', () => {
@@ -66,7 +72,6 @@ describe('App Lifecycle Integration', () => {
 
     render(<App />);
 
-    // Verify app renders successfully with custom data
     expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
   });
 
@@ -100,6 +105,19 @@ describe('App Lifecycle Integration', () => {
 
     // Camera should not be requested until user activates
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
+  });
+
+  it('should hand off from Turn On to landing when the intro is disabled', async () => {
+    env.MODE = 'production';
+    disablePowerOnIntro();
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Turn On' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
+    });
   });
 
   it('should initialize with localStorage data when available', () => {

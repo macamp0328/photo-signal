@@ -24,12 +24,14 @@ three.
 
 The top-level mode the application is in. Only one can be active at a time.
 
-| State      | Trigger In                                        | Trigger Out                            | Description                                                               |
-| ---------- | ------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------- |
-| `LOCKED`   | App loads; access gate enabled + no valid session | User enters correct passcode           | Passcode entry screen. Nothing else is visible.                           |
-| `LANDING`  | App loads (no gate); or `SHUTDOWN` completes      | `TUNE_IN`                              | "Still Broadcasting" headline. Camera off.                                |
-| `ACTIVE`   | `TUNE_IN`                                         | `PAGE_HIDDEN` → `SHUTDOWN`             | Camera on; recognition running; experience live.                          |
-| `SHUTDOWN` | Tab hidden, page unloads, or app backgrounded     | (Immediately transitions to `LANDING`) | Teardown: audio stopped, timers cleared, camera stopped, all state reset. |
+| State        | Trigger In                                                                  | Trigger Out                            | Description                                                               |
+| ------------ | --------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------- |
+| `LOCKED`     | App loads; access gate enabled + no valid session                           | User enters correct passcode           | Passcode entry screen. Nothing else is visible.                           |
+| `POWER_GATE` | App loads without gate; or `LOCKED` completes                               | `TURN_ON`                              | Minimal post-unlock power button. Establishes the first user gesture.     |
+| `INTRO`      | `TURN_ON`                                                                   | `INTRO_COMPLETE`                       | Old-TV startup sequence. Camera off; audio limited to the startup effect. |
+| `LANDING`    | `INTRO_COMPLETE`; or `TURN_ON` when intro disabled; or `SHUTDOWN` completes | `TUNE_IN`                              | "Still Broadcasting" headline. Camera off.                                |
+| `ACTIVE`     | `TUNE_IN`                                                                   | `PAGE_HIDDEN` → `SHUTDOWN`             | Camera on; recognition running; experience live.                          |
+| `SHUTDOWN`   | Tab hidden, page unloads, or app backgrounded                               | (Immediately transitions to `LANDING`) | Teardown: audio stopped, timers cleared, camera stopped, all state reset. |
 
 ---
 
@@ -114,6 +116,8 @@ Named panels and their visibility conditions. Panels stack on top of the camera 
 | Panel                     | Visible When                               | Hidden When                                           |
 | ------------------------- | ------------------------------------------ | ----------------------------------------------------- |
 | `AccessGate`              | App lifecycle is `LOCKED`                  | Passcode accepted                                     |
+| `PowerGateScreen`         | App lifecycle is `POWER_GATE`              | `TURN_ON`                                             |
+| `PowerOnIntro`            | App lifecycle is `INTRO`                   | `INTRO_COMPLETE`                                      |
 | `LandingScreen`           | App lifecycle is `LANDING`                 | `TUNE_IN`                                             |
 | `CameraFeed`              | `ACTIVE` + recognition not `MATCHED`       | Concert info visible                                  |
 | `ConcertInfoOverlay`      | Recognition is `MATCHED`                   | `CLOSE_CONCERT_INFO`                                  |
@@ -135,6 +139,8 @@ All named events that drive state transitions. Use these names in tickets and de
 
 | Event                | Source                              | Effect                                                         |
 | -------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| `TURN_ON`            | Tap `Turn On` on `PowerGateScreen`  | App → `INTRO`; unlocks startup audio/visual boot sequence      |
+| `INTRO_COMPLETE`     | `PowerOnIntro` timer finishes       | App → `LANDING`                                                |
 | `TUNE_IN`            | Tap "Tune in" on `LandingScreen`    | App → `ACTIVE`; camera starts                                  |
 | `CLOSE_CONCERT_INFO` | Tap "↩ scan another"                | Hides `ConcertInfoOverlay`; starts `COOLDOWN` for that concert |
 | `TAP_PHOTO`          | Tap `ScannedPhoto`                  | Opens `ZoomDialog`                                             |
@@ -190,6 +196,7 @@ Controlled via `SecretSettings` menu. Persisted in localStorage as `photo-signal
 
 | ID                      | Label                        | Category     | Default | Effect                                                                                                                                  |
 | ----------------------- | ---------------------------- | ------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `power-on-intro`        | Power-On Intro               | ui           | `true`  | After pressing `Turn On`, plays the old-TV startup sequence before handing off to the `LANDING` greeting screen                         |
 | `exif-visual-character` | EXIF Visual Character        | ui           | `true`  | ISO drives grain intensity; shutter speed drives reveal animation speed (aperture is displayed in UI but does not drive a CSS variable) |
 | `rectangle-detection`   | Dynamic Rectangle Detection  | experimental | `true`  | Detects photo boundary in frame; crops to detected edges; shows framing overlay                                                         |
 | `show-debug-overlay`    | Debug Overlay                | development  | `false` | Shows `DebugOverlay` panel with live recognition telemetry                                                                              |

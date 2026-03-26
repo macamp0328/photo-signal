@@ -10,6 +10,14 @@ import type { FeatureFlag } from './types';
 
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
+    id: 'power-on-intro',
+    name: 'Power-On Intro',
+    description:
+      'After the passcode gate or first load, pressing Turn On plays the old-TV startup sequence before the Still Broadcasting landing screen appears.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
     id: 'exif-visual-character',
     name: 'EXIF Visual Character',
     description:

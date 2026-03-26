@@ -1,0 +1,252 @@
+.root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+}
+
+.screen {
+  position: relative;
+  width: min(100vw, 100vh);
+  height: min(100vw, 100vh);
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      color-mix(in srgb, var(--color-main-text), transparent 88%),
+      transparent 48%
+    ),
+    #000;
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.95),
+    0 0 60px color-mix(in srgb, var(--signal-glow), transparent 55%);
+  transition:
+    transform 1.1s ease,
+    opacity 1.1s ease,
+    filter 1.1s ease,
+    background 1.1s ease;
+}
+
+.flash,
+.vignette,
+.centerLine,
+.scanField,
+.glowOrb,
+.caption {
+  position: absolute;
+  inset: 0;
+}
+
+.flash {
+  background: #fff7dc;
+  opacity: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.vignette {
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 38%,
+      rgba(0, 0, 0, 0.55) 72%,
+      rgba(0, 0, 0, 0.88) 100%
+    ),
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.24));
+}
+
+.centerLine {
+  top: 50%;
+  bottom: auto;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #fff5cf 25%, #fff 50%, #fff5cf 75%, transparent);
+  opacity: 0;
+  transform: translateY(-50%) scaleX(0.12);
+  box-shadow:
+    0 0 10px rgba(255, 245, 207, 0.8),
+    0 0 20px rgba(255, 245, 207, 0.35);
+  transition:
+    opacity 0.35s ease,
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scanField {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18) 0,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  opacity: 0;
+  transform: translateY(-2%);
+  animation: drift 3.8s linear infinite;
+}
+
+.glowOrb {
+  inset: 28% 28%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 239, 194, 0.88) 0,
+    rgba(212, 137, 42, 0.24) 28%,
+    transparent 68%
+  );
+  opacity: 0;
+  transform: scale(0.25);
+  filter: blur(12px);
+  transition:
+    opacity 1.2s ease,
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.caption {
+  inset: auto 0 14%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s ease;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 8vw, 5.8rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-main-text);
+  text-shadow:
+    0 0 16px var(--signal-glow),
+    0 0 34px var(--signal-glow-soft);
+}
+
+.status {
+  font-family: var(--font-family);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-main-text), transparent 12%);
+}
+
+.black .screen {
+  opacity: 0.2;
+  transform: scale(0.98);
+  filter: saturate(0);
+}
+
+.flare .flash {
+  animation: ignition-flash 1.6s steps(1) forwards;
+}
+
+.flare .screen {
+  opacity: 1;
+  transform: scaleY(0.16) scaleX(0.98);
+  filter: brightness(1.8) contrast(1.25);
+}
+
+.flare .centerLine {
+  opacity: 1;
+  transform: translateY(-50%) scaleX(0.92);
+}
+
+.warm .screen {
+  opacity: 1;
+  transform: scale(1);
+  filter: brightness(1.08);
+}
+
+.warm .centerLine {
+  opacity: 0.2;
+  transform: translateY(-50%) scaleX(1);
+}
+
+.warm .scanField {
+  opacity: 0.44;
+}
+
+.warm .glowOrb {
+  opacity: 0.9;
+  transform: scale(1);
+}
+
+.tune .screen,
+.handoff .screen {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.tune .scanField,
+.handoff .scanField {
+  opacity: 0.32;
+}
+
+.tune .glowOrb,
+.handoff .glowOrb {
+  opacity: 0.72;
+  transform: scale(1.1);
+}
+
+.tune .caption,
+.handoff .caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.handoff {
+  animation: handoff-fade 2.4s ease forwards;
+}
+
+@keyframes ignition-flash {
+  0% {
+    opacity: 0;
+  }
+
+  6% {
+    opacity: 0.95;
+  }
+
+  14% {
+    opacity: 0.12;
+  }
+
+  24% {
+    opacity: 0.88;
+  }
+
+  34% {
+    opacity: 0.18;
+  }
+
+  48% {
+    opacity: 0.62;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateY(-3%);
+  }
+
+  to {
+    transform: translateY(3%);
+  }
+}
+
+@keyframes handoff-fade {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}

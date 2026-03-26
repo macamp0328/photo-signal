@@ -19,6 +19,10 @@ complete with CRT scan lines, phosphor glow, and signal stutter. At the moment o
 switches to a per-concert color derived from the band and the day they played, scan lines fade out,
 and the concert info reveals like a poster being illuminated.
 
+Before the greeting screen, the boot sequence now includes a **machine power-on ritual**: a minimal
+`Turn On` screen followed by an old-TV startup sequence that warms into the existing landing state.
+That sequence should still read as part of the same dead-signal world, not as a separate theme.
+
 This identity is **load-bearing**. CRT scan lines, phosphor glow, chromatic aberration, and the
 matched-state palette transition are intentional design choices, not candidates for simplification.
 Environmental signals (time, EXIF, audio) are used to make the experience feel alive and

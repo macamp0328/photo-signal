@@ -1,24 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App, { AppErrorBoundary } from './App';
 import { dataService } from './services/data-service';
 
+const FEATURE_FLAGS_STORAGE_KEY = 'photo-signal-feature-flags';
+const env = import.meta.env as Record<string, string | undefined>;
+const originalMode = env.MODE;
+
+const disablePowerOnIntro = () => {
+  window.localStorage.setItem(
+    FEATURE_FLAGS_STORAGE_KEY,
+    JSON.stringify([{ id: 'power-on-intro', enabled: false }])
+  );
+};
+
 // Mock browser APIs
 beforeEach(() => {
   // Reset DataService cache so each test gets a fresh fetch
   dataService.clearCache();
+  window.localStorage.clear();
+
+  const mockStream = new MediaStream();
 
   // Mock MediaDevices API
   Object.defineProperty(navigator, 'mediaDevices', {
     writable: true,
     value: {
-      getUserMedia: vi.fn().mockResolvedValue({
-        getTracks: () => [],
-        getVideoTracks: () => [],
-      }),
+      getUserMedia: vi.fn().mockResolvedValue(mockStream),
     },
   });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  env.MODE = originalMode;
 });
 
 // Helper to render app
@@ -68,22 +84,34 @@ describe('App', () => {
     const { container } = renderApp();
     // Basic smoke test - if we get here, the app rendered successfully
     expect(container).toBeDefined();
-    expect(container.querySelector('div')).toBeTruthy();
+    expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
   });
 
-  it('shows landing page initially', () => {
+  it('shows the power gate initially in production mode', () => {
+    env.MODE = 'production';
     renderApp();
-    // Check for landing page elements
+
+    expect(screen.getByRole('button', { name: 'Turn On' })).toBeTruthy();
+    expect(screen.queryByText(/Broadcasting/i)).toBeNull();
+  });
+
+  it('skips the intro when the power-on intro flag is disabled', async () => {
+    env.MODE = 'production';
+    disablePowerOnIntro();
+    const user = userEvent.setup();
+
+    renderApp();
+
+    await user.click(screen.getByRole('button', { name: 'Turn On' }));
+
     expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
-    expect(screen.getByText(/some photographs never stopped/i)).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
-    ).toBeTruthy();
+    expect(screen.queryByLabelText('Power-on intro')).toBeNull();
   });
 
   it('shows data error banner when gallery data fails to load', async () => {
     vi.spyOn(dataService, 'getConcerts').mockRejectedValueOnce(new Error('network error'));
     renderApp();
+
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeTruthy();
     });

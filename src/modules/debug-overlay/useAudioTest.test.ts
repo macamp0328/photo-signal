@@ -403,6 +403,8 @@ describe('useAudioTest', () => {
     });
 
     expect(result.current.isTestRunning).toBe(false);
-    expect(result.current.testResult).toBeNull();
+    expect(result.current.testResult).not.toBeNull();
+    expect(result.current.testResult!.playbackOutcome).toBe('skipped');
+    expect(result.current.testResult!.playbackDetail).toContain('network');
   });
 });

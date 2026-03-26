@@ -210,8 +210,27 @@ export function useAudioTest(): UseAudioTestReturn {
 
         sound.play();
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (!isMountedRef.current || runIdRef.current !== currentRunId) return;
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+              ? error
+              : String(error);
+        setTestResult({
+          diagnostic: {
+            httpStatus: null,
+            corsOrigin: null,
+            contentType: null,
+            contentLength: null,
+            likelyCorsIssue: false,
+            message: `diagnoseAudioUrl rejected: ${errorMessage}`,
+          },
+          playbackOutcome: 'skipped',
+          playbackDetail: `diagnoseAudioUrl rejected: ${errorMessage}`,
+          durationMs: Date.now() - startTime,
+        });
         setIsTestRunning(false);
       });
   }, []);

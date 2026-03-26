@@ -15,7 +15,7 @@ usePhotoRecognition(
 ): PhotoRecognitionHook
 ```
 
-`PhotoRecognitionHook` members: `recognizedConcert`, `isRecognizing`, `debugInfo`, `reset()`
+`PhotoRecognitionHook` members: `recognizedConcert`, `isRecognizing`, `reset()`, `resetTelemetry()`, `forceMatch()`, `debugInfo`, `frameQuality`, `detectedRectangle`, `rectangleConfidence`, `indexLoadFailed`
 
 ```ts
 calculateFramedRegion(

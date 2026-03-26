@@ -167,7 +167,13 @@ function AppContent() {
   const [dataLoadError, setDataLoadError] = useState(false);
 
   useEffect(() => {
-    dataService.getConcerts().catch(() => setDataLoadError(true));
+    let isCancelled = false;
+    dataService.getConcerts().catch(() => {
+      if (!isCancelled) setDataLoadError(true);
+    });
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   // Playlist bookkeeping — stored in refs because these values are never rendered;
@@ -1191,7 +1197,10 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+export class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  ErrorBoundaryState
+> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };

@@ -385,10 +385,13 @@ function AppContent() {
 
   // Effect: Song-Progress Scan Lines
   // As progress approaches 1, faintly restore scan lines (max +0.12 opacity).
-  // Directly modulates --crt-opacity, which applyConcertPalette sets to 0 in matched state.
-  // resetToDeadSignal restores it to 1 on unmatch — state machine remains intact.
+  // Directly modulates --crt-opacity on the root element while the matched-state CSS
+  // (html[data-state='matched'] in src/index.css) sets its baseline to 0; when this
+  // effect cleans up, control returns to the CSS-driven state machine.
+  // Gated on activeRecognitionConcert (not activeConcert) so it only runs in matched
+  // state — activeConcert persists while audio plays even after recognition resets.
   useEffect(() => {
-    if (!isEnabled('song-progress-scanlines') || !isPlaying || !activeConcert) {
+    if (!isEnabled('song-progress-scanlines') || !isPlaying || !activeRecognitionConcert) {
       document.documentElement.style.removeProperty('--crt-opacity');
       return;
     }
@@ -396,7 +399,7 @@ function AppContent() {
     return () => {
       document.documentElement.style.removeProperty('--crt-opacity');
     };
-  }, [progress, isPlaying, activeConcert, isEnabled]);
+  }, [progress, isPlaying, activeRecognitionConcert, isEnabled]);
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {

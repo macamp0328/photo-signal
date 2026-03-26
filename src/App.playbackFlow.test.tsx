@@ -1277,4 +1277,49 @@ describe('App playback flow', () => {
     const allCalls = mockGlow.mock.calls;
     expect(allCalls.some(([, isEnabled]) => isEnabled === true)).toBe(true);
   });
+
+  it('sets --crt-opacity when song-progress-scanlines flag is enabled, playing, and matched', () => {
+    enabledFlags.add('song-progress-scanlines');
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = true;
+    audioState.progress = 0.5;
+
+    render(<App />);
+
+    // 0.5 * 0.12 = 0.060
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.060');
+  });
+
+  it('does not set --crt-opacity when song-progress-scanlines flag is disabled', () => {
+    // flag intentionally absent
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = true;
+    audioState.progress = 0.8;
+
+    render(<App />);
+
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+  });
+
+  it('does not set --crt-opacity when not playing', () => {
+    enabledFlags.add('song-progress-scanlines');
+    recognitionState.recognizedConcert = concertOne;
+    audioState.isPlaying = false;
+    audioState.progress = 0.8;
+
+    render(<App />);
+
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+  });
+
+  it('does not set --crt-opacity when recognition is not matched (guards against dead-signal suppression)', () => {
+    enabledFlags.add('song-progress-scanlines');
+    recognitionState.recognizedConcert = null; // unmatched — activeConcert may still be set from prior play
+    audioState.isPlaying = true;
+    audioState.progress = 0.9;
+
+    render(<App />);
+
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+  });
 });

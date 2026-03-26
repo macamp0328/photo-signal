@@ -101,7 +101,7 @@ describe('recognition-index-service', () => {
     );
   });
 
-  it('supports DEV fake camera clips seeding when enabled', async () => {
+  it('prepends seeded hash and logs info when DEV fake camera clips are configured', async () => {
     const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     localStorage.setItem(
@@ -123,14 +123,11 @@ describe('recognition-index-service', () => {
 
     const entries = await getRecognitionIndexEntries();
 
-    if (import.meta.env.DEV) {
-      expect(entries[0].phash).toEqual(['seeded', 'old-a', 'old-b']);
-      expect(infoSpy).toHaveBeenCalledWith(
-        '[dev] recognition hash seeded for concertId=7 from localStorage.__dev_fakeCamera'
-      );
-    } else {
-      expect(entries[0].phash).toEqual(['old-a', 'seeded', 'old-b']);
-    }
+    // Tests always run with import.meta.env.DEV === true, so the seeding branch is always active.
+    expect(entries[0].phash).toEqual(['seeded', 'old-a', 'old-b']);
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[dev] recognition hash seeded for concertId=7 from localStorage.__dev_fakeCamera'
+    );
   });
 
   it('ignores malformed DEV fake camera config without failing load', async () => {

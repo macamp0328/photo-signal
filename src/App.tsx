@@ -984,7 +984,6 @@ function AppContent() {
           onError={() => setHasScannedPhotoLoadFailed(true)}
         />
       </button>
-      <InfoDisplay concert={infoConcert} isVisible={!!infoConcert} />
     </div>
   ) : shouldShowPhotoPlaceholder ? (
     <div className={styles.scannedPhotoFrame} aria-label="Matched photo placeholder">
@@ -1027,7 +1026,8 @@ function AppContent() {
         isMatchedPhoto={shouldShowScannedPhoto}
         aboveCameraSlot={
           shouldShowScannedPhoto && infoConcert ? (
-            <div className={styles.scanAnotherBar}>
+            <div className={styles.matchedPhotoHeader}>
+              <InfoDisplay concert={infoConcert} isVisible={true} />
               <button
                 type="button"
                 className={styles.closePhotoButton}

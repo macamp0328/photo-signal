@@ -1,6 +1,6 @@
 # Concert Info
 
-Displays concert metadata (band, venue, date, song title) as a styled overlay once a photo is matched.
+Displays concert metadata (band, venue, date, EXIF) as a caption strip above the matched photo.
 
 ## API
 
@@ -31,5 +31,5 @@ Displays concert metadata (band, venue, date, song title) as a styled overlay on
 ## Key Files
 
 - `InfoDisplay.tsx` — component
-- `InfoDisplay.module.css` — overlay layout and typography
+- `InfoDisplay.module.css` — caption strip layout and typography
 - `types.ts` — `InfoDisplayProps`

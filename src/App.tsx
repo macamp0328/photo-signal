@@ -9,7 +9,7 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
 import { useAudioPlayback, useAudioReactiveGlow } from './modules/audio-playback';
@@ -917,8 +917,7 @@ function AppContent() {
         </div>
         <button
           type="button"
-          className={styles.signalPlayBtn}
-          style={{ '--progress-deg': `${progress * 360}deg` } as CSSProperties}
+          className={`${styles.signalPlayBtn} ${isPlaying ? styles.signalPlayBtnPlaying : ''}`}
           onClick={handleTogglePlayback}
           aria-label={
             isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
@@ -936,6 +935,16 @@ function AppContent() {
             ⏭
           </button>
         ) : null}
+      </div>
+      <div
+        className={styles.signalProgress}
+        role="progressbar"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Song progress"
+      >
+        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
       </div>
     </section>
   ) : null;

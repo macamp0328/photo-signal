@@ -41,4 +41,12 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     enabled: true,
     category: 'audio',
   },
+  {
+    id: 'song-progress-scanlines',
+    name: 'Song-Progress Scan Lines',
+    description:
+      'As a song plays toward its end, scan lines faintly return — the broadcast fades as the audio arc closes. Opacity increases from 0 to a max of +0.12 as progress approaches 1.',
+    enabled: true,
+    category: 'audio',
+  },
 ];

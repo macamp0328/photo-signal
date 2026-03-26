@@ -2,10 +2,7 @@
 
 .signalStrip {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0 0.85rem;
+  flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom, 0);
   background: color-mix(in srgb, var(--color-background), #000 10%);
   border-top: 1px solid color-mix(in srgb, var(--color-accent), transparent 75%);
@@ -13,115 +10,196 @@
   transition: background-color 1.2s ease;
 }
 
+.signalStripTop {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  padding: 0.95rem 0.9rem 0.8rem;
+}
+
 .signalArt {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 4rem;
+  height: 4rem;
   object-fit: cover;
   flex-shrink: 0;
   display: block;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-accent), transparent 65%),
-    0 0 8px color-mix(in srgb, var(--color-main-text), transparent 75%);
+    0 0 0 1px color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 50%),
+    0 0 calc(6px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 30%),
+    0 0 calc(14px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 60%);
+  transition: box-shadow 0.3s ease;
 }
 
-.signalToggle {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.signalMeta {
   flex: 1;
   min-width: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-  min-height: 2.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
 }
 
-.signalToggle:focus-visible {
-  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
-  outline-offset: 2px;
-}
-
-.signalDot {
-  font-size: 0.75rem;
-  color: var(--color-accent);
-  flex-shrink: 0;
-  font-family: var(--font-family);
-  line-height: 1;
-  width: 1em;
-  text-align: center;
-  display: inline-block;
+.signalTitle {
+  font-size: 0.95rem;
+  font-family: var(--font-display);
+  color: var(--color-main-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
   text-shadow:
-    0 0 calc(6px * var(--glow-reactive-scale-ring)) var(--signal-glow),
-    0 0 calc(16px * var(--glow-reactive-scale-ring)) var(--signal-glow-soft);
+    0 0 calc(8px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--color-main-text)), transparent 50%),
+    0 0 calc(20px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 78%);
   transition: color 1.2s ease;
 }
 
-.signalDotPlaying {
-  animation: signalPulse 1.8s ease-in-out infinite;
-}
-
 .signalBand {
-  font-size: 0.8rem;
-  color: var(--color-main-text);
+  font-size: 0.7rem;
+  color: color-mix(in srgb, var(--color-main-text), transparent 20%);
   font-family: var(--font-family);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.04em;
   text-shadow:
-    0 0 calc(8px * var(--glow-reactive-scale))
+    0 0 calc(6px * var(--glow-reactive-scale))
       color-mix(in srgb, var(--color-main-text), transparent 70%),
-    0 0 calc(18px * var(--glow-reactive-scale))
+    0 0 calc(14px * var(--glow-reactive-scale))
       color-mix(in srgb, var(--color-accent), transparent 84%);
   transition: color 1.2s ease;
 }
 
-.signalNav {
-  display: flex;
-  flex-shrink: 0;
-}
-
-.signalNavBtn {
-  background: color-mix(in srgb, var(--color-main-text), transparent 88%);
-  border: 1px solid color-mix(in srgb, var(--color-main-text), transparent 25%);
-  border-radius: 4px;
+.signalPlayBtn {
+  /* Ghost circle when paused — fill activates on playing state below */
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  border: 1.5px solid
+    color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 30%);
+  background: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 94%);
   color: var(--color-main-text);
-  font-size: 1.6rem;
+  font-size: 1.25rem;
   font-family: var(--font-family);
+  line-height: 1;
   cursor: pointer;
-  min-height: 2.75rem;
-  min-width: 2.75rem;
-  padding: 0 0.3rem;
+  padding: 0;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    0 0 calc(8px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 55%),
+    0 0 calc(20px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 70%);
+  text-shadow:
+    0 0 calc(7px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow)),
+    0 0 calc(16px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 45%);
   transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.08s ease-out;
 }
 
-.signalNavBtn:hover {
-  color: #fff;
-  border-color: color-mix(in srgb, var(--color-main-text), transparent 10%);
-  background-color: color-mix(in srgb, var(--color-main-text), transparent 75%);
+/* Filled state when playing — visually unmistakable from paused */
+.signalPlayBtnPlaying {
+  color: var(--color-background); /* dark bg for contrast against filled circle */
+  background: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 60%);
+  border-color: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 10%);
+  box-shadow:
+    0 0 calc(10px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 22%),
+    0 0 calc(24px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 48%),
+    inset 0 0 calc(6px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 60%);
 }
 
-.signalNavBtn:focus-visible {
+.signalPlayBtn:active {
+  transform: scale(0.91);
+}
+
+.signalPlayBtn:focus-visible {
   outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
-  outline-offset: 2px;
+  outline-offset: 4px;
 }
 
-@keyframes signalPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
+/* Nudge applied conditionally via inline style on ▶ only; ⏸ is already centred */
+.signalPlayBtnIcon {
+  display: block;
+}
+
+.signalNextBtn {
+  /* Phosphor circle — secondary companion, monochrome */
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--color-main-text), transparent 45%);
+  background: color-mix(in srgb, var(--color-main-text), transparent 92%);
+  color: var(--color-main-text);
+  font-size: 1.05rem;
+  font-family: var(--font-family);
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 calc(5px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 72%),
+    0 0 calc(12px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 84%);
+  text-shadow:
+    0 0 calc(5px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 62%),
+    0 0 calc(12px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 80%);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.08s ease-out;
+}
+
+.signalNextBtn:hover {
+  border-color: color-mix(in srgb, var(--color-main-text), transparent 12%);
+  background-color: color-mix(in srgb, var(--color-main-text), transparent 80%);
+}
+
+.signalNextBtn:active {
+  transform: scale(0.91);
+}
+
+.signalNextBtn:focus-visible {
+  outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
+  outline-offset: 3px;
+}
+
+.signalProgress {
+  height: 2px;
+  width: 100%;
+  background: color-mix(in srgb, var(--color-accent), transparent 85%);
+  /* No overflow: hidden — it would clip the leading-edge box-shadow on the fill */
+}
+
+.signalProgressFill {
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--poster-primary, var(--color-accent)), var(--color-background) 30%),
+    var(--poster-primary, var(--color-accent))
+  );
+  box-shadow: 2px 0 calc(8px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow));
+  transition: none;
 }
 
 /* ─── Scan Another Bar (renders above the photo frame, outside the camera container) ── */

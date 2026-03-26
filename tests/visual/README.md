@@ -12,7 +12,7 @@ This suite is intentionally small and mobile-first. It is a guardrail for autono
 
 | Test Suite                | Tier             | Focus                                           |
 | ------------------------- | ---------------- | ----------------------------------------------- |
-| `landing-page.spec.ts`    | smoke + extended | Landing shell and CTA stability                 |
+| `landing-page.spec.ts`    | smoke + extended | Power gate, landing shell, and CTA stability    |
 | `camera-view.spec.ts`     | smoke            | Camera activation state                         |
 | `error-states.spec.ts`    | smoke + extended | Permission and network fallback states          |
 | `secret-settings.spec.ts` | smoke + extended | Settings dialog and key toggle behavior         |
@@ -123,6 +123,7 @@ Accept a snapshot update only when all are true:
 ## Authoring Guidance
 
 - Use shared helpers from `tests/visual/utils/visual-helpers.ts`.
+- `bootstrapVisualState()` disables `power-on-intro` by default so screenshots skip the 17s boot sequence; use `gotoPowerGate()` when you need the pre-landing state itself.
 - Avoid `waitForTimeout`; wait for explicit visible state.
 - Use role/name-based selectors and deterministic state setup.
 - Keep snapshot names tied to user outcome (example: `error-network-data-load.png`).

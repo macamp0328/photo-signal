@@ -36,7 +36,7 @@ html[data-state='matched'] .bandName {
 }
 
 .meta {
-  margin: 0.25rem 0 0;
+  margin: 0.4rem 0 0;
   font-size: 0.76rem;
   color: color-mix(in srgb, var(--color-main-text), #fff 18%);
   font-family: var(--font-family);
@@ -54,7 +54,7 @@ html[data-state='matched'] .meta {
 }
 
 .exif {
-  margin: 0.2rem 0 0;
+  margin: 0.08rem 0 0;
   font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.45);
   font-family: var(--font-family);

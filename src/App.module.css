@@ -202,6 +202,16 @@
   transition: none;
 }
 
+.signalError {
+  margin: 0;
+  padding: 0.25rem 0.9rem 0.35rem;
+  font-family: var(--font-family);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--color-error);
+  text-align: center;
+}
+
 /* ─── Scan Another Bar (renders above the photo frame, outside the camera container) ── */
 
 .scanAnotherBar {

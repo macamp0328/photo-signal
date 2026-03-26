@@ -378,17 +378,18 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const { play, pause, stop, preload, crossfade, isPlaying, progress } = useAudioPlayback({
-    volume: 1.0,
-    onSongEnd: () => {
-      if (userPausedRef.current) return;
-      const nextSong = getNextTrackAfterForwardAdvance();
-      if (nextSong?.audioFile && playRef.current) {
-        playRef.current(nextSong.audioFile);
-        setActiveConcert(nextSong);
-      }
-    },
-  });
+  const { play, pause, stop, preload, crossfade, isPlaying, progress, playbackError } =
+    useAudioPlayback({
+      volume: 1.0,
+      onSongEnd: () => {
+        if (userPausedRef.current) return;
+        const nextSong = getNextTrackAfterForwardAdvance();
+        if (nextSong?.audioFile && playRef.current) {
+          playRef.current(nextSong.audioFile);
+          setActiveConcert(nextSong);
+        }
+      },
+    });
 
   // Module: Audio-Reactive Phosphor Glow
   useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
@@ -642,6 +643,35 @@ function AppContent() {
     attemptPortraitOrientationLock();
     setIsActive(true);
   };
+
+  // Keep the screen on while the camera experience is active.
+  // The OS automatically releases wake locks when the document is hidden, so
+  // re-acquire on visibilitychange → visible if the user switches back.
+  useEffect(() => {
+    if (!isActive || !('wakeLock' in navigator)) return;
+    let sentinel: WakeLockSentinel | null = null;
+
+    const acquire = () => {
+      void navigator.wakeLock
+        .request('screen')
+        .then((s) => {
+          sentinel = s;
+        })
+        .catch(() => {});
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') acquire();
+    };
+
+    acquire();
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      sentinel?.release().catch(() => {});
+    };
+  }, [isActive]);
 
   const clearLongPressTimer = useCallback(() => {
     if (longPressTimerRef.current !== null) {
@@ -954,6 +984,11 @@ function AppContent() {
           </button>
         ) : null}
       </div>
+      {playbackError !== null && (
+        <p className={styles.signalError} role="alert">
+          {playbackError}
+        </p>
+      )}
       <div
         className={styles.signalProgress}
         role="progressbar"

@@ -1,46 +1,34 @@
-/* Photo overlay — sits on top of the matched photograph */
-.overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 65%;
-  padding: 5rem 0.9rem 0.8rem;
-  background: linear-gradient(
-    to top,
-    color-mix(in srgb, var(--color-background), #000 28%) 0%,
-    color-mix(in srgb, var(--color-accent), transparent 92%) 55%,
-    color-mix(in srgb, var(--color-accent), transparent 100%) 100%
-  );
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: hidden;
+/* Concert info caption — renders in the header strip above the matched photo */
+.caption {
+  min-width: 0;
+  flex: 1;
   pointer-events: none;
-  animation: overlayFadeIn 0.5s ease forwards;
+  overflow: hidden;
 }
 
 .info {
   min-width: 0;
-  flex: 1;
-  overflow: hidden;
 }
 
 .bandName {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 10vw, 5rem);
+  font-size: clamp(1.6rem, 6vw, 2.8rem);
   font-weight: 400; /* Bebas Neue is inherently bold */
   color: white;
-  line-height: 0.9;
+  line-height: 0.92;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-shadow:
     0 0 calc(10px * var(--glow-reactive-scale))
       color-mix(in srgb, var(--color-main-text), transparent 65%),
     0 0 calc(24px * var(--glow-reactive-scale))
       color-mix(in srgb, var(--color-accent), transparent 82%);
   transition: color 1.2s ease;
+  animation: textReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 html[data-state='matched'] .bandName {
@@ -48,7 +36,7 @@ html[data-state='matched'] .bandName {
 }
 
 .meta {
-  margin: 0.35rem 0 0;
+  margin: 0.4rem 0 0;
   font-size: 0.76rem;
   color: color-mix(in srgb, var(--color-main-text), #fff 18%);
   font-family: var(--font-family);
@@ -58,6 +46,7 @@ html[data-state='matched'] .bandName {
   overflow: hidden;
   text-overflow: ellipsis;
   transition: color 1.2s ease;
+  animation: textReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
 }
 
 html[data-state='matched'] .meta {
@@ -65,7 +54,7 @@ html[data-state='matched'] .meta {
 }
 
 .exif {
-  margin: 0.3rem 0 0;
+  margin: 0.08rem 0 0;
   font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.45);
   font-family: var(--font-family);
@@ -73,24 +62,24 @@ html[data-state='matched'] .meta {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  animation: textReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
 }
 
-@keyframes overlayFadeIn {
+/* Text elements materialize upward — staggered data reveal */
+@keyframes textReveal {
   from {
     opacity: 0;
+    transform: translateY(0.35rem);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (max-width: 480px) {
-  .overlay {
-    padding: 3.5rem 0.75rem 0.65rem;
-  }
-
   .bandName {
-    font-size: clamp(2rem, 9vw, 4rem);
+    font-size: clamp(1.4rem, 5.5vw, 2.4rem);
   }
 
   .meta {
@@ -101,5 +90,15 @@ html[data-state='matched'] .meta {
 @media (max-width: 360px) {
   .exif {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bandName,
+  .meta,
+  .exif {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 }

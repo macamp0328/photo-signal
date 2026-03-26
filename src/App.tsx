@@ -9,7 +9,7 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
 import { useAudioPlayback, useAudioReactiveGlow } from './modules/audio-playback';
@@ -918,6 +918,7 @@ function AppContent() {
         <button
           type="button"
           className={`${styles.signalPlayBtn} ${isPlaying ? styles.signalPlayBtnPlaying : ''}`}
+          style={{ '--progress-deg': `${progress * 360}deg` } as CSSProperties}
           onClick={handleTogglePlayback}
           aria-label={
             isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`

@@ -246,10 +246,27 @@ describe('useAudioTest', () => {
     );
   });
 
-  it('should treat 403/405 probe responses as playable and attempt playback', async () => {
+  it('should treat 403 probe response as playable and attempt playback', async () => {
     vi.mocked(diagnoseAudioUrl).mockResolvedValue({
       ...successDiagnostic,
       httpStatus: 403,
+    });
+
+    const { result } = renderHook(() => useAudioTest());
+
+    await act(async () => {
+      result.current.runTest(testUrl);
+      await vi.advanceTimersByTimeAsync(20);
+    });
+
+    expect(result.current.testResult).not.toBeNull();
+    expect(result.current.testResult!.playbackOutcome).toBe('success');
+  });
+
+  it('should treat 405 probe response as playable and attempt playback', async () => {
+    vi.mocked(diagnoseAudioUrl).mockResolvedValue({
+      ...successDiagnostic,
+      httpStatus: 405,
     });
 
     const { result } = renderHook(() => useAudioTest());

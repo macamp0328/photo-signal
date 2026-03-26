@@ -957,7 +957,7 @@ describe('App playback flow', () => {
     expect(bandTwoOccurrences).toHaveLength(2);
   });
 
-  it('wraps playlist navigation at boundaries without resetting recognition state', async () => {
+  it('navigates playlist with next track without resetting recognition state', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -970,7 +970,7 @@ describe('App playback flow', () => {
       })
     );
 
-    await user.click(screen.getByRole('button', { name: 'Previous track' }));
+    await user.click(screen.getByRole('button', { name: 'Next track' }));
     expect(mockPlay).toHaveBeenLastCalledWith('/audio/one-b.opus');
 
     await user.click(screen.getByRole('button', { name: 'Next track' }));
@@ -1020,7 +1020,7 @@ describe('App playback flow', () => {
     expect(mockResetRecognition).not.toHaveBeenCalled();
   });
 
-  it('disables previous/next buttons when playlist has one track', async () => {
+  it('hides next button when playlist has one track', async () => {
     vi.spyOn(dataService, 'getConcertsByBand').mockImplementation((band: string) => {
       if (band === concertOne.band) {
         return [concertOne];
@@ -1040,7 +1040,6 @@ describe('App playback flow', () => {
       })
     );
 
-    expect(screen.queryByRole('button', { name: 'Previous track' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Next track' })).not.toBeInTheDocument();
   });
 

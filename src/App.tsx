@@ -368,7 +368,7 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const { play, pause, stop, preload, crossfade, isPlaying } = useAudioPlayback({
+  const { play, pause, stop, preload, crossfade, isPlaying, progress } = useAudioPlayback({
     volume: 1.0,
     onSongEnd: () => {
       if (userPausedRef.current) return;
@@ -382,6 +382,21 @@ function AppContent() {
 
   // Module: Audio-Reactive Phosphor Glow
   useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
+
+  // Effect: Song-Progress Scan Lines
+  // As progress approaches 1, faintly restore scan lines (max +0.12 opacity).
+  // Directly modulates --crt-opacity, which applyConcertPalette sets to 0 in matched state.
+  // resetToDeadSignal restores it to 1 on unmatch — state machine remains intact.
+  useEffect(() => {
+    if (!isEnabled('song-progress-scanlines') || !isPlaying || !activeConcert) {
+      document.documentElement.style.removeProperty('--crt-opacity');
+      return;
+    }
+    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.12).toFixed(3));
+    return () => {
+      document.documentElement.style.removeProperty('--crt-opacity');
+    };
+  }, [progress, isPlaying, activeConcert, isEnabled]);
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {
@@ -589,10 +604,6 @@ function AppContent() {
     },
     [activeConcert, crossfade, isPlaying, play, syncPlaylistToConcert]
   );
-
-  const handlePreviousTrack = useCallback(() => {
-    playPlaylistTrack(-1);
-  }, [playPlaylistTrack]);
 
   const handleNextTrack = useCallback(() => {
     playPlaylistTrack(1);
@@ -886,50 +897,57 @@ function AppContent() {
   const stripConcert =
     !isPlaying && activeRecognitionConcert ? activeRecognitionConcert : activeConcert;
 
-  // Signal strip — minimal single-line audio bar
+  // Signal strip — two-row audio player
   const audioControls = shouldShowBottomPlayer ? (
     <section className={styles.signalStrip} aria-label="Now playing controls">
-      {stripConcert?.albumCoverUrl ? (
-        <img
-          src={stripConcert.albumCoverUrl}
-          alt=""
-          className={styles.signalArt}
-          aria-hidden="true"
-        />
-      ) : null}
-      <button
-        type="button"
-        className={styles.signalToggle}
-        onClick={handleTogglePlayback}
-        aria-label={
-          isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
-        }
-      >
-        <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
-          {isPlaying ? '◉' : '○'}
-        </span>
-        <span className={styles.signalBand}>{stripConcert?.band ?? ''}</span>
-      </button>
-      {canNavigatePlaylist ? (
-        <div className={styles.signalNav}>
+      <div className={styles.signalStripTop}>
+        {stripConcert?.albumCoverUrl ? (
+          <img
+            src={stripConcert.albumCoverUrl}
+            alt=""
+            className={styles.signalArt}
+            aria-hidden="true"
+          />
+        ) : null}
+        <div className={styles.signalMeta}>
+          {stripConcert?.songTitle ? (
+            <span className={styles.signalTitle}>{stripConcert.songTitle}</span>
+          ) : null}
+          <span className={styles.signalBand}>{stripConcert?.band ?? ''}</span>
+        </div>
+        <button
+          type="button"
+          className={styles.signalPlayBtn}
+          onClick={handleTogglePlayback}
+          aria-label={
+            isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
+          }
+        >
+          <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
+            {isPlaying ? '◉' : '○'}
+          </span>
+        </button>
+        {canNavigatePlaylist ? (
           <button
             type="button"
-            className={styles.signalNavBtn}
-            onClick={handlePreviousTrack}
-            aria-label="Previous track"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            className={styles.signalNavBtn}
+            className={styles.signalNextBtn}
             onClick={handleNextTrack}
             aria-label="Next track"
           >
             →
           </button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
+      <div
+        className={styles.signalProgress}
+        role="progressbar"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Song progress"
+      >
+        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
+      </div>
     </section>
   ) : null;
 

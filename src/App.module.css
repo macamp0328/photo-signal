@@ -2,10 +2,7 @@
 
 .signalStrip {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0 0.85rem;
+  flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom, 0);
   background: color-mix(in srgb, var(--color-background), #000 10%);
   border-top: 1px solid color-mix(in srgb, var(--color-accent), transparent 75%);
@@ -13,39 +10,92 @@
   transition: background-color 1.2s ease;
 }
 
+.signalStripTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem 0.3rem;
+}
+
 .signalArt {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 3.5rem;
+  height: 3.5rem;
   object-fit: cover;
   flex-shrink: 0;
   display: block;
-  border-radius: 0.2rem;
+  border-radius: 0.25rem;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-accent), transparent 65%),
-    0 0 8px color-mix(in srgb, var(--color-main-text), transparent 75%);
+    0 0 0 1px color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 50%),
+    0 0 calc(6px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 30%),
+    0 0 calc(14px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 60%);
+  transition: box-shadow 0.3s ease;
 }
 
-.signalToggle {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.signalMeta {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.signalTitle {
+  font-size: 0.95rem;
+  font-family: var(--font-display);
+  color: var(--color-main-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-shadow:
+    0 0 calc(8px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--color-main-text)), transparent 50%),
+    0 0 calc(20px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 78%);
+  transition: color 1.2s ease;
+}
+
+.signalBand {
+  font-size: 0.7rem;
+  color: color-mix(in srgb, var(--color-main-text), transparent 20%);
+  font-family: var(--font-family);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 calc(6px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 70%),
+    0 0 calc(14px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 84%);
+  transition: color 1.2s ease;
+}
+
+.signalPlayBtn {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  text-align: left;
   min-height: 2.75rem;
+  min-width: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.signalToggle:focus-visible {
+.signalPlayBtn:focus-visible {
   outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .signalDot {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--color-accent);
   flex-shrink: 0;
   font-family: var(--font-family);
@@ -63,32 +113,12 @@
   animation: signalPulse 1.8s ease-in-out infinite;
 }
 
-.signalBand {
-  font-size: 0.8rem;
-  color: var(--color-main-text);
-  font-family: var(--font-family);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-shadow:
-    0 0 calc(8px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-main-text), transparent 70%),
-    0 0 calc(18px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-accent), transparent 84%);
-  transition: color 1.2s ease;
-}
-
-.signalNav {
-  display: flex;
-  flex-shrink: 0;
-}
-
-.signalNavBtn {
+.signalNextBtn {
   background: color-mix(in srgb, var(--color-main-text), transparent 88%);
   border: 1px solid color-mix(in srgb, var(--color-main-text), transparent 25%);
   border-radius: 4px;
   color: var(--color-main-text);
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-family: var(--font-family);
   cursor: pointer;
   min-height: 2.75rem;
@@ -97,21 +127,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   transition:
     color 0.2s ease,
     border-color 0.2s ease,
     background-color 0.2s ease;
 }
 
-.signalNavBtn:hover {
+.signalNextBtn:hover {
   color: #fff;
   border-color: color-mix(in srgb, var(--color-main-text), transparent 10%);
   background-color: color-mix(in srgb, var(--color-main-text), transparent 75%);
 }
 
-.signalNavBtn:focus-visible {
+.signalNextBtn:focus-visible {
   outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
   outline-offset: 2px;
+}
+
+.signalProgress {
+  height: 3px;
+  width: 100%;
+  background: color-mix(in srgb, var(--color-accent), transparent 82%);
+  overflow: hidden;
+}
+
+.signalProgressFill {
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 40%),
+    var(--poster-primary, var(--color-accent))
+  );
+  box-shadow:
+    2px 0 calc(6px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow)),
+    4px 0 calc(12px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 50%);
+  /* No CSS transition — progress updates every rAF tick; a CSS delay creates visible lag */
+  transition: none;
 }
 
 @keyframes signalPulse {

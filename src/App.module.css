@@ -113,23 +113,24 @@
 
 /* Progress ring — conic-gradient arc fills clockwise from 12 o'clock as song plays.
    --progress-deg is set inline via style prop (progress * 360deg).
-   Donut mask hides the inner 80%, leaving a ~6px ring. */
+   Donut mask hides the inner 70%, leaving a ~12px ring.
+   Unfilled track at 35% opacity so the full ring rail is always visible. */
 .signalPlayBtn::before {
   content: '';
   position: absolute;
-  inset: -6px;
+  inset: -14px;
   border-radius: 50%;
   background: conic-gradient(
     from -90deg,
     var(--poster-primary, var(--color-accent)) 0deg,
     var(--poster-primary, var(--color-accent)) var(--progress-deg, 0deg),
-    color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 80%)
+    color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 65%)
       var(--progress-deg, 0deg)
   );
-  mask: radial-gradient(circle, transparent 80%, white 80%);
-  -webkit-mask: radial-gradient(circle, transparent 80%, white 80%);
+  mask: radial-gradient(circle, transparent 70%, white 70%);
+  -webkit-mask: radial-gradient(circle, transparent 70%, white 70%);
   pointer-events: none;
-  filter: drop-shadow(0 0 3px var(--poster-primary, var(--signal-glow)));
+  filter: drop-shadow(0 0 6px var(--poster-primary, var(--signal-glow)));
   transition: filter 1.2s ease;
 }
 

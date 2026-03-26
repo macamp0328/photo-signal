@@ -76,73 +76,94 @@
 }
 
 .signalPlayBtn {
-  background: transparent;
-  border: none;
+  /* Phosphor circle — dominant control, palette-aware */
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1.5px solid
+    color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 22%);
+  background: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 84%);
+  color: var(--color-main-text);
+  font-size: 1.05rem;
+  font-family: var(--font-family);
+  line-height: 1;
   cursor: pointer;
   padding: 0;
-  min-height: 2.75rem;
-  min-width: 2.75rem;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  box-shadow:
+    0 0 calc(8px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 28%),
+    0 0 calc(20px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 55%),
+    inset 0 0 calc(5px * var(--glow-reactive-scale-ring))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 65%);
+  text-shadow:
+    0 0 calc(7px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow)),
+    0 0 calc(16px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 45%);
+  transition:
+    border-color 1.2s ease,
+    background-color 1.2s ease;
 }
 
 .signalPlayBtn:focus-visible {
   outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline-offset: 3px;
 }
 
-.signalDot {
-  font-size: 1rem;
-  color: var(--color-accent);
-  flex-shrink: 0;
-  font-family: var(--font-family);
-  line-height: 1;
-  width: 1em;
-  text-align: center;
-  display: inline-block;
-  text-shadow:
-    0 0 calc(6px * var(--glow-reactive-scale-ring)) var(--signal-glow),
-    0 0 calc(16px * var(--glow-reactive-scale-ring)) var(--signal-glow-soft);
-  transition: color 1.2s ease;
+/* Nudge play triangle 1px right to optically centre it in the circle */
+.signalPlayBtnIcon {
+  display: block;
+  transform: translateX(1px);
 }
 
-.signalDotPlaying {
-  animation: signalPulse 1.8s ease-in-out infinite;
+.signalPlayBtnPlaying {
+  animation: signalButtonPulse 2s ease-in-out infinite;
 }
 
 .signalNextBtn {
-  background: color-mix(in srgb, var(--color-main-text), transparent 88%);
-  border: 1px solid color-mix(in srgb, var(--color-main-text), transparent 25%);
-  border-radius: 4px;
+  /* Phosphor circle — secondary companion, monochrome */
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--color-main-text), transparent 45%);
+  background: color-mix(in srgb, var(--color-main-text), transparent 92%);
   color: var(--color-main-text);
-  font-size: 1.4rem;
+  font-size: 0.95rem;
   font-family: var(--font-family);
+  line-height: 1;
   cursor: pointer;
-  min-height: 2.75rem;
-  min-width: 2.75rem;
-  padding: 0 0.3rem;
+  padding: 0;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  box-shadow:
+    0 0 calc(5px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 72%),
+    0 0 calc(12px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 84%);
+  text-shadow:
+    0 0 calc(5px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-main-text), transparent 62%),
+    0 0 calc(12px * var(--glow-reactive-scale))
+      color-mix(in srgb, var(--color-accent), transparent 80%);
   transition:
-    color 0.2s ease,
     border-color 0.2s ease,
     background-color 0.2s ease;
 }
 
 .signalNextBtn:hover {
-  color: #fff;
-  border-color: color-mix(in srgb, var(--color-main-text), transparent 10%);
-  background-color: color-mix(in srgb, var(--color-main-text), transparent 75%);
+  border-color: color-mix(in srgb, var(--color-main-text), transparent 12%);
+  background-color: color-mix(in srgb, var(--color-main-text), transparent 80%);
 }
 
 .signalNextBtn:focus-visible {
   outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .signalProgress {
@@ -167,13 +188,13 @@
   transition: none;
 }
 
-@keyframes signalPulse {
+@keyframes signalButtonPulse {
   0%,
   100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.65;
   }
 }
 

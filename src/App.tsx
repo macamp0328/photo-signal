@@ -917,15 +917,13 @@ function AppContent() {
         </div>
         <button
           type="button"
-          className={styles.signalPlayBtn}
+          className={`${styles.signalPlayBtn} ${isPlaying ? styles.signalPlayBtnPlaying : ''}`}
           onClick={handleTogglePlayback}
           aria-label={
             isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
           }
         >
-          <span className={`${styles.signalDot} ${isPlaying ? styles.signalDotPlaying : ''}`}>
-            {isPlaying ? '◉' : '○'}
-          </span>
+          <span className={styles.signalPlayBtnIcon}>{isPlaying ? '⏸' : '▶'}</span>
         </button>
         {canNavigatePlaylist ? (
           <button
@@ -934,7 +932,7 @@ function AppContent() {
             onClick={handleNextTrack}
             aria-label="Next track"
           >
-            →
+            ⏭
           </button>
         ) : null}
       </div>

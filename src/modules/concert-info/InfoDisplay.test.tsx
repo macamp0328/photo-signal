@@ -136,11 +136,11 @@ describe('InfoDisplay', () => {
   });
 
   describe('CSS Classes', () => {
-    it('should apply overlay class', () => {
+    it('should apply caption class', () => {
       const { container } = render(<InfoDisplay concert={mockConcert} isVisible={true} />);
 
       const section = container.querySelector('section');
-      expect(section?.className).toContain('overlay');
+      expect(section?.className).toContain('caption');
     });
 
     it('should apply bandName class to band heading', () => {

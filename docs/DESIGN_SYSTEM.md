@@ -163,7 +163,7 @@ On matched state, `--focus-ring-color` is overridden to `--poster-accent`.
 | Name            | CSS Token                 | Stack                                                                                         | Used For                         |
 | --------------- | ------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------- |
 | **Mono / UI**   | `--font-family`           | `ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', 'Segoe UI Mono', monospace` | All UI text in dead signal state |
-| **Display**     | `--font-display`          | `'Bebas Neue', Impact, 'Arial Narrow', sans-serif`                                            | Headlines, band name overlay     |
+| **Display**     | `--font-display`          | `'Bebas Neue', Impact, 'Arial Narrow', sans-serif`                                            | Headlines, band name caption     |
 | **System sans** | `--font-family` (matched) | `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif`     | All UI text in matched state     |
 
 `--font-family` is re-mapped to system sans-serif inside `html[data-state='matched']`. Display text
@@ -171,17 +171,17 @@ On matched state, `--focus-ring-color` is overridden to `--poster-accent`.
 
 ### Type Scale
 
-| Context                    | Font             | Size                        | Line-height | Letter-spacing |
-| -------------------------- | ---------------- | --------------------------- | ----------- | -------------- |
-| Landing headline           | `--font-display` | `clamp(4rem, 14vw, 9rem)`   | `0.92`      | `0.01em`       |
-| Band name overlay          | `--font-display` | `clamp(2.5rem, 10vw, 5rem)` | `0.9`       | `0.02em`       |
-| Band name overlay (≤480px) | `--font-display` | `clamp(2rem, 9vw, 4rem)`    | `0.9`       | `0.02em`       |
-| Meta line (venue, date)    | `--font-family`  | `0.76rem`                   | —           | `0.04em`       |
-| Meta line (≤480px)         | `--font-family`  | `0.75rem`                   | —           | `0.04em`       |
-| EXIF row                   | `--font-family`  | `0.6rem`                    | —           | `0.06em`       |
-| Tagline                    | `--font-family`  | `0.875rem`                  | —           | —              |
-| Begin button               | `--font-family`  | `0.8rem`                    | —           | `0.12em`       |
-| Debug overlay              | `--font-family`  | `0.75rem`                   | —           | —              |
+| Context                         | Font             | Size                           | Line-height | Letter-spacing |
+| ------------------------------- | ---------------- | ------------------------------ | ----------- | -------------- |
+| Landing headline                | `--font-display` | `clamp(4rem, 14vw, 9rem)`      | `0.92`      | `0.01em`       |
+| Band name (above photo)         | `--font-display` | `clamp(1.6rem, 6vw, 2.8rem)`   | `0.92`      | `0.02em`       |
+| Band name (above photo, ≤480px) | `--font-display` | `clamp(1.4rem, 5.5vw, 2.4rem)` | `0.92`      | `0.02em`       |
+| Meta line (venue, date)         | `--font-family`  | `0.76rem`                      | —           | `0.04em`       |
+| Meta line (≤480px)              | `--font-family`  | `0.75rem`                      | —           | `0.04em`       |
+| EXIF row                        | `--font-family`  | `0.6rem`                       | —           | `0.06em`       |
+| Tagline                         | `--font-family`  | `0.875rem`                     | —           | —              |
+| Begin button                    | `--font-family`  | `0.8rem`                       | —           | `0.12em`       |
+| Debug overlay                   | `--font-family`  | `0.75rem`                      | —           | —              |
 
 Display text is always `text-transform: uppercase`. Meta / button text uses `text-transform: uppercase`
 with wide letter-spacing for legibility.
@@ -215,7 +215,7 @@ components may override.
 | `scaleInFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                                                                       |
 | `chromaticShift`        | Continuous / event-driven, smooth                                       | `src/index.css`               | Reserved — keyframe defined, not yet wired to a trigger; intended for CRT chromatic aberration (RGB fringing) |
 | `posterReveal`          | `calc(0.8s × --exif-transition-scale)`, `cubic-bezier(0.16, 1, 0.3, 1)` | `src/index.css`               | Scanned photo frame animates in after `MATCH_CONFIRMED`                                                       |
-| `overlayFadeIn`         | `0.5s`, `ease`                                                          | `InfoDisplay.module.css`      | Concert info overlay entrance                                                                                 |
+| `textReveal`            | `0.4–0.5s`, `cubic-bezier(0.16, 1, 0.3, 1)` `both`; staggered delays    | `InfoDisplay.module.css`      | Band name (0.1s), meta (0.22s), EXIF (0.34s) materialize upward in the above-photo caption strip              |
 | `signal-flicker`        | `3.2s`, `steps(1)` infinite                                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`                                                             |
 | `glow-breathe`          | `2.8s`, `ease-in-out` infinite                                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`                                                            |
 | `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                                                                              |

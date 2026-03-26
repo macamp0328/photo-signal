@@ -294,7 +294,8 @@ describe('Artist Audio Switch', () => {
     });
     await waitFor(() => {
       // Artist B appears in both the concert overlay and signal strip (audio switched)
-      expect(screen.getAllByText('Artist B')[0]).toBeInTheDocument();
+      const artistBInstances = screen.getAllByText('Artist B');
+      expect(artistBInstances.length).toBeGreaterThanOrEqual(2);
     });
 
     // Close Artist B details to start per-concert cooldown

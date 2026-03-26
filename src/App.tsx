@@ -432,14 +432,34 @@ function AppContent() {
       return;
     }
 
-    userPausedRef.current = false;
-
     // Same artist: advance to a different track in the existing playlist
     if (autoplayConcert.band === activePlaylistBand) {
-      const nextSong = getNextTrackAfterForwardAdvance();
-      if (!nextSong?.audioFile) {
-        return; // Only one track for this artist — keep playing
+      const MAX_SAME_TRACK_ATTEMPTS = 3;
+      let attempts = 0;
+      let nextSong = getNextTrackAfterForwardAdvance();
+
+      while (
+        attempts < MAX_SAME_TRACK_ATTEMPTS &&
+        nextSong &&
+        activeConcertRef.current &&
+        (nextSong.id === activeConcertRef.current.id ||
+          nextSong.audioFile === activeConcertRef.current.audioFile)
+      ) {
+        attempts += 1;
+        nextSong = getNextTrackAfterForwardAdvance();
       }
+
+      // If we still don't have a different track with audio, keep current playback
+      if (
+        !nextSong?.audioFile ||
+        (activeConcertRef.current &&
+          (nextSong.id === activeConcertRef.current.id ||
+            nextSong.audioFile === activeConcertRef.current.audioFile))
+      ) {
+        return; // Only current track available for this artist — keep playing
+      }
+
+      userPausedRef.current = false;
       if (isPlaying) {
         crossfade(nextSong.audioFile);
       } else {
@@ -455,6 +475,7 @@ function AppContent() {
       return;
     }
 
+    userPausedRef.current = false;
     if (isPlaying) {
       crossfade(firstSong.audioFile);
     } else {

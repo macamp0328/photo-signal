@@ -427,7 +427,7 @@ describe('App playback flow', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Band Two scanned photograph' })).toBeInTheDocument();
     // Band Two now appears in both the concert overlay and the signal strip (audio switched)
-    expect(screen.getAllByText('Band Two')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Band Two')).toHaveLength(2);
 
     expect(mockCrossfade).toHaveBeenCalledWith('/audio/two.opus');
   });
@@ -451,7 +451,7 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     // Band Two now appears in both the concert overlay and the signal strip (audio switched)
-    expect(screen.getAllByText('Band Two')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Band Two')).toHaveLength(2);
   });
 
   it('crossfades to new artist when recognized while playback is active', async () => {
@@ -953,7 +953,8 @@ describe('App playback flow', () => {
     view.rerender(<App />);
 
     // Band Two now appears in both the concert overlay and the signal strip (audio switched)
-    expect(screen.getAllByText('Band Two')[0]).toBeInTheDocument();
+    const bandTwoOccurrences = screen.getAllByText('Band Two');
+    expect(bandTwoOccurrences).toHaveLength(2);
   });
 
   it('wraps playlist navigation at boundaries without resetting recognition state', async () => {

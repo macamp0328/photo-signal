@@ -149,10 +149,6 @@
   transform: translateX(1px);
 }
 
-.signalPlayBtnPlaying {
-  animation: signalButtonPulse 2s ease-in-out infinite;
-}
-
 .signalNextBtn {
   /* Phosphor circle — secondary companion, monochrome */
   width: 3.25rem;
@@ -198,38 +194,6 @@
 .signalNextBtn:focus-visible {
   outline: var(--focus-ring-width, 2px) solid var(--focus-ring-color, #60a5fa);
   outline-offset: 3px;
-}
-
-.signalProgress {
-  height: 3px;
-  width: 100%;
-  background: color-mix(in srgb, var(--color-accent), transparent 82%);
-  overflow: hidden;
-}
-
-.signalProgressFill {
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 40%),
-    var(--poster-primary, var(--color-accent))
-  );
-  box-shadow:
-    2px 0 calc(6px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow)),
-    4px 0 calc(12px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 50%);
-  /* No CSS transition — progress updates every rAF tick; a CSS delay creates visible lag */
-  transition: none;
-}
-
-@keyframes signalButtonPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.65;
-  }
 }
 
 /* ─── Scan Another Bar (renders above the photo frame, outside the camera container) ── */

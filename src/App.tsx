@@ -917,7 +917,7 @@ function AppContent() {
         </div>
         <button
           type="button"
-          className={`${styles.signalPlayBtn} ${isPlaying ? styles.signalPlayBtnPlaying : ''}`}
+          className={styles.signalPlayBtn}
           style={{ '--progress-deg': `${progress * 360}deg` } as CSSProperties}
           onClick={handleTogglePlayback}
           aria-label={
@@ -936,16 +936,6 @@ function AppContent() {
             ⏭
           </button>
         ) : null}
-      </div>
-      <div
-        className={styles.signalProgress}
-        role="progressbar"
-        aria-valuenow={Math.round(progress * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Song progress"
-      >
-        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
       </div>
     </section>
   ) : null;

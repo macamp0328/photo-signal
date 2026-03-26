@@ -202,6 +202,16 @@
   transition: none;
 }
 
+.signalError {
+  margin: 0;
+  padding: 0.25rem 0.9rem 0.35rem;
+  font-family: var(--font-family);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--color-error);
+  text-align: center;
+}
+
 /* ─── Scan Another Bar (renders above the photo frame, outside the camera container) ── */
 
 .scanAnotherBar {
@@ -378,4 +388,22 @@
   background: rgba(255, 255, 255, 0.05);
   color: var(--color-main-text);
   border-color: var(--color-accent);
+}
+
+/* ─── Data Error Banner ───────────────────────────────────────────────────── */
+
+.dataErrorBanner {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 0);
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1.25rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-top: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--color-error);
+  font-family: var(--font-family);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  z-index: 10;
 }

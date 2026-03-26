@@ -434,22 +434,23 @@ function AppContent() {
 
     // Same artist: advance to a different track in the existing playlist
     if (autoplayConcert.band === activePlaylistBand) {
-      const MAX_SAME_TRACK_ATTEMPTS = 3;
+      const MAX_ADVANCE_ATTEMPTS = 3;
       let attempts = 0;
       let nextSong = getNextTrackAfterForwardAdvance();
 
       while (
-        attempts < MAX_SAME_TRACK_ATTEMPTS &&
-        nextSong &&
-        activeConcertRef.current &&
-        (nextSong.id === activeConcertRef.current.id ||
-          nextSong.audioFile === activeConcertRef.current.audioFile)
+        attempts < MAX_ADVANCE_ATTEMPTS &&
+        nextSong !== null &&
+        (!nextSong.audioFile ||
+          (activeConcertRef.current &&
+            (nextSong.id === activeConcertRef.current.id ||
+              nextSong.audioFile === activeConcertRef.current.audioFile)))
       ) {
         attempts += 1;
         nextSong = getNextTrackAfterForwardAdvance();
       }
 
-      // If we still don't have a different track with audio, keep current playback
+      // If no valid different playable track found, keep current playback
       if (
         !nextSong?.audioFile ||
         (activeConcertRef.current &&

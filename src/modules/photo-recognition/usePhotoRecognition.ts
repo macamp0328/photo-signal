@@ -351,6 +351,7 @@ export function usePhotoRecognition(
   const [debugInfo, setDebugInfo] = useState<RecognitionDebugInfo | null>(null);
   const [frameQuality, setFrameQuality] = useState<FrameQualityInfo | null>(null);
   const [detectedRectangle, setDetectedRectangle] = useState<DetectedRectangle | null>(null);
+  const [indexLoadFailed, setIndexLoadFailed] = useState(false);
   const [rectangleConfidence, setRectangleConfidence] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
 
@@ -471,6 +472,7 @@ export function usePhotoRecognition(
 
         const resolvedError = error instanceof Error ? error : new Error('Failed to load index');
         console.error('[photo-recognition] Recognition index load failed:', resolvedError);
+        setIndexLoadFailed(true);
       });
 
     return () => {
@@ -1837,5 +1839,6 @@ export function usePhotoRecognition(
     frameQuality,
     detectedRectangle,
     rectangleConfidence,
+    indexLoadFailed,
   };
 }

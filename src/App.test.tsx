@@ -1,10 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import App from './App';
+import App, { AppErrorBoundary } from './App';
+import { dataService } from './services/data-service';
 
 // Mock browser APIs
 beforeEach(() => {
+  // Reset DataService cache so each test gets a fresh fetch
+  dataService.clearCache();
+
   // Mock MediaDevices API
   Object.defineProperty(navigator, 'mediaDevices', {
     writable: true,
@@ -75,5 +79,80 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
     ).toBeTruthy();
+  });
+
+  it('shows data error banner when gallery data fails to load', async () => {
+    vi.spyOn(dataService, 'getConcerts').mockRejectedValueOnce(new Error('network error'));
+    renderApp();
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeTruthy();
+    });
+    expect(screen.getByText(/Unable to load gallery data/i)).toBeTruthy();
+  });
+
+  it('acquires wake lock when camera is activated', async () => {
+    const release = vi.fn().mockResolvedValue(undefined);
+    const request = vi.fn().mockResolvedValue({ release });
+
+    Object.defineProperty(navigator, 'wakeLock', {
+      configurable: true,
+      value: { request },
+    });
+
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+    );
+
+    expect(request).toHaveBeenCalledWith('screen');
+  });
+
+  it('continues activation when wake lock is unavailable', async () => {
+    // Simulate browsers that don't support wake lock
+    Object.defineProperty(navigator, 'wakeLock', {
+      configurable: true,
+      value: undefined,
+    });
+
+    const user = userEvent.setup();
+    renderApp();
+
+    await expect(
+      user.click(
+        screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+      )
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('AppErrorBoundary', () => {
+  it('renders children normally when there is no error', () => {
+    render(
+      <AppErrorBoundary>
+        <p>All good</p>
+      </AppErrorBoundary>
+    );
+    expect(screen.getByText('All good')).toBeTruthy();
+  });
+
+  it('shows fallback UI when a child throws a render error', () => {
+    // Suppress React's error boundary console output during this test
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    function Thrower(): never {
+      throw new Error('test render error');
+    }
+
+    render(
+      <AppErrorBoundary>
+        <Thrower />
+      </AppErrorBoundary>
+    );
+
+    expect(screen.getByText(/Something went wrong/i)).toBeTruthy();
+
+    consoleSpy.mockRestore();
   });
 });

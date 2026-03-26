@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
@@ -163,6 +163,19 @@ function AppContent() {
   const longPressTimerRef = useRef<number | null>(null);
   const suppressNextPhotoClickRef = useRef(false);
 
+  // Track data load failure so the landing page can surface an error
+  const [dataLoadError, setDataLoadError] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+    dataService.getConcerts().catch(() => {
+      if (!isCancelled) setDataLoadError(true);
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   // Playlist bookkeeping — stored in refs because these values are never rendered;
   // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
   const playlistRef = useRef<Concert[]>([]);
@@ -296,7 +309,10 @@ function AppContent() {
     isRecognizing,
     detectedRectangle,
     rectangleConfidence,
+    indexLoadFailed,
   } = usePhotoRecognition(stream, recognitionOptions);
+
+  const hasDataError = dataLoadError || indexLoadFailed;
 
   useEffect(() => {
     if (!closedConcertCooldown) {
@@ -368,17 +384,18 @@ function AppContent() {
   }, [showSecretSettings]);
 
   // Module: Audio Playback
-  const { play, pause, stop, preload, crossfade, isPlaying, progress } = useAudioPlayback({
-    volume: 1.0,
-    onSongEnd: () => {
-      if (userPausedRef.current) return;
-      const nextSong = getNextTrackAfterForwardAdvance();
-      if (nextSong?.audioFile && playRef.current) {
-        playRef.current(nextSong.audioFile);
-        setActiveConcert(nextSong);
-      }
-    },
-  });
+  const { play, pause, stop, preload, crossfade, isPlaying, progress, playbackError } =
+    useAudioPlayback({
+      volume: 1.0,
+      onSongEnd: () => {
+        if (userPausedRef.current) return;
+        const nextSong = getNextTrackAfterForwardAdvance();
+        if (nextSong?.audioFile && playRef.current) {
+          playRef.current(nextSong.audioFile);
+          setActiveConcert(nextSong);
+        }
+      },
+    });
 
   // Module: Audio-Reactive Phosphor Glow
   useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
@@ -632,6 +649,35 @@ function AppContent() {
     attemptPortraitOrientationLock();
     setIsActive(true);
   };
+
+  // Keep the screen on while the camera experience is active.
+  // The OS automatically releases wake locks when the document is hidden, so
+  // re-acquire on visibilitychange → visible if the user switches back.
+  useEffect(() => {
+    if (!isActive || !('wakeLock' in navigator)) return;
+    let sentinel: WakeLockSentinel | null = null;
+
+    const acquire = () => {
+      void navigator.wakeLock
+        .request('screen')
+        .then((s) => {
+          sentinel = s;
+        })
+        .catch(() => {});
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') acquire();
+    };
+
+    acquire();
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      sentinel?.release().catch(() => {});
+    };
+  }, [isActive]);
 
   const clearLongPressTimer = useCallback(() => {
     if (longPressTimerRef.current !== null) {
@@ -944,6 +990,11 @@ function AppContent() {
           </button>
         ) : null}
       </div>
+      {playbackError !== null && (
+        <p className={styles.signalError} role="alert">
+          {playbackError}
+        </p>
+      )}
       <div
         className={styles.signalProgress}
         role="progressbar"
@@ -1017,6 +1068,11 @@ function AppContent() {
 
   return (
     <>
+      {hasDataError && !isActive && (
+        <div className={styles.dataErrorBanner} role="alert">
+          Unable to load gallery data. Check your connection and refresh.
+        </div>
+      )}
       <GalleryLayout
         isActive={isActive}
         cameraView={cameraView}
@@ -1137,6 +1193,47 @@ function AppContent() {
   );
 }
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+export class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[App] Unhandled render error:', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          role="alert"
+          style={{
+            padding: '2rem',
+            color: '#d4892a',
+            fontFamily: 'monospace',
+            textAlign: 'center',
+          }}
+        >
+          <p>Something went wrong. Please refresh the page.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   const gateConfig = getAccessGateConfig();
   const [isUnlocked, setIsUnlocked] = useState(
@@ -1166,7 +1263,11 @@ function App() {
   }, [gateConfig.enabled]);
 
   if (!gateConfig.enabled || isUnlocked) {
-    return <AppContent />;
+    return (
+      <AppErrorBoundary>
+        <AppContent />
+      </AppErrorBoundary>
+    );
   }
 
   const handleUnlockSubmit = (event: React.FormEvent<HTMLFormElement>) => {

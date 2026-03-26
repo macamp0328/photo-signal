@@ -111,6 +111,7 @@
 
 /* Filled state when playing — visually unmistakable from paused */
 .signalPlayBtnPlaying {
+  color: var(--color-background); /* dark bg for contrast against filled circle */
   background: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 60%);
   border-color: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 10%);
   box-shadow:
@@ -131,10 +132,9 @@
   outline-offset: 4px;
 }
 
-/* Nudge play triangle 1px right to optically centre it in the circle */
+/* Nudge applied conditionally via inline style on ▶ only; ⏸ is already centred */
 .signalPlayBtnIcon {
   display: block;
-  transform: translateX(1px);
 }
 
 .signalNextBtn {
@@ -188,12 +188,16 @@
   height: 2px;
   width: 100%;
   background: color-mix(in srgb, var(--color-accent), transparent 85%);
-  overflow: hidden;
+  /* No overflow: hidden — it would clip the leading-edge box-shadow on the fill */
 }
 
 .signalProgressFill {
   height: 100%;
-  background: var(--poster-primary, var(--color-accent));
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--poster-primary, var(--color-accent)), var(--color-background) 30%),
+    var(--poster-primary, var(--color-accent))
+  );
   box-shadow: 2px 0 calc(8px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow));
   transition: none;
 }

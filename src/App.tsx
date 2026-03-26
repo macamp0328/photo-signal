@@ -926,7 +926,12 @@ function AppContent() {
             isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
           }
         >
-          <span className={styles.signalPlayBtnIcon}>{isPlaying ? '⏸' : '▶'}</span>
+          <span
+            className={styles.signalPlayBtnIcon}
+            style={isPlaying ? undefined : { transform: 'translateX(1px)' }}
+          >
+            {isPlaying ? '⏸\uFE0E' : '▶'}
+          </span>
         </button>
         {canNavigatePlaylist ? (
           <button
@@ -935,7 +940,7 @@ function AppContent() {
             onClick={handleNextTrack}
             aria-label="Next track"
           >
-            ⏭
+            {'⏭\uFE0E'}
           </button>
         ) : null}
       </div>

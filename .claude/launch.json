@@ -25,7 +25,7 @@
     {
       "name": "fake-camera",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5205"],
+      "runtimeArgs": ["run", "dev:fake-camera", "--", "--port", "5205"],
       "port": 5205,
       "autoPort": true
     }

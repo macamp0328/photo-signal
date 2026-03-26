@@ -403,7 +403,7 @@ function AppContent() {
     preload(selectedAudioUrl);
   }, [preload, activeRecognitionConcert]);
 
-  // Auto-play newly recognized concerts whenever nothing is currently playing.
+  // Auto-play newly recognized concerts, interrupting any current playback for a new match.
   useEffect(() => {
     const autoplayConcert = activeRecognitionConcert;
 
@@ -419,35 +419,79 @@ function AppContent() {
     const isNewAutoplayConcert = previousAutoplayIdRef.current !== autoplayConcert.id;
     previousAutoplayIdRef.current = autoplayConcert.id;
 
-    if (!isNewAutoplayConcert || isPlaying) {
-      return;
+    if (!isNewAutoplayConcert) {
+      return; // Same image scanned again — don't restart
     }
 
     if (!autoplayConcert.audioFile) {
       return;
     }
 
-    // Same artist is already in the active playlist — don't interrupt
-    if (autoplayConcert.band === activePlaylistBand) {
+    // Same exact concert as currently active — don't restart (handles close+rescan scenario)
+    if (autoplayConcert.id === activeConcertRef.current?.id) {
       return;
     }
 
-    // New artist: build a shuffled playlist and start from its random first track
+    // Same artist: advance to a different track in the existing playlist
+    if (autoplayConcert.band === activePlaylistBand) {
+      const MAX_ADVANCE_ATTEMPTS = 3;
+      let attempts = 0;
+      let nextSong = getNextTrackAfterForwardAdvance();
+
+      while (
+        attempts < MAX_ADVANCE_ATTEMPTS &&
+        nextSong !== null &&
+        (!nextSong.audioFile ||
+          (activeConcertRef.current &&
+            (nextSong.id === activeConcertRef.current.id ||
+              nextSong.audioFile === activeConcertRef.current.audioFile)))
+      ) {
+        attempts += 1;
+        nextSong = getNextTrackAfterForwardAdvance();
+      }
+
+      // If no valid different playable track found, keep current playback
+      if (
+        !nextSong?.audioFile ||
+        (activeConcertRef.current &&
+          (nextSong.id === activeConcertRef.current.id ||
+            nextSong.audioFile === activeConcertRef.current.audioFile))
+      ) {
+        return; // Only current track available for this artist — keep playing
+      }
+
+      userPausedRef.current = false;
+      if (isPlaying) {
+        crossfade(nextSong.audioFile);
+      } else {
+        play(nextSong.audioFile);
+      }
+      setActiveConcert(nextSong);
+      return;
+    }
+
+    // New artist: build a shuffled playlist and crossfade/play the first track
     const firstSong = startPlaylistForConcert(autoplayConcert);
     if (!firstSong) {
       return;
     }
 
     userPausedRef.current = false;
-    play(firstSong.audioFile);
+    if (isPlaying) {
+      crossfade(firstSong.audioFile);
+    } else {
+      play(firstSong.audioFile);
+    }
     setActiveConcert(firstSong);
   }, [
     isActive,
     activeRecognitionConcert,
     isPlaying,
     play,
+    crossfade,
     activePlaylistBand,
     startPlaylistForConcert,
+    getNextTrackAfterForwardAdvance,
   ]);
 
   const handleTogglePlayback = () => {

@@ -1,5 +1,5 @@
 /* Concert info caption — renders in the header strip above the matched photo */
-.overlay {
+.caption {
   min-width: 0;
   flex: 1;
   pointer-events: none;

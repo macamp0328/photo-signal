@@ -13,7 +13,7 @@ Displays concert metadata (band, venue, date, EXIF) as a caption strip above the
 
 ## Responsibilities
 
-- Rendering band name, venue, date, and song title from a `Concert` object
+- Rendering band name, venue, date, and EXIF metadata from a `Concert` object
 - Applying the per-concert CSS custom properties set by `src/utils/concert-palette.ts`
 - Animated entrance/exit transitions tied to `isVisible`
 

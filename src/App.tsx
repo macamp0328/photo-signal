@@ -1025,7 +1025,7 @@ function AppContent() {
         audioControls={audioControls}
         isMatchedPhoto={shouldShowScannedPhoto}
         aboveCameraSlot={
-          shouldShowScannedPhoto && infoConcert ? (
+          infoConcert ? (
             <div className={styles.matchedPhotoHeader}>
               <InfoDisplay concert={infoConcert} isVisible={true} />
               <button

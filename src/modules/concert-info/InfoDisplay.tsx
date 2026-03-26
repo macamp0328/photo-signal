@@ -5,8 +5,8 @@ import { formatConcertTimestamp } from '../../utils/dateUtils';
 /**
  * Concert Info Display Component
  *
- * Renders as a gradient overlay directly on the matched photo.
- * Band name floats large at the bottom; venue · date in small body text below.
+ * Renders as a caption strip above the matched photo.
+ * Band name large at top; venue · date and EXIF metadata below.
  */
 export function InfoDisplay({ concert, isVisible }: InfoDisplayProps) {
   if (!concert || !isVisible) return null;
@@ -23,7 +23,7 @@ export function InfoDisplay({ concert, isVisible }: InfoDisplayProps) {
   const exifLine = exifParts.length > 0 ? exifParts.join('  ') : null;
 
   return (
-    <section className={styles.overlay} aria-label="Concert details">
+    <section className={styles.caption} aria-label="Concert details">
       <div className={styles.info}>
         <h2 className={styles.bandName}>{concert.band}</h2>
         {metaLine ? <p className={styles.meta}>{metaLine}</p> : null}

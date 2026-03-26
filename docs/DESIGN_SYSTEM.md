@@ -163,7 +163,7 @@ On matched state, `--focus-ring-color` is overridden to `--poster-accent`.
 | Name            | CSS Token                 | Stack                                                                                         | Used For                         |
 | --------------- | ------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------- |
 | **Mono / UI**   | `--font-family`           | `ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', 'Segoe UI Mono', monospace` | All UI text in dead signal state |
-| **Display**     | `--font-display`          | `'Bebas Neue', Impact, 'Arial Narrow', sans-serif`                                            | Headlines, band name overlay     |
+| **Display**     | `--font-display`          | `'Bebas Neue', Impact, 'Arial Narrow', sans-serif`                                            | Headlines, band name caption     |
 | **System sans** | `--font-family` (matched) | `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif`     | All UI text in matched state     |
 
 `--font-family` is re-mapped to system sans-serif inside `html[data-state='matched']`. Display text

@@ -195,6 +195,7 @@ export interface PhotoRecognitionHook {
   frameQuality: FrameQualityInfo | null;
   detectedRectangle: DetectedRectangle | null;
   rectangleConfidence: number;
+  indexLoadFailed: boolean;
 }
 
 export interface PhotoRecognitionOptions {

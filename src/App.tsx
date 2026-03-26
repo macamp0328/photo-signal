@@ -8,7 +8,7 @@
  * without conflicts or coupling.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
 import { usePhotoRecognition } from './modules/photo-recognition';
@@ -163,6 +163,13 @@ function AppContent() {
   const longPressTimerRef = useRef<number | null>(null);
   const suppressNextPhotoClickRef = useRef(false);
 
+  // Track data load failure so the landing page can surface an error
+  const [dataLoadError, setDataLoadError] = useState(false);
+
+  useEffect(() => {
+    dataService.getConcerts().catch(() => setDataLoadError(true));
+  }, []);
+
   // Playlist bookkeeping — stored in refs because these values are never rendered;
   // they exist solely to drive onSongEnd auto-advance without triggering re-renders.
   const playlistRef = useRef<Concert[]>([]);
@@ -296,7 +303,10 @@ function AppContent() {
     isRecognizing,
     detectedRectangle,
     rectangleConfidence,
+    indexLoadFailed,
   } = usePhotoRecognition(stream, recognitionOptions);
+
+  const hasDataError = dataLoadError || indexLoadFailed;
 
   useEffect(() => {
     if (!closedConcertCooldown) {
@@ -1018,6 +1028,11 @@ function AppContent() {
 
   return (
     <>
+      {hasDataError && !isActive && (
+        <div className={styles.dataErrorBanner} role="alert">
+          Unable to load gallery data. Check your connection and refresh.
+        </div>
+      )}
       <GalleryLayout
         isActive={isActive}
         cameraView={cameraView}
@@ -1137,6 +1152,44 @@ function AppContent() {
   );
 }
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[App] Unhandled render error:', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          role="alert"
+          style={{
+            padding: '2rem',
+            color: '#d4892a',
+            fontFamily: 'monospace',
+            textAlign: 'center',
+          }}
+        >
+          <p>Something went wrong. Please refresh the page.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   const gateConfig = getAccessGateConfig();
   const [isUnlocked, setIsUnlocked] = useState(
@@ -1166,7 +1219,11 @@ function App() {
   }, [gateConfig.enabled]);
 
   if (!gateConfig.enabled || isUnlocked) {
-    return <AppContent />;
+    return (
+      <AppErrorBoundary>
+        <AppContent />
+      </AppErrorBoundary>
+    );
   }
 
   const handleUnlockSubmit = (event: React.FormEvent<HTMLFormElement>) => {

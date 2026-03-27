@@ -396,7 +396,7 @@ function AppContent() {
   useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
 
   // Effect: Song-Progress Scan Lines
-  // As progress approaches 1, faintly restore scan lines (max +0.12 opacity).
+  // As progress approaches 1, restore scan lines with visible intensity (max +0.45 opacity).
   // Directly modulates --crt-opacity on the root element while the matched-state CSS
   // (html[data-state='matched'] in src/index.css) sets its baseline to 0; when this
   // effect cleans up, control returns to the CSS-driven state machine.
@@ -407,7 +407,7 @@ function AppContent() {
       document.documentElement.style.removeProperty('--crt-opacity');
       return;
     }
-    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.12).toFixed(3));
+    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.45).toFixed(3));
     return () => {
       document.documentElement.style.removeProperty('--crt-opacity');
     };

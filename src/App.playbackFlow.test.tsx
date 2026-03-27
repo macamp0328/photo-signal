@@ -694,7 +694,7 @@ describe('App playback flow', () => {
       })
     ).not.toBeInTheDocument();
 
-    const scanAnotherButton = screen.getByRole('button', { name: /scan another/i });
+    const scanAnotherButton = screen.getByRole('button', { name: /scan a new photo/i });
     expect(scanAnotherButton).toHaveFocus();
   });
 
@@ -1226,8 +1226,8 @@ describe('App playback flow', () => {
 
     render(<App />);
 
-    // 0.5 * 0.12 = 0.060
-    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.060');
+    // 0.5 * 0.45 = 0.225
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.225');
   });
 
   it('does not set --crt-opacity when song-progress-scanlines flag is disabled', () => {

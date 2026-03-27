@@ -234,11 +234,11 @@ describe('App playback flow', () => {
       })
     );
 
-    return screen.getByRole('button', { name: 'Open matched photo zoom' });
+    return screen.getByRole('img', { name: /scanned photograph/i });
   };
 
-  const openDownloadPromptWithLongPress = async (matchedPhotoButton: HTMLElement) => {
-    fireEvent.mouseDown(matchedPhotoButton, { button: 0 });
+  const openDownloadPromptWithLongPress = async (matchedPhoto: HTMLElement) => {
+    fireEvent.mouseDown(matchedPhoto, { button: 0 });
 
     await waitFor(() => {
       expect(
@@ -248,7 +248,7 @@ describe('App playback flow', () => {
       ).toBeInTheDocument();
     });
 
-    fireEvent.mouseUp(matchedPhotoButton, { button: 0 });
+    fireEvent.mouseUp(matchedPhoto, { button: 0 });
   };
 
   it('passes telemetry-aligned recognition defaults', () => {
@@ -594,23 +594,21 @@ describe('App playback flow', () => {
     expect(screen.queryByText('Photo unavailable')).not.toBeInTheDocument();
   });
 
-  it('opens zoom dialog when matched photo is clicked', async () => {
+  it('does not open a dialog when matched photo is clicked', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
     const user = userEvent.setup();
     render(<App />);
 
-    const matchedPhotoButton = await activateExperience(user);
+    const matchedPhoto = await activateExperience(user);
 
-    await user.click(matchedPhotoButton);
+    await user.click(matchedPhoto);
 
-    expect(screen.getByRole('dialog', { name: 'Matched photo zoom' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('opens long-press download prompt and suppresses zoom for that interaction', async () => {
+  it('opens long-press download prompt and downloads the matched photo', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
@@ -635,11 +633,8 @@ describe('App playback flow', () => {
     try {
       render(<App />);
 
-      const matchedPhotoButton = await activateExperience(user);
-      await openDownloadPromptWithLongPress(matchedPhotoButton);
-      fireEvent.click(matchedPhotoButton);
-
-      expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
+      const matchedPhoto = await activateExperience(user);
+      await openDownloadPromptWithLongPress(matchedPhoto);
 
       await user.click(screen.getByRole('button', { name: 'Download' }));
       await waitFor(() => {
@@ -654,21 +649,21 @@ describe('App playback flow', () => {
     }
   });
 
-  it('cancels long-press when pointer moves and allows click-to-zoom', async () => {
+  it('cancels long-press when pointer moves and leaves the photo static on click', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
     const user = userEvent.setup();
     render(<App />);
 
-    const matchedPhotoButton = await activateExperience(user);
+    const matchedPhoto = await activateExperience(user);
 
-    fireEvent.mouseDown(matchedPhotoButton, { button: 0 });
-    fireEvent.mouseMove(matchedPhotoButton);
+    fireEvent.mouseDown(matchedPhoto, { button: 0 });
+    fireEvent.mouseMove(matchedPhoto);
     await new Promise((resolve) => {
       window.setTimeout(resolve, 550);
     });
-    fireEvent.mouseUp(matchedPhotoButton, { button: 0 });
+    fireEvent.mouseUp(matchedPhoto, { button: 0 });
 
     expect(
       screen.queryByRole('dialog', {
@@ -676,76 +671,19 @@ describe('App playback flow', () => {
       })
     ).not.toBeInTheDocument();
 
-    await user.click(matchedPhotoButton);
-    expect(screen.getByRole('dialog', { name: 'Matched photo zoom' })).toBeInTheDocument();
+    await user.click(matchedPhoto);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('closes zoom dialog on Escape and restores focus to matched photo button', async () => {
+  it('closes download prompt on Escape', async () => {
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
 
     const user = userEvent.setup();
     render(<App />);
 
-    const matchedPhotoButton = await activateExperience(user);
-    await user.click(matchedPhotoButton);
-
-    const closeButton = screen.getByRole('button', { name: 'Close' });
-    fireEvent.keyDown(closeButton, { key: 'Escape' });
-
-    expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
-    expect(matchedPhotoButton).toHaveFocus();
-  });
-
-  it('traps Tab focus inside the zoom dialog', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    render(<App />);
-
-    const matchedPhotoButton = await activateExperience(user);
-    await user.click(matchedPhotoButton);
-
-    const closeButton = screen.getByRole('button', { name: 'Close' });
-    expect(closeButton).toHaveFocus();
-
-    fireEvent.keyDown(closeButton, { key: 'Tab' });
-    expect(closeButton).toHaveFocus();
-
-    fireEvent.keyDown(closeButton, { key: 'Tab', shiftKey: true });
-    expect(closeButton).toHaveFocus();
-  });
-
-  it('closes zoom dialog on backdrop click', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    render(<App />);
-
-    await user.click(await activateExperience(user));
-
-    const zoomDialog = screen.getByRole('dialog', { name: 'Matched photo zoom' });
-    const zoomBackdrop = zoomDialog.parentElement;
-    expect(zoomBackdrop).not.toBeNull();
-
-    if (zoomBackdrop) {
-      fireEvent.click(zoomBackdrop);
-    }
-
-    expect(screen.queryByRole('dialog', { name: 'Matched photo zoom' })).not.toBeInTheDocument();
-  });
-
-  it('closes download prompt on Escape and restores focus to matched photo button', async () => {
-    recognitionState.recognizedConcert = concertOne;
-    audioState.isPlaying = false;
-
-    const user = userEvent.setup();
-    render(<App />);
-
-    const matchedPhotoButton = await activateExperience(user);
-    await openDownloadPromptWithLongPress(matchedPhotoButton);
+    const matchedPhoto = await activateExperience(user);
+    await openDownloadPromptWithLongPress(matchedPhoto);
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     fireEvent.keyDown(cancelButton, { key: 'Escape' });
@@ -755,7 +693,6 @@ describe('App playback flow', () => {
         name: 'Download full-size photo',
       })
     ).not.toBeInTheDocument();
-    expect(matchedPhotoButton).toHaveFocus();
   });
 
   it('closes download prompt on backdrop click', async () => {
@@ -765,8 +702,8 @@ describe('App playback flow', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const matchedPhotoButton = await activateExperience(user);
-    await openDownloadPromptWithLongPress(matchedPhotoButton);
+    const matchedPhoto = await activateExperience(user);
+    await openDownloadPromptWithLongPress(matchedPhoto);
 
     const downloadDialog = screen.getByRole('dialog', { name: 'Download full-size photo' });
     const downloadBackdrop = downloadDialog.parentElement;
@@ -790,8 +727,8 @@ describe('App playback flow', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const matchedPhotoButton = await activateExperience(user);
-    await openDownloadPromptWithLongPress(matchedPhotoButton);
+    const matchedPhoto = await activateExperience(user);
+    await openDownloadPromptWithLongPress(matchedPhoto);
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
     const downloadButton = screen.getByRole('button', { name: 'Download' });

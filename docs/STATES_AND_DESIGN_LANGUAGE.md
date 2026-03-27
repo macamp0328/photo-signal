@@ -111,19 +111,18 @@ When a frame passes quality gates, its best match is assessed by Hamming distanc
 
 Named panels and their visibility conditions. Panels stack on top of the camera feed.
 
-| Panel                     | Visible When                               | Hidden When                                           |
-| ------------------------- | ------------------------------------------ | ----------------------------------------------------- |
-| `AccessGate`              | App lifecycle is `LOCKED`                  | Passcode accepted                                     |
-| `LandingScreen`           | App lifecycle is `LANDING`                 | `TUNE_IN`                                             |
-| `CameraFeed`              | `ACTIVE` + recognition not `MATCHED`       | Concert info visible                                  |
-| `ConcertInfoOverlay`      | Recognition is `MATCHED`                   | `CLOSE_CONCERT_INFO`                                  |
-| `ScannedPhoto`            | `MATCHED` + `concert.photoUrl` loaded      | `CLOSE_CONCERT_INFO`                                  |
-| `ScannedPhotoPlaceholder` | `MATCHED` + no valid `photoUrl`            | `CLOSE_CONCERT_INFO`                                  |
-| `ZoomDialog`              | `TAP_PHOTO`                                | User dismisses (tap backdrop / close button / Escape) |
-| `DownloadPrompt`          | `LONG_PRESS_PHOTO` (500 ms)                | User cancels or confirms download                     |
-| `SignalStrip`             | `activeConcert` is set                     | `activeConcert` cleared (shutdown)                    |
-| `DebugOverlay`            | Feature flag `show-debug-overlay` = `true` | Flag off, or `SecretSettings` open                    |
-| `SecretSettings`          | `OPEN_SETTINGS`                            | `CLOSE_SETTINGS`                                      |
+| Panel                     | Visible When                               | Hidden When                        |
+| ------------------------- | ------------------------------------------ | ---------------------------------- |
+| `AccessGate`              | App lifecycle is `LOCKED`                  | Passcode accepted                  |
+| `LandingScreen`           | App lifecycle is `LANDING`                 | `TUNE_IN`                          |
+| `CameraFeed`              | `ACTIVE` + recognition not `MATCHED`       | Concert info visible               |
+| `ConcertInfoOverlay`      | Recognition is `MATCHED`                   | `CLOSE_CONCERT_INFO`               |
+| `ScannedPhoto`            | `MATCHED` + `concert.photoUrl` loaded      | `CLOSE_CONCERT_INFO`               |
+| `ScannedPhotoPlaceholder` | `MATCHED` + no valid `photoUrl`            | `CLOSE_CONCERT_INFO`               |
+| `DownloadPrompt`          | `LONG_PRESS_PHOTO` (500 ms)                | User cancels or confirms download  |
+| `SignalStrip`             | `activeConcert` is set                     | `activeConcert` cleared (shutdown) |
+| `DebugOverlay`            | Feature flag `show-debug-overlay` = `true` | Flag off, or `SecretSettings` open |
+| `SecretSettings`          | `OPEN_SETTINGS`                            | `CLOSE_SETTINGS`                   |
 
 ---
 
@@ -133,19 +132,18 @@ All named events that drive state transitions. Use these names in tickets and de
 
 ### User-Initiated
 
-| Event                | Source                              | Effect                                                         |
-| -------------------- | ----------------------------------- | -------------------------------------------------------------- |
-| `TUNE_IN`            | Tap "Tune in" on `LandingScreen`    | App → `ACTIVE`; camera starts                                  |
-| `CLOSE_CONCERT_INFO` | Tap "↩ scan another"                | Hides `ConcertInfoOverlay`; starts `COOLDOWN` for that concert |
-| `TAP_PHOTO`          | Tap `ScannedPhoto`                  | Opens `ZoomDialog`                                             |
-| `LONG_PRESS_PHOTO`   | 500 ms press on `ScannedPhoto`      | Opens `DownloadPrompt`                                         |
-| `TOGGLE_PLAYBACK`    | Tap play/pause in `SignalStrip`     | Toggles `PLAYING` ↔ `PAUSED`; sets user-paused flag            |
-| `NEXT_TRACK`         | Tap next in `SignalStrip`           | Advances playlist; crossfades if currently `PLAYING`           |
-| `PREV_TRACK`         | Tap prev in `SignalStrip`           | Retreats playlist; crossfades if currently `PLAYING`           |
-| `VOLUME_CHANGE`      | Drag volume slider in `SignalStrip` | Updates Howler volume                                          |
-| `OPEN_SETTINGS`      | Tap settings icon                   | Opens `SecretSettings`; pauses recognition                     |
-| `CLOSE_SETTINGS`     | Tap close in `SecretSettings`       | Closes `SecretSettings`; resumes recognition                   |
-| `FORCE_MATCH`        | Button in `SecretSettings`          | Debug only. Forces a concert match without camera.             |
+| Event                | Source                                       | Effect                                                         |
+| -------------------- | -------------------------------------------- | -------------------------------------------------------------- |
+| `TUNE_IN`            | Tap "Tune in" on `LandingScreen`             | App → `ACTIVE`; camera starts                                  |
+| `CLOSE_CONCERT_INFO` | Tap "↩ scan another"                         | Hides `ConcertInfoOverlay`; starts `COOLDOWN` for that concert |
+| `LONG_PRESS_PHOTO`   | 500 ms press on the displayed `ScannedPhoto` | Opens `DownloadPrompt`                                         |
+| `TOGGLE_PLAYBACK`    | Tap play/pause in `SignalStrip`              | Toggles `PLAYING` ↔ `PAUSED`; sets user-paused flag            |
+| `NEXT_TRACK`         | Tap next in `SignalStrip`                    | Advances playlist; crossfades if currently `PLAYING`           |
+| `PREV_TRACK`         | Tap prev in `SignalStrip`                    | Retreats playlist; crossfades if currently `PLAYING`           |
+| `VOLUME_CHANGE`      | Drag volume slider in `SignalStrip`          | Updates Howler volume                                          |
+| `OPEN_SETTINGS`      | Tap settings icon                            | Opens `SecretSettings`; pauses recognition                     |
+| `CLOSE_SETTINGS`     | Tap close in `SecretSettings`                | Closes `SecretSettings`; resumes recognition                   |
+| `FORCE_MATCH`        | Button in `SecretSettings`                   | Debug only. Forces a concert match without camera.             |
 
 ### System / Pipeline
 

@@ -248,22 +248,4 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
       teardown();
     };
   }, [isActive, isEnabled]);
-
-  // Ensure cleanup on unmount regardless of state
-  useEffect(() => {
-    return () => {
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      document.documentElement.style.removeProperty(GLOW_SCALE_VAR);
-      document.documentElement.style.removeProperty(GLOW_RING_SCALE_VAR);
-      if (analyserRef.current !== null) {
-        try {
-          analyserRef.current.disconnect();
-        } catch {
-          // Ignore
-        }
-      }
-    };
-  }, []);
 }

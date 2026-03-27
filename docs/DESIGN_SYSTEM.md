@@ -132,7 +132,7 @@ Set by `src/utils/exif-visual.ts` at match time, based on the concert's shooting
 
 | Token                     | Default | Range       | Driven By                                   |
 | ------------------------- | ------- | ----------- | ------------------------------------------- |
-| `--exif-grain-opacity`    | `0.04`  | `0.02–0.12` | ISO: higher ISO → more grain                |
+| `--exif-grain-opacity`    | `0.04`  | `0.06–0.28` | ISO: higher ISO → more grain                |
 | `--exif-transition-scale` | `1`     | `0.6–1.4`   | Shutter speed: slow shutter → slower reveal |
 
 ### Layout & Shape Tokens
@@ -256,7 +256,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 
 - **Mechanism**: `body::before` pseudo-element; inline SVG turbulence (`feTurbulence fractalNoise`,
   200×200px tile, `mix-blend-mode: overlay`)
-- **Control**: `--exif-grain-opacity` (default `0.04`, range `0.02–0.12`)
+- **Control**: `--exif-grain-opacity` (default `0.04`, range `0.06–0.28`)
 - **Activation**: only when `html[data-state='matched'][data-exif-visual]` — requires both a match
   and the EXIF Visual Character feature flag to be enabled
 
@@ -312,7 +312,7 @@ Variables modified by JavaScript at the moment of match or unmatch. The HTML att
 | `--bg-gradient-top`       | CSS cascade                 | `rgba(212, 137, 42, 0.16)`   | `transparent`                                                    |
 | `--signal-glow`           | CSS cascade                 | `rgba(212, 137, 42, 0.34)`   | `color-mix(in srgb, var(--poster-primary), transparent 66%)`     |
 | `--font-family`           | CSS cascade                 | `ui-monospace, 'SF Mono', …` | `-apple-system …, sans-serif`                                    |
-| `--exif-grain-opacity`    | JS (`exif-visual.ts`)       | `0.04`                       | `0.02–0.12` (ISO-driven)                                         |
+| `--exif-grain-opacity`    | JS (`exif-visual.ts`)       | `0.04`                       | `0.06–0.28` (ISO-driven)                                         |
 | `--exif-transition-scale` | JS (`exif-visual.ts`)       | `1`                          | `0.6–1.4` (shutter speed driven)                                 |
 | `--glow-reactive-scale`   | JS (`useAudioReactiveGlow`) | `1`                          | `0.6–1.8` text glow / `0.4–2.0` ring (bass freq, `PLAYING` only) |
 | `theme-color` meta tag    | JS (`concert-palette.ts`)   | `#000000`                    | `palette.bg` (concert background color)                          |
@@ -348,7 +348,7 @@ planned effects, see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`.
 
 | Effect                 | Data Source                     | CSS Variable              | Range / Values                                                | Feature Flag            |
 | ---------------------- | ------------------------------- | ------------------------- | ------------------------------------------------------------- | ----------------------- |
-| EXIF grain intensity   | `concert.iso`                   | `--exif-grain-opacity`    | `0.02` (ISO 100) – `0.12` (ISO 3200+)                         | `exif-visual-character` |
+| EXIF grain intensity   | `concert.iso`                   | `--exif-grain-opacity`    | `0.06` (ISO 100) – `0.28` (ISO 3200+)                         | `exif-visual-character` |
 | EXIF transition timing | `concert.shutterSpeed`          | `--exif-transition-scale` | `0.6` (1/500s fast) – `1.4` (1/30s slow)                      | `exif-visual-character` |
 | Audio-reactive glow    | Bass frequency (`AnalyserNode`) | `--glow-reactive-scale`   | text `0.6–1.8`, ring `0.4–2.0`; `smoothingTimeConstant = 0.7` | `audio-reactive-glow`   |
 

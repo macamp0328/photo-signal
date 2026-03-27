@@ -13,7 +13,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     id: 'exif-visual-character',
     name: 'EXIF Visual Character',
     description:
-      'Vary the visual character of each photo match based on its EXIF shooting conditions. ISO drives film grain intensity. Aperture drives the concert info backdrop blur. Shutter speed drives the match reveal animation speed.',
+      'Vary the visual character of each photo match based on its EXIF shooting conditions. ISO drives film grain intensity. Shutter speed drives the match reveal animation speed. Aperture is displayed in metadata but does not currently drive a CSS effect.',
     enabled: true,
     category: 'ui',
   },
@@ -45,7 +45,7 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     id: 'song-progress-scanlines',
     name: 'Song-Progress Scan Lines',
     description:
-      'As a song plays toward its end, scan lines faintly return — the broadcast fades as the audio arc closes. Opacity increases from 0 to a max of +0.12 as progress approaches 1.',
+      'As a song plays toward its end, scan lines return — the broadcast fades as the audio arc closes. Opacity increases from 0 to a max of +0.45 as progress approaches 1.',
     enabled: true,
     category: 'audio',
   },

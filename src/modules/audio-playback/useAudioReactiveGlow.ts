@@ -65,9 +65,33 @@ function getPlayingHtml5AudioElement(): HTMLAudioElement | undefined {
           }>;
         }
       | undefined;
-    const howl = howler?._howls?.find((h) => !h._webAudio && h.playing?.());
-    const node = howl?._sounds?.[0]?._node;
-    return node instanceof HTMLAudioElement ? node : undefined;
+    const howls = howler?._howls;
+    if (!Array.isArray(howls) || howls.length === 0) {
+      return undefined;
+    }
+
+    // Prefer the most recently created/played active HTML5 howl.
+    for (let i = howls.length - 1; i >= 0; i -= 1) {
+      const howl = howls[i];
+      if (howl._webAudio || !howl.playing?.()) {
+        continue;
+      }
+
+      const sounds = howl._sounds;
+      if (!Array.isArray(sounds) || sounds.length === 0) {
+        continue;
+      }
+
+      // Prefer the most recent sound node inside the selected howl.
+      for (let j = sounds.length - 1; j >= 0; j -= 1) {
+        const node = sounds[j]?._node;
+        if (node instanceof HTMLAudioElement) {
+          return node;
+        }
+      }
+    }
+
+    return undefined;
   } catch {
     return undefined;
   }

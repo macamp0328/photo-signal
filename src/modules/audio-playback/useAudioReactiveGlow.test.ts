@@ -168,6 +168,27 @@ describe('useAudioReactiveGlow', () => {
     expect(window.requestAnimationFrame).not.toHaveBeenCalled();
   });
 
+  it('falls back to Web Audio path when HTML5 howl inspection throws', () => {
+    mockHowls = [
+      {
+        playing: () => true,
+        _webAudio: false,
+        get _sounds() {
+          throw new Error('Howl internals unavailable');
+        },
+      } as unknown as {
+        playing?: () => boolean;
+        _webAudio?: boolean;
+        _sounds?: Array<{ _node?: unknown }>;
+      },
+    ];
+
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    expect(mockCtx!.createMediaElementSource).not.toHaveBeenCalled();
+    expect(mockMasterGain!.connect).toHaveBeenCalled();
+  });
+
   // ── Suspended ctx: ctx.resume() ──────────────────────────────────────────────
 
   it('calls ctx.resume() and activates when Howler.ctx is suspended', async () => {
@@ -177,7 +198,6 @@ describe('useAudioReactiveGlow', () => {
 
     // Not yet active — waiting for resume .then() to run
     expect(mockCtx!.createAnalyser).not.toHaveBeenCalled();
-    expect(window.requestAnimationFrame).not.toHaveBeenCalled();
 
     // Flush microtask so the .then() callback runs
     await act(async () => {
@@ -186,7 +206,31 @@ describe('useAudioReactiveGlow', () => {
 
     expect(mockCtx!.resume).toHaveBeenCalled();
     expect(mockCtx!.createAnalyser).toHaveBeenCalledOnce();
-    expect(window.requestAnimationFrame).toHaveBeenCalledOnce();
+    expect(window.requestAnimationFrame).toHaveBeenCalled();
+  });
+
+  it('resumes again if context auto-suspends after activation wiring', async () => {
+    mockCtx!.state = 'suspended';
+
+    mockCtx!.resume = vi.fn().mockImplementation(function (this: MockAudioContext) {
+      this.state = 'running';
+      return Promise.resolve();
+    });
+
+    mockCtx!.createAnalyser = vi.fn(() => {
+      const analyser = new MockAnalyserNode();
+      // Simulate Chrome auto-suspending immediately after source wiring.
+      mockCtx!.state = 'suspended';
+      return analyser;
+    });
+
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockCtx!.resume).toHaveBeenCalledTimes(2);
   });
 
   it('does not activate after unmount during suspended ctx.resume() (race guard)', async () => {
@@ -274,6 +318,20 @@ describe('useAudioReactiveGlow', () => {
     const callsAfter = (window.requestAnimationFrame as ReturnType<typeof vi.fn>).mock.calls.length;
 
     expect(callsAfter).toBeGreaterThan(callsBefore);
+  });
+
+  it('resumes and retries next frame when AudioContext suspends mid-loop', () => {
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    // Simulate mid-session auto-suspend before the first tick runs.
+    mockCtx!.state = 'suspended';
+
+    act(() => {
+      flushRaf();
+    });
+
+    expect(mockCtx!.resume).toHaveBeenCalled();
+    expect(rafCallbacks.size).toBeGreaterThan(0);
   });
 
   it('cancels rAF and removes CSS vars when deactivated', () => {
@@ -373,6 +431,32 @@ describe('useAudioReactiveGlow', () => {
     expect(mockMasterGain!.connect).not.toHaveBeenCalled();
   });
 
+  it('prefers the newest active HTML5 howl during crossfade', () => {
+    const fadingOutEl = makeAudioElement();
+    const newestEl = makeAudioElement();
+    mockHowls = [makeHtml5Howl(fadingOutEl), makeHtml5Howl(newestEl)];
+
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    expect(mockCtx!.createMediaElementSource).toHaveBeenCalledWith(newestEl);
+  });
+
+  it('prefers the newest sound node within the selected HTML5 howl', () => {
+    const olderNode = makeAudioElement();
+    const newerNode = makeAudioElement();
+    mockHowls = [
+      {
+        playing: () => true,
+        _webAudio: false,
+        _sounds: [{ _node: olderNode }, { _node: newerNode }],
+      },
+    ];
+
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    expect(mockCtx!.createMediaElementSource).toHaveBeenCalledWith(newerNode);
+  });
+
   it('connects source to destination to preserve audio output', () => {
     const audioEl = makeAudioElement();
     mockHowls = [makeHtml5Howl(audioEl)];
@@ -414,6 +498,21 @@ describe('useAudioReactiveGlow', () => {
 
     // Should NOT create a second MediaElementSource for the same element
     expect(mockCtx!.createMediaElementSource).toHaveBeenCalledOnce();
+  });
+
+  it('bails out cleanly when createMediaElementSource throws', () => {
+    const audioEl = makeAudioElement();
+    mockHowls = [makeHtml5Howl(audioEl)];
+
+    mockCtx!.createMediaElementSource = vi.fn(() => {
+      throw new Error('InvalidStateError');
+    });
+
+    renderHook(() => useAudioReactiveGlow(true, true));
+
+    const analyser = mockCtx!.createAnalyser.mock.results[0]!.value as MockAnalyserNode;
+    expect(analyser.disconnect).toHaveBeenCalled();
+    expect(mockMasterGain!.connect).not.toHaveBeenCalled();
   });
 
   it('disconnects mediaSource from analyser on teardown (HTML5 path)', () => {

@@ -28,7 +28,12 @@ export function DebugOverlay({
   const bestMatch = debugInfo?.bestMatch ?? null;
   const secondBestMatch = debugInfo?.secondBestMatch ?? null;
   const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
-  const primaryRecommendation = recommendations[0] ?? null;
+  // Select highest-priority recommendation (high > medium > low)
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  const sorted = [...recommendations].sort(
+    (a, b) => (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99)
+  );
+  const primaryRecommendation = sorted[0] ?? null;
   const glareRecommendation = recommendations.find((recommendation) =>
     recommendation.parameterChange.startsWith('glarePercentageThreshold')
   );

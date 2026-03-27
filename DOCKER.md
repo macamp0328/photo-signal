@@ -47,7 +47,7 @@ Typical usage:
 3. After setup finishes, run normal npm commands inside the container.
 
 The devcontainer post-create step now verifies required CLI tooling (`ffmpeg`, `ffprobe`, `gh`,
-`yt-dlp`) plus Python audio dependencies (`python3`, `pip3`, `mutagen`, `venv`) and automatically
+`yt-dlp`) plus Python audio dependencies (`python3`, `pip3`, `mutagen`, `python3-venv`) and automatically
 installs any missing packages with `apt-get`. This helps older/stale containers recover without
 requiring a full rebuild.
 

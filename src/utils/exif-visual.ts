@@ -69,8 +69,8 @@ function clamp(val: number, min: number, max: number): number {
 }
 
 function isoToGrainOpacity(iso: number): number {
-  // ISO 100 → 0.02, ISO 3200+ → 0.12
-  return clamp(0.02 + ((iso - 100) / (3200 - 100)) * 0.1, 0.02, 0.12);
+  // ISO 100 → 0.06, ISO 3200+ → 0.28
+  return clamp(0.06 + ((iso - 100) / (3200 - 100)) * 0.22, 0.06, 0.28);
 }
 
 function shutterSpeedToTransitionScale(seconds: number): number {

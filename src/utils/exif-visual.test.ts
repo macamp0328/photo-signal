@@ -144,20 +144,20 @@ describe('applyExifVisualCharacter', () => {
   it('sets --exif-grain-opacity for a known ISO', () => {
     applyExifVisualCharacter(makeConcert({ iso: '800' }));
     const opacity = Number(document.documentElement.style.getPropertyValue('--exif-grain-opacity'));
-    expect(opacity).toBeGreaterThan(0.02);
-    expect(opacity).toBeLessThanOrEqual(0.12);
+    expect(opacity).toBeGreaterThan(0.06);
+    expect(opacity).toBeLessThanOrEqual(0.28);
   });
 
-  it('clamps grain opacity at 0.12 for very high ISO', () => {
+  it('clamps grain opacity at 0.28 for very high ISO', () => {
     applyExifVisualCharacter(makeConcert({ iso: '6400' }));
     const opacity = Number(document.documentElement.style.getPropertyValue('--exif-grain-opacity'));
-    expect(opacity).toBe(0.12);
+    expect(opacity).toBe(0.28);
   });
 
-  it('clamps grain opacity at 0.02 for very low ISO', () => {
+  it('clamps grain opacity at 0.06 for very low ISO', () => {
     applyExifVisualCharacter(makeConcert({ iso: '50' }));
     const opacity = Number(document.documentElement.style.getPropertyValue('--exif-grain-opacity'));
-    expect(opacity).toBe(0.02);
+    expect(opacity).toBe(0.06);
   });
 
   it('sets --exif-transition-scale for a known shutter speed', () => {

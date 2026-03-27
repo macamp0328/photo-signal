@@ -412,7 +412,7 @@ function AppContent() {
       document.documentElement.style.removeProperty('--crt-opacity');
       return;
     }
-    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.12).toFixed(3));
+    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.45).toFixed(3));
     return () => {
       document.documentElement.style.removeProperty('--crt-opacity');
     };

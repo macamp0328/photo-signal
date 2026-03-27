@@ -111,7 +111,7 @@ Range: 0.85–1.20. `smoothingTimeConstant = 0.85` (lazy, not twitchy). Only act
 state. The signal breathes with the song.
 
 **Song-progress scan line fade**
-As a song plays toward its end (progress 0→1), scan line opacity gradually increases (max +0.12 at
+As a song plays toward its end (progress 0→1), scan line opacity gradually increases (max +0.45 at
 100% complete). Brief reset on song transition. The broadcast fades as the song ends — the visual
 reinforces the audio's arc.
 
@@ -125,7 +125,7 @@ during matched + playing state.
 ### Photo Metadata (EXIF) Driven
 
 **ISO → grain intensity** ← _Part of Plan 1 (first implementation)_
-`concert.iso` maps to grain texture overlay opacity. ISO 100 → 0.02 opacity, ISO 3200+ → 0.12.
+`concert.iso` maps to grain texture overlay opacity. ISO 100 → 0.06 opacity, ISO 3200+ → 0.28.
 The photo's shooting conditions bleed into its display.
 
 **Aperture → background blur depth** ← _Part of Plan 1 (first implementation)_

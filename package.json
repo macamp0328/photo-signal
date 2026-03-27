@@ -18,7 +18,7 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
+    "test:coverage": "vitest --run --coverage",
     "test:visual": "npm run test:visual:smoke",
     "test:visual:smoke": "npm run build && cross-env NODE_ENV=production playwright test --grep @smoke --project \"Mobile Chrome\" --project \"Mobile Safari\"",
     "test:visual:extended": "npm run build && cross-env NODE_ENV=production playwright test --grep @extended",

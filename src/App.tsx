@@ -155,6 +155,7 @@ function AppContent() {
   const downloadPromptDialogRef = useRef<HTMLDivElement | null>(null);
   const downloadCancelButtonRef = useRef<HTMLButtonElement | null>(null);
   const downloadPreviousFocusRef = useRef<HTMLElement | null>(null);
+  const scanAnotherButtonRef = useRef<HTMLButtonElement | null>(null);
   const longPressTimerRef = useRef<number | null>(null);
 
   // Track data load failure so the landing page can surface an error
@@ -695,15 +696,20 @@ function AppContent() {
     }
   }, []);
 
-  const restoreDialogFocus = useCallback((elementToRestore: HTMLElement | null) => {
-    if (
-      elementToRestore &&
-      elementToRestore !== document.body &&
-      document.contains(elementToRestore)
-    ) {
-      elementToRestore.focus();
-    }
-  }, []);
+  const restoreDialogFocus = useCallback(
+    (elementToRestore: HTMLElement | null, fallbackFocusTarget?: HTMLElement | null) => {
+      if (
+        elementToRestore &&
+        elementToRestore !== document.body &&
+        document.contains(elementToRestore)
+      ) {
+        elementToRestore.focus();
+      } else if (fallbackFocusTarget && document.contains(fallbackFocusTarget)) {
+        fallbackFocusTarget.focus();
+      }
+    },
+    []
+  );
 
   const shutdownExperience = useCallback(() => {
     clearLongPressTimer();
@@ -782,8 +788,9 @@ function AppContent() {
     downloadPreviousFocusRef.current = document.activeElement as HTMLElement | null;
     downloadCancelButtonRef.current?.focus();
 
+    const fallbackFocusTarget = scanAnotherButtonRef.current;
     return () => {
-      restoreDialogFocus(downloadPreviousFocusRef.current);
+      restoreDialogFocus(downloadPreviousFocusRef.current, fallbackFocusTarget);
       downloadPreviousFocusRef.current = null;
     };
   }, [isDownloadPromptVisible, restoreDialogFocus]);
@@ -1024,6 +1031,7 @@ function AppContent() {
             <div className={styles.matchedPhotoHeader}>
               <InfoDisplay concert={infoConcert} isVisible={true} />
               <button
+                ref={scanAnotherButtonRef}
                 type="button"
                 className={styles.closePhotoButton}
                 onClick={() => handleCloseConcertInfo(infoConcert)}

@@ -237,6 +237,33 @@ export function findBestMatches(
   return { bestMatch, secondBestMatch };
 }
 
+/**
+ * Scale recognitionDelay based on how confidently the best match distance
+ * sits within the similarity threshold.
+ *
+ * - distance ≤ 13: 50% of base delay — high-confidence matches confirm faster,
+ *   reducing perceived latency without sacrificing accuracy.
+ * - distance 14–16: 100% of base delay — normal confirmation cadence.
+ * - distance ≥ 17: 130% of base delay — borderline matches near the threshold
+ *   get extra dwell time to reduce the risk of a false confirmation.
+ *
+ * The instant-confirm path (distance ≤ INSTANT_DISTANCE_THRESHOLD = 10) and the
+ * consecutive-frames path bypass the dwell timer entirely, so they are unaffected.
+ *
+ * @param distance - Best-match Hamming distance for the current frame (0–64)
+ * @param recognitionDelay - Base recognition delay in milliseconds
+ * @returns Scaled delay in milliseconds (minimum 1ms)
+ */
+export function getAdaptiveRecognitionDelay(distance: number, recognitionDelay: number): number {
+  if (distance <= 13) {
+    return Math.max(1, Math.round(recognitionDelay * 0.5));
+  }
+  if (distance <= 16) {
+    return recognitionDelay;
+  }
+  return Math.round(recognitionDelay * 1.3);
+}
+
 function getHashBucketKey(hash: string): string {
   return hash.slice(0, HASH_BUCKET_PREFIX_LENGTH).toLowerCase();
 }
@@ -841,7 +868,8 @@ export function usePhotoRecognition(
     // -----------------------------------------------------------------------
     const computeStability = (
       activeMatch: Concert | null,
-      now: number
+      now: number,
+      effectiveDelay: number
     ): StabilityDebugInfo | null => {
       if (!activeMatch) return null;
 
@@ -853,9 +881,9 @@ export function usePhotoRecognition(
         return {
           concert: activeMatch,
           elapsedMs,
-          remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
-          requiredMs: recognitionDelay,
-          progress: recognitionDelay > 0 ? Math.min(elapsedMs / recognitionDelay, 1) : 1,
+          remainingMs: Math.max(effectiveDelay - elapsedMs, 0),
+          requiredMs: effectiveDelay,
+          progress: effectiveDelay > 0 ? Math.min(elapsedMs / effectiveDelay, 1) : 1,
         };
       }
 
@@ -1275,8 +1303,15 @@ export function usePhotoRecognition(
           }
         }
 
+        // Adaptive delay: scale recognitionDelay by match confidence. When
+        // bestMatch is null there is no activeMatch either, so effectiveDelay
+        // is only passed to computeStability (which returns null early anyway).
+        const effectiveDelay = bestMatch
+          ? getAdaptiveRecognitionDelay(bestMatch.distance, recognitionDelay)
+          : recognitionDelay;
+
         // Stability progress for debug overlay
-        const stability = computeStability(activeMatch, now);
+        const stability = computeStability(activeMatch, now, effectiveDelay);
 
         if (enableDebugInfo) {
           setDebugInfo(
@@ -1339,7 +1374,7 @@ export function usePhotoRecognition(
           if (isSameConcert) {
             if (
               matchStartTimeRef.current !== null &&
-              now - matchStartTimeRef.current >= recognitionDelay
+              now - matchStartTimeRef.current >= effectiveDelay
             ) {
               markStartupMilestone('firstMatchAt');
               recognizedConcertRef.current = activeMatch;
@@ -1609,9 +1644,15 @@ export function usePhotoRecognition(
         }
       }
 
+      // Adaptive delay: mirrors the inline path — scale recognitionDelay by
+      // match confidence so high-confidence matches confirm faster.
+      const effectiveDelay = bestMatch
+        ? getAdaptiveRecognitionDelay(bestMatch.distance, recognitionDelay)
+        : recognitionDelay;
+
       // Debug info
       if (enableDebugInfo) {
-        const stability = computeStability(activeMatch, now);
+        const stability = computeStability(activeMatch, now, effectiveDelay);
         setDebugInfo(
           buildDebugInfo({
             currentHash: result.hash,
@@ -1670,7 +1711,7 @@ export function usePhotoRecognition(
         if (isSameConcert) {
           if (
             matchStartTimeRef.current !== null &&
-            now - matchStartTimeRef.current >= recognitionDelay
+            now - matchStartTimeRef.current >= effectiveDelay
           ) {
             markStartupMilestone('firstMatchAt');
             recognizedConcertRef.current = activeMatch;

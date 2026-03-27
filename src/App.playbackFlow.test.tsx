@@ -693,6 +693,9 @@ describe('App playback flow', () => {
         name: 'Download full-size photo',
       })
     ).not.toBeInTheDocument();
+
+    const scanAnotherButton = screen.getByRole('button', { name: /scan another/i });
+    expect(scanAnotherButton).toHaveFocus();
   });
 
   it('closes download prompt on backdrop click', async () => {

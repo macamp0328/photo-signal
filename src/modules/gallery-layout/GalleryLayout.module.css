@@ -15,6 +15,14 @@
   position: absolute;
   inset: -12% -8% 0 -8%;
   background:
+    conic-gradient(
+      from calc(205deg + var(--boot-drift-rotate)) at 54% 42%,
+      transparent 0deg,
+      color-mix(in srgb, var(--color-main-text), transparent 92%) 68deg,
+      transparent 126deg,
+      color-mix(in srgb, var(--color-accent), transparent 90%) 236deg,
+      transparent 320deg
+    ),
     radial-gradient(
       circle at 18% 28%,
       color-mix(in srgb, var(--color-accent), transparent 72%),
@@ -25,14 +33,27 @@
       color-mix(in srgb, var(--color-main-text), transparent 78%),
       color-mix(in srgb, var(--color-main-text), transparent 100%) 50%
     );
+  background-blend-mode: screen, normal, normal;
+  -webkit-mask-image: radial-gradient(circle at 50% 42%, black 0 54%, transparent 92%);
+  mask-image: radial-gradient(circle at 50% 42%, black 0 54%, transparent 92%);
+  opacity: calc(0.58 + var(--boot-ambient-opacity) * 0.18);
+  transform: translate(var(--boot-drift-x), var(--boot-drift-y));
+  filter: hue-rotate(var(--boot-hue-shift)) saturate(calc(0.84 + var(--boot-glow-scale) * 0.22))
+    brightness(calc(0.72 + var(--boot-signal-stability) * 0.24));
   pointer-events: none;
   z-index: 0;
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear,
+    filter 180ms linear;
 }
 
 .landingContent {
   max-width: 44rem;
   position: relative;
   z-index: 1;
+  transform: translate(var(--boot-drift-x), var(--boot-drift-y));
+  transition: transform 180ms linear;
 }
 
 .landingHeadline {
@@ -52,8 +73,8 @@
   text-transform: uppercase;
   letter-spacing: 0.01em;
   text-shadow:
-    0 0 calc(14px * var(--glow-reactive-scale)) var(--signal-glow),
-    0 0 calc(28px * var(--glow-reactive-scale)) var(--signal-glow-soft);
+    0 0 calc(14px * var(--glow-reactive-scale) * var(--boot-glow-scale)) var(--signal-glow),
+    0 0 calc(28px * var(--glow-reactive-scale) * var(--boot-glow-scale)) var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 

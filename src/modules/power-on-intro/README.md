@@ -13,6 +13,7 @@ Old-TV startup sequence shown after the `Turn On` gesture and before the `Still 
 ## Responsibilities
 
 - Rendering the timed power-on boot sequence
+- Pulling the app's served `photoUrl` images into the mirrored boot-time kaleidoscope field
 - Respecting reduced-motion preferences with a shortened handoff
 - Attempting the startup hum after the user has already pressed `Turn On`
 
@@ -25,6 +26,7 @@ Old-TV startup sequence shown after the `Turn On` gesture and before the `Still 
 ## Dependencies
 
 - React hooks for timing and cleanup
+- Shared `dataService` for concert `photoUrl` access
 - CSS Modules for the boot-sequence visuals
 
 ## Key Files

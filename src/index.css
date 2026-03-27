@@ -96,6 +96,16 @@ body {
   /* CRT effect controls */
   --crt-opacity: 1;
   --crt-glow-color: rgba(212, 137, 42, 0.28);
+  --boot-hue-shift: 0deg;
+  --boot-ambient-opacity: 0;
+  --boot-glow-scale: 1;
+  --boot-drift-x: 0px;
+  --boot-drift-y: 0px;
+  --boot-drift-rotate: 0deg;
+  --boot-glitch-strength: 0;
+  --boot-raster-edge: 0%;
+  --boot-scanline-scale: 1;
+  --boot-signal-stability: 0;
 
   /* Era poster palette vars — overridden by JS when a concert is matched */
   --poster-bg: #0a0800;
@@ -199,10 +209,14 @@ body::after {
     transparent 1px,
     transparent 4px
   );
-  opacity: var(--crt-opacity, 1);
+  opacity: min(1, calc(var(--crt-opacity, 1) * var(--boot-scanline-scale, 1)));
+  filter: hue-rotate(var(--boot-hue-shift))
+    brightness(calc(0.92 + var(--boot-ambient-opacity) * 0.16));
   pointer-events: none;
   z-index: 9998;
-  transition: opacity 1.2s ease;
+  transition:
+    opacity 180ms linear,
+    filter 180ms linear;
 }
 
 #root {

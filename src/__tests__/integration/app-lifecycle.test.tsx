@@ -118,6 +118,8 @@ describe('App Lifecycle Integration', () => {
     await waitFor(() => {
       expect(screen.getByText(/Broadcasting/i)).toBeInTheDocument();
     });
+
+    expect(document.documentElement.getAttribute('data-boot-environment')).toBe('warming');
   });
 
   it('should initialize with localStorage data when available', () => {

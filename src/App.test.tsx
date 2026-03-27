@@ -108,6 +108,19 @@ describe('App', () => {
     expect(screen.queryByLabelText('Power-on intro')).toBeNull();
   });
 
+  it('shows the longer intro after Turn On in production mode', async () => {
+    env.MODE = 'production';
+    const user = userEvent.setup();
+
+    renderApp();
+
+    await user.click(screen.getByRole('button', { name: 'Turn On' }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Power-on intro/i)).toBeTruthy();
+    });
+  });
+
   it('shows data error banner when gallery data fails to load', async () => {
     vi.spyOn(dataService, 'getConcerts').mockRejectedValueOnce(new Error('network error'));
     renderApp();

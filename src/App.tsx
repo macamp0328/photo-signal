@@ -11,7 +11,11 @@
 import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useCameraAccess } from './modules/camera-access';
-import { usePhotoRecognition } from './modules/photo-recognition';
+import {
+  computeActiveSettings,
+  computeAiRecommendations,
+  usePhotoRecognition,
+} from './modules/photo-recognition';
 import { useAudioPlayback, useAudioReactiveGlow } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
@@ -308,6 +312,19 @@ function AppContent() {
   } = usePhotoRecognition(stream, recognitionOptions);
 
   const hasDataError = dataLoadError || indexLoadFailed;
+
+  const analysisSettings = useMemo(
+    () => computeActiveSettings(recognitionOptions),
+    [recognitionOptions]
+  );
+
+  const recognitionRecommendations = useMemo(() => {
+    if (!isDebugOverlayVisible || !debugInfo) {
+      return [];
+    }
+
+    return computeAiRecommendations(debugInfo.telemetry, analysisSettings);
+  }, [analysisSettings, debugInfo, isDebugOverlayVisible]);
 
   useEffect(() => {
     if (!closedConcertCooldown) {
@@ -1097,6 +1114,7 @@ function AppContent() {
             recognizedConcert={activeRecognitionConcert}
             isRecognizing={isRecognizing}
             debugInfo={debugInfo}
+            recommendations={recognitionRecommendations}
             onReset={resetRecognition}
             onVisibilityChange={setIsDebugOverlayVisible}
             testAudioUrl={testAudioUrl}

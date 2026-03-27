@@ -17,7 +17,11 @@ import {
   similarityPercent,
 } from './helpers';
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
-import { calculateAdaptiveQualityThresholds, computeAllQualityMetrics } from './algorithms/utils';
+import {
+  calculateAdaptiveQualityThresholds,
+  computeAllQualityMetrics,
+  computeLaplacianVariance,
+} from './algorithms/utils';
 import { useRecognitionWorker } from './useRecognitionWorker';
 import type {
   WorkerFrameResult,
@@ -198,6 +202,13 @@ const buildStartupTelemetry = (milestones: StartupMilestones): StartupTelemetry 
 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
+/**
+ * Conservative fraction of sharpnessThreshold used as the pre-hash blur gate.
+ * The 64×64 downscale reduces high-frequency content, so Laplacian variance is
+ * lower than on the 128×128 quality-check image. 0.5 is conservative enough to
+ * only fire on clearly blurry frames that would certainly fail the main gate.
+ */
+const PRE_HASH_BLUR_GATE_FRACTION = 0.5;
 const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
 
 /**
@@ -1142,6 +1153,34 @@ export function usePhotoRecognition(
         const imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
+
+        // Pre-hash blur gate: skip computePHash entirely when the 64×64 image is
+        // clearly blurry. Uses PRE_HASH_BLUR_GATE_FRACTION × sharpnessThreshold as
+        // a conservative cutoff — the lower resolution produces lower Laplacian
+        // variance, so only frames that would certainly fail the 128×128 gate fire
+        // this early exit, saving ~1–2ms of DCT computation per blurry frame.
+        const preHashVariance = computeLaplacianVariance(imageData);
+        if (preHashVariance < sharpnessThreshold * PRE_HASH_BLUR_GATE_FRACTION) {
+          consecutiveBlurFramesRef.current += 1;
+          if (consecutiveBlurFramesRef.current >= BLUR_REJECTION_CONSECUTIVE_FRAMES) {
+            telemetryRef.current.blurRejections += 1;
+            recordFailure(
+              telemetryRef.current,
+              'motion-blur',
+              'Pre-hash blur gate: sharpness well below threshold',
+              'N/A'
+            );
+            telemetryRef.current.frameQualityStats.blur.sharpnessSum += preHashVariance;
+            telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
+            if (consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES) {
+              lastMatchedConcertRef.current = null;
+              consecutiveMatchCountRef.current = 0;
+              matchStartTimeRef.current = null;
+            }
+            setIsRecognizing(false);
+          }
+          return;
+        }
 
         // Hash matching — bucketed full-image scan only
         const algorithmStartAt = performance.now();

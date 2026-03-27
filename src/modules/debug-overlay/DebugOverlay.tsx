@@ -16,6 +16,7 @@ export function DebugOverlay({
   enabled,
   onVisibilityChange,
   debugInfo,
+  recommendations = [],
   onReset,
   testAudioUrl,
 }: DebugOverlayProps) {
@@ -27,6 +28,10 @@ export function DebugOverlay({
   const bestMatch = debugInfo?.bestMatch ?? null;
   const secondBestMatch = debugInfo?.secondBestMatch ?? null;
   const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
+  const primaryRecommendation = recommendations[0] ?? null;
+  const glareRecommendation = recommendations.find((recommendation) =>
+    recommendation.parameterChange.startsWith('glarePercentageThreshold')
+  );
 
   // Default to collapsed on mobile screens
   useEffect(() => {
@@ -175,6 +180,25 @@ export function DebugOverlay({
                   </div>
                 </div>
               ) : null}
+            </div>
+          )}
+
+          {/* Guidance */}
+          {primaryRecommendation && (
+            <div className={styles.section}>
+              <div className={styles.label}>Guidance</div>
+              {glareRecommendation && (
+                <div className={styles.glareCallout}>
+                  <div className={styles.glareCalloutTitle}>Glare is usually angle-driven</div>
+                  <div className={styles.glareCalloutBody}>
+                    Tilt or sidestep the phone so the bright reflection moves off the printed photo
+                    before loosening the rejection threshold.
+                  </div>
+                </div>
+              )}
+              <div className={styles.guidanceIssue}>{primaryRecommendation.issue}</div>
+              <div className={styles.guidanceText}>{primaryRecommendation.recommendation}</div>
+              <div className={styles.guidanceHint}>{primaryRecommendation.parameterChange}</div>
             </div>
           )}
 

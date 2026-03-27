@@ -141,9 +141,17 @@ export function computeAiRecommendations(
     const { glare } = telemetry.frameQualityStats;
     const avgGlarePercent =
       glare.sampleCount > 0 ? glare.glarePercentSum / glare.sampleCount : null;
+    const likelyAngleDrivenReflection =
+      avgGlarePercent !== null && avgGlarePercent >= settings.glarePercentageThreshold + 8;
     const suggestedThreshold =
       avgGlarePercent !== null
-        ? Math.min(Math.round(avgGlarePercent * 1.3), 60)
+        ? Math.min(
+            Math.max(
+              settings.glarePercentageThreshold + 4,
+              Math.round(avgGlarePercent * (likelyAngleDrivenReflection ? 1.15 : 1.3))
+            ),
+            60
+          )
         : Math.min(settings.glarePercentageThreshold + 10, 60);
 
     recommendations.push({
@@ -151,8 +159,10 @@ export function computeAiRecommendations(
       issue: `High glare rejection rate: ${(glareRate * 100).toFixed(1)}% of frames rejected for glare`,
       recommendation:
         avgGlarePercent !== null
-          ? `Raise glarePercentageThreshold from ${settings.glarePercentageThreshold} to ${suggestedThreshold} — avg glare% of rejected frames was ${avgGlarePercent.toFixed(1)}%`
-          : `Raise glarePercentageThreshold from ${settings.glarePercentageThreshold} to ${suggestedThreshold}`,
+          ? likelyAngleDrivenReflection
+            ? `Rejected frames average ${avgGlarePercent.toFixed(1)}% glare, which suggests angle-driven reflections. First change the camera or light angle to keep the reflection off-axis; if the setup cannot move, cautiously raise glarePercentageThreshold from ${settings.glarePercentageThreshold} to ${suggestedThreshold}.`
+            : `Raise glarePercentageThreshold from ${settings.glarePercentageThreshold} to ${suggestedThreshold} — avg glare% of rejected frames was ${avgGlarePercent.toFixed(1)}%`
+          : `Raise glarePercentageThreshold from ${settings.glarePercentageThreshold} to ${suggestedThreshold}. If glare comes from a single light source, try shifting the camera angle before relaxing the threshold.`,
       parameterChange: `glarePercentageThreshold: ${suggestedThreshold}`,
     });
   }

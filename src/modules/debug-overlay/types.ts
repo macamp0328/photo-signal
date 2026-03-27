@@ -5,7 +5,7 @@
  */
 
 import type { Concert } from '../../types';
-import type { RecognitionDebugInfo } from '../photo-recognition/types';
+import type { AiRecommendation, RecognitionDebugInfo } from '../photo-recognition';
 
 /**
  * Recognition status states
@@ -27,6 +27,8 @@ export interface DebugOverlayProps {
   onVisibilityChange?: (isVisible: boolean) => void;
   /** Aggregated debug information */
   debugInfo?: RecognitionDebugInfo | null;
+  /** Telemetry-derived tuning recommendations for the current session */
+  recommendations?: AiRecommendation[];
   /** Optional reset handler for restarting recognition */
   onReset?: () => void;
   /** Audio URL to use for the Test Song diagnostic button */

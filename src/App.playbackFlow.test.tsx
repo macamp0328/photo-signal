@@ -694,7 +694,9 @@ describe('App playback flow', () => {
       })
     ).not.toBeInTheDocument();
 
-    const scanAnotherButton = screen.getByRole('button', { name: /scan another/i });
+    const scanAnotherButton = screen.getByRole('button', {
+      name: /close concert view and scan a new photo/i,
+    });
     expect(scanAnotherButton).toHaveFocus();
   });
 

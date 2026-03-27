@@ -378,6 +378,81 @@ describe('computeAiRecommendations', () => {
     });
   });
 
+  describe('distance_histogram recommendations', () => {
+    it('recommends lowering similarityThreshold when histogram peak is in borderline range 16–18', () => {
+      const histogram = new Array<number>(65).fill(0);
+      histogram[17] = 50; // peak at 17 (borderline range)
+      const telemetry = makeTestTelemetry({
+        totalFrames: 60,
+        qualityFrames: 60,
+        distance_histogram: histogram,
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      const histRec = recs.find((r) => r.issue.includes('histogram peak at 17'));
+      expect(histRec).toBeDefined();
+      expect(histRec!.priority).toBe('medium');
+      expect(histRec!.parameterChange).toMatch(/similarityThreshold/);
+    });
+
+    it('recommends checking matchMarginThreshold when peak ≤8 but no confirmations', () => {
+      const histogram = new Array<number>(65).fill(0);
+      histogram[5] = 30; // peak at 5 (strong match range)
+      const telemetry = makeTestTelemetry({
+        totalFrames: 40,
+        qualityFrames: 40,
+        successfulRecognitions: 0,
+        distance_histogram: histogram,
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      const histRec = recs.find((r) => r.issue.includes('histogram peak at 5'));
+      expect(histRec).toBeDefined();
+      expect(histRec!.priority).toBe('high');
+      expect(histRec!.parameterChange).toMatch(/matchMarginThreshold/);
+    });
+
+    it('does not emit histogram rec for peak ≤8 when matches were confirmed', () => {
+      const histogram = new Array<number>(65).fill(0);
+      histogram[5] = 30;
+      const telemetry = makeTestTelemetry({
+        totalFrames: 40,
+        qualityFrames: 40,
+        successfulRecognitions: 3, // confirmed — no margin rec needed
+        distance_histogram: histogram,
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      expect(recs.find((r) => r.issue.includes('histogram peak at 5'))).toBeUndefined();
+    });
+
+    it('does not emit borderline histogram rec when similarityThreshold rec already present', () => {
+      const histogram = new Array<number>(65).fill(0);
+      histogram[17] = 50;
+      // High no-match rate will produce a similarityThreshold rec first
+      const telemetry = makeTestTelemetry({
+        totalFrames: 100,
+        qualityFrames: 60,
+        failureByCategory: {
+          'no-match': 30,
+          collision: 0,
+          'motion-blur': 0,
+          glare: 0,
+          'poor-quality': 0,
+          unknown: 0,
+        },
+        distance_histogram: histogram,
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      const histRecs = recs.filter((r) => r.issue.includes('histogram peak'));
+      // Only one similarityThreshold rec expected (not a duplicate from histogram)
+      expect(histRecs).toHaveLength(0);
+    });
+
+    it('does not emit histogram rec when distance_histogram is absent', () => {
+      const telemetry = makeTestTelemetry({ totalFrames: 50, qualityFrames: 50 });
+      telemetry.distance_histogram = undefined;
+      expect(() => computeAiRecommendations(telemetry, defaultSettings)).not.toThrow();
+    });
+  });
+
   it('returns multiple recommendations when multiple issues present', () => {
     const telemetry = makeTestTelemetry({
       totalFrames: 100,

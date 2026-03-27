@@ -226,6 +226,53 @@ export function computeAiRecommendations(
     });
   }
 
+  // ── Distance histogram recommendations ────────────────────────────────────
+  const histogram = telemetry.distance_histogram;
+  if (histogram && histogram.length === 65) {
+    // Find the peak distance (bucket with most frames) for heuristic tuning.
+    let peakDist = 0;
+    let peakCount = 0;
+    for (let d = 0; d <= 64; d++) {
+      if (histogram[d] > peakCount) {
+        peakCount = histogram[d];
+        peakDist = d;
+      }
+    }
+    const hasHistogramData = peakCount > 0;
+
+    // High peak in borderline range: recommend lowering threshold so fewer
+    // ambiguous frames require the full dwell timer.
+    if (
+      hasHistogramData &&
+      peakDist >= 16 &&
+      peakDist <= 18 &&
+      recommendations.every((r) => r.parameterChange.startsWith('similarityThreshold') === false)
+    ) {
+      recommendations.push({
+        priority: 'medium',
+        issue: `Distance histogram peak at ${peakDist} (borderline range 16–18) — most matched frames are close to the similarity threshold`,
+        recommendation: `Consider lowering similarityThreshold from ${settings.similarityThreshold} to ${Math.max(settings.similarityThreshold - 2, peakDist - 2)} to reduce borderline-match dwell time`,
+        parameterChange: `similarityThreshold: ${Math.max(settings.similarityThreshold - 2, peakDist - 2)}`,
+      });
+    }
+
+    // Strong peak in low-distance range but no successful recognitions: likely
+    // margin threshold is too aggressive, blocking otherwise good matches.
+    if (
+      hasHistogramData &&
+      peakDist <= 8 &&
+      telemetry.successfulRecognitions === 0 &&
+      telemetry.qualityFrames > 5
+    ) {
+      recommendations.push({
+        priority: 'high',
+        issue: `Distance histogram peak at ${peakDist} (strong match range ≤8) but no confirmations recorded — matchMarginThreshold may be rejecting good matches`,
+        recommendation: `Verify that matchMarginThreshold (${settings.matchMarginThreshold}) is not too high relative to the actual second-best distances. Temporarily lower it to ${Math.max(settings.matchMarginThreshold - 1, 1)} to test`,
+        parameterChange: `matchMarginThreshold: ${Math.max(settings.matchMarginThreshold - 1, 1)}`,
+      });
+    }
+  }
+
   // ── Low quality frame rate (catch-all) ────────────────────────────────────
   if (qualityRate < LOW_QUALITY_RATE && recommendations.length === 0) {
     const causes = [

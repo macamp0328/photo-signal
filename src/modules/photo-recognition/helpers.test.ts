@@ -52,6 +52,19 @@ describe('helpers', () => {
         frames: 0,
       });
     });
+
+    it('initializes distance_histogram as a 65-element array of zeros', () => {
+      const telemetry = createEmptyTelemetry();
+      expect(telemetry.distance_histogram).toHaveLength(65);
+      expect(telemetry.distance_histogram!.every((v) => v === 0)).toBe(true);
+    });
+
+    it('distance_histogram indices are independent (no shared array reference)', () => {
+      const t1 = createEmptyTelemetry();
+      const t2 = createEmptyTelemetry();
+      t1.distance_histogram![10] += 1;
+      expect(t2.distance_histogram![10]).toBe(0);
+    });
   });
 
   describe('getPHashes', () => {

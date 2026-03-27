@@ -10,6 +10,46 @@ import type { FeatureFlag } from './types';
 
 export const FEATURE_FLAGS: FeatureFlag[] = [
   {
+    id: 'power-on-intro',
+    name: 'Power-On Intro',
+    description:
+      'After the passcode gate or first load, pressing Turn On plays the old-TV startup sequence before the Still Broadcasting landing screen appears.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
+    id: 'session-warmup',
+    name: 'Session Warmup',
+    description:
+      'Treat the first minutes after Turn On like a cold tube waking up. The idle signal begins dimmer and cooler, then slowly warms into a steadier broadcast state.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
+    id: 'per-session-phosphor',
+    name: 'Per-Session Phosphor Bias',
+    description:
+      'Give each session a slightly different phosphor temperature bias so the dead-signal world never feels exactly identical twice, while staying within a tight clamped range.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
+    id: 'stochastic-glitch',
+    name: 'Stochastic Glitch',
+    description:
+      'Allow rare, short-lived signal instabilities during the boot environment. Glitches are seeded and clamped so they feel like a monitor misbehaving, not a broken app.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
+    id: 'idle-restlessness',
+    name: 'Idle Restlessness',
+    description:
+      'When the landing screen sits untouched after the intro, the signal slowly grows less settled. Scan density and drift increase over time until Tune in begins the live camera state.',
+    enabled: true,
+    category: 'ui',
+  },
+  {
     id: 'exif-visual-character',
     name: 'EXIF Visual Character',
     description:

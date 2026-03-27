@@ -48,6 +48,7 @@ The orchestrator in `src/App.tsx` composes focused modules:
 - `audio-playback`: Howler-based playback, preload, crossfade, error handling
 - `concert-info`: recognized concert metadata UI
 - `gallery-layout`: landing and camera experience layout
+- `power-on-intro`: post-unlock boot ritual between the passcode gate and landing screen
 - `debug-overlay`: diagnostics, telemetry views, test hooks
 - `secret-settings`: hidden feature flags and runtime tuning controls
 

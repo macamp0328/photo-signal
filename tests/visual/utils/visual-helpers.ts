@@ -1,6 +1,9 @@
 import { expect, type Page } from '@playwright/test';
 
 const FEATURE_FLAG_STORAGE_KEY = 'photo-signal-feature-flags';
+const DEFAULT_VISUAL_FEATURE_FLAGS: Record<string, boolean> = {
+  'power-on-intro': false,
+};
 
 interface VisualBootstrapOptions {
   featureFlags?: Record<string, boolean>;
@@ -10,14 +13,17 @@ export async function bootstrapVisualState(
   page: Page,
   options: VisualBootstrapOptions = {}
 ): Promise<void> {
-  const { featureFlags } = options;
+  const resolvedFeatureFlags = {
+    ...DEFAULT_VISUAL_FEATURE_FLAGS,
+    ...options.featureFlags,
+  };
 
   await page.addInitScript(
     ({ flags, storageKey }) => {
       window.localStorage.clear();
       window.sessionStorage.clear();
 
-      if (flags) {
+      if (Object.keys(flags).length > 0) {
         // Convert Record<string, boolean> to array of { id, enabled } objects
         const flagsArray = Object.entries(flags).map(([id, enabled]) => ({
           id,
@@ -26,13 +32,21 @@ export async function bootstrapVisualState(
         window.localStorage.setItem(storageKey, JSON.stringify(flagsArray));
       }
     },
-    { flags: featureFlags, storageKey: FEATURE_FLAG_STORAGE_KEY }
+    { flags: resolvedFeatureFlags, storageKey: FEATURE_FLAG_STORAGE_KEY }
   );
 }
 
-export async function gotoLanding(page: Page): Promise<void> {
+export async function gotoPowerGate(page: Page): Promise<void> {
   await page.goto('/');
   await page.waitForLoadState('networkidle');
+
+  await expect(page.getByRole('button', { name: /turn on/i })).toBeVisible();
+}
+
+export async function gotoLanding(page: Page): Promise<void> {
+  await gotoPowerGate(page);
+
+  await page.getByRole('button', { name: /turn on/i }).click();
   await expect(page.getByRole('heading', { name: /still broadcasting/i })).toBeVisible();
   await dismissDebugOverlay(page);
 }

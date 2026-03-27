@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { bootstrapVisualState, gotoLanding } from './utils/visual-helpers';
+import { bootstrapVisualState, gotoLanding, gotoPowerGate } from './utils/visual-helpers';
 
 /**
  * Visual Regression Tests for Gallery Landing Page
@@ -9,6 +9,15 @@ import { bootstrapVisualState, gotoLanding } from './utils/visual-helpers';
  */
 
 test.describe('Gallery Landing Page', () => {
+  test('@smoke should render turn-on gate shell', async ({ page }) => {
+    await bootstrapVisualState(page);
+    await gotoPowerGate(page);
+
+    await expect(page).toHaveScreenshot('power-gate-shell.png', {
+      fullPage: true,
+    });
+  });
+
   test('@smoke should render landing shell', async ({ page }) => {
     await bootstrapVisualState(page);
     await gotoLanding(page);

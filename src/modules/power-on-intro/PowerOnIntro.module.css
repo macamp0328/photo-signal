@@ -1,0 +1,676 @@
+.root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0;
+  --phase-line-scale: 0.08;
+  --phase-scan-opacity: 0.08;
+  --phase-veil-opacity: 0.04;
+  --phase-glow-opacity: 0.06;
+  --phase-glow-scale: 0.32;
+  --phase-ring-opacity: 0.06;
+  --phase-ring-scale: 0.7;
+  --phase-prism-opacity: 0.04;
+  --phase-band-opacity: 0.02;
+  --phase-mirage-opacity: 0;
+  --phase-mirage-scale: 0.74;
+}
+
+.root::before,
+.root::after {
+  content: '';
+  position: absolute;
+  inset: -18%;
+  pointer-events: none;
+}
+
+.root::before {
+  background:
+    radial-gradient(
+      circle at calc(50% + var(--boot-drift-x)) calc(44% + var(--boot-drift-y)),
+      color-mix(in srgb, var(--color-main-text), transparent 82%),
+      transparent 58%
+    ),
+    conic-gradient(
+      from calc(190deg + var(--boot-drift-rotate)) at 50% 45%,
+      transparent 0deg,
+      color-mix(in srgb, var(--signal-glow-soft), transparent 42%) 54deg,
+      transparent 126deg,
+      color-mix(in srgb, var(--signal-glow), transparent 58%) 232deg,
+      transparent 328deg
+    );
+  background-blend-mode: screen, normal;
+  mix-blend-mode: screen;
+  opacity: calc(0.08 + var(--boot-ambient-opacity) * 0.38);
+  filter: hue-rotate(var(--boot-hue-shift)) saturate(calc(0.78 + var(--boot-glow-scale) * 0.28));
+  transform: translate(var(--boot-drift-x), var(--boot-drift-y));
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear,
+    filter 180ms linear;
+}
+
+.root::after {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 241, 214, 0) 0,
+    rgba(255, 241, 214, 0) 5px,
+    rgba(255, 241, 214, 0.08) 5px,
+    rgba(255, 241, 214, 0.08) 6px
+  );
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 46%,
+    transparent 0 14%,
+    black 34%,
+    transparent 90%
+  );
+  mask-image: radial-gradient(circle at 50% 46%, transparent 0 14%, black 34%, transparent 90%);
+  opacity: calc(var(--boot-glitch-strength) * 0.22);
+  transition: opacity 140ms linear;
+}
+
+.screen {
+  position: relative;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  background:
+    radial-gradient(
+      circle at 50% 46%,
+      color-mix(in srgb, var(--color-main-text), transparent 84%),
+      transparent 44%
+    ),
+    conic-gradient(
+      from calc(180deg + var(--boot-drift-rotate)) at 50% 46%,
+      transparent 0deg,
+      color-mix(in srgb, var(--signal-glow), transparent 76%) 56deg,
+      transparent 128deg,
+      color-mix(in srgb, var(--signal-glow-soft), transparent 40%) 242deg,
+      transparent 334deg
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--color-main-text), transparent 94%),
+      transparent 68%
+    ),
+    #000;
+  background-blend-mode: screen, lighten, screen, normal;
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.95),
+    0 0 60px color-mix(in srgb, var(--signal-glow), transparent 55%);
+  transform: translate(var(--boot-drift-x), var(--boot-drift-y)) rotate(var(--boot-drift-rotate))
+    scale(var(--phase-screen-scale));
+  filter: hue-rotate(var(--boot-hue-shift)) saturate(calc(0.58 + var(--boot-glow-scale) * 0.46))
+    contrast(calc(0.7 + var(--boot-signal-stability) * 0.58 + var(--boot-glitch-strength) * 0.16))
+    brightness(calc(0.2 + var(--boot-ambient-opacity) * 1.04));
+  transition:
+    transform 180ms linear,
+    opacity 220ms linear,
+    filter 180ms linear,
+    background 220ms linear;
+}
+
+.flash,
+.vignette,
+.photoMirage,
+.prismField,
+.signalVeil,
+.colorBands,
+.centerLine,
+.scanField,
+.haloRing,
+.glowOrb,
+.caption {
+  position: absolute;
+  inset: 0;
+}
+
+.flash {
+  background: #fff7dc;
+  opacity: calc(var(--boot-glitch-strength) * 0.42);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  filter: blur(calc(10px - var(--boot-glitch-strength) * 4px));
+  transition:
+    opacity 120ms linear,
+    filter 120ms linear;
+}
+
+.vignette {
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 36%,
+      rgba(0, 0, 0, 0.4) 70%,
+      rgba(0, 0, 0, 0.88) 100%
+    ),
+    linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.24));
+}
+
+.photoMirage {
+  inset: 8%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transform: scale(var(--phase-mirage-scale));
+  filter: hue-rotate(calc(var(--boot-hue-shift) * 0.55))
+    saturate(calc(1 + var(--boot-glow-scale) * 0.16));
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    black 0 24%,
+    rgba(0, 0, 0, 0.98) 58%,
+    transparent 90%
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50%,
+    black 0 24%,
+    rgba(0, 0, 0, 0.98) 58%,
+    transparent 90%
+  );
+  transition:
+    transform 320ms linear,
+    filter 220ms linear;
+}
+
+.photoMirage::before,
+.photoMirage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.photoMirage::before {
+  background: conic-gradient(
+    from calc(220deg + var(--boot-drift-rotate)) at 50% 50%,
+    transparent 0deg,
+    rgba(255, 246, 216, 0.22) 54deg,
+    transparent 128deg,
+    rgba(255, 138, 46, 0.16) 226deg,
+    transparent 332deg
+  );
+  mix-blend-mode: screen;
+  opacity: calc(0.04 + var(--boot-ambient-opacity) * 0.12);
+  filter: blur(12px);
+}
+
+.photoMirage::after {
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 22%,
+    rgba(255, 210, 138, 0.12) 46%,
+    transparent 76%
+  );
+  mix-blend-mode: screen;
+  opacity: calc(0.02 + var(--boot-glow-scale) * 0.04);
+  filter: blur(16px);
+}
+
+.photoLayer {
+  position: absolute;
+  inset: 0;
+  opacity: var(--phase-mirage-opacity);
+  animation: layer-turn 22s ease-in-out infinite alternate;
+  transition: opacity 1200ms linear;
+}
+
+.miragePane {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(36vw, 36vh);
+  aspect-ratio: 0.76;
+  border-radius: 50% 50% 18% 18% / 12% 12% 92% 92%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 128%;
+  clip-path: polygon(50% 0%, 90% 100%, 10% 100%);
+  transform-origin: 50% 100%;
+  transform: translate(-50%, calc(-100% + var(--pane-drift))) rotate(var(--pane-angle))
+    scaleX(var(--pane-flip)) scale(var(--pane-scale));
+  mix-blend-mode: screen;
+  opacity: 0.28;
+  overflow: hidden;
+  box-shadow: inset 0 0 18px rgba(255, 241, 212, 0.12);
+  filter: saturate(122%) contrast(104%) brightness(0.82);
+  animation: pane-sway 18s ease-in-out infinite alternate;
+  animation-delay: var(--pane-delay);
+  transition:
+    opacity 320ms linear,
+    filter 320ms linear,
+    transform 320ms linear;
+}
+
+.miragePane::before,
+.miragePane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.miragePane::before {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 28%,
+    rgba(255, 225, 168, 0.08) 62%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+.miragePane::after {
+  background: radial-gradient(circle at 50% 26%, rgba(255, 244, 214, 0.14), transparent 58%);
+  mix-blend-mode: screen;
+  opacity: 0.38;
+}
+
+.prismField {
+  inset: -12%;
+  background: conic-gradient(
+    from calc(90deg + var(--boot-drift-rotate)) at 50% 50%,
+    transparent 0deg,
+    rgba(255, 120, 40, 0.24) 44deg,
+    rgba(255, 214, 140, 0.16) 102deg,
+    transparent 148deg,
+    rgba(255, 90, 0, 0.18) 220deg,
+    rgba(255, 186, 60, 0.12) 282deg,
+    transparent 332deg
+  );
+  mix-blend-mode: screen;
+  opacity: var(--phase-prism-opacity);
+  filter: hue-rotate(calc(var(--boot-hue-shift) * 1.3)) blur(18px) saturate(135%);
+  transform: translate(calc(var(--boot-drift-x) * -1.4), calc(var(--boot-drift-y) * 0.9))
+    scale(calc(1 + var(--boot-glitch-strength) * 0.06));
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear,
+    filter 180ms linear;
+}
+
+.centerLine {
+  top: 50%;
+  bottom: auto;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #fff5cf 25%, #fff 50%, #fff5cf 75%, transparent);
+  opacity: var(--phase-line-opacity);
+  transform: translateY(-50%) scaleX(var(--phase-line-scale));
+  box-shadow:
+    0 0 10px rgba(255, 245, 207, 0.8),
+    0 0 20px rgba(255, 245, 207, 0.35);
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear;
+}
+
+.scanField {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.18) 0,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent calc(100% - var(--boot-raster-edge)),
+    rgba(0, 0, 0, 0.28) calc(100% - var(--boot-raster-edge) + 4%),
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent calc(100% - var(--boot-raster-edge)),
+    rgba(0, 0, 0, 0.28) calc(100% - var(--boot-raster-edge) + 4%),
+    #000 100%
+  );
+  opacity: calc(var(--phase-scan-opacity) + var(--boot-glitch-strength) * 0.12);
+  transform: translateY(-2%);
+  mix-blend-mode: screen;
+  animation:
+    drift 6.4s linear infinite,
+    scan-skew 1.6s steps(2, end) infinite;
+  transition: opacity 180ms linear;
+}
+
+.signalVeil {
+  inset: 8% 14% 14%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 247, 220, 0.38),
+      rgba(212, 137, 42, 0.06) 42%,
+      transparent 100%
+    ),
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 247, 220, 0.28),
+      rgba(212, 137, 42, 0.06) 36%,
+      transparent 74%
+    );
+  background-blend-mode: screen, normal;
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent calc(100% - var(--boot-raster-edge)),
+    #000 calc(100% - var(--boot-raster-edge) + 9%),
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent calc(100% - var(--boot-raster-edge)),
+    #000 calc(100% - var(--boot-raster-edge) + 9%),
+    #000 100%
+  );
+  opacity: calc(var(--phase-veil-opacity) + var(--boot-glitch-strength) * 0.08);
+  filter: blur(8px);
+  transition: opacity 180ms linear;
+}
+
+.colorBands {
+  inset: -8%;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 108, 0, 0.14) 18%,
+      transparent 36%,
+      rgba(255, 225, 156, 0.1) 54%,
+      transparent 72%,
+      rgba(255, 140, 52, 0.14) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 160, 58, 0.08) 32%,
+      transparent 64%,
+      rgba(255, 215, 120, 0.06) 100%
+    );
+  mix-blend-mode: screen;
+  opacity: var(--phase-band-opacity);
+  filter: blur(22px) saturate(130%);
+  transform: translate(calc(var(--boot-drift-x) * 1.8), calc(var(--boot-drift-y) * -1.6));
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear;
+}
+
+.haloRing {
+  inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 46%,
+    rgba(255, 235, 180, 0.44) 55%,
+    rgba(212, 137, 42, 0.12) 64%,
+    transparent 74%
+  );
+  mix-blend-mode: screen;
+  opacity: var(--phase-ring-opacity);
+  transform: scale(var(--phase-ring-scale));
+  filter: blur(calc(10px + var(--boot-glitch-strength) * 8px));
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear,
+    filter 180ms linear;
+}
+
+.glowOrb {
+  inset: 22% 22%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 239, 194, 0.88) 0,
+    rgba(212, 137, 42, 0.28) 22%,
+    rgba(255, 120, 30, 0.14) 42%,
+    transparent 70%
+  );
+  opacity: var(--phase-glow-opacity);
+  transform: scale(var(--phase-glow-scale));
+  filter: blur(calc(14px - var(--boot-glow-scale) * 2px));
+  transition:
+    opacity 180ms linear,
+    transform 180ms linear,
+    filter 180ms linear;
+}
+
+.black .screen {
+  opacity: 0.2;
+  filter: saturate(0);
+}
+
+.black {
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0.04;
+  --phase-line-scale: 0.1;
+  --phase-scan-opacity: 0.06;
+  --phase-veil-opacity: 0.03;
+  --phase-glow-opacity: 0.06;
+  --phase-glow-scale: 0.28;
+  --phase-ring-opacity: 0.04;
+  --phase-ring-scale: 0.52;
+  --phase-prism-opacity: 0.02;
+  --phase-band-opacity: 0;
+  --phase-mirage-opacity: 0;
+  --phase-mirage-scale: 0.58;
+}
+
+.ember {
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0.58;
+  --phase-line-scale: 0.88;
+  --phase-scan-opacity: 0.18;
+  --phase-veil-opacity: 0.12;
+  --phase-glow-opacity: 0.18;
+  --phase-glow-scale: 0.46;
+  --phase-ring-opacity: 0.14;
+  --phase-ring-scale: 0.68;
+  --phase-prism-opacity: 0.08;
+  --phase-band-opacity: 0.05;
+  --phase-mirage-opacity: 0.04;
+  --phase-mirage-scale: 0.66;
+}
+
+.raster {
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0.18;
+  --phase-line-scale: 1.02;
+  --phase-scan-opacity: 0.34;
+  --phase-veil-opacity: 0.32;
+  --phase-glow-opacity: 0.42;
+  --phase-glow-scale: 0.82;
+  --phase-ring-opacity: 0.2;
+  --phase-ring-scale: 0.86;
+  --phase-prism-opacity: 0.14;
+  --phase-band-opacity: 0.08;
+  --phase-mirage-opacity: 0.18;
+  --phase-mirage-scale: 0.82;
+}
+
+.drift {
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0.08;
+  --phase-line-scale: 1.08;
+  --phase-scan-opacity: 0.48;
+  --phase-veil-opacity: 0.54;
+  --phase-glow-opacity: 0.68;
+  --phase-glow-scale: 1.06;
+  --phase-ring-opacity: 0.32;
+  --phase-ring-scale: 1.04;
+  --phase-prism-opacity: 0.22;
+  --phase-band-opacity: 0.14;
+  --phase-mirage-opacity: 0.34;
+  --phase-mirage-scale: 0.98;
+}
+
+.lock {
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0.03;
+  --phase-line-scale: 1.02;
+  --phase-scan-opacity: 0.34;
+  --phase-veil-opacity: 0.66;
+  --phase-glow-opacity: 0.78;
+  --phase-glow-scale: 1.14;
+  --phase-ring-opacity: 0.4;
+  --phase-ring-scale: 1.1;
+  --phase-prism-opacity: 0.26;
+  --phase-band-opacity: 0.16;
+  --phase-mirage-opacity: 0.44;
+  --phase-mirage-scale: 1.04;
+}
+
+.handoff {
+  --phase-screen-scale: 1;
+  --phase-line-opacity: 0;
+  --phase-line-scale: 1;
+  --phase-scan-opacity: 0.22;
+  --phase-veil-opacity: 0.48;
+  --phase-glow-opacity: 0.56;
+  --phase-glow-scale: 1.06;
+  --phase-ring-opacity: 0.24;
+  --phase-ring-scale: 1.02;
+  --phase-prism-opacity: 0.18;
+  --phase-band-opacity: 0.08;
+  --phase-mirage-opacity: 0.08;
+  --phase-mirage-scale: 1.02;
+  animation: handoff-fade 1.6s ease forwards;
+}
+
+.ember .flash,
+.raster .flash,
+.drift .flash,
+.lock .flash {
+  animation: ignition-flash 3.4s steps(2, end) infinite;
+}
+
+.handoff .screen {
+  opacity: 0.92;
+}
+
+.handoff .glowOrb {
+  opacity: 0.5;
+}
+
+.handoff .haloRing {
+  opacity: 0.16;
+}
+
+.raster .signalVeil,
+.drift .signalVeil,
+.lock .signalVeil {
+  animation: veil-breath 5.2s ease-in-out infinite;
+}
+
+@keyframes ignition-flash {
+  0% {
+    opacity: calc(var(--boot-glitch-strength) * 0.18);
+  }
+
+  8% {
+    opacity: calc(0.14 + var(--boot-glitch-strength) * 0.34);
+  }
+
+  18% {
+    opacity: calc(var(--boot-glitch-strength) * 0.12);
+  }
+
+  30% {
+    opacity: calc(0.09 + var(--boot-glitch-strength) * 0.2);
+  }
+
+  48% {
+    opacity: calc(var(--boot-glitch-strength) * 0.08);
+  }
+
+  100% {
+    opacity: calc(var(--boot-glitch-strength) * 0.18);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, -4%, 0);
+  }
+
+  to {
+    transform: translate3d(0, 4%, 0);
+  }
+}
+
+@keyframes scan-skew {
+  0%,
+  100% {
+    transform: translateY(-2%) skewY(0deg);
+  }
+
+  50% {
+    transform: translateY(1%) skewY(0.9deg);
+  }
+}
+
+@keyframes veil-breath {
+  0%,
+  100% {
+    opacity: calc(var(--phase-veil-opacity) * 0.88);
+  }
+
+  50% {
+    opacity: calc(var(--phase-veil-opacity) + 0.08);
+  }
+}
+
+@keyframes layer-turn {
+  0% {
+    transform: translate3d(-0.8%, -0.6%, 0) rotate(-5deg) scale(0.985);
+  }
+
+  100% {
+    transform: translate3d(0.8%, 0.9%, 0) rotate(5deg) scale(1.015);
+  }
+}
+
+@keyframes pane-sway {
+  0% {
+    transform: translate(-50%, calc(-100% + var(--pane-drift))) rotate(var(--pane-angle))
+      scaleX(var(--pane-flip)) scale(var(--pane-scale));
+  }
+
+  100% {
+    transform: translate(-50%, calc(-101% + var(--pane-drift)))
+      rotate(calc(var(--pane-angle) + 3deg)) scaleX(var(--pane-flip))
+      scale(calc(var(--pane-scale) * 1.02));
+  }
+}
+
+@keyframes handoff-fade {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.72;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash,
+  .scanField,
+  .signalVeil,
+  .prismField,
+  .colorBands,
+  .haloRing,
+  .photoMirage,
+  .photoLayer,
+  .miragePane {
+    animation: none !important;
+  }
+}

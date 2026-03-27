@@ -41,17 +41,45 @@ const DebugOverlay = lazy(async () => {
   return { default: module.DebugOverlay };
 });
 
+const PowerOnIntro = lazy(async () => {
+  const module = await import('./modules/power-on-intro');
+  return { default: module.PowerOnIntro };
+});
+
 const ACCESS_STORAGE_KEY = 'photo-signal-access-until';
+const BOOT_ENVIRONMENT_STORAGE_KEY = 'photo-signal-boot-environment';
 const DEFAULT_ACCESS_SESSION_HOURS = 12;
 const DETAILS_RECOGNITION_COOLDOWN_MS = 2000;
 const LONG_PRESS_DURATION_MS = 500;
+const POWER_ON_INTRO_DURATION_MS = 23000;
+const BOOT_SESSION_WARMUP_MS = 2 * 60 * 1000;
+const BOOT_IDLE_RESTLESSNESS_DELAY_MS = 45 * 1000;
+const BOOT_IDLE_RESTLESSNESS_RAMP_MS = 60 * 1000;
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+const BOOT_ENVIRONMENT_STYLE_PROPERTIES = [
+  '--boot-hue-shift',
+  '--boot-ambient-opacity',
+  '--boot-glow-scale',
+  '--boot-drift-x',
+  '--boot-drift-y',
+  '--boot-drift-rotate',
+  '--boot-glitch-strength',
+  '--boot-raster-edge',
+  '--boot-scanline-scale',
+  '--boot-signal-stability',
+] as const;
 
 interface AccessGateConfig {
   enabled: boolean;
   passcode: string;
   sessionMs: number;
+}
+
+interface BootEnvironmentSession {
+  seed: number;
+  startedAt: number;
 }
 
 const getAccessGateConfig = (): AccessGateConfig => {
@@ -97,6 +125,68 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function lerp(start: number, end: number, progress: number): number {
+  return start + (end - start) * progress;
+}
+
+function easeInOut(progress: number): number {
+  const clamped = clamp(progress, 0, 1);
+  return clamped * clamped * (3 - 2 * clamped);
+}
+
+function pulseStrength(elapsedMs: number, centerMs: number, radiusMs: number): number {
+  const distance = Math.abs(elapsedMs - centerMs);
+  if (distance >= radiusMs) {
+    return 0;
+  }
+
+  return 1 - distance / radiusMs;
+}
+
+function getOrCreateBootEnvironmentSession(): BootEnvironmentSession {
+  if (typeof window === 'undefined' || !('sessionStorage' in window)) {
+    return { seed: 0.5, startedAt: Date.now() };
+  }
+
+  try {
+    const storedValue = window.sessionStorage.getItem(BOOT_ENVIRONMENT_STORAGE_KEY);
+    if (storedValue) {
+      const parsed = JSON.parse(storedValue) as Partial<BootEnvironmentSession>;
+      if (
+        typeof parsed.seed === 'number' &&
+        Number.isFinite(parsed.seed) &&
+        typeof parsed.startedAt === 'number' &&
+        Number.isFinite(parsed.startedAt)
+      ) {
+        return {
+          seed: clamp(parsed.seed, 0, 1),
+          startedAt: parsed.startedAt,
+        };
+      }
+    }
+
+    const createdSession = {
+      seed: Math.random(),
+      startedAt: Date.now(),
+    };
+    window.sessionStorage.setItem(BOOT_ENVIRONMENT_STORAGE_KEY, JSON.stringify(createdSession));
+    return createdSession;
+  } catch {
+    return { seed: 0.5, startedAt: Date.now() };
+  }
+}
+
+function clearBootEnvironment(root: HTMLElement): void {
+  BOOT_ENVIRONMENT_STYLE_PROPERTIES.forEach((property) => {
+    root.style.removeProperty(property);
+  });
+  root.removeAttribute('data-boot-environment');
+}
+
 // DEV-only badge: visible when __dev_fakeCamera is active in localStorage so
 // agents and humans can instantly confirm they're on the dev server (not
 // the production preview build, which strips all DEV code paths).
@@ -134,6 +224,14 @@ function DevFakeCameraBadge() {
 }
 
 function AppContent() {
+  const [hasPoweredOn, setHasPoweredOn] = useState(() => import.meta.env.MODE === 'test');
+  const [hasCompletedPowerOnIntro, setHasCompletedPowerOnIntro] = useState(
+    () => import.meta.env.MODE === 'test'
+  );
+  const [bootEnvironmentStartedAt, setBootEnvironmentStartedAt] = useState<number | null>(null);
+  const [landingIdleStartedAt, setLandingIdleStartedAt] = useState<number | null>(null);
+  const bootEnvironmentSession = useMemo(() => getOrCreateBootEnvironmentSession(), []);
+
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -262,6 +360,11 @@ function AppContent() {
 
   // Module: Feature Flags
   const { isEnabled } = useFeatureFlags();
+  const shouldShowPowerOnIntro = isEnabled('power-on-intro');
+  const shouldUseSessionWarmup = isEnabled('session-warmup');
+  const shouldUsePerSessionPhosphor = isEnabled('per-session-phosphor');
+  const shouldUseStochasticGlitch = isEnabled('stochastic-glitch');
+  const shouldUseIdleRestlessness = isEnabled('idle-restlessness');
 
   // Load the first available audio URL for the debug overlay's Test Song button
   const loadTestAudioUrl = useCallback(async () => {
@@ -417,6 +520,117 @@ function AppContent() {
       document.documentElement.style.removeProperty('--crt-opacity');
     };
   }, [progress, isPlaying, activeRecognitionConcert, isEnabled]);
+
+  const isBootEnvironmentActive = !isActive && bootEnvironmentStartedAt !== null;
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    if (!isBootEnvironmentActive) {
+      clearBootEnvironment(root);
+      return;
+    }
+
+    let timeoutId: number | null = null;
+
+    const applyBootEnvironmentStep = () => {
+      const now = Date.now();
+      const bootElapsedMs = now - bootEnvironmentStartedAt;
+      const sessionElapsedMs = now - bootEnvironmentSession.startedAt;
+      const landingElapsedMs = landingIdleStartedAt ? now - landingIdleStartedAt : 0;
+
+      const introProgress = easeInOut(bootElapsedMs / POWER_ON_INTRO_DURATION_MS);
+      const sessionWarmupProgress = shouldUseSessionWarmup
+        ? clamp(sessionElapsedMs / BOOT_SESSION_WARMUP_MS, 0, 1)
+        : 1;
+      const coldTubeWeight = 1 - sessionWarmupProgress;
+      const idleRestlessnessProgress =
+        shouldUseIdleRestlessness && landingElapsedMs > BOOT_IDLE_RESTLESSNESS_DELAY_MS
+          ? clamp(
+              (landingElapsedMs - BOOT_IDLE_RESTLESSNESS_DELAY_MS) / BOOT_IDLE_RESTLESSNESS_RAMP_MS,
+              0,
+              1
+            )
+          : 0;
+
+      const signalStability = clamp(
+        0.16 + introProgress * 0.54 + sessionWarmupProgress * 0.24,
+        0,
+        1
+      );
+      const driftAmplitude = lerp(2.8, 0.8, signalStability);
+      const driftX =
+        Math.sin((bootElapsedMs + bootEnvironmentSession.seed * 3200) / 1800) * driftAmplitude;
+      const driftY =
+        Math.cos((bootElapsedMs + bootEnvironmentSession.seed * 2100) / 2600) *
+        driftAmplitude *
+        0.68;
+      const driftRotate =
+        Math.sin((bootElapsedMs + bootEnvironmentSession.seed * 900) / 3400) *
+        lerp(1.15, 0.22, signalStability);
+
+      const phosphorBias = shouldUsePerSessionPhosphor
+        ? lerp(-8, 8, bootEnvironmentSession.seed)
+        : 0;
+      const hueDrift =
+        Math.sin((bootElapsedMs + bootEnvironmentSession.seed * 4500) / 6200) *
+        lerp(4.6, 1.1, signalStability);
+      const hueShift = phosphorBias + hueDrift - coldTubeWeight * 6;
+
+      const glitchBurst = shouldUseStochasticGlitch
+        ? Math.max(
+            pulseStrength(bootElapsedMs, 3600 + bootEnvironmentSession.seed * 2600, 380),
+            pulseStrength(bootElapsedMs, 11800 + bootEnvironmentSession.seed * 3200, 240) * 0.72,
+            pulseStrength(bootElapsedMs, 18600 + bootEnvironmentSession.seed * 1800, 180) * 0.45
+          )
+        : 0;
+
+      const ambientOpacity = clamp(0.12 + introProgress * 0.6 + coldTubeWeight * 0.08, 0.12, 0.82);
+      const glowScale = clamp(
+        0.62 + signalStability * 0.48 + coldTubeWeight * 0.08 + glitchBurst * 0.04,
+        0.62,
+        1.16
+      );
+      const rasterEdge = clamp(6 + introProgress * 84 + glitchBurst * 4, 6, 92);
+      const scanlineScale = clamp(
+        0.78 + introProgress * 0.16 + idleRestlessnessProgress * 0.18 + coldTubeWeight * 0.05,
+        0.76,
+        1.18
+      );
+
+      root.setAttribute('data-boot-environment', 'warming');
+      root.style.setProperty('--boot-hue-shift', `${hueShift.toFixed(3)}deg`);
+      root.style.setProperty('--boot-ambient-opacity', ambientOpacity.toFixed(3));
+      root.style.setProperty('--boot-glow-scale', glowScale.toFixed(3));
+      root.style.setProperty('--boot-drift-x', `${driftX.toFixed(3)}px`);
+      root.style.setProperty('--boot-drift-y', `${driftY.toFixed(3)}px`);
+      root.style.setProperty('--boot-drift-rotate', `${driftRotate.toFixed(3)}deg`);
+      root.style.setProperty('--boot-glitch-strength', glitchBurst.toFixed(3));
+      root.style.setProperty('--boot-raster-edge', `${rasterEdge.toFixed(2)}%`);
+      root.style.setProperty('--boot-scanline-scale', scanlineScale.toFixed(3));
+      root.style.setProperty('--boot-signal-stability', signalStability.toFixed(3));
+
+      timeoutId = window.setTimeout(applyBootEnvironmentStep, 120);
+    };
+
+    applyBootEnvironmentStep();
+
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+      clearBootEnvironment(root);
+    };
+  }, [
+    bootEnvironmentSession,
+    bootEnvironmentStartedAt,
+    isBootEnvironmentActive,
+    landingIdleStartedAt,
+    shouldUseIdleRestlessness,
+    shouldUsePerSessionPhosphor,
+    shouldUseSessionWarmup,
+    shouldUseStochasticGlitch,
+  ]);
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {
@@ -647,14 +861,31 @@ function AppContent() {
   // Handle activation from landing view
   const handleActivate = () => {
     attemptPortraitOrientationLock();
+    setBootEnvironmentStartedAt(null);
+    setLandingIdleStartedAt(null);
     setIsActive(true);
   };
+
+  const handlePowerOn = useCallback(() => {
+    const now = Date.now();
+    setHasPoweredOn(true);
+    setBootEnvironmentStartedAt(now);
+    if (!shouldShowPowerOnIntro) {
+      setHasCompletedPowerOnIntro(true);
+      setLandingIdleStartedAt(now);
+    }
+  }, [shouldShowPowerOnIntro]);
+
+  const handlePowerOnIntroComplete = useCallback(() => {
+    setHasCompletedPowerOnIntro(true);
+    setLandingIdleStartedAt(Date.now());
+  }, []);
 
   // Keep the screen on while the camera experience is active.
   // The OS automatically releases wake locks when the document is hidden, so
   // re-acquire on visibilitychange → visible if the user switches back.
   useEffect(() => {
-    if (!isActive || !('wakeLock' in navigator)) return;
+    if (!isActive || typeof navigator.wakeLock?.request !== 'function') return;
     let sentinel: WakeLockSentinel | null = null;
 
     const acquire = () => {
@@ -722,6 +953,8 @@ function AppContent() {
     clearLongPressTimer();
     userPausedRef.current = true;
     stop();
+    setBootEnvironmentStartedAt(null);
+    setLandingIdleStartedAt(null);
     setIsActive(false);
     setIsConcertInfoVisible(false);
     setHasScannedPhotoLoadFailed(false);
@@ -1066,9 +1299,37 @@ function AppContent() {
     }
   }, [forceMatch]);
 
+  const showPowerGate = !hasPoweredOn;
+  const showPowerOnIntro = hasPoweredOn && !hasCompletedPowerOnIntro && shouldShowPowerOnIntro;
+
+  if (showPowerGate) {
+    return (
+      <main className={styles.powerGate} aria-label="Power on screen">
+        <button
+          type="button"
+          className={styles.powerGateButton}
+          onClick={handlePowerOn}
+          aria-label="Turn On"
+        >
+          Turn On
+        </button>
+      </main>
+    );
+  }
+
+  if (showPowerOnIntro) {
+    return (
+      <Suspense
+        fallback={<main className={styles.powerGate} aria-label="Power-on intro loading" />}
+      >
+        <PowerOnIntro onComplete={handlePowerOnIntroComplete} />
+      </Suspense>
+    );
+  }
+
   return (
     <>
-      {hasDataError && !isActive && (
+      {hasDataError && !isActive && hasCompletedPowerOnIntro && (
         <div className={styles.dataErrorBanner} role="alert">
           Unable to load gallery data. Check your connection and refresh.
         </div>

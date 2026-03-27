@@ -78,7 +78,7 @@ describe('App access gate', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enter' }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Broadcasting/i)).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Turn On' })).toBeTruthy();
     });
 
     const accessUntil = Number(window.localStorage.getItem('photo-signal-access-until'));

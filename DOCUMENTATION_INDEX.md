@@ -38,6 +38,7 @@ Each module has a `README.md` with its public API, responsibilities, and key fil
 - **[src/modules/debug-overlay/README.md](./src/modules/debug-overlay/README.md)** — Real-time recognition diagnostics panel
 - **[src/modules/gallery-layout/README.md](./src/modules/gallery-layout/README.md)** — Top-level app layout, zine aesthetic shell
 - **[src/modules/motion-detection/README.md](./src/modules/motion-detection/README.md)** — Pixel-diff motion detection
+- **[src/modules/power-on-intro/README.md](./src/modules/power-on-intro/README.md)** — Post-unlock old-TV startup sequence
 - **[src/modules/photo-recognition/README.md](./src/modules/photo-recognition/README.md)** — pHash recognition, Web Worker, telemetry
 - **[src/modules/photo-rectangle-detection/README.md](./src/modules/photo-rectangle-detection/README.md)** — Computer vision rectangle detection
 - **[src/modules/secret-settings/README.md](./src/modules/secret-settings/README.md)** — Feature flags, hidden settings menu

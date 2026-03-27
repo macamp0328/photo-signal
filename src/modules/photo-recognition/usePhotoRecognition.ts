@@ -629,6 +629,7 @@ export function usePhotoRecognition(
     processFrame: workerProcessFrame,
     isReady: isWorkerReady,
     isSupported: isWorkerSupported,
+    isFailed: isWorkerFailed,
   } = useRecognitionWorker({
     hashEntries: workerHashEntries,
     config: workerConfig,
@@ -640,6 +641,10 @@ export function usePhotoRecognition(
   // never changes. Storing it in a ref keeps it out of the main scheduling
   // effect's dependency array without risk of staleness.
   const isWorkerSupportedRef = useRef(isWorkerSupported);
+  // Track permanent worker failure in a ref so canUseWorkerPath inside the
+  // scheduling effect sees the latest value without being in its dep array.
+  const isWorkerFailedRef = useRef(false);
+  isWorkerFailedRef.current = isWorkerFailed;
   // isWorkerReady and workerProcessFrame change when the worker transitions to
   // ready (isReady state flip → new processFrame useCallback reference). Tracking
   // them via refs lets the scheduling effect read the latest values per-frame
@@ -713,13 +718,18 @@ export function usePhotoRecognition(
     // -----------------------------------------------------------------------
     // Worker path control
     // -----------------------------------------------------------------------
-    // canUseWorkerPath is stable across the effect's lifetime — it depends only
-    // on browser capability (never-changing) and requestVideoFrame availability
-    // on the video element. Actual worker readiness is checked per-frame via
-    // isWorkerReadyRef so the scheduling loop never restarts when the worker
-    // finishes initialising.
+    // canUseWorkerPath is computed once per effect run. It depends on:
+    //   - browser capability (isWorkerSupportedRef — never changes after mount)
+    //   - requestVideoFrame availability on the video element
+    //   - permanent worker failure (isWorkerFailedRef — may go true after restarts exhausted)
+    // Actual worker readiness per frame is checked via isWorkerReadyRef so
+    // the scheduling loop never restarts when the worker finishes initialising.
+    // If isFailed becomes true (after restart attempts exhausted), canUseWorkerPath
+    // evaluates to false on the next frame check, transparently falling back to inline.
     const canUseWorkerPath =
-      isWorkerSupportedRef.current && typeof video.requestVideoFrame === 'function';
+      isWorkerSupportedRef.current &&
+      typeof video.requestVideoFrame === 'function' &&
+      !isWorkerFailedRef.current;
 
     // -----------------------------------------------------------------------
     // Inner helper: quality filtering

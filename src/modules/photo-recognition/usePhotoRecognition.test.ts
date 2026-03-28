@@ -185,17 +185,14 @@ describe('usePhotoRecognition', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
     });
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load concert data:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
     errorSpy.mockRestore();
   });
 
   it('handles error when loading recognition index fails', async () => {
     global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    const { result } = renderHook(() => usePhotoRecognition(null, { enabled: true }));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
     });
@@ -203,9 +200,35 @@ describe('usePhotoRecognition', () => {
       '[photo-recognition] Recognition index load failed:',
       expect.any(Error)
     );
+    expect(result.current.indexLoadFailed).toBe(true);
     errorSpy.mockRestore();
   });
 
+  it('ignores recognition index failures after unmount', async () => {
+    let rejectIndexLoad: ((reason?: unknown) => void) | null = null;
+    global.fetch = vi.fn(
+      () =>
+        new Promise((_, reject) => {
+          rejectIndexLoad = reject;
+        })
+    ) as typeof fetch;
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { unmount } = renderHook(() => usePhotoRecognition(null, { enabled: true }));
+
+    unmount();
+
+    await act(async () => {
+      rejectIndexLoad?.(new Error('late index fail'));
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
+  });
 
   it('starts with null recognized concert', () => {
     const { result } = renderHook(() => usePhotoRecognition(null));

@@ -6,7 +6,7 @@
  * how the matched state is displayed.
  *
  * Mappings:
- *   ISO          → --exif-grain-opacity    (0.02 at ISO 100  → 0.12 at ISO 3200+)
+ *   ISO          → --exif-grain-opacity    (0.06 at ISO 100  → 0.28 at ISO 3200+)
  *   Shutter speed → --exif-transition-scale (0.6× at 1/1000s → 1.4× at 1/15s)
  *
  * Aperture (f-number) is parsed and displayed in the EXIF info line but does not
@@ -69,8 +69,8 @@ function clamp(val: number, min: number, max: number): number {
 }
 
 function isoToGrainOpacity(iso: number): number {
-  // ISO 100 → 0.02, ISO 3200+ → 0.12
-  return clamp(0.02 + ((iso - 100) / (3200 - 100)) * 0.1, 0.02, 0.12);
+  // ISO 100 → 0.06, ISO 3200+ → 0.28
+  return clamp(0.06 + ((iso - 100) / (3200 - 100)) * 0.22, 0.06, 0.28);
 }
 
 function shutterSpeedToTransitionScale(seconds: number): number {

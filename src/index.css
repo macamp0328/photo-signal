@@ -103,7 +103,7 @@ body {
   --poster-accent: #b87020;
 
   /* EXIF visual character — overridden by JS at match time based on shooting conditions */
-  --exif-grain-opacity: 0.04; /* neutral default; range 0.02–0.12 driven by ISO */
+  --exif-grain-opacity: 0.04; /* neutral default; range 0.06–0.28 driven by ISO */
   --exif-transition-scale: 1; /* neutral default; range 0.6–1.4 driven by shutter speed */
 }
 

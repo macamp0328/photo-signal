@@ -94,6 +94,9 @@ describe('usePhotoRecognition', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockIsEnabled.mockReturnValue(false);
+    // Default: 64×64 images appear sharp so the pre-hash blur gate does not fire.
+    // Tests that want to exercise the gate override this spy locally.
+    vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(200);
     activeFrameHash = 'a5b3c7d9e1f20486';
     workerHookState.isReady = false;
     workerHookState.isSupported = false;
@@ -151,6 +154,7 @@ describe('usePhotoRecognition', () => {
   afterEach(() => {
     global.fetch = originalFetch;
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('starts with null recognized concert', () => {
@@ -1429,6 +1433,74 @@ describe('usePhotoRecognition', () => {
         } else {
           vi.unstubAllGlobals();
         }
+      }
+    });
+  });
+
+  describe('pre-hash blur gate', () => {
+    it('skips computePHash and recordsblur telemetry when 64×64 variance is below 50% of sharpnessThreshold', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+
+      const mockContext = {
+        drawImage: vi.fn(),
+        getImageData: vi.fn(() => new ImageData(64, 64)),
+      } as unknown as CanvasRenderingContext2D;
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          return video;
+        }
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => mockContext),
+            configurable: true,
+          });
+          return canvas;
+        }
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      // Return variance well below 50% of default sharpnessThreshold (100) → gate fires
+      const laplacianSpy = vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(5);
+      // computeAllQualityMetrics runs inside processQualityFilters, which is only
+      // reached after computePHash. If the gate fires, this spy should never be called.
+      const qualitySpy = vi.spyOn(qualityUtils, 'computeAllQualityMetrics');
+
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            sharpnessThreshold: 100,
+            checkInterval: 50,
+            enableDebugInfo: true,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(400);
+        });
+
+        // processQualityFilters (and computeAllQualityMetrics) must never fire —
+        // the pre-hash gate should have returned early every frame, meaning
+        // computePHash was also never reached (runs between the gate and quality checks).
+        expect(qualitySpy).not.toHaveBeenCalled();
+        // No match should be confirmed since every frame was rejected before hashing.
+        expect(result.current.recognizedConcert).toBeNull();
+      } finally {
+        laplacianSpy.mockRestore();
+        qualitySpy.mockRestore();
+        createElementSpy.mockRestore();
       }
     });
   });

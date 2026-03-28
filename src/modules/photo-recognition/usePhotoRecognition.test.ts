@@ -4,7 +4,7 @@ import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import * as qualityUtils from './algorithms/utils';
-import { usePhotoRecognition } from './usePhotoRecognition';
+import { usePhotoRecognition, getAdaptiveRecognitionDelay } from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
@@ -1503,5 +1503,48 @@ describe('usePhotoRecognition', () => {
         createElementSpy.mockRestore();
       }
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pure helper tests — no hook rendering required
+// ---------------------------------------------------------------------------
+
+describe('getAdaptiveRecognitionDelay', () => {
+  const BASE = 150; // mirrors DEFAULT_RECOGNITION_DELAY
+
+  it('returns 50% of base delay for distance 11 (high confidence zone)', () => {
+    expect(getAdaptiveRecognitionDelay(11, BASE)).toBe(75);
+  });
+
+  it('returns 50% of base delay for distance 13 (upper boundary of high confidence zone)', () => {
+    expect(getAdaptiveRecognitionDelay(13, BASE)).toBe(75);
+  });
+
+  it('returns 100% of base delay for distance 14 (lower boundary of normal zone)', () => {
+    expect(getAdaptiveRecognitionDelay(14, BASE)).toBe(150);
+  });
+
+  it('returns 100% of base delay for distance 16 (upper boundary of normal zone)', () => {
+    expect(getAdaptiveRecognitionDelay(16, BASE)).toBe(150);
+  });
+
+  it('returns 130% of base delay for distance 17 (lower boundary of caution zone)', () => {
+    expect(getAdaptiveRecognitionDelay(17, BASE)).toBe(195);
+  });
+
+  it('returns 130% of base delay for distance 18 (at threshold)', () => {
+    expect(getAdaptiveRecognitionDelay(18, BASE)).toBe(195);
+  });
+
+  it('clamps to minimum 1ms even for an extremely small base delay', () => {
+    // Math.max(1, Math.round(1 * 0.5)) = Math.max(1, 1) = 1
+    expect(getAdaptiveRecognitionDelay(11, 1)).toBe(1);
+  });
+
+  it('scales correctly for a non-default base delay of 200ms', () => {
+    expect(getAdaptiveRecognitionDelay(12, 200)).toBe(100); // 50%
+    expect(getAdaptiveRecognitionDelay(15, 200)).toBe(200); // 100%
+    expect(getAdaptiveRecognitionDelay(17, 200)).toBe(260); // 130%
   });
 });

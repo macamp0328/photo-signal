@@ -599,15 +599,21 @@ async function runFullDemoStory(page, timing) {
   const playPauseBtn = page
     .locator('button[aria-label^="Play"], button[aria-label^="Pause"]')
     .first();
-  await clickWithIndicator(page, playPauseBtn);
-  await page.waitForTimeout(controlTapGapMs);
+  const playPauseVisible = await playPauseBtn.isVisible().catch(() => false);
+  if (playPauseVisible) {
+    await clickWithIndicator(page, playPauseBtn);
+    await page.waitForTimeout(controlTapGapMs);
+  }
 
   const nextVisible = await nextTrackBtn.isVisible().catch(() => false);
   if (nextVisible) {
     await clickWithIndicator(page, nextTrackBtn);
     await page.waitForTimeout(controlTapGapMs);
-    await clickWithIndicator(page, prevTrackBtn);
-    await page.waitForTimeout(controlTapGapMs);
+    const prevVisible = await prevTrackBtn.isVisible().catch(() => false);
+    if (prevVisible) {
+      await clickWithIndicator(page, prevTrackBtn);
+      await page.waitForTimeout(controlTapGapMs);
+    }
   }
 
   // Scene 4: Close panel, switch to second target

@@ -185,6 +185,23 @@ describe('computeAiRecommendations', () => {
       expect(glareRec?.priority).toBe('high');
     });
 
+    it('treats large glare overages as angle-driven reflections first', () => {
+      const telemetry = makeTestTelemetry({
+        totalFrames: 100,
+        glareRejections: 35,
+        frameQualityStats: {
+          blur: { sharpnessSum: 0, sampleCount: 0 },
+          glare: { glarePercentSum: 35 * 29, sampleCount: 35 },
+          lighting: { brightnessSum: 0, sampleCount: 0 },
+        },
+      });
+      const recs = computeAiRecommendations(telemetry, defaultSettings);
+      const glareRec = recs.find((r) => r.parameterChange.startsWith('glarePercentageThreshold'));
+      expect(glareRec?.recommendation).toContain('angle-driven reflections');
+      expect(glareRec?.recommendation).toContain('off-axis');
+      expect(glareRec?.parameterChange).toBe('glarePercentageThreshold: 33');
+    });
+
     it('caps suggested glarePercentageThreshold at 60', () => {
       const telemetry = makeTestTelemetry({
         totalFrames: 100,

@@ -132,5 +132,62 @@ describe('helpers', () => {
       expect(telemetry.collisionStats.ambiguousPairCounts['Band A vs Band B']).toBe(2);
       expect(Object.keys(telemetry.collisionStats.ambiguousPairCounts)).toHaveLength(1);
     });
+
+    it('increments 3-4 margin bucket for margin of 3 or 4', () => {
+      const telemetry = createEmptyTelemetry();
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 3,
+        bestBand: 'A',
+        secondBand: 'B',
+      });
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 4,
+        bestBand: 'A',
+        secondBand: 'B',
+      });
+      expect(telemetry.collisionStats.ambiguousMarginHistogram['3-4']).toBe(2);
+    });
+
+    it('increments 5+ margin bucket for margin >= 5', () => {
+      const telemetry = createEmptyTelemetry();
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 5,
+        bestBand: 'A',
+        secondBand: 'B',
+      });
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 10,
+        bestBand: 'A',
+        secondBand: 'B',
+      });
+      expect(telemetry.collisionStats.ambiguousMarginHistogram['5+']).toBe(2);
+    });
+
+    it('increments nearThresholdCount when isAmbiguous is false', () => {
+      const telemetry = createEmptyTelemetry();
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: false,
+        margin: null,
+        bestBand: 'A',
+        secondBand: null,
+      });
+      expect(telemetry.collisionStats.nearThresholdCount).toBe(1);
+      expect(telemetry.collisionStats.ambiguousCount).toBe(0);
+    });
+
+    it('uses "Unknown rival" when secondBand is null', () => {
+      const telemetry = createEmptyTelemetry();
+      recordCollisionDetails(telemetry, {
+        isAmbiguous: true,
+        margin: 1,
+        bestBand: 'Band A',
+        secondBand: null,
+      });
+      expect(telemetry.collisionStats.ambiguousPairCounts['Band A vs Unknown rival']).toBe(1);
+    });
   });
 });

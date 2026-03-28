@@ -192,7 +192,15 @@ export function computeLaplacianVariance(
   // [ 0  1  0 ]
   // [ 1 -4  1 ]
   // [ 0  1  0 ]
-  const laplacianValues: number[] = [];
+
+  // Welford's online algorithm for variance — computes population variance in a
+  // single pass with no intermediate array allocation. Numerically equivalent to
+  // the two-pass (mean then variance) formula for the bounded input range here
+  // (Laplacian values are in [-1020, 1020] = 4 × 255), and more numerically
+  // stable for large images.
+  let n = 0;
+  let mean = 0;
+  let M2 = 0;
 
   // Apply Laplacian filter (skip 1px border to avoid edge cases)
   for (let y = 1; y < height - 1; y++) {
@@ -205,20 +213,22 @@ export function computeLaplacianVariance(
 
       // Apply Laplacian kernel
       const laplacian = top + bottom + left + right - 4 * center;
-      laplacianValues.push(laplacian);
+
+      // Welford's update step
+      n += 1;
+      const delta = laplacian - mean;
+      mean += delta / n;
+      M2 += delta * (laplacian - mean);
     }
   }
 
-  // Compute variance of Laplacian values
-  if (laplacianValues.length === 0) {
+  // Images smaller than 3×3 have no interior pixels
+  if (n === 0) {
     return 0;
   }
 
-  const mean = laplacianValues.reduce((sum, val) => sum + val, 0) / laplacianValues.length;
-  const variance =
-    laplacianValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / laplacianValues.length;
-
-  return variance;
+  // Population variance: M2 / n (matches the old two-pass formula exactly)
+  return M2 / n;
 }
 
 /**

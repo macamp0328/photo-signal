@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { DebugOverlay } from './DebugOverlay';
 import type { DebugOverlayProps } from './types';
 import type { Concert } from '../../types';
+import type { AiRecommendation } from '../photo-recognition';
 import type { RecognitionDebugInfo } from '../photo-recognition/types';
 import { createEmptyTelemetry } from '../photo-recognition/helpers';
 
@@ -83,7 +84,16 @@ describe('DebugOverlay', () => {
     isRecognizing: false,
     enabled: true,
     debugInfo: mockDebugInfo,
+    recommendations: [],
     onReset: undefined,
+  };
+
+  const glareRecommendation: AiRecommendation = {
+    priority: 'high',
+    issue: 'High glare rejection rate: 35.0% of frames rejected for glare',
+    recommendation:
+      'Rejected frames average 29.0% glare, which suggests angle-driven reflections. First change the camera or light angle to keep the reflection off-axis; if the setup cannot move, cautiously raise glarePercentageThreshold from 20 to 33.',
+    parameterChange: 'glarePercentageThreshold: 33',
   };
 
   beforeEach(() => {
@@ -201,6 +211,23 @@ describe('DebugOverlay', () => {
       expect(screen.getByText('Best Match')).toBeInTheDocument();
       expect(screen.getByText('Distance:')).toBeInTheDocument();
       expect(screen.getByText('Similarity:')).toBeInTheDocument();
+    });
+  });
+
+  describe('Guidance', () => {
+    it('renders the primary telemetry recommendation when provided', () => {
+      render(<DebugOverlay {...defaultProps} recommendations={[glareRecommendation]} />);
+
+      expect(screen.getByText('Guidance')).toBeInTheDocument();
+      expect(screen.getByText('Glare is usually angle-driven')).toBeInTheDocument();
+      expect(screen.getByText(glareRecommendation.issue)).toBeInTheDocument();
+      expect(screen.getByText(glareRecommendation.parameterChange)).toBeInTheDocument();
+    });
+
+    it('does not render the guidance section without recommendations', () => {
+      render(<DebugOverlay {...defaultProps} recommendations={[]} />);
+
+      expect(screen.queryByText('Guidance')).not.toBeInTheDocument();
     });
   });
 

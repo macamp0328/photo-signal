@@ -163,6 +163,12 @@ export interface RecognitionTelemetry {
     total: number;
     frames: number;
   };
+  /**
+   * Per-distance Hamming distance histogram. Index = distance (0–64), value = frame count.
+   * Incremented for every frame that produces a bestMatch, regardless of threshold.
+   * Length 65 (indices 0–64).
+   */
+  distance_histogram?: number[];
   startup?: StartupTelemetry;
 }
 

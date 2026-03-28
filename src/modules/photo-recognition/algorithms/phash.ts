@@ -61,6 +61,25 @@ for (let i = 0; i < DCT_SIZE; i++) {
 }
 
 /**
+ * Reusable buffer for the 63 low-frequency DCT coefficients.
+ *
+ * 8×8 DCT block minus the DC component at (0,0) = 64 − 1 = 63 values.
+ * Module-level allocation eliminates one number[] heap allocation and one
+ * spread-copy allocation per computePHash() call.
+ *
+ * Safe because computePHash() is synchronous and this module runs in a single
+ * thread (main thread or Web Worker). All 63 slots are fully overwritten on
+ * every call before any read — no stale-value risk.
+ */
+const _lowFreq = new Float64Array(63);
+
+/**
+ * Reusable sort buffer — a copy of _lowFreq for in-place sorting so that the
+ * original insertion-order values in _lowFreq are preserved for the hash loop.
+ */
+const _sortedFreq = new Float64Array(63);
+
+/**
  * Compute pHash (Perceptual Hash) of an image
  *
  * Uses DCT to extract low-frequency components that are robust to
@@ -116,8 +135,10 @@ export function computePHash(imageData: ImageData): string {
   // dct[u][v] = ALPHA[u] * ALPHA[v] / 2
   //             * Σ_x intermediate[x * DCT_LOW_FREQ_SIZE + v] * COS_TABLE[u * DCT_SIZE + x]
   //
-  // We inline the median computation directly into the lowFreq array.
-  const lowFreq: number[] = [];
+  // Results are written into the module-level _lowFreq buffer. Exactly 63
+  // values are written (8×8 − 1 DC skip) before the buffer is read — all
+  // slots are guaranteed to be overwritten on every call.
+  let lowFreqIdx = 0;
   for (let u = 0; u < DCT_LOW_FREQ_SIZE; u++) {
     const alphaU = ALPHA[u];
     const cosUOffset = u * DCT_SIZE;
@@ -130,27 +151,31 @@ export function computePHash(imageData: ImageData): string {
       for (let x = 0; x < DCT_SIZE; x++) {
         sum += intermediate[x * DCT_LOW_FREQ_SIZE + v] * COS_TABLE[cosUOffset + x];
       }
-      lowFreq.push((alphaU * ALPHA[v] * sum) / 2);
+      _lowFreq[lowFreqIdx++] = (alphaU * ALPHA[v] * sum) / 2;
     }
   }
 
-  // Step 4: Compute median of low-frequency coefficients
-  const sorted = [...lowFreq].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
+  // Step 4: Compute median of low-frequency coefficients.
+  // Copy into _sortedFreq and sort numerically in-place (TypedArray.sort()
+  // defaults to numeric order — no comparator needed). This preserves
+  // insertion order in _lowFreq for the hash generation loop below.
+  _sortedFreq.set(_lowFreq);
+  _sortedFreq.sort();
+  const median = _sortedFreq[31]; // Math.floor(63 / 2) = 31, a compile-time constant
 
   // Step 5: Generate 64-bit hash as hex directly, without building an
   // intermediate 63-character binary string.
   // Process 4 coefficients at a time → one hex nibble per group.
-  // lowFreq has 63 elements (DC coefficient skipped), so the last group is
+  // _lowFreq has 63 elements (DC coefficient skipped), so the last group is
   // a partial group of 3; bounds-check positions i+1, i+2, i+3 to avoid
-  // reading undefined values (which would produce NaN comparisons).
+  // reading beyond the 63 written values.
   let hex = '';
-  for (let i = 0; i < lowFreq.length; i += 4) {
+  for (let i = 0; i < 63; i += 4) {
     let nibble = 0;
-    if (lowFreq[i] > median) nibble |= 8;
-    if (i + 1 < lowFreq.length && lowFreq[i + 1] > median) nibble |= 4;
-    if (i + 2 < lowFreq.length && lowFreq[i + 2] > median) nibble |= 2;
-    if (i + 3 < lowFreq.length && lowFreq[i + 3] > median) nibble |= 1;
+    if (_lowFreq[i] > median) nibble |= 8;
+    if (i + 1 < 63 && _lowFreq[i + 1] > median) nibble |= 4;
+    if (i + 2 < 63 && _lowFreq[i + 2] > median) nibble |= 2;
+    if (i + 3 < 63 && _lowFreq[i + 3] > median) nibble |= 1;
     hex += nibble.toString(16);
   }
   return hex;

@@ -59,6 +59,7 @@ export const createEmptyTelemetry = (): RecognitionTelemetry => ({
   hammingDistanceLog: emptyHammingDistanceLog(),
   collisionStats: emptyCollisionStats(),
   index_mode_used: 0,
+  distance_histogram: new Array<number>(65).fill(0),
   candidate_count_per_frame: {
     last: 0,
     max: 0,

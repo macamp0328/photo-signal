@@ -40,6 +40,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const preloadCacheRef = useRef<Map<string, Howl>>(new Map());
   const progressRafRef = useRef<number | null>(null);
   const volumeRef = useRef(initialVolume);
+  const playbackRequestRef = useRef(0);
   const diagnosticCacheRef = useRef<Map<string, Promise<import('./types').AudioDiagnosticResult>>>(
     new Map()
   );
@@ -78,6 +79,24 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
     return 'Audio failed to start. Tap Play to retry.';
   }, []);
+
+  const runWhenAudioContextReady = useCallback(
+    (operation: () => void) => {
+      const audioContext = getHowlerContext();
+
+      if (!audioContext || audioContext.state !== 'suspended') {
+        operation();
+        return;
+      }
+
+      void unlockAudioContext().then(() => {
+        if (isMountedRef.current) {
+          operation();
+        }
+      });
+    },
+    [unlockAudioContext]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -172,6 +191,15 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       diagnosticCacheRef.current.set(url, diagnoseAudioUrl(url));
     }
     return diagnosticCacheRef.current.get(url)!;
+  }, []);
+
+  const nextPlaybackRequest = useCallback(() => {
+    playbackRequestRef.current += 1;
+    return playbackRequestRef.current;
+  }, []);
+
+  const isPlaybackRequestCurrent = useCallback((requestId: number) => {
+    return playbackRequestRef.current === requestId;
   }, []);
 
   const attachCallbacks = useCallback(
@@ -356,40 +384,58 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const play = useCallback(
     (url: string) => {
       setPlaybackError(null);
-      void unlockAudioContext();
+      const requestId = nextPlaybackRequest();
 
-      // Resume if the same track is paused
-      if (soundRef.current && currentUrlRef.current === url) {
-        soundRef.current.play();
-        return;
-      }
+      runWhenAudioContextReady(() => {
+        if (!isMountedRef.current || !isPlaybackRequestCurrent(requestId)) {
+          return;
+        }
 
-      // Stop and unload previous sound
-      if (soundRef.current) {
-        soundRef.current.unload();
-        soundRef.current = null;
-      }
+        // Resume if the same track is paused
+        if (soundRef.current && currentUrlRef.current === url) {
+          soundRef.current.play();
+          return;
+        }
 
-      const newSound = getCachedOrCreateSound(url);
+        // Stop and unload previous sound only after we're ready to start the new one
+        if (soundRef.current) {
+          soundRef.current.unload();
+          soundRef.current = null;
+        }
 
-      soundRef.current = newSound;
-      currentUrlRef.current = url;
-      newSound.volume(volumeRef.current);
-      newSound.play();
+        const newSound = getCachedOrCreateSound(url);
+
+        if (!isPlaybackRequestCurrent(requestId)) {
+          newSound.unload();
+          return;
+        }
+
+        soundRef.current = newSound;
+        currentUrlRef.current = url;
+        newSound.volume(volumeRef.current);
+        newSound.play();
+      });
     },
-    [getCachedOrCreateSound, unlockAudioContext]
+    [
+      getCachedOrCreateSound,
+      isPlaybackRequestCurrent,
+      nextPlaybackRequest,
+      runWhenAudioContextReady,
+    ]
   );
 
   const pause = useCallback(() => {
+    nextPlaybackRequest();
     if (soundRef.current) {
       soundRef.current.pause();
       setIsPlaying(false);
       setProgress(getCurrentRatio());
       stopProgressLoop();
     }
-  }, [getCurrentRatio, stopProgressLoop]);
+  }, [getCurrentRatio, nextPlaybackRequest, stopProgressLoop]);
 
   const stop = useCallback(() => {
+    nextPlaybackRequest();
     if (soundRef.current) {
       soundRef.current.stop();
       soundRef.current.unload();
@@ -399,7 +445,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       stopProgressLoop();
       setProgress(0);
     }
-  }, [stopProgressLoop]);
+  }, [nextPlaybackRequest, stopProgressLoop]);
 
   const setVolume = useCallback((newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));
@@ -419,63 +465,88 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     (newUrl: string) => {
       const duration = 300;
       setPlaybackError(null);
-      void unlockAudioContext();
+      const requestId = nextPlaybackRequest();
 
-      // Cancel any pending crossfade cleanup
-      if (crossfadeTimeoutRef.current) {
-        clearTimeout(crossfadeTimeoutRef.current);
-        crossfadeTimeoutRef.current = null;
-      }
+      runWhenAudioContextReady(() => {
+        if (!isMountedRef.current || !isPlaybackRequestCurrent(requestId)) {
+          return;
+        }
 
-      // If no audio is currently playing, just play the new track
-      if (!soundRef.current || !isPlaying) {
-        play(newUrl);
-        return;
-      }
+        // Cancel any pending crossfade cleanup
+        if (crossfadeTimeoutRef.current) {
+          clearTimeout(crossfadeTimeoutRef.current);
+          crossfadeTimeoutRef.current = null;
+        }
 
-      // Same URL: restart the current track
-      if (currentUrlRef.current === newUrl) {
-        soundRef.current.seek(0);
-        return;
-      }
+        const currentSound = soundRef.current;
 
-      // Clean up any existing fading-out sound before starting new crossfade
-      if (fadingOutSoundRef.current) {
-        fadingOutSoundRef.current.unload();
-        fadingOutSoundRef.current = null;
-      }
+        // If no audio is currently playing, just play the new track
+        if (!currentSound || !currentSound.playing()) {
+          play(newUrl);
+          return;
+        }
 
-      // Move current sound to fading out ref
-      const currentSound = soundRef.current;
-      fadingOutSoundRef.current = currentSound;
-      soundRef.current = null;
+        // Same URL: restart the current track
+        if (currentUrlRef.current === newUrl) {
+          currentSound.seek(0);
+          if (!currentSound.playing()) {
+            currentSound.play();
+          }
+          return;
+        }
 
-      // Fade out old, fade in new
-      fadingOutSoundRef.current.fade(currentSound.volume(), 0, duration);
-
-      const newSound = getCachedOrCreateSound(newUrl, { initialVolume: 0 });
-      soundRef.current = newSound;
-      currentUrlRef.current = newUrl;
-      newSound.play();
-      newSound.fade(0, volumeRef.current, duration);
-
-      // Clean up old sound and re-assert volume after fade completes
-      crossfadeTimeoutRef.current = setTimeout(() => {
+        // Clean up any existing fading-out sound before starting new crossfade
         if (fadingOutSoundRef.current) {
           fadingOutSoundRef.current.unload();
           fadingOutSoundRef.current = null;
         }
-        const activeSound = soundRef.current;
-        if (currentUrlRef.current === newUrl && activeSound) {
-          activeSound.volume(volumeRef.current);
-          if (!activeSound.playing()) {
-            activeSound.play();
-          }
+
+        // Move current sound to fading out ref
+        fadingOutSoundRef.current = currentSound;
+        soundRef.current = null;
+
+        // Fade out old, fade in new
+        fadingOutSoundRef.current.fade(currentSound.volume(), 0, duration);
+
+        const newSound = getCachedOrCreateSound(newUrl, { initialVolume: 0 });
+
+        if (!isPlaybackRequestCurrent(requestId)) {
+          newSound.unload();
+          return;
         }
-        crossfadeTimeoutRef.current = null;
-      }, duration);
+
+        soundRef.current = newSound;
+        currentUrlRef.current = newUrl;
+        newSound.play();
+        newSound.fade(0, volumeRef.current, duration);
+
+        // Clean up old sound and re-assert volume after fade completes
+        crossfadeTimeoutRef.current = setTimeout(() => {
+          if (!isPlaybackRequestCurrent(requestId)) {
+            return;
+          }
+          if (fadingOutSoundRef.current) {
+            fadingOutSoundRef.current.unload();
+            fadingOutSoundRef.current = null;
+          }
+          const activeSound = soundRef.current;
+          if (currentUrlRef.current === newUrl && activeSound) {
+            activeSound.volume(volumeRef.current);
+            if (!activeSound.playing()) {
+              activeSound.play();
+            }
+          }
+          crossfadeTimeoutRef.current = null;
+        }, duration);
+      });
     },
-    [getCachedOrCreateSound, isPlaying, play, unlockAudioContext]
+    [
+      getCachedOrCreateSound,
+      isPlaybackRequestCurrent,
+      nextPlaybackRequest,
+      play,
+      runWhenAudioContextReady,
+    ]
   );
 
   return {

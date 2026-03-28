@@ -3,7 +3,7 @@ import { calculateVisibleViewport } from '../framing';
 
 describe('calculateVisibleViewport', () => {
   describe('normal crop paths', () => {
-    it('letter-boxes when video is wider than display: crops horizontally', () => {
+    it('crops horizontally when video is wider than display', () => {
       // 16:9 video displayed at 1:1 → video wider than display
       // videoRatio = 1.778 > safeRatio = 1
       const result = calculateVisibleViewport(1920, 1080, 1);
@@ -14,9 +14,9 @@ describe('calculateVisibleViewport', () => {
       expect(result.x).toBe(Math.round((1920 - 1080) / 2));
     });
 
-    it('pillar-boxes when video is taller than display: crops vertically (lines 33-36)', () => {
+    it('crops vertically when video is taller than display', () => {
       // Portrait video 9:16 (0.5625) displayed at 1:1 → video narrower
-      // videoRatio = 0.5625 < safeRatio = 1 → hits the else branch at line 33
+      // videoRatio = 0.5625 < safeRatio = 1
       const result = calculateVisibleViewport(1080, 1920, 1);
       expect(result.x).toBe(0);
       expect(result.width).toBe(1080);
@@ -27,13 +27,13 @@ describe('calculateVisibleViewport', () => {
   });
 
   describe('edge cases', () => {
-    it('returns full frame when video ratio matches display ratio (line 23)', () => {
+    it('returns full frame when video ratio matches display ratio', () => {
       // 16:9 video displayed at exactly 16:9 → difference < 0.001
       const result = calculateVisibleViewport(1920, 1080, 16 / 9);
       expect(result).toEqual({ x: 0, y: 0, width: 1920, height: 1080 });
     });
 
-    it('returns full frame when videoRatio is non-finite (line 19) — zero-height video', () => {
+    it('returns full frame when videoRatio is non-finite — zero-height video', () => {
       // videoHeight = 0 → videoRatio = Infinity → !isFinite → early return
       const result = calculateVisibleViewport(1920, 0);
       expect(result).toEqual({ x: 0, y: 0, width: 1920, height: 0 });

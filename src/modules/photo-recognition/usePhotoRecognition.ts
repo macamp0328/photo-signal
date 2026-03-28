@@ -1246,6 +1246,13 @@ export function usePhotoRecognition(
           candidateTelemetry.max = Math.max(candidateTelemetry.max, comparedCandidates);
         }
 
+        // Accumulate distance histogram — every frame that produced a bestMatch,
+        // regardless of threshold. Index = Hamming distance (0–64).
+        if (bestMatch !== null && telemetryRef.current.distance_histogram) {
+          const dist = Math.min(bestMatch.distance, 64);
+          telemetryRef.current.distance_histogram[dist] += 1;
+        }
+
         // Decision variables
         const now = Date.now();
         const activeThreshold = similarityThreshold;
@@ -1530,6 +1537,12 @@ export function usePhotoRecognition(
             return c ? { concert: c, distance: result.secondBestMatch!.distance } : null;
           })()
         : null;
+
+      // Accumulate distance histogram — same as inline path.
+      if (bestMatch !== null && telemetryRef.current.distance_histogram) {
+        const dist = Math.min(bestMatch.distance, 64);
+        telemetryRef.current.distance_histogram[dist] += 1;
+      }
 
       // Decision variables (mirrors inline path logic)
       const now = Date.now();

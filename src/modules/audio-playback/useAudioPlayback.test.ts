@@ -43,6 +43,11 @@ vi.mock('howler', () => {
     private readonly _callbacks: HowlCallbacks;
     private seekPosition: number;
     private durationMs: number;
+    public readonly options: {
+      src: string[];
+      html5?: boolean;
+      volume?: number;
+    };
 
     public static instances: MockHowl[] = [];
 
@@ -65,6 +70,7 @@ vi.mock('howler', () => {
     ) {
       this._volume = options.volume ?? 1.0;
       this._callbacks = options;
+      this.options = options;
       MockHowl.instances.push(this);
       this.seekPosition = 0;
       this.durationMs = 30000;
@@ -159,6 +165,11 @@ vi.mock('howler', () => {
 });
 
 interface MockHowlInstance {
+  options: {
+    src: string[];
+    html5?: boolean;
+    volume?: number;
+  };
   __triggerEnd: () => void;
   __triggerStop: () => void;
   __triggerLoadError: (error?: unknown) => void;
@@ -220,6 +231,16 @@ describe('useAudioPlayback', () => {
 
       // The onplay callback sets isPlaying synchronously
       expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should use Web Audio mode for playback on mobile browsers', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      expect(getMockedHowlClass().instances[0].options.html5).toBe(false);
     });
 
     it('should use correct volume when playing', () => {

@@ -321,7 +321,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
       const sound = new Howl({
         src: [url],
-        html5: true,
+        // Use Howler's Web Audio path so a single unlocked audio context
+        // governs playback across track changes on mobile browsers.
+        html5: false,
         preload: true,
         volume: initialVolume ?? volumeRef.current,
       });

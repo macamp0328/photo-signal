@@ -377,6 +377,35 @@ describe('usePhotoRecognition', () => {
     errorSpy.mockRestore();
   });
 
+  it('handles error when loading concerts fails', async () => {
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Failed to load concert data:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading recognition index fails', async () => {
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
+  });
+
+
   it('starts with null recognized concert', () => {
     const { result } = renderHook(() => usePhotoRecognition(null));
     expect(result.current.recognizedConcert).toBeNull();

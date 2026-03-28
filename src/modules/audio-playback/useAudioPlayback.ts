@@ -416,7 +416,12 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         newSound.play();
       });
     },
-    [getCachedOrCreateSound, isPlaybackRequestCurrent, nextPlaybackRequest, runWhenAudioContextReady]
+    [
+      getCachedOrCreateSound,
+      isPlaybackRequestCurrent,
+      nextPlaybackRequest,
+      runWhenAudioContextReady,
+    ]
   );
 
   const pause = useCallback(() => {

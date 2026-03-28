@@ -227,6 +227,47 @@
   font-family: 'Monaco', 'Courier New', monospace;
 }
 
+.glareCallout {
+  margin-bottom: 0.625rem;
+  padding: 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--debug-warning) 50%, transparent);
+  background: color-mix(in srgb, var(--debug-warning) 12%, transparent);
+}
+
+.glareCalloutTitle {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03125rem;
+  color: var(--debug-warning);
+  margin-bottom: 0.25rem;
+}
+
+.glareCalloutBody {
+  color: var(--debug-text);
+  line-height: 1.4;
+}
+
+.guidanceIssue {
+  color: var(--debug-text);
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 0.375rem;
+}
+
+.guidanceText {
+  color: var(--debug-subtext);
+  line-height: 1.4;
+  margin-bottom: 0.375rem;
+}
+
+.guidanceHint {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.6875rem;
+  color: var(--debug-accent);
+}
+
 /* Accessibility: Ensure focus is visible */
 .overlay:focus-within {
   outline: var(--focus-ring-width, 2px) var(--focus-ring-style, solid)

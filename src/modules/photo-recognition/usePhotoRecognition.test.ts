@@ -177,10 +177,7 @@ describe('usePhotoRecognition', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
     });
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load concert data:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
     errorSpy.mockRestore();
   });
 
@@ -224,7 +221,6 @@ describe('usePhotoRecognition', () => {
     );
     errorSpy.mockRestore();
   });
-
 
   it('starts with null recognized concert', () => {
     const { result } = renderHook(() => usePhotoRecognition(null));

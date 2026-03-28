@@ -14,7 +14,7 @@
  */
 
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 import { useRecognitionWorker } from './useRecognitionWorker';
 import type {
   WorkerFrameResult,
@@ -390,6 +390,122 @@ describe('useRecognitionWorker — supported environment', () => {
     // further frames to a broken worker.
     expect(result.current.isReady).toBe(false);
     expect(result.current.isBusy).toBe(false);
+  });
+
+  // -------------------------------------------------------------------------
+  // Worker restart / isFailed
+  // -------------------------------------------------------------------------
+
+  describe('worker restart on error', () => {
+    beforeAll(() => {
+      vi.useFakeTimers();
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it('starts with isFailed=false', () => {
+      const { result } = renderHook(() =>
+        useRecognitionWorker({
+          hashEntries: sampleHashEntries,
+          config: baseConfig,
+          onResult: vi.fn(),
+          enabled: true,
+        })
+      );
+      expect(result.current.isFailed).toBe(false);
+    });
+
+    it('spawns a replacement worker after a crash (first restart)', async () => {
+      renderHook(() =>
+        useRecognitionWorker({
+          hashEntries: sampleHashEntries,
+          config: baseConfig,
+          onResult: vi.fn(),
+          enabled: true,
+        })
+      );
+
+      const workerBeforeCrash = lastWorker;
+      expect(workerBeforeCrash).not.toBeNull();
+
+      // Simulate crash
+      await act(async () => {
+        lastWorker?.simulateError('Crash');
+      });
+
+      // Advance timer past first restart delay (50ms)
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+      });
+
+      // A new worker should have been spawned
+      expect(lastWorker).not.toBeNull();
+      expect(lastWorker).not.toBe(workerBeforeCrash);
+    });
+
+    it('resends init to the replacement worker when hash entries are available', async () => {
+      renderHook(() =>
+        useRecognitionWorker({
+          hashEntries: sampleHashEntries,
+          config: baseConfig,
+          onResult: vi.fn(),
+          enabled: true,
+        })
+      );
+
+      // Let the first worker become ready
+      await act(async () => {
+        lastWorker?.simulateMessage({ type: 'ready', hashCount: 2 });
+      });
+
+      // Simulate crash
+      await act(async () => {
+        lastWorker?.simulateError('Crash');
+      });
+
+      // Advance timer past first restart delay
+      await act(async () => {
+        vi.advanceTimersByTime(100);
+      });
+
+      // The replacement worker should have received an init message immediately
+      const initCalls =
+        lastWorker?.postMessage.mock.calls.filter((c) => c[0]?.type === 'init') ?? [];
+      expect(initCalls.length).toBeGreaterThan(0);
+    });
+
+    it('sets isFailed=true and does not restart after MAX_WORKER_RESTARTS crashes', async () => {
+      const { result } = renderHook(() =>
+        useRecognitionWorker({
+          hashEntries: sampleHashEntries,
+          config: baseConfig,
+          onResult: vi.fn(),
+          enabled: true,
+        })
+      );
+
+      expect(result.current.isFailed).toBe(false);
+
+      // Crash 3 times (MAX_WORKER_RESTARTS = 3), advancing timers after each
+      for (let i = 0; i < 3; i++) {
+        await act(async () => {
+          lastWorker?.simulateError(`Crash ${i}`);
+        });
+        // Advance past the restart delay for this attempt
+        await act(async () => {
+          vi.advanceTimersByTime(500);
+        });
+      }
+
+      // After 3 restarts the next crash should exhaust the limit
+      await act(async () => {
+        lastWorker?.simulateError('Final crash');
+      });
+
+      expect(result.current.isFailed).toBe(true);
+    });
   });
 
   // -------------------------------------------------------------------------

@@ -102,11 +102,23 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
  */
 const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
 
-if (import.meta.env.DEV && QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD) {
-  throw new Error(
-    'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
-  );
+/**
+ * Throws if thresholds are invalid in DEV mode. Extracted for testability.
+ * @internal
+ */
+export function assertThresholdsValid(
+  qualityGating: number = QUALITY_GATING_DISTANCE_THRESHOLD,
+  similarity: number = DEFAULT_SIMILARITY_THRESHOLD,
+  dev: boolean = import.meta.env.DEV
+) {
+  if (dev && qualityGating > similarity) {
+    throw new Error(
+      'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
+    );
+  }
 }
+
+assertThresholdsValid();
 
 /**
  * Resolution used for quality-check captures (sharpness, glare, lighting).

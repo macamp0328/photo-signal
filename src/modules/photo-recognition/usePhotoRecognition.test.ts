@@ -4,7 +4,11 @@ import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import * as qualityUtils from './algorithms/utils';
-import { usePhotoRecognition, getAdaptiveRecognitionDelay } from './usePhotoRecognition';
+import {
+  assertThresholdsValid,
+  getAdaptiveRecognitionDelay,
+  usePhotoRecognition,
+} from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
@@ -64,6 +68,23 @@ vi.mock('./useRecognitionWorker', () => ({
 }));
 
 describe('usePhotoRecognition', () => {
+  describe('DEV threshold assertion', () => {
+    it('throws in DEV if QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD', () => {
+      expect(() => assertThresholdsValid(15, 14, true)).toThrow(
+        'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
+      );
+    });
+
+    it('does not throw in DEV if QUALITY_GATING_DISTANCE_THRESHOLD <= DEFAULT_SIMILARITY_THRESHOLD', () => {
+      expect(() => assertThresholdsValid(12, 14, true)).not.toThrow();
+      expect(() => assertThresholdsValid(14, 14, true)).not.toThrow();
+    });
+
+    it('does not throw in production regardless of values', () => {
+      expect(() => assertThresholdsValid(15, 14, false)).not.toThrow();
+      expect(() => assertThresholdsValid(12, 14, false)).not.toThrow();
+    });
+  });
   const mockConcerts: Concert[] = [
     {
       id: 1,
@@ -155,6 +176,58 @@ describe('usePhotoRecognition', () => {
     global.fetch = originalFetch;
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it('handles error when loading concerts fails', async () => {
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading recognition index fails', async () => {
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    expect(result.current.indexLoadFailed).toBe(true);
+    errorSpy.mockRestore();
+  });
+
+  it('ignores recognition index failures after unmount', async () => {
+    let rejectIndexLoad: ((reason?: unknown) => void) | null = null;
+    global.fetch = vi.fn(
+      () =>
+        new Promise((_, reject) => {
+          rejectIndexLoad = reject;
+        })
+    ) as typeof fetch;
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { unmount } = renderHook(() => usePhotoRecognition(null, { enabled: true }));
+
+    unmount();
+
+    await act(async () => {
+      rejectIndexLoad?.(new Error('late index fail'));
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
   });
 
   it('starts with null recognized concert', () => {

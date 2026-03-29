@@ -17,7 +17,11 @@ import {
   similarityPercent,
 } from './helpers';
 import { calculateFramedRegion, calculateVisibleViewport, type ViewportRegion } from './framing';
-import { calculateAdaptiveQualityThresholds, computeAllQualityMetrics } from './algorithms/utils';
+import {
+  calculateAdaptiveQualityThresholds,
+  computeAllQualityMetrics,
+  computeLaplacianVariance,
+} from './algorithms/utils';
 import { useRecognitionWorker } from './useRecognitionWorker';
 import type {
   WorkerFrameResult,
@@ -211,6 +215,13 @@ const buildStartupTelemetry = (milestones: StartupMilestones): StartupTelemetry 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
 const BLUR_DISTANCE_IMPROVEMENT_THRESHOLD = 4;
+/**
+ * Conservative fraction of sharpnessThreshold used as the pre-hash blur gate.
+ * The 64×64 downscale reduces high-frequency content, so Laplacian variance is
+ * lower than on the 128×128 quality-check image. 0.5 is conservative enough to
+ * only fire on clearly blurry frames that would certainly fail the main gate.
+ */
+const PRE_HASH_BLUR_GATE_FRACTION = 0.5;
 const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
 
 /**
@@ -248,6 +259,33 @@ export function findBestMatches(
   }
 
   return { bestMatch, secondBestMatch };
+}
+
+/**
+ * Scale recognitionDelay based on how confidently the best match distance
+ * sits within the similarity threshold.
+ *
+ * - distance ≤ 13: 50% of base delay — high-confidence matches confirm faster,
+ *   reducing perceived latency without sacrificing accuracy.
+ * - distance 14–16: 100% of base delay — normal confirmation cadence.
+ * - distance ≥ 17: 130% of base delay — borderline matches near the threshold
+ *   get extra dwell time to reduce the risk of a false confirmation.
+ *
+ * The instant-confirm path (distance ≤ INSTANT_DISTANCE_THRESHOLD = 10) and the
+ * consecutive-frames path bypass the dwell timer entirely, so they are unaffected.
+ *
+ * @param distance - Best-match Hamming distance for the current frame (0–64)
+ * @param recognitionDelay - Base recognition delay in milliseconds
+ * @returns Scaled delay in milliseconds (minimum 1ms)
+ */
+export function getAdaptiveRecognitionDelay(distance: number, recognitionDelay: number): number {
+  if (distance <= 13) {
+    return Math.max(1, Math.round(recognitionDelay * 0.5));
+  }
+  if (distance <= 16) {
+    return recognitionDelay;
+  }
+  return Math.round(recognitionDelay * 1.3);
 }
 
 function getHashBucketKey(hash: string): string {
@@ -617,6 +655,7 @@ export function usePhotoRecognition(
     processFrame: workerProcessFrame,
     isReady: isWorkerReady,
     isSupported: isWorkerSupported,
+    isFailed: isWorkerFailed,
   } = useRecognitionWorker({
     hashEntries: workerHashEntries,
     config: workerConfig,
@@ -628,6 +667,10 @@ export function usePhotoRecognition(
   // never changes. Storing it in a ref keeps it out of the main scheduling
   // effect's dependency array without risk of staleness.
   const isWorkerSupportedRef = useRef(isWorkerSupported);
+  // Track permanent worker failure in a ref so canUseWorkerPath inside the
+  // scheduling effect sees the latest value without being in its dep array.
+  const isWorkerFailedRef = useRef(false);
+  isWorkerFailedRef.current = isWorkerFailed;
   // isWorkerReady and workerProcessFrame change when the worker transitions to
   // ready (isReady state flip → new processFrame useCallback reference). Tracking
   // them via refs lets the scheduling effect read the latest values per-frame
@@ -701,13 +744,18 @@ export function usePhotoRecognition(
     // -----------------------------------------------------------------------
     // Worker path control
     // -----------------------------------------------------------------------
-    // canUseWorkerPath is stable across the effect's lifetime — it depends only
-    // on browser capability (never-changing) and requestVideoFrame availability
-    // on the video element. Actual worker readiness is checked per-frame via
-    // isWorkerReadyRef so the scheduling loop never restarts when the worker
-    // finishes initialising.
+    // canUseWorkerPath is computed once per effect run. It depends on:
+    //   - browser capability (isWorkerSupportedRef — never changes after mount)
+    //   - requestVideoFrame availability on the video element
+    //   - permanent worker failure (isWorkerFailedRef — may go true after restarts exhausted)
+    // Actual worker readiness per frame is checked via isWorkerReadyRef so
+    // the scheduling loop never restarts when the worker finishes initialising.
+    // If isFailed becomes true (after restart attempts exhausted), canUseWorkerPath
+    // evaluates to false on the next frame check, transparently falling back to inline.
     const canUseWorkerPath =
-      isWorkerSupportedRef.current && typeof video.requestVideoFrame === 'function';
+      isWorkerSupportedRef.current &&
+      typeof video.requestVideoFrame === 'function' &&
+      !isWorkerFailedRef.current;
 
     // -----------------------------------------------------------------------
     // Inner helper: quality filtering
@@ -856,7 +904,8 @@ export function usePhotoRecognition(
     // -----------------------------------------------------------------------
     const computeStability = (
       activeMatch: Concert | null,
-      now: number
+      now: number,
+      effectiveDelay: number
     ): StabilityDebugInfo | null => {
       if (!activeMatch) return null;
 
@@ -868,9 +917,9 @@ export function usePhotoRecognition(
         return {
           concert: activeMatch,
           elapsedMs,
-          remainingMs: Math.max(recognitionDelay - elapsedMs, 0),
-          requiredMs: recognitionDelay,
-          progress: recognitionDelay > 0 ? Math.min(elapsedMs / recognitionDelay, 1) : 1,
+          remainingMs: Math.max(effectiveDelay - elapsedMs, 0),
+          requiredMs: effectiveDelay,
+          progress: effectiveDelay > 0 ? Math.min(elapsedMs / effectiveDelay, 1) : 1,
         };
       }
 
@@ -1158,6 +1207,34 @@ export function usePhotoRecognition(
 
         frameCaptureMs = performance.now() - frameCaptureStartAt;
 
+        // Pre-hash blur gate: skip computePHash entirely when the 64×64 image is
+        // clearly blurry. Uses PRE_HASH_BLUR_GATE_FRACTION × sharpnessThreshold as
+        // a conservative cutoff — the lower resolution produces lower Laplacian
+        // variance, so only frames that would certainly fail the 128×128 gate fire
+        // this early exit, saving ~1–2ms of DCT computation per blurry frame.
+        const preHashVariance = computeLaplacianVariance(imageData);
+        if (preHashVariance < sharpnessThreshold * PRE_HASH_BLUR_GATE_FRACTION) {
+          consecutiveBlurFramesRef.current += 1;
+          if (consecutiveBlurFramesRef.current >= BLUR_REJECTION_CONSECUTIVE_FRAMES) {
+            telemetryRef.current.blurRejections += 1;
+            recordFailure(
+              telemetryRef.current,
+              'motion-blur',
+              'Pre-hash blur gate: sharpness well below threshold',
+              'N/A'
+            );
+            telemetryRef.current.frameQualityStats.blur.sharpnessSum += preHashVariance;
+            telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
+            if (consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES) {
+              lastMatchedConcertRef.current = null;
+              consecutiveMatchCountRef.current = 0;
+              matchStartTimeRef.current = null;
+            }
+            setIsRecognizing(false);
+          }
+          return;
+        }
+
         // Hash matching — bucketed full-image scan only
         const algorithmStartAt = performance.now();
         const currentHash = computePHash(imageData);
@@ -1182,6 +1259,13 @@ export function usePhotoRecognition(
           candidateTelemetry.frames += 1;
           candidateTelemetry.total += comparedCandidates;
           candidateTelemetry.max = Math.max(candidateTelemetry.max, comparedCandidates);
+        }
+
+        // Accumulate distance histogram — every frame that produced a bestMatch,
+        // regardless of threshold. Index = Hamming distance (0–64).
+        if (bestMatch !== null && telemetryRef.current.distance_histogram) {
+          const dist = Math.min(bestMatch.distance, 64);
+          telemetryRef.current.distance_histogram[dist] += 1;
         }
 
         // Decision variables
@@ -1290,8 +1374,15 @@ export function usePhotoRecognition(
           }
         }
 
+        // Adaptive delay: scale recognitionDelay by match confidence. When
+        // bestMatch is null there is no activeMatch either, so effectiveDelay
+        // is only passed to computeStability (which returns null early anyway).
+        const effectiveDelay = bestMatch
+          ? getAdaptiveRecognitionDelay(bestMatch.distance, recognitionDelay)
+          : recognitionDelay;
+
         // Stability progress for debug overlay
-        const stability = computeStability(activeMatch, now);
+        const stability = computeStability(activeMatch, now, effectiveDelay);
 
         if (enableDebugInfo) {
           setDebugInfo(
@@ -1354,7 +1445,7 @@ export function usePhotoRecognition(
           if (isSameConcert) {
             if (
               matchStartTimeRef.current !== null &&
-              now - matchStartTimeRef.current >= recognitionDelay
+              now - matchStartTimeRef.current >= effectiveDelay
             ) {
               markStartupMilestone('firstMatchAt');
               recognizedConcertRef.current = activeMatch;
@@ -1461,6 +1552,12 @@ export function usePhotoRecognition(
             return c ? { concert: c, distance: result.secondBestMatch!.distance } : null;
           })()
         : null;
+
+      // Accumulate distance histogram — same as inline path.
+      if (bestMatch !== null && telemetryRef.current.distance_histogram) {
+        const dist = Math.min(bestMatch.distance, 64);
+        telemetryRef.current.distance_histogram[dist] += 1;
+      }
 
       // Decision variables (mirrors inline path logic)
       const now = Date.now();
@@ -1641,9 +1738,15 @@ export function usePhotoRecognition(
         }
       }
 
+      // Adaptive delay: mirrors the inline path — scale recognitionDelay by
+      // match confidence so high-confidence matches confirm faster.
+      const effectiveDelay = bestMatch
+        ? getAdaptiveRecognitionDelay(bestMatch.distance, recognitionDelay)
+        : recognitionDelay;
+
       // Debug info
       if (enableDebugInfo) {
-        const stability = computeStability(activeMatch, now);
+        const stability = computeStability(activeMatch, now, effectiveDelay);
         setDebugInfo(
           buildDebugInfo({
             currentHash: result.hash,
@@ -1702,7 +1805,7 @@ export function usePhotoRecognition(
         if (isSameConcert) {
           if (
             matchStartTimeRef.current !== null &&
-            now - matchStartTimeRef.current >= recognitionDelay
+            now - matchStartTimeRef.current >= effectiveDelay
           ) {
             markStartupMilestone('firstMatchAt');
             recognizedConcertRef.current = activeMatch;

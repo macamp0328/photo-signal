@@ -43,6 +43,11 @@ vi.mock('howler', () => {
     private readonly _callbacks: HowlCallbacks;
     private seekPosition: number;
     private durationMs: number;
+    public readonly options: {
+      src: string[];
+      html5?: boolean;
+      volume?: number;
+    };
 
     public static instances: MockHowl[] = [];
 
@@ -65,6 +70,7 @@ vi.mock('howler', () => {
     ) {
       this._volume = options.volume ?? 1.0;
       this._callbacks = options;
+      this.options = options;
       MockHowl.instances.push(this);
       this.seekPosition = 0;
       this.durationMs = 30000;
@@ -159,6 +165,11 @@ vi.mock('howler', () => {
 });
 
 interface MockHowlInstance {
+  options: {
+    src: string[];
+    html5?: boolean;
+    volume?: number;
+  };
   __triggerEnd: () => void;
   __triggerStop: () => void;
   __triggerLoadError: (error?: unknown) => void;
@@ -170,6 +181,15 @@ type MockedHowlClass = typeof Howl & { instances: MockHowlInstance[] };
 const getMockedHowlClass = (): MockedHowlClass => Howl as unknown as MockedHowlClass;
 const getMockedHowler = (): { ctx: { state: string; resume: ReturnType<typeof vi.fn> } } =>
   Howler as unknown as { ctx: { state: string; resume: ReturnType<typeof vi.fn> } };
+
+const createDeferred = () => {
+  let resolve!: () => void;
+  const promise = new Promise<void>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+};
+
 describe('useAudioPlayback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -211,6 +231,16 @@ describe('useAudioPlayback', () => {
 
       // The onplay callback sets isPlaying synchronously
       expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('should use Web Audio mode for playback on mobile browsers', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      expect(getMockedHowlClass().instances[0].options.html5).toBe(false);
     });
 
     it('should use correct volume when playing', () => {
@@ -266,16 +296,71 @@ describe('useAudioPlayback', () => {
       expect(HowlClass.instances.length).toBe(1);
     });
 
-    it('should attempt to resume audio context when suspended', () => {
+    it('should attempt to resume audio context when suspended', async () => {
       const { result } = renderHook(() => useAudioPlayback());
       const mockedHowler = getMockedHowler();
       mockedHowler.ctx.state = 'suspended';
+
+      await act(async () => {
+        result.current.play('/audio/test.opus');
+        await Promise.resolve();
+      });
+
+      expect(mockedHowler.ctx.resume).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for audio context resume before starting playback', async () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      const deferred = createDeferred();
+      mockedHowler.ctx.state = 'suspended';
+      mockedHowler.ctx.resume.mockImplementationOnce(() => deferred.promise);
 
       act(() => {
         result.current.play('/audio/test.opus');
       });
 
-      expect(mockedHowler.ctx.resume).toHaveBeenCalledTimes(1);
+      expect(getMockedHowlClass().instances).toHaveLength(0);
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(getMockedHowlClass().instances).toHaveLength(1);
+      expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('ignores stale play requests that resolve after a newer one', async () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      const firstResume = createDeferred();
+      const secondResume = createDeferred();
+
+      mockedHowler.ctx.state = 'suspended';
+      mockedHowler.ctx.resume
+        .mockImplementationOnce(() => firstResume.promise)
+        .mockImplementationOnce(() => secondResume.promise);
+
+      act(() => {
+        result.current.play('/audio/first.opus');
+        result.current.play('/audio/second.opus');
+      });
+
+      await act(async () => {
+        secondResume.resolve();
+        await secondResume.promise;
+      });
+
+      expect(getMockedHowlClass().instances).toHaveLength(1);
+
+      await act(async () => {
+        firstResume.resolve();
+        await firstResume.promise;
+      });
+
+      expect(getMockedHowlClass().instances).toHaveLength(1);
+      expect(result.current.isPlaying).toBe(true);
     });
   });
 
@@ -418,6 +503,28 @@ describe('useAudioPlayback', () => {
         });
       }).not.toThrow();
 
+      expect(result.current.isPlaying).toBe(false);
+    });
+
+    it('cancels a pending async play when pause is called first', async () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const mockedHowler = getMockedHowler();
+      const deferred = createDeferred();
+
+      mockedHowler.ctx.state = 'suspended';
+      mockedHowler.ctx.resume.mockImplementationOnce(() => deferred.promise);
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+        result.current.pause();
+      });
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(getMockedHowlClass().instances).toHaveLength(0);
       expect(result.current.isPlaying).toBe(false);
     });
   });

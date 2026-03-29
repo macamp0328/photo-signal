@@ -4,7 +4,7 @@ import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import * as qualityUtils from './algorithms/utils';
-import { usePhotoRecognition } from './usePhotoRecognition';
+import { assertThresholdsValid, usePhotoRecognition } from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
@@ -64,25 +64,23 @@ vi.mock('./useRecognitionWorker', () => ({
 }));
 
 describe('usePhotoRecognition', () => {
-    describe('DEV threshold assertion', () => {
-      const { assertThresholdsValid } = require('./usePhotoRecognition');
-
-      it('throws in DEV if QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD', () => {
-        expect(() => assertThresholdsValid(15, 14, true)).toThrow(
-          'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
-        );
-      });
-
-      it('does not throw in DEV if QUALITY_GATING_DISTANCE_THRESHOLD <= DEFAULT_SIMILARITY_THRESHOLD', () => {
-        expect(() => assertThresholdsValid(12, 14, true)).not.toThrow();
-        expect(() => assertThresholdsValid(14, 14, true)).not.toThrow();
-      });
-
-      it('does not throw in production regardless of values', () => {
-        expect(() => assertThresholdsValid(15, 14, false)).not.toThrow();
-        expect(() => assertThresholdsValid(12, 14, false)).not.toThrow();
-      });
+  describe('DEV threshold assertion', () => {
+    it('throws in DEV if QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD', () => {
+      expect(() => assertThresholdsValid(15, 14, true)).toThrow(
+        'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
+      );
     });
+
+    it('does not throw in DEV if QUALITY_GATING_DISTANCE_THRESHOLD <= DEFAULT_SIMILARITY_THRESHOLD', () => {
+      expect(() => assertThresholdsValid(12, 14, true)).not.toThrow();
+      expect(() => assertThresholdsValid(14, 14, true)).not.toThrow();
+    });
+
+    it('does not throw in production regardless of values', () => {
+      expect(() => assertThresholdsValid(15, 14, false)).not.toThrow();
+      expect(() => assertThresholdsValid(12, 14, false)).not.toThrow();
+    });
+  });
   const mockConcerts: Concert[] = [
     {
       id: 1,
@@ -179,10 +177,7 @@ describe('usePhotoRecognition', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
     });
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load concert data:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
     errorSpy.mockRestore();
   });
 
@@ -199,7 +194,6 @@ describe('usePhotoRecognition', () => {
     );
     errorSpy.mockRestore();
   });
-
 
   it('starts with null recognized concert', () => {
     const { result } = renderHook(() => usePhotoRecognition(null));
@@ -1471,6 +1465,245 @@ describe('usePhotoRecognition', () => {
         );
       } finally {
         warnSpy.mockRestore();
+        createElementSpy.mockRestore();
+        if (originalCreateImageBitmap) {
+          vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);
+        } else {
+          vi.unstubAllGlobals();
+        }
+      }
+    });
+
+    it('resets blur counter when distance improves significantly in worker path', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const requestFrameCallbacks: Array<VideoFrameRequestCallback> = [];
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          Object.defineProperty(video, 'requestVideoFrame', {
+            value: vi.fn((cb: VideoFrameRequestCallback) => {
+              requestFrameCallbacks.push(cb);
+              return requestFrameCallbacks.length;
+            }),
+            configurable: true,
+          });
+          return video;
+        }
+
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => ({
+              drawImage: vi.fn(),
+              getImageData: vi.fn(() => new ImageData(64, 64)),
+            })),
+            configurable: true,
+          });
+          return canvas;
+        }
+
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      const createImageBitmapMock = vi
+        .fn()
+        .mockResolvedValue({ close: vi.fn() } as unknown as ImageBitmap);
+      const originalCreateImageBitmap = globalThis.createImageBitmap;
+      vi.stubGlobal('createImageBitmap', createImageBitmapMock);
+
+      workerHookState.isReady = true;
+      workerHookState.isSupported = true;
+
+      // Frame 1: blurry at distance 21 → counter becomes 1
+      // Frame 2: blurry at distance 15 (improvement 6 ≥ threshold 4) → counter resets to 0
+      // Frame 3: distance 8 (≤ INSTANT_DISTANCE_THRESHOLD, quality bypass) → instant recognition
+      let frameCount = 0;
+      mockWorkerProcessFrame.mockImplementation((_: ImageBitmap, frameId: number) => {
+        frameCount += 1;
+        const distance = frameCount === 1 ? 21 : frameCount === 2 ? 15 : 8;
+        const isBlurry = frameCount <= 2;
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId,
+          hash: 'aaaaaaaaaaaaaaaa',
+          bestMatch: { concertId: 1, distance },
+          secondBestMatch: null,
+          quality: isBlurry
+            ? {
+                sharpness: 40,
+                isSharp: false,
+                glarePercentage: 0,
+                hasGlare: false,
+                averageBrightness: 120,
+                hasPoorLighting: false,
+                lightingType: 'ok' as const,
+              }
+            : null,
+          processingMs: 0.6,
+        });
+        return true;
+      });
+
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            similarityThreshold: 21,
+            recognitionDelay: 120,
+            enableDebugInfo: true,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(120);
+        });
+
+        // Idle throttle skips every other frame. 6 callbacks = 3 processed frames.
+        for (let i = 0; i < 6; i++) {
+          await act(async () => {
+            requestFrameCallbacks[i]?.(i * 16, {} as VideoFrameCallbackMetadata);
+            await Promise.resolve();
+          });
+        }
+
+        expect(result.current.debugInfo?.telemetry.blurRejections ?? 0).toBe(0);
+        expect(result.current.recognizedConcert?.id).toBe(1);
+      } finally {
+        createElementSpy.mockRestore();
+        if (originalCreateImageBitmap) {
+          vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);
+        } else {
+          vi.unstubAllGlobals();
+        }
+      }
+    });
+
+    it('still rejects after consecutive blurry frames with no significant improvement in worker path', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const requestFrameCallbacks: Array<VideoFrameRequestCallback> = [];
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          Object.defineProperty(video, 'requestVideoFrame', {
+            value: vi.fn((cb: VideoFrameRequestCallback) => {
+              requestFrameCallbacks.push(cb);
+              return requestFrameCallbacks.length;
+            }),
+            configurable: true,
+          });
+          return video;
+        }
+
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => ({
+              drawImage: vi.fn(),
+              getImageData: vi.fn(() => new ImageData(64, 64)),
+            })),
+            configurable: true,
+          });
+          return canvas;
+        }
+
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      const createImageBitmapMock = vi
+        .fn()
+        .mockResolvedValue({ close: vi.fn() } as unknown as ImageBitmap);
+      const originalCreateImageBitmap = globalThis.createImageBitmap;
+      vi.stubGlobal('createImageBitmap', createImageBitmapMock);
+
+      workerHookState.isReady = true;
+      workerHookState.isSupported = true;
+
+      // Frame 1: blurry at distance 21 → counter becomes 1
+      // Frame 2: blurry at distance 20 (improvement 1 < threshold 4) → counter becomes 2 → rejection
+      // Frame 3: no match (null quality) → quality-null fallthrough → debug info populated
+      let frameCount = 0;
+      mockWorkerProcessFrame.mockImplementation((_: ImageBitmap, frameId: number) => {
+        frameCount += 1;
+        if (frameCount <= 2) {
+          const distance = frameCount === 1 ? 21 : 20;
+          workerHookState.onResult?.({
+            type: 'result',
+            frameId,
+            hash: 'aaaaaaaaaaaaaaaa',
+            bestMatch: { concertId: 1, distance },
+            secondBestMatch: null,
+            quality: {
+              sharpness: 40,
+              isSharp: false,
+              glarePercentage: 0,
+              hasGlare: false,
+              averageBrightness: 120,
+              hasPoorLighting: false,
+              lightingType: 'ok' as const,
+            },
+            processingMs: 0.6,
+          });
+        } else {
+          // No match frame: triggers the quality-null fallthrough which calls setDebugInfo
+          workerHookState.onResult?.({
+            type: 'result',
+            frameId,
+            hash: 'aaaaaaaaaaaaaaaa',
+            bestMatch: null,
+            secondBestMatch: null,
+            quality: null,
+            processingMs: 0.6,
+          });
+        }
+        return true;
+      });
+
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            similarityThreshold: 21,
+            recognitionDelay: 120,
+            enableDebugInfo: true,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(120);
+        });
+
+        // Idle throttle skips every other frame. 6 callbacks = 3 processed frames.
+        // Frame 3 is a no-match that triggers setDebugInfo so telemetry is readable.
+        for (let i = 0; i < 6; i++) {
+          await act(async () => {
+            requestFrameCallbacks[i]?.(i * 16, {} as VideoFrameCallbackMetadata);
+            await Promise.resolve();
+          });
+        }
+
+        expect(result.current.debugInfo?.telemetry.blurRejections).toBe(1);
+        expect(result.current.recognizedConcert).toBeNull();
+      } finally {
         createElementSpy.mockRestore();
         if (originalCreateImageBitmap) {
           vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);

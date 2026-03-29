@@ -98,7 +98,6 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
  */
 const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
 
-
 /**
  * Throws if thresholds are invalid in DEV mode. Extracted for testability.
  * @internal
@@ -211,6 +210,7 @@ const buildStartupTelemetry = (milestones: StartupMilestones): StartupTelemetry 
 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
+const BLUR_DISTANCE_IMPROVEMENT_THRESHOLD = 4;
 const RECTANGLE_CONFIDENCE_HOLD_FRAMES = 2;
 
 /**
@@ -378,6 +378,7 @@ export function usePhotoRecognition(
   const ambientBrightnessRef = useRef<number | null>(null);
   const ambientGlarePercentageRef = useRef<number | null>(null);
   const consecutiveBlurFramesRef = useRef(0);
+  const prevBestDistanceRef = useRef<number | null>(null);
   const rectangleHoldFramesRef = useRef(0);
   const lastConfidentRectangleRef = useRef<DetectedRectangle | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -435,6 +436,7 @@ export function usePhotoRecognition(
     ambientBrightnessRef.current = null;
     ambientGlarePercentageRef.current = null;
     consecutiveBlurFramesRef.current = 0;
+    prevBestDistanceRef.current = null;
     rectangleHoldFramesRef.current = 0;
     lastConfidentRectangleRef.current = null;
     telemetryRef.current = createEmptyTelemetry();
@@ -1537,7 +1539,21 @@ export function usePhotoRecognition(
 
         if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
           if (!quality.isSharp) {
+            const currentDistance = bestMatch?.distance ?? null;
+            const prevDistance = prevBestDistanceRef.current;
+            const distanceImprovedSignificantly =
+              currentDistance !== null &&
+              prevDistance !== null &&
+              prevDistance - currentDistance >= BLUR_DISTANCE_IMPROVEMENT_THRESHOLD;
+
+            if (distanceImprovedSignificantly) {
+              consecutiveBlurFramesRef.current = 0;
+              prevBestDistanceRef.current = currentDistance;
+              return;
+            }
+
             consecutiveBlurFramesRef.current += 1;
+            prevBestDistanceRef.current = currentDistance;
             if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
               return;
             }
@@ -1578,11 +1594,13 @@ export function usePhotoRecognition(
         }
 
         consecutiveBlurFramesRef.current = 0;
+        prevBestDistanceRef.current = bestMatch?.distance ?? null;
         telemetryRef.current.qualityFrames += 1;
       } else if (!shouldRunQualityCheck) {
         telemetryRef.current.qualityBypassFrames =
           (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
         consecutiveBlurFramesRef.current = 0;
+        prevBestDistanceRef.current = null;
         setFrameQuality(null);
       } else {
         // shouldRunQualityCheck is true but result.quality is null — the worker
@@ -1592,6 +1610,7 @@ export function usePhotoRecognition(
         // the quality-bypass path; the frame is still allowed to proceed to
         // match confirmation.
         consecutiveBlurFramesRef.current = 0;
+        prevBestDistanceRef.current = null;
         setFrameQuality(null);
       }
 

@@ -499,6 +499,35 @@ describe('Image Processing Utilities', () => {
 
       expect(variance).toBe(0);
     });
+
+    it('should return variance > 0 for a heterogeneous image', () => {
+      // 5×5 image: center pixel bright (255), rest dark (0)
+      // Interior pixels (3×3 = 9 pixels) all have non-zero Laplacians
+      const data = new Uint8ClampedArray(5 * 5 * 4);
+      for (let i = 3; i < data.length; i += 4) {
+        data[i] = 255; // alpha
+      }
+      // Set center pixel (2,2) to white
+      const centerIdx = (2 * 5 + 2) * 4;
+      data[centerIdx] = 255;
+      data[centerIdx + 1] = 255;
+      data[centerIdx + 2] = 255;
+      const imageData = new ImageData(data, 5, 5);
+
+      expect(computeLaplacianVariance(imageData)).toBeGreaterThan(0);
+    });
+
+    it('should return 0 for a 3×3 uniform image (one interior pixel, population variance of 1 sample is 0)', () => {
+      // Only 1 interior pixel in a 3×3 image — population variance of a single
+      // value is always 0. This exercises the Welford n=1 edge case.
+      const data = new Uint8ClampedArray(3 * 3 * 4).fill(200);
+      for (let i = 3; i < data.length; i += 4) {
+        data[i] = 255; // alpha
+      }
+      const imageData = new ImageData(data, 3, 3);
+
+      expect(computeLaplacianVariance(imageData)).toBe(0);
+    });
   });
 
   describe('detectGlare', () => {

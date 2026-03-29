@@ -72,6 +72,10 @@ for (let i = 0; i < DCT_SIZE; i++) {
  * All cosine values are read from the precomputed COS_TABLE.
  *
  * @param imageData - Canvas ImageData object
+ * @param useWarmLuma - Use warm-light luma coefficients (R: 0.35, G: 0.58, B: 0.07) instead of
+ *   the default ITU-R BT.601 coefficients. Tuned for stage-lit concert photos where the blue
+ *   channel carries noise. Requires that stored reference hashes were generated with the same
+ *   coefficients — mismatched coefficients will silently break recognition.
  * @returns 64-bit hash as hexadecimal string (16 characters)
  *
  * @example
@@ -81,13 +85,13 @@ for (let i = 0; i < DCT_SIZE; i++) {
  * const hash = computePHash(imageData);
  * console.log(hash); // e.g., "a5b3c7d9e1f20486"
  */
-export function computePHash(imageData: ImageData): string {
+export function computePHash(imageData: ImageData, useWarmLuma = false): string {
   // Step 1: Resize to DCT_SIZE × DCT_SIZE pixels
   // Larger than dHash (17x8) to capture more detail for DCT
   const resized = resizeImageData(imageData, DCT_SIZE, DCT_SIZE);
 
   // Step 2: Convert to grayscale (flat row-major array)
-  const grayscale = toGrayscale(resized);
+  const grayscale = toGrayscale(resized, useWarmLuma);
 
   // Step 3a: Apply 1D DCT along each row, keeping only DCT_LOW_FREQ_SIZE
   // frequency components (v = 0 … DCT_LOW_FREQ_SIZE-1).

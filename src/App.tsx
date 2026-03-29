@@ -290,6 +290,7 @@ function AppContent() {
       enableDebugInfo: isDebugOverlayVisible,
       aspectRatio: 'auto',
       enableRectangleDetection: isEnabled('rectangle-detection'),
+      useWarmLumaPhash: isEnabled('warm-luma-phash'),
       similarityThreshold: 18,
       matchMarginThreshold: 5,
       sharpnessThreshold: 85,

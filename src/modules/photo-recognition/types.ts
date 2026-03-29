@@ -235,4 +235,10 @@ export interface PhotoRecognitionOptions {
   rectangleConfidenceThreshold?: number;
   /** Aspect ratio of the display viewport, used to compute crop regions. Default: 1 */
   displayAspectRatio?: number;
+  /**
+   * Use warm-light luma coefficients (R: 0.35, G: 0.58, B: 0.07) for pHash grayscale
+   * conversion. Tuned for stage-lit concert photos. Requires stored hashes to have been
+   * generated with the same coefficients. Default: false
+   */
+  useWarmLumaPhash?: boolean;
 }

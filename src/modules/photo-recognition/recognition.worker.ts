@@ -484,7 +484,7 @@ function processFrame(
   const hashImageData = hCtx.getImageData(0, 0, PHASH_SIZE, PHASH_SIZE);
 
   // 2. Compute pHash (resize is a no-op since input is already 32×32)
-  const hash = computePHash(hashImageData, config?.useWarmLumaPhash ?? false);
+  const hash = computePHash(hashImageData);
 
   // 3. Find best matches
   const { bestMatch, secondBestMatch } = findBestMatches(hash, hashEntries);

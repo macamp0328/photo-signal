@@ -310,6 +310,43 @@ describe('computePHash', () => {
     });
   });
 
+  describe('useWarmLuma option', () => {
+    function createColorImage(
+      width: number,
+      height: number,
+      r: number,
+      g: number,
+      b: number
+    ): ImageData {
+      const imageData = new ImageData(width, height);
+      for (let i = 0; i < width * height; i++) {
+        imageData.data[i * 4] = r;
+        imageData.data[i * 4 + 1] = g;
+        imageData.data[i * 4 + 2] = b;
+        imageData.data[i * 4 + 3] = 255;
+      }
+      return imageData;
+    }
+
+    it('produces a different hash for a warm-toned (high-red) image', () => {
+      // A predominantly red image: warm-luma weights red more heavily than BT.601,
+      // so the grayscale representation — and therefore the DCT output — will differ.
+      const imageData = createColorImage(32, 32, 200, 50, 20);
+      const standard = computePHash(imageData, false);
+      const warm = computePHash(imageData, true);
+
+      expect(standard).toMatch(/^[0-9a-f]{16}$/);
+      expect(warm).toMatch(/^[0-9a-f]{16}$/);
+      expect(standard).not.toBe(warm);
+    });
+
+    it('is deterministic — same image + same flag always yields the same hash', () => {
+      const imageData = createColorImage(32, 32, 200, 50, 20);
+      expect(computePHash(imageData, true)).toBe(computePHash(imageData, true));
+      expect(computePHash(imageData, false)).toBe(computePHash(imageData, false));
+    });
+  });
+
   describe('Buffer reuse safety', () => {
     it('should produce identical output on sequential calls with different images (no state bleed from pre-allocated buffers)', () => {
       // The module-level _lowFreq and _sortedFreq buffers are overwritten on

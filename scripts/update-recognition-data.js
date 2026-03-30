@@ -84,6 +84,7 @@ function parseArgs() {
     hashVariants: {
       rotationAngles: [...DEFAULT_ROTATION_VARIANTS],
       nearDupHammingThreshold: DEFAULT_NEAR_DUP_HAMMING_THRESHOLD,
+      useWarmLuma: false,
     },
   };
 
@@ -177,6 +178,9 @@ function parseArgs() {
         break;
       case '--no-rotation-variants':
         options.hashVariants.rotationAngles = [];
+        break;
+      case '--warm-luma':
+        options.hashVariants.useWarmLuma = true;
         break;
       case '--near-dup-hamming-threshold': {
         if (!args[i + 1]) {
@@ -507,6 +511,7 @@ async function processConcert(concert, options) {
       const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS, {
         rotationAngles: options.hashVariants.rotationAngles,
         nearDupHammingThreshold: options.hashVariants.nearDupHammingThreshold,
+        useWarmLuma: options.hashVariants.useWarmLuma,
       });
       const hashStore = ensurePhotoHashesStructure(concert);
 
@@ -515,6 +520,7 @@ async function processConcert(concert, options) {
         hashStore.cropPhashes = generateCropHashVariants(imageData, DEFAULT_GAMMA_VARIANTS, {
           rotationAngles: options.hashVariants.rotationAngles,
           nearDupHammingThreshold: options.hashVariants.nearDupHammingThreshold,
+          useWarmLuma: options.hashVariants.useWarmLuma,
         });
       }
 
@@ -798,6 +804,7 @@ async function runPathsMode(options) {
       const hashVariants = generateHashVariants(imageData, DEFAULT_GAMMA_VARIANTS, {
         rotationAngles: options.hashVariants.rotationAngles,
         nearDupHammingThreshold: options.hashVariants.nearDupHammingThreshold,
+        useWarmLuma: options.hashVariants.useWarmLuma,
       });
       const photoHashes = {};
 

@@ -391,6 +391,7 @@ export function usePhotoRecognition(
     enableRectangleDetection = false,
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
+    useWarmLumaPhash = false,
   } = options;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
@@ -628,6 +629,7 @@ export function usePhotoRecognition(
         minBrightness: minBrightness ?? 50,
         maxBrightness: maxBrightness ?? 220,
       },
+      useWarmLumaPhash,
     }),
     [
       similarityThreshold,
@@ -637,6 +639,7 @@ export function usePhotoRecognition(
       glarePercentageThreshold,
       minBrightness,
       maxBrightness,
+      useWarmLumaPhash,
     ]
   );
 

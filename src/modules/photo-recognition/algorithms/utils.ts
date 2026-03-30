@@ -76,24 +76,41 @@ const LUMA_RED = 0.299;
 const LUMA_GREEN = 0.587;
 const LUMA_BLUE = 0.114;
 
+// Warm-light luma coefficients tuned for stage-lit concert photos.
+// Reduces the blue channel weight (0.114 → 0.07) to dampen noise from
+// warm-dominant stage lighting (heavy reds/oranges, minimal blue).
+// Requires regenerating stored hashes before enabling at runtime —
+// mismatched coefficients will silently break recognition.
+const WARM_LUMA_RED = 0.35;
+const WARM_LUMA_GREEN = 0.58;
+const WARM_LUMA_BLUE = 0.07;
+
 /**
  * Convert ImageData to grayscale array using luminance formula
  *
- * Uses ITU-R BT.601 luma coefficients for perceptually accurate grayscale conversion.
+ * Uses ITU-R BT.601 luma coefficients by default. Pass `useWarmLuma = true`
+ * to use warm-light coefficients (R: 0.35, G: 0.58, B: 0.07) tuned for
+ * stage-lit concert photos. The warm-luma path requires that stored reference
+ * hashes were also generated with warm-luma coefficients.
+ *
  * Returns a pre-allocated Uint8Array for better memory locality and no boxing overhead.
  *
  * @param imageData - Image data to convert
+ * @param useWarmLuma - Use warm-light luma coefficients instead of BT.601
  * @returns Typed array of grayscale values (0-255)
  */
-export function toGrayscale(imageData: ImageData): Uint8Array {
+export function toGrayscale(imageData: ImageData, useWarmLuma = false): Uint8Array {
   const pixelCount = imageData.data.length >> 2; // divide by 4
   const grayscale = new Uint8Array(pixelCount);
   const { data } = imageData;
 
+  const r = useWarmLuma ? WARM_LUMA_RED : LUMA_RED;
+  const g = useWarmLuma ? WARM_LUMA_GREEN : LUMA_GREEN;
+  const b = useWarmLuma ? WARM_LUMA_BLUE : LUMA_BLUE;
+
   // Process RGBA pixels (4 bytes per pixel)
   for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-    // ITU-R BT.601 luma calculation for perceptual brightness
-    grayscale[j] = LUMA_RED * data[i] + LUMA_GREEN * data[i + 1] + LUMA_BLUE * data[i + 2];
+    grayscale[j] = r * data[i] + g * data[i + 1] + b * data[i + 2];
   }
 
   return grayscale;

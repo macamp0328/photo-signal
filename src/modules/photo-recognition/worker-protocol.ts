@@ -32,6 +32,12 @@ export interface WorkerRecognitionConfig {
   matchMarginThreshold: number;
   qualityGatingDistanceThreshold: number;
   quality: WorkerQualityConfig;
+  /**
+   * Use warm-light luma coefficients (R: 0.35, G: 0.58, B: 0.07) for
+   * grayscale conversion during pHash computation. Requires that stored
+   * reference hashes were generated with the same coefficients.
+   */
+  useWarmLumaPhash?: boolean;
 }
 
 // ---------------------------------------------------------------------------

@@ -367,6 +367,53 @@ describe('recognition.worker', () => {
     );
   });
 
+  it('forwards useWarmLumaPhash from config to computePHash', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [{ hash: 'aaaaaaaaaaaaaaaa', concertId: 1 }],
+        config: { ...baseConfig, useWarmLumaPhash: true },
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 20,
+      },
+    } as MessageEvent);
+
+    // computePHash should have been called with useWarmLuma = true
+    expect(mockComputePHash).toHaveBeenCalledWith(expect.anything(), true);
+  });
+
+  it('passes useWarmLumaPhash=false to computePHash when flag is absent', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [{ hash: 'aaaaaaaaaaaaaaaa', concertId: 1 }],
+        config: baseConfig, // no useWarmLumaPhash field
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 21,
+      },
+    } as MessageEvent);
+
+    expect(mockComputePHash).toHaveBeenCalledWith(expect.anything(), false);
+  });
+
   it('posts error when frame processing throws', async () => {
     const selfRef = await loadWorkerModule();
     const bitmap = makeBitmap();

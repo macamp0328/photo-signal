@@ -49,16 +49,4 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     enabled: true,
     category: 'audio',
   },
-  {
-    id: 'warm-luma-phash',
-    name: 'Warm-Light Luma Coefficients',
-    description:
-      'Use concert-stage-tuned luma coefficients (R: 0.35, G: 0.58, B: 0.07) for grayscale ' +
-      'conversion during pHash computation. Reduces blue-channel noise from warm-dominant stage ' +
-      'lighting. WARNING: requires regenerating the recognition hash database ' +
-      '(npm run hashes:refresh) before enabling — mismatched coefficients will silently break ' +
-      'recognition.',
-    enabled: false,
-    category: 'experimental',
-  },
 ];

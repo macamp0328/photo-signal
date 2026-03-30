@@ -131,26 +131,18 @@ function resizeImageData(imageData, width, height) {
   return targetCtx.getImageData(0, 0, width, height);
 }
 
-// ITU-R BT.601 luma coefficients (standard)
-const LUMA_RED = 0.299;
-const LUMA_GREEN = 0.587;
-const LUMA_BLUE = 0.114;
-
-// Warm-light luma coefficients for stage-lit concert photos.
-// Mirrors the browser runtime (src/modules/photo-recognition/algorithms/utils.ts).
-const WARM_LUMA_RED = 0.35;
-const WARM_LUMA_GREEN = 0.58;
-const WARM_LUMA_BLUE = 0.07;
-
-function toGrayscale(imageData, useWarmLuma = false) {
+function toGrayscale(imageData) {
   const grayscale = [];
   const { data } = imageData;
-  const r = useWarmLuma ? WARM_LUMA_RED : LUMA_RED;
-  const g = useWarmLuma ? WARM_LUMA_GREEN : LUMA_GREEN;
-  const b = useWarmLuma ? WARM_LUMA_BLUE : LUMA_BLUE;
+  const LUMA_RED = 0.299;
+  const LUMA_GREEN = 0.587;
+  const LUMA_BLUE = 0.114;
 
   for (let i = 0; i < data.length; i += 4) {
-    const luma = Math.floor(r * data[i] + g * data[i + 1] + b * data[i + 2]);
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const luma = Math.floor(LUMA_RED * r + LUMA_GREEN * g + LUMA_BLUE * b);
     grayscale.push(luma);
   }
 
@@ -197,13 +189,10 @@ export function computeDHash(imageData) {
  * The implementation mirrors the browser runtime (src/modules/photo-recognition/
  * algorithms/phash.ts) so that script-generated reference hashes and
  * browser-computed query hashes are computed identically.
- *
- * @param {import('canvas').ImageData} imageData
- * @param {{ useWarmLuma?: boolean }} [options]
  */
-export function computePHash(imageData, { useWarmLuma = false } = {}) {
+export function computePHash(imageData) {
   const resized = resizeImageData(imageData, DCT_SIZE, DCT_SIZE);
-  const grayscale = toGrayscale(resized, useWarmLuma);
+  const grayscale = toGrayscale(resized);
 
   // Step 1: 1D DCT along each row, keeping only DCT_LOW_FREQ_SIZE components.
   // intermediate[x * DCT_LOW_FREQ_SIZE + v]
@@ -499,9 +488,8 @@ export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS,
   const dhashInputs = exposureVariants.map((variant) => resizeImageData(variant, 17, 8));
 
   const dedupThreshold = options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD;
-  const useWarmLuma = options.useWarmLuma ?? false;
   const basePHashes = dedupeNearDuplicateHashes(
-    phashInputs.map((variant) => computePHash(variant, { useWarmLuma })),
+    phashInputs.map((variant) => computePHash(variant)),
     dedupThreshold
   );
   const baseDHashes = dedupeNearDuplicateHashes(
@@ -526,9 +514,7 @@ export function generateHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIANTS,
     }
   }
 
-  const rotatedPHashes = rotatedPHashInputs.map((variant) =>
-    computePHash(variant, { useWarmLuma })
-  );
+  const rotatedPHashes = rotatedPHashInputs.map((variant) => computePHash(variant));
   const rotatedDHashes = rotatedDHashInputs.map((variant) => computeDHash(variant));
 
   return {
@@ -618,7 +604,6 @@ export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIA
   );
   const nearDupHammingThreshold =
     options.nearDupHammingThreshold ?? DEFAULT_NEAR_DUP_HAMMING_THRESHOLD;
-  const useWarmLuma = options.useWarmLuma ?? false;
 
   for (const regionKey of Object.keys(CROP_REGIONS)) {
     const cropped = extractCrop(imageData, regionKey);
@@ -627,14 +612,14 @@ export function generateCropHashVariants(imageData, gammas = DEFAULT_GAMMA_VARIA
       resizeImageData(variant, DCT_SIZE, DCT_SIZE)
     );
     const baseHashes = dedupeNearDuplicateHashes(
-      phashInputs.map((variant) => computePHash(variant, { useWarmLuma })),
+      phashInputs.map((variant) => computePHash(variant)),
       nearDupHammingThreshold
     );
 
     const rotatedHashes = [];
     for (const phashInput of phashInputs) {
       for (const angle of rotationAngles) {
-        rotatedHashes.push(computePHash(rotateImageData(phashInput, angle), { useWarmLuma }));
+        rotatedHashes.push(computePHash(rotateImageData(phashInput, angle)));
       }
     }
 

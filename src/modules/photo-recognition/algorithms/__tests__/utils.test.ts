@@ -199,32 +199,6 @@ describe('Image Processing Utilities', () => {
       // Both should produce same grayscale value regardless of alpha
       expect(grayscale[0]).toBe(grayscale[1]);
     });
-
-    it('warm-luma: reduces blue channel weight vs BT.601 for a blue pixel', () => {
-      // Pure blue pixel: BT.601 = 0.114 * 255 ≈ 29, warm-luma = 0.07 * 255 ≈ 17
-      const data = new Uint8ClampedArray([0, 0, 255, 255]);
-      const imageData = new ImageData(data, 1, 1);
-
-      const standard = toGrayscale(imageData, false);
-      const warm = toGrayscale(imageData, true);
-
-      expect(standard[0]).toBe(29);
-      expect(warm[0]).toBe(17); // 0.07 * 255 = 17.85 → floor = 17
-      expect(warm[0]).toBeLessThan(standard[0]);
-    });
-
-    it('warm-luma: increases red channel weight vs BT.601 for a red pixel', () => {
-      // Pure red pixel: BT.601 = 0.299 * 255 ≈ 76, warm-luma = 0.35 * 255 ≈ 89
-      const data = new Uint8ClampedArray([255, 0, 0, 255]);
-      const imageData = new ImageData(data, 1, 1);
-
-      const standard = toGrayscale(imageData, false);
-      const warm = toGrayscale(imageData, true);
-
-      expect(standard[0]).toBe(76);
-      expect(warm[0]).toBe(89); // 0.35 * 255 = 89.25 → floor = 89
-      expect(warm[0]).toBeGreaterThan(standard[0]);
-    });
   });
 
   describe('binaryToHex', () => {

@@ -98,7 +98,6 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
  */
 const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
 
-
 /**
  * Throws if thresholds are invalid in DEV mode. Extracted for testability.
  * @internal

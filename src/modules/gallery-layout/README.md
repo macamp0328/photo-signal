@@ -14,12 +14,14 @@ a tap-to-activate landing state, a settings icon, and optional audio controls at
   audioControls?={ReactNode}
   isMatchedPhoto?={boolean}
   aboveCameraSlot?={ReactNode}
+  belowCameraSlot?={ReactNode}
 />
 ```
 
 `isActive` — whether the camera is live. When `false`, renders a tap-to-start landing screen.
 `isMatchedPhoto` — when `true`, the camera frame expands to a natural aspect ratio to show a matched photo.
 `aboveCameraSlot` — optional node rendered above the camera frame (e.g., concert info overlay).
+`belowCameraSlot` — optional node rendered below the camera frame (e.g., action buttons).
 
 ## Responsibilities
 

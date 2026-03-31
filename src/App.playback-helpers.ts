@@ -84,20 +84,15 @@ export function getPlaylistStartForConcert(
   concert: Concert,
   songsByBand: Concert[]
 ): PlaylistStartResult {
-  const playlist = shufflePlaylist(songsByBand.length > 0 ? songsByBand : [concert]);
-  const firstSong = playlist[0] ?? concert;
+  const allSongs = songsByBand.length > 0 ? songsByBand : [concert];
+  const otherSongs = allSongs.filter((s) => s.id !== concert.id);
+  const playlist = [concert, ...shufflePlaylist(otherSongs)];
 
-  if (!firstSong.audioFile) {
-    return {
-      playlist,
-      firstSong: null,
-    };
+  if (!concert.audioFile) {
+    return { playlist, firstSong: null };
   }
 
-  return {
-    playlist: playlist.length > 0 ? playlist : [concert],
-    firstSong,
-  };
+  return { playlist, firstSong: concert };
 }
 
 export function syncPlaylistForConcert({

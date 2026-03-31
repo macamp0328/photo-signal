@@ -2,6 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "sign-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "-l",
+        "4299",
+        "/Users/campmiles/my_files/dev/photo-signal/photo-signal/assets"
+      ],
+      "port": 4299
+    },
+    {
       "name": "photo-signal",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview", "--", "--port", "4205"],

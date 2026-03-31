@@ -10,6 +10,8 @@
   min-width: 0;
 }
 
+/* ─── Band Name — poster headline ─────────────────────────────────────────── */
+
 .bandName {
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 6vw, 2.8rem);
@@ -19,9 +21,7 @@
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
   text-shadow:
     0 0 calc(10px * var(--glow-reactive-scale))
       color-mix(in srgb, var(--color-main-text), transparent 65%),
@@ -35,23 +35,45 @@ html[data-state='matched'] .bandName {
   color: var(--poster-primary, white);
 }
 
-.meta {
+/* ─── Venue — Bebas Neue at smaller size; same display family as band name ── */
+
+.venue {
   margin: 0.4rem 0 0;
-  font-size: 0.76rem;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3.5vw, 1.3rem);
+  font-weight: 400;
+  line-height: 1.05;
   color: color-mix(in srgb, var(--color-main-text), #fff 18%);
-  font-family: var(--font-family);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
   transition: color 1.2s ease;
   animation: textReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
 }
 
-html[data-state='matched'] .meta {
+html[data-state='matched'] .venue {
   color: var(--poster-accent, rgba(255, 255, 255, 0.88));
 }
+
+/* ─── Date — body font; supporting role below venue ──────────────────────── */
+
+.date {
+  margin: 0.18rem 0 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+  transition: color 1.2s ease;
+  animation: textReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
+}
+
+html[data-state='matched'] .date {
+  color: var(--poster-accent, rgba(255, 255, 255, 0.65));
+}
+
+/* ─── EXIF — small technical footnote; always visible ────────────────────── */
 
 .exif {
   margin: 0.08rem 0 0;
@@ -59,13 +81,12 @@ html[data-state='matched'] .meta {
   color: rgba(255, 255, 255, 0.45);
   font-family: var(--font-family);
   letter-spacing: 0.06em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  animation: textReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
+  overflow-wrap: break-word;
+  animation: textReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.46s both;
 }
 
-/* Text elements materialize upward — staggered data reveal */
+/* ─── Entrance animation — text elements materialize upward, staggered ───── */
+
 @keyframes textReveal {
   from {
     opacity: 0;
@@ -81,21 +102,12 @@ html[data-state='matched'] .meta {
   .bandName {
     font-size: clamp(1.4rem, 5.5vw, 2.4rem);
   }
-
-  .meta {
-    font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .exif {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bandName,
-  .meta,
+  .venue,
+  .date,
   .exif {
     animation: none !important;
     transform: none !important;

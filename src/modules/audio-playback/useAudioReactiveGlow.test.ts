@@ -279,7 +279,7 @@ describe('useAudioReactiveGlow', () => {
     expect(result.current).toBeUndefined();
   });
 
-  it('sets --glow-reactive-scale on each rAF tick within the expanded range', () => {
+  it('sets --glow-reactive-scale on each rAF tick within the neutral-to-bright range', () => {
     renderHook(() => useAudioReactiveGlow(true, true));
 
     act(() => {
@@ -289,7 +289,7 @@ describe('useAudioReactiveGlow', () => {
     const val = document.documentElement.style.getPropertyValue('--glow-reactive-scale');
     expect(val).not.toBe('');
     const parsed = parseFloat(val);
-    expect(parsed).toBeGreaterThanOrEqual(0.6);
+    expect(parsed).toBeGreaterThanOrEqual(1.0);
     expect(parsed).toBeLessThanOrEqual(1.8);
   });
 
@@ -303,8 +303,8 @@ describe('useAudioReactiveGlow', () => {
     const val = document.documentElement.style.getPropertyValue('--glow-reactive-scale-ring');
     expect(val).not.toBe('');
     const parsed = parseFloat(val);
-    expect(parsed).toBeGreaterThanOrEqual(0.4);
-    expect(parsed).toBeLessThanOrEqual(2.0);
+    expect(parsed).toBeGreaterThanOrEqual(0.8);
+    expect(parsed).toBeLessThanOrEqual(1.8);
   });
 
   it('re-schedules rAF on each tick to create a loop', () => {

@@ -41,6 +41,7 @@ assets/prod-photographs/*.jpeg
 assets/prod-photographs/*.png
 !assets/prod-photographs/prod-photographs-details.csv
 
+
 # Audio encoding work directories
 scripts/audio-workflow/encode/work/
 scripts/audio-workflow/encode/output/

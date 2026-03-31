@@ -141,7 +141,7 @@ export function useAudioTest(): UseAudioTestReturn {
 
         const sound = new Howl({
           src: [url],
-          html5: true,
+          html5: false,
           preload: true,
           volume: TEST_VOLUME,
         });

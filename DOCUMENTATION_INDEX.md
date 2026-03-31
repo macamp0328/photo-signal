@@ -61,8 +61,9 @@ Each module has a `README.md` with its public API, responsibilities, and key fil
 
 - **assets/prod-photographs/** — Local-only source photo workflow (original images are intentionally not tracked)
 - **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical tracked photo-to-band metadata and EXIF details
-- **[assets/exhibit-flyer.html](./assets/exhibit-flyer.html)** — Print-ready 8.5×11 flyer for the physical gallery exhibit (open in browser → print)
+- **[assets/exhibit-flyer.html](./assets/exhibit-flyer.html)** — Print-ready 8.5×11 flyer for the physical gallery exhibit (open in browser → print, or run `npm run flyer:export`)
 - **[assets/whoisduck2-qr.png](./assets/whoisduck2-qr.png)** — QR code for whoisduck2.com, embedded in the exhibit flyer
+- **[scripts/visual/export-flyer.js](./scripts/visual/export-flyer.js)** — Exports the flyer as `assets/exhibit-flyer.pdf` (Letter, print background) and `assets/exhibit-flyer.png` (2550×3300 px / 300 DPI) via Playwright
 - **[assets/test-videos/phone-samples/README.md](./assets/test-videos/phone-samples/README.md)** — Dev/test-only real-world phone video samples for deterministic demo GIF generation
 - **[public/assets/test-images/README.md](./public/assets/test-images/README.md)** — Git-tracked synthetic image fixtures for image-dependent tests
 

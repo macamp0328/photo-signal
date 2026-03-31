@@ -102,11 +102,23 @@ const INSTANT_DISTANCE_THRESHOLD = 10;
  */
 const QUALITY_GATING_DISTANCE_THRESHOLD = 12;
 
-if (import.meta.env.DEV && QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD) {
-  throw new Error(
-    'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
-  );
+/**
+ * Throws if thresholds are invalid in DEV mode. Extracted for testability.
+ * @internal
+ */
+export function assertThresholdsValid(
+  qualityGating: number = QUALITY_GATING_DISTANCE_THRESHOLD,
+  similarity: number = DEFAULT_SIMILARITY_THRESHOLD,
+  dev: boolean = import.meta.env.DEV
+) {
+  if (dev && qualityGating > similarity) {
+    throw new Error(
+      'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
+    );
+  }
 }
+
+assertThresholdsValid();
 
 /**
  * Resolution used for quality-check captures (sharpness, glare, lighting).
@@ -202,6 +214,7 @@ const buildStartupTelemetry = (milestones: StartupMilestones): StartupTelemetry 
 
 const BLUR_REJECTION_CONSECUTIVE_FRAMES = 2;
 const BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES = 3;
+const BLUR_DISTANCE_IMPROVEMENT_THRESHOLD = 4;
 /**
  * Conservative fraction of sharpnessThreshold used as the pre-hash blur gate.
  * The 64×64 downscale reduces high-frequency content, so Laplacian variance is
@@ -403,6 +416,7 @@ export function usePhotoRecognition(
   const ambientBrightnessRef = useRef<number | null>(null);
   const ambientGlarePercentageRef = useRef<number | null>(null);
   const consecutiveBlurFramesRef = useRef(0);
+  const prevBestDistanceRef = useRef<number | null>(null);
   const rectangleHoldFramesRef = useRef(0);
   const lastConfidentRectangleRef = useRef<DetectedRectangle | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -460,6 +474,7 @@ export function usePhotoRecognition(
     ambientBrightnessRef.current = null;
     ambientGlarePercentageRef.current = null;
     consecutiveBlurFramesRef.current = 0;
+    prevBestDistanceRef.current = null;
     rectangleHoldFramesRef.current = 0;
     lastConfidentRectangleRef.current = null;
     telemetryRef.current = createEmptyTelemetry();
@@ -1246,6 +1261,13 @@ export function usePhotoRecognition(
           candidateTelemetry.max = Math.max(candidateTelemetry.max, comparedCandidates);
         }
 
+        // Accumulate distance histogram — every frame that produced a bestMatch,
+        // regardless of threshold. Index = Hamming distance (0–64).
+        if (bestMatch !== null && telemetryRef.current.distance_histogram) {
+          const dist = Math.min(bestMatch.distance, 64);
+          telemetryRef.current.distance_histogram[dist] += 1;
+        }
+
         // Decision variables
         const now = Date.now();
         const activeThreshold = similarityThreshold;
@@ -1531,6 +1553,12 @@ export function usePhotoRecognition(
           })()
         : null;
 
+      // Accumulate distance histogram — same as inline path.
+      if (bestMatch !== null && telemetryRef.current.distance_histogram) {
+        const dist = Math.min(bestMatch.distance, 64);
+        telemetryRef.current.distance_histogram[dist] += 1;
+      }
+
       // Decision variables (mirrors inline path logic)
       const now = Date.now();
       const activeThreshold = similarityThreshold;
@@ -1608,7 +1636,21 @@ export function usePhotoRecognition(
 
         if (!quality.isSharp || quality.hasGlare || quality.hasPoorLighting) {
           if (!quality.isSharp) {
+            const currentDistance = bestMatch?.distance ?? null;
+            const prevDistance = prevBestDistanceRef.current;
+            const distanceImprovedSignificantly =
+              currentDistance !== null &&
+              prevDistance !== null &&
+              prevDistance - currentDistance >= BLUR_DISTANCE_IMPROVEMENT_THRESHOLD;
+
+            if (distanceImprovedSignificantly) {
+              consecutiveBlurFramesRef.current = 0;
+              prevBestDistanceRef.current = currentDistance;
+              return;
+            }
+
             consecutiveBlurFramesRef.current += 1;
+            prevBestDistanceRef.current = currentDistance;
             if (consecutiveBlurFramesRef.current < BLUR_REJECTION_CONSECUTIVE_FRAMES) {
               return;
             }
@@ -1649,11 +1691,13 @@ export function usePhotoRecognition(
         }
 
         consecutiveBlurFramesRef.current = 0;
+        prevBestDistanceRef.current = bestMatch?.distance ?? null;
         telemetryRef.current.qualityFrames += 1;
       } else if (!shouldRunQualityCheck) {
         telemetryRef.current.qualityBypassFrames =
           (telemetryRef.current.qualityBypassFrames ?? 0) + 1;
         consecutiveBlurFramesRef.current = 0;
+        prevBestDistanceRef.current = null;
         setFrameQuality(null);
       } else {
         // shouldRunQualityCheck is true but result.quality is null — the worker
@@ -1663,6 +1707,7 @@ export function usePhotoRecognition(
         // the quality-bypass path; the frame is still allowed to proceed to
         // match confirmation.
         consecutiveBlurFramesRef.current = 0;
+        prevBestDistanceRef.current = null;
         setFrameQuality(null);
       }
 

@@ -277,7 +277,8 @@
   }
 
   .contentWithAudio {
-    padding-bottom: calc(env(safe-area-inset-bottom) + 3rem);
+    /* Extra padding ensures the below-photo action row clears the fixed audio strip */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
   }
 }
 

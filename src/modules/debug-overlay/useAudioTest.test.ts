@@ -9,10 +9,19 @@ vi.mock('../audio-playback', () => ({
 
 // Mock Howler.js
 vi.mock('howler', () => {
+  type HowlOptions = {
+    src?: string[];
+    html5?: boolean;
+    preload?: boolean;
+    volume?: number;
+  };
+
   class MockHowl {
     private _callbacks: Record<string, Array<(...args: unknown[]) => void>> = {};
+    public readonly options: HowlOptions;
 
-    constructor() {
+    constructor(options: HowlOptions = {}) {
+      this.options = options;
       MockHowl.instances.push(this);
     }
 
@@ -52,6 +61,12 @@ import { diagnoseAudioUrl } from '../audio-playback';
 import { Howl } from 'howler';
 
 interface MockHowlInstance {
+  options: {
+    src?: string[];
+    html5?: boolean;
+    preload?: boolean;
+    volume?: number;
+  };
   __triggerEvent: (event: string, ...args: unknown[]) => void;
   stop: ReturnType<typeof vi.fn>;
   unload: ReturnType<typeof vi.fn>;
@@ -152,6 +167,19 @@ describe('useAudioTest', () => {
     const instances = getMockedHowlClass().instances;
     expect(instances[0].stop).not.toHaveBeenCalled();
     expect(instances[0].unload).not.toHaveBeenCalled();
+  });
+
+  it('should mirror app playback by using Web Audio mode', async () => {
+    vi.mocked(diagnoseAudioUrl).mockResolvedValue(successDiagnostic);
+
+    const { result } = renderHook(() => useAudioTest());
+
+    await act(async () => {
+      result.current.runTest(testUrl);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(getMockedHowlClass().instances[0].options.html5).toBe(false);
   });
 
   it('should report load-error when Howler fails to load', async () => {

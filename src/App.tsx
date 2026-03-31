@@ -424,7 +424,12 @@ function AppContent() {
       document.documentElement.style.removeProperty('--crt-opacity');
       return;
     }
-    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.45).toFixed(3));
+    // Exponential curve: near-invisible for first ~60%, rises steeply in final ~40%.
+    // At 75% → 0.32, 90% → 0.55, 100% → 0.75 — clearly visible as the song closes.
+    document.documentElement.style.setProperty(
+      '--crt-opacity',
+      (Math.pow(progress, 2.5) * 0.75).toFixed(3)
+    );
     return () => {
       document.documentElement.style.removeProperty('--crt-opacity');
     };
@@ -1074,6 +1079,12 @@ function AppContent() {
           infoConcert ? (
             <div className={styles.matchedPhotoHeader}>
               <InfoDisplay concert={infoConcert} isVisible={true} />
+            </div>
+          ) : null
+        }
+        belowCameraSlot={
+          infoConcert ? (
+            <div className={styles.scanAnotherRow}>
               <button
                 ref={scanAnotherButtonRef}
                 type="button"

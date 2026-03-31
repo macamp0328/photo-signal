@@ -4,7 +4,7 @@ import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import * as qualityUtils from './algorithms/utils';
-import { usePhotoRecognition } from './usePhotoRecognition';
+import { assertThresholdsValid, usePhotoRecognition } from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
@@ -65,8 +65,6 @@ vi.mock('./useRecognitionWorker', () => ({
 
 describe('usePhotoRecognition', () => {
     describe('DEV threshold assertion', () => {
-      const { assertThresholdsValid } = require('./usePhotoRecognition');
-
       it('throws in DEV if QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD', () => {
         expect(() => assertThresholdsValid(15, 14, true)).toThrow(
           'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'

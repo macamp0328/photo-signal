@@ -1,0 +1,606 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Photo Signal v17</title>
+    <style>
+      @page {
+        size: 8.5in 11in;
+        margin: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #fff;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .sheet {
+        width: 8.5in;
+        height: 11in;
+        background: repeating-linear-gradient(
+          to bottom,
+          black 0px,
+          black 1px,
+          white 1px,
+          white 8px
+        );
+        padding: 0.14in;
+      }
+
+      .page {
+        width: 100%;
+        height: 100%;
+        border: 7px solid black;
+        background: white;
+        padding: 0.13in;
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 8px;
+      }
+
+      .top {
+        border: 3px solid black;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        display: grid;
+        grid-template-columns: 1fr 1.4fr 1fr;
+      }
+
+      .top div:nth-child(2) {
+        text-align: center;
+      }
+      .top div:nth-child(3) {
+        text-align: right;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 8px;
+      }
+
+      .row2 {
+        display: grid;
+        grid-template-columns: 1.18fr 0.82fr;
+        gap: 8px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 8px;
+        grid-template-rows: 1fr auto;
+      }
+
+      .box {
+        border: 4px solid black;
+        padding: 10px;
+        background: #fff;
+      }
+
+      .hero {
+        background: repeating-linear-gradient(
+          135deg,
+          black 0,
+          black 1px,
+          transparent 1px,
+          transparent 18px
+        );
+        padding: 12px;
+      }
+
+      .hero-inner {
+        background: white;
+        padding: 6px 6px 6px 10px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 78px;
+        line-height: 0.88;
+        letter-spacing: -0.06em;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .intro {
+        margin-top: 12px;
+        font-size: 22px;
+        line-height: 1.1;
+        font-weight: 700;
+      }
+
+      .intro-sub {
+        margin-top: 14px;
+      }
+
+      .label {
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .code-box {
+        border: 3px double black;
+        padding: 10px;
+        margin: 12px 0;
+        text-align: center;
+      }
+
+      .code {
+        font-size: 60px;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+      }
+
+      .box.channel-box {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .channel-copy {
+        margin-top: auto;
+        border-top: 2px solid black;
+        padding: 8px 4px 4px 4px;
+      }
+
+      .channel-copy div {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.6;
+        white-space: nowrap;
+      }
+
+      .fast-facts {
+        border: 2px solid black;
+        margin-top: 10px;
+        padding: 6px 8px;
+      }
+
+      .fast-facts-label {
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        border-bottom: 1px solid black;
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+      }
+
+      .fast-facts table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .fast-facts td {
+        padding: 1px 0;
+        line-height: 1.3;
+      }
+
+      .fast-facts td:last-child {
+        text-align: right;
+        font-weight: 900;
+        font-size: 13px;
+      }
+
+      .instructions {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 0;
+        padding: 14px 16px;
+      }
+
+      .instructions h2 {
+        margin: 0 0 14px 0;
+        font-size: 24px;
+        font-weight: 900;
+        text-transform: uppercase;
+        border-bottom: 3px solid black;
+        padding-bottom: 8px;
+      }
+
+      .instructions ol {
+        margin: 0;
+        padding-left: 2.6em;
+        font-size: 20px;
+        line-height: 1.1;
+        font-weight: 700;
+      }
+
+      .instructions li {
+        margin-bottom: 16px;
+      }
+
+      .instructions li::marker {
+        font-size: 2em;
+        font-weight: 900;
+      }
+
+      .instruction-texture {
+        margin-top: 8px;
+        border-top: 3px solid black;
+        padding-top: 10px;
+        min-height: 72px;
+        background:
+          repeating-linear-gradient(45deg, transparent 0, transparent 10px, black 10px, black 11px),
+          repeating-linear-gradient(135deg, transparent 0, transparent 10px, black 10px, black 11px);
+        background-clip: content-box;
+      }
+
+      .instruction-texture-inner {
+        background: white;
+        padding: 4px 8px 0 0;
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+
+      .qr-wrap {
+        padding: 10px;
+        background: radial-gradient(circle, black 1px, transparent 1.5px) 0 0/18px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .qr-inner {
+        border: 4px solid black;
+        background: white;
+        padding: 0 0 5px 0;
+        text-align: center;
+      }
+
+      .qr-inner img {
+        width: 2.1in;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .qr-caption {
+        font-size: 16px;
+        font-weight: 900;
+        margin-top: 3px;
+      }
+
+      .privacy {
+        border-top: 14px solid black;
+        background: repeating-linear-gradient(
+          to right,
+          transparent 0,
+          transparent 14px,
+          black 14px,
+          black 15px
+        );
+        background-clip: content-box;
+        padding-top: 8px;
+      }
+
+      .privacy-inner {
+        background: white;
+        padding-top: 6px;
+      }
+
+      .privacy .big {
+        font-size: 26px;
+        font-weight: 900;
+        text-transform: uppercase;
+        line-height: 1.02;
+      }
+
+      .privacy .small {
+        font-size: 16px;
+        margin-top: 6px;
+        font-weight: 700;
+      }
+
+      .footer {
+        border: 3px solid black;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        height: 62px;
+      }
+
+      .footer > div {
+        border-right: 3px solid black;
+        padding: 8px 10px;
+        overflow: hidden;
+      }
+
+      .footer > div:last-child {
+        border-right: none;
+      }
+
+      .footer .left {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+
+      .footer .left strong {
+        display: block;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+
+      .footer .ticker {
+        position: relative;
+        overflow: hidden;
+        padding: 3px;
+      }
+
+      .ticker-inner {
+        position: absolute;
+        inset: -80px;
+        font-size: 6.5px;
+        font-weight: 900;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        line-height: 2.2;
+      }
+
+      .ticker-inner div {
+        white-space: nowrap;
+        margin: 0;
+      }
+
+      .ticker.center .ticker-inner,
+      .ticker.right .ticker-inner {
+        transform: rotate(-13deg);
+        transform-origin: center;
+      }
+
+      .tape {
+        height: 22px;
+        background: repeating-linear-gradient(
+          to right,
+          black 0,
+          black 14px,
+          white 14px,
+          white 28px
+        );
+        border-top: 3px solid black;
+        border-bottom: 3px solid black;
+        margin-left: -0.13in;
+        margin-right: -0.13in;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="sheet">
+      <div class="page">
+        <div class="top">
+          <div>Photo Signal</div>
+          <div>Bathroom Listening Room</div>
+          <div>Still Broadcasting</div>
+        </div>
+
+        <div class="row">
+          <div class="box hero">
+            <div class="hero-inner">
+              <h1>
+                THE PHOTOS<br />
+                STILL KNOW<br />
+                THE SONGS
+              </h1>
+              <div class="intro">
+                Shot at SXSW, all by Miles Camp
+                <div class="intro-sub">
+                  On the wall, they stay quiet<br />
+                  Through your phone, they talk back
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="box channel-box">
+            <div class="label">Channel / Access Code</div>
+            <div class="code-box">
+              <div class="code">0328</div>
+            </div>
+            <div class="fast-facts">
+              <div class="fast-facts-label">Gallery Data</div>
+              <table>
+                <tr>
+                  <td>Photographs</td>
+                  <td>91</td>
+                </tr>
+                <tr>
+                  <td>Artists</td>
+                  <td>80</td>
+                </tr>
+                <tr>
+                  <td>Songs</td>
+                  <td>151</td>
+                </tr>
+                <tr>
+                  <td>Venues</td>
+                  <td>34</td>
+                </tr>
+                <tr>
+                  <td>Years of SXSW</td>
+                  <td>4</td>
+                </tr>
+              </table>
+            </div>
+            <div class="channel-copy">
+              <div>Turn volume up</div>
+              <div>Catch the tune</div>
+              <div>All songs intentionally picked</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="box instructions">
+            <h2>How to Tune In</h2>
+            <ol>
+              <li>Open whoisduck2.com</li>
+              <li>Enter 0328</li>
+              <li>Allow camera access</li>
+              <li>Center the photo</li>
+              <li>Hold Steady. It real fast.</li>
+            </ol>
+            <div class="instruction-texture">
+              <div class="instruction-texture-inner">Frame • Match • Play</div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="box qr-wrap">
+              <div class="qr-inner">
+                <img
+                  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVwAAAFcAQMAAAC+2JRvAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAE5SURBVGiB7dlRjsMgDIRhbsD9b8kN2E1tBkO10va181tVFPCXPI0ISdv8oBoYDAYHbqr+mnod53iGZwvsh/sKSn9MDgLXFtgSR1SyO1a6+tECm+OUJT9g8J2i9tYCW2LFZmp52UYtsB9WrWfQ/pUW2BDXarHOjHs+mmA3nBHagXnONT/3KgT2wz1fbzNCo114ebAdvjerJVH15RfsiYPFSSt7koxRPo/AdjjnR3n6jHKToRbYDk99HBtHfiJUuwv2w7GqXBGqw7wK7Ien/oMrJkCdBxtiTdbkZH7KmgM2xLWadinnXmUvMmAnrMBoSdFR6QKb4r5SVFabvPA9SGAzrG7TFqWXBxAY3POdV7nSDjYmwM74ytJ5BDtiJScuzGHcQV9IwIZYdWYp6lF/73LB343/XWAwGPxbP7E2ZR7W5xP7AAAAAElFTkSuQmCC"
+                  alt="QR code for whoisduck2.com"
+                />
+                <div class="qr-caption">whoisduck2.com</div>
+              </div>
+            </div>
+
+            <div class="box privacy">
+              <div class="privacy-inner">
+                <div class="big">No data leaves your phone</div>
+                <div class="small">No uploads. No tracking.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="left">
+            <strong>Curious how it works?</strong>
+            github.com/macamp0328/photo-signal
+          </div>
+          <div class="ticker center">
+            <div class="ticker-inner">
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+              </div>
+              <div>
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO
+                TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+              </div>
+              <div>
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO
+                TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+              </div>
+              <div>
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO
+                TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+              </div>
+              <div>
+                FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶
+                ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO
+                TO A LIVE SHOW ✶ FUCK ICE ✶ LISTEN TO MUSIC ✶ ALWAYS GO TO A LIVE SHOW ✶ FUCK ICE ✶
+              </div>
+            </div>
+          </div>
+          <div class="ticker right">
+            <div class="ticker-inner">
+              <div>
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+              </div>
+              <div>
+                FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A
+                LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC
+                ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+              </div>
+              <div>
+                FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A
+                LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC
+                ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+              </div>
+              <div>
+                FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A
+                LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC
+                ✶
+              </div>
+              <div>
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+              </div>
+              <div>
+                ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶
+                LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶
+              </div>
+              <div>
+                FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A
+                LIVE SHOW ✶ LISTEN TO MUSIC ✶ FUCK ICE ✶ ALWAYS GO TO A LIVE SHOW ✶ LISTEN TO MUSIC
+                ✶
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tape"></div>
+      </div>
+    </div>
+  </body>
+</html>

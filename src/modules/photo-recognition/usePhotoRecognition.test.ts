@@ -64,6 +64,52 @@ vi.mock('./useRecognitionWorker', () => ({
 }));
 
 describe('usePhotoRecognition', () => {
+  it('early returns and increments blur counter when pre-hash blur gate triggers', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+    const createElementSpy = vi
+      .spyOn(document, 'createElement')
+      .mockImplementation((tagName, options) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          return video;
+        }
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => mockContext),
+            configurable: true,
+          });
+          return canvas;
+        }
+        return originalCreateElement(tagName, options);
+      });
+    // Set Laplacian variance to a low value to trigger the blur gate
+    const laplacianSpy = vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(1);
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, { enabled: true, checkInterval: 50 })
+      );
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+      // The pre-hash blur gate should have triggered: no match, not recognizing
+      expect(result.current.recognizedConcert).toBeNull();
+      expect(result.current.isRecognizing).toBe(false);
+    } finally {
+      laplacianSpy.mockRestore();
+      createElementSpy.mockRestore();
+    }
+  });
   const mockConcerts: Concert[] = [
     {
       id: 1,

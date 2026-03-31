@@ -117,6 +117,7 @@ vi.mock('../../modules/photo-recognition', async (importOriginal) => {
       setMockRecognizedConcert = setConcert;
       return {
         recognizedConcert: concert,
+        recognizingConcert: null,
         reset: mockReset,
         resetTelemetry: vi.fn(),
         debugInfo: null,

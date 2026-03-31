@@ -193,6 +193,9 @@ export interface RecognitionDebugInfo {
 
 export interface PhotoRecognitionHook {
   recognizedConcert: Concert | null;
+  /** The candidate concert being debounced — set as soon as a frame matches, before the stability
+   *  timer confirms it. Use this to preload audio early so playback starts instantly on confirm. */
+  recognizingConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;
   resetTelemetry: () => void;

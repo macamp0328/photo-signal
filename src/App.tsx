@@ -302,6 +302,7 @@ function AppContent() {
 
   const {
     recognizedConcert,
+    recognizingConcert,
     reset: resetRecognition,
     forceMatch,
     debugInfo,
@@ -440,6 +441,16 @@ function AppContent() {
     playRef.current = play;
   }, [play]);
 
+  // Preload audio as soon as a candidate is being debounced — before full confirmation.
+  // This hides the 180 ms recognition window: by the time the match is confirmed the
+  // Howl is already loaded and play() fires with no network wait.
+  useEffect(() => {
+    if (!recognizingConcert?.audioFile) {
+      return;
+    }
+    preload(recognizingConcert.audioFile);
+  }, [preload, recognizingConcert]);
+
   // Begin streaming the recognized track immediately so playback feels instant
   useEffect(() => {
     if (!activeRecognitionConcert) {
@@ -454,6 +465,26 @@ function AppContent() {
 
     preload(selectedAudioUrl);
   }, [preload, activeRecognitionConcert]);
+
+  // Speculatively preload the next playlist track so tapping next has no network wait.
+  useEffect(() => {
+    if (!isPlaying || !activeConcert) {
+      return;
+    }
+    const playlist = playlistRef.current;
+    if (playlist.length <= 1) {
+      return;
+    }
+    const currentIdx = playlist.findIndex((c) => c.id === activeConcert.id);
+    if (currentIdx === -1) {
+      return;
+    }
+    const nextIdx = (currentIdx + 1) % playlist.length;
+    const nextUrl = playlist[nextIdx]?.audioFile;
+    if (nextUrl) {
+      preload(nextUrl);
+    }
+  }, [isPlaying, activeConcert, preload]);
 
   // Auto-play newly recognized concerts, interrupting any current playback for a new match.
   useEffect(() => {

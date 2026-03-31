@@ -41,6 +41,10 @@ assets/prod-photographs/*.jpeg
 assets/prod-photographs/*.png
 !assets/prod-photographs/prod-photographs-details.csv
 
+# Generated flyer exports (produced by npm run flyer:export)
+assets/exhibit-flyer.pdf
+assets/exhibit-flyer.png
+
 # Audio encoding work directories
 scripts/audio-workflow/encode/work/
 scripts/audio-workflow/encode/output/

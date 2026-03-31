@@ -31,6 +31,7 @@
     "test:visual:ui": "npm run build && cross-env NODE_ENV=production playwright test --ui",
     "test:visual:update": "npm run build && cross-env NODE_ENV=production playwright test --update-snapshots",
     "test:visual:report": "playwright show-report --host 0.0.0.0 --port 9323",
+    "flyer:export": "node scripts/visual/export-flyer.js",
     "demo:gif": "node scripts/visual/generate-demo-gif.js",
     "demo:gif:quick": "node scripts/visual/generate-demo-gif.js --skip-build",
     "demo:gif:test": "node scripts/visual/generate-demo-gif.js --test --skip-build",

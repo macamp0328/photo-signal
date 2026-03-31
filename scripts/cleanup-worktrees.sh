@@ -6,7 +6,7 @@
 #   ./scripts/cleanup-worktrees.sh --prune   # Remove stale worktrees (prompts for confirmation)
 #   ./scripts/cleanup-worktrees.sh --prune --yes  # Remove without confirmation
 #
-# A worktree is STALE if its branch is merged into main (safe to remove).
+# A worktree is STALE if its branch is merged into main OR if its PR is merged on GitHub.
 # A worktree is PROTECTED if it has uncommitted changes, unpushed commits, or unmerged work.
 # When run from a linked worktree it is shown as ACTIVE (current); from the main (non-linked)
 # worktree it is shown as MAIN (current).
@@ -118,6 +118,15 @@ for i in "${!WT_PATHS[@]}"; do
     fi
   fi
 
+  # ── Check if PR is merged on GitHub ──────────────────────────────────────
+
+  pr_merged=false
+  if [[ -n "$branch" ]] && ! $is_merged; then
+    if gh pr list --head "$branch" --state merged --limit 1 2>/dev/null | grep -q .; then
+      pr_merged=true
+    fi
+  fi
+
   # ── Safety check: uncommitted changes ──────────────────────────────────
 
   has_uncommitted=false
@@ -144,7 +153,12 @@ for i in "${!WT_PATHS[@]}"; do
     status="PROTECTED (unpushed commits)"
     protected_count=$((protected_count + 1))
   elif $is_merged; then
-    status="STALE (merged)"
+    status="STALE (merged locally)"
+    STALE_PATHS+=("$path")
+    STALE_BRANCHES+=("$branch")
+    stale_count=$((stale_count + 1))
+  elif $pr_merged; then
+    status="STALE (PR merged on GitHub)"
     STALE_PATHS+=("$path")
     STALE_BRANCHES+=("$branch")
     stale_count=$((stale_count + 1))

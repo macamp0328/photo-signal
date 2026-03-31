@@ -61,6 +61,8 @@ Each module has a `README.md` with its public API, responsibilities, and key fil
 
 - **assets/prod-photographs/** — Local-only source photo workflow (original images are intentionally not tracked)
 - **[assets/prod-photographs/prod-photographs-details.csv](./assets/prod-photographs/prod-photographs-details.csv)** — Canonical tracked photo-to-band metadata and EXIF details
+- **[assets/exhibit-flyer.html](./assets/exhibit-flyer.html)** — Print-ready 8.5×11 flyer for the physical gallery exhibit (open in browser → print)
+- **[assets/whoisduck2-qr.png](./assets/whoisduck2-qr.png)** — QR code for whoisduck2.com, embedded in the exhibit flyer
 - **[assets/test-videos/phone-samples/README.md](./assets/test-videos/phone-samples/README.md)** — Dev/test-only real-world phone video samples for deterministic demo GIF generation
 - **[public/assets/test-images/README.md](./public/assets/test-images/README.md)** — Git-tracked synthetic image fixtures for image-dependent tests
 

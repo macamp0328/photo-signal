@@ -2,14 +2,15 @@
  * Export the exhibit flyer as a print-ready PDF and/or high-res PNG.
  *
  * Usage:
- *   node scripts/visual/export-flyer.js           # exports both PDF and PNG
+ *   node scripts/visual/export-flyer.js           # exports both PDF and PNG at 600 DPI
  *   node scripts/visual/export-flyer.js --pdf      # PDF only
  *   node scripts/visual/export-flyer.js --png      # PNG only
+ *   node scripts/visual/export-flyer.js --dpi 300  # override DPI (default: 600)
  *   node scripts/visual/export-flyer.js --out ./my-dir  # custom output dir (default: assets/)
  *
  * Output:
  *   assets/exhibit-flyer.pdf  — Letter, print background, ready to send to a printer
- *   assets/exhibit-flyer.png  — 2550×3300 px (300 DPI on 8.5×11)
+ *   assets/exhibit-flyer.png  — 5100×6600 px at 600 DPI (or scaled to --dpi value)
  */
 
 import { chromium } from '@playwright/test';
@@ -24,6 +25,8 @@ const repoRoot = resolve(__dirname, '../../');
 const args = process.argv.slice(2);
 const outIdx = args.indexOf('--out');
 const outDir = outIdx !== -1 ? resolve(args[outIdx + 1]) : resolve(repoRoot, 'assets');
+const dpiIdx = args.indexOf('--dpi');
+const TARGET_DPI = dpiIdx !== -1 ? Number(args[dpiIdx + 1]) : 600;
 
 const doPdf =
   args.length === 0 ||
@@ -41,10 +44,10 @@ const flyerUrl = `file://${flyerPath}`;
 const CSS_W = 816; // 8.5 * 96
 const CSS_H = 1056; // 11  * 96
 
-// Output PNG: 8.5×11 at 300 DPI (CSS_W * 3.125 = 2550, CSS_H * 3.125 = 3300)
-const DPR = 3.125;
-const WIDTH_PX = Math.round(CSS_W * DPR); // 2550
-const HEIGHT_PX = Math.round(CSS_H * DPR); // 3300
+// Scale CSS pixels up to target DPI (e.g. 600 DPI → DPR = 6.25 → 5100×6600 px)
+const DPR = TARGET_DPI / 96;
+const WIDTH_PX = Math.round(CSS_W * DPR);
+const HEIGHT_PX = Math.round(CSS_H * DPR);
 
 if (!existsSync(flyerPath)) {
   console.error(`❌  Flyer not found: ${flyerPath}`);
@@ -98,7 +101,7 @@ const pngOut = resolve(outDir, 'exhibit-flyer.png');
         scale: 'device',
       });
       await ctx.close();
-      console.log(`✅  PNG  → ${pngOut}  (${WIDTH_PX}×${HEIGHT_PX} px / 300 DPI)`);
+      console.log(`✅  PNG  → ${pngOut}  (${WIDTH_PX}×${HEIGHT_PX} px / ${TARGET_DPI} DPI)`);
     }
   } finally {
     await browser.close();

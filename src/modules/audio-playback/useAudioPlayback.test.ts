@@ -48,6 +48,9 @@ vi.mock('howler', () => {
       html5?: boolean;
       volume?: number;
     };
+    // Mirrors Howler's internal _sounds pool so the crossOrigin patch in createSound
+    // can find and configure the audio element — same structure the real Howler exposes.
+    public readonly _sounds: { _node: HTMLAudioElement }[];
 
     public static instances: MockHowl[] = [];
 
@@ -74,6 +77,11 @@ vi.mock('howler', () => {
       MockHowl.instances.push(this);
       this.seekPosition = 0;
       this.durationMs = 30000;
+
+      // Populate _sounds so the crossOrigin patch in createSound exercises the live code path
+      const mockAudioNode = document.createElement('audio');
+      vi.spyOn(mockAudioNode, 'load').mockImplementation(() => {});
+      this._sounds = [{ _node: mockAudioNode }];
 
       // Initialize methods
       this.play = vi.fn(() => {
@@ -170,6 +178,7 @@ interface MockHowlInstance {
     html5?: boolean;
     volume?: number;
   };
+  _sounds: { _node: HTMLAudioElement }[];
   __triggerEnd: () => void;
   __triggerStop: () => void;
   __triggerLoadError: (error?: unknown) => void;
@@ -361,6 +370,22 @@ describe('useAudioPlayback', () => {
 
       expect(getMockedHowlClass().instances).toHaveLength(1);
       expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('sets crossOrigin="anonymous" on html5 audio elements so Web Audio AnalyserNode can read frequency data', () => {
+      // The crossOrigin patch in createSound enables useAudioReactiveGlow to call
+      // createMediaElementSource() on the cross-origin R2 audio element without a SecurityError.
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      const instance = getMockedHowlClass().instances[0];
+      const audioEl = instance._sounds[0]._node;
+
+      expect(audioEl.crossOrigin).toBe('anonymous');
+      expect(audioEl.load).toHaveBeenCalled();
     });
   });
 

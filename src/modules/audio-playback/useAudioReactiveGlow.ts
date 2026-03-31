@@ -3,7 +3,8 @@
  *
  * Taps Howler's Web Audio context to read low-frequency energy (bass, ~60–200 Hz)
  * and modulates --glow-reactive-scale on :root. This makes the phosphor text-shadow
- * glow breathe subtly with the music's bass when a photo is matched and music plays.
+ * glow brighten with the music's bass when a photo is matched and music plays.
+ * Scale is neutral at rest (1.0) and rises with bass — it never dims below baseline.
  *
  * Activates only when both isActive and isEnabled are true.
  * Deactivates cleanly (rAF cancelled, CSS vars removed, nodes disconnected).
@@ -231,10 +232,10 @@ export function useAudioReactiveGlow(isActive: boolean, isEnabled: boolean): voi
         }
 
         const avg = sum / binCount;
-        // Text glow: 0.6–1.8 (wider range for perceptible breathing on band name / meta)
-        const scale = 0.6 + (avg / 255) * 1.2;
-        // Ring glow: 0.4–2.0 (more dramatic for the phosphor signal indicator)
-        const ringScale = 0.4 + (avg / 255) * 1.6;
+        // Text glow: 1.0–1.8 (neutral at rest; brightens with bass, never dims)
+        const scale = 1.0 + (avg / 255) * 0.8;
+        // Ring glow: 0.8–1.8 (slight rest dim keeps it alive; rises more visibly on bass)
+        const ringScale = 0.8 + (avg / 255) * 1.0;
         document.documentElement.style.setProperty(GLOW_SCALE_VAR, scale.toFixed(3));
         document.documentElement.style.setProperty(GLOW_RING_SCALE_VAR, ringScale.toFixed(3));
 

@@ -37,9 +37,14 @@ const doPng =
 const flyerPath = resolve(repoRoot, 'assets/exhibit-flyer.html');
 const flyerUrl = `file://${flyerPath}`;
 
-// 8.5 × 11 inches at 300 DPI
-const WIDTH_PX = 2550;
-const HEIGHT_PX = 3300;
+// CSS viewport: 8.5×11 inches at 96 DPI (the browser's native CSS pixel density)
+const CSS_W = 816; // 8.5 * 96
+const CSS_H = 1056; // 11  * 96
+
+// Output PNG: 8.5×11 at 300 DPI (CSS_W * 3.125 = 2550, CSS_H * 3.125 = 3300)
+const DPR = 3.125;
+const WIDTH_PX = Math.round(CSS_W * DPR); // 2550
+const HEIGHT_PX = Math.round(CSS_H * DPR); // 3300
 
 if (!existsSync(flyerPath)) {
   console.error(`❌  Flyer not found: ${flyerPath}`);
@@ -77,17 +82,19 @@ const pngOut = resolve(outDir, 'exhibit-flyer.png');
     }
 
     // ── PNG ─────────────────────────────────────────────────────────────
-    // deviceScaleFactor: 3 gives 2550×3300 physical pixels from an
-    // 850×1100 CSS-pixel viewport — exactly 300 DPI on 8.5×11.
+    // Viewport is the correct CSS-pixel size of an 8.5×11 page at 96 DPI.
+    // deviceScaleFactor 3.125 scales to exactly 2550×3300 physical pixels
+    // (300 DPI). Previous code used 850×1100 viewport which added 44px of
+    // empty space at the bottom because 11in = 1056 CSS px, not 1100.
     if (doPng) {
-      const ctx = await browser.newContext({ deviceScaleFactor: 3 });
+      const ctx = await browser.newContext({ deviceScaleFactor: DPR });
       const page = await ctx.newPage();
-      await page.setViewportSize({ width: WIDTH_PX / 3, height: HEIGHT_PX / 3 });
+      await page.setViewportSize({ width: CSS_W, height: CSS_H });
       await page.goto(flyerUrl, { waitUntil: 'networkidle' });
       await page.screenshot({
         path: pngOut,
         fullPage: false,
-        clip: { x: 0, y: 0, width: WIDTH_PX / 3, height: HEIGHT_PX / 3 },
+        clip: { x: 0, y: 0, width: CSS_W, height: CSS_H },
         scale: 'device',
       });
       await ctx.close();

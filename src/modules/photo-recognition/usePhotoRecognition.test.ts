@@ -556,6 +556,7 @@ describe('usePhotoRecognition', () => {
     });
 
     expect(result.current.recognizedConcert).toBeNull();
+    expect(result.current.recognizingConcert).toBeNull();
     expect(result.current.isRecognizing).toBe(false);
   });
 
@@ -1444,7 +1445,7 @@ describe('usePhotoRecognition', () => {
       expect(result.current.recognizedConcert).toEqual(mockConcerts[0]);
     });
 
-    it('sets isRecognizing to false', async () => {
+    it('sets isRecognizing to false and clears recognizingConcert', async () => {
       const { result } = renderHook(() => usePhotoRecognition(null));
 
       await act(async () => {
@@ -1452,6 +1453,7 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(result.current.isRecognizing).toBe(false);
+      expect(result.current.recognizingConcert).toBeNull();
     });
 
     it('can be reset after force match', async () => {

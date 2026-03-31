@@ -1047,6 +1047,12 @@ function AppContent() {
           infoConcert ? (
             <div className={styles.matchedPhotoHeader}>
               <InfoDisplay concert={infoConcert} isVisible={true} />
+            </div>
+          ) : null
+        }
+        belowCameraSlot={
+          infoConcert ? (
+            <div className={styles.scanAnotherRow}>
               <button
                 ref={scanAnotherButtonRef}
                 type="button"

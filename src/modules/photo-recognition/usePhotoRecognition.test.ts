@@ -64,23 +64,23 @@ vi.mock('./useRecognitionWorker', () => ({
 }));
 
 describe('usePhotoRecognition', () => {
-    describe('DEV threshold assertion', () => {
-      it('throws in DEV if QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD', () => {
-        expect(() => assertThresholdsValid(15, 14, true)).toThrow(
-          'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
-        );
-      });
-
-      it('does not throw in DEV if QUALITY_GATING_DISTANCE_THRESHOLD <= DEFAULT_SIMILARITY_THRESHOLD', () => {
-        expect(() => assertThresholdsValid(12, 14, true)).not.toThrow();
-        expect(() => assertThresholdsValid(14, 14, true)).not.toThrow();
-      });
-
-      it('does not throw in production regardless of values', () => {
-        expect(() => assertThresholdsValid(15, 14, false)).not.toThrow();
-        expect(() => assertThresholdsValid(12, 14, false)).not.toThrow();
-      });
+  describe('DEV threshold assertion', () => {
+    it('throws in DEV if QUALITY_GATING_DISTANCE_THRESHOLD > DEFAULT_SIMILARITY_THRESHOLD', () => {
+      expect(() => assertThresholdsValid(15, 14, true)).toThrow(
+        'QUALITY_GATING_DISTANCE_THRESHOLD must be less than or equal to DEFAULT_SIMILARITY_THRESHOLD'
+      );
     });
+
+    it('does not throw in DEV if QUALITY_GATING_DISTANCE_THRESHOLD <= DEFAULT_SIMILARITY_THRESHOLD', () => {
+      expect(() => assertThresholdsValid(12, 14, true)).not.toThrow();
+      expect(() => assertThresholdsValid(14, 14, true)).not.toThrow();
+    });
+
+    it('does not throw in production regardless of values', () => {
+      expect(() => assertThresholdsValid(15, 14, false)).not.toThrow();
+      expect(() => assertThresholdsValid(12, 14, false)).not.toThrow();
+    });
+  });
 
   it('early returns and increments blur counter when pre-hash blur gate triggers', async () => {
     const originalCreateElement = document.createElement.bind(document);
@@ -224,10 +224,7 @@ describe('usePhotoRecognition', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(100);
     });
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load concert data:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
     errorSpy.mockRestore();
   });
 
@@ -244,7 +241,6 @@ describe('usePhotoRecognition', () => {
     );
     errorSpy.mockRestore();
   });
-
 
   it('starts with null recognized concert', () => {
     const { result } = renderHook(() => usePhotoRecognition(null));

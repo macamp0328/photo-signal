@@ -309,4 +309,49 @@ describe('computePHash', () => {
       expect(uniqueHashes.size).toBe(hashes.length);
     });
   });
+
+  describe('Buffer reuse safety', () => {
+    it('should produce identical output on sequential calls with different images (no state bleed from pre-allocated buffers)', () => {
+      // The module-level _lowFreq and _sortedFreq buffers are overwritten on
+      // every call. This test verifies that interleaving calls with a different
+      // image does not corrupt the result of subsequent calls with the same image.
+      //
+      // Use structured patterns (not solid colors) — pHash DCT is scale-invariant
+      // for uniform images, so solids of different brightness produce the same hash.
+      const sizeN = 32;
+
+      // Image A: left half dark, right half bright (vertical split)
+      const dataA = new ImageData(sizeN, sizeN);
+      for (let y = 0; y < sizeN; y++) {
+        for (let x = 0; x < sizeN; x++) {
+          const v = x < sizeN / 2 ? 10 : 245;
+          const idx = (y * sizeN + x) * 4;
+          dataA.data[idx] = v;
+          dataA.data[idx + 1] = v;
+          dataA.data[idx + 2] = v;
+          dataA.data[idx + 3] = 255;
+        }
+      }
+
+      // Image B: top half dark, bottom half bright (horizontal split)
+      const dataB = new ImageData(sizeN, sizeN);
+      for (let y = 0; y < sizeN; y++) {
+        for (let x = 0; x < sizeN; x++) {
+          const v = y < sizeN / 2 ? 10 : 245;
+          const idx = (y * sizeN + x) * 4;
+          dataB.data[idx] = v;
+          dataB.data[idx + 1] = v;
+          dataB.data[idx + 2] = v;
+          dataB.data[idx + 3] = 255;
+        }
+      }
+
+      const hashA1 = computePHash(dataA); // first call with A, fills buffers
+      const hashB = computePHash(dataB); // different pattern — overwrites buffers
+      const hashA2 = computePHash(dataA); // same as first call — buffers re-filled
+
+      expect(hashA1).toBe(hashA2); // no state bleed from imageB call
+      expect(hashA1).not.toBe(hashB); // structurally different images produce different hashes
+    });
+  });
 });

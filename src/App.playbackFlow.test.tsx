@@ -283,7 +283,7 @@ describe('App playback flow', () => {
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
   });
 
-  it('starts a multi-song artist on a shuffled first track', async () => {
+  it('always plays the recognized concert first regardless of shuffle order', async () => {
     randomSpy.mockReturnValue(0);
     recognitionState.recognizedConcert = concertOne;
 
@@ -296,7 +296,7 @@ describe('App playback flow', () => {
       })
     );
 
-    expect(mockPlay).toHaveBeenCalledWith('/audio/one-b.opus');
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
   });
 
   it('auto-advances songs on end and reshuffles on cycle wrap', async () => {

@@ -58,10 +58,13 @@ const pngOut = resolve(outDir, 'exhibit-flyer.png');
 
   try {
     // ── PDF ─────────────────────────────────────────────────────────────
+    // Render at 2× scale so Chromium rasterizes CSS gradient patterns
+    // (hatch lines, polka dots) at double resolution before embedding in
+    // the PDF. This significantly reduces aliasing on fine patterns.
     if (doPdf) {
-      const page = await browser.newPage();
-      // Match the @page size so Chrome doesn't add margins or rescale
-      await page.setViewportSize({ width: 816, height: 1056 }); // 96 dpi equivalent of 8.5×11
+      const ctx = await browser.newContext({ deviceScaleFactor: 2 });
+      const page = await ctx.newPage();
+      await page.setViewportSize({ width: 816, height: 1056 }); // 8.5×11 at 96 DPI in CSS px
       await page.goto(flyerUrl, { waitUntil: 'networkidle' });
       await page.pdf({
         path: pdfOut,
@@ -69,14 +72,16 @@ const pngOut = resolve(outDir, 'exhibit-flyer.png');
         printBackground: true,
         margin: { top: 0, bottom: 0, left: 0, right: 0 },
       });
-      await page.close();
+      await ctx.close();
       console.log(`✅  PDF  → ${pdfOut}`);
     }
 
     // ── PNG ─────────────────────────────────────────────────────────────
+    // deviceScaleFactor: 3 gives 2550×3300 physical pixels from an
+    // 850×1100 CSS-pixel viewport — exactly 300 DPI on 8.5×11.
     if (doPng) {
-      const page = await browser.newPage();
-      // Render at 3× device pixel ratio so CSS pixels match 300 DPI output
+      const ctx = await browser.newContext({ deviceScaleFactor: 3 });
+      const page = await ctx.newPage();
       await page.setViewportSize({ width: WIDTH_PX / 3, height: HEIGHT_PX / 3 });
       await page.goto(flyerUrl, { waitUntil: 'networkidle' });
       await page.screenshot({
@@ -85,10 +90,8 @@ const pngOut = resolve(outDir, 'exhibit-flyer.png');
         clip: { x: 0, y: 0, width: WIDTH_PX / 3, height: HEIGHT_PX / 3 },
         scale: 'device',
       });
-      await page.close();
-      console.log(
-        `✅  PNG  → ${pngOut}  (${WIDTH_PX / 3}×${HEIGHT_PX / 3} CSS px @ 3× = ${WIDTH_PX}×${HEIGHT_PX} px)`
-      );
+      await ctx.close();
+      console.log(`✅  PNG  → ${pngOut}  (${WIDTH_PX}×${HEIGHT_PX} px / 300 DPI)`);
     }
   } finally {
     await browser.close();

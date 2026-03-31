@@ -4,7 +4,11 @@ import { dataService } from '../../services/data-service';
 import type { Concert } from '../../types';
 import { RectangleDetectionService } from '../photo-rectangle-detection';
 import * as qualityUtils from './algorithms/utils';
-import { assertThresholdsValid, usePhotoRecognition } from './usePhotoRecognition';
+import {
+  assertThresholdsValid,
+  getAdaptiveRecognitionDelay,
+  usePhotoRecognition,
+} from './usePhotoRecognition';
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
@@ -158,6 +162,9 @@ describe('usePhotoRecognition', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockIsEnabled.mockReturnValue(false);
+    // Default: 64×64 images appear sharp so the pre-hash blur gate does not fire.
+    // Tests that want to exercise the gate override this spy locally.
+    vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(200);
     activeFrameHash = 'a5b3c7d9e1f20486';
     workerHookState.isReady = false;
     workerHookState.isSupported = false;
@@ -215,6 +222,134 @@ describe('usePhotoRecognition', () => {
   afterEach(() => {
     global.fetch = originalFetch;
     vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('handles error when loading concerts fails', async () => {
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading recognition index fails', async () => {
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    expect(result.current.indexLoadFailed).toBe(true);
+    errorSpy.mockRestore();
+  });
+
+  it('ignores recognition index failures after unmount', async () => {
+    let rejectIndexLoad: ((reason?: unknown) => void) | null = null;
+    global.fetch = vi.fn(
+      () =>
+        new Promise((_, reject) => {
+          rejectIndexLoad = reject;
+        })
+    ) as typeof fetch;
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { unmount } = renderHook(() => usePhotoRecognition(null, { enabled: true }));
+
+    unmount();
+
+    await act(async () => {
+      rejectIndexLoad?.(new Error('late index fail'));
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading concerts fails', async () => {
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading recognition index fails', async () => {
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading concerts fails', async () => {
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading recognition index fails', async () => {
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading concerts fails', async () => {
+    vi.mocked(dataService.getConcerts).mockRejectedValueOnce(new Error('fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load concert data:', expect.any(Error));
+    errorSpy.mockRestore();
+  });
+
+  it('handles error when loading recognition index fails', async () => {
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('index fail'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderHook(() => usePhotoRecognition(null, { enabled: true }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[photo-recognition] Recognition index load failed:',
+      expect.any(Error)
+    );
+    errorSpy.mockRestore();
   });
 
   it('handles error when loading concerts fails', async () => {
@@ -1520,5 +1655,355 @@ describe('usePhotoRecognition', () => {
         }
       }
     });
+
+    it('resets blur counter when distance improves significantly in worker path', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const requestFrameCallbacks: Array<VideoFrameRequestCallback> = [];
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          Object.defineProperty(video, 'requestVideoFrame', {
+            value: vi.fn((cb: VideoFrameRequestCallback) => {
+              requestFrameCallbacks.push(cb);
+              return requestFrameCallbacks.length;
+            }),
+            configurable: true,
+          });
+          return video;
+        }
+
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => ({
+              drawImage: vi.fn(),
+              getImageData: vi.fn(() => new ImageData(64, 64)),
+            })),
+            configurable: true,
+          });
+          return canvas;
+        }
+
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      const createImageBitmapMock = vi
+        .fn()
+        .mockResolvedValue({ close: vi.fn() } as unknown as ImageBitmap);
+      const originalCreateImageBitmap = globalThis.createImageBitmap;
+      vi.stubGlobal('createImageBitmap', createImageBitmapMock);
+
+      workerHookState.isReady = true;
+      workerHookState.isSupported = true;
+
+      // Frame 1: blurry at distance 21 → counter becomes 1
+      // Frame 2: blurry at distance 15 (improvement 6 ≥ threshold 4) → counter resets to 0
+      // Frame 3: distance 8 (≤ INSTANT_DISTANCE_THRESHOLD, quality bypass) → instant recognition
+      let frameCount = 0;
+      mockWorkerProcessFrame.mockImplementation((_: ImageBitmap, frameId: number) => {
+        frameCount += 1;
+        const distance = frameCount === 1 ? 21 : frameCount === 2 ? 15 : 8;
+        const isBlurry = frameCount <= 2;
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId,
+          hash: 'aaaaaaaaaaaaaaaa',
+          bestMatch: { concertId: 1, distance },
+          secondBestMatch: null,
+          quality: isBlurry
+            ? {
+                sharpness: 40,
+                isSharp: false,
+                glarePercentage: 0,
+                hasGlare: false,
+                averageBrightness: 120,
+                hasPoorLighting: false,
+                lightingType: 'ok' as const,
+              }
+            : null,
+          processingMs: 0.6,
+        });
+        return true;
+      });
+
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            similarityThreshold: 21,
+            recognitionDelay: 120,
+            enableDebugInfo: true,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(120);
+        });
+
+        // Idle throttle skips every other frame. 6 callbacks = 3 processed frames.
+        for (let i = 0; i < 6; i++) {
+          await act(async () => {
+            requestFrameCallbacks[i]?.(i * 16, {} as VideoFrameCallbackMetadata);
+            await Promise.resolve();
+          });
+        }
+
+        expect(result.current.debugInfo?.telemetry.blurRejections ?? 0).toBe(0);
+        expect(result.current.recognizedConcert?.id).toBe(1);
+      } finally {
+        createElementSpy.mockRestore();
+        if (originalCreateImageBitmap) {
+          vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);
+        } else {
+          vi.unstubAllGlobals();
+        }
+      }
+    });
+
+    it('still rejects after consecutive blurry frames with no significant improvement in worker path', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+      const requestFrameCallbacks: Array<VideoFrameRequestCallback> = [];
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          Object.defineProperty(video, 'requestVideoFrame', {
+            value: vi.fn((cb: VideoFrameRequestCallback) => {
+              requestFrameCallbacks.push(cb);
+              return requestFrameCallbacks.length;
+            }),
+            configurable: true,
+          });
+          return video;
+        }
+
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => ({
+              drawImage: vi.fn(),
+              getImageData: vi.fn(() => new ImageData(64, 64)),
+            })),
+            configurable: true,
+          });
+          return canvas;
+        }
+
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      const createImageBitmapMock = vi
+        .fn()
+        .mockResolvedValue({ close: vi.fn() } as unknown as ImageBitmap);
+      const originalCreateImageBitmap = globalThis.createImageBitmap;
+      vi.stubGlobal('createImageBitmap', createImageBitmapMock);
+
+      workerHookState.isReady = true;
+      workerHookState.isSupported = true;
+
+      // Frame 1: blurry at distance 21 → counter becomes 1
+      // Frame 2: blurry at distance 20 (improvement 1 < threshold 4) → counter becomes 2 → rejection
+      // Frame 3: no match (null quality) → quality-null fallthrough → debug info populated
+      let frameCount = 0;
+      mockWorkerProcessFrame.mockImplementation((_: ImageBitmap, frameId: number) => {
+        frameCount += 1;
+        if (frameCount <= 2) {
+          const distance = frameCount === 1 ? 21 : 20;
+          workerHookState.onResult?.({
+            type: 'result',
+            frameId,
+            hash: 'aaaaaaaaaaaaaaaa',
+            bestMatch: { concertId: 1, distance },
+            secondBestMatch: null,
+            quality: {
+              sharpness: 40,
+              isSharp: false,
+              glarePercentage: 0,
+              hasGlare: false,
+              averageBrightness: 120,
+              hasPoorLighting: false,
+              lightingType: 'ok' as const,
+            },
+            processingMs: 0.6,
+          });
+        } else {
+          // No match frame: triggers the quality-null fallthrough which calls setDebugInfo
+          workerHookState.onResult?.({
+            type: 'result',
+            frameId,
+            hash: 'aaaaaaaaaaaaaaaa',
+            bestMatch: null,
+            secondBestMatch: null,
+            quality: null,
+            processingMs: 0.6,
+          });
+        }
+        return true;
+      });
+
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            similarityThreshold: 21,
+            recognitionDelay: 120,
+            enableDebugInfo: true,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(120);
+        });
+
+        // Idle throttle skips every other frame. 6 callbacks = 3 processed frames.
+        // Frame 3 is a no-match that triggers setDebugInfo so telemetry is readable.
+        for (let i = 0; i < 6; i++) {
+          await act(async () => {
+            requestFrameCallbacks[i]?.(i * 16, {} as VideoFrameCallbackMetadata);
+            await Promise.resolve();
+          });
+        }
+
+        expect(result.current.debugInfo?.telemetry.blurRejections).toBe(1);
+        expect(result.current.recognizedConcert).toBeNull();
+      } finally {
+        createElementSpy.mockRestore();
+        if (originalCreateImageBitmap) {
+          vi.stubGlobal('createImageBitmap', originalCreateImageBitmap);
+        } else {
+          vi.unstubAllGlobals();
+        }
+      }
+    });
+  });
+
+  describe('pre-hash blur gate', () => {
+    it('skips computePHash and recordsblur telemetry when 64×64 variance is below 50% of sharpnessThreshold', async () => {
+      const originalCreateElement = document.createElement.bind(document);
+
+      const mockContext = {
+        drawImage: vi.fn(),
+        getImageData: vi.fn(() => new ImageData(64, 64)),
+      } as unknown as CanvasRenderingContext2D;
+
+      const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+        tagName: string,
+        options?: ElementCreationOptions
+      ) => {
+        if (tagName === 'video') {
+          const video = originalCreateElement('video', options) as HTMLVideoElement;
+          Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+          Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+          Object.defineProperty(video, 'readyState', {
+            value: HTMLMediaElement.HAVE_CURRENT_DATA,
+            configurable: true,
+          });
+          return video;
+        }
+        if (tagName === 'canvas') {
+          const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+          Object.defineProperty(canvas, 'getContext', {
+            value: vi.fn(() => mockContext),
+            configurable: true,
+          });
+          return canvas;
+        }
+        return originalCreateElement(tagName, options);
+      }) as typeof document.createElement);
+
+      // Return variance well below 50% of default sharpnessThreshold (100) → gate fires
+      const laplacianSpy = vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(5);
+      // computeAllQualityMetrics runs inside processQualityFilters, which is only
+      // reached after computePHash. If the gate fires, this spy should never be called.
+      const qualitySpy = vi.spyOn(qualityUtils, 'computeAllQualityMetrics');
+
+      try {
+        const { result } = renderHook(() =>
+          usePhotoRecognition(mockStream, {
+            enabled: true,
+            sharpnessThreshold: 100,
+            checkInterval: 50,
+            enableDebugInfo: true,
+          })
+        );
+
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(400);
+        });
+
+        // processQualityFilters (and computeAllQualityMetrics) must never fire —
+        // the pre-hash gate should have returned early every frame, meaning
+        // computePHash was also never reached (runs between the gate and quality checks).
+        expect(qualitySpy).not.toHaveBeenCalled();
+        // No match should be confirmed since every frame was rejected before hashing.
+        expect(result.current.recognizedConcert).toBeNull();
+      } finally {
+        laplacianSpy.mockRestore();
+        qualitySpy.mockRestore();
+        createElementSpy.mockRestore();
+      }
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pure helper tests — no hook rendering required
+// ---------------------------------------------------------------------------
+
+describe('getAdaptiveRecognitionDelay', () => {
+  const BASE = 150; // mirrors DEFAULT_RECOGNITION_DELAY
+
+  it('returns 50% of base delay for distance 11 (high confidence zone)', () => {
+    expect(getAdaptiveRecognitionDelay(11, BASE)).toBe(75);
+  });
+
+  it('returns 50% of base delay for distance 13 (upper boundary of high confidence zone)', () => {
+    expect(getAdaptiveRecognitionDelay(13, BASE)).toBe(75);
+  });
+
+  it('returns 100% of base delay for distance 14 (lower boundary of normal zone)', () => {
+    expect(getAdaptiveRecognitionDelay(14, BASE)).toBe(150);
+  });
+
+  it('returns 100% of base delay for distance 16 (upper boundary of normal zone)', () => {
+    expect(getAdaptiveRecognitionDelay(16, BASE)).toBe(150);
+  });
+
+  it('returns 130% of base delay for distance 17 (lower boundary of caution zone)', () => {
+    expect(getAdaptiveRecognitionDelay(17, BASE)).toBe(195);
+  });
+
+  it('returns 130% of base delay for distance 18 (at threshold)', () => {
+    expect(getAdaptiveRecognitionDelay(18, BASE)).toBe(195);
+  });
+
+  it('clamps to minimum 1ms even for an extremely small base delay', () => {
+    // Math.max(1, Math.round(1 * 0.5)) = Math.max(1, 1) = 1
+    expect(getAdaptiveRecognitionDelay(11, 1)).toBe(1);
+  });
+
+  it('scales correctly for a non-default base delay of 200ms', () => {
+    expect(getAdaptiveRecognitionDelay(12, 200)).toBe(100); // 50%
+    expect(getAdaptiveRecognitionDelay(15, 200)).toBe(200); // 100%
+    expect(getAdaptiveRecognitionDelay(17, 200)).toBe(260); // 130%
   });
 });

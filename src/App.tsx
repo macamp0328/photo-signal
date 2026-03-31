@@ -424,7 +424,12 @@ function AppContent() {
       document.documentElement.style.removeProperty('--crt-opacity');
       return;
     }
-    document.documentElement.style.setProperty('--crt-opacity', (progress * 0.45).toFixed(3));
+    // Exponential curve: near-invisible for first ~60%, rises steeply in final ~40%.
+    // At 75% → 0.32, 90% → 0.55, 100% → 0.75 — clearly visible as the song closes.
+    document.documentElement.style.setProperty(
+      '--crt-opacity',
+      (Math.pow(progress, 2.5) * 0.75).toFixed(3)
+    );
     return () => {
       document.documentElement.style.removeProperty('--crt-opacity');
     };
@@ -942,11 +947,29 @@ function AppContent() {
             isPlaying ? `Pause ${stripConcert?.band ?? ''}` : `Play ${stripConcert?.band ?? ''}`
           }
         >
-          <span
-            className={styles.signalPlayBtnIcon}
-            style={isPlaying ? undefined : { transform: 'translateX(1px)' }}
-          >
-            {isPlaying ? '⏸\uFE0E' : '▶'}
+          <span className={styles.signalPlayBtnIcon}>
+            {isPlaying ? (
+              <svg
+                width="1em"
+                height="1em"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <rect x="5" y="3" width="4" height="18" rx="1" />
+                <rect x="15" y="3" width="4" height="18" rx="1" />
+              </svg>
+            ) : (
+              <svg
+                width="1em"
+                height="1em"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <polygon points="5,3 21,12 5,21" />
+              </svg>
+            )}
           </span>
         </button>
         {canNavigatePlaylist ? (
@@ -956,7 +979,16 @@ function AppContent() {
             onClick={handleNextTrack}
             aria-label="Next track"
           >
-            {'⏭\uFE0E'}
+            <svg
+              width="1em"
+              height="1em"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <polygon points="5,4 17,12 5,20" />
+              <rect x="19" y="4" width="2" height="16" rx="1" />
+            </svg>
           </button>
         ) : null}
       </div>
@@ -1047,6 +1079,12 @@ function AppContent() {
           infoConcert ? (
             <div className={styles.matchedPhotoHeader}>
               <InfoDisplay concert={infoConcert} isVisible={true} />
+            </div>
+          ) : null
+        }
+        belowCameraSlot={
+          infoConcert ? (
+            <div className={styles.scanAnotherRow}>
               <button
                 ref={scanAnotherButtonRef}
                 type="button"

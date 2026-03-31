@@ -15,6 +15,22 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+// ---------------------------------------------------------------------------
+// Worker restart policy
+// ---------------------------------------------------------------------------
+
+/**
+ * Maximum number of automatic restart attempts after a worker crash.
+ * Each attempt uses the corresponding delay from WORKER_RESTART_DELAYS_MS.
+ */
+const MAX_WORKER_RESTARTS = 3;
+
+/**
+ * Exponential-backoff delays (ms) before each restart attempt.
+ * Index 0 → first restart, index 1 → second, index 2 → third.
+ */
+const WORKER_RESTART_DELAYS_MS: readonly number[] = [50, 150, 300];
 import type {
   WorkerPerspectiveFrameData,
   WorkerFrameResult,
@@ -78,6 +94,12 @@ export interface UseRecognitionWorkerReturn {
   isReady: boolean;
   /** True when the browser supports the worker pipeline. */
   isSupported: boolean;
+  /**
+   * True when the worker has crashed and all restart attempts (MAX_WORKER_RESTARTS)
+   * have been exhausted. The caller should fall back to the inline path permanently
+   * for the remainder of the session.
+   */
+  isFailed: boolean;
 }
 
 export function useRecognitionWorker({
@@ -93,6 +115,13 @@ export function useRecognitionWorker({
   const busyRef = useRef(false);
   const [isBusy, setIsBusy] = useState(false);
 
+  // Restart state: a monotonically-increasing key that triggers the creation
+  // effect to re-run (spawning a new worker), and a ref that tracks how many
+  // restarts have already been attempted (for backoff / failure threshold).
+  const [restartKey, setRestartKey] = useState(0);
+  const restartAttemptRef = useRef(0);
+  const [isFailed, setIsFailed] = useState(false);
+
   // Keep a stable ref to onResult so the message handler never goes stale.
   const onResultRef = useRef(onResult);
   onResultRef.current = onResult;
@@ -102,6 +131,11 @@ export function useRecognitionWorker({
   const latestConfigRef = useRef(config);
   latestConfigRef.current = config;
 
+  // Always-current ref so the creation effect can send init on restart even
+  // when hashEntries has not changed (the init effect wouldn't re-fire then).
+  const hashEntriesRef = useRef(hashEntries);
+  hashEntriesRef.current = hashEntries;
+
   // Keep a stable ref to the last-sent config for dedup in the config-update effect.
   const prevConfigRef = useRef<WorkerRecognitionConfig | null>(null);
 
@@ -109,6 +143,8 @@ export function useRecognitionWorker({
   // Worker creation / teardown
   // -----------------------------------------------------------------------
 
+  // restartKey is included so that incrementing it re-runs this effect,
+  // terminating the crashed worker and spawning a fresh replacement.
   useEffect(() => {
     if (!enabled || !supported) {
       return;
@@ -148,12 +184,41 @@ export function useRecognitionWorker({
       console.error('[recognition-worker] Unhandled error:', err);
       busyRef.current = false;
       setIsBusy(false);
-      // A crash leaves the worker in an undefined state — mark it not-ready so
-      // processFrame won't attempt to send further frames to a broken worker.
+      // Mark not-ready so processFrame won't send frames to the crashed worker.
       setIsReady(false);
+
+      // Attempt automatic restart with exponential backoff, up to MAX_WORKER_RESTARTS.
+      // Each restart increments restartKey, causing this effect to re-run and
+      // spawn a fresh worker. After the limit is exhausted, set isFailed so the
+      // caller can fall back to the inline path permanently.
+      const attempt = restartAttemptRef.current;
+      if (attempt < MAX_WORKER_RESTARTS) {
+        const delayMs = WORKER_RESTART_DELAYS_MS[attempt] ?? 300;
+        restartAttemptRef.current = attempt + 1;
+        console.warn(
+          `[recognition-worker] Scheduling restart attempt ${attempt + 1}/${MAX_WORKER_RESTARTS} in ${delayMs}ms`
+        );
+        setTimeout(() => {
+          setRestartKey((k) => k + 1);
+        }, delayMs);
+      } else {
+        console.error(
+          '[recognition-worker] All restart attempts exhausted — falling back to inline path'
+        );
+        setIsFailed(true);
+      }
     };
 
     workerRef.current = worker;
+
+    // On restart, hash entries are already available — resend init immediately
+    // so the new worker is ready without waiting for the hashEntries effect to
+    // re-fire (which only happens when hashEntries changes, not on restartKey).
+    if (restartKey > 0 && hashEntriesRef.current.length > 0) {
+      const cfg = latestConfigRef.current;
+      prevConfigRef.current = cfg;
+      worker.postMessage({ type: 'init', hashEntries: hashEntriesRef.current, config: cfg });
+    }
 
     return () => {
       worker.terminate();
@@ -162,7 +227,8 @@ export function useRecognitionWorker({
       busyRef.current = false;
       setIsBusy(false);
     };
-  }, [enabled, supported]);
+    // restartKey intentionally included to trigger re-run on worker restart.
+  }, [enabled, supported, restartKey]);
 
   // -----------------------------------------------------------------------
   // Send init when hash entries change (or on first mount)
@@ -238,5 +304,6 @@ export function useRecognitionWorker({
     isBusy,
     isReady,
     isSupported: supported,
+    isFailed,
   };
 }

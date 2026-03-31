@@ -83,16 +83,24 @@ describe('App playback helpers', () => {
     );
   });
 
-  it('returns no playable start when the playlist resolves to a track without audio', () => {
-    const noAudioTrack: Concert = {
+  it('returns no playable start when the recognized concert has no audio', () => {
+    const noAudioConcert: Concert = {
       ...concertTwo,
       audioFile: '',
     };
 
-    const result = getPlaylistStartForConcert(concertTwo, [noAudioTrack]);
+    const result = getPlaylistStartForConcert(noAudioConcert, [noAudioConcert]);
 
     expect(result.firstSong).toBeNull();
-    expect(result.playlist).toEqual([noAudioTrack]);
+    expect(result.playlist).toEqual([noAudioConcert]);
+  });
+
+  it('always plays the recognized concert first so the preloaded URL matches', () => {
+    const result = getPlaylistStartForConcert(concertOne, [concertOne, sameBandTrackTwo]);
+
+    expect(result.firstSong).toEqual(concertOne);
+    expect(result.playlist[0]).toEqual(concertOne);
+    expect(result.playlist).toHaveLength(2);
   });
 
   it('rebuilds a stale playlist and falls back to the requested concert when the rebuild omits it', () => {

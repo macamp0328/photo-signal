@@ -283,7 +283,7 @@ describe('App playback flow', () => {
     expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
   });
 
-  it('starts a multi-song artist on a shuffled first track', async () => {
+  it('always plays the recognized concert first regardless of shuffle order', async () => {
     randomSpy.mockReturnValue(0);
     recognitionState.recognizedConcert = concertOne;
 
@@ -296,7 +296,7 @@ describe('App playback flow', () => {
       })
     );
 
-    expect(mockPlay).toHaveBeenCalledWith('/audio/one-b.opus');
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
   });
 
   it('auto-advances songs on end and reshuffles on cycle wrap', async () => {
@@ -1228,8 +1228,8 @@ describe('App playback flow', () => {
 
     render(<App />);
 
-    // 0.5 * 0.45 = 0.225
-    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.225');
+    // Math.pow(0.5, 2.5) * 0.75 ≈ 0.133
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.133');
   });
 
   it('does not set --crt-opacity when song-progress-scanlines flag is disabled', () => {

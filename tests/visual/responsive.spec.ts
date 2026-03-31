@@ -32,27 +32,19 @@ test.describe('Responsive Design', () => {
     });
   });
 
-  test('@extended EXIF line is hidden at 360px and visible at 361px', async ({ page }) => {
+  test('@extended EXIF line is always visible including at 360px', async ({ page }) => {
     await bootstrapVisualState(page);
     await page.setViewportSize({ width: 360, height: 640 });
     await gotoLanding(page);
 
     // Extract the actual hashed CSS Module class name for .exif from the loaded stylesheets.
-    // The @media (max-width: 360px) rule sets display: none on it.
+    // The .exif rule should never set display: none — all text fields are always visible.
     const exifClassName = await page.evaluate((): string | null => {
       for (const sheet of Array.from(document.styleSheets)) {
         try {
           for (const rule of Array.from(sheet.cssRules)) {
-            if (rule instanceof CSSMediaRule && rule.conditionText === '(max-width: 360px)') {
-              for (const inner of Array.from(rule.cssRules)) {
-                if (
-                  inner instanceof CSSStyleRule &&
-                  inner.style.display === 'none' &&
-                  /exif/i.test(inner.selectorText)
-                ) {
-                  return inner.selectorText.replace(/^\./, '');
-                }
-              }
+            if (rule instanceof CSSStyleRule && /exif/i.test(rule.selectorText)) {
+              return rule.selectorText.replace(/^\./, '');
             }
           }
         } catch {
@@ -73,13 +65,13 @@ test.describe('Responsive Design', () => {
       document.body.appendChild(probe);
     }, exifClassName);
 
-    // At 360px the rule fires — element must be hidden.
+    // At 360px the EXIF line must be visible — it is never hidden regardless of viewport width.
     const display360 = await page
       .locator('[data-testid="exif-probe"]')
       .evaluate((el) => getComputedStyle(el).display);
-    expect(display360).toBe('none');
+    expect(display360).not.toBe('none');
 
-    // At 361px the rule no longer fires — element must be visible.
+    // At 361px it must also be visible.
     await page.setViewportSize({ width: 361, height: 640 });
     const display361 = await page
       .locator('[data-testid="exif-probe"]')

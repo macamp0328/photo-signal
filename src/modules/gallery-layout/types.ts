@@ -28,4 +28,7 @@ export interface GalleryLayoutProps {
 
   /** Optional slot rendered above the camera frame (outside the camera container) */
   aboveCameraSlot?: ReactNode;
+
+  /** Optional slot rendered below the camera frame (outside the camera container) */
+  belowCameraSlot?: ReactNode;
 }

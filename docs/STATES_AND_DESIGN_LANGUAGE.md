@@ -124,6 +124,16 @@ Named panels and their visibility conditions. Panels stack on top of the camera 
 | `DebugOverlay`            | Feature flag `show-debug-overlay` = `true` | Flag off, or `SecretSettings` open |
 | `SecretSettings`          | `OPEN_SETTINGS`                            | `CLOSE_SETTINGS`                   |
 
+### SignalStrip Layout
+
+Fixed to the bottom of the viewport. Internal order (top → bottom):
+
+1. **Progress bar** (2px, full-width) — playback position indicator; also serves as the visual
+   divider between the content area above and the controls below.
+2. **Controls row** — album art thumbnail, song title + band name, play/pause button, next-track
+   button (only when playlist has > 1 track).
+3. **Error message** (optional) — shown only on playback failure.
+
 ---
 
 ## 6. Triggers & Events

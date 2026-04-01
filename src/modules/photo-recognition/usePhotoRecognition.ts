@@ -393,6 +393,7 @@ export function usePhotoRecognition(
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
   } = options;
 
+  const [candidateConcert, setCandidateConcert] = useState<Concert | null>(null);
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -407,6 +408,7 @@ export function usePhotoRecognition(
   const [restartKey, setRestartKey] = useState(0);
 
   const telemetryRef = useRef<RecognitionTelemetry>(createEmptyTelemetry());
+  const candidateConcertRef = useRef<Concert | null>(null);
   const recognizedConcertRef = useRef<Concert | null>(null);
   const intervalRef = useRef<number | undefined>(undefined);
   const lastMatchedConcertRef = useRef<Concert | null>(null);
@@ -453,19 +455,33 @@ export function usePhotoRecognition(
     resetStartupMilestones();
   }, [resetStartupMilestones]);
 
-  const forceMatch = useCallback((concert: Concert) => {
-    // Clear in-flight tracking refs so the pipeline doesn't continue
-    // in "tracking" mode after the forced match.
-    lastMatchedConcertRef.current = null;
-    consecutiveMatchCountRef.current = 0;
-    matchStartTimeRef.current = null;
+  const updateCandidateConcert = useCallback((concert: Concert | null) => {
+    if (candidateConcertRef.current?.id === concert?.id) {
+      return;
+    }
 
-    recognizedConcertRef.current = concert;
-    setRecognizedConcert(concert);
-    setIsRecognizing(false);
+    candidateConcertRef.current = concert;
+    setCandidateConcert(concert);
   }, []);
 
+  const forceMatch = useCallback(
+    (concert: Concert) => {
+      // Clear in-flight tracking refs so the pipeline doesn't continue
+      // in "tracking" mode after the forced match.
+      lastMatchedConcertRef.current = null;
+      consecutiveMatchCountRef.current = 0;
+      matchStartTimeRef.current = null;
+      updateCandidateConcert(null);
+
+      recognizedConcertRef.current = concert;
+      setRecognizedConcert(concert);
+      setIsRecognizing(false);
+    },
+    [updateCandidateConcert]
+  );
+
   const reset = useCallback(() => {
+    candidateConcertRef.current = null;
     recognizedConcertRef.current = null;
     lastMatchedConcertRef.current = null;
     consecutiveMatchCountRef.current = 0;
@@ -480,6 +496,7 @@ export function usePhotoRecognition(
     telemetryRef.current = createEmptyTelemetry();
     resetStartupMilestones();
 
+    setCandidateConcert(null);
     setRecognizedConcert(null);
     setIsRecognizing(false);
     setDebugInfo(null);
@@ -495,8 +512,17 @@ export function usePhotoRecognition(
       return;
     }
 
+    updateCandidateConcert(null);
     resetStartupMilestones();
-  }, [enabled, markStartupMilestone, resetStartupMilestones]);
+  }, [enabled, markStartupMilestone, resetStartupMilestones, updateCandidateConcert]);
+
+  useEffect(() => {
+    if (stream) {
+      return;
+    }
+
+    updateCandidateConcert(null);
+  }, [stream, updateCandidateConcert]);
 
   useEffect(() => {
     dataService
@@ -864,6 +890,7 @@ export function usePhotoRecognition(
             lastMatchedConcertRef.current = null;
             consecutiveMatchCountRef.current = 0;
             matchStartTimeRef.current = null;
+            updateCandidateConcert(null);
           }
 
           setIsRecognizing(false);
@@ -887,6 +914,7 @@ export function usePhotoRecognition(
         lastMatchedConcertRef.current = null;
         consecutiveMatchCountRef.current = 0;
         matchStartTimeRef.current = null;
+        updateCandidateConcert(null);
         setIsRecognizing(false);
 
         return { rejected: true, quality };
@@ -1229,6 +1257,7 @@ export function usePhotoRecognition(
               lastMatchedConcertRef.current = null;
               consecutiveMatchCountRef.current = 0;
               matchStartTimeRef.current = null;
+              updateCandidateConcert(null);
             }
             setIsRecognizing(false);
           }
@@ -1409,12 +1438,15 @@ export function usePhotoRecognition(
         if (activeMatch) {
           const isAlreadyRecognizedConcert = recognizedConcertRef.current?.id === activeMatch.id;
           if (isAlreadyRecognizedConcert) {
+            updateCandidateConcert(null);
             lastMatchedConcertRef.current = null;
             consecutiveMatchCountRef.current = 0;
             matchStartTimeRef.current = null;
             setIsRecognizing(false);
             return;
           }
+
+          updateCandidateConcert(activeMatch);
 
           const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
           consecutiveMatchCountRef.current = isSameConcert
@@ -1427,6 +1459,7 @@ export function usePhotoRecognition(
 
           if (isInstantDistance || hasConsecutiveInstantConfidence) {
             markStartupMilestone('firstMatchAt');
+            updateCandidateConcert(null);
             recognizedConcertRef.current = activeMatch;
             confirmedMatch = true;
             if (isInstantDistance) {
@@ -1448,6 +1481,7 @@ export function usePhotoRecognition(
               now - matchStartTimeRef.current >= effectiveDelay
             ) {
               markStartupMilestone('firstMatchAt');
+              updateCandidateConcert(null);
               recognizedConcertRef.current = activeMatch;
               confirmedMatch = true;
               setRecognizedConcert(activeMatch);
@@ -1467,6 +1501,8 @@ export function usePhotoRecognition(
           setIsRecognizing(true);
           return;
         }
+
+        updateCandidateConcert(null);
 
         if (bestMatch) {
           const isAmbiguousCollision = isAmbiguousMatchCandidate;
@@ -1665,6 +1701,7 @@ export function usePhotoRecognition(
               lastMatchedConcertRef.current = null;
               consecutiveMatchCountRef.current = 0;
               matchStartTimeRef.current = null;
+              updateCandidateConcert(null);
             }
             setIsRecognizing(false);
             return;
@@ -1686,6 +1723,7 @@ export function usePhotoRecognition(
           lastMatchedConcertRef.current = null;
           consecutiveMatchCountRef.current = 0;
           matchStartTimeRef.current = null;
+          updateCandidateConcert(null);
           setIsRecognizing(false);
           return;
         }
@@ -1772,12 +1810,15 @@ export function usePhotoRecognition(
       if (activeMatch) {
         const isAlreadyRecognizedConcert = recognizedConcertRef.current?.id === activeMatch.id;
         if (isAlreadyRecognizedConcert) {
+          updateCandidateConcert(null);
           lastMatchedConcertRef.current = null;
           consecutiveMatchCountRef.current = 0;
           matchStartTimeRef.current = null;
           setIsRecognizing(false);
           return;
         }
+
+        updateCandidateConcert(activeMatch);
 
         const isSameConcert = lastMatchedConcertRef.current?.id === activeMatch.id;
         consecutiveMatchCountRef.current = isSameConcert ? consecutiveMatchCountRef.current + 1 : 1;
@@ -1788,6 +1829,7 @@ export function usePhotoRecognition(
 
         if (isInstantDistance || hasConsecutiveInstantConfidence) {
           markStartupMilestone('firstMatchAt');
+          updateCandidateConcert(null);
           recognizedConcertRef.current = activeMatch;
           if (isInstantDistance) {
             telemetryRef.current.instantConfirmations =
@@ -1808,6 +1850,7 @@ export function usePhotoRecognition(
             now - matchStartTimeRef.current >= effectiveDelay
           ) {
             markStartupMilestone('firstMatchAt');
+            updateCandidateConcert(null);
             recognizedConcertRef.current = activeMatch;
             setRecognizedConcert(activeMatch);
             setIsRecognizing(false);
@@ -1826,6 +1869,8 @@ export function usePhotoRecognition(
         setIsRecognizing(true);
         return;
       }
+
+      updateCandidateConcert(null);
 
       // No active match — record failure
       if (bestMatch) {
@@ -1868,6 +1913,7 @@ export function usePhotoRecognition(
       lastMatchedConcertRef.current = null;
       consecutiveMatchCountRef.current = 0;
       matchStartTimeRef.current = null;
+      updateCandidateConcert(null);
       setIsRecognizing(false);
     };
 
@@ -1956,6 +2002,7 @@ export function usePhotoRecognition(
     rectangleConfidenceThreshold,
     displayAspectRatio,
     markStartupMilestone,
+    updateCandidateConcert,
     restartKey,
     // isWorkerSupported, isWorkerReady, workerProcessFrame are intentionally
     // omitted: all three are accessed via refs (isWorkerSupportedRef,
@@ -1965,6 +2012,7 @@ export function usePhotoRecognition(
   ]);
 
   return {
+    candidateConcert,
     recognizedConcert,
     isRecognizing,
     reset,

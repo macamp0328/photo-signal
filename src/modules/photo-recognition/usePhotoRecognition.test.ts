@@ -559,6 +559,92 @@ describe('usePhotoRecognition', () => {
     expect(result.current.isRecognizing).toBe(false);
   });
 
+  it('exposes and clears a candidate concert before final confirmation', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    workerHookState.isReady = true;
+    workerHookState.isSupported = true;
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          recognitionDelay: 500,
+          checkInterval: 200,
+        })
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      act(() => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId: 1,
+          hash: 'fff3c7d9e1f20486',
+          bestMatch: { concertId: 1, distance: 12 },
+          secondBestMatch: { concertId: 2, distance: 60 },
+          quality: null,
+          processingMs: 2,
+        });
+      });
+
+      expect(result.current.candidateConcert?.id).toBe(1);
+      expect(result.current.recognizedConcert).toBeNull();
+
+      act(() => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId: 2,
+          hash: 'xxxxxxxxxxxxxxxx',
+          bestMatch: null,
+          secondBestMatch: null,
+          quality: null,
+          processingMs: 2,
+        });
+      });
+
+      expect(result.current.candidateConcert).toBeNull();
+      expect(result.current.recognizedConcert).toBeNull();
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
   it('confirms a strong match within 500ms', async () => {
     const originalCreateElement = document.createElement.bind(document);
 

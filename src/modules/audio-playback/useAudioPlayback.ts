@@ -4,6 +4,7 @@ import type { AudioPlaybackHook, AudioPlaybackOptions } from './types';
 import { diagnoseAudioUrl } from './diagnoseAudioUrl';
 
 const { Howl } = howlerModule;
+const MAX_PRELOADED_SOUNDS = 3;
 
 function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> } | undefined {
   try {
@@ -165,6 +166,27 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     preloadCacheRef.current.delete(url);
   }, []);
 
+  const stashPreloadedSound = useCallback((url: string, sound: Howl) => {
+    const cache = preloadCacheRef.current;
+
+    cache.delete(url);
+    cache.set(url, sound);
+
+    while (cache.size > MAX_PRELOADED_SOUNDS) {
+      const oldestEntry = cache.entries().next().value as [string, Howl] | undefined;
+      if (!oldestEntry) {
+        break;
+      }
+
+      const [oldestUrl, oldestSound] = oldestEntry;
+      cache.delete(oldestUrl);
+
+      if (oldestSound !== soundRef.current && oldestSound !== fadingOutSoundRef.current) {
+        oldestSound.unload();
+      }
+    }
+  }, []);
+
   const getCurrentRatio = useCallback(() => {
     const sound = soundRef.current;
     if (!sound) {
@@ -321,9 +343,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
       const sound = new Howl({
         src: [url],
-        // Use Howler's Web Audio path so a single unlocked audio context
-        // governs playback across track changes on mobile browsers.
-        html5: false,
+        // Prefer the HTMLMediaElement path so playback can begin from streamed
+        // bytes instead of waiting for a full Web Audio decode on first play.
+        html5: true,
         preload: true,
         volume: initialVolume ?? volumeRef.current,
       });
@@ -380,25 +402,17 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       }
 
       if (preloadCacheRef.current.has(url) || currentUrlRef.current === url) {
+        const cachedSound = preloadCacheRef.current.get(url);
+        if (cachedSound) {
+          stashPreloadedSound(url, cachedSound);
+        }
         return;
       }
 
-      // Clear any previous cached sounds to keep memory usage low
-      preloadCacheRef.current.forEach((cachedSound, cachedUrl) => {
-        if (
-          cachedUrl !== url &&
-          cachedSound !== soundRef.current &&
-          cachedSound !== fadingOutSoundRef.current
-        ) {
-          cachedSound.unload();
-          preloadCacheRef.current.delete(cachedUrl);
-        }
-      });
-
       const preloadedSound = createSound(url);
-      preloadCacheRef.current.set(url, preloadedSound);
+      stashPreloadedSound(url, preloadedSound);
     },
-    [createSound]
+    [createSound, stashPreloadedSound]
   );
 
   const play = useCallback(
@@ -456,15 +470,34 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const stop = useCallback(() => {
     nextPlaybackRequest();
+    if (crossfadeTimeoutRef.current) {
+      clearTimeout(crossfadeTimeoutRef.current);
+      crossfadeTimeoutRef.current = null;
+    }
+
     if (soundRef.current) {
       soundRef.current.stop();
       soundRef.current.unload();
       soundRef.current = null;
-      currentUrlRef.current = null;
-      setIsPlaying(false);
-      stopProgressLoop();
-      setProgress(0);
     }
+
+    if (fadingOutSoundRef.current) {
+      fadingOutSoundRef.current.stop();
+      fadingOutSoundRef.current.unload();
+      fadingOutSoundRef.current = null;
+    }
+
+    currentUrlRef.current = null;
+    setIsPlaying(false);
+    stopProgressLoop();
+    setProgress(0);
+
+    preloadCacheRef.current.forEach((cachedSound) => {
+      if (cachedSound !== soundRef.current && cachedSound !== fadingOutSoundRef.current) {
+        cachedSound.unload();
+      }
+    });
+    preloadCacheRef.current.clear();
   }, [nextPlaybackRequest, stopProgressLoop]);
 
   const setVolume = useCallback((newVolume: number) => {

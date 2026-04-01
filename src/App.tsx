@@ -28,6 +28,7 @@ import { preloadRecognitionIndex } from './services/recognition-index-service';
 import {
   getNextTrackAfterForwardAdvanceState,
   getPlaylistStartForConcert,
+  getUpcomingTracksForPreload,
   shufflePlaylist,
   syncPlaylistForConcert,
 } from './App.playback-helpers';
@@ -301,6 +302,7 @@ function AppContent() {
   );
 
   const {
+    candidateConcert,
     recognizedConcert,
     reset: resetRecognition,
     forceMatch,
@@ -440,20 +442,49 @@ function AppContent() {
     playRef.current = play;
   }, [play]);
 
-  // Begin streaming the recognized track immediately so playback feels instant
+  // Warm the likely matched track as soon as recognition has a stable candidate,
+  // then fall back to the confirmed match so first playback can reuse a hot sound.
   useEffect(() => {
-    if (!activeRecognitionConcert) {
+    const preloadTargetUrl = candidateConcert?.audioFile ?? activeRecognitionConcert?.audioFile;
+
+    if (!preloadTargetUrl) {
       return;
     }
 
-    const selectedAudioUrl = activeRecognitionConcert.audioFile;
+    preload(preloadTargetUrl);
+  }, [preload, candidateConcert, activeRecognitionConcert]);
 
-    if (!selectedAudioUrl) {
+  // While an artist is already playing, keep the next couple of playlist tracks warm.
+  useEffect(() => {
+    if (!isActive || !activeConcert?.audioFile) {
       return;
     }
 
-    preload(selectedAudioUrl);
-  }, [preload, activeRecognitionConcert]);
+    const upcomingTracks = getUpcomingTracksForPreload(
+      playlistRef.current,
+      playlistIndexRef.current,
+      2
+    );
+
+    if (upcomingTracks.length === 0) {
+      return;
+    }
+
+    const timeoutIds = upcomingTracks.map((track, index) =>
+      window.setTimeout(
+        () => {
+          preload(track.audioFile);
+        },
+        150 * (index + 1)
+      )
+    );
+
+    return () => {
+      timeoutIds.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+    };
+  }, [activeConcert, isActive, preload]);
 
   // Auto-play newly recognized concerts, interrupting any current playback for a new match.
   useEffect(() => {

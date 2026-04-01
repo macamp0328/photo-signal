@@ -192,6 +192,7 @@ export interface RecognitionDebugInfo {
 }
 
 export interface PhotoRecognitionHook {
+  candidateConcert: Concert | null;
   recognizedConcert: Concert | null;
   isRecognizing: boolean;
   reset: () => void;

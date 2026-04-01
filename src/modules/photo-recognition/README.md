@@ -15,8 +15,8 @@ usePhotoRecognition(
 ): PhotoRecognitionHook
 ```
 
-`PhotoRecognitionHook` members: `candidateConcert`, `recognizedConcert`, `isRecognizing`,
-`reset()`, `resetTelemetry()`, `forceMatch()`, `debugInfo`, `frameQuality`,
+`PhotoRecognitionHook` members: `candidateConcert`, `recognizedConcert`, `recognizingConcert`,
+`isRecognizing`, `reset()`, `resetTelemetry()`, `forceMatch()`, `debugInfo`, `frameQuality`,
 `detectedRectangle`, `rectangleConfidence`, `indexLoadFailed`
 
 ```ts

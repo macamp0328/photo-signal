@@ -304,6 +304,7 @@ function AppContent() {
   const {
     candidateConcert,
     recognizedConcert,
+    recognizingConcert,
     reset: resetRecognition,
     forceMatch,
     debugInfo,
@@ -442,17 +443,20 @@ function AppContent() {
     playRef.current = play;
   }, [play]);
 
-  // Warm the likely matched track as soon as recognition has a stable candidate,
-  // then fall back to the confirmed match so first playback can reuse a hot sound.
+  // Warm audio as soon as recognition identifies a likely match, then keep the
+  // confirmed match warm so first autoplay can reuse an already-loaded sound.
   useEffect(() => {
-    const preloadTargetUrl = candidateConcert?.audioFile ?? activeRecognitionConcert?.audioFile;
+    const preloadTargetUrl =
+      candidateConcert?.audioFile ??
+      recognizingConcert?.audioFile ??
+      activeRecognitionConcert?.audioFile;
 
     if (!preloadTargetUrl) {
       return;
     }
 
     preload(preloadTargetUrl);
-  }, [preload, candidateConcert, activeRecognitionConcert]);
+  }, [preload, candidateConcert, recognizingConcert, activeRecognitionConcert]);
 
   // While an artist is already playing, keep the next couple of playlist tracks warm.
   useEffect(() => {
@@ -470,13 +474,12 @@ function AppContent() {
       return;
     }
 
-    const timeoutIds = upcomingTracks.map((track, index) =>
-      window.setTimeout(
-        () => {
-          preload(track.audioFile);
-        },
-        150 * (index + 1)
-      )
+    preload(upcomingTracks[0].audioFile);
+
+    const timeoutIds = upcomingTracks.slice(1).map((track, index) =>
+      window.setTimeout(() => {
+        preload(track.audioFile);
+      }, 150 * (index + 1))
     );
 
     return () => {
@@ -955,6 +958,16 @@ function AppContent() {
   // Signal strip — two-row audio player
   const audioControls = shouldShowBottomPlayer ? (
     <section className={styles.signalStrip} aria-label="Now playing controls">
+      <div
+        className={styles.signalProgress}
+        role="progressbar"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Song progress"
+      >
+        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
+      </div>
       <div className={styles.signalStripTop}>
         {stripConcert?.albumCoverUrl ? (
           <img
@@ -1028,16 +1041,6 @@ function AppContent() {
           {playbackError}
         </p>
       )}
-      <div
-        className={styles.signalProgress}
-        role="progressbar"
-        aria-valuenow={Math.round(progress * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Song progress"
-      >
-        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
-      </div>
     </section>
   ) : null;
 

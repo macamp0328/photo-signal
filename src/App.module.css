@@ -276,9 +276,13 @@
 .scannedPhotoImage {
   width: 100%;
   height: auto;
-  /* Fallback for browsers without svh */
+  /* Fallback for browsers without svh.
+   * 18rem ~= header + signal strip/audio controls + vertical padding/margins.
+   * This keeps the photo within the visible viewport while leaving room for UI.
+   * If header/footer/control heights change (e.g. longer band names wrapping),
+   * update this value to match the new combined UI height. */
   max-height: max(60vh, calc(100vh - 18rem));
-  /* Preferred: svh excludes browser chrome */
+  /* Preferred: svh excludes browser chrome; uses the same UI offset as above. */
   max-height: max(60svh, calc(100svh - 18rem));
   object-fit: contain;
   display: block;

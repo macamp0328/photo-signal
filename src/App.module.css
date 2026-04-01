@@ -277,6 +277,11 @@
 .scannedPhotoImage {
   width: 100%;
   height: auto;
+  /* Fallback for browsers without svh */
+  max-height: max(60vh, calc(100vh - 18rem));
+  /* Preferred: svh excludes browser chrome */
+  max-height: max(60svh, calc(100svh - 18rem));
+  object-fit: contain;
   display: block;
   user-select: none;
   -webkit-user-drag: none;

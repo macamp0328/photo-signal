@@ -73,7 +73,9 @@ export function GalleryLayout({
         </svg>
       </button>
 
-      <div className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''}`}>
+      <div
+        className={`${styles.content} ${hasAudioControls ? styles.contentWithAudio : ''} ${isMatchedPhoto ? styles.contentMatchedPhoto : ''}`}
+      >
         {aboveCameraSlot}
         <div className={isMatchedPhoto ? styles.cameraWrapPhoto : styles.cameraWrap}>
           <div className={isMatchedPhoto ? styles.cameraSectionPhoto : styles.cameraSection}>

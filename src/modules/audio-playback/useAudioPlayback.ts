@@ -328,24 +328,6 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         volume: initialVolume ?? volumeRef.current,
       });
 
-      // Set crossOrigin='anonymous' on Howler's internal <audio> elements so that
-      // useAudioReactiveGlow can connect a Web Audio AnalyserNode via
-      // createMediaElementSource(). Without this attribute the call throws a
-      // SecurityError for cross-origin R2 audio. The Cloudflare Worker already sends
-      // Access-Control-Allow-Origin for all allowed origins, so this is safe.
-      // Accessing _sounds/_node uses Howler internals, but the guard makes it a no-op
-      // in tests (where Howl is mocked and _sounds is undefined).
-      const howlInternal = sound as unknown as { _sounds?: { _node?: unknown }[] };
-      if (Array.isArray(howlInternal._sounds)) {
-        howlInternal._sounds.forEach((s) => {
-          const node = s?._node;
-          if (node instanceof HTMLAudioElement && !node.crossOrigin) {
-            node.crossOrigin = 'anonymous';
-            node.load(); // restart load so Origin header is sent; CORS response unlocks createMediaElementSource
-          }
-        });
-      }
-
       attachCallbacks(sound, url);
 
       return sound;

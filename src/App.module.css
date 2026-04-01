@@ -26,10 +26,8 @@
   border-radius: 0.25rem;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 50%),
-    0 0 calc(6px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 30%),
-    0 0 calc(14px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 60%);
+    0 0 6px color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 30%),
+    0 0 14px color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 60%);
   transition: box-shadow 0.3s ease;
 }
 
@@ -51,10 +49,8 @@
   letter-spacing: 0.02em;
   line-height: 1.1;
   text-shadow:
-    0 0 calc(8px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--poster-primary, var(--color-main-text)), transparent 50%),
-    0 0 calc(20px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 78%);
+    0 0 8px color-mix(in srgb, var(--poster-primary, var(--color-main-text)), transparent 50%),
+    0 0 20px color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 78%);
   transition: color 1.2s ease;
 }
 
@@ -67,10 +63,8 @@
   white-space: nowrap;
   letter-spacing: 0.04em;
   text-shadow:
-    0 0 calc(6px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-main-text), transparent 70%),
-    0 0 calc(14px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-accent), transparent 84%);
+    0 0 6px color-mix(in srgb, var(--color-main-text), transparent 70%),
+    0 0 14px color-mix(in srgb, var(--color-accent), transparent 84%);
   transition: color 1.2s ease;
 }
 
@@ -93,14 +87,11 @@
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 0 calc(8px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 55%),
-    0 0 calc(20px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 70%);
+    0 0 8px color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 55%),
+    0 0 20px color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 70%);
   text-shadow:
-    0 0 calc(7px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow)),
-    0 0 calc(16px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 45%);
+    0 0 7px var(--poster-primary, var(--signal-glow)),
+    0 0 16px color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 45%);
   transition:
     border-color 0.3s ease,
     background-color 0.3s ease,
@@ -114,12 +105,9 @@
   background: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 60%);
   border-color: color-mix(in srgb, var(--poster-primary, var(--color-accent)), transparent 10%);
   box-shadow:
-    0 0 calc(10px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 22%),
-    0 0 calc(24px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 48%),
-    inset 0 0 calc(6px * var(--glow-reactive-scale-ring))
-      color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 60%);
+    0 0 10px color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 22%),
+    0 0 24px color-mix(in srgb, var(--poster-primary, var(--signal-glow-soft)), transparent 48%),
+    inset 0 0 6px color-mix(in srgb, var(--poster-primary, var(--signal-glow)), transparent 60%);
 }
 
 .signalPlayBtn:active {
@@ -154,15 +142,11 @@
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 0 calc(5px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-main-text), transparent 72%),
-    0 0 calc(12px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-accent), transparent 84%);
+    0 0 5px color-mix(in srgb, var(--color-main-text), transparent 72%),
+    0 0 12px color-mix(in srgb, var(--color-accent), transparent 84%);
   text-shadow:
-    0 0 calc(5px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-main-text), transparent 62%),
-    0 0 calc(12px * var(--glow-reactive-scale))
-      color-mix(in srgb, var(--color-accent), transparent 80%);
+    0 0 5px color-mix(in srgb, var(--color-main-text), transparent 62%),
+    0 0 12px color-mix(in srgb, var(--color-accent), transparent 80%);
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
@@ -197,7 +181,7 @@
     color-mix(in srgb, var(--poster-primary, var(--color-accent)), var(--color-background) 30%),
     var(--poster-primary, var(--color-accent))
   );
-  box-shadow: 2px 0 calc(8px * var(--glow-reactive-scale)) var(--poster-primary, var(--signal-glow));
+  box-shadow: 2px 0 8px var(--poster-primary, var(--signal-glow));
   transition: none;
 }
 

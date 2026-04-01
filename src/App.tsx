@@ -955,6 +955,16 @@ function AppContent() {
   // Signal strip — two-row audio player
   const audioControls = shouldShowBottomPlayer ? (
     <section className={styles.signalStrip} aria-label="Now playing controls">
+      <div
+        className={styles.signalProgress}
+        role="progressbar"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Song progress"
+      >
+        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
+      </div>
       <div className={styles.signalStripTop}>
         {stripConcert?.albumCoverUrl ? (
           <img
@@ -1028,16 +1038,6 @@ function AppContent() {
           {playbackError}
         </p>
       )}
-      <div
-        className={styles.signalProgress}
-        role="progressbar"
-        aria-valuenow={Math.round(progress * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Song progress"
-      >
-        <div className={styles.signalProgressFill} style={{ width: `${progress * 100}%` }} />
-      </div>
     </section>
   ) : null;
 

@@ -65,6 +65,7 @@ const audioState = {
 
 const recognitionState = {
   recognizedConcert: null as Concert | null,
+  recognizingConcert: null as Concert | null,
   isRecognizing: false,
   debugInfo: null as RecognitionDebugInfo | null,
   frameQuality: null,
@@ -188,6 +189,7 @@ describe('App playback flow', () => {
       resetTelemetry: vi.fn(),
     }));
     recognitionState.recognizedConcert = null;
+    recognitionState.recognizingConcert = null;
     recognitionState.isRecognizing = false;
     recognitionState.debugInfo = null;
     recognitionState.frameQuality = null;
@@ -1263,5 +1265,100 @@ describe('App playback flow', () => {
     render(<App />);
 
     expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+  });
+
+  // --- Preload regression tests (instant audio on match + next-track lookahead) ---
+
+  it('preloads audio when recognizingConcert is set (candidate debounce window)', async () => {
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    mockPreload.mockClear();
+
+    // Simulate recognizing state — candidate found but not yet confirmed
+    recognitionState.recognizingConcert = concertOne;
+    recognitionState.isRecognizing = true;
+    recognitionState.recognizedConcert = null;
+    view.rerender(<App />);
+
+    expect(mockPreload).toHaveBeenCalledWith('/audio/one.opus');
+    // play() should NOT be called yet — match is not confirmed
+    expect(mockPlay).not.toHaveBeenCalled();
+  });
+
+  it('auto-plays immediately when match is confirmed after candidate preload', async () => {
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    // Step 1: candidate detected — preload starts
+    recognitionState.recognizingConcert = concertOne;
+    recognitionState.isRecognizing = true;
+    view.rerender(<App />);
+
+    mockPreload.mockClear();
+    mockPlay.mockClear();
+
+    // Step 2: match confirmed — play fires
+    recognitionState.recognizingConcert = null;
+    recognitionState.isRecognizing = false;
+    recognitionState.recognizedConcert = concertOne;
+    view.rerender(<App />);
+
+    expect(mockPlay).toHaveBeenCalledWith('/audio/one.opus');
+  });
+
+  it('preloads next playlist track once current song starts playing', async () => {
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    mockPreload.mockClear();
+
+    // Simulate playback starting
+    audioState.isPlaying = true;
+    view.rerender(<App />);
+
+    // The next track in the playlist should be preloaded
+    expect(mockPreload).toHaveBeenCalledWith('/audio/one-b.opus');
+  });
+
+  it('does not preload when recognizingConcert has no audio file', async () => {
+    const noAudioConcert: Concert = { ...concertOne, id: 999, audioFile: '' };
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    mockPreload.mockClear();
+
+    recognitionState.recognizingConcert = noAudioConcert;
+    recognitionState.isRecognizing = true;
+    view.rerender(<App />);
+
+    // Should not preload for a concert with no audio
+    expect(mockPreload).not.toHaveBeenCalled();
   });
 });

@@ -25,17 +25,26 @@ function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> }
  * @param options - Configuration options
  * @returns Audio playback controls and state
  */
+const PREVIEW_FADE_DURATION_MS = 3000;
+
 export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlaybackHook {
-  const { volume: initialVolume = 0.8, onSongEnd } = options;
+  const { volume: initialVolume = 0.8, onSongEnd, maxDurationMs } = options;
 
   const onSongEndRef = useRef(onSongEnd);
   useEffect(() => {
     onSongEndRef.current = onSongEnd;
   }, [onSongEnd]);
 
+  useEffect(() => {
+    maxDurationMsRef.current = maxDurationMs;
+  }, [maxDurationMs]);
+
   const soundRef = useRef<Howl | null>(null);
   const fadingOutSoundRef = useRef<Howl | null>(null);
   const crossfadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previewFadeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const previewStopTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const maxDurationMsRef = useRef(maxDurationMs);
   const currentUrlRef = useRef<string | null>(null);
   const preloadCacheRef = useRef<Map<string, Howl>>(new Map());
   const progressRafRef = useRef<number | null>(null);
@@ -137,6 +146,16 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         crossfadeTimeoutRef.current = null;
       }
 
+      // Clear any pending preview timers
+      if (previewFadeTimerRef.current) {
+        clearTimeout(previewFadeTimerRef.current);
+        previewFadeTimerRef.current = null;
+      }
+      if (previewStopTimerRef.current) {
+        clearTimeout(previewStopTimerRef.current);
+        previewStopTimerRef.current = null;
+      }
+
       // Cleanup fading out sound
       if (fadingOutSoundRef.current) {
         fadingOutSoundRef.current.unload();
@@ -155,6 +174,17 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     if (progressRafRef.current !== null) {
       cancelAnimationFrame(progressRafRef.current);
       progressRafRef.current = null;
+    }
+  }, []);
+
+  const clearPreviewTimers = useCallback(() => {
+    if (previewFadeTimerRef.current) {
+      clearTimeout(previewFadeTimerRef.current);
+      previewFadeTimerRef.current = null;
+    }
+    if (previewStopTimerRef.current) {
+      clearTimeout(previewStopTimerRef.current);
+      previewStopTimerRef.current = null;
     }
   }, []);
 
@@ -211,6 +241,31 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         setPlaybackError(null);
         stopProgressLoop();
         updateProgress();
+
+        // Schedule preview fade-out and stop when maxDurationMs is set
+        clearPreviewTimers();
+        const limit = maxDurationMsRef.current;
+        if (limit !== undefined && limit > 0) {
+          const fadeStart = Math.max(0, limit - PREVIEW_FADE_DURATION_MS);
+          previewFadeTimerRef.current = setTimeout(() => {
+            const activeSound = soundRef.current;
+            if (activeSound && activeSound === sound) {
+              activeSound.fade(activeSound.volume(), 0, PREVIEW_FADE_DURATION_MS);
+            }
+          }, fadeStart);
+          previewStopTimerRef.current = setTimeout(() => {
+            if (soundRef.current === sound) {
+              sound.stop();
+              sound.unload();
+              soundRef.current = null;
+              currentUrlRef.current = null;
+              setIsPlaying(false);
+              stopProgressLoop();
+              setProgress(0);
+              onSongEndRef.current?.();
+            }
+          }, limit);
+        }
       };
 
       const onEnd = () => {
@@ -314,7 +369,14 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         }
       }
     },
-    [stopProgressLoop, updateProgress, cleanupSound, startDiagnostic, resolvePlayErrorMessage]
+    [
+      stopProgressLoop,
+      updateProgress,
+      cleanupSound,
+      startDiagnostic,
+      resolvePlayErrorMessage,
+      clearPreviewTimers,
+    ]
   );
 
   const createSound = useCallback(
@@ -404,6 +466,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const play = useCallback(
     (url: string) => {
       setPlaybackError(null);
+      clearPreviewTimers();
       const requestId = nextPlaybackRequest();
 
       runWhenAudioContextReady(() => {
@@ -437,6 +500,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       });
     },
     [
+      clearPreviewTimers,
       getCachedOrCreateSound,
       isPlaybackRequestCurrent,
       nextPlaybackRequest,
@@ -446,16 +510,18 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const pause = useCallback(() => {
     nextPlaybackRequest();
+    clearPreviewTimers();
     if (soundRef.current) {
       soundRef.current.pause();
       setIsPlaying(false);
       setProgress(getCurrentRatio());
       stopProgressLoop();
     }
-  }, [getCurrentRatio, nextPlaybackRequest, stopProgressLoop]);
+  }, [clearPreviewTimers, getCurrentRatio, nextPlaybackRequest, stopProgressLoop]);
 
   const stop = useCallback(() => {
     nextPlaybackRequest();
+    clearPreviewTimers();
     if (soundRef.current) {
       soundRef.current.stop();
       soundRef.current.unload();
@@ -465,7 +531,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       stopProgressLoop();
       setProgress(0);
     }
-  }, [nextPlaybackRequest, stopProgressLoop]);
+  }, [clearPreviewTimers, nextPlaybackRequest, stopProgressLoop]);
 
   const setVolume = useCallback((newVolume: number) => {
     const clampedVolume = Math.max(0, Math.min(1, newVolume));

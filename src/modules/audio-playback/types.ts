@@ -33,6 +33,8 @@ export interface AudioPlaybackOptions {
   volume?: number;
   /** Called when a song finishes playing naturally (not on stop/pause) */
   onSongEnd?: () => void;
+  /** Max playback duration in ms. When set, fades out over the last ~3s then stops. */
+  maxDurationMs?: number;
 }
 
 export interface AudioDiagnosticResult {

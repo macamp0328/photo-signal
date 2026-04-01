@@ -460,7 +460,7 @@ function AppContent() {
 
   // While an artist is already playing, keep the next couple of playlist tracks warm.
   useEffect(() => {
-    if (!isActive || !activeConcert?.audioFile) {
+    if (!isActive || !isPlaying || !activeConcert?.audioFile) {
       return;
     }
 
@@ -477,9 +477,12 @@ function AppContent() {
     preload(upcomingTracks[0].audioFile);
 
     const timeoutIds = upcomingTracks.slice(1).map((track, index) =>
-      window.setTimeout(() => {
-        preload(track.audioFile);
-      }, 150 * (index + 1))
+      window.setTimeout(
+        () => {
+          preload(track.audioFile);
+        },
+        150 * (index + 1)
+      )
     );
 
     return () => {
@@ -487,7 +490,7 @@ function AppContent() {
         window.clearTimeout(timeoutId);
       });
     };
-  }, [activeConcert, isActive, preload]);
+  }, [activeConcert, isActive, isPlaying, preload]);
 
   // Auto-play newly recognized concerts, interrupting any current playback for a new match.
   useEffect(() => {

@@ -203,7 +203,7 @@ describe('App playback orchestration', () => {
   it('preloads the next two tracks after a match starts playback', async () => {
     recognitionState.recognizedConcert = mockConcerts[0];
 
-    render(<App />);
+    const view = render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Tune in' }));
 
@@ -212,6 +212,9 @@ describe('App playback orchestration', () => {
     });
 
     expect(audioPlaybackState.play).toHaveBeenCalledWith(mockConcerts[0].audioFile);
+
+    audioPlaybackState.isPlaying = true;
+    view.rerender(<App />);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(350);

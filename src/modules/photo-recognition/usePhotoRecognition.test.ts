@@ -2034,3 +2034,360 @@ describe('getAdaptiveRecognitionDelay', () => {
     expect(getAdaptiveRecognitionDelay(17, 200)).toBe(260); // 130%
   });
 });
+
+// ─── recognizingConcert coverage ─────────────────────────────────────────────
+
+describe('recognizingConcert (candidate preload signal)', () => {
+  const mockConcerts: Concert[] = [
+    {
+      id: 1,
+      band: 'Test Band 1',
+      venue: 'Test Venue 1',
+      date: '2023-08-15T20:00:00-05:00',
+      audioFile: '/audio/test1.opus',
+      photoHashes: {
+        phash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'],
+      },
+    },
+    {
+      id: 2,
+      band: 'Test Band 2',
+      venue: 'Test Venue 2',
+      date: '2023-09-20T19:30:00-05:00',
+      audioFile: '/audio/test2.opus',
+      photoHashes: {
+        phash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'],
+      },
+    },
+  ];
+
+  let mockStream: MediaStream;
+  let originalFetch: typeof global.fetch;
+  let createElementSpy: ReturnType<typeof vi.spyOn>;
+
+  function setupCanvasMocks() {
+    const originalCreateElement = document.createElement.bind(document);
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    mockIsEnabled.mockReturnValue(false);
+    vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(200);
+    workerHookState.isReady = false;
+    workerHookState.isSupported = false;
+    workerHookState.onResult = null;
+    mockWorkerProcessFrame.mockReset();
+    mockWorkerProcessFrame.mockReturnValue(false);
+
+    const mockTrack = {
+      kind: 'video',
+      id: 'mock-track-id',
+      label: 'Mock Video Track',
+      enabled: true,
+      muted: false,
+      readyState: 'live',
+      getConstraints: vi.fn(),
+      getSettings: vi.fn(() => ({ width: 640, height: 480, frameRate: 30 })),
+      getCapabilities: vi.fn(),
+      stop: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    };
+
+    mockStream = {
+      id: 'mock-stream-id',
+      active: true,
+      getTracks: vi.fn(() => [mockTrack]),
+      getVideoTracks: vi.fn(() => [mockTrack]),
+      getAudioTracks: vi.fn(() => []),
+      getTrackById: vi.fn(),
+      addTrack: vi.fn(),
+      removeTrack: vi.fn(),
+      clone: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    } as unknown as MediaStream;
+
+    originalFetch = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        version: 2,
+        entries: [
+          { concertId: 1, phash: ['a5b3c7d9e1f20486', 'a5b3c7d9e1f20487', 'a5b3c7d9e1f20488'] },
+          { concertId: 2, phash: ['b6c4d8e2f3a10597', 'b6c4d8e2f3a10598', 'b6c4d8e2f3a10599'] },
+        ],
+      }),
+    } as Response);
+
+    vi.mocked(dataService.getConcerts).mockResolvedValue(mockConcerts);
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('exposes recognizingConcert during inline debounce and clears on timer confirm', async () => {
+    setupCanvasMocks();
+    // Hash with distance 12 from concert 1 (3 chars differ × 4 = 12)
+    // > INSTANT_DISTANCE_THRESHOLD (10), so it enters the debounce path.
+    // Use a long checkInterval so only one frame fires before we assert the
+    // debounce state — CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM (2) would
+    // bypass the timer if a second frame matched before we check.
+    activeFrameHash = 'a5b3c7d9e1f20799';
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          checkInterval: 200,
+          recognitionDelay: 300,
+        })
+      );
+
+      // Let data load (microtasks resolve, state updates trigger re-render)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      // First frame fires at 200ms from effect setup (which happens after re-render)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250);
+      });
+
+      // After first match frame: recognizingConcert should be set, recognizedConcert not yet
+      expect(result.current.recognizingConcert?.id).toBe(1);
+      expect(result.current.isRecognizing).toBe(true);
+      expect(result.current.recognizedConcert).toBeNull();
+
+      // Advance past the recognition delay — second frame at 400ms triggers timer confirm
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(400);
+      });
+
+      // After confirm: recognizingConcert cleared, recognizedConcert set
+      expect(result.current.recognizingConcert).toBeNull();
+      expect(result.current.recognizedConcert?.id).toBe(1);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('clears recognizingConcert when candidate is lost via worker path', async () => {
+    setupCanvasMocks();
+    workerHookState.isReady = true;
+    workerHookState.isSupported = true;
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          checkInterval: 200,
+          recognitionDelay: 500,
+        })
+      );
+
+      // Let data load + effect setup (workerResultHandlerRef assignment)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      // Worker returns a borderline match → enters debounce
+      await act(async () => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId: 1,
+          hash: 'a5b3c7d9e1f20799',
+          bestMatch: { concertId: 1, distance: 12 },
+          secondBestMatch: null,
+          algorithmMs: 5,
+          processingMs: 5,
+          quality: { variance: 200, brightness: 128, isTooBlurry: false, isTooDark: false },
+        });
+      });
+
+      expect(result.current.recognizingConcert?.id).toBe(1);
+
+      // Worker returns no-match hash → candidate lost
+      await act(async () => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId: 2,
+          hash: '0000000000000000',
+          bestMatch: null,
+          secondBestMatch: null,
+          algorithmMs: 5,
+          processingMs: 5,
+          quality: null,
+        });
+      });
+
+      expect(result.current.recognizingConcert).toBeNull();
+      expect(result.current.recognizedConcert).toBeNull();
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('clears recognizingConcert on reset during debounce', async () => {
+    setupCanvasMocks();
+    activeFrameHash = 'a5b3c7d9e1f20799'; // distance 12
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          checkInterval: 200,
+          recognitionDelay: 500,
+        })
+      );
+
+      // Let data load
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      // First frame → enters debounce
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250);
+      });
+
+      expect(result.current.recognizingConcert?.id).toBe(1);
+
+      act(() => {
+        result.current.reset();
+      });
+
+      expect(result.current.recognizingConcert).toBeNull();
+      expect(result.current.isRecognizing).toBe(false);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('exposes recognizingConcert via worker path and clears on consecutive confirm', async () => {
+    setupCanvasMocks();
+    workerHookState.isReady = true;
+    workerHookState.isSupported = true;
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          checkInterval: 200,
+          recognitionDelay: 500,
+        })
+      );
+
+      // Let data load + effect setup (workerResultHandlerRef assignment)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      // First worker result: borderline match (distance 12) → enters debounce
+      await act(async () => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId: 1,
+          hash: 'a5b3c7d9e1f20799',
+          bestMatch: { concertId: 1, distance: 12 },
+          secondBestMatch: null,
+          algorithmMs: 5,
+          processingMs: 5,
+          quality: { variance: 200, brightness: 128, isTooBlurry: false, isTooDark: false },
+        });
+      });
+
+      // During debounce: recognizingConcert should be set
+      expect(result.current.recognizingConcert?.id).toBe(1);
+      expect(result.current.recognizedConcert).toBeNull();
+
+      // Second worker result: same concert → CONSECUTIVE_MATCHES_FOR_INSTANT_CONFIRM
+      // (2) reached → instant confirm, clears recognizingConcert
+      await act(async () => {
+        workerHookState.onResult?.({
+          type: 'result',
+          frameId: 2,
+          hash: 'a5b3c7d9e1f20799',
+          bestMatch: { concertId: 1, distance: 12 },
+          secondBestMatch: null,
+          algorithmMs: 5,
+          processingMs: 5,
+          quality: { variance: 200, brightness: 128, isTooBlurry: false, isTooDark: false },
+        });
+      });
+
+      expect(result.current.recognizingConcert).toBeNull();
+      expect(result.current.recognizedConcert?.id).toBe(1);
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('does not set recognizingConcert for instant-distance matches (≤10)', async () => {
+    setupCanvasMocks();
+    // Exact match → distance 0 → instant confirm, never enters debounce
+    activeFrameHash = 'a5b3c7d9e1f20486';
+
+    try {
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, { enabled: true, checkInterval: 50 })
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      // Should go straight to recognized, skipping the recognizing state
+      expect(result.current.recognizedConcert?.id).toBe(1);
+      expect(result.current.recognizingConcert).toBeNull();
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+});

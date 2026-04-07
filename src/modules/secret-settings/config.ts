@@ -41,4 +41,12 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     enabled: true,
     category: 'audio',
   },
+  {
+    id: 'stochastic-glitch',
+    name: 'Stochastic CRT Glitch',
+    description:
+      'Occasionally fires a brief CRT chromatic aberration glitch (~once every 5 minutes). A one-frame box-shadow spike with offset red and blue fringing at the screen edges. Adds organic unpredictability — the signal is not perfectly stable.',
+    enabled: true,
+    category: 'ui',
+  },
 ];

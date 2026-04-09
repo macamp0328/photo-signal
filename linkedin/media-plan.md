@@ -20,29 +20,33 @@ Hiring managers, engineering leads, and product-minded engineers at companies do
 
 ## Series Overview
 
-| # | Title | Theme | When |
-|---|-------|--------|------|
-| 1 | I Opened a Gallery in My Bathroom | The art & the human story | Day 1 |
-| 2 | What AI-First Product Engineering Actually Looks Like | The process | Day 4–5 |
-| 3 | The Constraint That Made It Worth Building | The engineering depth | Day 8–9 |
-| 4 | Why This Combination Is Rare | The personal case | Day 12–14 |
+| #   | Title                                                 | Theme                     | When      |
+| --- | ----------------------------------------------------- | ------------------------- | --------- |
+| 1   | I Opened a Gallery in My Bathroom                     | The art & the human story | Day 1     |
+| 2   | What AI-First Product Engineering Actually Looks Like | The process               | Day 4–5   |
+| 3   | The Constraint That Made It Worth Building            | The engineering depth     | Day 8–9   |
+| 4   | Why This Combination Is Rare                          | The personal case         | Day 12–14 |
 
 ## Multimedia (to capture before posting)
 
 ### Post 1
+
 - 2–3 photos of the bathroom gallery wall: the printed photos, frames, the scale and feel of the space
 - A short video or GIF (10–20 sec): hold phone to a print → UI matches → song starts
 - Wider shot showing the full gallery feel if possible
 
 ### Post 2
+
 - Screen recording GIF (15–30 sec) of a Claude Code session: agent reading code, writing a diff, terminal showing tests passing
 - OR: screenshot of the CI pipeline with all 7 checks green
 
 ### Post 3
+
 - GIF of recognition in action: phone moves across the wall → UI searches → snaps to match → song info appears
 - Optional: side-by-side of the same print under different lighting (shows why multi-exposure matters)
 
 ### Post 4
+
 - Best hero image from the full series: phone held to the gallery wall, song playing on screen, the whole experience in one frame
 - This should feel definitive — the one shot that captures everything
 
@@ -53,7 +57,7 @@ Hiring managers, engineering leads, and product-minded engineers at companies do
 - **Multimedia**: Every post. Non-negotiable. LinkedIn's algorithm deprioritizes text-only posts.
 - **Hashtags**: 4 max per post. Listed in each post doc.
 - **Closing**: Each post ends with a question or soft invitation — something that opens a reply thread.
-- **Spacing**: Plain text with line breaks in LinkedIn's editor. No markdown headers.
+- **Spacing**: This planning doc uses Markdown for internal organization only. When posting to LinkedIn, copy only the post body into LinkedIn's editor as plain text with line breaks, and remove any Markdown syntax (headings, backticks, bullets).
 - **Cadence**: 3–4 days between posts. Let engagement settle before the next drop.
 
 ## After the Series

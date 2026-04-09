@@ -57,6 +57,14 @@ Each module has a `README.md` with its public API, responsibilities, and key fil
 - **[scripts/check-module-readmes.js](./scripts/check-module-readmes.js)** — CI guardrail: verifies module READMEs mention all non-type exports
 - **[scripts/cleanup-worktrees.sh](./scripts/cleanup-worktrees.sh)** — Identify and prune stale git worktrees after PR merges
 
+## LinkedIn / Marketing
+
+- **[linkedin/media-plan.md](./linkedin/media-plan.md)** — 4-post LinkedIn series plan: target audience, cadence, multimedia checklist, and format rules
+- **[linkedin/post-1-the-art.md](./linkedin/post-1-the-art.md)** — Post draft: "I Opened a Gallery in My Bathroom" (art origin story)
+- **[linkedin/post-2-the-process.md](./linkedin/post-2-the-process.md)** — Post draft: "What AI-First Product Engineering Actually Looks Like" (workflow)
+- **[linkedin/post-3-the-engineering.md](./linkedin/post-3-the-engineering.md)** — Post draft: "The Constraint That Made It Worth Building" (pHash engineering)
+- **[linkedin/post-4-the-case.md](./linkedin/post-4-the-case.md)** — Post draft: "Why This Combination Is Rare" (personal positioning)
+
 ## Asset Documentation
 
 - **assets/prod-photographs/** — Local-only source photo workflow (original images are intentionally not tracked)

@@ -27,10 +27,10 @@
 
 ## AI Agent Instructions
 
-| File                              | Last Updated | Status  | Concerns                                                                                                                                                                                 |
-| --------------------------------- | ------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CLAUDE.md`                       | 2026-03-25   | current | Was missing documentation maintenance rules (added in this PR).                                                                                                                          |
-| `.github/copilot-instructions.md` | 2026-03-25   | stale   | Was missing pre-commit step 4 (`node scripts/check-module-readmes.js`), missing "Keeping Module READMEs in sync" section, missing documentation maintenance rules. All fixed in this PR. |
+| File                              | Last Updated | Status  | Concerns                                                                                                                                                                                                  |
+| --------------------------------- | ------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md`                       | 2026-03-25   | current | Was missing documentation maintenance rules (added in this PR).                                                                                                                                           |
+| `.github/copilot-instructions.md` | 2026-03-25   | current | Was stale on `main`: missing pre-commit step 4 (`node scripts/check-module-readmes.js`), missing "Keeping Module READMEs in sync" section, and missing documentation maintenance rules. Fixed in this PR. |
 
 ## Technical Guides
 
@@ -48,7 +48,7 @@
 
 | File                                              | Last Updated | Status       | Concerns                                                                                                                                                           |
 | ------------------------------------------------- | ------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/modules/photo-recognition/README.md`         | 2026-03-31   | stale        | Referenced `worker/` subdirectory that doesn't exist; actual file is `recognition.worker.ts` at module root. Fixed in this PR.                                     |
+| `src/modules/photo-recognition/README.md`         | 2026-03-31   | current      | Previously referenced a `worker/` subdirectory that didn't exist; this PR corrected the path to `recognition.worker.ts` at the module root.                        |
 | `src/modules/audio-playback/README.md`            | 2026-03-24   | needs-review | Multiple audio changes since: Web Audio path, instant playback, crossfade simplification, preload-on-candidate. API descriptions may not reflect current behavior. |
 | `src/modules/concert-info/README.md`              | 2026-03-26   | needs-review | Concert info layout redesigned (poster-style) and repositioned in recent PRs. Component structure and props may have changed.                                      |
 | `src/modules/camera-access/README.md`             | 2026-03-24   | current      |                                                                                                                                                                    |

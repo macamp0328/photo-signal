@@ -14,7 +14,7 @@
 
 <!-- How was this tested? Include relevant details. -->
 
-- [ ] `npm run pre-commit` passes (lint, format, type-check, tests, build)
+- [ ] `npm run pre-commit` passes (lint, format, type-check, module README checks, tests, build, bundle-size check)
 - [ ] Tested manually where applicable
 - [ ] Documentation updated if applicable (module READMEs, `docs/`, `DOCUMENTATION_INDEX.md`)
 - [ ] Confirmed with maintainer whether to pull/merge latest `main` into this branch before handoff (and resolved conflicts if requested)

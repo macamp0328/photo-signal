@@ -126,6 +126,21 @@ describe('useStochasticGlitch', () => {
     expect(document.documentElement.style.animation).toBe('');
   });
 
+  it('explicitly removes animationend listener on unmount while animation is mid-flight', () => {
+    const removeEventListenerSpy = vi.spyOn(document.documentElement, 'removeEventListener');
+    vi.spyOn(Math, 'random').mockReturnValue(0.001);
+    const { unmount } = renderHook(() => useStochasticGlitch(true));
+
+    vi.advanceTimersByTime(1000);
+    expect(document.documentElement.style.animation).toBe('chromaticShift 0.3s ease-in-out');
+
+    // Unmount without dispatching animationend — simulates mid-flight cleanup
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('animationend', expect.any(Function));
+    expect(document.documentElement.style.animation).toBe('');
+  });
+
   it('clears the interval and animation when re-rendered with enabled=false', () => {
     const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
     vi.spyOn(Math, 'random').mockReturnValue(0.001);

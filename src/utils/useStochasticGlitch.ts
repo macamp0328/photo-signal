@@ -8,8 +8,9 @@
  * viewport edges.
  *
  * Activation: only when `enabled` is true (gated by `stochastic-glitch` flag).
- * The animation clears itself via `animationend` with `{ once: true }`.
- * Cleanup on disable/unmount removes the interval and any in-progress animation.
+ * The animation clears itself via `animationend`. The handler is stored so it
+ * can be explicitly removed during cleanup, preventing listener leaks if the
+ * hook is disabled or unmounted while an animation is mid-flight.
  */
 
 import { useEffect } from 'react';
@@ -23,6 +24,8 @@ export function useStochasticGlitch(enabled: boolean): void {
   useEffect(() => {
     if (!enabled) return;
 
+    let animationEndHandler: (() => void) | null = null;
+
     const tick = () => {
       if (Math.random() >= GLITCH_PROBABILITY_PER_SECOND) return;
 
@@ -30,20 +33,23 @@ export function useStochasticGlitch(enabled: boolean): void {
       // Don't double-fire while a glitch animation is already running.
       if (root.style.animation) return;
 
+      animationEndHandler = () => {
+        root.style.animation = '';
+        animationEndHandler = null;
+      };
+
       root.style.animation = GLITCH_ANIMATION;
-      root.addEventListener(
-        'animationend',
-        () => {
-          root.style.animation = '';
-        },
-        { once: true }
-      );
+      root.addEventListener('animationend', animationEndHandler, { once: true });
     };
 
     const intervalId = setInterval(tick, TICK_INTERVAL_MS);
 
     return () => {
       clearInterval(intervalId);
+      if (animationEndHandler !== null) {
+        document.documentElement.removeEventListener('animationend', animationEndHandler);
+        animationEndHandler = null;
+      }
       document.documentElement.style.animation = '';
     };
   }, [enabled]);

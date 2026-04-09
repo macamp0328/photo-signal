@@ -179,6 +179,7 @@ interface MockHowlInstance {
     volume?: number;
   };
   _sounds: { _node: HTMLAudioElement }[];
+  unload: ReturnType<typeof vi.fn>;
   __triggerEnd: () => void;
   __triggerStop: () => void;
   __triggerLoadError: (error?: unknown) => void;
@@ -242,14 +243,14 @@ describe('useAudioPlayback', () => {
       expect(result.current.isPlaying).toBe(true);
     });
 
-    it('should use Web Audio mode for playback on mobile browsers', () => {
+    it('should use HTML5 streaming mode for playback on first play', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
       act(() => {
         result.current.play('/audio/test.opus');
       });
 
-      expect(getMockedHowlClass().instances[0].options.html5).toBe(false);
+      expect(getMockedHowlClass().instances[0].options.html5).toBe(true);
     });
 
     it('should use correct volume when playing', () => {
@@ -573,6 +574,26 @@ describe('useAudioPlayback', () => {
       expect(result.current.isPlaying).toBe(false);
     });
 
+    it('clears preloaded sounds when stop() is called', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.preload('/audio/candidate.opus');
+        result.current.preload('/audio/next-one.opus');
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        result.current.stop();
+      });
+
+      expect(result.current.isPlaying).toBe(false);
+      expect(HowlClass.instances[0].unload).toHaveBeenCalled();
+      expect(HowlClass.instances[1].unload).toHaveBeenCalled();
+      expect(HowlClass.instances[2].unload).toHaveBeenCalled();
+    });
+
     it('should handle stop when no audio is playing', () => {
       const { result } = renderHook(() => useAudioPlayback());
 
@@ -887,6 +908,29 @@ describe('useAudioPlayback', () => {
 
       expect(HowlClass.instances.length).toBe(1);
       expect(result.current.isPlaying).toBe(true);
+    });
+
+    it('keeps the most recent three preloads so candidate and upcoming tracks can coexist', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+      const HowlClass = getMockedHowlClass();
+
+      act(() => {
+        result.current.preload('/audio/next-one.opus');
+        result.current.preload('/audio/next-two.opus');
+        result.current.preload('/audio/candidate.opus');
+      });
+
+      expect(HowlClass.instances).toHaveLength(3);
+
+      act(() => {
+        result.current.preload('/audio/overflow.opus');
+      });
+
+      expect(HowlClass.instances).toHaveLength(4);
+      expect(HowlClass.instances[0].unload).toHaveBeenCalledTimes(1);
+      expect(HowlClass.instances[1].unload).not.toHaveBeenCalled();
+      expect(HowlClass.instances[2].unload).not.toHaveBeenCalled();
+      expect(HowlClass.instances[3].unload).not.toHaveBeenCalled();
     });
   });
 

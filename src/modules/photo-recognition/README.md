@@ -15,7 +15,9 @@ usePhotoRecognition(
 ): PhotoRecognitionHook
 ```
 
-`PhotoRecognitionHook` members: `recognizedConcert`, `recognizingConcert`, `isRecognizing`, `reset()`, `resetTelemetry()`, `forceMatch()`, `debugInfo`, `frameQuality`, `detectedRectangle`, `rectangleConfidence`, `indexLoadFailed`
+`PhotoRecognitionHook` members: `candidateConcert`, `recognizedConcert`, `recognizingConcert`,
+`isRecognizing`, `reset()`, `resetTelemetry()`, `forceMatch()`, `debugInfo`, `frameQuality`,
+`detectedRectangle`, `rectangleConfidence`, `indexLoadFailed`
 
 ```ts
 calculateFramedRegion(
@@ -39,6 +41,7 @@ Derive recommended threshold adjustments from aggregated telemetry (used in debu
 
 - Running pHash on cropped video frames inside a Web Worker
 - Comparing hashes against `data.recognition.v2.json` at multiple exposure variants
+- Exposing a candidate concert before final confirmation so callers can warm related media
 - Requiring sustained match stability before emitting `recognizedConcert`
 - Collecting telemetry (`RecognitionDebugInfo`) when debug mode is enabled
 

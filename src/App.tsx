@@ -28,6 +28,7 @@ import { preloadRecognitionIndex } from './services/recognition-index-service';
 import {
   getNextTrackAfterForwardAdvanceState,
   getPlaylistStartForConcert,
+  getUpcomingTracksForPreload,
   shufflePlaylist,
   syncPlaylistForConcert,
 } from './App.playback-helpers';
@@ -301,6 +302,7 @@ function AppContent() {
   );
 
   const {
+    candidateConcert,
     recognizedConcert,
     recognizingConcert,
     reset: resetRecognition,
@@ -441,50 +443,54 @@ function AppContent() {
     playRef.current = play;
   }, [play]);
 
-  // Preload audio as soon as a candidate is being debounced — before full confirmation.
-  // This hides the 180 ms recognition window: by the time the match is confirmed the
-  // Howl is already loaded and play() fires with no network wait.
+  // Warm audio as soon as recognition identifies a likely match, then keep the
+  // confirmed match warm so first autoplay can reuse an already-loaded sound.
   useEffect(() => {
-    if (!recognizingConcert?.audioFile) {
+    const preloadTargetUrl =
+      candidateConcert?.audioFile ??
+      recognizingConcert?.audioFile ??
+      activeRecognitionConcert?.audioFile;
+
+    if (!preloadTargetUrl) {
       return;
     }
-    preload(recognizingConcert.audioFile);
-  }, [preload, recognizingConcert]);
 
-  // Begin streaming the recognized track immediately so playback feels instant
+    preload(preloadTargetUrl);
+  }, [preload, candidateConcert, recognizingConcert, activeRecognitionConcert]);
+
+  // While an artist is already playing, keep the next couple of playlist tracks warm.
   useEffect(() => {
-    if (!activeRecognitionConcert) {
+    if (!isActive || !isPlaying || !activeConcert?.audioFile) {
       return;
     }
 
-    const selectedAudioUrl = activeRecognitionConcert.audioFile;
+    const upcomingTracks = getUpcomingTracksForPreload(
+      playlistRef.current,
+      playlistIndexRef.current,
+      2
+    );
 
-    if (!selectedAudioUrl) {
+    if (upcomingTracks.length === 0) {
       return;
     }
 
-    preload(selectedAudioUrl);
-  }, [preload, activeRecognitionConcert]);
+    preload(upcomingTracks[0].audioFile);
 
-  // Speculatively preload the next playlist track so tapping next has no network wait.
-  useEffect(() => {
-    if (!isPlaying || !activeConcert) {
-      return;
-    }
-    const playlist = playlistRef.current;
-    if (playlist.length <= 1) {
-      return;
-    }
-    const currentIdx = playlist.findIndex((c) => c.id === activeConcert.id);
-    if (currentIdx === -1) {
-      return;
-    }
-    const nextIdx = (currentIdx + 1) % playlist.length;
-    const nextUrl = playlist[nextIdx]?.audioFile;
-    if (nextUrl) {
-      preload(nextUrl);
-    }
-  }, [isPlaying, activeConcert, preload]);
+    const timeoutIds = upcomingTracks.slice(1).map((track, index) =>
+      window.setTimeout(
+        () => {
+          preload(track.audioFile);
+        },
+        150 * (index + 1)
+      )
+    );
+
+    return () => {
+      timeoutIds.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+    };
+  }, [activeConcert, isActive, isPlaying, preload]);
 
   // Auto-play newly recognized concerts, interrupting any current playback for a new match.
   useEffect(() => {

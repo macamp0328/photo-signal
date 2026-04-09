@@ -29,6 +29,8 @@ Checks CORS headers and HTTP status for a given audio URL. Used in the debug ove
 ## Responsibilities
 
 - Wrapping Howler.js with a React hook interface
+- Starting first playback from the HTML5 streaming path so audio can begin before full decode
+- Maintaining a bounded preload window for candidate and upcoming playlist tracks
 - Crossfading between tracks (cancel-safe, same-URL restarts)
 - Updating `--glow-reactive-scale` from live audio frequency data
 
@@ -40,7 +42,8 @@ Checks CORS headers and HTTP status for a given audio URL. Used in the debug ove
 ## Dependencies
 
 - Howler.js (`howler`) — audio engine
-- Web Audio API via `Howler.ctx` — for bass-reactive glow only
+- HTMLMediaElement + Howler internals — streamed playback and preload reuse
+- Web Audio API via `Howler.ctx` — audio unlock and bass-reactive glow analysis
 
 ## Key Files
 

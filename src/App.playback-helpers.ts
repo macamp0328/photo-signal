@@ -191,3 +191,33 @@ export function getNextTrackAfterForwardAdvanceState({
     nextSong: nextPlaylist[nextIndex] ?? null,
   };
 }
+
+export function getUpcomingTracksForPreload(
+  currentPlaylist: Concert[],
+  currentIndex: number,
+  limit: number
+): Concert[] {
+  if (currentPlaylist.length <= 1 || limit <= 0) {
+    return [];
+  }
+
+  const upcomingTracks: Concert[] = [];
+  const seenTrackIds = new Set<number>();
+
+  for (
+    let offset = 1;
+    offset < currentPlaylist.length && upcomingTracks.length < limit;
+    offset += 1
+  ) {
+    const track = currentPlaylist[(currentIndex + offset) % currentPlaylist.length];
+
+    if (!track?.audioFile || seenTrackIds.has(track.id)) {
+      continue;
+    }
+
+    seenTrackIds.add(track.id);
+    upcomingTracks.push(track);
+  }
+
+  return upcomingTracks;
+}

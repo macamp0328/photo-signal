@@ -16,6 +16,7 @@
 
 - [ ] `npm run pre-commit` passes (lint, format, type-check, tests, build)
 - [ ] Tested manually where applicable
+- [ ] Documentation updated if applicable (module READMEs, `docs/`, `DOCUMENTATION_INDEX.md`)
 - [ ] Confirmed with maintainer whether to pull/merge latest `main` into this branch before handoff (and resolved conflicts if requested)
 
 ## Notes

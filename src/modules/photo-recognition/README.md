@@ -51,12 +51,12 @@ Derive recommended threshold adjustments from aggregated telemetry (used in debu
 ## Dependencies
 
 - `public/data.recognition.v2.json` — pHash index loaded via `data-service.ts`
-- Web Worker (`src/modules/photo-recognition/worker/`) — off-main-thread hashing
+- Web Worker (`src/modules/photo-recognition/recognition.worker.ts`) — off-main-thread hashing
 - `photo-rectangle-detection` — optional rectangle-guided crop region
 
 ## Key Files
 
 - `usePhotoRecognition.ts` — hook, worker bridge, stability timer, result emission
 - `telemetryAnalysis.ts` — `computeActiveSettings`, `computeAiRecommendations`
-- `worker/` — Web Worker that performs the actual pHash computation and lookup
+- `recognition.worker.ts` — Web Worker that performs the actual pHash computation and lookup
 - `types.ts` — all exported types including `PhotoRecognitionHook`, `RecognitionDebugInfo`, etc.

@@ -24,9 +24,10 @@ Pre-commit steps (run in order):
 1. `npm run lint:fix` — Fix linting issues
 2. `npm run format` — Format code with Prettier
 3. `npm run type-check` — Validate TypeScript
-4. `npm run test:run` — Run all unit tests
-5. `npm run build` — Production build succeeds
-6. `./scripts/check-bundle-size.sh` — Bundle size within limits
+4. `node scripts/check-module-readmes.js` — Module READMEs match exports
+5. `npm run test:run` — Run all unit tests
+6. `npm run build` — Production build succeeds
+7. `./scripts/check-bundle-size.sh` — Bundle size within limits
 
 ## Project Identity
 
@@ -202,6 +203,12 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
 3. Check `src/types/index.ts` for shared interfaces.
 4. Make changes within the module directory only — don't touch other modules unless required.
 
+### Keeping Module READMEs in sync
+
+`scripts/check-module-readmes.js` runs as part of `npm run pre-commit` and CI. It fails if any
+non-type export in a module's `index.ts` is not mentioned in that module's `README.md ## API`
+section. If you add or rename an export, update the README too.
+
 ### When Adding New Files
 
 - Update `DOCUMENTATION_INDEX.md` when adding, removing, or renaming docs/files.
@@ -213,6 +220,29 @@ like a physical artifact from the punk/indie concert era, not a generic mobile a
 - Use Vitest with `happy-dom` environment (see `vitest.config.ts`).
 - Import browser API mocks from `src/test/mocks.ts`.
 - Mock external dependencies, not internal module logic.
+
+## Documentation Maintenance
+
+Documentation is part of the deliverable. When you change code, check whether docs need updating.
+
+**Must update docs when:**
+
+- Module API changes (exports added/removed/renamed) → update module `README.md`
+- New files or directories → update `DOCUMENTATION_INDEX.md`
+- Behavior changes to recognition, audio, camera, or build → check and update the relevant `docs/` file:
+  - Recognition → `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`
+  - Audio → `docs/AUDIO_R2_WORKER.md`, `scripts/audio-workflow/README.md`
+  - Build/CI → `SETUP.md`, `TESTING.md`
+  - Design/visual → `docs/DESIGN_SYSTEM.md`, `docs/STATES_AND_DESIGN_LANGUAGE.md`
+  - Architecture decisions → `docs/ARCHITECTURE_DECISIONS.md`
+- New config or env vars → update `SETUP.md` and `.env.example`
+- Agent instruction changes → keep `CLAUDE.md` and this file in sync for shared sections
+
+**No doc update needed for:** pure refactors, test-only additions, formatting fixes, internal-only
+changes with no documented interface impact.
+
+**Staleness:** if you notice an out-of-date doc while working on a related change, fix it in the
+same PR. If unrelated, note it in the PR description.
 
 ## Common Gotchas
 

@@ -90,11 +90,11 @@ issues above are about prose accuracy, not missing export mentions.
 
 ## Summary
 
-| Status           | Count | Action                                        |
-| ---------------- | ----- | --------------------------------------------- |
-| **current**      | 20    | No action needed                              |
-| **needs-review** | 12    | Maintainer should verify against current code |
-| **stale**        | 2     | Fixed in this PR                              |
+| Status           | Summary                                   | Action                                        |
+| ---------------- | ----------------------------------------- | --------------------------------------------- |
+| **current**      | Listed in the audit tables above          | No action needed                              |
+| **needs-review** | Listed in the audit tables above          | Maintainer should verify against current code |
+| **stale**        | No entries currently listed in this audit | Add only when confirmed inaccuracies are found |
 
 ### Priority Review Order
 

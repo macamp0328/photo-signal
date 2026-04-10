@@ -69,6 +69,10 @@ Each module has a `README.md` with its public API, responsibilities, and key fil
 
 ---
 
+## Audits
+
+- **[docs/DOCUMENTATION_AUDIT_2026-04.md](./docs/DOCUMENTATION_AUDIT_2026-04.md)** — Point-in-time audit of all project documentation (April 2026), classifying each doc as current/needs-review/stale
+
 ## Maintenance
 
 When adding or removing documentation files, update this index. Commit both changes together.

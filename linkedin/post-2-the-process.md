@@ -10,6 +10,7 @@
 ## Multimedia
 
 **What to capture before posting:**
+
 - Screen recording GIF (15–30 seconds) of a Claude Code session: the agent reading code, writing a diff, terminal showing tests running and passing. Keep it legible — zoom in if needed.
 - Alternatively: a clean screenshot of the CI pipeline with all 7 checks green. Label the steps if possible so viewers can read them: lint, format, type-check, README sync, tests, build, bundle size.
 

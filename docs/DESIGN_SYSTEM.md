@@ -206,21 +206,21 @@ Six fluid tokens that scale with viewport width via `clamp()`.
 All named keyframe animations in the system. Duration and easing are per-use-site defaults; individual
 components may override.
 
-| Animation               | Duration / Easing                                                       | Defined In                    | Fires When                                                                                                    |
-| ----------------------- | ----------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `fadeIn`                | Varies (0.5s typical), `ease-out`                                       | `src/index.css`               | Active view enters; general show transitions                                                                  |
-| `slideUpFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that slide up into view                                                                              |
-| `scaleInFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                                                                       |
-| `chromaticShift`        | Continuous / event-driven, smooth                                       | `src/index.css`               | Reserved — keyframe defined, not yet wired to a trigger; intended for CRT chromatic aberration (RGB fringing) |
-| `posterReveal`          | `calc(0.8s × --exif-transition-scale)`, `cubic-bezier(0.16, 1, 0.3, 1)` | `src/index.css`               | Scanned photo frame animates in after `MATCH_CONFIRMED`                                                       |
-| `textReveal`            | `0.4–0.5s`, `cubic-bezier(0.16, 1, 0.3, 1)` `both`; staggered delays    | `InfoDisplay.module.css`      | Band name (0.1s), meta (0.22s), EXIF (0.34s) materialize upward in the above-photo caption strip              |
-| `signal-flicker`        | `3.2s`, `steps(1)` infinite                                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`                                                             |
-| `glow-breathe`          | `2.8s`, `ease-in-out` infinite                                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`                                                            |
-| `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                                                                              |
-| `phosphor-bloom-border` | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Border flares amber → near-white → amber on lock                                                              |
-| `scan-sweep`            | `2.2s`, `linear` infinite                                               | `RectangleOverlay.module.css` | Horizontal scan line sweeps rectangle interior in `CANDIDATE`                                                 |
-| `corner-jitter`         | `1.4s`, `steps(3)` infinite                                             | `RectangleOverlay.module.css` | Corner L-brackets jitter digitally in `CANDIDATE`                                                             |
-| `corner-stamp`          | `0.45s`, `cubic-bezier(0.34, 1.56, 0.64, 1)` `forwards`                 | `RectangleOverlay.module.css` | Corners spring-stamp into place on `MATCH_CONFIRMED`                                                          |
+| Animation               | Duration / Easing                                                       | Defined In                    | Fires When                                                                                               |
+| ----------------------- | ----------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `fadeIn`                | Varies (0.5s typical), `ease-out`                                       | `src/index.css`               | Active view enters; general show transitions                                                             |
+| `slideUpFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that slide up into view                                                                         |
+| `scaleInFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                                                                  |
+| `chromaticShift`        | `0.3s`, `ease-in-out`, event-driven                                     | `src/index.css`               | Stochastic glitch timer (~once per 5 min, `useStochasticGlitch`); also planned for anniversary resonance |
+| `posterReveal`          | `calc(0.8s × --exif-transition-scale)`, `cubic-bezier(0.16, 1, 0.3, 1)` | `src/index.css`               | Scanned photo frame animates in after `MATCH_CONFIRMED`                                                  |
+| `textReveal`            | `0.4–0.5s`, `cubic-bezier(0.16, 1, 0.3, 1)` `both`; staggered delays    | `InfoDisplay.module.css`      | Band name (0.1s), meta (0.22s), EXIF (0.34s) materialize upward in the above-photo caption strip         |
+| `signal-flicker`        | `3.2s`, `steps(1)` infinite                                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`                                                        |
+| `glow-breathe`          | `2.8s`, `ease-in-out` infinite                                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`                                                       |
+| `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                                                                         |
+| `phosphor-bloom-border` | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Border flares amber → near-white → amber on lock                                                         |
+| `scan-sweep`            | `2.2s`, `linear` infinite                                               | `RectangleOverlay.module.css` | Horizontal scan line sweeps rectangle interior in `CANDIDATE`                                            |
+| `corner-jitter`         | `1.4s`, `steps(3)` infinite                                             | `RectangleOverlay.module.css` | Corner L-brackets jitter digitally in `CANDIDATE`                                                        |
+| `corner-stamp`          | `0.45s`, `cubic-bezier(0.34, 1.56, 0.64, 1)` `forwards`                 | `RectangleOverlay.module.css` | Corners spring-stamp into place on `MATCH_CONFIRMED`                                                     |
 
 **Easing conventions**:
 
@@ -260,7 +260,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 
 - **Mechanism**: `chromaticShift` keyframe animation on a box-shadow with offset red/blue layers
 - **Colors**: red fringe `rgba(255, 60, 0, …)`, blue fringe `rgba(0, 100, 255, …)`
-- **Activation**: reserved — keyframe not yet wired to a trigger; planned for stochastic glitch timer (~once per 5 min) and anniversary resonance (see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`)
+- **Activation**: `useStochasticGlitch` hook sets `document.documentElement.style.animation` at ~0.3% probability per second (~once per 5 min); also planned for anniversary resonance (see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`)
 - **Peak values**: red offset `−3px / +3px`, blue offset `+3px / −3px` at 50% keyframe
 
 ### Background Radial Gradients

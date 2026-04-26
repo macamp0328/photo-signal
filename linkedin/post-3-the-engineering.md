@@ -10,6 +10,7 @@
 ## Multimedia
 
 **What to capture before posting:**
+
 - GIF of recognition in action: phone panning slowly across the gallery wall, the UI in search mode, then snapping to a match — song title and artist appear. 15–25 seconds.
 - Optional second slide: a side-by-side of the same print photographed under different lighting (warm overhead vs. cooler ambient). Visually shows why the multi-exposure approach exists. If you can capture this cleanly, it makes the insight obvious without words.
 

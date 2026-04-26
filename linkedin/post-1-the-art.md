@@ -10,6 +10,7 @@
 ## Multimedia
 
 **What to capture before posting:**
+
 - 2–3 photos of the bathroom gallery wall: the printed photos, the frames, the scale and feel of the space. The intimacy is the point — let the room do the work.
 - A short video or GIF (10–20 seconds): hold a phone up to one of the prints. Watch the UI match. Watch the song start.
 - Wider shot of the full wall if possible.

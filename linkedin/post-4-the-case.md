@@ -10,6 +10,7 @@
 ## Multimedia
 
 **What to capture before posting:**
+
 - The best single image or GIF from the whole series. This is the hero shot — phone held to the gallery wall, song playing on screen, the experience visible in one frame.
 - It should feel final and definitive. The image you'd use if a magazine ran a feature on this project.
 - If you have a short GIF that captures the full loop (point → match → song), use that. Motion performs well as the last post in a series.

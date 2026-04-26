@@ -236,8 +236,6 @@ new UI features, agents should consider whether any of these signals could enric
   vary the visual character of each match (grain, blur depth, transition speed)
 - **Session state** — first match of session, time since last match, match count; track in refs
 - **Audio state** — `progress` (0–1) and `isPlaying` from `useAudioPlayback`; song arc can affect visuals
-- **Audio frequency data** — Howler exposes its Web Audio context via `Howler.ctx`; tap an
-  `AnalyserNode` for bass-reactive glow (only when matched, zero recognition impact)
 - **Motion detection** — existing `useMotionDetection` hook; camera shake can drive signal shake effects
 
 **Environmental variables that may require a permission prompt:**

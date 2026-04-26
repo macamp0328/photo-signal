@@ -16,7 +16,7 @@ import {
   computeAiRecommendations,
   usePhotoRecognition,
 } from './modules/photo-recognition';
-import { useAudioPlayback, useAudioReactiveGlow } from './modules/audio-playback';
+import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
@@ -409,9 +409,6 @@ function AppContent() {
         }
       },
     });
-
-  // Module: Audio-Reactive Phosphor Glow
-  useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
 
   // Effect: Song-Progress Scan Lines
   // As progress approaches 1, restore scan lines with visible intensity (max +0.45 opacity).

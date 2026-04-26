@@ -52,8 +52,8 @@
   text-transform: uppercase;
   letter-spacing: 0.01em;
   text-shadow:
-    0 0 calc(14px * var(--glow-reactive-scale)) var(--signal-glow),
-    0 0 calc(28px * var(--glow-reactive-scale)) var(--signal-glow-soft);
+    0 0 14px var(--signal-glow),
+    0 0 28px var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 
@@ -122,8 +122,7 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   opacity: 0.65;
-  text-shadow: 0 0 calc(10px * var(--glow-reactive-scale))
-    color-mix(in srgb, var(--color-main-text), transparent 70%);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--color-main-text), transparent 70%);
   z-index: 10;
   pointer-events: none;
   user-select: none;

@@ -33,6 +33,7 @@ import {
 } from './App.playback-helpers';
 import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import { applyExifVisualCharacter, resetExifVisualCharacter } from './utils/exif-visual';
+import { useStochasticGlitch } from './utils/useStochasticGlitch';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -409,6 +410,9 @@ function AppContent() {
         }
       },
     });
+
+  // Effect: Stochastic CRT Glitch
+  useStochasticGlitch(isEnabled('stochastic-glitch'));
 
   // Effect: Song-Progress Scan Lines
   // As progress approaches 1, restore scan lines with visible intensity (max +0.45 opacity).

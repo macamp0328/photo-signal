@@ -34,14 +34,6 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     category: 'development',
   },
   {
-    id: 'audio-reactive-glow',
-    name: 'Audio-Reactive Phosphor Glow',
-    description:
-      'When a photo is matched and music plays, the phosphor glow subtly breathes with the bass. Uses the Web Audio API to read low-frequency energy and modulate the text-shadow intensity. Activates only in matched state.',
-    enabled: true,
-    category: 'audio',
-  },
-  {
     id: 'song-progress-scanlines',
     name: 'Song-Progress Scan Lines',
     description:

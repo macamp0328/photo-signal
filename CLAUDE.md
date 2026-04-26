@@ -236,8 +236,6 @@ new UI features, agents should consider whether any of these signals could enric
   vary the visual character of each match (grain, blur depth, transition speed)
 - **Session state** — first match of session, time since last match, match count; track in refs
 - **Audio state** — `progress` (0–1) and `isPlaying` from `useAudioPlayback`; song arc can affect visuals
-- **Audio frequency data** — Howler exposes its Web Audio context via `Howler.ctx`; tap an
-  `AnalyserNode` for bass-reactive glow (only when matched, zero recognition impact)
 - **Motion detection** — existing `useMotionDetection` hook; camera shake can drive signal shake effects
 
 **Environmental variables that may require a permission prompt:**
@@ -472,6 +470,46 @@ section. If you add or rename an export, update the README too.
 - **PASS**: Output shows `Test Files X passed` with exit code 0
 - **FAIL**: Output shows `Test Files X failed` with exit code != 0
 - **Ignore**: `stderr` warnings about React `act()`, mock setup, or `console.warn` — non-critical
+
+## Documentation Maintenance
+
+Documentation is part of the deliverable, not an afterthought. When you change code, check whether
+any documentation needs to update with it.
+
+### When Documentation Must Be Updated
+
+- **Module API changes** — If you add, remove, rename, or change the signature of an export in any
+  module's `index.ts`, update that module's `README.md`. The `check-module-readmes.js` script
+  catches missing export mentions, but it does not verify that descriptions are accurate — you must
+  do that yourself.
+- **New files or directories** — Update `DOCUMENTATION_INDEX.md` (reaffirmed here for visibility;
+  also listed under "When Adding New Files" above).
+- **Behavior changes to documented systems** — If your change alters how recognition, audio
+  playback, camera access, or the build pipeline works, check the relevant doc in `docs/` and
+  update it. Key mappings:
+  - Recognition changes → `docs/PHOTO_RECOGNITION_DEEP_DIVE.md`
+  - Audio/playback changes → `docs/AUDIO_R2_WORKER.md`, `scripts/audio-workflow/README.md`
+  - Build/CI changes → `SETUP.md`, `TESTING.md`
+  - Design/visual changes → `docs/DESIGN_SYSTEM.md`, `docs/STATES_AND_DESIGN_LANGUAGE.md`
+  - State machine or lifecycle changes → `docs/STATES_AND_DESIGN_LANGUAGE.md`
+  - Architecture decisions → `docs/ARCHITECTURE_DECISIONS.md` (add a new ADR entry)
+- **New configuration or environment variables** — Update `SETUP.md` and `.env.example`.
+- **Agent instruction changes** — If you modify project structure, CI, commands, or conventions
+  documented in `CLAUDE.md`, update `.github/copilot-instructions.md` too (and vice versa for
+  shared sections). The sync note at the top of each file describes the relationship.
+
+### When Documentation Updates Are NOT Required
+
+- Pure refactors with no API or behavior change
+- Test-only additions
+- Formatting/lint fixes
+- Internal implementation changes that don't affect documented interfaces
+
+### Staleness Rule
+
+If you notice a doc is out of date while working on a related change, fix it in the same PR. If
+the staleness is unrelated to your current work, note it in the PR description so the maintainer
+can track it — don't silently ignore it, but don't scope-creep the PR either.
 
 ## Common Gotchas
 

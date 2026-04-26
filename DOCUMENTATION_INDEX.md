@@ -31,7 +31,7 @@
 
 Each module has a `README.md` with its public API, responsibilities, and key files:
 
-- **[src/modules/audio-playback/README.md](./src/modules/audio-playback/README.md)** — Howler.js playback, crossfade, bass-reactive glow
+- **[src/modules/audio-playback/README.md](./src/modules/audio-playback/README.md)** — Howler.js playback, streaming preload, and crossfade
 - **[src/modules/camera-access/README.md](./src/modules/camera-access/README.md)** — `getUserMedia`, permission state
 - **[src/modules/camera-view/README.md](./src/modules/camera-view/README.md)** — Video display, framing overlay, rectangle overlay
 - **[src/modules/concert-info/README.md](./src/modules/concert-info/README.md)** — Concert metadata overlay
@@ -76,6 +76,10 @@ Each module has a `README.md` with its public API, responsibilities, and key fil
 - **[public/assets/test-images/README.md](./public/assets/test-images/README.md)** — Git-tracked synthetic image fixtures for image-dependent tests
 
 ---
+
+## Audits
+
+- **[docs/DOCUMENTATION_AUDIT_2026-04.md](./docs/DOCUMENTATION_AUDIT_2026-04.md)** — Point-in-time audit of all project documentation (April 2026), classifying each doc as current/needs-review/stale
 
 ## Maintenance
 

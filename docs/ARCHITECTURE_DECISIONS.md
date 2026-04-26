@@ -23,7 +23,7 @@ lookup remains O(n). It is far simpler than training a lighting-invariant featur
 
 ### ADR-006: Feature flags required for all environmental effects
 
-**Context:** Environmental effects (bass-reactive glow, EXIF-driven grain, time-of-day tinting)
+**Context:** Environmental effects (EXIF-driven grain, time-of-day tinting, session ambience)
 interact with hardware APIs and vary widely across devices. Without toggles, a broken effect
 in production has no fast recovery path other than a new deploy.
 

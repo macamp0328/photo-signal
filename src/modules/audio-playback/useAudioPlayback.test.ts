@@ -1121,4 +1121,123 @@ describe('useAudioPlayback', () => {
       expect(result.current.volume).toBe(0.6);
     });
   });
+
+  describe('Preview mode (maxDurationMs)', () => {
+    it('does not schedule timers when maxDurationMs is undefined', () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+      const { result } = renderHook(() => useAudioPlayback({ volume: 0.8 }));
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      // The key assertion: with no maxDurationMs, playback still works normally.
+      expect(result.current.isPlaying).toBe(true);
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('schedules fade-out before the limit and stop at the limit', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() =>
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+      );
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      expect(result.current.isPlaying).toBe(true);
+
+      // Advance to fade start (7 seconds in)
+      act(() => {
+        vi.advanceTimersByTime(7000);
+      });
+
+      const sound = getMockedHowlClass().instances[0] as unknown as {
+        fade: ReturnType<typeof vi.fn>;
+        stop: ReturnType<typeof vi.fn>;
+      };
+      expect(sound.fade).toHaveBeenCalledWith(expect.any(Number), 0, 3000);
+
+      // Advance to stop (10 seconds total)
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+
+      expect(result.current.isPlaying).toBe(false);
+      expect(onSongEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears preview timers when stop() is called', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() =>
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+      );
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      // Stop before the limit
+      act(() => {
+        result.current.stop();
+      });
+
+      // Advance past the limit — onSongEnd should NOT fire a second time
+      act(() => {
+        vi.advanceTimersByTime(15_000);
+      });
+
+      expect(onSongEnd).not.toHaveBeenCalled();
+    });
+
+    it('clears preview timers when pause() is called', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() =>
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+      );
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      act(() => {
+        result.current.pause();
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(15_000);
+      });
+
+      expect(onSongEnd).not.toHaveBeenCalled();
+    });
+
+    it('resets preview timers when a new track starts via play()', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() =>
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+      );
+
+      act(() => {
+        result.current.play('/audio/first.opus');
+      });
+
+      // Advance 5 seconds then switch tracks
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      act(() => {
+        result.current.play('/audio/second.opus');
+      });
+
+      // Advance another 5 seconds — old timer should NOT fire (old sound is unloaded)
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+
+      // onSongEnd should not have fired for the first track's timer
+      expect(onSongEnd).not.toHaveBeenCalled();
+    });
+  });
 });

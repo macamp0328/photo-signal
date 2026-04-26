@@ -200,7 +200,8 @@
 .matchedPhotoHeader {
   /* Match cameraWrapPhoto width so content aligns to the photo frame's edges */
   width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width)));
-  padding: 0.4rem 0.15rem 0.3rem;
+  padding: 0.35rem 0.15rem 0.2rem;
+  flex-shrink: 0;
 }
 
 .scanAnotherRow {
@@ -208,7 +209,8 @@
   justify-content: flex-end;
   /* Match cameraWrapPhoto width so button aligns to the photo frame's right edge */
   width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width)));
-  padding: 0.3rem 0.15rem 0;
+  padding: 0.35rem 0.15rem 0;
+  flex-shrink: 0;
 }
 
 .closePhotoButton {
@@ -245,8 +247,12 @@
 
 .scannedPhotoFrame {
   width: 100%;
+  max-height: inherit;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--color-background);
   animation: scaleInFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -258,16 +264,11 @@
 }
 
 .scannedPhotoImage {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: auto;
-  /* Fallback for browsers without svh.
-   * 18rem ~= header + signal strip/audio controls + vertical padding/margins.
-   * This keeps the photo within the visible viewport while leaving room for UI.
-   * If header/footer/control heights change (e.g. longer band names wrapping),
-   * update this value to match the new combined UI height. */
-  max-height: max(60vh, calc(100vh - 18rem));
-  /* Preferred: svh excludes browser chrome; uses the same UI offset as above. */
-  max-height: max(60svh, calc(100svh - 18rem));
+  max-height: var(--matched-photo-max-height, calc(100vh - 18rem));
+  max-height: var(--matched-photo-max-height, calc(100svh - 18rem));
   object-fit: contain;
   display: block;
   user-select: none;

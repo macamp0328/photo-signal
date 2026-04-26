@@ -24,6 +24,10 @@ const MATCH_DETAILS = {
   focalLength: '35mm',
 };
 
+const MATCHED_STATE_TIMEOUT_MS = 15_000;
+const MATCHED_DATE_TEXT = '2026';
+const MATCHED_EXIF_TEXT = 'ISO 800';
+
 const layoutCases: LayoutCase[] = [
   {
     name: 'landscape photo in small portrait viewport',
@@ -127,21 +131,37 @@ async function forceMatchedPhoto(page: Page): Promise<void> {
   await page.getByRole('button', { name: /open settings/i }).click();
   await page.getByRole('button', { name: /force a photo match for testing/i }).click();
 
-  await expect(page.locator('html')).toHaveAttribute('data-state', 'matched');
-  await expect(page.getByRole('heading', { name: MATCH_DETAILS.band, level: 2 })).toBeVisible();
-  await expect(page.getByText(MATCH_DETAILS.venue)).toBeVisible();
-  await expect(page.getByText(/2026/)).toBeVisible();
-  await expect(page.getByText(/ISO 800/)).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-state', 'matched', {
+    timeout: MATCHED_STATE_TIMEOUT_MS,
+  });
+  await expect(page.getByRole('heading', { name: MATCH_DETAILS.band, level: 2 })).toBeVisible({
+    timeout: MATCHED_STATE_TIMEOUT_MS,
+  });
+  await expect(page.getByText(MATCH_DETAILS.venue)).toBeVisible({
+    timeout: MATCHED_STATE_TIMEOUT_MS,
+  });
+  await expect(page.getByText(MATCHED_DATE_TEXT)).toBeVisible({
+    timeout: MATCHED_STATE_TIMEOUT_MS,
+  });
+  await expect(page.getByText(MATCHED_EXIF_TEXT)).toBeVisible({
+    timeout: MATCHED_STATE_TIMEOUT_MS,
+  });
 
   const matchedImage = page.getByRole('img', {
     name: `${MATCH_DETAILS.band} scanned photograph`,
   });
   await expect(matchedImage).toBeVisible();
-  await matchedImage.evaluate((image) => {
-    if (!(image instanceof HTMLImageElement) || image.naturalWidth === 0) {
-      throw new Error('Matched photo image did not finish loading.');
-    }
-  });
+  await expect
+    .poll(async () => {
+      return matchedImage.evaluate((image) => {
+        if (!(image instanceof HTMLImageElement)) {
+          throw new Error('Matched photo element is not an image.');
+        }
+
+        return image.naturalWidth;
+      });
+    })
+    .toBeGreaterThan(0);
 
   await expect(
     page.getByRole('button', { name: /close concert view and scan a new photo/i })
@@ -149,42 +169,58 @@ async function forceMatchedPhoto(page: Page): Promise<void> {
 }
 
 async function expectMatchedLayoutInsideViewport(page: Page): Promise<void> {
-  const metrics = await page.evaluate(() => {
-    const selectors = {
-      heading: 'h2',
-      venue: 'section[aria-label="Concert details"] p:nth-of-type(1)',
-      date: 'section[aria-label="Concert details"] p:nth-of-type(2)',
-      exif: 'section[aria-label="Concert details"] p:nth-of-type(3)',
-      image: 'img[alt*="scanned photograph"]',
-      scanButton: 'button[aria-label="Close concert view and scan a new photo"]',
-    };
+  const metrics = await page.evaluate(
+    ({ bandText, venueText, dateText, exifText }) => {
+      const detailsSection = document.querySelector('section[aria-label="Concert details"]');
 
-    const rectFor = (selector: string) => {
-      const element = document.querySelector(selector);
-      if (!element) return null;
-      const rect = element.getBoundingClientRect();
-      return {
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        left: rect.left,
-        width: rect.width,
-        height: rect.height,
+      const heading = Array.from(detailsSection?.querySelectorAll('h2') ?? []).find(
+        (element) => element.textContent?.trim() === bandText
+      );
+      const detailParagraphContainingText = (expectedText: string) => {
+        return Array.from(detailsSection?.querySelectorAll('p') ?? []).find((paragraph) =>
+          paragraph.textContent?.includes(expectedText)
+        );
       };
-    };
 
-    const rects = Object.fromEntries(
-      Object.entries(selectors).map(([key, selector]) => [key, rectFor(selector)])
-    );
+      const rectForElement = (element: Element | null | undefined) => {
+        if (!element) return null;
+        const rect = element.getBoundingClientRect();
+        return {
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        };
+      };
 
-    return {
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-      rects,
-    };
-  });
+      const rects = {
+        heading: rectForElement(heading),
+        venue: rectForElement(detailParagraphContainingText(venueText)),
+        date: rectForElement(detailParagraphContainingText(dateText)),
+        exif: rectForElement(detailParagraphContainingText(exifText)),
+        image: rectForElement(document.querySelector('img[alt*="scanned photograph"]')),
+        scanButton: rectForElement(
+          document.querySelector('button[aria-label="Close concert view and scan a new photo"]')
+        ),
+      };
+
+      return {
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        rects,
+      };
+    },
+    {
+      bandText: MATCH_DETAILS.band,
+      venueText: MATCH_DETAILS.venue,
+      dateText: MATCHED_DATE_TEXT,
+      exifText: MATCHED_EXIF_TEXT,
+    }
+  );
 
   const rects = metrics.rects as Record<
     string,

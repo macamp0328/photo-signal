@@ -225,10 +225,16 @@
 /* Photo mode — natural aspect ratio, no fixed square height */
 .cameraWrapPhoto {
   width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width)));
-  max-height: var(--matched-photo-max-height, calc(100svh - 8rem));
+  max-height: var(--matched-photo-max-height, calc(100vh - 8rem));
   flex: 0 1 auto;
   min-height: 0;
   overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .cameraWrapPhoto {
+    max-height: var(--matched-photo-max-height, calc(100svh - 8rem));
+  }
 }
 
 .cameraSectionPhoto {
@@ -295,16 +301,21 @@
         var(--matched-photo-audio-clearance) - 10.5rem
     )
   );
-  --matched-photo-max-height: max(
-    7rem,
-    calc(
-      100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) -
-        var(--matched-photo-audio-clearance) - 10.5rem
-    )
-  );
   gap: var(--matched-photo-gap);
   justify-content: center;
   overflow-y: auto;
+}
+
+@supports (height: 100svh) {
+  .contentMatchedPhoto {
+    --matched-photo-max-height: max(
+      7rem,
+      calc(
+        100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) -
+          var(--matched-photo-audio-clearance) - 10.5rem
+      )
+    );
+  }
 }
 
 @media (min-width: 768px) {

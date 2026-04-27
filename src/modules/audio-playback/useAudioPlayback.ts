@@ -319,8 +319,11 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const createSound = useCallback(
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
+      // Provide an AAC/M4A fallback so Howler picks it on iOS 16 and earlier,
+      // which do not support Opus. Howler tries src[0] first and falls back automatically.
+      const src = url.endsWith('.opus') ? [url, url.replace(/\.opus$/, '.m4a')] : [url];
       const sound = new Howl({
-        src: [url],
+        src,
         // Use Howler's Web Audio path so a single unlocked audio context
         // governs playback across track changes on mobile browsers.
         html5: false,

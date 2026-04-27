@@ -338,6 +338,8 @@ async function processAudioFile(download, config, options) {
   const slug = generateSlug(band, title, album);
   const outputFileName = `ps-${slug}.opus`;
   const outputPath = join(outputDir, outputFileName);
+  const aacOutputFileName = `ps-${slug}.m4a`;
+  const aacOutputPath = join(outputDir, aacOutputFileName);
 
   console.log(`  Band:  ${band}`);
   console.log(`  Title: ${title}`);
@@ -355,7 +357,7 @@ async function processAudioFile(download, config, options) {
   console.log(`  Slug:  ${slug}`);
   console.log('');
 
-  if (!dryRun && skipExisting && existsSync(outputPath)) {
+  if (!dryRun && skipExisting && existsSync(outputPath) && existsSync(aacOutputPath)) {
     console.log('  1. Skipping encode (output already exists)');
 
     const existingTrack = existingIndexMap?.get(slug) ?? null;
@@ -491,6 +493,19 @@ async function processAudioFile(download, config, options) {
     },
     bitrateInfo.targetBitrateKbps
   );
+
+  // Step 5b: Encode to AAC/M4A for iOS < 17 fallback (Opus not supported on iOS 16 and earlier)
+  console.log('  5b. Encoding to AAC/M4A (iOS fallback)...');
+  await encodeToAac(fadedWavPath, aacOutputPath, config, {
+    band,
+    title: `${band} — ${date}`,
+    date,
+    album,
+    releaseDate,
+    genre,
+    recordLabel: musicDetails.recordLabel,
+    distributor: musicDetails.distributor,
+  });
 
   // Step 6: Calculate checksum
   console.log('  6. Calculating checksum...');
@@ -921,6 +936,66 @@ function encodeToOpus(inputPath, outputPath, config, metadata, targetBitrateKbps
 
     if (metadata.distributor) {
       args.push('-metadata', `label=${metadata.distributor}`);
+    }
+
+    args.push('-y', outputPath);
+
+    const ffmpeg = spawn('ffmpeg', args, { stdio: 'pipe' });
+    let stderr = '';
+
+    ffmpeg.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    ffmpeg.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`ffmpeg exited with code ${code}: ${stderr}`));
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * Encode to AAC/M4A format — fallback for iOS 16 and earlier which do not support Opus.
+ * Uses ffmpeg's built-in AAC encoder at 192 kbps with -movflags +faststart for web playback.
+ */
+function encodeToAac(inputPath, outputPath, config, metadata) {
+  return new Promise((resolve, reject) => {
+    const defaults = config.metadataDefaults;
+    const albumTag =
+      metadata.album && metadata.album !== 'Unknown Album' ? metadata.album : defaults.album;
+    const genreTag = metadata.genre ?? defaults.genre;
+
+    const args = [
+      '-i',
+      inputPath,
+      '-c:a',
+      'aac',
+      '-b:a',
+      '192k',
+      '-movflags',
+      '+faststart',
+      '-metadata',
+      `title=${metadata.title}`,
+      '-metadata',
+      `artist=${metadata.band}`,
+      '-metadata',
+      `album=${albumTag}`,
+      '-metadata',
+      `date=${metadata.date}`,
+    ];
+
+    if (genreTag) {
+      args.push('-metadata', `genre=${genreTag}`);
+    }
+
+    args.push('-metadata', `copyright=${defaults.copyright}`);
+    args.push('-metadata', `comment=Encoded for Photo Signal`);
+
+    if (metadata.recordLabel) {
+      args.push('-metadata', `publisher=${metadata.recordLabel}`);
     }
 
     args.push('-y', outputPath);

@@ -5,6 +5,16 @@ import { diagnoseAudioUrl } from './diagnoseAudioUrl';
 
 const { Howl } = howlerModule;
 
+/**
+ * Returns the Howler src array for a given URL.
+ * Opus URLs get an AAC/M4A fallback appended so iOS 16 and earlier (which do not support
+ * Opus) automatically fall back to the companion file. Howler picks the first playable
+ * format at init time, so modern browsers still use Opus.
+ */
+export function buildAudioSrc(url: string): string[] {
+  return url.endsWith('.opus') ? [url, url.replace(/\.opus$/, '.m4a')] : [url];
+}
+
 function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> } | undefined {
   try {
     const howler = Reflect.get(howlerModule as object, 'Howler') as
@@ -204,6 +214,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const attachCallbacks = useCallback(
     (sound: Howl, url: string) => {
+      const src = buildAudioSrc(url);
       const hasEventApi = typeof sound.on === 'function' && typeof sound.off === 'function';
 
       const onPlay = () => {
@@ -231,7 +242,9 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       const onLoadError = (_id: number, error: unknown) => {
         console.error('[Audio] Load error:', error);
-        console.warn('[Audio] File not found:', url);
+        // Log all sources so it's clear which URL(s) Howler exhausted.
+        // When a fallback is present, the last entry is the one Howler actually fetched.
+        console.warn('[Audio] Sources tried:', src);
         if (soundRef.current === sound) {
           stopProgressLoop();
           setIsPlaying(false);
@@ -240,9 +253,11 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           // Clear refs and unload to enable clean retry
           cleanupSound(sound, url);
 
-          // Asynchronously replace generic message with diagnostic details.
-          // Only update error state if a different URL hasn't been loaded since.
-          startDiagnostic(url)
+          // Diagnose the last source in the array — when a fallback exists (e.g. .m4a),
+          // that is the URL Howler actually fetched last, so it's the one most likely to
+          // surface the real error (e.g. a 404 during CDN rollout of the new format).
+          const diagnosticUrl = src[src.length - 1];
+          startDiagnostic(diagnosticUrl)
             .then((result) => {
               // If mounted and no other URL has been loaded (or same URL loaded again), update
               if (
@@ -320,7 +335,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
   const createSound = useCallback(
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
       const sound = new Howl({
-        src: [url],
+        src: buildAudioSrc(url),
         // Use Howler's Web Audio path so a single unlocked audio context
         // governs playback across track changes on mobile browsers.
         html5: false,

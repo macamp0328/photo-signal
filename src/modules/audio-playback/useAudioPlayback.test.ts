@@ -11,7 +11,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { Howl, Howler } from 'howler';
-import { useAudioPlayback } from './useAudioPlayback';
+import { useAudioPlayback, buildAudioSrc } from './useAudioPlayback';
 
 // Mock diagnoseAudioUrl
 vi.mock('./diagnoseAudioUrl', () => ({
@@ -191,6 +191,27 @@ const createDeferred = () => {
   return { promise, resolve };
 };
 
+describe('buildAudioSrc', () => {
+  it('returns [opusUrl, aacUrl] for .opus sources', () => {
+    expect(buildAudioSrc('/audio/ps-band-song.opus')).toEqual([
+      '/audio/ps-band-song.opus',
+      '/audio/ps-band-song.m4a',
+    ]);
+  });
+
+  it('returns a single-element array for non-.opus sources', () => {
+    expect(buildAudioSrc('/audio/track.mp3')).toEqual(['/audio/track.mp3']);
+    expect(buildAudioSrc('/audio/track.m4a')).toEqual(['/audio/track.m4a']);
+  });
+
+  it('replaces only the .opus extension, not occurrences within the path', () => {
+    expect(buildAudioSrc('/opus-files/ps-band.opus')).toEqual([
+      '/opus-files/ps-band.opus',
+      '/opus-files/ps-band.m4a',
+    ]);
+  });
+});
+
 describe('useAudioPlayback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -242,6 +263,29 @@ describe('useAudioPlayback', () => {
       });
 
       expect(getMockedHowlClass().instances[0].options.html5).toBe(false);
+    });
+
+    it('should pass [opusUrl, aacUrl] to Howler for .opus sources (iOS 16 fallback)', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/ps-band-song.opus');
+      });
+
+      expect(getMockedHowlClass().instances[0].options.src).toEqual([
+        '/audio/ps-band-song.opus',
+        '/audio/ps-band-song.m4a',
+      ]);
+    });
+
+    it('should pass a single-element src array to Howler for non-.opus sources', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/track.mp3');
+      });
+
+      expect(getMockedHowlClass().instances[0].options.src).toEqual(['/audio/track.mp3']);
     });
 
     it('should use correct volume when playing', () => {

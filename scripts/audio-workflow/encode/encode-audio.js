@@ -357,8 +357,26 @@ async function processAudioFile(download, config, options) {
   console.log(`  Slug:  ${slug}`);
   console.log('');
 
-  if (!dryRun && skipExisting && existsSync(outputPath) && existsSync(aacOutputPath)) {
-    console.log('  1. Skipping encode (output already exists)');
+  if (!dryRun && skipExisting && existsSync(outputPath)) {
+    if (!existsSync(aacOutputPath)) {
+      // .opus exists but .m4a companion is missing — transcode directly from the existing
+      // .opus without re-running loudness normalization or overwriting the Opus file.
+      console.log('  Skipping Opus encode (already exists); generating missing AAC companion...');
+      await encodeToAac(outputPath, aacOutputPath, config, {
+        band,
+        title: `${band} — ${date}`,
+        date,
+        album,
+        releaseDate,
+        genre,
+        recordLabel: musicDetails.recordLabel,
+        distributor: musicDetails.distributor,
+      });
+      console.log('  ✅ AAC companion generated');
+      console.log('');
+    } else {
+      console.log('  1. Skipping encode (output already exists)');
+    }
 
     const existingTrack = existingIndexMap?.get(slug) ?? null;
     if (existingTrack) {

@@ -1,8 +1,8 @@
 # Post 2 — "What AI-First Product Engineering Actually Looks Like"
 
-**Theme**: The process — directing AI agents, maintaining quality, making the calls  
-**When to post**: Day 4–5 after Post 1  
-**Tone**: Direct, grounded, slightly contrarian  
+**Theme**: The process — directing AI agents, maintaining quality, making the calls
+**When to post**: Day 4–5 after Post 1
+**Tone**: Direct, grounded, slightly contrarian
 **Hashtags**: `#ClaudeCode #ProductEngineering #SoftwareEngineering #AItools`
 
 ---

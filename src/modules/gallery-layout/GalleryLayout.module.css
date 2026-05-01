@@ -116,6 +116,9 @@
   position: fixed;
   top: calc(env(safe-area-inset-top) + 1rem);
   left: calc(env(safe-area-inset-left) + 1rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.65rem;
   font-family: var(--font-family);
   color: var(--color-bonus-text);
@@ -126,6 +129,19 @@
   z-index: 10;
   pointer-events: none;
   user-select: none;
+}
+
+.demoBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1rem;
+  padding: 0 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent), transparent 45%);
+  color: var(--color-main-text);
+  font-size: 0.55rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
 }
 
 /* Settings icon — top-right corner */

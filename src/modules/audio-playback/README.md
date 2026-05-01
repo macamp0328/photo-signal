@@ -8,8 +8,11 @@ Controls music playback with smooth fades and crossfades via Howler.js.
 useAudioPlayback(options?: AudioPlaybackOptions): AudioPlaybackHook
 ```
 
-`AudioPlaybackHook` members: `play(url)`, `preload(url)`, `pause()`, `stop()`, `fadeOut(duration?)`,
-`crossfade(newUrl, duration?)`, `isPlaying`, `progress`, `volume`, `playbackError`,
+`AudioPlaybackOptions`: `volume`, `onSongEnd`, `maxDurationMs` — when `maxDurationMs` is set,
+playback fades out over the last ~3 seconds and stops, then fires `onSongEnd`.
+
+`AudioPlaybackHook` members: `play(url)`, `preload(url)`, `pause()`, `stop()`,
+`crossfade(newUrl)`, `isPlaying`, `progress`, `volume`, `playbackError`,
 `setVolume(volume)`, `clearPlaybackError()`
 
 ```ts

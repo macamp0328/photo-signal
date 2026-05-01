@@ -33,6 +33,7 @@ import {
 } from './App.playback-helpers';
 import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import { applyExifVisualCharacter, resetExifVisualCharacter } from './utils/exif-visual';
+import { setUserType, clearUserType, isDemoUser } from './utils/userType';
 import { useStochasticGlitch } from './utils/useStochasticGlitch';
 import styles from './App.module.css';
 
@@ -56,11 +57,16 @@ const FOCUSABLE_SELECTOR =
 interface AccessGateConfig {
   enabled: boolean;
   passcode: string;
+  demoPasscode: string;
   sessionMs: number;
+  demoSessionMs: number;
 }
+
+const DEFAULT_DEMO_SESSION_HOURS = 4;
 
 const getAccessGateConfig = (): AccessGateConfig => {
   const passcode = (import.meta.env.VITE_ACCESS_PASSCODE ?? '').trim();
+  const demoPasscode = (import.meta.env.VITE_DEMO_PASSCODE ?? '').trim();
   const rawSessionHours = Number(
     import.meta.env.VITE_ACCESS_SESSION_HOURS ?? `${DEFAULT_ACCESS_SESSION_HOURS}`
   );
@@ -68,13 +74,22 @@ const getAccessGateConfig = (): AccessGateConfig => {
     Number.isFinite(rawSessionHours) && rawSessionHours > 0
       ? rawSessionHours
       : DEFAULT_ACCESS_SESSION_HOURS;
+  const rawDemoSessionHours = Number(
+    import.meta.env.VITE_DEMO_SESSION_HOURS ?? `${DEFAULT_DEMO_SESSION_HOURS}`
+  );
+  const demoSessionHours =
+    Number.isFinite(rawDemoSessionHours) && rawDemoSessionHours > 0
+      ? rawDemoSessionHours
+      : DEFAULT_DEMO_SESSION_HOURS;
 
   const isTestEnv = import.meta.env.MODE === 'test';
 
   return {
-    enabled: !isTestEnv && passcode.length > 0,
+    enabled: !isTestEnv && (passcode.length > 0 || demoPasscode.length > 0),
     passcode,
+    demoPasscode,
     sessionMs: sessionHours * 60 * 60 * 1000,
+    demoSessionMs: demoSessionHours * 60 * 60 * 1000,
   };
 };
 
@@ -92,14 +107,29 @@ const hasValidAccessSession = (): boolean => {
     const accessUntil = Number(storedValue);
     if (!Number.isFinite(accessUntil)) {
       window.localStorage.removeItem(ACCESS_STORAGE_KEY);
+      clearUserType();
       return false;
     }
 
-    return accessUntil > Date.now();
+    if (accessUntil <= Date.now()) {
+      clearUserType();
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error('Error reading access session from localStorage:', error);
     return false;
   }
+};
+
+const isDemoSessionActive = (gateConfig = getAccessGateConfig()): boolean => {
+  return (
+    gateConfig.enabled &&
+    gateConfig.demoPasscode.length > 0 &&
+    hasValidAccessSession() &&
+    isDemoUser()
+  );
 };
 
 // DEV-only badge: visible when __dev_fakeCamera is active in localStorage so
@@ -139,6 +169,8 @@ function DevFakeCameraBadge() {
 }
 
 function AppContent() {
+  const isDemoMode = isDemoSessionActive();
+
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -401,6 +433,7 @@ function AppContent() {
   const { play, pause, stop, preload, crossfade, isPlaying, progress, playbackError } =
     useAudioPlayback({
       volume: 1.0,
+      maxDurationMs: isDemoMode ? 15_000 : undefined,
       onSongEnd: () => {
         if (userPausedRef.current) return;
         const nextSong = getNextTrackAfterForwardAdvance();
@@ -1107,6 +1140,7 @@ function AppContent() {
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
         isMatchedPhoto={shouldShowScannedPhoto}
+        isDemoMode={isDemoMode}
         aboveCameraSlot={
           infoConcert ? (
             <div className={styles.matchedPhotoHeader}>
@@ -1276,13 +1310,20 @@ function App() {
   const handleUnlockSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (passcodeInput.trim() !== gateConfig.passcode) {
+    const trimmedInput = passcodeInput.trim();
+    const isGallery = gateConfig.passcode.length > 0 && trimmedInput === gateConfig.passcode;
+    const isDemo = gateConfig.demoPasscode.length > 0 && trimmedInput === gateConfig.demoPasscode;
+
+    if (!isGallery && !isDemo) {
       setPasscodeError('Incorrect code. Please try again.');
       return;
     }
 
+    const sessionMs = isDemo ? gateConfig.demoSessionMs : gateConfig.sessionMs;
+    setUserType(isDemo ? 'demo' : 'gallery');
+
     try {
-      window.localStorage.setItem(ACCESS_STORAGE_KEY, `${Date.now() + gateConfig.sessionMs}`);
+      window.localStorage.setItem(ACCESS_STORAGE_KEY, `${Date.now() + sessionMs}`);
     } catch (error) {
       console.error('Failed to persist access session to localStorage:', error);
     }

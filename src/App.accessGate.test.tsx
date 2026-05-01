@@ -107,6 +107,10 @@ describe('App access gate', () => {
     });
 
     expect(window.localStorage.getItem('photo-signal-user-type')).toBe('gallery');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+    );
+    expect(screen.queryByText('Demo')).toBeNull();
   });
 
   it('unlocks app and persists demo user type when demo passcode is used', async () => {
@@ -126,6 +130,10 @@ describe('App access gate', () => {
     });
 
     expect(window.localStorage.getItem('photo-signal-user-type')).toBe('demo');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+    );
+    expect(screen.getByText('Demo')).toBeTruthy();
   });
 
   it('rejects gallery passcode when only demo passcode is configured', async () => {
@@ -153,5 +161,33 @@ describe('App access gate', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: 'Private Gallery' })).toBeTruthy();
+  });
+
+  it('does not treat stale demo user type as demo mode when gate is disabled', () => {
+    env.VITE_ACCESS_PASSCODE = '';
+    env.VITE_DEMO_PASSCODE = '';
+    env.MODE = 'production';
+    window.localStorage.setItem('photo-signal-user-type', 'demo');
+    window.localStorage.setItem('photo-signal-access-until', `${Date.now() + 60_000}`);
+
+    render(<App />);
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Tune in — activate camera and begin experience' })
+    );
+    expect(screen.queryByText('Demo')).toBeNull();
+  });
+
+  it('clears stale user type when the stored session is expired', () => {
+    env.VITE_ACCESS_PASSCODE = '2468';
+    env.VITE_DEMO_PASSCODE = '9999';
+    env.MODE = 'production';
+    window.localStorage.setItem('photo-signal-user-type', 'demo');
+    window.localStorage.setItem('photo-signal-access-until', `${Date.now() - 1000}`);
+
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Private Gallery' })).toBeTruthy();
+    expect(window.localStorage.getItem('photo-signal-user-type')).toBeNull();
   });
 });

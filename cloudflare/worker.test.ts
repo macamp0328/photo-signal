@@ -330,6 +330,19 @@ describe('Cloudflare worker', () => {
     expect(await response.text()).toBe('');
   });
 
+  it('sets audio/mp4 content type and immutable cache for m4a fallback files', async () => {
+    const env = createEnv({ headResult: { size: 500, etag: 'm4a-etag' } });
+    const response = await worker.fetch(
+      createRequest('/prod/audio/ps-band-song-album.m4a', {
+        headers: { Origin: 'http://localhost:5173' },
+      }),
+      env
+    );
+
+    expect(response.headers.get('Content-Type')).toBe('audio/mp4');
+    expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
+  });
+
   it('sets metadata content headers for non-audio objects', async () => {
     const env = createEnv({ headResult: { size: 123, etag: 'meta' } });
     const response = await worker.fetch(

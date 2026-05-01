@@ -17,7 +17,7 @@ Regenerate this demo GIF programmatically with `npm run demo:gif`.
 
 Photo Signal is a project about linking physical photographs to sound without QR codes or visible
 markers. The experience is mobile-first and designed to feel quiet: frame a printed photo, get a match,
-see concert context, hear the song.
+see concert context, hear the song. No tracking, no ads.
 
 ## Project Intent
 

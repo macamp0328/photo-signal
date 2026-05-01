@@ -10,6 +10,7 @@ import { loadProjectEnv } from './load-local-env.js';
 const DEFAULT_INPUT_DIR = 'scripts/audio-workflow/encode/output';
 const DEFAULT_INCLUDE_EXTENSIONS = [
   '.opus',
+  '.m4a',
   '.webp',
   '.jpg',
   '.jpeg',
@@ -208,6 +209,8 @@ export function getContentType(filePath) {
   switch (ext) {
     case '.opus':
       return 'audio/ogg; codecs=opus';
+    case '.m4a':
+      return 'audio/mp4';
     case '.webp':
       return 'image/webp';
     case '.jpg':
@@ -229,7 +232,7 @@ export function getContentType(filePath) {
 
 export function getCacheControl(filePath) {
   const ext = path.extname(filePath).toLowerCase();
-  if (['.opus', '.webp', '.jpg', '.jpeg', '.png', '.avif'].includes(ext)) {
+  if (['.opus', '.m4a', '.webp', '.jpg', '.jpeg', '.png', '.avif'].includes(ext)) {
     return 'public, max-age=31536000, immutable';
   }
   return 'public, max-age=300';

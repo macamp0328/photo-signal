@@ -16,7 +16,7 @@ import {
   computeAiRecommendations,
   usePhotoRecognition,
 } from './modules/photo-recognition';
-import { useAudioPlayback, useAudioReactiveGlow } from './modules/audio-playback';
+import { useAudioPlayback } from './modules/audio-playback';
 import { CameraView } from './modules/camera-view';
 import { InfoDisplay } from './modules/concert-info';
 import { GalleryLayout } from './modules/gallery-layout';
@@ -34,6 +34,7 @@ import {
 import { applyConcertPalette, resetToDeadSignal } from './utils/concert-palette';
 import { applyExifVisualCharacter, resetExifVisualCharacter } from './utils/exif-visual';
 import { setUserType, clearUserType, isDemoUser } from './utils/userType';
+import { useStochasticGlitch } from './utils/useStochasticGlitch';
 import styles from './App.module.css';
 
 const SecretSettings = lazy(async () => {
@@ -122,6 +123,15 @@ const hasValidAccessSession = (): boolean => {
   }
 };
 
+const isDemoSessionActive = (gateConfig = getAccessGateConfig()): boolean => {
+  return (
+    gateConfig.enabled &&
+    gateConfig.demoPasscode.length > 0 &&
+    hasValidAccessSession() &&
+    isDemoUser()
+  );
+};
+
 // DEV-only badge: visible when __dev_fakeCamera is active in localStorage so
 // agents and humans can instantly confirm they're on the dev server (not
 // the production preview build, which strips all DEV code paths).
@@ -159,6 +169,8 @@ function DevFakeCameraBadge() {
 }
 
 function AppContent() {
+  const isDemoMode = isDemoSessionActive();
+
   // State for landing view vs. active camera view
   const [isActive, setIsActive] = useState(false);
 
@@ -421,7 +433,7 @@ function AppContent() {
   const { play, pause, stop, preload, crossfade, isPlaying, progress, playbackError } =
     useAudioPlayback({
       volume: 1.0,
-      maxDurationMs: isDemoUser() ? 30_000 : undefined,
+      maxDurationMs: isDemoMode ? 15_000 : undefined,
       onSongEnd: () => {
         if (userPausedRef.current) return;
         const nextSong = getNextTrackAfterForwardAdvance();
@@ -432,8 +444,8 @@ function AppContent() {
       },
     });
 
-  // Module: Audio-Reactive Phosphor Glow
-  useAudioReactiveGlow(!!activeRecognitionConcert && isPlaying, isEnabled('audio-reactive-glow'));
+  // Effect: Stochastic CRT Glitch
+  useStochasticGlitch(isEnabled('stochastic-glitch'));
 
   // Effect: Song-Progress Scan Lines
   // As progress approaches 1, restore scan lines with visible intensity (max +0.45 opacity).
@@ -1128,6 +1140,7 @@ function AppContent() {
         onSettingsClick={() => setShowSecretSettings(true)}
         audioControls={audioControls}
         isMatchedPhoto={shouldShowScannedPhoto}
+        isDemoMode={isDemoMode}
         aboveCameraSlot={
           infoConcert ? (
             <div className={styles.matchedPhotoHeader}>

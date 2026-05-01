@@ -196,12 +196,11 @@ Fields rendered in `ConcertInfoOverlay` and `SignalStrip` when a match is confir
 
 Controlled via `SecretSettings` menu. Persisted in localStorage as `photo-signal-feature-flags`.
 
-| ID                      | Label                        | Category     | Default | Effect                                                                                                                                  |
-| ----------------------- | ---------------------------- | ------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `exif-visual-character` | EXIF Visual Character        | ui           | `true`  | ISO drives grain intensity; shutter speed drives reveal animation speed (aperture is displayed in UI but does not drive a CSS variable) |
-| `rectangle-detection`   | Dynamic Rectangle Detection  | experimental | `true`  | Detects photo boundary in frame; crops to detected edges; shows framing overlay                                                         |
-| `show-debug-overlay`    | Debug Overlay                | development  | `false` | Shows `DebugOverlay` panel with live recognition telemetry                                                                              |
-| `audio-reactive-glow`   | Audio-Reactive Phosphor Glow | audio        | `true`  | Band name text shadow pulses with bass frequency via Web Audio `AnalyserNode` when `MATCHED` + `PLAYING`                                |
+| ID                      | Label                       | Category     | Default | Effect                                                                                                                                  |
+| ----------------------- | --------------------------- | ------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `exif-visual-character` | EXIF Visual Character       | ui           | `true`  | ISO drives grain intensity; shutter speed drives reveal animation speed (aperture is displayed in UI but does not drive a CSS variable) |
+| `rectangle-detection`   | Dynamic Rectangle Detection | experimental | `true`  | Detects photo boundary in frame; crops to detected edges; shows framing overlay                                                         |
+| `show-debug-overlay`    | Debug Overlay               | development  | `false` | Shows `DebugOverlay` panel with live recognition telemetry                                                                              |
 
 ---
 

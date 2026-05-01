@@ -52,8 +52,8 @@
   text-transform: uppercase;
   letter-spacing: 0.01em;
   text-shadow:
-    0 0 calc(14px * var(--glow-reactive-scale)) var(--signal-glow),
-    0 0 calc(28px * var(--glow-reactive-scale)) var(--signal-glow-soft);
+    0 0 14px var(--signal-glow),
+    0 0 28px var(--signal-glow-soft);
   transition: color 1.2s ease;
 }
 
@@ -116,17 +116,32 @@
   position: fixed;
   top: calc(env(safe-area-inset-top) + 1rem);
   left: calc(env(safe-area-inset-left) + 1rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.65rem;
   font-family: var(--font-family);
   color: var(--color-bonus-text);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   opacity: 0.65;
-  text-shadow: 0 0 calc(10px * var(--glow-reactive-scale))
-    color-mix(in srgb, var(--color-main-text), transparent 70%);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--color-main-text), transparent 70%);
   z-index: 10;
   pointer-events: none;
   user-select: none;
+}
+
+.demoBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1rem;
+  padding: 0 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent), transparent 45%);
+  color: var(--color-main-text);
+  font-size: 0.55rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
 }
 
 /* Settings icon — top-right corner */
@@ -165,6 +180,8 @@
 
 /* Content area — camera centered in remaining space */
 .content {
+  --matched-photo-gap: 0.35rem;
+  --matched-photo-audio-clearance: 0rem;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -179,6 +196,7 @@
 }
 
 .contentWithAudio {
+  --matched-photo-audio-clearance: 4.9rem;
   padding-bottom: calc(env(safe-area-inset-bottom) + 3rem);
 }
 
@@ -223,14 +241,21 @@
 /* Photo mode — natural aspect ratio, no fixed square height */
 .cameraWrapPhoto {
   width: max(6rem, min(calc(100vw - 0.5rem), var(--layout-content-max-width)));
-  max-height: calc(100svh - 8rem);
-  flex-shrink: 0;
+  max-height: var(--matched-photo-max-height, calc(100vh - 8rem));
+  flex: 0 1 auto;
+  min-height: 0;
   overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .cameraWrapPhoto {
+    max-height: var(--matched-photo-max-height, calc(100svh - 8rem));
+  }
 }
 
 .cameraSectionPhoto {
   width: 100%;
-  height: auto;
+  max-height: inherit;
   border: 1px solid color-mix(in srgb, var(--color-accent), transparent 60%);
   box-shadow:
     0 0 10px color-mix(in srgb, var(--color-accent), transparent 72%),
@@ -241,7 +266,6 @@
 }
 
 .cameraSectionPhoto > * {
-  height: auto;
   width: 100%;
 }
 
@@ -267,6 +291,7 @@
   }
 
   .contentWithAudio {
+    --matched-photo-audio-clearance: 4.9rem;
     padding-bottom: calc(env(safe-area-inset-bottom) + 3rem);
   }
 }
@@ -278,7 +303,34 @@
 
   .contentWithAudio {
     /* Extra padding ensures the below-photo action row clears the fixed audio strip */
+    --matched-photo-audio-clearance: 6.9rem;
     padding-bottom: calc(env(safe-area-inset-bottom) + 7rem);
+  }
+}
+
+/* Matched photo: center the full header/photo/action stack, then scroll only on truly tiny screens. */
+.contentMatchedPhoto {
+  --matched-photo-max-height: max(
+    7rem,
+    calc(
+      100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) -
+        var(--matched-photo-audio-clearance) - 10.5rem
+    )
+  );
+  gap: var(--matched-photo-gap);
+  justify-content: center;
+  overflow-y: auto;
+}
+
+@supports (height: 100svh) {
+  .contentMatchedPhoto {
+    --matched-photo-max-height: max(
+      7rem,
+      calc(
+        100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom) -
+          var(--matched-photo-audio-clearance) - 10.5rem
+      )
+    );
   }
 }
 

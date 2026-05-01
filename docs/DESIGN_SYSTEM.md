@@ -106,14 +106,12 @@ The result is **deterministic** — same band on same day always produces identi
 
 ### Glow & Signal Variables
 
-| Token                        | Default Value              | Role                                          |
-| ---------------------------- | -------------------------- | --------------------------------------------- |
-| `--signal-glow`              | `rgba(212, 137, 42, 0.34)` | Primary glow (text-shadow, box-shadow)        |
-| `--signal-glow-soft`         | `rgba(212, 137, 42, 0.14)` | Ambient / soft glow                           |
-| `--glow-reactive-scale`      | `1`                        | Audio-reactive text glow multiplier (0.6–1.8) |
-| `--glow-reactive-scale-ring` | `1`                        | Audio-reactive ring glow multiplier (0.4–2.0) |
-| `--crt-opacity`              | `1`                        | CRT scan line layer opacity (0 when matched)  |
-| `--crt-glow-color`           | `rgba(212, 137, 42, 0.28)` | CRT phosphor glow color                       |
+| Token                | Default Value              | Role                                         |
+| -------------------- | -------------------------- | -------------------------------------------- |
+| `--signal-glow`      | `rgba(212, 137, 42, 0.34)` | Primary glow (text-shadow, box-shadow)       |
+| `--signal-glow-soft` | `rgba(212, 137, 42, 0.14)` | Ambient / soft glow                          |
+| `--crt-opacity`      | `1`                        | CRT scan line layer opacity (0 when matched) |
+| `--crt-glow-color`   | `rgba(212, 137, 42, 0.28)` | CRT phosphor glow color                      |
 
 ### Background & Texture Variables
 
@@ -208,21 +206,21 @@ Six fluid tokens that scale with viewport width via `clamp()`.
 All named keyframe animations in the system. Duration and easing are per-use-site defaults; individual
 components may override.
 
-| Animation               | Duration / Easing                                                       | Defined In                    | Fires When                                                                                                    |
-| ----------------------- | ----------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `fadeIn`                | Varies (0.5s typical), `ease-out`                                       | `src/index.css`               | Active view enters; general show transitions                                                                  |
-| `slideUpFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that slide up into view                                                                              |
-| `scaleInFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                                                                       |
-| `chromaticShift`        | Continuous / event-driven, smooth                                       | `src/index.css`               | Reserved — keyframe defined, not yet wired to a trigger; intended for CRT chromatic aberration (RGB fringing) |
-| `posterReveal`          | `calc(0.8s × --exif-transition-scale)`, `cubic-bezier(0.16, 1, 0.3, 1)` | `src/index.css`               | Scanned photo frame animates in after `MATCH_CONFIRMED`                                                       |
-| `textReveal`            | `0.4–0.5s`, `cubic-bezier(0.16, 1, 0.3, 1)` `both`; staggered delays    | `InfoDisplay.module.css`      | Band name (0.1s), meta (0.22s), EXIF (0.34s) materialize upward in the above-photo caption strip              |
-| `signal-flicker`        | `3.2s`, `steps(1)` infinite                                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`                                                             |
-| `glow-breathe`          | `2.8s`, `ease-in-out` infinite                                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`                                                            |
-| `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                                                                              |
-| `phosphor-bloom-border` | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Border flares amber → near-white → amber on lock                                                              |
-| `scan-sweep`            | `2.2s`, `linear` infinite                                               | `RectangleOverlay.module.css` | Horizontal scan line sweeps rectangle interior in `CANDIDATE`                                                 |
-| `corner-jitter`         | `1.4s`, `steps(3)` infinite                                             | `RectangleOverlay.module.css` | Corner L-brackets jitter digitally in `CANDIDATE`                                                             |
-| `corner-stamp`          | `0.45s`, `cubic-bezier(0.34, 1.56, 0.64, 1)` `forwards`                 | `RectangleOverlay.module.css` | Corners spring-stamp into place on `MATCH_CONFIRMED`                                                          |
+| Animation               | Duration / Easing                                                       | Defined In                    | Fires When                                                                                               |
+| ----------------------- | ----------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `fadeIn`                | Varies (0.5s typical), `ease-out`                                       | `src/index.css`               | Active view enters; general show transitions                                                             |
+| `slideUpFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that slide up into view                                                                         |
+| `scaleInFade`           | Varies, `ease`                                                          | `src/index.css`               | Elements that scale in (scale 0.98 → 1)                                                                  |
+| `chromaticShift`        | `0.3s`, `ease-in-out`, event-driven                                     | `src/index.css`               | Stochastic glitch timer (~once per 5 min, `useStochasticGlitch`); also planned for anniversary resonance |
+| `posterReveal`          | `calc(0.8s × --exif-transition-scale)`, `cubic-bezier(0.16, 1, 0.3, 1)` | `src/index.css`               | Scanned photo frame animates in after `MATCH_CONFIRMED`                                                  |
+| `textReveal`            | `0.4–0.5s`, `cubic-bezier(0.16, 1, 0.3, 1)` `both`; staggered delays    | `InfoDisplay.module.css`      | Band name (0.1s), meta (0.22s), EXIF (0.34s) materialize upward in the above-photo caption strip         |
+| `signal-flicker`        | `3.2s`, `steps(1)` infinite                                             | `RectangleOverlay.module.css` | Rectangle border while recognition is `CANDIDATE`                                                        |
+| `glow-breathe`          | `2.8s`, `ease-in-out` infinite                                          | `RectangleOverlay.module.css` | Glow layer pulses while recognition is `CANDIDATE`                                                       |
+| `phosphor-bloom-glow`   | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Glow flares on `MATCH_CONFIRMED`                                                                         |
+| `phosphor-bloom-border` | `1.6s`, `cubic-bezier(0.16, 1, 0.3, 1)` `forwards`                      | `RectangleOverlay.module.css` | Border flares amber → near-white → amber on lock                                                         |
+| `scan-sweep`            | `2.2s`, `linear` infinite                                               | `RectangleOverlay.module.css` | Horizontal scan line sweeps rectangle interior in `CANDIDATE`                                            |
+| `corner-jitter`         | `1.4s`, `steps(3)` infinite                                             | `RectangleOverlay.module.css` | Corner L-brackets jitter digitally in `CANDIDATE`                                                        |
+| `corner-stamp`          | `0.45s`, `cubic-bezier(0.34, 1.56, 0.64, 1)` `forwards`                 | `RectangleOverlay.module.css` | Corners spring-stamp into place on `MATCH_CONFIRMED`                                                     |
 
 **Easing conventions**:
 
@@ -247,10 +245,8 @@ Named effects, their CSS mechanism, and the variable that controls them.
 ### Phosphor Glow
 
 - **Mechanism**: Multi-layer `text-shadow` on display text (band name, landing headline)
-- **Control**: `--glow-reactive-scale` multiplier on all shadow `px` values via `calc()`
-- **Range when audio-reactive**: text `0.6–1.8`, ring outline `0.4–2.0`, both driven by bass frequency via `AnalyserNode`
-- **Default**: `1` (constant glow at baseline intensity)
 - **Colors**: `--signal-glow` and `--signal-glow-soft`
+- **Intensity**: Static baseline glow tuned directly in component shadow values
 
 ### Film Grain Overlay
 
@@ -264,7 +260,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 
 - **Mechanism**: `chromaticShift` keyframe animation on a box-shadow with offset red/blue layers
 - **Colors**: red fringe `rgba(255, 60, 0, …)`, blue fringe `rgba(0, 100, 255, …)`
-- **Activation**: reserved — keyframe not yet wired to a trigger; planned for stochastic glitch timer (~once per 5 min) and anniversary resonance (see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`)
+- **Activation**: `useStochasticGlitch` hook sets `document.documentElement.style.animation` at ~0.3% probability per second (~once per 5 min); also planned for anniversary resonance (see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`)
 - **Peak values**: red offset `−3px / +3px`, blue offset `+3px / −3px` at 50% keyframe
 
 ### Background Radial Gradients
@@ -287,7 +283,7 @@ Named effects, their CSS mechanism, and the variable that controls them.
 - **Detecting state**: dashed border with `signal-flicker`, `glow-breathe`, `scan-sweep`,
   `corner-jitter` — all running continuously while a candidate is tracked
 - **Detected state**: `phosphor-bloom-glow` + `phosphor-bloom-border` + `corner-stamp` fire once,
-  then the overlay holds steady with a glow that scales with `--glow-reactive-scale`
+  then the overlay holds steady with a fixed phosphor glow
 - **Palette**: inherits from `--color-accent`, `--signal-glow`, `--signal-glow-soft`
 - **Bloom peak color**: `--rect-bloom-peak: #fff3c0` (near-white phosphor at the lock moment)
 
@@ -299,23 +295,22 @@ Variables modified by JavaScript at the moment of match or unmatch. The HTML att
 `data-state="matched"` is set on `<html>` by `applyConcertPalette()` and triggers the
 `html[data-state='matched']` CSS block, which cascades new values down to all components.
 
-| Variable                  | Trigger                     | Dead Signal Value            | Matched State Value                                              |
-| ------------------------- | --------------------------- | ---------------------------- | ---------------------------------------------------------------- |
-| `--poster-bg`             | `MATCH_CONFIRMED`           | `#0a0800`                    | Generated by `getConcertPalette()` (HSL, 5% lightness)           |
-| `--poster-primary`        | `MATCH_CONFIRMED`           | `#d4892a`                    | Generated palette primary (100% sat, 62–72% L)                   |
-| `--poster-accent`         | `MATCH_CONFIRMED`           | `#b87020`                    | Generated palette accent (100% sat, 58% L)                       |
-| `--color-background`      | CSS cascade                 | `#0a0800`                    | `var(--poster-bg)`                                               |
-| `--color-main-text`       | CSS cascade                 | `#d4892a`                    | `var(--poster-primary)`                                          |
-| `--color-accent`          | CSS cascade                 | `#d4892a`                    | `var(--poster-accent)`                                           |
-| `--crt-opacity`           | CSS cascade                 | `1`                          | `0`                                                              |
-| `--texture-opacity`       | CSS cascade                 | `0.1`                        | `0`                                                              |
-| `--bg-gradient-top`       | CSS cascade                 | `rgba(212, 137, 42, 0.16)`   | `transparent`                                                    |
-| `--signal-glow`           | CSS cascade                 | `rgba(212, 137, 42, 0.34)`   | `color-mix(in srgb, var(--poster-primary), transparent 66%)`     |
-| `--font-family`           | CSS cascade                 | `ui-monospace, 'SF Mono', …` | `-apple-system …, sans-serif`                                    |
-| `--exif-grain-opacity`    | JS (`exif-visual.ts`)       | `0.04`                       | `0.06–0.28` (ISO-driven)                                         |
-| `--exif-transition-scale` | JS (`exif-visual.ts`)       | `1`                          | `0.6–1.4` (shutter speed driven)                                 |
-| `--glow-reactive-scale`   | JS (`useAudioReactiveGlow`) | `1`                          | `0.6–1.8` text glow / `0.4–2.0` ring (bass freq, `PLAYING` only) |
-| `theme-color` meta tag    | JS (`concert-palette.ts`)   | `#000000`                    | `palette.bg` (concert background color)                          |
+| Variable                  | Trigger                   | Dead Signal Value            | Matched State Value                                          |
+| ------------------------- | ------------------------- | ---------------------------- | ------------------------------------------------------------ |
+| `--poster-bg`             | `MATCH_CONFIRMED`         | `#0a0800`                    | Generated by `getConcertPalette()` (HSL, 5% lightness)       |
+| `--poster-primary`        | `MATCH_CONFIRMED`         | `#d4892a`                    | Generated palette primary (100% sat, 62–72% L)               |
+| `--poster-accent`         | `MATCH_CONFIRMED`         | `#b87020`                    | Generated palette accent (100% sat, 58% L)                   |
+| `--color-background`      | CSS cascade               | `#0a0800`                    | `var(--poster-bg)`                                           |
+| `--color-main-text`       | CSS cascade               | `#d4892a`                    | `var(--poster-primary)`                                      |
+| `--color-accent`          | CSS cascade               | `#d4892a`                    | `var(--poster-accent)`                                       |
+| `--crt-opacity`           | CSS cascade               | `1`                          | `0`                                                          |
+| `--texture-opacity`       | CSS cascade               | `0.1`                        | `0`                                                          |
+| `--bg-gradient-top`       | CSS cascade               | `rgba(212, 137, 42, 0.16)`   | `transparent`                                                |
+| `--signal-glow`           | CSS cascade               | `rgba(212, 137, 42, 0.34)`   | `color-mix(in srgb, var(--poster-primary), transparent 66%)` |
+| `--font-family`           | CSS cascade               | `ui-monospace, 'SF Mono', …` | `-apple-system …, sans-serif`                                |
+| `--exif-grain-opacity`    | JS (`exif-visual.ts`)     | `0.04`                       | `0.06–0.28` (ISO-driven)                                     |
+| `--exif-transition-scale` | JS (`exif-visual.ts`)     | `1`                          | `0.6–1.4` (shutter speed driven)                             |
+| `theme-color` meta tag    | JS (`concert-palette.ts`) | `#000000`                    | `palette.bg` (concert background color)                      |
 
 **Mechanism**: CSS `transition: background-color 1.2s ease, color 1.2s ease` on `body`, and
 `transition: opacity 1.2s ease` on `body::after`, ensure the dead-signal → matched transition
@@ -346,11 +341,10 @@ Camera square size formula: `max(6rem, min(100vw − 0.5rem, --layout-content-ma
 Implemented effects that drive CSS custom properties from runtime data. For the full backlog and
 planned effects, see `docs/ENVIRONMENTAL_EFFECTS_IDEAS.md`.
 
-| Effect                 | Data Source                     | CSS Variable              | Range / Values                                                | Feature Flag            |
-| ---------------------- | ------------------------------- | ------------------------- | ------------------------------------------------------------- | ----------------------- |
-| EXIF grain intensity   | `concert.iso`                   | `--exif-grain-opacity`    | `0.06` (ISO 100) – `0.28` (ISO 3200+)                         | `exif-visual-character` |
-| EXIF transition timing | `concert.shutterSpeed`          | `--exif-transition-scale` | `0.6` (1/500s fast) – `1.4` (1/30s slow)                      | `exif-visual-character` |
-| Audio-reactive glow    | Bass frequency (`AnalyserNode`) | `--glow-reactive-scale`   | text `0.6–1.8`, ring `0.4–2.0`; `smoothingTimeConstant = 0.7` | `audio-reactive-glow`   |
+| Effect                 | Data Source            | CSS Variable              | Range / Values                           | Feature Flag            |
+| ---------------------- | ---------------------- | ------------------------- | ---------------------------------------- | ----------------------- |
+| EXIF grain intensity   | `concert.iso`          | `--exif-grain-opacity`    | `0.06` (ISO 100) – `0.28` (ISO 3200+)    | `exif-visual-character` |
+| EXIF transition timing | `concert.shutterSpeed` | `--exif-transition-scale` | `0.6` (1/500s fast) – `1.4` (1/30s slow) | `exif-visual-character` |
 
 **Rules for all environmental effects**:
 

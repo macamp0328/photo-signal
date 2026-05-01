@@ -11,7 +11,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { Howl, Howler } from 'howler';
-import { useAudioPlayback } from './useAudioPlayback';
+import { useAudioPlayback, buildAudioSrc } from './useAudioPlayback';
 
 // Mock diagnoseAudioUrl
 vi.mock('./diagnoseAudioUrl', () => ({
@@ -48,9 +48,6 @@ vi.mock('howler', () => {
       html5?: boolean;
       volume?: number;
     };
-    // Mirrors Howler's internal _sounds pool so the crossOrigin patch in createSound
-    // can find and configure the audio element — same structure the real Howler exposes.
-    public readonly _sounds: { _node: HTMLAudioElement }[];
 
     public static instances: MockHowl[] = [];
 
@@ -77,11 +74,6 @@ vi.mock('howler', () => {
       MockHowl.instances.push(this);
       this.seekPosition = 0;
       this.durationMs = 30000;
-
-      // Populate _sounds so the crossOrigin patch in createSound exercises the live code path
-      const mockAudioNode = document.createElement('audio');
-      vi.spyOn(mockAudioNode, 'load').mockImplementation(() => {});
-      this._sounds = [{ _node: mockAudioNode }];
 
       // Initialize methods
       this.play = vi.fn(() => {
@@ -178,7 +170,7 @@ interface MockHowlInstance {
     html5?: boolean;
     volume?: number;
   };
-  _sounds: { _node: HTMLAudioElement }[];
+  unload: ReturnType<typeof vi.fn>;
   __triggerEnd: () => void;
   __triggerStop: () => void;
   __triggerLoadError: (error?: unknown) => void;
@@ -198,6 +190,27 @@ const createDeferred = () => {
   });
   return { promise, resolve };
 };
+
+describe('buildAudioSrc', () => {
+  it('returns [opusUrl, aacUrl] for .opus sources', () => {
+    expect(buildAudioSrc('/audio/ps-band-song.opus')).toEqual([
+      '/audio/ps-band-song.opus',
+      '/audio/ps-band-song.m4a',
+    ]);
+  });
+
+  it('returns a single-element array for non-.opus sources', () => {
+    expect(buildAudioSrc('/audio/track.mp3')).toEqual(['/audio/track.mp3']);
+    expect(buildAudioSrc('/audio/track.m4a')).toEqual(['/audio/track.m4a']);
+  });
+
+  it('replaces only the .opus extension, not occurrences within the path', () => {
+    expect(buildAudioSrc('/opus-files/ps-band.opus')).toEqual([
+      '/opus-files/ps-band.opus',
+      '/opus-files/ps-band.m4a',
+    ]);
+  });
+});
 
 describe('useAudioPlayback', () => {
   beforeEach(() => {
@@ -250,6 +263,29 @@ describe('useAudioPlayback', () => {
       });
 
       expect(getMockedHowlClass().instances[0].options.html5).toBe(false);
+    });
+
+    it('should pass [opusUrl, aacUrl] to Howler for .opus sources (iOS 16 fallback)', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/ps-band-song.opus');
+      });
+
+      expect(getMockedHowlClass().instances[0].options.src).toEqual([
+        '/audio/ps-band-song.opus',
+        '/audio/ps-band-song.m4a',
+      ]);
+    });
+
+    it('should pass a single-element src array to Howler for non-.opus sources', () => {
+      const { result } = renderHook(() => useAudioPlayback());
+
+      act(() => {
+        result.current.play('/audio/track.mp3');
+      });
+
+      expect(getMockedHowlClass().instances[0].options.src).toEqual(['/audio/track.mp3']);
     });
 
     it('should use correct volume when playing', () => {
@@ -370,22 +406,6 @@ describe('useAudioPlayback', () => {
 
       expect(getMockedHowlClass().instances).toHaveLength(1);
       expect(result.current.isPlaying).toBe(true);
-    });
-
-    it('sets crossOrigin="anonymous" on html5 audio elements so Web Audio AnalyserNode can read frequency data', () => {
-      // The crossOrigin patch in createSound enables useAudioReactiveGlow to call
-      // createMediaElementSource() on the cross-origin R2 audio element without a SecurityError.
-      const { result } = renderHook(() => useAudioPlayback());
-
-      act(() => {
-        result.current.play('/audio/test.opus');
-      });
-
-      const instance = getMockedHowlClass().instances[0];
-      const audioEl = instance._sounds[0]._node;
-
-      expect(audioEl.crossOrigin).toBe('anonymous');
-      expect(audioEl.load).toHaveBeenCalled();
     });
   });
 
@@ -1157,13 +1177,14 @@ describe('useAudioPlayback', () => {
 
       // The key assertion: with no maxDurationMs, playback still works normally.
       expect(result.current.isPlaying).toBe(true);
+      expect(setTimeoutSpy).not.toHaveBeenCalled();
       setTimeoutSpy.mockRestore();
     });
 
-    it('schedules fade-out before the limit and stop at the limit', () => {
+    it('schedules fade-out before the 15 second limit and stop at the limit', () => {
       const onSongEnd = vi.fn();
       const { result } = renderHook(() =>
-        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 15_000, onSongEnd })
       );
 
       act(() => {
@@ -1172,9 +1193,9 @@ describe('useAudioPlayback', () => {
 
       expect(result.current.isPlaying).toBe(true);
 
-      // Advance to fade start (7 seconds in)
+      // Advance to fade start (12 seconds in)
       act(() => {
-        vi.advanceTimersByTime(7000);
+        vi.advanceTimersByTime(12_000);
       });
 
       const sound = getMockedHowlClass().instances[0] as unknown as {
@@ -1183,7 +1204,7 @@ describe('useAudioPlayback', () => {
       };
       expect(sound.fade).toHaveBeenCalledWith(expect.any(Number), 0, 3000);
 
-      // Advance to stop (10 seconds total)
+      // Advance to stop (15 seconds total)
       act(() => {
         vi.advanceTimersByTime(3000);
       });
@@ -1195,7 +1216,7 @@ describe('useAudioPlayback', () => {
     it('clears preview timers when stop() is called', () => {
       const onSongEnd = vi.fn();
       const { result } = renderHook(() =>
-        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 15_000, onSongEnd })
       );
 
       act(() => {
@@ -1218,7 +1239,7 @@ describe('useAudioPlayback', () => {
     it('clears preview timers when pause() is called', () => {
       const onSongEnd = vi.fn();
       const { result } = renderHook(() =>
-        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 15_000, onSongEnd })
       );
 
       act(() => {
@@ -1239,7 +1260,7 @@ describe('useAudioPlayback', () => {
     it('resets preview timers when a new track starts via play()', () => {
       const onSongEnd = vi.fn();
       const { result } = renderHook(() =>
-        useAudioPlayback({ volume: 0.8, maxDurationMs: 10_000, onSongEnd })
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 15_000, onSongEnd })
       );
 
       act(() => {
@@ -1261,6 +1282,47 @@ describe('useAudioPlayback', () => {
       });
 
       // onSongEnd should not have fired for the first track's timer
+      expect(onSongEnd).not.toHaveBeenCalled();
+    });
+
+    it('clears preview timers when a track ends naturally', () => {
+      const onSongEnd = vi.fn();
+      const { result } = renderHook(() =>
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 15_000, onSongEnd })
+      );
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      const sound = getMockedHowlClass().instances[0];
+      act(() => {
+        sound.__triggerEnd();
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(20_000);
+      });
+
+      expect(onSongEnd).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears preview timers when unmounted', () => {
+      const onSongEnd = vi.fn();
+      const { result, unmount } = renderHook(() =>
+        useAudioPlayback({ volume: 0.8, maxDurationMs: 15_000, onSongEnd })
+      );
+
+      act(() => {
+        result.current.play('/audio/test.opus');
+      });
+
+      unmount();
+
+      act(() => {
+        vi.advanceTimersByTime(20_000);
+      });
+
       expect(onSongEnd).not.toHaveBeenCalled();
     });
   });

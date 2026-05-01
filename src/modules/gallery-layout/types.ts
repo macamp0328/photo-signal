@@ -26,6 +26,9 @@ export interface GalleryLayoutProps {
   /** When true, the camera square is replaced with a natural-aspect-ratio photo container */
   isMatchedPhoto?: boolean;
 
+  /** Whether the active session is the remote demo mode */
+  isDemoMode?: boolean;
+
   /** Optional slot rendered above the camera frame (outside the camera container) */
   aboveCameraSlot?: ReactNode;
 

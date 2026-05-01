@@ -5,6 +5,16 @@ import { diagnoseAudioUrl } from './diagnoseAudioUrl';
 
 const { Howl } = howlerModule;
 
+/**
+ * Returns the Howler src array for a given URL.
+ * Opus URLs get an AAC/M4A fallback appended so iOS 16 and earlier (which do not support
+ * Opus) automatically fall back to the companion file. Howler picks the first playable
+ * format at init time, so modern browsers still use Opus.
+ */
+export function buildAudioSrc(url: string): string[] {
+  return url.endsWith('.opus') ? [url, url.replace(/\.opus$/, '.m4a')] : [url];
+}
+
 function getHowlerContext(): { state?: string; resume?: () => Promise<unknown> } | undefined {
   try {
     const howler = Reflect.get(howlerModule as object, 'Howler') as
@@ -195,6 +205,18 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
     preloadCacheRef.current.delete(url);
   }, []);
 
+  const stopSoundAfterPreviewLimit = useCallback(
+    (sound: Howl, url: string) => {
+      sound.stop();
+      cleanupSound(sound, url);
+      setIsPlaying(false);
+      stopProgressLoop();
+      setProgress(0);
+      onSongEndRef.current?.();
+    },
+    [cleanupSound, stopProgressLoop]
+  );
+
   const getCurrentRatio = useCallback(() => {
     const sound = soundRef.current;
     if (!sound) {
@@ -234,6 +256,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
   const attachCallbacks = useCallback(
     (sound: Howl, url: string) => {
+      const src = buildAudioSrc(url);
       const hasEventApi = typeof sound.on === 'function' && typeof sound.off === 'function';
 
       const onPlay = () => {
@@ -248,21 +271,16 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
         if (limit !== undefined && limit > 0) {
           const fadeStart = Math.max(0, limit - PREVIEW_FADE_DURATION_MS);
           previewFadeTimerRef.current = setTimeout(() => {
+            previewFadeTimerRef.current = null;
             const activeSound = soundRef.current;
             if (activeSound && activeSound === sound) {
               activeSound.fade(activeSound.volume(), 0, PREVIEW_FADE_DURATION_MS);
             }
           }, fadeStart);
           previewStopTimerRef.current = setTimeout(() => {
+            previewStopTimerRef.current = null;
             if (soundRef.current === sound) {
-              sound.stop();
-              sound.unload();
-              soundRef.current = null;
-              currentUrlRef.current = null;
-              setIsPlaying(false);
-              stopProgressLoop();
-              setProgress(0);
-              onSongEndRef.current?.();
+              stopSoundAfterPreviewLimit(sound, url);
             }
           }, limit);
         }
@@ -270,6 +288,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       const onEnd = () => {
         if (soundRef.current === sound) {
+          clearPreviewTimers();
           stopProgressLoop();
           setIsPlaying(false);
           setProgress(0);
@@ -279,6 +298,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       const onStop = () => {
         if (soundRef.current === sound) {
+          clearPreviewTimers();
           stopProgressLoop();
           setIsPlaying(false);
         }
@@ -286,8 +306,11 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
 
       const onLoadError = (_id: number, error: unknown) => {
         console.error('[Audio] Load error:', error);
-        console.warn('[Audio] File not found:', url);
+        // Log all sources so it's clear which URL(s) Howler exhausted.
+        // When a fallback is present, the last entry is the one Howler actually fetched.
+        console.warn('[Audio] Sources tried:', src);
         if (soundRef.current === sound) {
+          clearPreviewTimers();
           stopProgressLoop();
           setIsPlaying(false);
           setProgress(0);
@@ -295,9 +318,11 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
           // Clear refs and unload to enable clean retry
           cleanupSound(sound, url);
 
-          // Asynchronously replace generic message with diagnostic details.
-          // Only update error state if a different URL hasn't been loaded since.
-          startDiagnostic(url)
+          // Diagnose the last source in the array — when a fallback exists (e.g. .m4a),
+          // that is the URL Howler actually fetched last, so it's the one most likely to
+          // surface the real error (e.g. a 404 during CDN rollout of the new format).
+          const diagnosticUrl = src[src.length - 1];
+          startDiagnostic(diagnosticUrl)
             .then((result) => {
               // If mounted and no other URL has been loaded (or same URL loaded again), update
               if (
@@ -317,6 +342,7 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       const onPlayError = (_id: number, error: unknown) => {
         console.error('[Audio] Play error:', error);
         if (soundRef.current === sound) {
+          clearPreviewTimers();
           stopProgressLoop();
           setIsPlaying(false);
           setProgress(0);
@@ -376,37 +402,20 @@ export function useAudioPlayback(options: AudioPlaybackOptions = {}): AudioPlayb
       startDiagnostic,
       resolvePlayErrorMessage,
       clearPreviewTimers,
+      stopSoundAfterPreviewLimit,
     ]
   );
 
   const createSound = useCallback(
     (url: string, { initialVolume }: { initialVolume?: number } = {}) => {
       const sound = new Howl({
-        src: [url],
+        src: buildAudioSrc(url),
         // Use Howler's Web Audio path so a single unlocked audio context
         // governs playback across track changes on mobile browsers.
         html5: false,
         preload: true,
         volume: initialVolume ?? volumeRef.current,
       });
-
-      // Set crossOrigin='anonymous' on Howler's internal <audio> elements so that
-      // useAudioReactiveGlow can connect a Web Audio AnalyserNode via
-      // createMediaElementSource(). Without this attribute the call throws a
-      // SecurityError for cross-origin R2 audio. The Cloudflare Worker already sends
-      // Access-Control-Allow-Origin for all allowed origins, so this is safe.
-      // Accessing _sounds/_node uses Howler internals, but the guard makes it a no-op
-      // in tests (where Howl is mocked and _sounds is undefined).
-      const howlInternal = sound as unknown as { _sounds?: { _node?: unknown }[] };
-      if (Array.isArray(howlInternal._sounds)) {
-        howlInternal._sounds.forEach((s) => {
-          const node = s?._node;
-          if (node instanceof HTMLAudioElement && !node.crossOrigin) {
-            node.crossOrigin = 'anonymous';
-            node.load(); // restart load so Origin header is sent; CORS response unlocks createMediaElementSource
-          }
-        });
-      }
 
       attachCallbacks(sound, url);
 

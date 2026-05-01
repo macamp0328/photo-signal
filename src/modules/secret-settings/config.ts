@@ -34,19 +34,19 @@ export const FEATURE_FLAGS: FeatureFlag[] = [
     category: 'development',
   },
   {
-    id: 'audio-reactive-glow',
-    name: 'Audio-Reactive Phosphor Glow',
-    description:
-      'When a photo is matched and music plays, the phosphor glow subtly breathes with the bass. Uses the Web Audio API to read low-frequency energy and modulate the text-shadow intensity. Activates only in matched state.',
-    enabled: true,
-    category: 'audio',
-  },
-  {
     id: 'song-progress-scanlines',
     name: 'Song-Progress Scan Lines',
     description:
       'As a song plays toward its end, scan lines return — the broadcast fades as the audio arc closes. Opacity increases from 0 to a max of +0.45 as progress approaches 1.',
     enabled: true,
     category: 'audio',
+  },
+  {
+    id: 'stochastic-glitch',
+    name: 'Stochastic CRT Glitch',
+    description:
+      'Occasionally fires a brief CRT chromatic aberration glitch (~once every 5 minutes). A one-frame box-shadow spike with offset red and blue fringing at the screen edges. Adds organic unpredictability — the signal is not perfectly stable.',
+    enabled: true,
+    category: 'ui',
   },
 ];

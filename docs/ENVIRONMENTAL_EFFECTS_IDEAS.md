@@ -30,7 +30,6 @@ part of the experience — not a novelty, but a quiet deepening.
 - Concert `band`, `venue`, `date` (year, day-of-week already drives palette hue)
 - Session state: time since app open, time since last match, match count (track in refs)
 - Audio: `progress` (0–1), `isPlaying` from `useAudioPlayback`
-- Audio frequency: `Howler.ctx` exposes the Web Audio context for `AnalyserNode` taps
 - Motion state: existing `useMotionDetection` hook
 
 ### Requires browser permission
@@ -103,12 +102,6 @@ stamped. Resets on page close.
 ---
 
 ### Audio & Song State
-
-**Audio-reactive phosphor glow** ← _Plan 2 (first implementation)_
-Tap `Howler.ctx` for an `AnalyserNode`. Extract bass band energy (~60–200Hz). Modulate
-`--glow-reactive-scale` CSS variable, which all `text-shadow` glow px values multiply via `calc()`.
-Range: 0.85–1.20. `smoothingTimeConstant = 0.85` (lazy, not twitchy). Only active during matched
-state. The signal breathes with the song.
 
 **Song-progress scan line fade**
 As a song plays toward its end (progress 0→1), scan line opacity gradually increases (max +0.45 at
@@ -214,7 +207,6 @@ default to `false`. Subtle always-on effects use `ui` or `audio` and default to 
 | `ui`           | `idle-restlessness`       | `true`  |
 | `ui`           | `stochastic-glitch`       | `true`  |
 | `ui`           | `per-session-phosphor`    | `true`  |
-| `audio`        | `audio-reactive-glow`     | `true`  |
 | `audio`        | `song-progress-scanlines` | `true`  |
 | `experimental` | `device-tilt-perspective` | `false` |
 

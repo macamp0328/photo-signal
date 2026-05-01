@@ -1,8 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getUserType, setUserType, clearUserType, isDemoUser } from './userType';
 
 beforeEach(() => {
   window.localStorage.clear();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe('getUserType', () => {
@@ -29,6 +33,15 @@ describe('getUserType', () => {
     window.localStorage.setItem('photo-signal-user-type', '');
     expect(getUserType()).toBeNull();
   });
+
+  it('returns null when localStorage getItem fails', () => {
+    const getItemSpy = vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    expect(getUserType()).toBeNull();
+    getItemSpy.mockRestore();
+  });
 });
 
 describe('setUserType', () => {
@@ -47,6 +60,20 @@ describe('setUserType', () => {
     setUserType('demo');
     expect(window.localStorage.getItem('photo-signal-user-type')).toBe('demo');
   });
+
+  it('does not throw when localStorage setItem fails', () => {
+    const setItemSpy = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    expect(() => setUserType('demo')).not.toThrow();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Failed to persist user type to localStorage:',
+      expect.any(Error)
+    );
+    setItemSpy.mockRestore();
+  });
 });
 
 describe('clearUserType', () => {
@@ -58,6 +85,15 @@ describe('clearUserType', () => {
 
   it('is safe to call when nothing is stored', () => {
     expect(() => clearUserType()).not.toThrow();
+  });
+
+  it('does not throw when localStorage removeItem fails', () => {
+    const removeItemSpy = vi.spyOn(window.localStorage, 'removeItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    expect(() => clearUserType()).not.toThrow();
+    removeItemSpy.mockRestore();
   });
 });
 

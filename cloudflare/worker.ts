@@ -152,6 +152,9 @@ function inferContentType(pathname: string) {
   if (pathname.endsWith('.opus')) {
     return DEFAULT_AUDIO_CONTENT_TYPE;
   }
+  if (pathname.endsWith('.m4a')) {
+    return 'audio/mp4';
+  }
   if (pathname.endsWith('.webp')) {
     return 'image/webp';
   }
@@ -176,6 +179,7 @@ function inferContentType(pathname: string) {
 function getCacheControl(pathname: string) {
   if (
     pathname.endsWith('.opus') ||
+    pathname.endsWith('.m4a') ||
     pathname.endsWith('.webp') ||
     pathname.endsWith('.jpg') ||
     pathname.endsWith('.jpeg') ||

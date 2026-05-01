@@ -1,8 +1,8 @@
 # Post 4 — "Why This Combination Is Rare"
 
-**Theme**: The personal case — who Miles is and why this combination matters now  
-**When to post**: Day 12–14 after Post 1  
-**Tone**: Confident, honest, forward-looking. A personal statement, not a pitch.  
+**Theme**: The personal case — who Miles is and why this combination matters now
+**When to post**: Day 12–14 after Post 1
+**Tone**: Confident, honest, forward-looking. A personal statement, not a pitch.
 **Hashtags**: `#ProductEngineering #SoftwareEngineering #AItools #OpenToWork`
 
 ---

@@ -31,8 +31,16 @@ export interface AudioPlaybackHook {
 export interface AudioPlaybackOptions {
   /** Initial volume (0-1), default 0.8 */
   volume?: number;
-  /** Called when a song finishes playing naturally (not on stop/pause) */
+  /**
+   * Called when playback reaches its configured end:
+   * - natural track end, or
+   * - stop triggered by maxDurationMs after fade-out.
+   *
+   * Not called on explicit stop() or pause().
+   */
   onSongEnd?: () => void;
+  /** Max playback duration in ms. When set, fades out over the last ~3s then stops. */
+  maxDurationMs?: number;
 }
 
 export interface AudioDiagnosticResult {

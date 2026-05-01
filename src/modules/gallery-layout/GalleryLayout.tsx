@@ -14,6 +14,7 @@ export function GalleryLayout({
   onSettingsClick,
   audioControls,
   isMatchedPhoto = false,
+  isDemoMode = false,
   aboveCameraSlot,
   belowCameraSlot,
 }: GalleryLayoutProps) {
@@ -42,7 +43,10 @@ export function GalleryLayout({
 
   return (
     <div className={styles.active}>
-      <span className={styles.watermark}>Photo Signal</span>
+      <span className={styles.watermark}>
+        Photo Signal
+        {isDemoMode ? <span className={styles.demoBadge}>Demo</span> : null}
+      </span>
       <button
         type="button"
         className={styles.settingsIcon}

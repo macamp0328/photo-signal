@@ -72,6 +72,20 @@ describe('GalleryLayout', () => {
     ).toBeNull();
   });
 
+  it('renders demo badge in active demo mode', () => {
+    render(
+      <GalleryLayout
+        isActive={true}
+        cameraView={mockCameraView}
+        onActivate={mockOnActivate}
+        onSettingsClick={mockOnSettingsClick}
+        isDemoMode={true}
+      />
+    );
+
+    expect(screen.getByText('Demo')).toBeTruthy();
+  });
+
   it('renders settings icon when active', async () => {
     const user = userEvent.setup();
     render(

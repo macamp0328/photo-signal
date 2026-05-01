@@ -104,3 +104,13 @@ Before production rollout:
 3. Validate all audio URLs (`npm run validate-audio ...`)
 4. Spot-check media via curl/browser
 5. Confirm app playback on target mobile browsers
+
+## Cost Guardrails
+
+- Keep the Worker/R2 deployment on the intended Cloudflare plan and monitor Worker requests plus
+  R2 read operations after public posts or demo links.
+- Configure a Cloudflare WAF/rate limiting rule for the public Worker route in the dashboard. The
+  repo Worker still rejects forbidden origins, invalid paths, and unsupported methods before
+  reading from R2, but dashboard-side rate limiting is the right protection against request floods.
+- R2 does not charge egress bandwidth, but storage and operation counts still matter. Treat
+  long-cache media headers and narrow CORS origins as part of the cost-control setup.

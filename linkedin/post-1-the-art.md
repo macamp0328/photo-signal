@@ -1,8 +1,8 @@
 # Post 1 — "I Opened a Gallery in My Bathroom"
 
-**Theme**: The art & the human story  
-**When to post**: Day 1 — leads the series  
-**Tone**: Personal, warm, a little funny — then the tech surprise lands  
+**Theme**: The art & the human story
+**When to post**: Day 1 — leads the series
+**Tone**: Personal, warm, a little funny — then the tech surprise lands
 **Hashtags**: `#Photography #SXSW #ProductEngineering #AItools`
 
 ---

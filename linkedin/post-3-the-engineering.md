@@ -1,8 +1,8 @@
 # Post 3 — "The Constraint That Made It Worth Building"
 
-**Theme**: One real engineering decision, explained clearly — technical depth without a lecture  
-**When to post**: Day 8–9 after Post 1  
-**Tone**: Technical but accessible. One decision, one tradeoff, real numbers.  
+**Theme**: One real engineering decision, explained clearly — technical depth without a lecture
+**When to post**: Day 8–9 after Post 1
+**Tone**: Technical but accessible. One decision, one tradeoff, real numbers.
 **Hashtags**: `#ComputerVision #ProductEngineering #SoftwareEngineering #ClaudeCode`
 
 ---

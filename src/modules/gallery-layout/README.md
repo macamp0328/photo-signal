@@ -13,6 +13,7 @@ a tap-to-activate landing state, a settings icon, and optional audio controls at
   onSettingsClick={() => void}
   audioControls?={ReactNode}
   isMatchedPhoto?={boolean}
+  isDemoMode?={boolean}
   aboveCameraSlot?={ReactNode}
   belowCameraSlot?={ReactNode}
 />
@@ -20,6 +21,7 @@ a tap-to-activate landing state, a settings icon, and optional audio controls at
 
 `isActive` — whether the camera is live. When `false`, renders a tap-to-start landing screen.
 `isMatchedPhoto` — when `true`, the camera frame expands to a natural aspect ratio to show a matched photo.
+`isDemoMode` — when `true`, renders a subtle Demo badge next to the Photo Signal watermark in the active view.
 `aboveCameraSlot` — optional node rendered above the camera frame (e.g., concert info overlay).
 `belowCameraSlot` — optional node rendered below the camera frame (e.g., action buttons).
 

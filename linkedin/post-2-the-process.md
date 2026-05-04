@@ -18,30 +18,55 @@
 
 ---
 
-## Draft
+## Draft A — The Journey (chronological)
 
-I didn't write the code. Here's what I did instead.
+I started this project once before.
 
-Claude Code and GitHub Copilot handled all the implementation on Photo Signal — every component, every hook, every test. Multiple AI agents ran in parallel, each in an isolated git branch with its own dev server port so they never stepped on each other.
+Sometime in 2025. A few weeks in. The AI could build — components, hooks, tests, all of it. Genuinely impressive. But the output felt like it was made by someone who had never heard the music.
+
+I shelved it.
+
+Picked it up again this year. Something had shifted. Meaningfully better in ways that are hard to quantify and easy to feel. The first version felt like scaffolding. This one felt like a project.
 
 My job looked like this:
 
-— Write precise specs. Vague requirements produce vague code. I learned to be exact.
-— Review every PR the agents opened. Read for correctness, performance, and whether it matched the intent.
-— Hold the quality bar. Every commit — human or agent — clears the same 7-step gate: lint, format, type-check, module README sync, tests, build, bundle size. No exceptions. No skipping.
-— Make the calls the agents can't make. The biggest one: no QR codes. The prints had to work unmodified, under variable gallery lighting. That one call shaped the entire recognition architecture.
+I made calls. No QR codes — the prints had to work unmodified, under variable gallery lighting. That one decision shaped the entire recognition architecture.
 
-This isn't "AI wrote my code for me." It's closer to leading a team where every engineer ships fast, never complains, and needs you to know exactly what you want.
+I chose tooling I had never used. pHash, Cloudflare Workers, Vite. None of them. I read enough to think they were probably right, and if I was wrong I could change it. It's an art project in my bathroom. Two-way door. I didn't lose sleep.
 
-The bottleneck shifted from implementation to clarity of thought. That's a different skill. I think it's the more durable one.
+The CI gate enforces the quality bar — seven steps, every commit, no exceptions. One of them is a custom script that checks whether every exported function in every module has documentation in that module's README. Agents commit. The check runs too.
 
-Curious whether others are finding the same — where's the friction in your AI-assisted workflow?
+And I kept writing the same note into every prompt: add more of me into it.
+
+Not "make it more polished." The unmatched state should look like analog TV static — I named it dead signal. The color palette for each concert is derived from the band name and the day of the week, hashed deterministically. The scan lines fade back in as a song nears its end. These weren't requirements. They were creative instructions I had to repeat until they stuck.
+
+That's the actual job. Know enough to have an opinion. Be stubborn about the right things. Recognize when the stakes are low enough to just try something.
+
+---
+
+## Draft B — The Instruction (thesis-first)
+
+Every prompt I wrote for this project had the same note somewhere in it: add more of me into it.
+
+It sounds vague. It took months to operationalize.
+
+Not "improve the UI." Not "add more polish." The unmatched state should have a name — I called it dead signal — and it should look like analog static. The color palette for each concert should be derived from the band name and day of the week: FNV-1a hash of the artist, each day owns a 51° arc of the color wheel, accent offset by the golden angle. The CRT phosphor glow is a specific amber, not a default. As a song nears its end, the scan lines fade back in — the broadcast signal fades with it. The EXIF data from the original concert photos drives film grain: higher ISO, more noise in the matched UI.
+
+None of this came from the AI. It came from me saying the same thing until it stuck.
+
+I'd started this project once before, in 2025. Put it down. The AI could build — everything it was asked to. But the result felt like it was made by someone who had never heard the music. Picked it back up this year. Something had shifted. The first version felt like scaffolding. This one felt like a project.
+
+The infrastructure: I chose tooling I had never used. pHash, Cloudflare Workers, Vite. Read enough to think they were probably right. It's an art project in my bathroom — if I was wrong, I could change it. Two-way door. I didn't lose sleep.
+
+The job isn't prompting. It's knowing what you want clearly enough to keep asking for it until you get it.
 
 ---
 
 ## Notes
 
-- The 7-step pre-commit gate is a concrete detail that signals real engineering discipline. It's not marketing language — every commit actually clears it.
-- The "no QR codes" decision is the best example of a product call that shaped the whole system. It shows you don't just direct implementation — you make architectural decisions.
-- The closing question is intentional. Engineers who've worked with AI tools will have opinions. That's a comment thread.
+- **Draft A** opens with the timeline — good for readers who respond to narrative arc and the "trying to figure it out" story. More personal, more journey.
+- **Draft B** opens with the central insight ("add more of me") — good if you want to lead with what's most distinctive and let the timeline be supporting evidence. More philosophical.
+- Both drafts remove bullet points to match Post 1's voice.
+- Real codebase details used: `dead signal` (actual state name in code), the module README sync CI step, the FNV-1a hash / 51° day arc / golden angle for color palettes, EXIF-driven film grain, scan lines fading with song progress.
+- The 7-step gate is real; the module README sync step is the most unusual one — signals that docs are enforced, not aspirational.
 - Don't editorialize about AI replacing developers. Keep it grounded in your specific experience on this specific project.

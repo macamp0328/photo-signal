@@ -19,35 +19,50 @@
 
 ---
 
-## Draft
+## Draft A — The Callback (warm, retrospective)
 
-I've been thinking about why this project felt natural to build — and what it says about the role I'm looking for next.
+A few weeks ago a photo of my bathroom went modestly viral.
 
-Long background in CS and engineering. More recently: product management and ownership — running roadmaps, sitting between the technical team and the people the product serves. And separately, genuine interest in art, photography, music, and how software makes people feel.
+What I keep coming back to is what the project taught me about the role.
 
-For a long time those tracks felt separate.
+I've spent enough time in product to know that good engineering is mostly taste — knowing what matters, knowing when it's done, knowing the difference between a feature that ships and one that solves the problem. I've spent enough time as an engineer to be useful: I'll pick up tooling I don't know, read enough to form an opinion, and make the call.
 
-Photo Signal pulled them together. The art concept came first. The technology was built to serve it. And the AI tooling made it possible for one person to hold the whole thing — vision, constraints, direction, quality bar, aesthetic decisions, human judgment.
+This project ran the full arc. Art concept → architectural calls (no QR codes; chose pHash, Cloudflare Workers, Vite without having used any of them) → recognition algorithm → seven-step CI gate → the aesthetic direction I kept pushing on: add more of me into it.
 
-That last part — human judgment — is the part that doesn't get automated away.
+The EXIF data from the original concert photos — ISO, shutter speed, aperture — drives the visual character of each matched UI. Higher ISO means more film grain. The camera that took the photo shapes how the app looks when you find it. No one asked for that. I kept asking for it until it was there.
 
-Knowing what good looks like. Caring whether the experience feels right. Tasting the difference between a feature that ships and a feature that actually solves the problem.
+What AI-assisted development surfaces clearly: you still need someone who cares whether the outcome is right. Someone with taste. Someone willing to be stubborn about the right things.
 
-The role I want: product engineer. Delivering features end-to-end. Working alongside brilliant architects who design the foundation, so I can focus on the specific problems users actually have. On a team that's proud of what it builds together.
+I want to work on a team that's building something they're proud of. If that's yours, I'd love to hear what you're working on.
 
-At this level of abstraction, that combination — CS roots, product ownership experience, and genuine taste — is rarer than it should be.
+The repo is public. The bathroom gallery is real.
 
-If you're building something you're proud of and looking for someone like this, I'd love to talk.
+---
 
-The skill isn't prompting. It's knowing what good looks like — and caring enough to get there.
+## Draft B — The Honest Assessment (direct, slightly contrarian)
+
+The hardest thing to explain about this kind of work: I care whether it feels right.
+
+Not "is it shipped." Not "does it pass CI" — though it does, all seven steps. Whether the thing you made matches what you intended. Whether the detail no one will notice was still worth getting right.
+
+That instinct drove every significant decision on this project. No QR codes — not because they wouldn't work, but because they'd change what the photographs were. Three hash variants per print so the same photo recognizes correctly under a warm spotlight and in a cool corner. A stochastic glitch that fires roughly once every five minutes — because an app that never glitches doesn't feel like a real piece of hardware.
+
+I directed AI agents across the full stack. Chose tooling I had never worked with — pHash, Cloudflare Workers, Vite — because I read enough to think they were probably right, and it's an art project in my bathroom. Wrong call? Change it. Two-way door.
+
+Started this in 2025 and shelved it. The AI could build, but the output felt generic. Came back in 2026 when the tools had caught up to what I was actually trying to make.
+
+What the role looks like, at its best: product instinct and engineering judgment in conversation, not siloed. I want to work somewhere building something worth caring about.
+
+If that's your team, I'd genuinely like to talk.
 
 ---
 
 ## Notes
 
-- This post is the close. It should feel earned — three posts of concrete evidence, then this.
-- "Human judgment" and "taste" are the differentiators. Name them without hedging.
-- The role description is specific on purpose: "alongside brilliant architects," "features end-to-end," "proud of what it builds together." These are signals to the right kind of hiring manager.
-- Don't list technologies. Don't moralize about AI. Keep it grounded in your specific experience.
-- "I'd love to talk" is the call to action. Keep it low-pressure — the right people will reach out.
-- After posting: pin a comment with the repo link if it's not in the post body. Let the code speak for itself to anyone who wants to go deeper.
+- **Draft A** is warm and retrospective — ties back to the bathroom viral moment, uses "add more of me" as a throughline from Post 2. Good close for a narrative series.
+- **Draft B** is more direct and slightly contrarian — opens with a provocation about taste, uses the project as evidence. Good if you want to end with more conviction.
+- Both drafts drop the resume-style background summary ("Long background in CS...") — that language reads like a cover letter.
+- EXIF-driven film grain is a real detail (ISO → grain opacity 0.06–0.28 in code). It's the kind of thing that signals someone cared about craft.
+- The stochastic glitch appears in both drafts as a concrete example of taste — choosing to add organic imperfection.
+- "I'd love to talk" / "I'd genuinely like to talk" — keep it low-pressure. The right people will reach out.
+- After posting: pin a comment with the repo link. Let the code speak for itself.

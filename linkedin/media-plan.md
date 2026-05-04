@@ -29,31 +29,38 @@ Hiring managers, engineering leads, and product-minded engineers at companies do
 
 ## Multimedia (to capture before posting)
 
+**Important: LinkedIn does not allow mixing images and video in the same post.** Choose one media type per post — either a single image/carousel of images, or a single video/GIF. Plan accordingly.
+
 ### Post 1
 
-- 2–3 photos of the bathroom gallery wall: the printed photos, frames, the scale and feel of the space
-- A short video or GIF (10–20 sec): hold phone to a print → UI matches → song starts
-- Wider shot showing the full gallery feel if possible
+- **Recommended**: 2–3 photos of the bathroom gallery wall as a carousel — the printed photos, the frames, the feel of the space. The intimacy is the point.
+- **Alternative**: Short video (10–20 sec): hold phone to a print → UI matches → song starts. If you go video, post a single clip (no carousel mix).
+- **Difficulty**: Easy — you have the space, take the shots.
 
 ### Post 2
 
-- Screen recording GIF (15–30 sec) of a Claude Code session: agent reading code, writing a diff, terminal showing tests passing
-- OR: screenshot of the CI pipeline with all 7 checks green
+- **Recommended**: Screenshot of the CI pipeline with all 7 checks green — label the steps if legible: lint, format, type-check, README sync, tests, build, bundle size. Single image. Easy to capture next clean CI run.
+- **Alternative**: Screen recording GIF (15–20 sec) of a Claude Code session: agent reading code, writing a diff, terminal showing tests passing. Moderate — need to deliberately record a session.
+- **Difficulty**: Easy (CI screenshot) or Moderate (Claude Code GIF).
+- **Note**: Save the recognition GIF for Post 3 — don't split the attention.
 
 ### Post 3
 
-- GIF of recognition in action: phone moves across the wall → UI searches → snaps to match → song info appears
-- Optional: side-by-side of the same print under different lighting (shows why multi-exposure matters)
+- **Recommended**: GIF of recognition in action — phone panning slowly across the gallery wall, UI in search mode, then snapping to match, song info appears. 15–25 seconds. Single GIF.
+- **Alternative**: If you can capture the same print under meaningfully different lighting (warm overhead vs. cooler ambient) in a clean side-by-side photo, that's a strong second option. Hard to set up deliberately.
+- **Difficulty**: Moderate (recognition GIF — requires screen-recording the phone while someone holds it to the wall) or Hard (side-by-side lighting).
+- **Note**: Do not use a carousel mixing images + the GIF. Choose one type.
 
 ### Post 4
 
-- Best hero image from the full series: phone held to the gallery wall, song playing on screen, the whole experience in one frame
-- This should feel definitive — the one shot that captures everything
+- **Recommended**: Single strong static photo — gallery wall with prints visible, or phone held to a print with the matched UI on screen. The still image should feel final and calm. This post is about the person, not the technology.
+- **Do not use a GIF here** — Post 3 owns the motion. Post 4 should feel still.
+- **Difficulty**: Easy — you already have this from Post 1 prep.
 
 ## Format Rules (all posts)
 
 - **Length**: 150–250 words. Long enough to have substance, short enough to read standing up.
-- **Tone**: Posts 1 and 4 are narrative — no bullet lists, written like a person thinking. Posts 2 and 3 can use 2–3 tight bullets for technical content.
+- **Tone**: All posts are narrative — no bullet lists, written like a person thinking. Same voice as Post 1 across all four.
 - **Multimedia**: Every post. Non-negotiable. LinkedIn's algorithm deprioritizes text-only posts.
 - **Hashtags**: 4 max per post. Listed in each post doc.
 - **Closing**: Each post ends with a question or soft invitation — something that opens a reply thread.

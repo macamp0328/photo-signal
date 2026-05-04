@@ -56,7 +56,7 @@ The recognition runs in a Web Worker. The main thread never sees it. Check inter
 
 At the moment of match, the rectangle overlay's bloom animation fires. The concert color palette — derived from the band name and day of the week — replaces the amber dead-signal ambient. The song starts.
 
-The app also occasionally glitches. Red channel shifts a few pixels left, blue shifts right. Chromatic aberration. Fires at about 0.3% per animation frame — roughly once every five minutes. The TV hasn't been fully repaired.
+The app also occasionally glitches. Red channel shifts a few pixels left, blue shifts right. Chromatic aberration. Fires at about 0.3% per second — roughly once every five minutes. The TV hasn't been fully repaired.
 
 ---
 
@@ -66,7 +66,7 @@ The app also occasionally glitches. Red channel shifts a few pixels left, blue s
 - **Draft B** starts from what the user experiences and works inward — more accessible, still technically specific. The ending (stochastic glitch, "TV hasn't been fully repaired") adds personality.
 - **The threshold is 18 bits, not 14.** The original draft had this wrong. Both new drafts use the correct number.
 - The secondary candidate gap (5 bits worse) is a real implementation detail — signals the system actively avoids false positives, not just low-threshold matching.
-- The stochastic glitch is real: `@keyframes chromaticShift`, fires at 0.3% per rAF tick, roughly once every 5 minutes.
+- The stochastic glitch is real: `@keyframes chromaticShift`, fires at 0.3% per second on a 1-second `setInterval` tick, roughly once every 5 minutes.
 - The multi-exposure insight (dark/normal/bright variants, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML.
 - Don't go into DCT math or homography. The depth is in the specifics, not the formulas.
 - Engineers in the comments may ask about false positives, dataset size, or performance. Be ready to discuss. The repo is public — invite them to look.

@@ -28,7 +28,7 @@ I shelved it.
 
 Picked it up again this year. Something had shifted. Meaningfully better in ways that are hard to quantify and easy to feel. The first version felt like scaffolding. This one felt like a project.
 
-My job looked like this:
+My job looked like this.
 
 I made calls. No QR codes — the prints had to work unmodified, under variable gallery lighting. That one decision shaped the entire recognition architecture.
 

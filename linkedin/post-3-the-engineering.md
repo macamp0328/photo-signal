@@ -18,32 +18,55 @@
 
 ---
 
-## Draft
+## Draft A — Constraint drives design
 
-Recognizing ~100 printed photographs under gallery lighting is a harder problem than it sounds.
+Gallery lighting is messy. Overhead fixtures, shadows, angles, color temperature. I knew this going in.
 
-Gallery lighting is messy. Overhead fixtures, directional lamps, shadows, angles. A QR code approach would have worked — but QR codes require modifying the prints. I didn't want that. The photos had to stand on their own, as photographs.
+But the real constraint wasn't lighting. It was the photographs.
 
-So the constraint drove the design.
+I didn't want to modify the prints. No QR codes, no invisible markers. These were photographs from concerts I actually went to. They had to stand as photographs. The technology had to work around that, not the other way around.
 
-The solution uses perceptual hashing (pHash) — a 64-bit fingerprint derived from the visual structure of an image, not its exact pixels. Similar-looking images produce similar hashes. Distance between hashes is measurable.
+So: perceptual hashing. Each print gets a 64-bit fingerprint based on visual structure — not exact pixels. Similar images produce similar hashes. Measure the distance between them.
 
-The wrinkle: gallery lighting shifts the apparent brightness of every print. A photo under a warm overhead lamp hashes differently than the same photo in cooler light. Solve that wrong and recognition breaks constantly.
+The wrinkle: the same print under different lighting hashes differently. A warm overhead lamp shifts the apparent brightness of everything on the wall. Solve that wrong and recognition breaks constantly.
 
-The fix: pre-compute three hash variants per print — dark, normal, and bright exposure. At runtime, match against all three and take the minimum distance. Lighting robustness without a neural network.
+Fix: pre-compute three hash variants per print — dark, normal, bright — at build time. At runtime, match against all three and take the minimum Hamming distance. Lighting robustness without a neural network.
 
-It runs in a Web Worker, never on the main thread. Adaptive check interval: ~80ms when tracking a candidate, ~120ms idle. The UI never competes with the recognition pipeline.
+Threshold: 18 out of 64 bits. A secondary candidate has to be at least 5 bits worse than the best match. Dialed in on real prints, in the actual gallery, under the actual lights.
 
-Threshold: 14 out of 64 bits (~78% similarity). Tuned empirically on real prints under real gallery conditions.
+The check runs in a Web Worker — never on the main thread. ~80ms while tracking a candidate, ~120ms idle.
 
-The easy path was QR codes. The interesting path was solving the actual problem. I'm glad we took the interesting one.
+The easy path was QR codes. But that would have made it a different project.
+
+---
+
+## Draft B — From the user's experience inward
+
+You point your phone at a print. The app finds it in about a second.
+
+That sounds simple. Here's why it isn't.
+
+Gallery lighting is inconsistent. The same photo under a warm overhead lamp looks meaningfully different from the same photo in a cool corner. A recognition approach that works in one spot can fail two feet to the left. And I wasn't going to put QR codes on the prints — these were photographs. They had to stand as photographs.
+
+The solution uses perceptual hashing: a 64-bit fingerprint derived from the visual structure of an image, not its exact pixels. Similar-looking images produce similar hashes. Measure the distance. Take the nearest match.
+
+The lighting problem needed a specific fix: three hash variants per print — dark, normal, bright — computed at build time. At runtime, match against all three and use the minimum distance. The match threshold is 18 out of 64 bits, with a required gap of at least 5 bits over the next closest candidate.
+
+The recognition runs in a Web Worker. The main thread never sees it. Check interval adapts: ~80ms while tracking a candidate, ~120ms idle.
+
+At the moment of match, the rectangle overlay's bloom animation fires. The concert color palette — derived from the band name and day of the week — replaces the amber dead-signal ambient. The song starts.
+
+The app also occasionally glitches. Red channel shifts a few pixels left, blue shifts right. Chromatic aberration. Fires at about 0.3% per second — roughly once every five minutes. The TV hasn't been fully repaired.
 
 ---
 
 ## Notes
 
-- The numbers are real: 14/64 Hamming distance threshold, 80ms/120ms adaptive interval. Specificity signals credibility.
-- "The constraint drove the design" is a line worth keeping verbatim — it's the core engineering principle and it reads well.
+- **Draft A** leads with the constraint — good for readers who appreciate the product/architecture reasoning. Engineering story told from the builder's perspective.
+- **Draft B** starts from what the user experiences and works inward — more accessible, still technically specific. The ending (stochastic glitch, "TV hasn't been fully repaired") adds personality.
+- **The threshold is 18 bits, not 14.** The original draft had this wrong. Both new drafts use the correct number.
+- The secondary candidate gap (5 bits worse) is a real implementation detail — signals the system actively avoids false positives, not just low-threshold matching.
+- The stochastic glitch is real: `@keyframes chromaticShift`, fires at 0.3% per second on a 1-second `setInterval` tick, roughly once every 5 minutes.
 - The multi-exposure insight (dark/normal/bright variants, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML.
-- Don't go into DCT math or homography. This post should be readable by a senior PM. The depth is in the specifics, not the formulas.
+- Don't go into DCT math or homography. The depth is in the specifics, not the formulas.
 - Engineers in the comments may ask about false positives, dataset size, or performance. Be ready to discuss. The repo is public — invite them to look.

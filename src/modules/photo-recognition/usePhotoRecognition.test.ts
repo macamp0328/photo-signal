@@ -12,6 +12,7 @@ import {
 
 const mockIsEnabled = vi.fn<(flag: string) => boolean>(() => false);
 let activeFrameHash = 'a5b3c7d9e1f20486';
+let activeFrameHashQueue: string[] | null = null;
 const mockWorkerProcessFrame = vi.fn();
 const workerHookState: {
   isReady: boolean;
@@ -41,7 +42,7 @@ vi.mock('../../services/data-service', () => ({
 }));
 
 vi.mock('./algorithms/phash', () => ({
-  computePHash: vi.fn(() => activeFrameHash),
+  computePHash: vi.fn(() => activeFrameHashQueue?.shift() ?? activeFrameHash),
 }));
 
 vi.mock('./algorithms/hamming', () => ({
@@ -122,7 +123,11 @@ describe('usePhotoRecognition', () => {
         usePhotoRecognition(mockStream, { enabled: true, checkInterval: 50 })
       );
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(200);
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
       });
       // The pre-hash blur gate should have triggered: no match, not recognizing
       expect(result.current.recognizedConcert).toBeNull();
@@ -166,6 +171,7 @@ describe('usePhotoRecognition', () => {
     // Tests that want to exercise the gate override this spy locally.
     vi.spyOn(qualityUtils, 'computeLaplacianVariance').mockReturnValue(200);
     activeFrameHash = 'a5b3c7d9e1f20486';
+    activeFrameHashQueue = null;
     workerHookState.isReady = false;
     workerHookState.isSupported = false;
     workerHookState.onResult = null;
@@ -531,14 +537,89 @@ describe('usePhotoRecognition', () => {
       });
 
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(300);
+        await vi.advanceTimersByTimeAsync(1_000);
       });
 
+      expect(mockContext.drawImage).toHaveBeenCalled();
+
+      console.log(result.current.debugInfo);
       expect(result.current.recognizedConcert?.id).toBe(1);
       expect((result.current.debugInfo?.telemetry.index_mode_used ?? 0) > 0).toBe(true);
       expect((result.current.debugInfo?.telemetry.candidate_count_per_frame?.last ?? 0) > 0).toBe(
         true
       );
+    } finally {
+      createElementSpy.mockRestore();
+    }
+  });
+
+  it('uses demo crop fallback variants on the inline path when the full crop misses', async () => {
+    const originalCreateElement = document.createElement.bind(document);
+
+    const mockContext = {
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => new ImageData(64, 64)),
+    } as unknown as CanvasRenderingContext2D;
+
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation(((
+      tagName: string,
+      options?: ElementCreationOptions
+    ) => {
+      if (tagName === 'video') {
+        const video = originalCreateElement('video', options) as HTMLVideoElement;
+        Object.defineProperty(video, 'videoWidth', { value: 640, configurable: true });
+        Object.defineProperty(video, 'videoHeight', { value: 480, configurable: true });
+        Object.defineProperty(video, 'readyState', {
+          value: HTMLMediaElement.HAVE_CURRENT_DATA,
+          configurable: true,
+        });
+        return video;
+      }
+
+      if (tagName === 'canvas') {
+        const canvas = originalCreateElement('canvas', options) as HTMLCanvasElement;
+        Object.defineProperty(canvas, 'getContext', {
+          value: vi.fn(() => mockContext),
+          configurable: true,
+        });
+        return canvas;
+      }
+
+      return originalCreateElement(tagName, options);
+    }) as typeof document.createElement);
+
+    try {
+      activeFrameHashQueue = ['ffffffffffffffff', 'a5b3c7d9e1f20486'];
+
+      const { result } = renderHook(() =>
+        usePhotoRecognition(mockStream, {
+          enabled: true,
+          checkInterval: 50,
+          demoCropFallbackEnabled: true,
+          enableDebugInfo: true,
+        })
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1_000);
+      });
+
+      expect(mockContext.drawImage).toHaveBeenCalled();
+      expect(result.current.debugInfo).toMatchObject({
+        recognitionCropVariant: 'bottom-trim',
+      });
+      expect(result.current.recognizedConcert?.id).toBe(1);
+      expect(
+        vi
+          .mocked(mockContext.drawImage)
+          .mock.calls.some(
+            (call) => call[1] === 128 && call[2] === 112 && call[3] === 384 && call[4] === 200
+          )
+      ).toBe(true);
     } finally {
       createElementSpy.mockRestore();
     }

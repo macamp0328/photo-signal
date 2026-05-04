@@ -29,6 +29,10 @@ import type {
   WorkerPerspectiveFrameData,
   WorkerRecognitionConfig,
 } from './worker-protocol';
+import {
+  getRecognitionCropVariants,
+  type RecognitionCropVariantId,
+} from './recognitionCropVariants';
 import type {
   AspectRatio,
   FailureCategory,
@@ -161,6 +165,15 @@ const DEFAULT_MATCH_MARGIN_THRESHOLD = 4;
 /** Compact type used throughout the matching pipeline. */
 export type MatchCandidate = { concert: Concert; distance: number };
 type HashEntry = { hash: string; concert: Concert };
+type InlineVariantMatch = {
+  cropVariant: RecognitionCropVariantId;
+  hash: string;
+  bestMatch: MatchCandidate | null;
+  secondBestMatch: MatchCandidate | null;
+  isActiveMatch: boolean;
+  region: ViewportRegion;
+  imageData: ImageData;
+};
 
 const HASH_BUCKET_PREFIX_LENGTH = 0;
 
@@ -288,6 +301,66 @@ export function getAdaptiveRecognitionDelay(distance: number, recognitionDelay: 
   return Math.round(recognitionDelay * 1.3);
 }
 
+function isActiveMatchCandidate(
+  bestMatch: MatchCandidate | null,
+  secondBestMatch: MatchCandidate | null,
+  similarityThreshold: number,
+  matchMarginThreshold: number
+): boolean {
+  const isWithinThreshold = !!bestMatch && bestMatch.distance <= similarityThreshold;
+  if (!isWithinThreshold) {
+    return false;
+  }
+
+  const bestMargin =
+    bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
+  const marginBoostNearThreshold =
+    bestMatch && bestMatch.distance >= Math.max(similarityThreshold - 1, 0) ? 1 : 0;
+  const effectiveRequiredMargin = matchMarginThreshold + marginBoostNearThreshold;
+  const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveRequiredMargin;
+  const isExactCrossConcertTie =
+    !!bestMatch &&
+    !!secondBestMatch &&
+    bestMatch.concert.id !== secondBestMatch.concert.id &&
+    bestMatch.distance === secondBestMatch.distance;
+
+  return hasSufficientMargin && !isExactCrossConcertTie;
+}
+
+function compareInlineVariantMatches(
+  current: InlineVariantMatch,
+  candidate: InlineVariantMatch
+): InlineVariantMatch {
+  if (current.cropVariant === 'full' && current.isActiveMatch) {
+    return current;
+  }
+
+  if (candidate.cropVariant === 'full' && candidate.isActiveMatch) {
+    return candidate;
+  }
+
+  if (current.isActiveMatch !== candidate.isActiveMatch) {
+    return current.isActiveMatch ? current : candidate;
+  }
+
+  const currentDistance = current.bestMatch?.distance ?? Number.POSITIVE_INFINITY;
+  const candidateDistance = candidate.bestMatch?.distance ?? Number.POSITIVE_INFINITY;
+  if (currentDistance !== candidateDistance) {
+    return currentDistance < candidateDistance ? current : candidate;
+  }
+
+  const currentMargin =
+    current.bestMatch && current.secondBestMatch
+      ? current.secondBestMatch.distance - current.bestMatch.distance
+      : Number.POSITIVE_INFINITY;
+  const candidateMargin =
+    candidate.bestMatch && candidate.secondBestMatch
+      ? candidate.secondBestMatch.distance - candidate.bestMatch.distance
+      : Number.POSITIVE_INFINITY;
+
+  return currentMargin >= candidateMargin ? current : candidate;
+}
+
 function getHashBucketKey(hash: string): string {
   return hash.slice(0, HASH_BUCKET_PREFIX_LENGTH).toLowerCase();
 }
@@ -323,6 +396,7 @@ export interface BuildDebugInfoArgs {
   similarityThreshold: number;
   recognitionDelay: number;
   frameQuality: FrameQualityInfo | null;
+  recognitionCropVariant?: RecognitionCropVariantId | null;
   telemetry: RecognitionTelemetry;
 }
 
@@ -363,6 +437,7 @@ export function buildDebugInfo(args: BuildDebugInfoArgs): RecognitionDebugInfo {
     similarityThreshold: args.similarityThreshold,
     recognitionDelay: args.recognitionDelay,
     frameQuality: args.frameQuality,
+    recognitionCropVariant: args.recognitionCropVariant ?? null,
     telemetry: args.telemetry,
     hashAlgorithm: 'phash',
   };
@@ -391,6 +466,7 @@ export function usePhotoRecognition(
     enableRectangleDetection = false,
     rectangleConfidenceThreshold = 0.35,
     displayAspectRatio = DEFAULT_DISPLAY_ASPECT_RATIO,
+    demoCropFallbackEnabled = false,
   } = options;
 
   const [recognizedConcert, setRecognizedConcert] = useState<Concert | null>(null);
@@ -624,6 +700,7 @@ export function usePhotoRecognition(
       similarityThreshold,
       matchMarginThreshold,
       qualityGatingDistanceThreshold: QUALITY_GATING_DISTANCE_THRESHOLD,
+      demoCropFallbackEnabled,
       quality: {
         sharpnessThreshold,
         glareThreshold: glareThreshold ?? 250,
@@ -640,6 +717,7 @@ export function usePhotoRecognition(
       glarePercentageThreshold,
       minBrightness,
       maxBrightness,
+      demoCropFallbackEnabled,
     ]
   );
 
@@ -1188,37 +1266,113 @@ export function usePhotoRecognition(
         }
 
         const frameCaptureStartAt = performance.now();
-        // Downscale directly to 64×64 during capture so getImageData() only
-        // returns 4 096 pixels instead of the full framed-region dimensions
-        // (often 200 000+ pixels). The browser's canvas drawImage() performs
-        // hardware-accelerated bilinear downscaling. computePHash() will then
-        // resize 64×64 → 32×32, which is nearly free.
         const CAPTURE_SIZE = 64;
-        canvas.width = CAPTURE_SIZE;
-        canvas.height = CAPTURE_SIZE;
-        context.drawImage(
-          video,
-          framedRegion.x,
-          framedRegion.y,
+        const variants = getRecognitionCropVariants(
           framedRegion.width,
           framedRegion.height,
-          0,
-          0,
-          CAPTURE_SIZE,
-          CAPTURE_SIZE
+          demoCropFallbackEnabled
         );
+        let selectedVariant: InlineVariantMatch | null = null;
+        let fullFrameImageData: ImageData | null = null;
 
-        const imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
+        const algorithmStartAt = performance.now();
+        comparedCandidates = 0;
 
-        frameCaptureMs = performance.now() - frameCaptureStartAt;
+        telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
 
-        // Pre-hash blur gate: skip computePHash entirely when the 64×64 image is
-        // clearly blurry. Uses PRE_HASH_BLUR_GATE_FRACTION × sharpnessThreshold as
-        // a conservative cutoff — the lower resolution produces lower Laplacian
-        // variance, so only frames that would certainly fail the 128×128 gate fire
-        // this early exit, saving ~1–2ms of DCT computation per blurry frame.
-        const preHashVariance = computeLaplacianVariance(imageData);
-        if (preHashVariance < sharpnessThreshold * PRE_HASH_BLUR_GATE_FRACTION) {
+        for (const variant of variants) {
+          const variantRegion = {
+            x: framedRegion.x + variant.x,
+            y: framedRegion.y + variant.y,
+            width: variant.width,
+            height: variant.height,
+          };
+
+          // Downscale directly to 64×64 during capture so getImageData() only
+          // returns 4 096 pixels instead of the full framed-region dimensions.
+          canvas.width = CAPTURE_SIZE;
+          canvas.height = CAPTURE_SIZE;
+          context.drawImage(
+            video,
+            variantRegion.x,
+            variantRegion.y,
+            variantRegion.width,
+            variantRegion.height,
+            0,
+            0,
+            CAPTURE_SIZE,
+            CAPTURE_SIZE
+          );
+
+          const imageData = context.getImageData(0, 0, CAPTURE_SIZE, CAPTURE_SIZE);
+          if (variant.id === 'full') {
+            fullFrameImageData = imageData;
+            frameCaptureMs = performance.now() - frameCaptureStartAt;
+          }
+
+          const currentHashForVariant = computePHash(imageData);
+          const bucketCandidates =
+            concertHashBuckets.get(getHashBucketKey(currentHashForVariant)) ?? [];
+          comparedCandidates += bucketCandidates.length;
+          const { bestMatch: variantBestMatch, secondBestMatch: variantSecondBestMatch } =
+            findBestMatches(currentHashForVariant, bucketCandidates);
+          const variantMatch: InlineVariantMatch = {
+            cropVariant: variant.id,
+            hash: currentHashForVariant,
+            bestMatch: variantBestMatch,
+            secondBestMatch: variantSecondBestMatch,
+            isActiveMatch: isActiveMatchCandidate(
+              variantBestMatch,
+              variantSecondBestMatch,
+              similarityThreshold,
+              matchMarginThreshold
+            ),
+            region: variantRegion,
+            imageData,
+          };
+
+          selectedVariant = selectedVariant
+            ? compareInlineVariantMatches(selectedVariant, variantMatch)
+            : variantMatch;
+
+          if (variantMatch.isActiveMatch) {
+            break;
+          }
+        }
+
+        if (!selectedVariant) {
+          selectedVariant = {
+            cropVariant: 'full',
+            hash: '',
+            bestMatch: null,
+            secondBestMatch: null,
+            isActiveMatch: false,
+            region: framedRegion,
+            imageData: fullFrameImageData ?? new ImageData(CAPTURE_SIZE, CAPTURE_SIZE),
+          };
+        }
+
+        algorithmMs = performance.now() - algorithmStartAt;
+
+        const currentHash = selectedVariant.hash;
+        const bestMatch = selectedVariant.bestMatch;
+        const secondBestMatch = selectedVariant.secondBestMatch;
+        const selectedRegion = selectedVariant.region;
+        const recognitionCropVariant = selectedVariant.cropVariant;
+        const selectedImageData = selectedVariant.imageData;
+
+        // Pre-hash blur gate: reject clearly blurry full-frame captures before
+        // they can affect recognition state. Demo crop fallback bypasses this
+        // early exit
+        // because the full frame may be blurred or overlaid while a trimmed
+        // blog-photo crop is still recognizable.
+        const preHashVariance = fullFrameImageData
+          ? computeLaplacianVariance(fullFrameImageData)
+          : sharpnessThreshold;
+        if (
+          !demoCropFallbackEnabled &&
+          preHashVariance < sharpnessThreshold * PRE_HASH_BLUR_GATE_FRACTION
+        ) {
           consecutiveBlurFramesRef.current += 1;
           if (consecutiveBlurFramesRef.current >= BLUR_REJECTION_CONSECUTIVE_FRAMES) {
             telemetryRef.current.blurRejections += 1;
@@ -1240,24 +1394,6 @@ export function usePhotoRecognition(
           }
           return;
         }
-
-        // Hash matching — bucketed full-image scan only
-        const algorithmStartAt = performance.now();
-        const currentHash = computePHash(imageData);
-        comparedCandidates = 0;
-
-        const runMatchScan = (candidates: ReadonlyArray<HashEntry>) => {
-          comparedCandidates += candidates.length;
-          return findBestMatches(currentHash, candidates);
-        };
-
-        telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
-
-        const bucketCandidates = concertHashBuckets.get(getHashBucketKey(currentHash)) ?? [];
-
-        const { bestMatch, secondBestMatch } = runMatchScan(bucketCandidates);
-
-        algorithmMs = performance.now() - algorithmStartAt;
 
         const candidateTelemetry = telemetryRef.current.candidate_count_per_frame;
         if (candidateTelemetry) {
@@ -1304,16 +1440,16 @@ export function usePhotoRecognition(
         // When quality checks are needed, re-capture at QUALITY_CAPTURE_SIZE so
         // that resolution-sensitive metrics (especially Laplacian variance for
         // sharpness) are not distorted by the downscaled 64×64 hash image.
-        let qualityImageData = imageData;
+        let qualityImageData = selectedImageData;
         if (shouldRunQualityCheck) {
           canvas.width = QUALITY_CAPTURE_SIZE;
           canvas.height = QUALITY_CAPTURE_SIZE;
           context.drawImage(
             video,
-            framedRegion.x,
-            framedRegion.y,
-            framedRegion.width,
-            framedRegion.height,
+            selectedRegion.x,
+            selectedRegion.y,
+            selectedRegion.width,
+            selectedRegion.height,
             0,
             0,
             QUALITY_CAPTURE_SIZE,
@@ -1340,11 +1476,12 @@ export function usePhotoRecognition(
                 frameCount: frameCountRef.current,
                 checkInterval,
                 aspectRatio: chosenAspectRatio,
-                framedRegion,
+                framedRegion: selectedRegion,
                 stability: null,
                 similarityThreshold,
                 recognitionDelay,
                 frameQuality: quality,
+                recognitionCropVariant,
                 telemetry: { ...telemetryRef.current },
               })
             );
@@ -1402,11 +1539,12 @@ export function usePhotoRecognition(
               frameCount: frameCountRef.current,
               checkInterval,
               aspectRatio: chosenAspectRatio,
-              framedRegion,
+              framedRegion: selectedRegion,
               stability,
               similarityThreshold,
               recognitionDelay,
               frameQuality: quality,
+              recognitionCropVariant,
               telemetry: { ...telemetryRef.current },
             })
           );
@@ -1777,6 +1915,7 @@ export function usePhotoRecognition(
             similarityThreshold,
             recognitionDelay,
             frameQuality: workerFrameQuality,
+            recognitionCropVariant: result.cropVariant,
             telemetry: { ...telemetryRef.current },
           })
         );
@@ -1975,6 +2114,7 @@ export function usePhotoRecognition(
     enableRectangleDetection,
     rectangleConfidenceThreshold,
     displayAspectRatio,
+    demoCropFallbackEnabled,
     markStartupMilestone,
     restartKey,
     // isWorkerSupported, isWorkerReady, workerProcessFrame are intentionally

@@ -75,6 +75,10 @@ const recognitionState = {
 const mockResetRecognition = vi.fn();
 const mockUsePhotoRecognition = vi.fn();
 const enabledFlags = new Set<string>();
+const env = import.meta.env as Record<string, string | undefined>;
+const originalPasscode = env.VITE_ACCESS_PASSCODE;
+const originalDemoPasscode = env.VITE_DEMO_PASSCODE;
+const originalMode = env.MODE;
 
 const createDebugTelemetry = (): RecognitionTelemetry => ({
   ...createEmptyTelemetry(),
@@ -194,6 +198,10 @@ describe('App playback flow', () => {
     recognitionState.detectedRectangle = null;
     recognitionState.rectangleConfidence = 0;
     enabledFlags.clear();
+    window.localStorage.clear();
+    env.VITE_ACCESS_PASSCODE = originalPasscode;
+    env.VITE_DEMO_PASSCODE = originalDemoPasscode;
+    env.MODE = originalMode;
 
     audioState.isPlaying = false;
     audioState.progress = 0;
@@ -225,6 +233,10 @@ describe('App playback flow', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    window.localStorage.clear();
+    env.VITE_ACCESS_PASSCODE = originalPasscode;
+    env.VITE_DEMO_PASSCODE = originalDemoPasscode;
+    env.MODE = originalMode;
   });
 
   const activateExperience = async (user: ReturnType<typeof userEvent.setup>) => {
@@ -265,6 +277,39 @@ describe('App playback flow', () => {
     expect(options?.sharpnessThreshold).toBe(85);
     expect(options?.recognitionDelay).toBe(180);
     expect(options?.continuousRecognition).toBe(true);
+    expect(options?.demoCropFallbackEnabled).toBe(false);
+  });
+
+  it('enables demo crop fallback only for active demo sessions', () => {
+    env.VITE_ACCESS_PASSCODE = '2468';
+    env.VITE_DEMO_PASSCODE = '9999';
+    env.MODE = 'production';
+    window.localStorage.setItem('photo-signal-user-type', 'demo');
+    window.localStorage.setItem('photo-signal-access-until', `${Date.now() + 60_000}`);
+
+    render(<App />);
+
+    const options = mockUsePhotoRecognition.mock.calls[0]?.[1] as
+      | Record<string, unknown>
+      | undefined;
+    expect(options?.demoCropFallbackEnabled).toBe(true);
+    expect(options?.similarityThreshold).toBe(18);
+    expect(options?.matchMarginThreshold).toBe(5);
+  });
+
+  it('does not enable demo crop fallback for gallery sessions', () => {
+    env.VITE_ACCESS_PASSCODE = '2468';
+    env.VITE_DEMO_PASSCODE = '9999';
+    env.MODE = 'production';
+    window.localStorage.setItem('photo-signal-user-type', 'gallery');
+    window.localStorage.setItem('photo-signal-access-until', `${Date.now() + 60_000}`);
+
+    render(<App />);
+
+    const options = mockUsePhotoRecognition.mock.calls[0]?.[1] as
+      | Record<string, unknown>
+      | undefined;
+    expect(options?.demoCropFallbackEnabled).toBe(false);
   });
 
   it('auto-plays first recognized concert after activation', async () => {

@@ -212,6 +212,29 @@ describe('DebugOverlay', () => {
       expect(screen.getByText('Distance:')).toBeInTheDocument();
       expect(screen.getByText('Similarity:')).toBeInTheDocument();
     });
+
+    it('should display crop variant metadata when available', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          debugInfo={{ ...mockDebugInfo, recognitionCropVariant: 'bottom-trim' }}
+        />
+      );
+
+      expect(screen.getByText('Crop:')).toBeInTheDocument();
+      expect(screen.getByText('bottom-trim')).toBeInTheDocument();
+    });
+
+    it('should hide crop variant metadata when unavailable', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          debugInfo={{ ...mockDebugInfo, recognitionCropVariant: null }}
+        />
+      );
+
+      expect(screen.queryByText('Crop:')).not.toBeInTheDocument();
+    });
   });
 
   describe('Guidance', () => {

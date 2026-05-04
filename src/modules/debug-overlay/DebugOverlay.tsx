@@ -28,6 +28,7 @@ export function DebugOverlay({
   const bestMatch = debugInfo?.bestMatch ?? null;
   const secondBestMatch = debugInfo?.secondBestMatch ?? null;
   const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
+  const recognitionCropVariant = debugInfo?.recognitionCropVariant ?? null;
   // Select highest-priority recommendation (high > medium > low)
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   const sorted = [...recommendations].sort(
@@ -182,6 +183,14 @@ export function DebugOverlay({
                     <span className={styles.statValue}>
                       {bestMatchMargin !== null ? bestMatchMargin.toFixed(1) : '—'}
                     </span>
+                  </div>
+                </div>
+              ) : null}
+              {recognitionCropVariant ? (
+                <div className={styles.matchStats}>
+                  <div className={styles.stat}>
+                    <span className={styles.statLabel}>Crop:</span>
+                    <span className={styles.statValue}>{recognitionCropVariant}</span>
                   </div>
                 </div>
               ) : null}

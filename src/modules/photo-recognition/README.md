@@ -41,6 +41,7 @@ Derive recommended threshold adjustments from aggregated telemetry (used in debu
 - Comparing hashes against `data.recognition.v2.json` at multiple exposure variants
 - Requiring sustained match stability before emitting `recognizedConcert`
 - Collecting telemetry (`RecognitionDebugInfo`) when debug mode is enabled
+- Optionally evaluating demo-only crop variants (`demoCropFallbackEnabled`) so remote users can scan blog photos with browser chrome or download overlays in frame
 
 ## Does NOT Own
 

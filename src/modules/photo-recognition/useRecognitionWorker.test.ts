@@ -82,6 +82,7 @@ function makeResult(overrides: Partial<WorkerFrameResult> = {}): WorkerFrameResu
     type: 'result',
     frameId: 1,
     hash: 'aaaaaaaaaaaaaaaa',
+    cropVariant: 'full',
     bestMatch: null,
     secondBestMatch: null,
     quality: null,

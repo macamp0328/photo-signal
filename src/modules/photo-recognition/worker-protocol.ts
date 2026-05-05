@@ -1,3 +1,5 @@
+import type { RecognitionCropVariantId } from './recognitionCropVariants';
+
 /**
  * Recognition Worker Protocol
  *
@@ -31,6 +33,8 @@ export interface WorkerRecognitionConfig {
   similarityThreshold: number;
   matchMarginThreshold: number;
   qualityGatingDistanceThreshold: number;
+  /** Demo-only fallback that evaluates overlay-tolerant crop variants. */
+  demoCropFallbackEnabled?: boolean;
   quality: WorkerQualityConfig;
 }
 
@@ -99,6 +103,8 @@ export interface WorkerFrameResult {
   type: 'result';
   frameId: number;
   hash: string;
+  /** Crop variant that produced the selected hash/match. */
+  cropVariant: RecognitionCropVariantId;
   bestMatch: WorkerMatchResult | null;
   secondBestMatch: WorkerMatchResult | null;
   /** null when quality checks were skipped (distance ≤ gating threshold). */

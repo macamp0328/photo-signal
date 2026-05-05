@@ -292,6 +292,13 @@ describe('buildDebugInfo', () => {
     expect(buildDebugInfo({ ...baseArgs(), frameQuality: null }).frameQuality).toBeNull();
   });
 
+  it('includes recognition crop variant metadata when supplied', () => {
+    expect(
+      buildDebugInfo({ ...baseArgs(), recognitionCropVariant: 'bottom-trim' })
+        .recognitionCropVariant
+    ).toBe('bottom-trim');
+  });
+
   it('passes a FrameQualityInfo object through by reference', () => {
     const frameQuality: FrameQualityInfo = {
       sharpness: 150,

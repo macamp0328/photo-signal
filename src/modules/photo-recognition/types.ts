@@ -1,5 +1,6 @@
 import type { Concert, AspectRatio as AspectRatioType } from '../../types';
 import type { DetectedRectangle } from '../photo-rectangle-detection';
+import type { RecognitionCropVariantId } from './recognitionCropVariants';
 
 export type AspectRatio = AspectRatioType;
 export type HashAlgorithm = 'phash';
@@ -187,6 +188,7 @@ export interface RecognitionDebugInfo {
   similarityThreshold: number;
   recognitionDelay: number;
   frameQuality: FrameQualityInfo | null;
+  recognitionCropVariant?: RecognitionCropVariantId | null;
   telemetry: RecognitionTelemetry;
   hashAlgorithm: HashAlgorithm;
 }
@@ -244,4 +246,6 @@ export interface PhotoRecognitionOptions {
   rectangleConfidenceThreshold?: number;
   /** Aspect ratio of the display viewport, used to compute crop regions. Default: 1 */
   displayAspectRatio?: number;
+  /** Demo-only overlay fallback that evaluates vertically trimmed crop variants. Default: false */
+  demoCropFallbackEnabled?: boolean;
 }

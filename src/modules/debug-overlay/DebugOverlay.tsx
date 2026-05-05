@@ -28,6 +28,7 @@ export function DebugOverlay({
   const bestMatch = debugInfo?.bestMatch ?? null;
   const secondBestMatch = debugInfo?.secondBestMatch ?? null;
   const bestMatchMargin = debugInfo?.bestMatchMargin ?? null;
+  const recognitionCropVariant = debugInfo?.recognitionCropVariant ?? null;
   // Select highest-priority recommendation (high > medium > low)
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   const sorted = [...recommendations].sort(
@@ -187,6 +188,18 @@ export function DebugOverlay({
               ) : null}
             </div>
           )}
+
+          {recognitionCropVariant ? (
+            <div className={styles.section}>
+              <div className={styles.label}>Recognition Crop</div>
+              <div className={styles.matchStats}>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>Crop:</span>
+                  <span className={styles.statValue}>{recognitionCropVariant}</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {/* Guidance */}
           {primaryRecommendation && (

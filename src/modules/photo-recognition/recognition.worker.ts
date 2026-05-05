@@ -14,6 +14,11 @@
 import { computePHash } from './algorithms/phash';
 import { hammingDistance } from './algorithms/hamming';
 import { computeAllQualityMetrics } from './algorithms/utils';
+import {
+  getRecognitionCropVariants,
+  type RecognitionCropVariant,
+  type RecognitionCropVariantId,
+} from './recognitionCropVariants';
 import type {
   MainToWorkerMessage,
   WorkerPerspectiveFrameData,
@@ -346,44 +351,6 @@ function warpToAspectImageData(
   return target;
 }
 
-function drawImageDataContained(
-  destinationCtx: OffscreenCanvasRenderingContext2D,
-  destinationCanvas: OffscreenCanvas,
-  imageData: ImageData
-): void {
-  const tempCtx = ensureImageDataCanvas(imageData.width, imageData.height);
-  tempCtx.putImageData(imageData, 0, 0);
-
-  const sourceAspect = imageData.width / imageData.height;
-  const destinationAspect = destinationCanvas.width / destinationCanvas.height;
-
-  let drawWidth = destinationCanvas.width;
-  let drawHeight = destinationCanvas.height;
-  let drawX = 0;
-  let drawY = 0;
-
-  if (sourceAspect > destinationAspect) {
-    drawHeight = destinationCanvas.width / sourceAspect;
-    drawY = (destinationCanvas.height - drawHeight) / 2;
-  } else {
-    drawWidth = destinationCanvas.height * sourceAspect;
-    drawX = (destinationCanvas.width - drawWidth) / 2;
-  }
-
-  destinationCtx.clearRect(0, 0, destinationCanvas.width, destinationCanvas.height);
-  destinationCtx.drawImage(
-    imageDataCanvas!,
-    0,
-    0,
-    imageData.width,
-    imageData.height,
-    drawX,
-    drawY,
-    drawWidth,
-    drawHeight
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Matching — worker-local variant of findBestMatches using concertId
 // ---------------------------------------------------------------------------
@@ -391,6 +358,14 @@ function drawImageDataContained(
 interface WorkerMatchCandidate {
   concertId: number;
   distance: number;
+}
+
+interface WorkerVariantMatch {
+  cropVariant: RecognitionCropVariantId;
+  hash: string;
+  bestMatch: WorkerMatchCandidate | null;
+  secondBestMatch: WorkerMatchCandidate | null;
+  isActiveMatch: boolean;
 }
 
 function findBestMatches(
@@ -421,6 +396,150 @@ function findBestMatches(
 // ---------------------------------------------------------------------------
 // Frame processing
 // ---------------------------------------------------------------------------
+
+function drawBitmapVariantForHash(bitmap: ImageBitmap, variant: RecognitionCropVariant): ImageData {
+  const hCtx = ensureHashCanvas();
+  hashCanvas!.width = PHASH_SIZE;
+  hashCanvas!.height = PHASH_SIZE;
+  hCtx.clearRect(0, 0, PHASH_SIZE, PHASH_SIZE);
+  hCtx.drawImage(
+    bitmap,
+    variant.x,
+    variant.y,
+    variant.width,
+    variant.height,
+    0,
+    0,
+    PHASH_SIZE,
+    PHASH_SIZE
+  );
+  return hCtx.getImageData(0, 0, PHASH_SIZE, PHASH_SIZE);
+}
+
+function drawImageDataVariantForHash(
+  imageData: ImageData,
+  variant: RecognitionCropVariant
+): ImageData {
+  const sourceCtx = ensureImageDataCanvas(imageData.width, imageData.height);
+  sourceCtx.putImageData(imageData, 0, 0);
+
+  const hCtx = ensureHashCanvas();
+  hashCanvas!.width = PHASH_SIZE;
+  hashCanvas!.height = PHASH_SIZE;
+  hCtx.clearRect(0, 0, PHASH_SIZE, PHASH_SIZE);
+  hCtx.drawImage(
+    imageDataCanvas!,
+    variant.x,
+    variant.y,
+    variant.width,
+    variant.height,
+    0,
+    0,
+    PHASH_SIZE,
+    PHASH_SIZE
+  );
+  return hCtx.getImageData(0, 0, PHASH_SIZE, PHASH_SIZE);
+}
+
+function drawBitmapVariantForQuality(
+  bitmap: ImageBitmap,
+  variant: RecognitionCropVariant
+): ImageData {
+  const qCtx = ensureQualityCanvas();
+  qualityCanvas!.width = QUALITY_SIZE;
+  qualityCanvas!.height = QUALITY_SIZE;
+  qCtx.clearRect(0, 0, QUALITY_SIZE, QUALITY_SIZE);
+  qCtx.drawImage(
+    bitmap,
+    variant.x,
+    variant.y,
+    variant.width,
+    variant.height,
+    0,
+    0,
+    QUALITY_SIZE,
+    QUALITY_SIZE
+  );
+  return qCtx.getImageData(0, 0, QUALITY_SIZE, QUALITY_SIZE);
+}
+
+function drawImageDataVariantForQuality(
+  imageData: ImageData,
+  variant: RecognitionCropVariant
+): ImageData {
+  const sourceCtx = ensureImageDataCanvas(imageData.width, imageData.height);
+  sourceCtx.putImageData(imageData, 0, 0);
+
+  const qCtx = ensureQualityCanvas();
+  qualityCanvas!.width = QUALITY_SIZE;
+  qualityCanvas!.height = QUALITY_SIZE;
+  qCtx.clearRect(0, 0, QUALITY_SIZE, QUALITY_SIZE);
+  qCtx.drawImage(
+    imageDataCanvas!,
+    variant.x,
+    variant.y,
+    variant.width,
+    variant.height,
+    0,
+    0,
+    QUALITY_SIZE,
+    QUALITY_SIZE
+  );
+  return qCtx.getImageData(0, 0, QUALITY_SIZE, QUALITY_SIZE);
+}
+
+function isActiveMatchCandidate(
+  bestMatch: WorkerMatchCandidate | null,
+  secondBestMatch: WorkerMatchCandidate | null,
+  cfg: WorkerRecognitionConfig
+): boolean {
+  const isWithinThreshold = !!bestMatch && bestMatch.distance <= cfg.similarityThreshold;
+  if (!isWithinThreshold) {
+    return false;
+  }
+
+  const bestMargin =
+    bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
+  const marginBoost =
+    bestMatch && bestMatch.distance >= Math.max(cfg.similarityThreshold - 1, 0) ? 1 : 0;
+  const effectiveMarginRequired = cfg.matchMarginThreshold + marginBoost;
+  const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveMarginRequired;
+  const isExactCrossConcertTie =
+    secondBestMatch !== null && bestMatch!.distance === secondBestMatch.distance;
+
+  return hasSufficientMargin && !isExactCrossConcertTie;
+}
+
+function compareVariantMatches(a: WorkerVariantMatch, b: WorkerVariantMatch): WorkerVariantMatch {
+  if (a.cropVariant === 'full' && a.isActiveMatch) {
+    return a;
+  }
+
+  if (b.cropVariant === 'full' && b.isActiveMatch) {
+    return b;
+  }
+
+  if (a.isActiveMatch !== b.isActiveMatch) {
+    return a.isActiveMatch ? a : b;
+  }
+
+  const aDistance = a.bestMatch?.distance ?? Number.POSITIVE_INFINITY;
+  const bDistance = b.bestMatch?.distance ?? Number.POSITIVE_INFINITY;
+  if (aDistance !== bDistance) {
+    return aDistance < bDistance ? a : b;
+  }
+
+  const aMargin =
+    a.bestMatch && a.secondBestMatch
+      ? a.secondBestMatch.distance - a.bestMatch.distance
+      : Number.POSITIVE_INFINITY;
+  const bMargin =
+    b.bestMatch && b.secondBestMatch
+      ? b.secondBestMatch.distance - b.bestMatch.distance
+      : Number.POSITIVE_INFINITY;
+
+  return aMargin >= bMargin ? a : b;
+}
 
 function processFrame(
   bitmap: ImageBitmap,
@@ -472,55 +591,70 @@ function processFrame(
     rectifiedImageData = warpToAspectImageData(sourceImageData, scaledPerspective);
   }
 
-  // 1. Draw bitmap at 32×32 for pHash — resizeImageData will short-circuit
-  const hCtx = ensureHashCanvas();
-  hashCanvas!.width = PHASH_SIZE;
-  hashCanvas!.height = PHASH_SIZE;
-  if (rectifiedImageData) {
-    drawImageDataContained(hCtx, hashCanvas!, rectifiedImageData);
-  } else {
-    hCtx.drawImage(bitmap, 0, 0, PHASH_SIZE, PHASH_SIZE);
+  const sourceWidth = rectifiedImageData?.width ?? bitmap.width;
+  const sourceHeight = rectifiedImageData?.height ?? bitmap.height;
+  const variants = getRecognitionCropVariants(
+    sourceWidth,
+    sourceHeight,
+    config?.demoCropFallbackEnabled === true
+  );
+
+  let selectedVariant: WorkerVariantMatch | null = null;
+
+  for (const variant of variants) {
+    const hashImageData = rectifiedImageData
+      ? drawImageDataVariantForHash(rectifiedImageData, variant)
+      : drawBitmapVariantForHash(bitmap, variant);
+    const hash = computePHash(hashImageData);
+    const { bestMatch, secondBestMatch } = findBestMatches(hash, hashEntries);
+    const variantMatch: WorkerVariantMatch = {
+      cropVariant: variant.id,
+      hash,
+      bestMatch,
+      secondBestMatch,
+      isActiveMatch: isActiveMatchCandidate(bestMatch, secondBestMatch, config!),
+    };
+
+    selectedVariant = selectedVariant
+      ? compareVariantMatches(selectedVariant, variantMatch)
+      : variantMatch;
+
+    if (variantMatch.isActiveMatch) {
+      break;
+    }
   }
-  const hashImageData = hCtx.getImageData(0, 0, PHASH_SIZE, PHASH_SIZE);
 
-  // 2. Compute pHash (resize is a no-op since input is already 32×32)
-  const hash = computePHash(hashImageData);
+  if (!selectedVariant) {
+    selectedVariant = {
+      cropVariant: 'full',
+      hash: '',
+      bestMatch: null,
+      secondBestMatch: null,
+      isActiveMatch: false,
+    };
+  }
 
-  // 3. Find best matches
-  const { bestMatch, secondBestMatch } = findBestMatches(hash, hashEntries);
+  const selectedCrop =
+    variants.find((variant) => variant.id === selectedVariant.cropVariant) ?? variants[0];
+  const { hash, bestMatch, secondBestMatch } = selectedVariant;
 
-  // 4. Determine if quality checks are needed, mirroring the main-thread condition:
+  // Determine if quality checks are needed, mirroring the main-thread condition:
   //    shouldRunQualityCheck = !bestMatch || !activeMatch || distance > gatingThreshold
   //
   // We replicate the active-match decision here so quality always runs for
   // ambiguous candidates (within threshold but failing margin / tie checks) —
   // same as the inline pipeline.
   const cfg = config!;
-  const isWithinThreshold = !!bestMatch && bestMatch.distance <= cfg.similarityThreshold;
-  let activeMatchExists = false;
-  if (isWithinThreshold) {
-    const bestMargin =
-      bestMatch && secondBestMatch ? secondBestMatch.distance - bestMatch.distance : null;
-    const marginBoost =
-      bestMatch && bestMatch.distance >= Math.max(cfg.similarityThreshold - 1, 0) ? 1 : 0;
-    const effectiveMarginRequired = cfg.matchMarginThreshold + marginBoost;
-    const hasSufficientMargin = bestMargin === null || bestMargin >= effectiveMarginRequired;
-    const isExactCrossConcertTie =
-      secondBestMatch !== null && bestMatch!.distance === secondBestMatch.distance;
-    activeMatchExists = hasSufficientMargin && !isExactCrossConcertTie;
-  }
+  const activeMatchExists = selectedVariant.isActiveMatch;
   const shouldRunQuality =
     !bestMatch || !activeMatchExists || bestMatch.distance > cfg.qualityGatingDistanceThreshold;
 
   let quality: WorkerFrameResult['quality'] = null;
 
   if (shouldRunQuality) {
-    // Draw bitmap at 128×128 for quality metrics
-    const qCtx = ensureQualityCanvas();
-    qualityCanvas!.width = QUALITY_SIZE;
-    qualityCanvas!.height = QUALITY_SIZE;
-    qCtx.drawImage(bitmap, 0, 0, QUALITY_SIZE, QUALITY_SIZE);
-    const qualityImageData = qCtx.getImageData(0, 0, QUALITY_SIZE, QUALITY_SIZE);
+    const qualityImageData = rectifiedImageData
+      ? drawImageDataVariantForQuality(rectifiedImageData, selectedCrop)
+      : drawBitmapVariantForQuality(bitmap, selectedCrop);
 
     const metrics = computeAllQualityMetrics(
       qualityImageData,
@@ -544,6 +678,7 @@ function processFrame(
     type: 'result',
     frameId,
     hash,
+    cropVariant: selectedVariant.cropVariant,
     bestMatch: toResult(bestMatch),
     secondBestMatch: toResult(secondBestMatch),
     quality,

@@ -328,9 +328,10 @@ function AppContent() {
       sharpnessThreshold: 85,
       recognitionDelay: 180,
       continuousRecognition: true,
+      demoCropFallbackEnabled: isDemoMode,
       enabled: !showSecretSettings && !isConcertInfoVisible,
     }),
-    [isDebugOverlayVisible, isEnabled, isConcertInfoVisible, showSecretSettings]
+    [isDebugOverlayVisible, isEnabled, isConcertInfoVisible, isDemoMode, showSecretSettings]
   );
 
   const {

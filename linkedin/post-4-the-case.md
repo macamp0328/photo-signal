@@ -29,7 +29,7 @@ Good engineering is mostly taste. Knowing what matters. Knowing when something i
 
 And I know enough to just try things. I picked up pHash, Cloudflare Workers, and Vite without having used any of them. Read enough to think they were probably right. Bathroom art project. If I was wrong I could change it.
 
-The thing I kept writing into every prompt: add more of me into it. The ISO from the original concert photos drives the film grain in the UI. The color palette for each match comes from the band name and day of the week. The camera that took the photo shapes how the app looks when you find it. Nobody asked for any of that. I kept asking until it was there.
+The thing I kept writing into every prompt: add more of me into it. The ISO from the original concert photos drives the film grain in the UI. The shutter speed from that same shot shapes how the match animation feels. The color palette for each match comes from the band name and day of the week. Nobody asked for any of that. I kept asking until it was there.
 
 That's what AI makes obvious. Somebody still has to care whether it feels right.
 
@@ -45,7 +45,9 @@ I care whether it feels right.
 
 Not just "does it work." Not just "did it ship." Does it feel like what you intended? Is the detail nobody will notice still worth getting right?
 
-That drove everything on this project. No QR codes because they'd change what the photographs were. Three fingerprint versions per print so it recognizes correctly under different lighting. A glitch that fires once every five minutes because an app that never glitches doesn't feel real.
+That drove everything on this project. No QR codes because they'd change what the photographs were. Three fingerprint versions per print so it recognizes correctly under different lighting. A glitch that fires once every five minutes because an app that never glitches doesn't feel real. The color palette for each concert comes from the band name and the day of the week.
+
+None of that was in any spec.
 
 I directed AI agents across the full stack. Picked up tools I hadn't used. Started it in 2025, shelved it, came back in 2026 when the tools had caught up.
 

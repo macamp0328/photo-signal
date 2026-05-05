@@ -58,6 +58,24 @@ Knowing what you want, and being annoying enough to ask for it. That's the job.
 
 ---
 
+## Draft C — The Loop (the actual mechanics)
+
+Here's what the workflow actually looks like.
+
+I write prompts. Claude builds the code. The PR goes up. GitHub Copilot reviews it automatically.
+
+Then I run a command: `/tend-to-pr`. Claude reads every Copilot comment, decides what to fix and what to decline, makes the edits, replies to every thread, and resolves them. The review loop closes itself.
+
+It caught a real mistake on this project. A draft for this series described a glitch effect as firing "0.3% per animation frame." The actual code runs on a one-second interval — roughly once every five minutes, not every few seconds. Completely different. Copilot flagged it. Claude fixed the post and replied to the thread. Done.
+
+The CI gate has seven steps. One of them is unusual: every export in every module has to be documented in its README, or the commit fails. Agents write code faster than they write docs. So documentation gets enforced, not hoped for.
+
+When CI fails on an AI branch, a GitHub Actions workflow runs lint and format automatically, commits the fix, and leaves a comment explaining what it did. The common mistakes repair themselves.
+
+I write the prompts. I write the rules the system runs by. Rarely the code.
+
+---
+
 ## Notes
 
 - **Draft A** opens with the timeline — good for readers who respond to narrative arc and the "trying to figure it out" story. More personal, more journey.
@@ -66,3 +84,4 @@ Knowing what you want, and being annoying enough to ask for it. That's the job.
 - Real codebase details used: `dead signal` (actual state name in code), the module README sync CI step, the FNV-1a hash / 51° day arc / golden angle for color palettes, EXIF-driven film grain, scan lines fading with song progress.
 - The 7-step gate is real; the module README sync step is the most unusual one — signals that docs are enforced, not aspirational.
 - Don't editorialize about AI replacing developers. Keep it grounded in your specific experience on this specific project.
+- **Draft C** is the workflow story — Copilot reviews, `/tend-to-pr` closes the loop, the module README sync and auto-fix workflow. Good if you want to show the actual mechanics rather than the philosophy. The Copilot-caught bug (0.3% per rAF vs. 1-second setInterval) is real and adds credibility. "I write the prompts. I write the rules the system runs by. Rarely the code." echoes the README.

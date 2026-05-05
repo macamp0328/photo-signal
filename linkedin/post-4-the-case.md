@@ -57,6 +57,26 @@ If that's yours, I'd genuinely like to talk.
 
 ---
 
+## Draft C — The Experiment (what building this way actually teaches you)
+
+The most surprising thing about building this way: you have to design differently.
+
+When AI agents do most of the coding, you become the person who writes the rules the system runs by.
+
+Every export in every module has to be documented in its README, or CI fails. That's a rule I wrote. Not because I was worried about documentation — because agents write code faster than they write docs, and if you don't enforce it, it doesn't happen.
+
+There's a vocabulary document that names every state in the system. LOCKED. LANDING. ACTIVE. IDLE. CANDIDATE. MATCHED. Because when you're writing a prompt to build a feature, you need to say "when the recognition state is CANDIDATE" and mean something exact.
+
+There are architecture decision records. Written down, so future agents — and future me — don't re-litigate what's already been decided.
+
+I almost never wrote code on this project. I wrote systems that make the code better. And I kept writing "add more of me into it" until the thing felt like mine.
+
+That's the experiment. It worked.
+
+If your team is running something like this, or trying to, I'd genuinely like to compare notes.
+
+---
+
 ## Notes
 
 - **Draft A** is warm and retrospective — ties back to the bathroom viral moment, uses "add more of me" as a throughline from Post 2. Good close for a narrative series.
@@ -66,3 +86,4 @@ If that's yours, I'd genuinely like to talk.
 - The stochastic glitch appears in both drafts as a concrete example of taste — choosing to add organic imperfection.
 - "I'd love to talk" / "I'd genuinely like to talk" — keep it low-pressure. The right people will reach out.
 - After posting: pin a comment with the repo link. Let the code speak for itself.
+- **Draft C** is the experiment angle — what building AI-first actually teaches about software design. The rules you write (CI enforcement, state vocabulary, ADRs) become load-bearing. Good if you want a close that's about the method, not just the taste. "I'd genuinely like to compare notes" is more specific than "I'd like to talk" — pulls in the right people. The vocabulary doc (STATES_AND_DESIGN_LANGUAGE.md) and the ADRs are real artifacts you could link to in a comment.

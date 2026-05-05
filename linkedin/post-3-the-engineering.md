@@ -56,6 +56,26 @@ The app also glitches sometimes. The image shifts, red channel one way, blue the
 
 ---
 
+## Draft C — The Failure Modes (the system knows when to quit)
+
+The app is running on a phone, in a bathroom, pointed at printed photographs.
+
+There's a lot that can go wrong.
+
+Every frame gets evaluated before recognition even starts. Too blurry? Rejected. Too much glare? Rejected. Underexposed or overexposed? Rejected. The sharpness check uses Laplacian variance — if the score drops below 85, the frame is probably moving or out of focus and gets thrown away. No match attempted.
+
+When a frame passes those gates, the match still has to prove itself. The best candidate has to hold for 180 milliseconds before it confirms. And the second-best candidate has to be at least 5 bits worse — if two photos are close, the result is ambiguous, and the system won't guess.
+
+Very strong matches skip the delay entirely. Under 10 bits of distance — about 84% similar — it confirms in a single frame.
+
+The point of all this: the system knows exactly where it fails. Not a feeling. A reason. BLURRED. GLARE. UNDEREXPOSED. MARGIN_FAIL. Named states, documented behavior, specific thresholds.
+
+"It didn't work" is not an acceptable answer from a recognition system. The thing has to know why.
+
+The repo is public if you want to dig in.
+
+---
+
 ## Notes
 
 - **Draft A** leads with the constraint — good for readers who appreciate the product/architecture reasoning. Engineering story told from the builder's perspective.
@@ -66,3 +86,4 @@ The app also glitches sometimes. The image shifts, red channel one way, blue the
 - The multi-exposure insight (dark/normal/bright variants, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML.
 - Don't go into DCT math or homography. The depth is in the specifics, not the formulas.
 - Engineers in the comments may ask about false positives, dataset size, or performance. Be ready to discuss. The repo is public — invite them to look.
+- **Draft C** is the failure-modes angle — frame quality gates, the confirmation delay, the margin requirement. Good if you want to show precision thinking rather than just the clever lighting solution. "The system knows exactly where it fails. Not a feeling. A reason." is the thesis. Named states come from STATES_AND_DESIGN_LANGUAGE.md — a real doc that exists so agents and humans share vocabulary.

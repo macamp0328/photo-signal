@@ -22,43 +22,39 @@
 
 I started this project once before.
 
-Sometime in 2025. A few weeks in. The AI could build — components, hooks, tests, all of it. Genuinely impressive. But the output felt like it was made by someone who had never heard the music.
+Sometime in 2025. Got a few weeks in, put it down. The AI could build things fine. But the output felt like it was made by someone who had never heard the music.
 
-I shelved it.
+Picked it back up this year. Something had changed. Hard to put a number on it, easy to feel.
 
-Picked it up again this year. Something had shifted. Meaningfully better in ways that are hard to quantify and easy to feel. The first version felt like scaffolding. This one felt like a project.
+Here's what I actually did:
 
-My job looked like this.
+No QR codes. The prints had to work as actual photographs, under real gallery lighting, no modifications. That one call shaped everything downstream.
 
-I made calls. No QR codes — the prints had to work unmodified, under variable gallery lighting. That one decision shaped the entire recognition architecture.
+I picked up tools I had never used. pHash, Cloudflare Workers, Vite. All of them new to me. Read enough to think they were probably right, and if I was wrong? Bathroom art project. I could change it.
 
-I chose tooling I had never used. pHash, Cloudflare Workers, Vite. None of them. I read enough to think they were probably right, and if I was wrong I could change it. It's an art project in my bathroom. Two-way door. I didn't lose sleep.
+Every prompt I wrote had the same note buried in it: add more of me into it.
 
-The CI gate enforces the quality bar — seven steps, every commit, no exceptions. One of them is a custom script that checks whether every exported function in every module has documentation in that module's README. Agents commit. The check runs too.
+Not "improve the UI." The unmatched state should look like analog TV static. I named it dead signal. The color palette for each concert gets derived from the band name and day of the week. The scan lines fade back in as a song nears its end. None of that came from a spec. I kept asking until it stuck.
 
-And I kept writing the same note into every prompt: add more of me into it.
-
-Not "make it more polished." The unmatched state should look like analog TV static — I named it dead signal. The color palette for each concert is derived from the band name and the day of the week, hashed deterministically. The scan lines fade back in as a song nears its end. These weren't requirements. They were creative instructions I had to repeat until they stuck.
-
-That's the actual job. Know enough to have an opinion. Be stubborn about the right things. Recognize when the stakes are low enough to just try something.
+That's what the job actually is. Know what you want. Be annoying about it until you get it.
 
 ---
 
 ## Draft B — The Instruction (thesis-first)
 
-Every prompt I wrote for this project had the same note somewhere in it: add more of me into it.
+Every prompt I wrote had the same note in it: add more of me into it.
 
-It sounds vague. It took months to operationalize.
+It took months to figure out what that actually meant.
 
-Not "improve the UI." Not "add more polish." The unmatched state should have a name — I called it dead signal — and it should look like analog static. The color palette for each concert should be derived from the band name and day of the week: FNV-1a hash of the artist, each day owns a 51° arc of the color wheel, accent offset by the golden angle. The CRT phosphor glow is a specific amber, not a default. As a song nears its end, the scan lines fade back in — the broadcast signal fades with it. The EXIF data from the original concert photos drives film grain: higher ISO, more noise in the matched UI.
+Not "improve the UI." The unmatched state should look like analog TV static. I named it dead signal. The color palette for each concert gets derived from the band name and day of the week. The scan lines fade back in as a song nears its end. The ISO from the original concert photo drives the film grain in the matched UI. All of it specific, and mine.
 
-None of this came from the AI. It came from me saying the same thing until it stuck.
+None of that came from the AI. I just kept asking.
 
-I'd started this project once before, in 2025. Put it down. The AI could build — everything it was asked to. But the result felt like it was made by someone who had never heard the music. Picked it back up this year. Something had shifted. The first version felt like scaffolding. This one felt like a project.
+I'd started this once before, in 2025. Put it down. The AI could build fine. But the output felt like it was made by someone who had never heard the music. Picked it back up this year. Something had shifted. The first version felt like scaffolding. This one felt like a project.
 
-The infrastructure: I chose tooling I had never used. pHash, Cloudflare Workers, Vite. Read enough to think they were probably right. It's an art project in my bathroom — if I was wrong, I could change it. Two-way door. I didn't lose sleep.
+On the tooling: I picked up things I had never used. pHash, Cloudflare Workers, Vite. Read enough to think they were probably right. It's a bathroom art project. If I was wrong, I could just change it.
 
-The job isn't prompting. It's knowing what you want clearly enough to keep asking for it until you get it.
+Knowing what you want, and being annoying enough to ask for it. That's the job.
 
 ---
 

@@ -20,21 +20,17 @@
 
 ## Draft A — Constraint drives design
 
-Gallery lighting is messy. Overhead fixtures, shadows, angles, color temperature. I knew this going in.
+I didn't want to modify the prints.
 
-But the real constraint wasn't lighting. It was the photographs.
+No QR codes, no invisible markers. These were photographs from concerts I actually went to. They had to stand on their own, as photographs. The technology had to work around that.
 
-I didn't want to modify the prints. No QR codes, no invisible markers. These were photographs from concerts I actually went to. They had to stand as photographs. The technology had to work around that, not the other way around.
-
-So: perceptual hashing. Each print gets a 64-bit fingerprint based on visual structure — not exact pixels. Similar images produce similar hashes. Measure the distance between them.
+So I landed on perceptual hashing. It creates a fingerprint of what an image looks like, not its exact pixels. Similar images get similar fingerprints. You measure the distance between them. It's kind of elegant.
 
 The wrinkle: the same print under different lighting hashes differently. A warm overhead lamp shifts the apparent brightness of everything on the wall. Solve that wrong and recognition breaks constantly.
 
-Fix: pre-compute three hash variants per print — dark, normal, bright — at build time. At runtime, match against all three and take the minimum Hamming distance. Lighting robustness without a neural network.
+The fix was simple once I saw it. Compute five versions of the fingerprint per print ahead of time, covering the range from dim venue lighting to overexposed daylight. At runtime, test against all five and take the closest match. Lighting robustness without any machine learning.
 
-Threshold: 18 out of 64 bits. A secondary candidate has to be at least 5 bits worse than the best match. Dialed in on real prints, in the actual gallery, under the actual lights.
-
-The check runs in a Web Worker — never on the main thread. ~80ms while tracking a candidate, ~120ms idle.
+The threshold is 18 out of 64 bits. It runs in a Web Worker, checking about every 80 milliseconds while it's tracking something. The UI never has to compete with it.
 
 The easy path was QR codes. But that would have made it a different project.
 
@@ -42,21 +38,43 @@ The easy path was QR codes. But that would have made it a different project.
 
 ## Draft B — From the user's experience inward
 
-You point your phone at a print. The app finds it in about a second.
+Point your phone at a print. The app finds it in about a second.
 
-That sounds simple. Here's why it isn't.
+That works in any corner of the bathroom, under the overhead light, near the window. Doesn't matter.
 
-Gallery lighting is inconsistent. The same photo under a warm overhead lamp looks meaningfully different from the same photo in a cool corner. A recognition approach that works in one spot can fail two feet to the left. And I wasn't going to put QR codes on the prints — these were photographs. They had to stand as photographs.
+Here's why that was harder than it sounds.
 
-The solution uses perceptual hashing: a 64-bit fingerprint derived from the visual structure of an image, not its exact pixels. Similar-looking images produce similar hashes. Measure the distance. Take the nearest match.
+Gallery lighting is inconsistent. The same photo can look meaningfully different depending on where you're standing. A system that works in one spot might fail two feet to the left. And I wasn't going to put QR codes on the prints. These were photographs. They had to stand as photographs.
 
-The lighting problem needed a specific fix: three hash variants per print — dark, normal, bright — computed at build time. At runtime, match against all three and use the minimum distance. The match threshold is 18 out of 64 bits, with a required gap of at least 5 bits over the next closest candidate.
+I ended up using perceptual hashing. It creates a fingerprint of what an image looks like, based on its visual structure. Similar-looking images get similar fingerprints. You measure the distance.
 
-The recognition runs in a Web Worker. The main thread never sees it. Check interval adapts: ~80ms while tracking a candidate, ~120ms idle.
+The fix for the lighting problem: compute five versions of the fingerprint per print ahead of time, from dim venue to bright daylight. At runtime, compare against all five and take the nearest match. No machine learning. Just pre-computation.
 
-At the moment of match, the rectangle overlay's bloom animation fires. The concert color palette — derived from the band name and day of the week — replaces the amber dead-signal ambient. The song starts.
+The threshold is 18 out of 64 bits. It runs off the main thread so the UI stays smooth.
 
-The app also occasionally glitches. Red channel shifts a few pixels left, blue shifts right. Chromatic aberration. Fires at about 0.3% per second — roughly once every five minutes. The TV hasn't been fully repaired.
+The app also glitches sometimes. The image shifts, red channel one way, blue the other. Once every five minutes or so. The TV hasn't been fully repaired.
+
+What recognition problems have you run into?
+
+---
+
+## Draft C — The Failure Modes (the system knows when to quit)
+
+The app is running on a phone, in a bathroom, pointed at printed photographs.
+
+There's a lot that can go wrong.
+
+Every frame gets evaluated before recognition even starts. Too blurry? Rejected. Too much glare? Rejected. Underexposed or overexposed? Rejected. The sharpness check uses Laplacian variance — if the score drops below 85, the frame is probably moving or out of focus and gets thrown away. No match attempted.
+
+When a frame passes those gates, the match still has to prove itself. The best candidate has to hold for 180 milliseconds before it confirms. And the second-best candidate has to be at least 5 bits worse — if two photos are close, the result is ambiguous, and the system won't guess.
+
+Very strong matches skip the delay entirely. Under 10 bits of distance — about 84% similar — it confirms in a single frame.
+
+The point of all this: the system knows exactly where it fails. Not a feeling. A reason. BLURRED. GLARE. UNDEREXPOSED. MARGIN_FAIL. Named states, documented behavior, specific thresholds.
+
+"It didn't work" is not an acceptable answer from a recognition system. The thing has to know why.
+
+The repo is public if you want to dig in.
 
 ---
 
@@ -67,6 +85,7 @@ The app also occasionally glitches. Red channel shifts a few pixels left, blue s
 - **The threshold is 18 bits, not 14.** The original draft had this wrong. Both new drafts use the correct number.
 - The secondary candidate gap (5 bits worse) is a real implementation detail — signals the system actively avoids false positives, not just low-threshold matching.
 - The stochastic glitch is real: `@keyframes chromaticShift`, fires at 0.3% per second on a 1-second `setInterval` tick, roughly once every 5 minutes.
-- The multi-exposure insight (dark/normal/bright variants, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML.
+- The multi-exposure insight (five gamma-adjusted variants from dim venue to overexposed daylight, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML. The default is five variants (gamma 2.0, 1.4, 1.0, 0.7, 0.5); the old three-variant (dark/normal/bright) description is outdated.
 - Don't go into DCT math or homography. The depth is in the specifics, not the formulas.
 - Engineers in the comments may ask about false positives, dataset size, or performance. Be ready to discuss. The repo is public — invite them to look.
+- **Draft C** is the failure-modes angle — frame quality gates, the confirmation delay, the margin requirement. Good if you want to show precision thinking rather than just the clever lighting solution. "The system knows exactly where it fails. Not a feeling. A reason." is the thesis. Named states come from STATES_AND_DESIGN_LANGUAGE.md — a real doc that exists so agents and humans share vocabulary.

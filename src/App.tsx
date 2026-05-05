@@ -182,6 +182,7 @@ function AppContent() {
 
   // Track audio that is currently playing so we can keep music alive between scans
   const [activeConcert, setActiveConcert] = useState<Concert | null>(null);
+  const [themedConcert, setThemedConcert] = useState<Concert | null>(null);
   const [isConcertInfoVisible, setIsConcertInfoVisible] = useState(false);
   const [hasScannedPhotoLoadFailed, setHasScannedPhotoLoadFailed] = useState(false);
   const [isDownloadPromptVisible, setIsDownloadPromptVisible] = useState(false);
@@ -399,17 +400,18 @@ function AppContent() {
   useEffect(() => {
     if (activeRecognitionConcert) {
       setIsConcertInfoVisible(true);
+      setThemedConcert(activeRecognitionConcert);
     }
   }, [activeRecognitionConcert]);
 
-  // Apply concert-specific gig poster palette when a concert is matched; revert to dead signal otherwise.
-  // EXIF visual character vars are applied alongside the palette so each photo match feels unique.
-  // Cleanup on unmount ensures data-state, --poster-*, and --exif-* vars don't leak into future mounts.
+  // Apply concert-specific gig poster palette for the last scanned concert.
+  // This intentionally survives closing the details panel so the camera keeps
+  // the current song's visual character until another photo is scanned.
   useEffect(() => {
-    if (activeRecognitionConcert) {
-      applyConcertPalette(activeRecognitionConcert.band, activeRecognitionConcert.date);
+    if (themedConcert) {
+      applyConcertPalette(themedConcert.band, themedConcert.date);
       if (isEnabled('exif-visual-character')) {
-        applyExifVisualCharacter(activeRecognitionConcert);
+        applyExifVisualCharacter(themedConcert);
       } else {
         resetExifVisualCharacter();
       }
@@ -417,11 +419,15 @@ function AppContent() {
       resetToDeadSignal();
       resetExifVisualCharacter();
     }
+  }, [themedConcert, isEnabled]);
+
+  // Cleanup on unmount ensures data-state, --poster-*, and --exif-* vars don't leak.
+  useEffect(() => {
     return () => {
       resetToDeadSignal();
       resetExifVisualCharacter();
     };
-  }, [activeRecognitionConcert, isEnabled]);
+  }, []);
 
   useEffect(() => {
     if (showSecretSettings) {
@@ -448,14 +454,11 @@ function AppContent() {
   useStochasticGlitch(isEnabled('stochastic-glitch'));
 
   // Effect: Song-Progress Scan Lines
-  // As progress approaches 1, restore scan lines with visible intensity (max +0.45 opacity).
-  // Directly modulates --crt-opacity on the root element while the matched-state CSS
-  // (html[data-state='matched'] in src/index.css) sets its baseline to 0; when this
-  // effect cleans up, control returns to the CSS-driven state machine.
-  // Gated on activeRecognitionConcert (not activeConcert) so it only runs in matched
-  // state — activeConcert persists while audio plays even after recognition resets.
+  // As progress approaches 1, restore scan lines with visible intensity.
+  // This follows active playback, so it remains visible over both the matched
+  // photo view and the camera view after "scan another".
   useEffect(() => {
-    if (!isEnabled('song-progress-scanlines') || !isPlaying || !activeRecognitionConcert) {
+    if (!isEnabled('song-progress-scanlines') || !isPlaying || !activeConcert) {
       document.documentElement.style.removeProperty('--crt-opacity');
       return;
     }
@@ -468,7 +471,7 @@ function AppContent() {
     return () => {
       document.documentElement.style.removeProperty('--crt-opacity');
     };
-  }, [progress, isPlaying, activeRecognitionConcert, isEnabled]);
+  }, [progress, isPlaying, activeConcert, isEnabled]);
 
   // Keep playRef in sync so onSongEnd (stable closure) can call the latest play fn
   useEffect(() => {
@@ -808,6 +811,7 @@ function AppContent() {
     setIsDownloadPromptVisible(false);
     setClosedConcertCooldown(null);
     setActiveConcert(null);
+    setThemedConcert(null);
     setActivePlaylistBand(null);
     playlistRef.current = [];
     playlistIndexRef.current = 0;

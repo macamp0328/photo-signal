@@ -6,6 +6,7 @@ import type { Concert } from './types';
 import { dataService } from './services/data-service';
 import type { RecognitionDebugInfo, RecognitionTelemetry } from './modules/photo-recognition/types';
 import { createEmptyTelemetry } from './modules/photo-recognition/helpers';
+import { getConcertPalette } from './utils/concert-palette';
 
 const concertOne: Concert = {
   id: 1,
@@ -194,6 +195,14 @@ describe('App playback flow', () => {
     recognitionState.detectedRectangle = null;
     recognitionState.rectangleConfidence = 0;
     enabledFlags.clear();
+    document.documentElement.removeAttribute('data-state');
+    document.documentElement.removeAttribute('data-exif-visual');
+    document.documentElement.style.removeProperty('--poster-bg');
+    document.documentElement.style.removeProperty('--poster-primary');
+    document.documentElement.style.removeProperty('--poster-accent');
+    document.documentElement.style.removeProperty('--exif-grain-opacity');
+    document.documentElement.style.removeProperty('--exif-transition-scale');
+    document.documentElement.style.removeProperty('--crt-opacity');
 
     audioState.isPlaying = false;
     audioState.progress = 0;
@@ -1147,30 +1156,44 @@ describe('App playback flow', () => {
     });
   });
 
-  it('removes data-exif-visual attribute when recognition is cleared', async () => {
+  it('keeps palette and EXIF visual character after scan another', async () => {
     const concertWithExif: typeof concertOne = {
       ...concertOne,
       iso: '800',
       aperture: 'f/1.8',
       shutterSpeed: '1/125',
     };
+    const expectedPalette = getConcertPalette(concertWithExif.band, concertWithExif.date);
 
     recognitionState.recognizedConcert = concertWithExif;
     enabledFlags.add('exif-visual-character');
 
-    const { rerender } = render(<App />);
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
 
     await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-state')).toBe('matched');
       expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+      expect(document.documentElement.style.getPropertyValue('--poster-bg')).toBe(
+        expectedPalette.bg
+      );
     });
 
-    // Clear the recognition (simulate losing the photo match)
-    recognitionState.recognizedConcert = null;
-    rerender(<App />);
+    await user.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
 
-    await waitFor(() => {
-      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
-    });
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+    expect(document.documentElement.getAttribute('data-state')).toBe('matched');
+    expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+    expect(document.documentElement.style.getPropertyValue('--poster-bg')).toBe(expectedPalette.bg);
+    expect(document.documentElement.style.getPropertyValue('--exif-grain-opacity')).not.toBe('');
   });
 
   it('does not set data-exif-visual when exif-visual-character flag is disabled', async () => {
@@ -1192,49 +1215,168 @@ describe('App playback flow', () => {
     expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
   });
 
-  it('sets --crt-opacity when song-progress-scanlines flag is enabled, playing, and matched', () => {
+  it('replaces the lingering theme when a new photo is recognized', async () => {
+    const firstPalette = getConcertPalette(concertOne.band, concertOne.date);
+    const secondPalette = getConcertPalette(concertTwo.band, concertTwo.date);
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    await waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--poster-bg')).toBe(firstPalette.bg);
+    });
+
+    await user.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
+    expect(document.documentElement.style.getPropertyValue('--poster-bg')).toBe(firstPalette.bg);
+
+    recognitionState.recognizedConcert = concertTwo;
+    view.rerender(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--poster-bg')).toBe(secondPalette.bg);
+    });
+  });
+
+  it('sets --crt-opacity when song-progress-scanlines flag is enabled and a song is playing', async () => {
     enabledFlags.add('song-progress-scanlines');
     recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
     audioState.isPlaying = true;
     audioState.progress = 0.5;
-
-    render(<App />);
+    view.rerender(<App />);
 
     // Math.pow(0.5, 2.5) * 0.75 ≈ 0.133
     expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.133');
   });
 
-  it('does not set --crt-opacity when song-progress-scanlines flag is disabled', () => {
+  it('does not set --crt-opacity when song-progress-scanlines flag is disabled', async () => {
     // flag intentionally absent
     recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
     audioState.isPlaying = true;
     audioState.progress = 0.8;
-
-    render(<App />);
+    view.rerender(<App />);
 
     expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
   });
 
-  it('does not set --crt-opacity when not playing', () => {
+  it('does not set --crt-opacity when not playing', async () => {
     enabledFlags.add('song-progress-scanlines');
     recognitionState.recognizedConcert = concertOne;
     audioState.isPlaying = false;
     audioState.progress = 0.8;
 
+    const user = userEvent.setup();
     render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
 
     expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
   });
 
-  it('does not set --crt-opacity when recognition is not matched (guards against dead-signal suppression)', () => {
+  it('keeps --crt-opacity after scan another while music is playing', async () => {
     enabledFlags.add('song-progress-scanlines');
-    recognitionState.recognizedConcert = null; // unmatched — activeConcert may still be set from prior play
+    recognitionState.recognizedConcert = concertOne;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
     audioState.isPlaying = true;
     audioState.progress = 0.9;
+    view.rerender(<App />);
 
-    render(<App />);
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.576');
 
-    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+    await user.click(
+      screen.getByRole('button', { name: 'Close concert view and scan a new photo' })
+    );
+
+    expect(screen.queryByLabelText('Concert details')).not.toBeInTheDocument();
+    expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.576');
+  });
+
+  it('cleans up palette, EXIF, and scan-line opacity when app is hidden', async () => {
+    const concertWithExif: typeof concertOne = {
+      ...concertOne,
+      iso: '1600',
+      shutterSpeed: '1/60',
+    };
+    enabledFlags.add('exif-visual-character');
+    enabledFlags.add('song-progress-scanlines');
+    recognitionState.recognizedConcert = concertWithExif;
+
+    const user = userEvent.setup();
+    const view = render(<App />);
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Tune in — activate camera and begin experience',
+      })
+    );
+
+    audioState.isPlaying = true;
+    audioState.progress = 0.9;
+    view.rerender(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-state')).toBe('matched');
+      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(true);
+      expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.576');
+    });
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'hidden',
+    });
+    fireEvent(document, new Event('visibilitychange'));
+
+    await waitFor(() => {
+      expect(document.documentElement.getAttribute('data-state')).toBeNull();
+      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
+      expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+    });
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    });
   });
 
   // --- Preload regression tests (instant audio on match + next-track lookahead) ---

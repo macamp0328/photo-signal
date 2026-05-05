@@ -35,7 +35,7 @@ That's what AI makes obvious. Somebody still has to care whether it feels right.
 
 I want to work on a team that's building something they're proud of. If that's yours, I'd love to hear what you're working on.
 
-The repo is public. The bathroom gallery is real.
+The repo is public. The bathroom gallery is real!
 
 ---
 
@@ -49,7 +49,7 @@ That drove everything on this project. No QR codes because they'd change what th
 
 I directed AI agents across the full stack. Picked up tools I hadn't used. Started it in 2025, shelved it, came back in 2026 when the tools had caught up.
 
-I'm looking for a team where the product thinking and the engineering are in the same conversation. Somewhere building something worth caring about.
+I'm looking for a team building something they're actually proud of. Not just shipped. Proud of.
 
 If that's yours, I'd genuinely like to talk.
 

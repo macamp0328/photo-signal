@@ -38,6 +38,8 @@ Not "improve the UI." The unmatched state should look like analog TV static. I n
 
 That's what the job actually is. Know what you want. Be annoying about it until you get it.
 
+Curious what your version looks like.
+
 ---
 
 ## Draft B — The Instruction (thesis-first)
@@ -55,6 +57,8 @@ I'd started this once before, in 2025. Put it down. The AI could build fine. But
 On the tooling: I picked up things I had never used. pHash, Cloudflare Workers, Vite. Read enough to think they were probably right. It's a bathroom art project. If I was wrong, I could just change it.
 
 Knowing what you want, and being annoying enough to ask for it. That's the job.
+
+What are you building?
 
 ---
 
@@ -81,7 +85,7 @@ I write the prompts. I write the rules the system runs by. Rarely the code.
 - **Draft A** opens with the timeline — good for readers who respond to narrative arc and the "trying to figure it out" story. More personal, more journey.
 - **Draft B** opens with the central insight ("add more of me") — good if you want to lead with what's most distinctive and let the timeline be supporting evidence. More philosophical.
 - Both drafts remove bullet points to match Post 1's voice.
-- Real codebase details used: `dead signal` (actual state name in code), the module README sync CI step, the FNV-1a hash / 51° day arc / golden angle for color palettes, EXIF-driven film grain, scan lines fading with song progress.
+- Real codebase details used in current drafts: `dead signal` (actual state name in code), day-of-week color palette, scan lines fading with song progress, EXIF-driven film grain (Draft B only). FNV-1a hash / 51° arc / golden angle details are real but not named in the post body — they belong in a comment reply if engineers ask how the palette works.
 - The 7-step gate is real; the module README sync step is the most unusual one — signals that docs are enforced, not aspirational.
 - Don't editorialize about AI replacing developers. Keep it grounded in your specific experience on this specific project.
 - **Draft C** is the workflow story — Copilot reviews, `/tend-to-pr` closes the loop, the module README sync and auto-fix workflow. Good if you want to show the actual mechanics rather than the philosophy. The Copilot-caught bug (0.3% per rAF vs. 1-second setInterval) is real and adds credibility. "I write the prompts. I write the rules the system runs by. Rarely the code." echoes the README.

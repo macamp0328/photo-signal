@@ -28,7 +28,7 @@ So I landed on perceptual hashing. It creates a fingerprint of what an image loo
 
 The wrinkle: the same print under different lighting hashes differently. A warm overhead lamp shifts the apparent brightness of everything on the wall. Solve that wrong and recognition breaks constantly.
 
-The fix was simple once I saw it. Compute three versions of the fingerprint per print ahead of time: dark, normal, and bright. At runtime, test against all three and take the closest match. Lighting robustness without any machine learning.
+The fix was simple once I saw it. Compute five versions of the fingerprint per print ahead of time, covering the range from dim venue lighting to overexposed daylight. At runtime, test against all five and take the closest match. Lighting robustness without any machine learning.
 
 The threshold is 18 out of 64 bits. It runs in a Web Worker, checking about every 80 milliseconds while it's tracking something. The UI never has to compete with it.
 
@@ -48,11 +48,13 @@ Gallery lighting is inconsistent. The same photo can look meaningfully different
 
 I ended up using perceptual hashing. It creates a fingerprint of what an image looks like, based on its visual structure. Similar-looking images get similar fingerprints. You measure the distance.
 
-The fix for the lighting problem: compute three versions of the fingerprint per print ahead of time. Dark, normal, and bright. At runtime, compare against all three and take the nearest match. No machine learning. Just pre-computation.
+The fix for the lighting problem: compute five versions of the fingerprint per print ahead of time, from dim venue to bright daylight. At runtime, compare against all five and take the nearest match. No machine learning. Just pre-computation.
 
 The threshold is 18 out of 64 bits. It runs off the main thread so the UI stays smooth.
 
 The app also glitches sometimes. The image shifts, red channel one way, blue the other. Once every five minutes or so. The TV hasn't been fully repaired.
+
+What recognition problems have you run into?
 
 ---
 
@@ -83,7 +85,7 @@ The repo is public if you want to dig in.
 - **The threshold is 18 bits, not 14.** The original draft had this wrong. Both new drafts use the correct number.
 - The secondary candidate gap (5 bits worse) is a real implementation detail — signals the system actively avoids false positives, not just low-threshold matching.
 - The stochastic glitch is real: `@keyframes chromaticShift`, fires at 0.3% per second on a 1-second `setInterval` tick, roughly once every 5 minutes.
-- The multi-exposure insight (dark/normal/bright variants, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML.
+- The multi-exposure insight (five gamma-adjusted variants from dim venue to overexposed daylight, minimum Hamming distance) is the genuinely clever part. Don't undersell it — it's lighting robustness without ML. The default is five variants (gamma 2.0, 1.4, 1.0, 0.7, 0.5); the old three-variant (dark/normal/bright) description is outdated.
 - Don't go into DCT math or homography. The depth is in the specifics, not the formulas.
 - Engineers in the comments may ask about false positives, dataset size, or performance. Be ready to discuss. The repo is public — invite them to look.
 - **Draft C** is the failure-modes angle — frame quality gates, the confirmation delay, the margin requirement. Good if you want to show precision thinking rather than just the clever lighting solution. "The system knows exactly where it fails. Not a feeling. A reason." is the thesis. Named states come from STATES_AND_DESIGN_LANGUAGE.md — a real doc that exists so agents and humans share vocabulary.

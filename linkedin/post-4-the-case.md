@@ -33,9 +33,9 @@ The thing I kept writing into every prompt: add more of me into it. The ISO from
 
 That's what AI makes obvious. Somebody still has to care whether it feels right.
 
-I want to work on a team that's building something they're proud of. If that's yours, I'd love to hear what you're working on.
-
 The repo is public. The bathroom gallery is real!
+
+I want to work on a team that's building something they're proud of. If that's yours, I'd love to hear what you're working on.
 
 ---
 
@@ -45,7 +45,7 @@ I care whether it feels right.
 
 Not just "does it work." Not just "did it ship." Does it feel like what you intended? Is the detail nobody will notice still worth getting right?
 
-That drove everything on this project. No QR codes because they'd change what the photographs were. Three fingerprint versions per print so it recognizes correctly under different lighting. A glitch that fires once every five minutes because an app that never glitches doesn't feel real. The color palette for each concert comes from the band name and the day of the week.
+That drove everything on this project. No QR codes because they'd change what the photographs were. Five fingerprint versions per print so it recognizes correctly under different lighting. A glitch that fires once every five minutes because an app that never glitches doesn't feel real. The color palette for each concert comes from the band name and the day of the week.
 
 None of that was in any spec.
 
@@ -83,7 +83,7 @@ If your team is running something like this, or trying to, I'd genuinely like to
 - **Draft B** is more direct and slightly contrarian — opens with a provocation about taste, uses the project as evidence. Good if you want to end with more conviction.
 - Both drafts drop the resume-style background summary ("Long background in CS...") — that language reads like a cover letter.
 - EXIF-driven film grain is a real detail (ISO → grain opacity 0.06–0.28 in code). It's the kind of thing that signals someone cared about craft.
-- The stochastic glitch appears in both drafts as a concrete example of taste — choosing to add organic imperfection.
+- The stochastic glitch appears in Draft B as a concrete example of taste — choosing to add organic imperfection. Draft A uses EXIF details (film grain, color palette, shutter speed) instead.
 - "I'd love to talk" / "I'd genuinely like to talk" — keep it low-pressure. The right people will reach out.
 - After posting: pin a comment with the repo link. Let the code speak for itself.
 - **Draft C** is the experiment angle — what building AI-first actually teaches about software design. The rules you write (CI enforcement, state vocabulary, ADRs) become load-bearing. Good if you want a close that's about the method, not just the taste. "I'd genuinely like to compare notes" is more specific than "I'd like to talk" — pulls in the right people. The vocabulary doc (STATES_AND_DESIGN_LANGUAGE.md) and the ADRs are real artifacts you could link to in a comment.

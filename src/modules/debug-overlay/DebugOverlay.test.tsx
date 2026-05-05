@@ -235,6 +235,23 @@ describe('DebugOverlay', () => {
 
       expect(screen.queryByText('Crop:')).not.toBeInTheDocument();
     });
+
+    it('should display crop variant metadata without a best match', () => {
+      render(
+        <DebugOverlay
+          {...defaultProps}
+          debugInfo={{
+            ...mockDebugInfo,
+            bestMatch: null,
+            recognitionCropVariant: 'center-trim',
+          }}
+        />
+      );
+
+      expect(screen.queryByText('Best Match')).not.toBeInTheDocument();
+      expect(screen.getByText('Recognition Crop')).toBeInTheDocument();
+      expect(screen.getByText('center-trim')).toBeInTheDocument();
+    });
   });
 
   describe('Guidance', () => {

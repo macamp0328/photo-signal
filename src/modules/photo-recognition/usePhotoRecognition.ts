@@ -1274,11 +1274,10 @@ export function usePhotoRecognition(
         );
         let selectedVariant: InlineVariantMatch | null = null;
         let fullFrameImageData: ImageData | null = null;
+        let hasRecordedIndexMode = false;
 
         const algorithmStartAt = performance.now();
         comparedCandidates = 0;
-
-        telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
 
         for (const variant of variants) {
           const variantRegion = {
@@ -1308,6 +1307,39 @@ export function usePhotoRecognition(
           if (variant.id === 'full') {
             fullFrameImageData = imageData;
             frameCaptureMs = performance.now() - frameCaptureStartAt;
+
+            // Preserve the original inline-path optimization for gallery mode:
+            // clearly blurry full frames are rejected before pHash/index scans.
+            if (!demoCropFallbackEnabled) {
+              const fullFrameVariance = computeLaplacianVariance(imageData);
+              if (fullFrameVariance < sharpnessThreshold * PRE_HASH_BLUR_GATE_FRACTION) {
+                consecutiveBlurFramesRef.current += 1;
+                if (consecutiveBlurFramesRef.current >= BLUR_REJECTION_CONSECUTIVE_FRAMES) {
+                  telemetryRef.current.blurRejections += 1;
+                  recordFailure(
+                    telemetryRef.current,
+                    'motion-blur',
+                    'Pre-hash blur gate: sharpness well below threshold',
+                    'N/A'
+                  );
+                  telemetryRef.current.frameQualityStats.blur.sharpnessSum += fullFrameVariance;
+                  telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
+                  if (consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES) {
+                    lastMatchedConcertRef.current = null;
+                    consecutiveMatchCountRef.current = 0;
+                    matchStartTimeRef.current = null;
+                    setRecognizingConcert(null);
+                  }
+                  setIsRecognizing(false);
+                }
+                return;
+              }
+            }
+          }
+
+          if (!hasRecordedIndexMode) {
+            telemetryRef.current.index_mode_used = (telemetryRef.current.index_mode_used ?? 0) + 1;
+            hasRecordedIndexMode = true;
           }
 
           const currentHashForVariant = computePHash(imageData);
@@ -1360,40 +1392,6 @@ export function usePhotoRecognition(
         const selectedRegion = selectedVariant.region;
         const recognitionCropVariant = selectedVariant.cropVariant;
         const selectedImageData = selectedVariant.imageData;
-
-        // Pre-hash blur gate: reject clearly blurry full-frame captures before
-        // they can affect recognition state. Demo crop fallback bypasses this
-        // early exit
-        // because the full frame may be blurred or overlaid while a trimmed
-        // blog-photo crop is still recognizable.
-        const preHashVariance = fullFrameImageData
-          ? computeLaplacianVariance(fullFrameImageData)
-          : sharpnessThreshold;
-        if (
-          !demoCropFallbackEnabled &&
-          preHashVariance < sharpnessThreshold * PRE_HASH_BLUR_GATE_FRACTION
-        ) {
-          consecutiveBlurFramesRef.current += 1;
-          if (consecutiveBlurFramesRef.current >= BLUR_REJECTION_CONSECUTIVE_FRAMES) {
-            telemetryRef.current.blurRejections += 1;
-            recordFailure(
-              telemetryRef.current,
-              'motion-blur',
-              'Pre-hash blur gate: sharpness well below threshold',
-              'N/A'
-            );
-            telemetryRef.current.frameQualityStats.blur.sharpnessSum += preHashVariance;
-            telemetryRef.current.frameQualityStats.blur.sampleCount += 1;
-            if (consecutiveBlurFramesRef.current >= BLUR_CLEAR_TRACKING_CONSECUTIVE_FRAMES) {
-              lastMatchedConcertRef.current = null;
-              consecutiveMatchCountRef.current = 0;
-              matchStartTimeRef.current = null;
-              setRecognizingConcert(null);
-            }
-            setIsRecognizing(false);
-          }
-          return;
-        }
 
         const candidateTelemetry = telemetryRef.current.candidate_count_per_frame;
         if (candidateTelemetry) {

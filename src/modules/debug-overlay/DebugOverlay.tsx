@@ -186,16 +186,20 @@ export function DebugOverlay({
                   </div>
                 </div>
               ) : null}
-              {recognitionCropVariant ? (
-                <div className={styles.matchStats}>
-                  <div className={styles.stat}>
-                    <span className={styles.statLabel}>Crop:</span>
-                    <span className={styles.statValue}>{recognitionCropVariant}</span>
-                  </div>
-                </div>
-              ) : null}
             </div>
           )}
+
+          {recognitionCropVariant ? (
+            <div className={styles.section}>
+              <div className={styles.label}>Recognition Crop</div>
+              <div className={styles.matchStats}>
+                <div className={styles.stat}>
+                  <span className={styles.statLabel}>Crop:</span>
+                  <span className={styles.statValue}>{recognitionCropVariant}</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {/* Guidance */}
           {primaryRecommendation && (

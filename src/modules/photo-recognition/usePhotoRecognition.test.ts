@@ -541,8 +541,6 @@ describe('usePhotoRecognition', () => {
       });
 
       expect(mockContext.drawImage).toHaveBeenCalled();
-
-      console.log(result.current.debugInfo);
       expect(result.current.recognizedConcert?.id).toBe(1);
       expect((result.current.debugInfo?.telemetry.index_mode_used ?? 0) > 0).toBe(true);
       expect((result.current.debugInfo?.telemetry.candidate_count_per_frame?.last ?? 0) > 0).toBe(

@@ -427,32 +427,16 @@ function drawImageDataVariantForHash(
   hashCanvas!.width = PHASH_SIZE;
   hashCanvas!.height = PHASH_SIZE;
   hCtx.clearRect(0, 0, PHASH_SIZE, PHASH_SIZE);
-
-  const sourceAspect = variant.width / variant.height;
-  const destinationAspect = PHASH_SIZE / PHASH_SIZE;
-  let drawWidth = PHASH_SIZE;
-  let drawHeight = PHASH_SIZE;
-  let drawX = 0;
-  let drawY = 0;
-
-  if (sourceAspect > destinationAspect) {
-    drawHeight = PHASH_SIZE / sourceAspect;
-    drawY = (PHASH_SIZE - drawHeight) / 2;
-  } else {
-    drawWidth = PHASH_SIZE * sourceAspect;
-    drawX = (PHASH_SIZE - drawWidth) / 2;
-  }
-
   hCtx.drawImage(
     imageDataCanvas!,
     variant.x,
     variant.y,
     variant.width,
     variant.height,
-    drawX,
-    drawY,
-    drawWidth,
-    drawHeight
+    0,
+    0,
+    PHASH_SIZE,
+    PHASH_SIZE
   );
   return hCtx.getImageData(0, 0, PHASH_SIZE, PHASH_SIZE);
 }

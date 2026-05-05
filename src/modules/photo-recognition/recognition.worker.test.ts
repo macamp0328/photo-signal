@@ -582,6 +582,59 @@ describe('recognition.worker', () => {
     );
   });
 
+  it('direct-resizes rectified crop variants for hash matching', async () => {
+    const selfRef = await loadWorkerModule();
+    const bitmap = makeBitmap();
+
+    mockComputePHash.mockReturnValueOnce('full-noisy').mockReturnValueOnce('bottom-clear');
+    mockHammingDistance.mockImplementation((frameHash: string, candidateHash: string) => {
+      if (frameHash === 'bottom-clear') {
+        return candidateHash === 'aaaaaaaaaaaaaaaa' ? 6 : 24;
+      }
+      return candidateHash === 'aaaaaaaaaaaaaaaa' ? 20 : 28;
+    });
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'init',
+        hashEntries: [
+          { hash: 'aaaaaaaaaaaaaaaa', concertId: 1 },
+          { hash: 'bbbbbbbbbbbbbbbb', concertId: 2 },
+        ],
+        config: { ...baseConfig, demoCropFallbackEnabled: true },
+      },
+    } as MessageEvent);
+
+    selfRef.onmessage?.({
+      data: {
+        type: 'frame',
+        bitmap,
+        frameId: 21,
+        perspective: {
+          corners: [
+            { x: 4, y: 4 },
+            { x: 60, y: 8 },
+            { x: 58, y: 58 },
+            { x: 6, y: 56 },
+          ],
+          targetAspect: '3:2',
+        },
+      },
+    } as MessageEvent);
+
+    expect(drawImageCalls).toEqual(
+      expect.arrayContaining([[expect.any(MockOffscreenCanvas), 0, 0, 96, 50, 0, 0, 32, 32]])
+    );
+    expect(selfRef.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'result',
+        frameId: 21,
+        cropVariant: 'bottom-trim',
+        bestMatch: { concertId: 1, distance: 6 },
+      })
+    );
+  });
+
   it('falls back gracefully when perspective metadata is out of source bounds', async () => {
     const selfRef = await loadWorkerModule();
     const bitmap = makeBitmap();

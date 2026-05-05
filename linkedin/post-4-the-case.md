@@ -23,37 +23,57 @@
 
 A few weeks ago a photo of my bathroom went modestly viral.
 
-What I keep coming back to is what the project taught me about the role.
+What I keep thinking about is what the project actually taught me.
 
-I've spent enough time in product to know that good engineering is mostly taste — knowing what matters, knowing when it's done, knowing the difference between a feature that ships and one that solves the problem. I've spent enough time as an engineer to be useful: I'll pick up tooling I don't know, read enough to form an opinion, and make the call.
+Good engineering is mostly taste. Knowing what matters. Knowing when something is actually done. Knowing the difference between a feature that shipped and one that actually works.
 
-This project ran the full arc. Art concept → architectural calls (no QR codes; chose pHash, Cloudflare Workers, Vite without having used any of them) → recognition algorithm → seven-step CI gate → the aesthetic direction I kept pushing on: add more of me into it.
+And I know enough to just try things. I picked up pHash, Cloudflare Workers, and Vite without having used any of them. Read enough to think they were probably right. Bathroom art project. If I was wrong I could change it.
 
-The EXIF data from the original concert photos — ISO, shutter speed, aperture — drives the visual character of each matched UI. Higher ISO means more film grain. The camera that took the photo shapes how the app looks when you find it. No one asked for that. I kept asking for it until it was there.
+The thing I kept writing into every prompt: add more of me into it. The ISO from the original concert photos drives the film grain in the UI. The shutter speed from that same shot shapes how the match animation feels. The color palette for each match comes from the band name and day of the week. Nobody asked for any of that. I kept asking until it was there.
 
-What AI-assisted development surfaces clearly: you still need someone who cares whether the outcome is right. Someone with taste. Someone willing to be stubborn about the right things.
+That's what AI makes obvious. Somebody still has to care whether it feels right.
+
+The repo is public. The bathroom gallery is real!
 
 I want to work on a team that's building something they're proud of. If that's yours, I'd love to hear what you're working on.
-
-The repo is public. The bathroom gallery is real.
 
 ---
 
 ## Draft B — The Honest Assessment (direct, slightly contrarian)
 
-The hardest thing to explain about this kind of work: I care whether it feels right.
+I care whether it feels right.
 
-Not "is it shipped." Not "does it pass CI" — though it does, all seven steps. Whether the thing you made matches what you intended. Whether the detail no one will notice was still worth getting right.
+Not just "does it work." Not just "did it ship." Does it feel like what you intended? Is the detail nobody will notice still worth getting right?
 
-That instinct drove every significant decision on this project. No QR codes — not because they wouldn't work, but because they'd change what the photographs were. Three hash variants per print so the same photo recognizes correctly under a warm spotlight and in a cool corner. A stochastic glitch that fires roughly once every five minutes — because an app that never glitches doesn't feel like a real piece of hardware.
+That drove everything on this project. No QR codes because they'd change what the photographs were. Five fingerprint versions per print so it recognizes correctly under different lighting. A glitch that fires once every five minutes because an app that never glitches doesn't feel real. The color palette for each concert comes from the band name and the day of the week.
 
-I directed AI agents across the full stack. Chose tooling I had never worked with — pHash, Cloudflare Workers, Vite — because I read enough to think they were probably right, and it's an art project in my bathroom. Wrong call? Change it. Two-way door.
+None of that was in any spec.
 
-Started this in 2025 and shelved it. The AI could build, but the output felt generic. Came back in 2026 when the tools had caught up to what I was actually trying to make.
+I directed AI agents across the full stack. Picked up tools I hadn't used. Started it in 2025, shelved it, came back in 2026 when the tools had caught up.
 
-What the role looks like, at its best: product instinct and engineering judgment in conversation, not siloed. I want to work somewhere building something worth caring about.
+I'm looking for a team building something they're actually proud of. Not just shipped. Proud of.
 
-If that's your team, I'd genuinely like to talk.
+If that's yours, I'd genuinely like to talk.
+
+---
+
+## Draft C — The Experiment (what building this way actually teaches you)
+
+The most surprising thing about building this way: you have to design differently.
+
+When AI agents do most of the coding, you become the person who writes the rules the system runs by.
+
+Every export in every module has to be documented in its README, or CI fails. That's a rule I wrote. Not because I was worried about documentation — because agents write code faster than they write docs, and if you don't enforce it, it doesn't happen.
+
+There's a vocabulary document that names every state in the system. LOCKED. LANDING. ACTIVE. IDLE. CANDIDATE. MATCHED. Because when you're writing a prompt to build a feature, you need to say "when the recognition state is CANDIDATE" and mean something exact.
+
+There are architecture decision records. Written down, so future agents — and future me — don't re-litigate what's already been decided.
+
+I almost never wrote code on this project. I wrote systems that make the code better. And I kept writing "add more of me into it" until the thing felt like mine.
+
+That's the experiment. It worked.
+
+If your team is running something like this, or trying to, I'd genuinely like to compare notes.
 
 ---
 
@@ -63,6 +83,7 @@ If that's your team, I'd genuinely like to talk.
 - **Draft B** is more direct and slightly contrarian — opens with a provocation about taste, uses the project as evidence. Good if you want to end with more conviction.
 - Both drafts drop the resume-style background summary ("Long background in CS...") — that language reads like a cover letter.
 - EXIF-driven film grain is a real detail (ISO → grain opacity 0.06–0.28 in code). It's the kind of thing that signals someone cared about craft.
-- The stochastic glitch appears in both drafts as a concrete example of taste — choosing to add organic imperfection.
+- The stochastic glitch appears in Draft B as a concrete example of taste — choosing to add organic imperfection. Draft A uses EXIF details (film grain, color palette, shutter speed) instead.
 - "I'd love to talk" / "I'd genuinely like to talk" — keep it low-pressure. The right people will reach out.
 - After posting: pin a comment with the repo link. Let the code speak for itself.
+- **Draft C** is the experiment angle — what building AI-first actually teaches about software design. The rules you write (CI enforcement, state vocabulary, ADRs) become load-bearing. Good if you want a close that's about the method, not just the taste. "I'd genuinely like to compare notes" is more specific than "I'd like to talk" — pulls in the right people. The vocabulary doc (STATES_AND_DESIGN_LANGUAGE.md) and the ADRs are real artifacts you could link to in a comment.

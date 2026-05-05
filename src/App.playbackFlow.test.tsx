@@ -1361,22 +1361,32 @@ describe('App playback flow', () => {
       expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('0.576');
     });
 
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      value: 'hidden',
-    });
-    fireEvent(document, new Event('visibilitychange'));
+    const originalVisibilityStateDescriptor = Object.getOwnPropertyDescriptor(
+      document,
+      'visibilityState'
+    );
 
-    await waitFor(() => {
-      expect(document.documentElement.getAttribute('data-state')).toBeNull();
-      expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
-      expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
-    });
+    try {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'hidden',
+      });
+      fireEvent(document, new Event('visibilitychange'));
 
-    Object.defineProperty(document, 'visibilityState', {
-      configurable: true,
-      value: 'visible',
-    });
+      await waitFor(() => {
+        expect(document.documentElement.getAttribute('data-state')).toBeNull();
+        expect(document.documentElement.hasAttribute('data-exif-visual')).toBe(false);
+        expect(document.documentElement.style.getPropertyValue('--crt-opacity')).toBe('');
+      });
+    } finally {
+      if (originalVisibilityStateDescriptor) {
+        Object.defineProperty(document, 'visibilityState', originalVisibilityStateDescriptor);
+      } else {
+        Reflect.deleteProperty(document, 'visibilityState');
+      }
+
+      fireEvent(document, new Event('visibilitychange'));
+    }
   });
 
   // --- Preload regression tests (instant audio on match + next-track lookahead) ---

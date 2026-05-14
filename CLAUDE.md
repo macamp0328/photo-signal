@@ -1,4 +1,6 @@
-# CLAUDE.md — Photo Signal
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > **Sync note**: This is the canonical AI agent instruction source. `.github/copilot-instructions.md`
 > is derived from this document and kept consistent for overlapping sections — it is not identical
@@ -83,8 +85,16 @@ npm run pre-commit
 
 # Testing
 npm run test             # Vitest watch mode
+npm run test:run         # Run all tests once (same as CI)
 npm run test:coverage    # Coverage report (70% minimum threshold)
 npm run test:visual      # Playwright visual regression (builds first)
+
+# Run a single test file or directory
+npx vitest run src/modules/audio-playback
+npx vitest run src/modules/audio-playback/audio-playback.test.ts
+
+# Run tests matching a name pattern
+npx vitest run --reporter=verbose -t "matches photo"
 
 # Photo recognition data
 npm run hashes:refresh   # Regenerate pHash hashes for all photos (safe batching)

@@ -91,7 +91,7 @@ npm run test:visual      # Playwright visual regression (builds first)
 
 # Run a single test file or directory
 npx vitest run src/modules/audio-playback
-npx vitest run src/modules/audio-playback/audio-playback.test.ts
+npx vitest run src/modules/audio-playback/useAudioPlayback.test.ts
 
 # Run tests matching a name pattern
 npx vitest run --reporter=verbose -t "matches photo"

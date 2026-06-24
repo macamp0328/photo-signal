@@ -10,7 +10,7 @@ DIST_DIR="dist/assets"
 # + React/DOM (~40KB) + app code (~10KB)
 # TODO: Consider code splitting or lighter audio library for future optimization
 MAX_JS_SIZE_KB=140
-MAX_CSS_SIZE_KB=6    # Maximum gzipped CSS size in KB (increased for secret-settings, debug-overlay, and EXIF visual character modules)
+MAX_CSS_SIZE_KB=8    # Maximum gzipped CSS size in KB (raised to 8 for Vite 8's CSS output; covers secret-settings, debug-overlay, and EXIF visual character modules)
 
 echo "📦 Bundle Size Analysis"
 echo "======================="
